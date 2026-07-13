@@ -72,6 +72,13 @@ namespace PhanMemThiDua2026
             kryptonDataGridView2.CellValueNeeded += KryptonDataGridView2_CellValueNeeded;
             kryptonDataGridView2.CellPainting += KryptonDataGridView2_CellPainting;
 
+            // =========================================================================
+            // ⭐ BỔ SUNG 2 DÒNG NÀY ĐỂ CHỌN CẢ DÒNG HÀNG NGANG KHI NGƯỜI DÙNG CLICK
+            // =========================================================================
+            kryptonDataGridView2.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            kryptonDataGridView2.MultiSelect = false; // Chặn chọn nhiều dòng cùng lúc nếu không cần thiết
+            // =========================================================================
+
             _connStr = $"Data Source={_csdl2Path};Pooling=True;";
 
             if (Properties.Resources.ic_khenthuong != null)
@@ -86,6 +93,7 @@ namespace PhanMemThiDua2026
 
             try
             {
+                Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
                 toolStripStatusLabel4.Text = "Đang tải dữ liệu...";
 
                 if (_dataGoc.Count == 0)
@@ -97,15 +105,12 @@ namespace PhanMemThiDua2026
                 }
 
                 TaoCotChoGridView();
-
                 LoadComboDonVi();
                 LoadComboPhanLoai();
                 LoadComboGhiChu();
-
                 InitSearchTimer();
                 InitPlaceHolder();
                 InitFilters();
-
                 ApplyFilter_Virtual();
 
                 int tongSo = _dataGoc?.Count ?? 0;
@@ -783,7 +788,18 @@ namespace PhanMemThiDua2026
             }
         }
         private void quayLaiTrangXuLyData_ToolStripMenuItem_Click(object sender, EventArgs e) => this.Close();
-        private void kryptonButton1_Dong_Click(object sender, EventArgs e) => this.Close();
+        private void kryptonButton1_Dong_Click(object sender, EventArgs e)
+        {
+            // 1. Tìm Form cha đang mở
+            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+            // 2. Nếu tìm thấy Form cha thì cập nhật lại tiêu đề
+            if (formCha != null)
+            {
+                formCha.CapNhatTieuDe("Trang xử lý dữ liệu");
+            }
+            // 3. Đóng form hiện tại
+            this.Close();
+        }
         private void xoaTimKiem_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _searchTimer?.Stop();
@@ -976,10 +992,6 @@ namespace PhanMemThiDua2026
             toolStripStatusLabel_TongSoLoai4.Visible = false;
             toolStripStatusLabel_TongSoKhongPhanLoai.Visible = false;
         }
-
-
-
-
 
     }
     //Lê Trung Kiên

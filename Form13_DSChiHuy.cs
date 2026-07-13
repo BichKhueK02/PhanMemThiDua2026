@@ -329,9 +329,11 @@ namespace PhanMemThiDua2026
                 kryptonButton1_Btn_Capnhat.Enabled = true;
             }
         }
+
         private void DinhDangGrid()
         {
             var grid = kryptonDataGridView1;
+
             // ===== CẤU HÌNH CHUNG =====
             grid.Dock = DockStyle.Fill;
             grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -345,18 +347,39 @@ namespace PhanMemThiDua2026
             grid.ReadOnly = true;
             grid.EnableHeadersVisualStyles = false;
 
+            // ===== THIẾT KẾ PHẲNG & HIỆN ĐẠI (NEW) =====
+            grid.BackgroundColor = Color.White;
+            grid.BorderStyle = BorderStyle.None;
+            grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal; // Chỉ hiện kẻ ngang, bỏ kẻ dọc nhìn rất sang
+            grid.GridColor = Color.FromArgb(235, 235, 235); // Màu kẻ ngang xám nhạt tinh tế
+
             // ===== STYLE HEADER =====
-            grid.ColumnHeadersHeight = 40;
+            grid.ColumnHeadersHeight = 50; // Tăng độ rộng (chiều cao) tiêu đề để thoáng hơn
+            grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; // Khóa cứng chiều cao
+            grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None; // Bỏ viền bao quanh tiêu đề
+
             grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Alignment = DataGridViewContentAlignment.MiddleCenter
+                Font = new Font("Segoe UI", 10.5F, FontStyle.Bold), // Phóng to font lên một xíu
+                Alignment = DataGridViewContentAlignment.MiddleCenter,
+                BackColor = Color.FromArgb(240, 244, 248), // Nền tiêu đề màu xanh xám nhạt cực êm mắt
+                ForeColor = Color.FromArgb(40, 40, 40),    // Chữ màu xám than (không dùng đen tuyền)
+                SelectionBackColor = Color.FromArgb(240, 244, 248) // Giữ nguyên màu khi lỡ click vào header
             };
 
             // ===== STYLE ROW =====
-            grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 245, 245);
-            grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 120, 215);
-            grid.DefaultCellStyle.SelectionForeColor = Color.White;
+            grid.RowTemplate.Height = 38; // Tăng chiều cao của từng dòng dữ liệu để không bị tù túng
+
+            grid.DefaultCellStyle = new DataGridViewCellStyle
+            {
+                Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+                ForeColor = Color.FromArgb(45, 45, 45),
+                Padding = new Padding(5, 0, 5, 0), // Lùi lề chữ vào 5px để không bị sát vách
+                SelectionBackColor = Color.FromArgb(232, 244, 253), // Khi chọn dòng: nền xanh nước biển nhạt
+                SelectionForeColor = Color.FromArgb(0, 102, 204)    // Khi chọn dòng: chữ xanh dương đậm
+            };
+
+            grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(252, 252, 252); // Sọc dưa cực nhạt cho dòng chẵn/lẻ
 
             // ===== CẤU HÌNH CỘT =====
             CauHinhCot("ID", "STT", 15, DataGridViewContentAlignment.MiddleCenter);
@@ -367,14 +390,16 @@ namespace PhanMemThiDua2026
             foreach (DataGridViewColumn col in grid.Columns)
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;
         }
+
         private void CauHinhCot(string name, string header, int fillWeight, DataGridViewContentAlignment align)
         {
-            var col = kryptonDataGridView1.Columns[name];
-            if (col == null) return;
-
-            col.HeaderText = header;
-            col.FillWeight = fillWeight;
-            col.DefaultCellStyle.Alignment = align;
+            if (kryptonDataGridView1.Columns.Contains(name))
+            {
+                var col = kryptonDataGridView1.Columns[name];
+                col.HeaderText = header;
+                col.FillWeight = fillWeight;
+                col.DefaultCellStyle.Alignment = align;
+            }
         }
         private void InitToolTips()
         {

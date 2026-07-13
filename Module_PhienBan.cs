@@ -5,12 +5,12 @@ namespace PhanMemThiDua2026
     internal static class Module_PhienBan
     {
         // ================= VERSION =================
-        public const string SoftwareVersion = "1.0.225";
+        public const string SoftwareVersion = "1.0.230";
 
         // ================= DATE (GIỮ NGUYÊN CHUỖI GỐC) =================
-        public const string NgayThangNamHeThong = "03/6/2026";
+        public const string NgayThangNamHeThong = "15/7/2026";
         public const string NgayThangNamCapNhat = "Cập nhật lần cuối ngày " + NgayThangNamHeThong;
-        public const string NguoiPhatTrienPhanMem = "LeTrungKien";
+        public const string NguoiPhatTrienPhanMem = "LeTrungKien & Nhóm phát triển";
 
         public const string NgayThangNam = NgayThangNamHeThong;
         // ================= PARSED DATE (THÊM MỚI - KHÔNG PHÁ CODE CŨ) =================

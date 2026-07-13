@@ -150,8 +150,8 @@ namespace PhanMemThiDua2026
             Button btnDong = new()
             {
                 Text = "XÁC NHẬN ĐÓNG",
-                Width = 160,
-                Height = 38,
+                Width = 200,
+                Height = 42,
                 Cursor = Cursors.Hand,
                 DialogResult = DialogResult.OK,
                 FlatStyle = FlatStyle.Flat,

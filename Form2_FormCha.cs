@@ -92,7 +92,8 @@ namespace PhanMemThiDua2026
             DangKySuKienTuDongAnMenu();
 
             EnsureSuKienThoatTonTai();
-
+            // ⭐ THÊM VÀO ĐÂY: Thiết lập mũi tên ban đầu khi load Form
+            CapNhatMuiTenGiaoDien();
             isLoaded = true;
 
             await Task.Run(() =>
@@ -247,6 +248,26 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"Lỗi kiểm tra phiên bản để ẩn nút Khen thưởng: {ex.Message}");
             }
         }
+        private void CapNhatMuiTenGiaoDien()
+        {
+            UIHelper.SafeInvoke(this, () =>
+            {
+                if (PictureBox2 == null || PictureBox2.IsDisposed) return;
+
+                // Xác định hình ảnh mới từ Resources
+                Image hinhMoi = sidebarExpanded
+                    ? Properties.Resources.SangTrai
+                    : Properties.Resources.SangPhai;
+
+                // Cấu hình chuẩn hiển thị
+                PictureBox2.Image = hinhMoi;
+
+                // 🛠️ ĐỔI THÀNH ZOOM: Thu phóng ảnh vừa vặn trọn vẹn vào khung mà không bị méo (giữ nguyên tỷ lệ)
+                PictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
+
+                PictureBox2.Update();
+            });
+        }
         private void KhoiTaoTimerTuDongAnMenu()
         {
             if (timerTuDongAnMenu != null) return;
@@ -329,7 +350,8 @@ namespace PhanMemThiDua2026
             PanelLeft.Width = sidebarMinWidth;
             sidebarExpanded = false;
             kryptonButton1_MoMenuPhanMem.Text = "Hiện menu";
-
+            // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi ẩn menu
+            CapNhatMuiTenGiaoDien();
         }
         private void EnableDoubleBuffering(Control ctrl)
         {
@@ -397,13 +419,15 @@ namespace PhanMemThiDua2026
 
             if (sidebarExpanded)
             {
-                AnMenu();
+                AnMenu(); 
             }
             else
             {
                 PanelLeft.Width = sidebarWidth;
                 sidebarExpanded = true;
                 kryptonButton1_MoMenuPhanMem.Text = "Ẩn menu";
+                // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi hiện menu
+                CapNhatMuiTenGiaoDien();
             }
         }
         // 1. Thêm từ khóa 'async' vào chữ ký của sự kiện
@@ -1569,8 +1593,11 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("[FORM2 CLOSE ALL ERROR] " + ex.Message);
             }
         }
-
-    
+        public void CapNhatTieuDe(string text)
+        {
+            // Cập nhật text cho Label1
+            Label1.Text = text;
+        }
     }
 }
 public static class UIHelper

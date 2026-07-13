@@ -16,7 +16,6 @@ namespace PhanMemThiDua2026
             "version.txt",
             "NhatKy_DonRac.txt" // Phải cho phép file nhật ký tồn tại
         };
-
         public static string FolderName => "HuongDanSuDung";
         public static string FileName => "HuongDanSuDung.html";
         public static string VersionFileName => "version.txt";
@@ -25,9 +24,7 @@ namespace PhanMemThiDua2026
         public static string AppDataDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PhanMemThiDua2026", FolderName);
         public static string AppDataHtmlFile => Path.Combine(AppDataDir, FileName);
         public static string AppDataVersionFile => Path.Combine(AppDataDir, VersionFileName);
-
         private static readonly object _lock = new();
-
         // =========================================================================
         // BẮT ĐẦU ĐOẠN CODE GIỮ NGUYÊN 100%
         // =========================================================================
@@ -85,7 +82,6 @@ Status: Ready
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, content, Encoding.UTF8);
         }
-
         // =========================================================================
         // 3. CƠ CHẾ PHỤC HỒI NGƯỢC (REVERSE RECOVERY) - XỬ LÝ TRƯỜNG HỢP HY HỮU
         // =========================================================================
@@ -93,12 +89,10 @@ Status: Ready
         {
             return false; // 🟢 Đã vô hiệu hóa để tránh IT quét: Không dùng AppData nữa
         }
-
         private static void ThucHienPhucHoiNguoc()
         {
             return; // 🟢 Đã vô hiệu hóa để tránh IT quét: Không dùng AppData nữa
         }
-
         // =========================================================================
         // 4. CƠ CHẾ ĐỒNG BỘ 2 CHIỀU THÔNG MINH
         // =========================================================================
@@ -166,15 +160,13 @@ Status: Ready
                 Debug.WriteLine("[SYNC MASTER ERROR] " + ex.Message);
             }
         }
-
         // =========================================================================
         // 5. CƠ CHẾ TIÊU DIỆT RÁC & BẢO VỆ PHẦN MỀM 
         // =========================================================================
-        private static void TieuDietRac()
+       private static void TieuDietRac()
         {
             return; // 🟢 Đã vô hiệu hóa thao tác vào AppData để tránh IT quét
         }
-
         // =========================
         // 6. CHECK + UPDATE APPDATA 
         // =========================
@@ -182,7 +174,6 @@ Status: Ready
         {
             return; // 🟢 Đã vô hiệu hóa AppData
         }
-
         // =========================
         // 7. EXTRACT HASH 
         // =========================
@@ -368,9 +359,6 @@ Status: Ready
         }
     }
 }
-
-
-
 
 //using System.Diagnostics;
 //using System.Security.Cryptography;

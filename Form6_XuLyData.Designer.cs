@@ -100,6 +100,7 @@
             phanTichDuLieuTrungTen_ToolStripMenuItem = new ToolStripMenuItem();
             cBCSTrongDienQuanLy_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem4 = new ToolStripSeparator();
+            ToolStripMenuItem_QuanLyThiDuaBaNhat = new ToolStripMenuItem();
             tableLayoutPanel1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -844,9 +845,9 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, kiemTraKetNoi, xoaTimKiem, xoaToanBoDuLieuDSCBCS_ToolStripMenuItem, toolStripMenuItem1, nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem, themDuLieuTuFileExce_ToolStripMenuItem, toolStripMenuItem2, xuatDuLieuSangThongKe_ToolStripMenuItem, xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem, toolStripMenuItem3, phanTichDuLieuTrungTen_ToolStripMenuItem, cBCSTrongDienQuanLy_ToolStripMenuItem, toolStripMenuItem4 });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, kiemTraKetNoi, xoaTimKiem, xoaToanBoDuLieuDSCBCS_ToolStripMenuItem, toolStripMenuItem1, nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem, themDuLieuTuFileExce_ToolStripMenuItem, toolStripMenuItem2, xuatDuLieuSangThongKe_ToolStripMenuItem, xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem, toolStripMenuItem3, phanTichDuLieuTrungTen_ToolStripMenuItem, cBCSTrongDienQuanLy_ToolStripMenuItem, toolStripMenuItem4, ToolStripMenuItem_QuanLyThiDuaBaNhat });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(281, 308);
+            contextMenuStrip1.Size = new Size(281, 358);
             // 
             // lamMoiHeThong
             // 
@@ -854,7 +855,7 @@
             lamMoiHeThong.Name = "lamMoiHeThong";
             lamMoiHeThong.ShortcutKeys = Keys.F5;
             lamMoiHeThong.Size = new Size(280, 28);
-            lamMoiHeThong.Text = "Làm mới";
+            lamMoiHeThong.Text = "Làm mới trang";
             lamMoiHeThong.Click += lamMoiHeThong_Click;
             // 
             // kiemTraKetNoi
@@ -927,7 +928,7 @@
             xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Name = "xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem";
             xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
             xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Size = new Size(280, 28);
-            xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Text = "Xuất dữ liệu ra tệp excel";
+            xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Text = "Xuất dữ liệu (Tệp excel)";
             xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Click += xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem3
@@ -957,6 +958,14 @@
             // 
             toolStripMenuItem4.Name = "toolStripMenuItem4";
             toolStripMenuItem4.Size = new Size(277, 6);
+            // 
+            // ToolStripMenuItem_QuanLyThiDuaBaNhat
+            // 
+            ToolStripMenuItem_QuanLyThiDuaBaNhat.Image = (Image)resources.GetObject("ToolStripMenuItem_QuanLyThiDuaBaNhat.Image");
+            ToolStripMenuItem_QuanLyThiDuaBaNhat.Name = "ToolStripMenuItem_QuanLyThiDuaBaNhat";
+            ToolStripMenuItem_QuanLyThiDuaBaNhat.Size = new Size(280, 28);
+            ToolStripMenuItem_QuanLyThiDuaBaNhat.Text = "Quản lý thi đua Ba nhất";
+            ToolStripMenuItem_QuanLyThiDuaBaNhat.Click += ToolStripMenuItem_QuanLyThiDuaBaNhat_Click;
             // 
             // Form6_XuLyData
             // 
@@ -1065,5 +1074,6 @@
         private ToolStripSeparator toolStripMenuItem2;
         private ToolStripSeparator toolStripMenuItem3;
         private ToolStripSeparator toolStripMenuItem4;
+        private ToolStripMenuItem ToolStripMenuItem_QuanLyThiDuaBaNhat;
     }
 }

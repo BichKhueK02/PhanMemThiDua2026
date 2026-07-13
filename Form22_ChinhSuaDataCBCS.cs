@@ -45,13 +45,10 @@ namespace PhanMemThiDua2026
             {
                 // 1. Cấu hình thuộc tính Form (UI Metadata)
                 SetupFormAppearance();
-
                 // 2. Đồng bộ dữ liệu lên nhãn hiển thị (Data Binding)
                 BindHeaderInformation();
-
                 // 3. Xử lý trạng thái công tác (Business Logic hiển thị)
                 SetStatusDisplay();
-
                 // 4. Kiểm tra quyền hạn và chế độ xem (Authorization/Mode)
                 ApplyViewOnlyMode();
             }
@@ -74,7 +71,6 @@ namespace PhanMemThiDua2026
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.AcceptButton = kryptonButton1_CapNhat;
-
             // Tránh việc DialogResult tự đóng form khi dùng Krypton
             try { kryptonButton1_CapNhat.DialogResult = DialogResult.None; } catch { }
         }

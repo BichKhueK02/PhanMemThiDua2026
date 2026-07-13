@@ -61,6 +61,7 @@ namespace PhanMemThiDua2026
         }
         private void Form33_KiemTraSucKhoeCSDL_Load(object sender, EventArgs e)
         {
+            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
             label_TenAdminDangNhap.Text = "Người khai thác: " + SessionInfo.TenTaiKhoan;
             toolStripProgressBar1.Visible = false;
             toolStripStatusLabel1_ThoiGianKhaiThac.Text = "Ngày kiểm tra: " + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");

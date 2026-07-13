@@ -1174,6 +1174,8 @@ namespace PhanMemThiDua2026
             soLuongBCHDLoai1 = 0;
             soLuongBCHDLoai2 = 0;
             soLuongBCHDLoai3 = 0;
+            soLuongBCHDLoai4 = 0;
+            soLuongBCHDKhongPhanLoai = 0;
 
             string deNghiRaw = "";
 
@@ -1195,25 +1197,105 @@ namespace PhanMemThiDua2026
 
             string deNghi = deNghiRaw.Trim().ToUpperInvariant();
 
+            // ================== LOGIC TRUY VẤN ĐỘNG MA TRẬN THEO HÌNH 9163EC ==================
             if (tongBCH > 0)
             {
-                switch (deNghi)
+                // Định vị chính xác cột dữ liệu (Tập thể) cần đọc trong SQLite
+                string tenCotTapThe = deNghi switch
                 {
-                    case "LOẠI 1":
-                        soLuongBCHDLoai1 = (int)Math.Round(tongBCH * 0.75);
-                        soLuongBCHDLoai2 = tongBCH - soLuongBCHDLoai1;
-                        break;
+                    "LOẠI 1" => "Loai_1",
+                    "LOẠI 2" => "Loai_2",
+                    "LOẠI 3" => "Loai_3",
+                    "LOẠI 4" => "Loai_4",
+                    _ => "Khong_PL"
+                };
 
-                    case "LOẠI 2":
-                        soLuongBCHDLoai1 = (int)Math.Round(tongBCH * 0.5);
-                        soLuongBCHDLoai2 = tongBCH - soLuongBCHDLoai1;
-                        break;
+                double rateL1 = 0, rateL2 = 0, rateL3 = 0, rateL4 = 0, rateKPL = 0;
+                bool layDuLieuThanhCong = false;
 
-                    case "LOẠI 3":
-                    case "LOẠI 4":
-                        soLuongBCHDLoai2 = (int)Math.Round(tongBCH * 0.5);
-                        soLuongBCHDLoai3 = tongBCH - soLuongBCHDLoai2;
-                        break;
+                try
+                {
+                    using var conn = new SqliteConnection($"Data Source={fileDB}");
+                    conn.Open();
+
+                    // Đọc dòng ID = 1 (Tỷ lệ Loại 1 cá nhân của BCH)
+                    using (var cmd1 = new SqliteCommand($"SELECT {tenCotTapThe} FROM QuyDinhTyLeBCH WHERE ID = 1", conn))
+                    {
+                        var res = cmd1.ExecuteScalar();
+                        rateL1 = (double.TryParse(res?.ToString()?.Replace("%", ""), out double r1) ? r1 : 0) / 100.0;
+                    }
+                    // Đọc dòng ID = 2 (Tỷ lệ Loại 2 cá nhân của BCH)
+                    using (var cmd2 = new SqliteCommand($"SELECT {tenCotTapThe} FROM QuyDinhTyLeBCH WHERE ID = 2", conn))
+                    {
+                        var res = cmd2.ExecuteScalar();
+                        rateL2 = (double.TryParse(res?.ToString()?.Replace("%", ""), out double r2) ? r2 : 0) / 100.0;
+                    }
+                    // Đọc dòng ID = 3 (Tỷ lệ Loại 3 cá nhân của BCH)
+                    using (var cmd3 = new SqliteCommand($"SELECT {tenCotTapThe} FROM QuyDinhTyLeBCH WHERE ID = 3", conn))
+                    {
+                        var res = cmd3.ExecuteScalar();
+                        rateL3 = (double.TryParse(res?.ToString()?.Replace("%", ""), out double r3) ? r3 : 0) / 100.0;
+                    }
+                    // Đọc dòng ID = 4 (Tỷ lệ Loại 4 cá nhân của BCH)
+                    using (var cmd4 = new SqliteCommand($"SELECT {tenCotTapThe} FROM QuyDinhTyLeBCH WHERE ID = 4", conn))
+                    {
+                        var res = cmd4.ExecuteScalar();
+                        rateL4 = (double.TryParse(res?.ToString()?.Replace("%", ""), out double r4) ? r4 : 0) / 100.0;
+                    }
+                    // Đọc dòng ID = 5 (Tỷ lệ Không PL cá nhân của BCH)
+                    using (var cmd5 = new SqliteCommand($"SELECT {tenCotTapThe} FROM QuyDinhTyLeBCH WHERE ID = 5", conn))
+                    {
+                        var res = cmd5.ExecuteScalar();
+                        rateKPL = (double.TryParse(res?.ToString()?.Replace("%", ""), out double r5) ? r5 : 0) / 100.0;
+                    }
+
+                    layDuLieuThanhCong = true;
+                }
+                catch
+                {
+                    layDuLieuThanhCong = false;
+                }
+
+                // BIỆN PHÁP AN TOÀN (FALLBACK MẶC ĐỊNH): Nếu CSDL trống, tự động gán tỉ lệ 50/50 quy chuẩn mới
+                if (!layDuLieuThanhCong)
+                {
+                    rateL1 = 0.50; // Loại 1 ăn 50% trích ra từ Loại 2
+                    rateL2 = 1.00; // Quỹ chỉ tiêu Loại 2 gốc ôm trọn 100% quân số
+                    rateL3 = 0; rateL4 = 0; rateKPL = 0;
+                }
+
+                // ====================================================================
+                // THUẬT TOÁN ĐỘNG KHỬ SAI LỆCH: TÍNH TOÁN THEO QUY TRÌNH TRÍCH LẬP TẦNG
+                // ====================================================================
+
+                // Mốc 1: Tính toán quy mô chỉ tiêu Loại 2 trần dựa trên quân số tổng
+                int mocTranLoai2 = (int)Math.Round(tongBCH * rateL2);
+
+                // Mốc 2: Tính số ô trống Loại 1 thực tế trích từ mốc trần Loại 2
+                soLuongBCHDLoai1 = (int)Math.Round(mocTranLoai2 * rateL1);
+
+                // Mốc 3: Số ô trống Loại 2 thực tế là phần còn lại của mốc trần sau khi bốc đi Loại 1
+                soLuongBCHDLoai2 = mocTranLoai2 - soLuongBCHDLoai1;
+                if (soLuongBCHDLoai2 < 0) soLuongBCHDLoai2 = 0;
+
+                // Mốc 4: Tính toán lũy tiến cho các danh hiệu thấp hơn (Loại 3, Loại 4) đảm bảo không bị ra số âm
+                int mocTranLoai3 = (int)Math.Round(tongBCH * rateL3);
+                soLuongBCHDLoai3 = mocTranLoai3 - (soLuongBCHDLoai1 + soLuongBCHDLoai2);
+                if (soLuongBCHDLoai3 < 0) soLuongBCHDLoai3 = 0;
+
+                int mocTranLoai4 = (int)Math.Round(tongBCH * rateL4);
+                soLuongBCHDLoai4 = mocTranLoai4 - (soLuongBCHDLoai1 + soLuongBCHDLoai2 + soLuongBCHDLoai3);
+                if (soLuongBCHDLoai4 < 0) soLuongBCHDLoai4 = 0;
+
+                soLuongBCHDKhongPhanLoai = (int)Math.Round(tongBCH * rateKPL);
+
+                // BÙ TRỪ LÀM TRÒN TOÁN HỌC: Khớp khít quân số tổng BCH
+                int tongPhanBo = soLuongBCHDLoai1 + soLuongBCHDLoai2 + soLuongBCHDLoai3 + soLuongBCHDLoai4 + soLuongBCHDKhongPhanLoai;
+                if (tongPhanBo != tongBCH && tongPhanBo > 0)
+                {
+                    int chenhLech = tongBCH - tongPhanBo;
+                    soLuongBCHDLoai2 += chenhLech;
+                    if (soLuongBCHDLoai2 < 0) soLuongBCHDLoai2 = 0;
                 }
             }
 
@@ -1227,7 +1309,7 @@ namespace PhanMemThiDua2026
             // đảm bảo luôn in hoa
             rangeTitle.Value = tieuDe.ToUpperInvariant();
 
-            // ===== Format =====
+            // ===== Format (GIỮ NGUYÊN 100%) =====
             rangeTitle.Style.Font.Bold = true;
             rangeTitle.Style.Font.FontName = "Times New Roman";
             rangeTitle.Style.Font.FontSize = 13;
@@ -1238,29 +1320,24 @@ namespace PhanMemThiDua2026
             // ================== XỬ LÝ DÒNG 11 (GHI CHÚ BCH) ==================
             if (tongBCH == 0)
             {
-                // Nếu không có BCH: Xóa sổ luôn dòng 11 cho gọn file Excel.
-                // Đã xóa thì tuyệt đối không được đụng chạm gì đến dòng 11 nữa.
                 ws.Row(11).Delete();
             }
             else
             {
-                // Nếu CÓ BCH: Thực hiện gộp ô, ghi nội dung và format
                 var range = ws.Range("A11:G11");
                 range.Clear(XLClearOptions.Contents);
                 range.Merge();
 
-                string noiDung = deNghi switch
-                {
-                    "LOẠI 1" => $"Tập thể D2 đạt Loại 1 thì BCH xét 75% (Loại 1: {soLuongBCHDLoai1} đ/c; Loại 2: {soLuongBCHDLoai2} đ/c)",
-                    "LOẠI 2" => $"Tập thể D2 đạt Loại 2 thì BCH xét 50% (Loại 1: {soLuongBCHDLoai1} đ/c; Loại 2: {soLuongBCHDLoai2} đ/c)",
-                    "LOẠI 3" => $"Tập thể D2 đạt Loại 3 thì BCH xét 50% (Loại 2: {soLuongBCHDLoai2} đ/c; Loại 3: {soLuongBCHDLoai3} đ/c)",
-                    "LOẠI 4" => $"Tập thể D2 đạt Loại 4 thì BCH xét 50% (Loại 2: {soLuongBCHDLoai2} đ/c; Loại 3: {soLuongBCHDLoai3} đ/c)",
-                    _ => $"Tập thể D2 đạt {deNghiRaw} thì BCH chưa xác định phương án xét"
-                };
+                // TÍNH TOÁN PHẦN TRĂM ĐỘNG HIỂN THỊ TRÊN ĐOẠN TEXT GHI CHÚ EXCEL
+                int tileHienThiText = (tongBCH > 0) ? (int)Math.Round((double)soLuongBCHDLoai1 / tongBCH * 100) : 50;
+                string tenLoaiHienThi = string.IsNullOrEmpty(deNghiRaw) ? "..." : char.ToUpper(deNghiRaw.ToLower()[0]) + deNghiRaw.ToLower().Substring(1);
+
+                // Chuỗi văn bản cấu trúc động hoàn toàn theo kết quả phân bổ thực tế
+                string noiDung = $"Tập thể D2 đạt {tenLoaiHienThi} thì BCH xét {tileHienThiText}% (Loại 1: {soLuongBCHDLoai1} đ/c; Loại 2: {soLuongBCHDLoai2} đ/c; Loại 3: {soLuongBCHDLoai3} đ/c)";
 
                 ws.Cell(11, 1).Value = noiDung;
 
-                // ================== FORMAT ==================
+                // ================== FORMAT (GIỮ NGUYÊN 100%) ==================
                 var cell = ws.Cell(11, 1);
 
                 cell.Style.Font.Bold = true;
@@ -1270,6 +1347,10 @@ namespace PhanMemThiDua2026
                 cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 cell.Style.Fill.BackgroundColor = XLColor.LightGray;
             }
+        }
+        private static double cboFormatQuyDoi(double input)
+        {
+            return input <= 0 ? 0 : input;
         }
         public static void XuatTrinhKyTanBinh(string duongDanLuu, bool xoaXinYKien = false)
         {

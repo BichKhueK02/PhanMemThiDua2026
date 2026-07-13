@@ -77,17 +77,13 @@ public static class BaoMatAES
         {
             byte[] inputBytes = Encoding.UTF8.GetBytes(chuoiGoc);
             Aes aes = _aesLocal.Value!;
-
             // Tạo IV ngẫu nhiên mới hoàn toàn
             byte[] randomIv = new byte[16];
             RandomNumberGenerator.Fill(randomIv);
-
             byte[] cipherBytes = aes.EncryptCbc(inputBytes, randomIv, PaddingMode.PKCS7);
-
             byte[] payload = new byte[16 + cipherBytes.Length];
             Buffer.BlockCopy(randomIv, 0, payload, 0, 16);
             Buffer.BlockCopy(cipherBytes, 0, payload, 16, cipherBytes.Length);
-
             return PREFIX_V2 + Convert.ToBase64String(payload);
         }
         catch { return string.Empty; }

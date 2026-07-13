@@ -86,7 +86,7 @@ namespace PhanMemThiDua2026
             // kryptonButton1_ThoatHeThong
             // 
             kryptonButton1_ThoatHeThong.Dock = DockStyle.Top;
-            kryptonButton1_ThoatHeThong.Location = new Point(0, 384);
+            kryptonButton1_ThoatHeThong.Location = new Point(0, 378);
             kryptonButton1_ThoatHeThong.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_ThoatHeThong.Name = "kryptonButton1_ThoatHeThong";
             kryptonButton1_ThoatHeThong.Size = new Size(131, 43);
@@ -104,7 +104,7 @@ namespace PhanMemThiDua2026
             // kryptonButton1_HuongDan
             // 
             kryptonButton1_HuongDan.Dock = DockStyle.Top;
-            kryptonButton1_HuongDan.Location = new Point(0, 341);
+            kryptonButton1_HuongDan.Location = new Point(0, 335);
             kryptonButton1_HuongDan.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_HuongDan.Name = "kryptonButton1_HuongDan";
             kryptonButton1_HuongDan.Size = new Size(131, 43);
@@ -122,7 +122,7 @@ namespace PhanMemThiDua2026
             // kryptonButton1_KhenThuong
             // 
             kryptonButton1_KhenThuong.Dock = DockStyle.Top;
-            kryptonButton1_KhenThuong.Location = new Point(0, 298);
+            kryptonButton1_KhenThuong.Location = new Point(0, 292);
             kryptonButton1_KhenThuong.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_KhenThuong.Name = "kryptonButton1_KhenThuong";
             kryptonButton1_KhenThuong.Size = new Size(131, 43);
@@ -140,7 +140,7 @@ namespace PhanMemThiDua2026
             // kryptonButton1_ThongKe
             // 
             kryptonButton1_ThongKe.Dock = DockStyle.Top;
-            kryptonButton1_ThongKe.Location = new Point(0, 255);
+            kryptonButton1_ThongKe.Location = new Point(0, 249);
             kryptonButton1_ThongKe.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_ThongKe.Name = "kryptonButton1_ThongKe";
             kryptonButton1_ThongKe.Size = new Size(131, 43);
@@ -158,7 +158,7 @@ namespace PhanMemThiDua2026
             // kryptonButton1_NhatKyPhanMem
             // 
             kryptonButton1_NhatKyPhanMem.Dock = DockStyle.Top;
-            kryptonButton1_NhatKyPhanMem.Location = new Point(0, 212);
+            kryptonButton1_NhatKyPhanMem.Location = new Point(0, 206);
             kryptonButton1_NhatKyPhanMem.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_NhatKyPhanMem.Name = "kryptonButton1_NhatKyPhanMem";
             kryptonButton1_NhatKyPhanMem.Size = new Size(131, 43);
@@ -176,7 +176,7 @@ namespace PhanMemThiDua2026
             // kryptonButton1_CaiDatPhanMem
             // 
             kryptonButton1_CaiDatPhanMem.Dock = DockStyle.Top;
-            kryptonButton1_CaiDatPhanMem.Location = new Point(0, 169);
+            kryptonButton1_CaiDatPhanMem.Location = new Point(0, 163);
             kryptonButton1_CaiDatPhanMem.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_CaiDatPhanMem.Name = "kryptonButton1_CaiDatPhanMem";
             kryptonButton1_CaiDatPhanMem.Size = new Size(131, 43);
@@ -208,7 +208,7 @@ namespace PhanMemThiDua2026
             // kryptonButton1_XuLyData
             // 
             kryptonButton1_XuLyData.Dock = DockStyle.Top;
-            kryptonButton1_XuLyData.Location = new Point(0, 126);
+            kryptonButton1_XuLyData.Location = new Point(0, 120);
             kryptonButton1_XuLyData.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_XuLyData.Name = "kryptonButton1_XuLyData";
             kryptonButton1_XuLyData.Size = new Size(131, 43);
@@ -226,7 +226,7 @@ namespace PhanMemThiDua2026
             // kryptonButton1_Trangchu
             // 
             kryptonButton1_Trangchu.Dock = DockStyle.Top;
-            kryptonButton1_Trangchu.Location = new Point(0, 83);
+            kryptonButton1_Trangchu.Location = new Point(0, 77);
             kryptonButton1_Trangchu.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_Trangchu.Name = "kryptonButton1_Trangchu";
             kryptonButton1_Trangchu.Size = new Size(131, 43);
@@ -248,7 +248,7 @@ namespace PhanMemThiDua2026
             PictureBox1.Location = new Point(0, 0);
             PictureBox1.Margin = new Padding(2, 3, 2, 3);
             PictureBox1.Name = "PictureBox1";
-            PictureBox1.Size = new Size(131, 83);
+            PictureBox1.Size = new Size(131, 77);
             PictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             PictureBox1.TabIndex = 6;
             PictureBox1.TabStop = false;

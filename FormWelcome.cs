@@ -31,7 +31,8 @@ namespace PhanMemThiDua2026
                 "- Tự động thống kê và phân loại kết quả thi đua\n" +
                 "- Xuất danh sách, báo cáo Excel nhanh chóng\n" +
                 "- Sao lưu và khôi phục dữ liệu an toàn\n" +
-                "- CSDL được mã hóa, ký số, bảo đảm toàn vẹn và khôi phục ổn định\n" +
+                "- CSDL được mã hóa bảo đảm toàn vẹn và khôi phục ổn định\n" +
+                "- Phần mềm được ký số nội bộ thời hạn 24 tháng\n" +
                 "- Giao diện trực quan, dễ sử dụng\n\n" +
                 "GHI CHÚ\n" +
                 "Phần mềm đang trong quá trình phát triển, rất mong anh em đóng góp ý kiến\n" +

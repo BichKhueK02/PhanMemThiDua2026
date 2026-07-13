@@ -65,14 +65,11 @@ namespace PhanMemThiDua2026
         private void Form15_ThongKeThiDua_Load(object sender, EventArgs e)
         {
             if (_isInitialized) return;
-
-            SetupUI();
+          
+            DinhDangDataGirdView_HienThi();
             toolStripProgressBar1_LamMoi.Visible = false;
             toolStripProgressBar1_LamMoi.Enabled = false;
-
-            // =========================================================
             // 1. KIỂM TRA PHIÊN BẢN VÀ ẨN MENU (DÙNG .Available THAY VÌ .Visible)
-            // =========================================================
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
 
@@ -87,10 +84,7 @@ namespace PhanMemThiDua2026
             // ReloadData(); 
 
             _isInitialized = true;
-
-            // =========================================================
             // 2. ÉP FOCUS CHUẨN KỸ SƯ (Dùng ActiveControl chống trượt)
-            // =========================================================
             this.BeginInvoke(new Action(() =>
             {
                 if (this.IsDisposed || !this.IsHandleCreated) return;
@@ -117,6 +111,8 @@ namespace PhanMemThiDua2026
                     catch { } // Bắt lỗi an toàn nếu Cell đang bị ẩn
                 }
             }));
+            // 1. Tích hợp giao diện xanh lá phẳng Classic từ module dùng chung (Đã tối ưu)
+            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
         }
         private void Form15_ThongKeThiDua_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -151,7 +147,7 @@ namespace PhanMemThiDua2026
             return true;
         }
         // BẮT PHÍM TẮT TRÊN FORM 15
-        private void SetupUI()
+        private void DinhDangDataGirdView_HienThi()
         {
             Module_DonVi.KhoiTao();
 
@@ -310,9 +306,7 @@ namespace PhanMemThiDua2026
                 if (dc.ColumnName != "SortPriority") // Giấu cột ảo đi
                     kryptonDataGridView1.Columns.Add(dc.ColumnName, dc.ColumnName);
             }
-
             ApDungDinhDangGridThongKe();
-
             _colIndexMap.Clear();
             for (int i = 0; i < kryptonDataGridView1.Columns.Count; i++)
             {
@@ -434,7 +428,6 @@ namespace PhanMemThiDua2026
             }
         }
         // PHIÊN BẢN 1: STANDARD (Dành cho <= 3000 dòng, ĐÂY CHÍNH LÀ CODE GỐC)
-        // PHIÊN BẢN 1: STANDARD (Dành cho <= 3000 dòng)
         private void ApplyFilter_Standard()
         {
             if (dtDanhSachGoc == null || dtDanhSachGoc.DefaultView.Count == 0)
@@ -600,76 +593,6 @@ namespace PhanMemThiDua2026
             }
             catch { e.Value = string.Empty; }
         }
-        //private async void ApplyFilter_DataMax()
-        //{
-        //    bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-        //    int totalCount = laTanBinh ? (_dataCacheTanBinh?.Count ?? 0) : (_dataCacheCBCS?.Count ?? 0);
-
-        //    if (totalCount == 0)
-        //    {
-        //        kryptonDataGridView1.RowCount = 0;
-        //        toolStripStatusLabel1.Text = "Tổng cộng: 0 đồng chí [Chế độ hiệu năng cao đang hoạt động...]";
-        //        return;
-        //    }
-
-        //    string dvFilter = comboBox_TimKiemDonVi.Text?.Trim() ?? "";
-        //    string tenFilterLower = textBox_TimKiemTheoTen.Text?.Trim().ToLowerInvariant() ?? "";
-        //    string tinhTrangFilter = comboBox1_TinhTrang.Text?.Trim() ?? "";
-
-        //    if (_dangSetPlaceholder || tenFilterLower == PLACEHOLDER_TIMKIEM.ToLowerInvariant())
-        //        tenFilterLower = "";
-
-        //    bool hasTen = !string.IsNullOrWhiteSpace(tenFilterLower);
-        //    bool hasDV = !string.IsNullOrWhiteSpace(dvFilter) && dvFilter != "Tất cả";
-        //    bool hasTT = !string.IsNullOrWhiteSpace(tinhTrangFilter) && tinhTrangFilter != "Tất cả";
-
-        //    kryptonDataGridView1.SuspendLayout();
-
-        //    try
-        //    {
-        //        var newFilteredIndexes = await Task.Run(() =>
-        //        {
-        //            var tempIndexes = new List<int>(totalCount);
-
-        //            if (laTanBinh)
-        //            {
-        //                for (int i = 0; i < totalCount; i++)
-        //                {
-        //                    var item = _dataCacheTanBinh[i];
-        //                    if (hasDV && item.DonViE != dvFilter) continue;
-        //                    if (hasTT && !string.Equals(item.TinhTrang, tinhTrangFilter, StringComparison.OrdinalIgnoreCase)) continue;
-        //                    if (hasTen && !item.HoTenSearch.Contains(tenFilterLower)) continue;
-        //                    tempIndexes.Add(i);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                for (int i = 0; i < totalCount; i++)
-        //                {
-        //                    var item = _dataCacheCBCS[i];
-        //                    if (hasDV && item.DonViE != dvFilter) continue;
-        //                    if (hasTT && !string.Equals(item.TinhTrang, tinhTrangFilter, StringComparison.OrdinalIgnoreCase)) continue;
-        //                    if (hasTen && !item.HoTenSearch.Contains(tenFilterLower)) continue;
-        //                    tempIndexes.Add(i);
-        //                }
-        //            }
-        //            return tempIndexes;
-        //        });
-
-        //        _filteredIndexes = newFilteredIndexes;
-        //        kryptonDataGridView1.RowCount = _filteredIndexes.Count;
-        //        toolStripStatusLabel1.Text = $"Tổng cộng: {_filteredIndexes.Count} đồng chí [Chế độ hiệu năng cao]";
-        //    }
-        //    catch
-        //    {
-        //        kryptonDataGridView1.RowCount = 0;
-        //    }
-        //    finally
-        //    {
-        //        kryptonDataGridView1.ResumeLayout();
-        //        kryptonDataGridView1.Invalidate();
-        //    }
-        //}
         private async void ApplyFilter_DataMax()
         {
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
@@ -1053,7 +976,6 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1.ResumeLayout();
             kryptonDataGridView1.Invalidate();
         }
-
         // Dùng ConcurrentDictionary vì ta sẽ gọi nó bên trong Parallel.For (Đa luồng)
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _aesCache
             = new System.Collections.Concurrent.ConcurrentDictionary<string, string>(StringComparer.Ordinal);
@@ -1136,60 +1058,6 @@ namespace PhanMemThiDua2026
             // Trả lại luồng cho Windows xử lý gõ văn bản
             return base.ProcessCmdKey(ref msg, keyData);
         }
-        //private void KryptonDataGridView1_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
-        //{
-        //    // =========================================================================
-        //    // 🚀 VIRTUAL MODE - ENGINEERING SAFE VERSION (10 YEARS STABLE)
-        //    // =========================================================================
-
-        //    // 1. Chặn lỗi Null / Index âm (Chống crash khi Form đang load hoặc lưới trống)
-        //    if (dtDanhSachGoc == null ||
-        //        _filteredIndexes == null ||
-        //        e.RowIndex < 0 ||
-        //        e.ColumnIndex < 0)
-        //    {
-        //        return;
-        //    }
-
-        //    try
-        //    {
-        //        // 2. Chặn vượt giới hạn danh sách lọc (Chống crash khi Filter thay đổi ngầm)
-        //        if (e.RowIndex >= _filteredIndexes.Count)
-        //        {
-        //            e.Value = string.Empty;
-        //            return;
-        //        }
-
-        //        // 3. Lấy dòng thực tế trong mảng ĐÃ LỌC (DataView)
-        //        int actualRowIndex = _filteredIndexes[e.RowIndex];
-
-        //        // 4. Chặn Index lỗi (Chống crash khi DataTable bị xóa ngầm giữa chừng)
-        //        if (actualRowIndex < 0 || actualRowIndex >= dtDanhSachGoc.DefaultView.Count)
-        //        {
-        //            e.Value = string.Empty;
-        //            return;
-        //        }
-
-        //        // 5. Mapping cột O(1) SIÊU NHANH (Tránh hàm Contains tốn CPU)
-        //        if (!_colIndexMap.TryGetValue(e.ColumnIndex, out int dtIndex))
-        //        {
-        //            e.Value = string.Empty;
-        //            return;
-        //        }
-
-        //        // 6. Truy xuất trực tiếp DataView (Chính xác 100% khi Lọc/Sắp xếp)
-        //        object value = dtDanhSachGoc.DefaultView[actualRowIndex][dtIndex];
-
-        //        // 7. DBNull protection (Ngăn WinForms văng lỗi chuỗi)
-        //        e.Value = (value == DBNull.Value) ? string.Empty : value;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // KHÔNG BAO GIỜ CRASH UI THREAD
-        //        e.Value = string.Empty;
-        //        System.Diagnostics.Debug.WriteLine($"[VirtualMode Error] Row={e.RowIndex}, Col={e.ColumnIndex}, Error={ex.Message}");
-        //    }
-        //}
         private DateTime _lastReload = DateTime.MinValue;
         private void InitToolTips()
         {
@@ -1261,9 +1129,7 @@ namespace PhanMemThiDua2026
             // Hàm này kết hợp với Brush đã lưu (cache) sẽ cho tốc độ vẽ nhanh như chớp.
             e.Graphics.DrawString(stt, grid.Font, _rowHeaderBrush, headerBounds, _rowHeaderFormat);
         }
-        // =========================================================
         // HÀM 1: CẬP NHẬT TỔNG LOẠI (Đã tối ưu Transaction)
-        // =========================================================
         /// Làm mới duy nhất một dòng dữ liệu trên Grid sau khi chỉnh sửa ở Form 22.
         /// Đảm bảo giải mã chuẩn V2 và đồng bộ hóa hiển thị Virtual Mode ngay lập tức.
         /// Làm mới dữ liệu của một dòng duy nhất từ DB vào RAM và cập nhật hiển thị Grid.
@@ -1924,19 +1790,54 @@ namespace PhanMemThiDua2026
                     if (grid.Columns.Contains("Tuan_4_T6")) grid.Columns["Tuan_4_T6"].Visible = false;
                 }
 
-                // CẤU HÌNH STYLE
+                // ==========================================================
+                // ⭐ ÁP DỤNG GIAO DIỆN HIỆN ĐẠI (FLUENT DESIGN)
+                // ==========================================================
+                grid.BackgroundColor = Color.White;
+                grid.BorderStyle = BorderStyle.None;
+                grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal; // Lưới kẻ ngang
+                grid.GridColor = Color.FromArgb(235, 235, 235); // Kẻ ngang màu xám nhạt
                 grid.EnableHeadersVisualStyles = false;
-                grid.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font(grid.Font, FontStyle.Bold);
-                grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
-                grid.ColumnHeadersHeight = 72;
 
+                // --- 1. ĐỊNH DẠNG HEADER (TIÊU ĐỀ) ---
+                grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+                grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+                grid.ColumnHeadersHeight = 65; // Đủ cao để chứa tiêu đề 2 dòng
+                grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
+                    BackColor = Color.FromArgb(240, 244, 248),
+                    ForeColor = Color.FromArgb(40, 40, 40),
+                    SelectionBackColor = Color.FromArgb(240, 244, 248),
+                    WrapMode = DataGridViewTriState.True,
+                    Padding = new Padding(3)
+                };
+
+                // --- 2. ĐỊNH DẠNG ROW (DÒNG DỮ LIỆU) ---
+                grid.RowTemplate.Height = 32; // Dòng rộng rãi, dễ đọc
+                grid.DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                    ForeColor = Color.FromArgb(45, 45, 45),
+                    SelectionBackColor = Color.FromArgb(232, 244, 253),
+                    SelectionForeColor = Color.FromArgb(0, 102, 204),
+                    Padding = new Padding(2, 0, 2, 0)
+                };
+                grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(252, 252, 252);
+                // ==========================================================
+                // ⭐ BỔ SUNG 2 DÒNG CODE VÀO ĐÂY ⭐
+                grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                grid.MultiSelect = false;
+                // --- 3. ĐỊNH DẠNG ĐỘ RỘNG VÀ CĂN LỀ TỪNG CỘT ---
                 if (grid.Columns.Contains("HoVaTen"))
                 {
                     var col = grid.Columns["HoVaTen"];
                     col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                     col.MinimumWidth = 220;
                     col.FillWeight = 40;
+                    col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                    col.DefaultCellStyle.Padding = new Padding(5, 0, 0, 0); // Thụt lề chữ
                 }
                 if (grid.Columns.Contains("TinhTrang"))
                 {
@@ -1945,8 +1846,6 @@ namespace PhanMemThiDua2026
                     col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                     col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 }
-
-                // ⭐ Định dạng cột Ghi chú
                 if (grid.Columns.Contains("GhiChu"))
                 {
                     var col = grid.Columns["GhiChu"];
@@ -1954,25 +1853,28 @@ namespace PhanMemThiDua2026
                     col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                     col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
                     col.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-                    col.DefaultCellStyle.ForeColor = System.Drawing.Color.DarkSlateGray; // Phân tách màu sắc dễ nhìn
+                    col.DefaultCellStyle.ForeColor = Color.DarkSlateGray; // Làm mờ nhẹ cột ghi chú
+                    col.DefaultCellStyle.Padding = new Padding(5, 0, 0, 0);
                 }
 
                 foreach (DataGridViewColumn col in grid.Columns)
                 {
+                    col.SortMode = DataGridViewColumnSortMode.NotSortable; // Tắt sort Header
                     if (col.Name == "HoVaTen" || col.Name == "ID" || col.Name == "TinhTrang" || col.Name == "GhiChu") continue;
+
                     col.Width = 90;
                     col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                     col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 }
 
-                // TRÌNH BÀY MÀU SẮC
+                // --- 4. TÔ MÀU NHẤN MẠNH CỘT KẾT QUẢ/ĐÁNH GIÁ ---
                 if (laTanBinh)
                 {
                     string[] nhomToMauXanhDuong = {
-              "Tuan_1_T2", "Tuan_2_T2", "Tuan_3_T2", "Tuan_4_T2", "Thang_3",
-              "Tuan_1_T4", "Tuan_2_T4", "Tuan_3_T4", "Tuan_4_T4", "Thang_5"
-          };
-                    System.Drawing.Color mauXanhDuongNhat = System.Drawing.Color.FromArgb(220, 235, 255);
+                        "Tuan_1_T2", "Tuan_2_T2", "Tuan_3_T2", "Tuan_4_T2", "Thang_3",
+                        "Tuan_1_T4", "Tuan_2_T4", "Tuan_3_T4", "Tuan_4_T4", "Thang_5"
+                    };
+                    Color mauXanhDuongNhat = Color.FromArgb(235, 245, 255); // Làm màu dịu lại theo Fluent Design
 
                     foreach (var name in nhomToMauXanhDuong)
                         if (grid.Columns.Contains(name)) grid.Columns[name].DefaultCellStyle.BackColor = mauXanhDuongNhat;
@@ -1982,24 +1884,24 @@ namespace PhanMemThiDua2026
                     {
                         if (grid.Columns.Contains(name))
                         {
-                            grid.Columns[name].DefaultCellStyle.Font = new System.Drawing.Font(grid.Font, FontStyle.Bold);
-                            grid.Columns[name].DefaultCellStyle.ForeColor = System.Drawing.Color.Blue;
+                            grid.Columns[name].DefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+                            grid.Columns[name].DefaultCellStyle.ForeColor = Color.FromArgb(0, 80, 160);
                         }
                     }
                 }
 
                 string[] nhomToMauXanhLa = { "TS_Loai1", "TS_Loai2", "TS_Loai3", "TS_Loai4" };
-                System.Drawing.Color mauXanhLaNhat = System.Drawing.Color.FromArgb(230, 250, 230);
+                Color mauXanhLaNhat = Color.FromArgb(240, 252, 240); // Làm xanh dịu lại
                 foreach (var name in nhomToMauXanhLa)
                 {
                     if (grid.Columns.Contains(name))
                     {
                         grid.Columns[name].DefaultCellStyle.BackColor = mauXanhLaNhat;
-                        grid.Columns[name].DefaultCellStyle.Font = new System.Drawing.Font(grid.Font, FontStyle.Bold);
+                        grid.Columns[name].DefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
                     }
                 }
 
-                // ⭐ CƯỠNG CHẾ VỊ TRÍ CỘT
+                // --- 5. CƯỠNG CHẾ VỊ TRÍ CỘT ---
                 int viTri = 0;
 
                 void XepCot(string colName)
@@ -2349,11 +2251,14 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                // 1. Chặn click lỗi
+                // 1. Chặn click lỗi (Click vào vùng trống hoặc tiêu đề dòng)
                 if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
 
                 var col = kryptonDataGridView1.Columns[e.ColumnIndex];
-                if (col.Name != "HoVaTen") return;
+
+                // ⭐ CẬP NHẬT ĐIỀU KIỆN: Chấp nhận cả 4 cột Họ Tên, Số Hiệu, Đơn Vị, Tình Trạng
+                if (col.Name != "HoVaTen" && col.Name != "SoHieu" && col.Name != "DonVi" && col.Name != "TinhTrang")
+                    return;
 
                 // 🌟 BẬT HIỆU ỨNG CHUỘT CHỜ ĐỂ USER BIẾT APP ĐÃ NHẬN LỆNH
                 this.Cursor = Cursors.WaitCursor;
@@ -2433,7 +2338,7 @@ namespace PhanMemThiDua2026
                     {
                         frm22.ID_CBCS = idInt;
                         frm22.HoVaTen = hoTen;
-                        frm22.SoHieu = ""; // Nếu cần truyền số hiệu, bạn có thể bổ sung lấy thêm ở trên
+                        frm22.SoHieu = "";
                         frm22.TinhTrang = tinhTrang;
                         frm22.DonVi = donVi;
 
@@ -3848,28 +3753,28 @@ namespace PhanMemThiDua2026
                 toolStripProgressBar1_LamMoi.Minimum = 0;
                 toolStripProgressBar1_LamMoi.Maximum = 100;
                 toolStripProgressBar1_LamMoi.Value = 0;
+                // ⭐ ÉP KÍCH THƯỚC CỐ ĐỊNH TRƯỚC KHI HIỂN THỊ (CHỐNG PHÌNH TO)
+                toolStripProgressBar1_LamMoi.AutoSize = false;
+                toolStripProgressBar1_LamMoi.Size = new Size(150, 18); // Cố định chiều rộng 150px, cao 18px (tùy chỉnh cho vừa mắt)
+                // Nếu ProgressBar nằm trên StatusStrip và muốn nó nằm gọn gàng, có thể dùng thêm Margin
+                // toolStripProgressBar1_LamMoi.Margin = new Padding(1, 2, 1, 1); 
                 toolStripProgressBar1_LamMoi.Visible = true;
-
                 this.UseWaitCursor = true;
                 toolStripStatusLabel1.Text = "Đang làm mới dữ liệu...";
 
                 // Khóa lưới
                 kryptonDataGridView1.SuspendLayout();
                 kryptonDataGridView1.Enabled = false;
-
                 IProgress<int> progressReporter = new Progress<int>(percent =>
                 {
                     toolStripProgressBar1_LamMoi.Value = Math.Max(0, Math.Min(100, percent));
                 });
-
                 progressReporter.Report(5);
                 LamMoiBoLocCore();
-
                 // Lấy Data
                 bool laTanBinh = await DongBoVaTaiDuLieuCoreAsync(progressReporter);
-
                 // Vẽ UI
-                await TangTienDoAsync(progressReporter, 70, 85);
+                await TangTienDoAsync(progressReporter, 70, 100);
                 await DieuPhoiLoadDuLieuAsync(laTanBinh);
                 LoadComboBoxDonVi();
                 // Hoàn tất
@@ -3896,11 +3801,9 @@ namespace PhanMemThiDua2026
                 toolStripProgressBar1_LamMoi.Visible = false;
                 toolStripProgressBar1_LamMoi.Value = 0;
                 _currentProgress = 0;
-
                 kryptonDataGridView1.Enabled = true;
                 kryptonDataGridView1.ResumeLayout();
                 this.UseWaitCursor = false;
-
                 Interlocked.Exchange(ref _dangXuLyLuongNen, 0);
             }
         }

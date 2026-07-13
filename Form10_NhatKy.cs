@@ -38,7 +38,6 @@ namespace PhanMemThiDua2026
         // Thêm biến này ở khu vực khai báo biến đầu class
         private string _chuoiTuDongXoa = "";
 
-
         private string GetLocalIP()
         {
             if (!string.IsNullOrEmpty(_localIP)) return _localIP;
@@ -90,6 +89,7 @@ namespace PhanMemThiDua2026
             if (_isInit) return;
             _isInit = true;
             // 🌟 ĐỊNH DẠNG: Chỉ hiển thị Ngày/Tháng/Năm
+            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
             kryptonDateTimePicker1_NgayThangNamBatDau.Format = DateTimePickerFormat.Custom;
             kryptonDateTimePicker1_NgayThangNamBatDau.CustomFormat = "dd/MM/yyyy";
             kryptonDateTimePicker1_NgayThangNamKetThuc.Format = DateTimePickerFormat.Custom;

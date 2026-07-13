@@ -127,8 +127,8 @@
             // 
             groupBox3.Controls.Add(tableLayoutPanel5);
             groupBox3.Dock = DockStyle.Fill;
-            groupBox3.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            groupBox3.ForeColor = Color.Blue;
+            groupBox3.Font = new Font("Segoe UI", 9F, FontStyle.Italic, GraphicsUnit.Point, 0);
+            groupBox3.ForeColor = Color.Red;
             groupBox3.Location = new Point(905, 3);
             groupBox3.Margin = new Padding(2, 3, 2, 3);
             groupBox3.Name = "groupBox3";
@@ -148,22 +148,22 @@
             tableLayoutPanel5.Controls.Add(radioButton1_TuZA, 1, 0);
             tableLayoutPanel5.Controls.Add(radioButton1_TuAZ, 0, 0);
             tableLayoutPanel5.Dock = DockStyle.Fill;
-            tableLayoutPanel5.Location = new Point(2, 20);
+            tableLayoutPanel5.Location = new Point(2, 19);
             tableLayoutPanel5.Margin = new Padding(2, 3, 2, 3);
             tableLayoutPanel5.Name = "tableLayoutPanel5";
             tableLayoutPanel5.RowCount = 1;
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel5.Size = new Size(347, 38);
+            tableLayoutPanel5.Size = new Size(347, 39);
             tableLayoutPanel5.TabIndex = 0;
             // 
             // radioButton1_TuZA
             // 
             radioButton1_TuZA.Anchor = AnchorStyles.Left;
             radioButton1_TuZA.AutoSize = true;
-            radioButton1_TuZA.Location = new Point(176, 8);
+            radioButton1_TuZA.Location = new Point(176, 10);
             radioButton1_TuZA.Margin = new Padding(2, 3, 2, 3);
             radioButton1_TuZA.Name = "radioButton1_TuZA";
-            radioButton1_TuZA.Size = new Size(56, 21);
+            radioButton1_TuZA.Size = new Size(51, 19);
             radioButton1_TuZA.TabIndex = 1;
             radioButton1_TuZA.TabStop = true;
             radioButton1_TuZA.Text = "Z - A";
@@ -173,10 +173,10 @@
             // 
             radioButton1_TuAZ.Anchor = AnchorStyles.Left;
             radioButton1_TuAZ.AutoSize = true;
-            radioButton1_TuAZ.Location = new Point(2, 8);
+            radioButton1_TuAZ.Location = new Point(2, 10);
             radioButton1_TuAZ.Margin = new Padding(2, 3, 2, 3);
             radioButton1_TuAZ.Name = "radioButton1_TuAZ";
-            radioButton1_TuAZ.Size = new Size(56, 21);
+            radioButton1_TuAZ.Size = new Size(51, 19);
             radioButton1_TuAZ.TabIndex = 0;
             radioButton1_TuAZ.TabStop = true;
             radioButton1_TuAZ.Text = "A - Z";
@@ -530,7 +530,7 @@
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
             lamMoi_ToolStripMenuItem.Size = new Size(224, 28);
-            lamMoi_ToolStripMenuItem.Text = "Làm mới";
+            lamMoi_ToolStripMenuItem.Text = "Làm mới trang";
             lamMoi_ToolStripMenuItem.Click += lamMoi_ToolStripMenuItem_Click;
             // 
             // xuatNhatKy_ToolStripMenuItem

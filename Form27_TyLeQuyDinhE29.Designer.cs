@@ -106,11 +106,11 @@
             // tableLayoutPanel12
             // 
             tableLayoutPanel12.ColumnCount = 6;
-            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22.0242786F));
-            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.7937508F));
-            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.7937489F));
-            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.7937489F));
-            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.2384109F));
+            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.8166256F));
+            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.93643F));
+            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.7921762F));
+            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.6919317F));
+            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.5916872F));
             tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19.86755F));
             tableLayoutPanel12.Controls.Add(textBox_E3, 5, 3);
             tableLayoutPanel12.Controls.Add(textBox_E2, 5, 2);
@@ -151,7 +151,7 @@
             // textBox_E3
             // 
             textBox_E3.Anchor = AnchorStyles.None;
-            textBox_E3.Location = new Point(706, 133);
+            textBox_E3.Location = new Point(705, 133);
             textBox_E3.Margin = new Padding(3, 2, 3, 2);
             textBox_E3.Name = "textBox_E3";
             textBox_E3.Size = new Size(60, 29);
@@ -163,7 +163,7 @@
             // textBox_E2
             // 
             textBox_E2.Anchor = AnchorStyles.None;
-            textBox_E2.Location = new Point(706, 90);
+            textBox_E2.Location = new Point(705, 90);
             textBox_E2.Margin = new Padding(3, 2, 3, 2);
             textBox_E2.Name = "textBox_E2";
             textBox_E2.Size = new Size(60, 29);
@@ -175,7 +175,7 @@
             // textBox_E1
             // 
             textBox_E1.Anchor = AnchorStyles.None;
-            textBox_E1.Location = new Point(706, 48);
+            textBox_E1.Location = new Point(705, 48);
             textBox_E1.Margin = new Padding(3, 2, 3, 2);
             textBox_E1.Name = "textBox_E1";
             textBox_E1.Size = new Size(60, 29);
@@ -187,7 +187,7 @@
             // textBox_D3
             // 
             textBox_D3.Anchor = AnchorStyles.None;
-            textBox_D3.Location = new Point(566, 133);
+            textBox_D3.Location = new Point(571, 133);
             textBox_D3.Margin = new Padding(3, 2, 3, 2);
             textBox_D3.Name = "textBox_D3";
             textBox_D3.Size = new Size(60, 29);
@@ -199,7 +199,7 @@
             // textBox_D2
             // 
             textBox_D2.Anchor = AnchorStyles.None;
-            textBox_D2.Location = new Point(566, 90);
+            textBox_D2.Location = new Point(571, 90);
             textBox_D2.Margin = new Padding(3, 2, 3, 2);
             textBox_D2.Name = "textBox_D2";
             textBox_D2.Size = new Size(60, 29);
@@ -211,7 +211,7 @@
             // textBox_D1
             // 
             textBox_D1.Anchor = AnchorStyles.None;
-            textBox_D1.Location = new Point(566, 48);
+            textBox_D1.Location = new Point(571, 48);
             textBox_D1.Margin = new Padding(3, 2, 3, 2);
             textBox_D1.Name = "textBox_D1";
             textBox_D1.Size = new Size(60, 29);
@@ -223,7 +223,7 @@
             // textBox_C3
             // 
             textBox_C3.Anchor = AnchorStyles.None;
-            textBox_C3.Location = new Point(449, 133);
+            textBox_C3.Location = new Point(464, 133);
             textBox_C3.Margin = new Padding(3, 2, 3, 2);
             textBox_C3.Name = "textBox_C3";
             textBox_C3.Size = new Size(60, 29);
@@ -235,7 +235,7 @@
             // textBox_C2
             // 
             textBox_C2.Anchor = AnchorStyles.None;
-            textBox_C2.Location = new Point(449, 90);
+            textBox_C2.Location = new Point(464, 90);
             textBox_C2.Margin = new Padding(3, 2, 3, 2);
             textBox_C2.Name = "textBox_C2";
             textBox_C2.Size = new Size(60, 29);
@@ -247,7 +247,7 @@
             // textBox_C1
             // 
             textBox_C1.Anchor = AnchorStyles.None;
-            textBox_C1.Location = new Point(449, 48);
+            textBox_C1.Location = new Point(464, 48);
             textBox_C1.Margin = new Padding(3, 2, 3, 2);
             textBox_C1.Name = "textBox_C1";
             textBox_C1.Size = new Size(60, 29);
@@ -259,7 +259,7 @@
             // textBox_B3
             // 
             textBox_B3.Anchor = AnchorStyles.None;
-            textBox_B3.Location = new Point(329, 133);
+            textBox_B3.Location = new Point(347, 133);
             textBox_B3.Margin = new Padding(3, 2, 3, 2);
             textBox_B3.Name = "textBox_B3";
             textBox_B3.Size = new Size(60, 29);
@@ -271,7 +271,7 @@
             // textBox_B2
             // 
             textBox_B2.Anchor = AnchorStyles.None;
-            textBox_B2.Location = new Point(329, 90);
+            textBox_B2.Location = new Point(347, 90);
             textBox_B2.Margin = new Padding(3, 2, 3, 2);
             textBox_B2.Name = "textBox_B2";
             textBox_B2.Size = new Size(60, 29);
@@ -283,7 +283,7 @@
             // textBox_B1
             // 
             textBox_B1.Anchor = AnchorStyles.None;
-            textBox_B1.Location = new Point(329, 48);
+            textBox_B1.Location = new Point(347, 48);
             textBox_B1.Margin = new Padding(3, 2, 3, 2);
             textBox_B1.Name = "textBox_B1";
             textBox_B1.Size = new Size(60, 29);
@@ -295,7 +295,7 @@
             // textBox_A3
             // 
             textBox_A3.Anchor = AnchorStyles.None;
-            textBox_A3.Location = new Point(209, 133);
+            textBox_A3.Location = new Point(230, 133);
             textBox_A3.Margin = new Padding(3, 2, 3, 2);
             textBox_A3.Name = "textBox_A3";
             textBox_A3.Size = new Size(60, 29);
@@ -307,7 +307,7 @@
             // textBox_A2
             // 
             textBox_A2.Anchor = AnchorStyles.None;
-            textBox_A2.Location = new Point(209, 90);
+            textBox_A2.Location = new Point(230, 90);
             textBox_A2.Margin = new Padding(3, 2, 3, 2);
             textBox_A2.Name = "textBox_A2";
             textBox_A2.Size = new Size(60, 29);
@@ -319,7 +319,7 @@
             // textBox_A1
             // 
             textBox_A1.Anchor = AnchorStyles.None;
-            textBox_A1.Location = new Point(209, 48);
+            textBox_A1.Location = new Point(230, 48);
             textBox_A1.Margin = new Padding(3, 2, 3, 2);
             textBox_A1.Name = "textBox_A1";
             textBox_A1.Size = new Size(60, 29);
@@ -334,11 +334,11 @@
             label19.AutoSize = true;
             label19.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label19.ForeColor = Color.FromArgb(0, 0, 192);
-            label19.Location = new Point(63, 52);
+            label19.Location = new Point(27, 52);
             label19.Name = "label19";
-            label19.Size = new Size(52, 21);
+            label19.Size = new Size(148, 21);
             label19.TabIndex = 12;
-            label19.Text = "Loại 1";
+            label19.Text = "Tỷ lệ cá nhân Loại 1";
             label19.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // label18
@@ -359,7 +359,7 @@
             label17.AutoSize = true;
             label17.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label17.ForeColor = Color.FromArgb(0, 0, 192);
-            label17.Location = new Point(570, 10);
+            label17.Location = new Point(575, 10);
             label17.Name = "label17";
             label17.Size = new Size(52, 21);
             label17.TabIndex = 10;
@@ -371,7 +371,7 @@
             label13.AutoSize = true;
             label13.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label13.ForeColor = Color.FromArgb(0, 0, 192);
-            label13.Location = new Point(453, 10);
+            label13.Location = new Point(468, 10);
             label13.Name = "label13";
             label13.Size = new Size(52, 21);
             label13.TabIndex = 9;
@@ -383,7 +383,7 @@
             label12.AutoSize = true;
             label12.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label12.ForeColor = Color.FromArgb(0, 0, 192);
-            label12.Location = new Point(333, 10);
+            label12.Location = new Point(351, 10);
             label12.Name = "label12";
             label12.Size = new Size(52, 21);
             label12.TabIndex = 8;
@@ -395,7 +395,7 @@
             label11.AutoSize = true;
             label11.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label11.ForeColor = Color.FromArgb(0, 0, 192);
-            label11.Location = new Point(213, 10);
+            label11.Location = new Point(234, 10);
             label11.Name = "label11";
             label11.Size = new Size(52, 21);
             label11.TabIndex = 7;
@@ -407,11 +407,11 @@
             label10.AutoSize = true;
             label10.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label10.ForeColor = Color.FromArgb(0, 0, 192);
-            label10.Location = new Point(31, 11);
+            label10.Location = new Point(73, 11);
             label10.Name = "label10";
-            label10.Size = new Size(117, 20);
+            label10.Size = new Size(57, 20);
             label10.TabIndex = 6;
-            label10.Text = "Tập thể\\Cá nhân";
+            label10.Text = "Tập thể";
             // 
             // label20
             // 
@@ -419,11 +419,11 @@
             label20.AutoSize = true;
             label20.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label20.ForeColor = Color.FromArgb(0, 0, 192);
-            label20.Location = new Point(63, 94);
+            label20.Location = new Point(27, 94);
             label20.Name = "label20";
-            label20.Size = new Size(52, 21);
+            label20.Size = new Size(148, 21);
             label20.TabIndex = 13;
-            label20.Text = "Loại 2";
+            label20.Text = "Tỷ lệ cá nhân Loại 2";
             label20.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // label21
@@ -432,11 +432,11 @@
             label21.AutoSize = true;
             label21.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label21.ForeColor = Color.FromArgb(0, 0, 192);
-            label21.Location = new Point(63, 137);
+            label21.Location = new Point(27, 137);
             label21.Name = "label21";
-            label21.Size = new Size(52, 21);
+            label21.Size = new Size(148, 21);
             label21.TabIndex = 14;
-            label21.Text = "Loại 3";
+            label21.Text = "Tỷ lệ cá nhân Loại 3";
             label21.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // tableLayoutPanel2

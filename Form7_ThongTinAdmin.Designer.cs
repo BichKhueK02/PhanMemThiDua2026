@@ -129,7 +129,7 @@
             TableLayoutPanel1.Dock = DockStyle.Fill;
             TableLayoutPanel1.Font = new Font("Segoe UI", 9.792F);
             TableLayoutPanel1.ForeColor = SystemColors.Control;
-            TableLayoutPanel1.Location = new Point(132, 2);
+            TableLayoutPanel1.Location = new Point(130, 2);
             TableLayoutPanel1.Margin = new Padding(2);
             TableLayoutPanel1.Name = "TableLayoutPanel1";
             TableLayoutPanel1.RowCount = 10;
@@ -143,16 +143,16 @@
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 10.0003881F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999101F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 9.997057F));
-            TableLayoutPanel1.Size = new Size(451, 359);
+            TableLayoutPanel1.Size = new Size(444, 391);
             TableLayoutPanel1.TabIndex = 1;
             // 
             // kryptonTextBox6
             // 
             kryptonTextBox6.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox6.Location = new Point(147, 283);
+            kryptonTextBox6.Location = new Point(144, 317);
             kryptonTextBox6.Margin = new Padding(2);
             kryptonTextBox6.Name = "kryptonTextBox6";
-            kryptonTextBox6.Size = new Size(302, 29);
+            kryptonTextBox6.Size = new Size(298, 29);
             kryptonTextBox6.StateCommon.Border.Rounding = 8F;
             kryptonTextBox6.StateCommon.Border.Width = 1;
             kryptonTextBox6.TabIndex = 39;
@@ -164,7 +164,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label1.ForeColor = Color.FromArgb(0, 0, 192);
-            label1.Location = new Point(2, 288);
+            label1.Location = new Point(2, 322);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new Size(121, 19);
@@ -175,10 +175,10 @@
             // textBox_ThongTinNgayCapNhat
             // 
             textBox_ThongTinNgayCapNhat.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_ThongTinNgayCapNhat.Location = new Point(147, 178);
+            textBox_ThongTinNgayCapNhat.Location = new Point(144, 200);
             textBox_ThongTinNgayCapNhat.Margin = new Padding(2);
             textBox_ThongTinNgayCapNhat.Name = "textBox_ThongTinNgayCapNhat";
-            textBox_ThongTinNgayCapNhat.Size = new Size(302, 29);
+            textBox_ThongTinNgayCapNhat.Size = new Size(298, 29);
             textBox_ThongTinNgayCapNhat.StateCommon.Border.Rounding = 8F;
             textBox_ThongTinNgayCapNhat.StateCommon.Border.Width = 1;
             textBox_ThongTinNgayCapNhat.TabIndex = 37;
@@ -186,10 +186,10 @@
             // textBox_PhienBanPhanMem
             // 
             textBox_PhienBanPhanMem.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_PhienBanPhanMem.Location = new Point(147, 108);
+            textBox_PhienBanPhanMem.Location = new Point(144, 122);
             textBox_PhienBanPhanMem.Margin = new Padding(2);
             textBox_PhienBanPhanMem.Name = "textBox_PhienBanPhanMem";
-            textBox_PhienBanPhanMem.Size = new Size(302, 29);
+            textBox_PhienBanPhanMem.Size = new Size(298, 29);
             textBox_PhienBanPhanMem.StateCommon.Border.Rounding = 8F;
             textBox_PhienBanPhanMem.StateCommon.Border.Width = 1;
             textBox_PhienBanPhanMem.TabIndex = 36;
@@ -197,10 +197,10 @@
             // kryptonTextBox5
             // 
             kryptonTextBox5.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox5.Location = new Point(147, 143);
+            kryptonTextBox5.Location = new Point(144, 161);
             kryptonTextBox5.Margin = new Padding(2);
             kryptonTextBox5.Name = "kryptonTextBox5";
-            kryptonTextBox5.Size = new Size(302, 29);
+            kryptonTextBox5.Size = new Size(298, 29);
             kryptonTextBox5.StateCommon.Border.Rounding = 8F;
             kryptonTextBox5.StateCommon.Border.Width = 1;
             kryptonTextBox5.TabIndex = 35;
@@ -209,10 +209,10 @@
             // Text_nguoiviet
             // 
             Text_nguoiviet.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_nguoiviet.Location = new Point(147, 3);
+            Text_nguoiviet.Location = new Point(144, 5);
             Text_nguoiviet.Margin = new Padding(2);
             Text_nguoiviet.Name = "Text_nguoiviet";
-            Text_nguoiviet.Size = new Size(302, 29);
+            Text_nguoiviet.Size = new Size(298, 29);
             Text_nguoiviet.StateCommon.Border.Rounding = 8F;
             Text_nguoiviet.StateCommon.Border.Width = 1;
             Text_nguoiviet.TabIndex = 34;
@@ -221,22 +221,22 @@
             // kryptonTextBox4
             // 
             kryptonTextBox4.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox4.Location = new Point(147, 73);
+            kryptonTextBox4.Location = new Point(144, 83);
             kryptonTextBox4.Margin = new Padding(2);
             kryptonTextBox4.Name = "kryptonTextBox4";
-            kryptonTextBox4.Size = new Size(302, 29);
+            kryptonTextBox4.Size = new Size(298, 29);
             kryptonTextBox4.StateCommon.Border.Rounding = 8F;
             kryptonTextBox4.StateCommon.Border.Width = 1;
             kryptonTextBox4.TabIndex = 33;
-            kryptonTextBox4.Text = "Tổ Chính trị - D2 - E29 - K02";
+            kryptonTextBox4.Text = "Tổ Chính trị - D2 - E08 - K02";
             // 
             // kryptonTextBox3
             // 
             kryptonTextBox3.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox3.Location = new Point(147, 38);
+            kryptonTextBox3.Location = new Point(144, 44);
             kryptonTextBox3.Margin = new Padding(2);
             kryptonTextBox3.Name = "kryptonTextBox3";
-            kryptonTextBox3.Size = new Size(302, 29);
+            kryptonTextBox3.Size = new Size(298, 29);
             kryptonTextBox3.StateCommon.Border.Rounding = 8F;
             kryptonTextBox3.StateCommon.Border.Width = 1;
             kryptonTextBox3.TabIndex = 32;
@@ -245,10 +245,10 @@
             // kryptonTextBox2
             // 
             kryptonTextBox2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox2.Location = new Point(147, 248);
+            kryptonTextBox2.Location = new Point(144, 278);
             kryptonTextBox2.Margin = new Padding(2);
             kryptonTextBox2.Name = "kryptonTextBox2";
-            kryptonTextBox2.Size = new Size(302, 29);
+            kryptonTextBox2.Size = new Size(298, 29);
             kryptonTextBox2.StateCommon.Border.Rounding = 8F;
             kryptonTextBox2.StateCommon.Border.Width = 1;
             kryptonTextBox2.TabIndex = 31;
@@ -257,10 +257,10 @@
             // kryptonTextBox1
             // 
             kryptonTextBox1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox1.Location = new Point(147, 213);
+            kryptonTextBox1.Location = new Point(144, 239);
             kryptonTextBox1.Margin = new Padding(2);
             kryptonTextBox1.Name = "kryptonTextBox1";
-            kryptonTextBox1.Size = new Size(302, 29);
+            kryptonTextBox1.Size = new Size(298, 29);
             kryptonTextBox1.StateCommon.Border.Rounding = 8F;
             kryptonTextBox1.StateCommon.Border.Width = 1;
             kryptonTextBox1.TabIndex = 30;
@@ -272,7 +272,7 @@
             Label3.AutoSize = true;
             Label3.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             Label3.ForeColor = Color.FromArgb(0, 0, 192);
-            Label3.Location = new Point(2, 43);
+            Label3.Location = new Point(2, 49);
             Label3.Margin = new Padding(2, 0, 2, 0);
             Label3.Name = "Label3";
             Label3.Size = new Size(95, 19);
@@ -285,7 +285,7 @@
             Label2.AutoSize = true;
             Label2.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             Label2.ForeColor = Color.FromArgb(0, 0, 192);
-            Label2.Location = new Point(2, 8);
+            Label2.Location = new Point(2, 10);
             Label2.Margin = new Padding(2, 0, 2, 0);
             Label2.Name = "Label2";
             Label2.Size = new Size(61, 19);
@@ -298,7 +298,7 @@
             Label5.AutoSize = true;
             Label5.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             Label5.ForeColor = Color.FromArgb(0, 0, 192);
-            Label5.Location = new Point(2, 78);
+            Label5.Location = new Point(2, 88);
             Label5.Margin = new Padding(2, 0, 2, 0);
             Label5.Name = "Label5";
             Label5.Size = new Size(110, 19);
@@ -311,7 +311,7 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label4.ForeColor = Color.FromArgb(0, 0, 192);
-            label4.Location = new Point(2, 113);
+            label4.Location = new Point(2, 127);
             label4.Margin = new Padding(2, 0, 2, 0);
             label4.Name = "label4";
             label4.Size = new Size(72, 19);
@@ -324,7 +324,7 @@
             label8.AutoSize = true;
             label8.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label8.ForeColor = Color.FromArgb(0, 0, 192);
-            label8.Location = new Point(2, 183);
+            label8.Location = new Point(2, 205);
             label8.Margin = new Padding(2, 0, 2, 0);
             label8.Name = "label8";
             label8.Size = new Size(102, 19);
@@ -334,7 +334,7 @@
             // kryptonButton1_Dong
             // 
             kryptonButton1_Dong.Anchor = AnchorStyles.None;
-            kryptonButton1_Dong.Location = new Point(237, 323);
+            kryptonButton1_Dong.Location = new Point(232, 357);
             kryptonButton1_Dong.Margin = new Padding(2);
             kryptonButton1_Dong.Name = "kryptonButton1_Dong";
             kryptonButton1_Dong.Size = new Size(121, 28);
@@ -351,7 +351,7 @@
             label7.AutoSize = true;
             label7.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label7.ForeColor = Color.FromArgb(0, 0, 192);
-            label7.Location = new Point(2, 218);
+            label7.Location = new Point(2, 244);
             label7.Margin = new Padding(2, 0, 2, 0);
             label7.Name = "label7";
             label7.Size = new Size(105, 19);
@@ -365,7 +365,7 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label6.ForeColor = Color.FromArgb(0, 0, 192);
-            label6.Location = new Point(2, 253);
+            label6.Location = new Point(2, 283);
             label6.Margin = new Padding(2, 0, 2, 0);
             label6.Name = "label6";
             label6.Size = new Size(46, 19);
@@ -379,7 +379,7 @@
             label16.AutoSize = true;
             label16.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label16.ForeColor = Color.FromArgb(0, 0, 192);
-            label16.Location = new Point(2, 148);
+            label16.Location = new Point(2, 166);
             label16.Margin = new Padding(2, 0, 2, 0);
             label16.Name = "label16";
             label16.Size = new Size(85, 19);
@@ -400,7 +400,7 @@
             TableLayoutPanel3.Name = "TableLayoutPanel3";
             TableLayoutPanel3.RowCount = 1;
             TableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            TableLayoutPanel3.Size = new Size(585, 363);
+            TableLayoutPanel3.Size = new Size(576, 395);
             TableLayoutPanel3.TabIndex = 3;
             // 
             // PictureBox1
@@ -408,10 +408,10 @@
             PictureBox1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             PictureBox1.BackColor = SystemColors.Control;
             PictureBox1.Image = (Image)resources.GetObject("PictureBox1.Image");
-            PictureBox1.Location = new Point(2, 128);
+            PictureBox1.Location = new Point(2, 144);
             PictureBox1.Margin = new Padding(2);
             PictureBox1.Name = "PictureBox1";
-            PictureBox1.Size = new Size(126, 106);
+            PictureBox1.Size = new Size(124, 106);
             PictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             PictureBox1.TabIndex = 3;
             PictureBox1.TabStop = false;
@@ -747,10 +747,10 @@
             pictureBox4.Anchor = AnchorStyles.None;
             pictureBox4.BackColor = SystemColors.Control;
             pictureBox4.Image = (Image)resources.GetObject("pictureBox4.Image");
-            pictureBox4.Location = new Point(252, 11);
+            pictureBox4.Location = new Point(252, 4);
             pictureBox4.Margin = new Padding(2);
             pictureBox4.Name = "pictureBox4";
-            pictureBox4.Size = new Size(41, 21);
+            pictureBox4.Size = new Size(41, 35);
             pictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox4.TabIndex = 7;
             pictureBox4.TabStop = false;
@@ -790,10 +790,10 @@
             pictureBox3.Anchor = AnchorStyles.None;
             pictureBox3.BackColor = SystemColors.Control;
             pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
-            pictureBox3.Location = new Point(526, 12);
+            pictureBox3.Location = new Point(526, 5);
             pictureBox3.Margin = new Padding(2);
             pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(39, 25);
+            pictureBox3.Size = new Size(39, 38);
             pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox3.TabIndex = 6;
             pictureBox3.TabStop = false;
@@ -819,7 +819,7 @@
             tabPage2.Margin = new Padding(2);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(2);
-            tabPage2.Size = new Size(589, 367);
+            tabPage2.Size = new Size(580, 399);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Thông tin nhóm phát triển";
             tabPage2.UseVisualStyleBackColor = true;
