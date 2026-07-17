@@ -1130,10 +1130,6 @@ namespace PhanMemThiDua2026
             e.Graphics.DrawString(stt, grid.Font, _rowHeaderBrush, headerBounds, _rowHeaderFormat);
         }
         // HÀM 1: CẬP NHẬT TỔNG LOẠI (Đã tối ưu Transaction)
-        /// Làm mới duy nhất một dòng dữ liệu trên Grid sau khi chỉnh sửa ở Form 22.
-        /// Đảm bảo giải mã chuẩn V2 và đồng bộ hóa hiển thị Virtual Mode ngay lập tức.
-        /// Làm mới dữ liệu của một dòng duy nhất từ DB vào RAM và cập nhật hiển thị Grid.
-        /// Tối ưu cho Virtual Mode và xử lý chính xác kể cả khi đang Filter.
         public void RefreshRowFromDb(string id)
         {
             if (string.IsNullOrWhiteSpace(id) || dtDanhSachGoc == null) return;
@@ -1418,10 +1414,50 @@ namespace PhanMemThiDua2026
                     string safeDv = dv?.Replace(" ", "").ToLower() ?? "";
                     return $"NAME_{safeHt}|{safeDv}";
                 }
+                //// =======================================================
+                //// BƯỚC 1: Lấy CSDL2 (Gốc) - GIẢI MÃ RA PLAINTEXT LÀM CHUẨN
+                //// =======================================================
+                //var hashGocCSDL2 = new HashSet<string>();
+                //var listCsdl2 = new List<(string Key, string encHt, string encSh, string encDv)>();
+
+                //using (var cn2 = new SqliteConnection($"Data Source={_csdl2Path}"))
+                //{
+                //    cn2.Open();
+                //    using (var cmd = new SqliteCommand("SELECT HoVaTen, SoHieu, DonVi FROM DanhSach", cn2))
+                //    using (var rd = cmd.ExecuteReader())
+                //    {
+                //        while (rd.Read())
+                //        {
+                //            // Lấy chuỗi mã hóa V2 từ CSDL2
+                //            string encHt = rd["HoVaTen"]?.ToString() ?? "";
+                //            string encSh = rd["SoHieu"]?.ToString() ?? "";
+                //            string encDv = rd["DonVi"]?.ToString() ?? "";
+
+                //            // GIẢI MÃ RA VĂN BẢN GỐC
+                //            string plainHt = SafeDecrypt(encHt);
+                //            string plainSh = SafeDecrypt(encSh);
+                //            string plainDv = SafeDecrypt(encDv);
+
+                //            // Bỏ qua dòng lỗi/trống
+                //            if (string.IsNullOrWhiteSpace(plainHt) && string.IsNullOrWhiteSpace(plainSh)) continue;
+
+                //            // Tạo khóa tổ hợp: "nguyễn văn a|123456|đội 1"
+                //            string key = TaoKeySoSanh(plainHt, plainSh, plainDv);
+
+                //            hashGocCSDL2.Add(key); // Dùng để đối chiếu cực nhanh
+                //            listCsdl2.Add((key, encHt, encSh, encDv)); // Dùng để Insert nếu cần
+                //        }
+                //    }
+                //}
                 // =======================================================
                 // BƯỚC 1: Lấy CSDL2 (Gốc) - GIẢI MÃ RA PLAINTEXT LÀM CHUẨN
                 // =======================================================
-                var hashGocCSDL2 = new HashSet<string>();
+                // SỬA DÒNG NÀY: Dùng Dictionary thay cho HashSet để lưu trữ thông tin mã hóa
+                // =======================================================
+                // BƯỚC 1: Lấy CSDL2 (Gốc) - GIẢI MÃ RA PLAINTEXT LÀM CHUẨN
+                // =======================================================
+                // SỬA DÒNG NÀY: Dùng Dictionary thay cho HashSet để lưu trữ thông tin mã hóa
+                var dictGocCSDL2 = new Dictionary<string, (string encHt, string encSh, string encDv)>();
                 var listCsdl2 = new List<(string Key, string encHt, string encSh, string encDv)>();
 
                 using (var cn2 = new SqliteConnection($"Data Source={_csdl2Path}"))
@@ -1432,27 +1468,77 @@ namespace PhanMemThiDua2026
                     {
                         while (rd.Read())
                         {
-                            // Lấy chuỗi mã hóa V2 từ CSDL2
                             string encHt = rd["HoVaTen"]?.ToString() ?? "";
                             string encSh = rd["SoHieu"]?.ToString() ?? "";
                             string encDv = rd["DonVi"]?.ToString() ?? "";
 
-                            // GIẢI MÃ RA VĂN BẢN GỐC
                             string plainHt = SafeDecrypt(encHt);
                             string plainSh = SafeDecrypt(encSh);
                             string plainDv = SafeDecrypt(encDv);
 
-                            // Bỏ qua dòng lỗi/trống
                             if (string.IsNullOrWhiteSpace(plainHt) && string.IsNullOrWhiteSpace(plainSh)) continue;
 
-                            // Tạo khóa tổ hợp: "nguyễn văn a|123456|đội 1"
                             string key = TaoKeySoSanh(plainHt, plainSh, plainDv);
 
-                            hashGocCSDL2.Add(key); // Dùng để đối chiếu cực nhanh
-                            listCsdl2.Add((key, encHt, encSh, encDv)); // Dùng để Insert nếu cần
+                            // Lưu trữ thông tin đã mã hóa để lát nữa đem đi Update
+                            dictGocCSDL2[key] = (encHt, encSh, encDv);
+                            listCsdl2.Add((key, encHt, encSh, encDv));
                         }
                     }
                 }
+
+                //// =======================================================
+                //// BƯỚC 2: Lấy CSDL4 (Đích) - GIẢI MÃ VÀ ĐỐI CHIẾU
+                //// =======================================================
+                //var hashDichCSDL4 = new HashSet<string>();
+                //var idChuyenCongTac = new List<int>();
+                //var idDangCongTac = new List<int>();
+
+                //using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path}"))
+                //{
+                //    cn4.Open();
+                //    // SỬA SELECT: Phải lấy cả Họ Tên và Đơn Vị lên để so sánh
+                //    using (var cmd = new SqliteCommand($"SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang FROM {tableDich}", cn4))
+                //    using (var rd = cmd.ExecuteReader())
+                //    {
+                //        while (rd.Read())
+                //        {
+                //            int id = Convert.ToInt32(rd["ID"]);
+                //            string ttHienTai = rd["TinhTrang"]?.ToString()?.Trim() ?? "";
+
+                //            string encHt = rd["HoVaTen"]?.ToString() ?? "";
+                //            string encSh = rd["SoHieu"]?.ToString() ?? "";
+                //            string encDv = rd["DonVi"]?.ToString() ?? "";
+
+                //            // GIẢI MÃ RA VĂN BẢN GỐC
+                //            string plainHt = SafeDecrypt(encHt);
+                //            string plainSh = SafeDecrypt(encSh);
+                //            string plainDv = SafeDecrypt(encDv);
+
+                //            string key = TaoKeySoSanh(plainHt, plainSh, plainDv);
+                //            hashDichCSDL4.Add(key); // Lưu lại để tý nữa lọc danh sách cần Insert
+
+                //            // ⭐ KIỂM TRA SO SÁNH CẢ 3 TRƯỜNG DỰA TRÊN PLAINTEXT KEY
+                //            if (hashGocCSDL2.Contains(key))
+                //            {
+                //                // Cả 3 trường (Họ Tên, Số Hiệu, Đơn Vị) đều khớp chuẩn xác với CSDL2
+                //                if (ttHienTai != "Đang công tác")
+                //                {
+                //                    idDangCongTac.Add(id); // Cập nhật lại thành Đang công tác
+                //                }
+                //            }
+                //            else
+                //            {
+                //                // Nếu sai lệch 1 trong 3 thông tin, HOẶC đã bị xóa khỏi CSDL2
+                //                if (ttHienTai != "Chuyển công tác")
+                //                {
+                //                    idChuyenCongTac.Add(id); // Ép thành Chuyển công tác
+                //                }
+                //            }
+                //        }
+                //    }
+                //}
+
 
                 // =======================================================
                 // BƯỚC 2: Lấy CSDL4 (Đích) - GIẢI MÃ VÀ ĐỐI CHIẾU
@@ -1460,11 +1546,12 @@ namespace PhanMemThiDua2026
                 var hashDichCSDL4 = new HashSet<string>();
                 var idChuyenCongTac = new List<int>();
                 var idDangCongTac = new List<int>();
+                // THÊM DÒNG NÀY: Danh sách lưu các ID cần cập nhật lại Họ Tên / Đơn vị
+                var idCanCapNhatThongTin = new List<(int id, string newEncHt, string newEncDv)>();
 
                 using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path}"))
                 {
                     cn4.Open();
-                    // SỬA SELECT: Phải lấy cả Họ Tên và Đơn Vị lên để so sánh
                     using (var cmd = new SqliteCommand($"SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang FROM {tableDich}", cn4))
                     using (var rd = cmd.ExecuteReader())
                     {
@@ -1477,29 +1564,33 @@ namespace PhanMemThiDua2026
                             string encSh = rd["SoHieu"]?.ToString() ?? "";
                             string encDv = rd["DonVi"]?.ToString() ?? "";
 
-                            // GIẢI MÃ RA VĂN BẢN GỐC
                             string plainHt = SafeDecrypt(encHt);
                             string plainSh = SafeDecrypt(encSh);
                             string plainDv = SafeDecrypt(encDv);
 
                             string key = TaoKeySoSanh(plainHt, plainSh, plainDv);
-                            hashDichCSDL4.Add(key); // Lưu lại để tý nữa lọc danh sách cần Insert
+                            hashDichCSDL4.Add(key);
 
-                            // ⭐ KIỂM TRA SO SÁNH CẢ 3 TRƯỜNG DỰA TRÊN PLAINTEXT KEY
-                            if (hashGocCSDL2.Contains(key))
+                            // SỬA LẠI ĐOẠN IF NÀY
+                            if (dictGocCSDL2.TryGetValue(key, out var thongTinGoc))
                             {
-                                // Cả 3 trường (Họ Tên, Số Hiệu, Đơn Vị) đều khớp chuẩn xác với CSDL2
+                                // 1. Cập nhật lại trạng thái công tác
                                 if (ttHienTai != "Đang công tác")
                                 {
-                                    idDangCongTac.Add(id); // Cập nhật lại thành Đang công tác
+                                    idDangCongTac.Add(id);
+                                }
+
+                                // 2. SO SÁNH: Nếu Họ Tên hoặc Đơn Vị bị lệch so với CSDL2 (so sánh mã hóa cho nhanh)
+                                if (encHt != thongTinGoc.encHt || encDv != thongTinGoc.encDv)
+                                {
+                                    idCanCapNhatThongTin.Add((id, thongTinGoc.encHt, thongTinGoc.encDv));
                                 }
                             }
                             else
                             {
-                                // Nếu sai lệch 1 trong 3 thông tin, HOẶC đã bị xóa khỏi CSDL2
                                 if (ttHienTai != "Chuyển công tác")
                                 {
-                                    idChuyenCongTac.Add(id); // Ép thành Chuyển công tác
+                                    idChuyenCongTac.Add(id);
                                 }
                             }
                         }
@@ -1577,6 +1668,27 @@ namespace PhanMemThiDua2026
                                     }
                                 }
                             }
+                            // THÊM KHỐI LỆNH NÀY NGAY TRƯỚC tran.Commit();
+                            // D. CẬP NHẬT: ĐỒNG BỘ THÔNG TIN (Họ tên, Đơn vị bị thay đổi)
+                            if (idCanCapNhatThongTin.Count > 0)
+                            {
+                                using (var cmdUpdInfo = new SqliteCommand($"UPDATE {tableDich} SET HoVaTen = @ht, DonVi = @dv WHERE ID = @id", cn4, tran))
+                                {
+                                    cmdUpdInfo.Parameters.Add("@ht", SqliteType.Text);
+                                    cmdUpdInfo.Parameters.Add("@dv", SqliteType.Text);
+                                    cmdUpdInfo.Parameters.Add("@id", SqliteType.Integer);
+
+                                    foreach (var item in idCanCapNhatThongTin)
+                                    {
+                                        cmdUpdInfo.Parameters["@ht"].Value = item.newEncHt;
+                                        cmdUpdInfo.Parameters["@dv"].Value = item.newEncDv;
+                                        cmdUpdInfo.Parameters["@id"].Value = item.id;
+                                        cmdUpdInfo.ExecuteNonQuery();
+                                    }
+                                }
+                            }
+
+
 
                             tran.Commit();
                         }
@@ -2129,124 +2241,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Lỗi Focus dòng sau cập nhật: " + ex.Message);
             }
         }
-        //private void KryptonDataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        //{
-        //    try
-        //    {
-        //        // 1. Chặn click lỗi
-        //        if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
-
-        //        var col = kryptonDataGridView1.Columns[e.ColumnIndex];
-        //        if (col.Name != "HoVaTen") return;
-
-        //        // 🌟 BẬT HIỆU ỨNG CHUỘT CHỜ ĐỂ USER BIẾT APP ĐÃ NHẬN LỆNH
-        //        this.Cursor = Cursors.WaitCursor;
-
-        //        string id = "";
-        //        string donVi = "";
-        //        string hoTen = "";
-        //        string tinhTrang = "";
-
-        //        // =========================================================================
-        //        // 🚀 ĐỌC DỮ LIỆU TỪ RAM CHUẨN VIRTUAL MODE (Không đọc qua Grid.Rows)
-        //        // =========================================================================
-        //        bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-
-        //        int actualIndex = _filteredIndexes[e.RowIndex]; // Lấy index thật đã qua bộ lọc
-
-        //        if (_isDataMaxMode)
-        //        {
-        //            // ⚡ NHÁNH 1: Chế độ 10.000+ dòng (Đọc thẳng từ List Cache Object)
-        //            if (laTanBinh)
-        //            {
-        //                var dataObj = _dataCacheTanBinh[actualIndex];
-        //                id = dataObj.ID;
-        //                donVi = dataObj.DonViE;
-        //                hoTen = dataObj.HoTenE;
-        //                tinhTrang = dataObj.TinhTrang;
-        //            }
-        //            else
-        //            {
-        //                var dataObj = _dataCacheCBCS[actualIndex];
-        //                id = dataObj.ID;
-        //                donVi = dataObj.DonViE;
-        //                hoTen = dataObj.HoTenE;
-        //                tinhTrang = dataObj.TinhTrang;
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // ⚡ NHÁNH 2: Chế độ Standard (Đọc thẳng từ DataTable/DataView gốc)
-        //            DataRowView rowView = dtDanhSachGoc.DefaultView[actualIndex];
-        //            id = rowView["ID"]?.ToString() ?? "";
-        //            donVi = rowView["DonVi"]?.ToString() ?? "";
-        //            hoTen = rowView["HoVaTen"]?.ToString() ?? "";
-        //            tinhTrang = rowView["TinhTrang"]?.ToString() ?? "";
-        //        }
-
-        //        if (string.IsNullOrEmpty(id)) return;
-        //        int idInt = int.Parse(id);
-
-        //        // Trả lại chuột bình thường trước khi mở Form nặng
-        //        this.Cursor = Cursors.Default;
-
-        //        // =========================================================================
-        //        // HIỂN THỊ FORM CHỈNH SỬA
-        //        // =========================================================================
-        //        if (laTanBinh)
-        //        {
-        //            using (var frm = new Form30_ChinhSuaDataTanBinh(idInt, donVi))
-        //            {
-        //                frm.Owner = this;
-        //                frm.ShowInTaskbar = false;
-        //                frm.ShowDialog();
-        //                if (frm.DialogResult == DialogResult.OK)
-        //                {
-        //                    using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
-        //                    {
-        //                        cn.Open();
-        //                        CapNhatTongLoai_Cho(idInt, cn);
-        //                    }
-        //                    RefreshRowFromDb(id);
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            using (var frm22 = new Form22_ChinhSuaDataCBCS())
-        //            {
-        //                frm22.ID_CBCS = idInt;
-        //                frm22.HoVaTen = hoTen;
-        //                frm22.SoHieu = ""; // Nếu cần truyền số hiệu, bạn có thể bổ sung lấy thêm ở trên
-        //                frm22.TinhTrang = tinhTrang;
-        //                frm22.DonVi = donVi;
-
-        //                frm22.Owner = this;
-        //                frm22.ShowInTaskbar = false;
-        //                frm22.ShowDialog();
-
-        //                if (frm22.DialogResult == DialogResult.OK)
-        //                {
-        //                    using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
-        //                    {
-        //                        cn.Open();
-        //                        CapNhatTongLoai_Cho(idInt, cn);
-        //                    }
-        //                    RefreshRowFromDb(id);
-        //                }
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show("Lỗi mở Form sửa dữ liệu: " + ex.Message);
-        //    }
-        //    finally
-        //    {
-        //        this.Cursor = Cursors.Default; // Đảm bảo luôn tắt con chuột xoay vòng
-        //    }
-        //}
-
         private void KryptonDataGridView1_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             try
