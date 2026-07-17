@@ -12,7 +12,17 @@ namespace PhanMemThiDua2026
         // Sử dụng chung đường dẫn CSDL từ module dẫn đường của hệ thống
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private const int GioiHanKhuyenNghi = 830;
-      
+        // 🌟 THÊM THUỘC TÍNH ĐỘNG: Tự động chọn bảng Tóm tắt theo phiên bản hệ thống
+        private string TenBangHienTai
+        {
+            get
+            {
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                    ? "TomTatThanhTichBaNhat_TanBinh"
+                    : "TomTatThanhTichBaNhat_CBCS";
+            }
+        }
         public Form43_TomTatThanhTichBaNhat()
         {
             InitializeComponent();
@@ -121,6 +131,38 @@ namespace PhanMemThiDua2026
         /// <summary>
         /// Hàm tải dữ liệu tóm tắt thành tích từ SQLite (Chỉ thao tác trên dòng ID = 1)
         /// </summary>
+        //private async Task TaiDuLieuTomTatAsync()
+        //{
+        //    if (!File.Exists(_csdl2Path)) return;
+
+        //    try
+        //    {
+        //        using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //        await conn.OpenAsync();
+
+        //        using var cmd = conn.CreateCommand();
+        //        // Chỉ đích danh lấy dòng có ID = 1
+        //        cmd.CommandText = "SELECT NoiDung FROM TomTatThanhTichBaNhat_CBCS WHERE ID = 1";
+
+        //        var result = await cmd.ExecuteScalarAsync();
+        //        if (result != null && result != DBNull.Value)
+        //        {
+        //            richTextBox1_TomTatThanhTichBaNhat.Text = BaoMatAES.GiaiMa(result.ToString()).Trim();
+
+        //            // Gọi hàm đếm lại sau khi giải mã và nạp xong dữ liệu
+        //            CapNhatSoLuongKyTu();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        System.Diagnostics.Debug.WriteLine("Lỗi tải tóm tắt thành tích: " + ex.Message);
+        //    }
+        //}
+        /// <summary>
+        /// Sự kiện lưu dữ liệu ngược lại vào CSDL (Chỉ ghi đè hoặc chèn vào dòng ID = 1)
+        /// </summary>
+
+
         private async Task TaiDuLieuTomTatAsync()
         {
             if (!File.Exists(_csdl2Path)) return;
@@ -131,15 +173,13 @@ namespace PhanMemThiDua2026
                 await conn.OpenAsync();
 
                 using var cmd = conn.CreateCommand();
-                // Chỉ đích danh lấy dòng có ID = 1
-                cmd.CommandText = "SELECT NoiDung FROM TomTatThanhTichBaNhat WHERE ID = 1";
+                // 🌟 SỬA ĐỊNH TUYẾN: Gọi tên bảng động
+                cmd.CommandText = $"SELECT NoiDung FROM [{TenBangHienTai}] WHERE ID = 1";
 
                 var result = await cmd.ExecuteScalarAsync();
                 if (result != null && result != DBNull.Value)
                 {
                     richTextBox1_TomTatThanhTichBaNhat.Text = BaoMatAES.GiaiMa(result.ToString()).Trim();
-
-                    // Gọi hàm đếm lại sau khi giải mã và nạp xong dữ liệu
                     CapNhatSoLuongKyTu();
                 }
             }
@@ -148,9 +188,7 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine("Lỗi tải tóm tắt thành tích: " + ex.Message);
             }
         }
-        /// <summary>
-        /// Sự kiện lưu dữ liệu ngược lại vào CSDL (Chỉ ghi đè hoặc chèn vào dòng ID = 1)
-        /// </summary>
+
         private async void kryptonButton_LuuDataDeNghi_Click(object sender, EventArgs e)
         {
             int soKyTu = richTextBox1_TomTatThanhTichBaNhat.TextLength;
@@ -181,17 +219,17 @@ namespace PhanMemThiDua2026
 
                 using var cmd = conn.CreateCommand();
 
-                // Nhờ có PRIMARY KEY, lệnh này sẽ luôn khóa chặt ở dòng ID = 1.
-                // Nó bỏ qua AutoIncrement và ép CSDL phải thao tác trên dòng 1.
-                cmd.CommandText = @"
-            INSERT OR REPLACE INTO TomTatThanhTichBaNhat (ID, NoiDung) 
+                // 🌟 SỬA ĐỊNH TUYẾN: Ghi dữ liệu vào đúng bảng hệ thống đang chọn
+                cmd.CommandText = $@"
+            INSERT OR REPLACE INTO [{TenBangHienTai}] (ID, NoiDung) 
             VALUES (1, @NoiDung);";
 
                 cmd.Parameters.AddWithValue("@NoiDung", noiDungMaHoa);
                 await cmd.ExecuteNonQueryAsync();
+
                 Module_NhatKy.GhiNhatKy(
             taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
-            hanhDong: "Cập nhật thành tích tập thể phong trào Ba Nhất",
+            hanhDong: $"Cập nhật thành tích tập thể phong trào Ba Nhất ({TenBangHienTai})",
             ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
         );
                 await Task.Delay(200); // Tạo độ trễ nhỏ để trải nghiệm UX mượt mà
@@ -209,6 +247,65 @@ namespace PhanMemThiDua2026
                 kryptonButton_LuuDataDeNghi.Refresh();
             }
         }
+
+        //private async void kryptonButton_LuuDataDeNghi_Click(object sender, EventArgs e)
+        //{
+        //    int soKyTu = richTextBox1_TomTatThanhTichBaNhat.TextLength;
+
+        //    if (soKyTu > Module_BaNhat.GioiHanToiDa)
+        //    {
+        //        MessageBox.Show(
+        //            $"Nội dung hiện có {soKyTu} ký tự, vượt quá giới hạn cho phép ({Module_BaNhat.GioiHanToiDa} ký tự).\nVui lòng rút gọn nội dung trước khi lưu.",
+        //            "Không thể lưu dữ liệu",
+        //            MessageBoxButtons.OK,
+        //            MessageBoxIcon.Warning);
+
+        //        richTextBox1_TomTatThanhTichBaNhat.Focus();
+        //        return;
+        //    }
+        //    string tenNutGoc = kryptonButton_LuuDataDeNghi.Text;
+        //    kryptonButton_LuuDataDeNghi.Text = "Đang lưu...";
+        //    kryptonButton_LuuDataDeNghi.Enabled = false;
+        //    kryptonButton_LuuDataDeNghi.Refresh();
+
+        //    try
+        //    {
+        //        string noiDungTho = richTextBox1_TomTatThanhTichBaNhat.Text.Trim();
+        //        string noiDungMaHoa = BaoMatAES.MaHoa(noiDungTho);
+
+        //        using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //        await conn.OpenAsync();
+
+        //        using var cmd = conn.CreateCommand();
+
+        //        // Nhờ có PRIMARY KEY, lệnh này sẽ luôn khóa chặt ở dòng ID = 1.
+        //        // Nó bỏ qua AutoIncrement và ép CSDL phải thao tác trên dòng 1.
+        //        cmd.CommandText = @"
+        //    INSERT OR REPLACE INTO TomTatThanhTichBaNhat_CBCS (ID, NoiDung) 
+        //    VALUES (1, @NoiDung);";
+
+        //        cmd.Parameters.AddWithValue("@NoiDung", noiDungMaHoa);
+        //        await cmd.ExecuteNonQueryAsync();
+        //        Module_NhatKy.GhiNhatKy(
+        //    taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+        //    hanhDong: "Cập nhật thành tích tập thể phong trào Ba Nhất",
+        //    ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+        //);
+        //        await Task.Delay(200); // Tạo độ trễ nhỏ để trải nghiệm UX mượt mà
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        System.Diagnostics.Debug.WriteLine(ex);
+        //        MessageBox.Show("Lỗi trong quá trình lưu dữ liệu:\n\n" + ex.Message,
+        //                        "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //    finally
+        //    {
+        //        kryptonButton_LuuDataDeNghi.Text = tenNutGoc;
+        //        kryptonButton_LuuDataDeNghi.Enabled = true;
+        //        kryptonButton_LuuDataDeNghi.Refresh();
+        //    }
+        //}
         // CẤU HÌNH CỠ CHỮ RICHTEXTBOX
         private const float RichText_MinFontSize = 8f;
         private const float RichText_MaxFontSize = 30f;

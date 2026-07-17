@@ -18,7 +18,7 @@ namespace PhanMemThiDua2026
     public partial class Form44_SoVangBaNhat : Form
     {
         // Sử dụng chung đường dẫn CSDL2 từ module dẫn đường
-        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;   
         public Form44_SoVangBaNhat()
         {
             InitializeComponent();
@@ -28,6 +28,17 @@ namespace PhanMemThiDua2026
             // ⭐ ĐĂNG KÝ SỰ KIỆN THEO DÕI ẨN HÀN NÚT Ở ĐÂY
             kryptonTextBox1_SoHieu.TextChanged += (s, e) => CapNhatTrangThaiNut();
             kryptonTextBox1_HoVaTen.TextChanged += (s, e) => CapNhatTrangThaiNut();
+        }
+        // 🌟 THÊM THUỘC TÍNH ĐỘNG: Tự động chọn bảng theo phiên bản hệ thống
+        private string TenBangHienTai
+        {
+            get
+            {
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                    ? "DanhSachTanBinh_SoVangBaNhat"
+                    : "DanhSach_SoVangBaNhat";
+            }
         }
         private async void Form44_SoVangBaNhat_Load(object sender, EventArgs e)
         {
@@ -123,51 +134,125 @@ namespace PhanMemThiDua2026
                 }
             }
         }
+        //public async Task LoadDuLieuSoVangBaNhatAsync()
+        //{
+        //    if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+
+        //    try
+        //    {
+        //        // 1. Dọn dẹp DataGridView trước khi nạp ngầm để tránh xung đột UI
+        //        if (kryptonDataGridView1 != null && kryptonDataGridView1.DataSource != null)
+        //        {
+        //            kryptonDataGridView1.DataSource = null;
+        //        }
+
+        //        // 2. TẠO VÀ XỬ LÝ DỮ LIỆU Ở LUỒNG NGẦM (Không block UI)
+        //        DataTable dtSoVang = await Task.Run(async () =>
+        //        {
+        //            DataTable dt = new DataTable();
+        //            dt.Columns.Add("ID", typeof(int));
+        //            dt.Columns.Add("STT", typeof(int));
+        //            dt.Columns.Add("HoVaTen", typeof(string));
+        //            dt.Columns.Add("SoHieu", typeof(string));
+        //            dt.Columns.Add("NamSinh", typeof(string));
+        //            dt.Columns.Add("QueQuan", typeof(string));
+        //            dt.Columns.Add("NgayVaoCAND", typeof(string));
+        //            dt.Columns.Add("CapBac", typeof(string));
+        //            dt.Columns.Add("ChucVu", typeof(string));
+        //            dt.Columns.Add("DonVi", typeof(string));
+        //            dt.Columns.Add("PhanLoai", typeof(string));
+        //            dt.Columns.Add("GhiChu", typeof(string));
+        //            dt.Columns.Add("ThanhTich", typeof(string));
+        //            dt.Columns.Add("ThongBaoTrungDoan", typeof(string));
+        //            dt.Columns.Add("SoTTTrongSo", typeof(string));
+        //            dt.Columns.Add("ThangCongNhan", typeof(string));
+
+        //            using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //            await conn.OpenAsync();
+
+        //            using var cmd = conn.CreateCommand();
+        //            cmd.CommandText = "SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan FROM DanhSach_SoVangBaNhat ORDER BY STT ASC";
+
+        //            using var reader = await cmd.ExecuteReaderAsync();
+        //            int sttTuDong = 1;
+
+        //            while (await reader.ReadAsync())
+        //            {
+        //                // Lấy ra, giải mã AES và đưa vào DataRow
+        //                dt.Rows.Add(
+        //                    reader.GetInt32(0),
+        //                    sttTuDong++,
+        //                    SafeGiaiMa(reader["HoVaTen"]?.ToString()),
+        //                    SafeGiaiMa(reader["SoHieu"]?.ToString()),
+        //                    SafeGiaiMa(reader["NamSinh"]?.ToString()),
+        //                    SafeGiaiMa(reader["QueQuan"]?.ToString()),
+        //                    SafeGiaiMa(reader["NgayVaoCAND"]?.ToString()),
+        //                    SafeGiaiMa(reader["CapBac"]?.ToString()),
+        //                    SafeGiaiMa(reader["ChucVu"]?.ToString()),
+        //                    SafeGiaiMa(reader["DonVi"]?.ToString()),
+        //                    SafeGiaiMa(reader["PhanLoai"]?.ToString()),
+        //                    SafeGiaiMa(reader["GhiChu"]?.ToString()),
+        //                    SafeGiaiMa(reader["ThanhTich"]?.ToString()),
+        //                    SafeGiaiMa(reader["ThongBaoTrungDoan"]?.ToString()),
+        //                    SafeGiaiMa(reader["SoTTTrongSo"]?.ToString()),
+        //                    SafeGiaiMa(reader["ThangCongNhan"]?.ToString())
+        //                );
+        //            }
+        //            return dt; // Trả DataTable đã đầy đủ dữ liệu về luồng chính
+        //        });
+
+        //        // 3. GÁN DỮ LIỆU LÊN LUỒNG CHÍNH VÀ ĐỊNH DẠNG (Tạm ngưng vẽ để tránh nhấp nháy)
+        //        if (kryptonDataGridView1 != null && !kryptonDataGridView1.IsDisposed)
+        //        {
+        //            kryptonDataGridView1.SuspendLayout(); // Dừng vẽ giao diện
+
+        //            kryptonDataGridView1.DataSource = dtSoVang;
+        //            DinhDangGiaoDienDataGridSoVang(); // Gọi hàm cấu hình giao diện
+
+        //            kryptonDataGridView1.ResumeLayout();   // Tiếp tục vẽ lại giao diện
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        System.Diagnostics.Debug.WriteLine("Lỗi nạp bảng DanhSach_SoVangBaNhat: " + ex.Message);
+        //    }
+        //}
+
         public async Task LoadDuLieuSoVangBaNhatAsync()
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
 
             try
             {
-                // 1. Dọn dẹp DataGridView trước khi nạp ngầm để tránh xung đột UI
                 if (kryptonDataGridView1 != null && kryptonDataGridView1.DataSource != null)
                 {
                     kryptonDataGridView1.DataSource = null;
                 }
 
-                // 2. TẠO VÀ XỬ LÝ DỮ LIỆU Ở LUỒNG NGẦM (Không block UI)
                 DataTable dtSoVang = await Task.Run(async () =>
                 {
                     DataTable dt = new DataTable();
-                    dt.Columns.Add("ID", typeof(int));
-                    dt.Columns.Add("STT", typeof(int));
-                    dt.Columns.Add("HoVaTen", typeof(string));
-                    dt.Columns.Add("SoHieu", typeof(string));
-                    dt.Columns.Add("NamSinh", typeof(string));
-                    dt.Columns.Add("QueQuan", typeof(string));
-                    dt.Columns.Add("NgayVaoCAND", typeof(string));
-                    dt.Columns.Add("CapBac", typeof(string));
-                    dt.Columns.Add("ChucVu", typeof(string));
-                    dt.Columns.Add("DonVi", typeof(string));
-                    dt.Columns.Add("PhanLoai", typeof(string));
-                    dt.Columns.Add("GhiChu", typeof(string));
-                    dt.Columns.Add("ThanhTich", typeof(string));
-                    dt.Columns.Add("ThongBaoTrungDoan", typeof(string));
-                    dt.Columns.Add("SoTTTrongSo", typeof(string));
-                    dt.Columns.Add("ThangCongNhan", typeof(string));
+                    dt.Columns.Add("ID", typeof(int)); dt.Columns.Add("STT", typeof(int));
+                    dt.Columns.Add("HoVaTen", typeof(string)); dt.Columns.Add("SoHieu", typeof(string));
+                    dt.Columns.Add("NamSinh", typeof(string)); dt.Columns.Add("QueQuan", typeof(string));
+                    dt.Columns.Add("NgayVaoCAND", typeof(string)); dt.Columns.Add("CapBac", typeof(string));
+                    dt.Columns.Add("ChucVu", typeof(string)); dt.Columns.Add("DonVi", typeof(string));
+                    dt.Columns.Add("PhanLoai", typeof(string)); dt.Columns.Add("GhiChu", typeof(string));
+                    dt.Columns.Add("ThanhTich", typeof(string)); dt.Columns.Add("ThongBaoTrungDoan", typeof(string));
+                    dt.Columns.Add("SoTTTrongSo", typeof(string)); dt.Columns.Add("ThangCongNhan", typeof(string));
 
                     using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                     await conn.OpenAsync();
 
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan FROM DanhSach_SoVangBaNhat ORDER BY STT ASC";
+                    // 🌟 SỬA: Chuyển sang nạp bảng động TenBangHienTai
+                    cmd.CommandText = $"SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan FROM [{TenBangHienTai}] ORDER BY STT ASC";
 
                     using var reader = await cmd.ExecuteReaderAsync();
                     int sttTuDong = 1;
 
                     while (await reader.ReadAsync())
                     {
-                        // Lấy ra, giải mã AES và đưa vào DataRow
                         dt.Rows.Add(
                             reader.GetInt32(0),
                             sttTuDong++,
@@ -187,23 +272,20 @@ namespace PhanMemThiDua2026
                             SafeGiaiMa(reader["ThangCongNhan"]?.ToString())
                         );
                     }
-                    return dt; // Trả DataTable đã đầy đủ dữ liệu về luồng chính
+                    return dt;
                 });
 
-                // 3. GÁN DỮ LIỆU LÊN LUỒNG CHÍNH VÀ ĐỊNH DẠNG (Tạm ngưng vẽ để tránh nhấp nháy)
                 if (kryptonDataGridView1 != null && !kryptonDataGridView1.IsDisposed)
                 {
-                    kryptonDataGridView1.SuspendLayout(); // Dừng vẽ giao diện
-
+                    kryptonDataGridView1.SuspendLayout();
                     kryptonDataGridView1.DataSource = dtSoVang;
-                    DinhDangGiaoDienDataGridSoVang(); // Gọi hàm cấu hình giao diện
-
-                    kryptonDataGridView1.ResumeLayout();   // Tiếp tục vẽ lại giao diện
+                    DinhDangGiaoDienDataGridSoVang();
+                    kryptonDataGridView1.ResumeLayout();
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("Lỗi nạp bảng DanhSach_SoVangBaNhat: " + ex.Message);
+                Debug.WriteLine($"Lỗi nạp bảng {TenBangHienTai}: " + ex.Message);
             }
         }
         private void kryptonDataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -401,32 +483,133 @@ namespace PhanMemThiDua2026
                 formCha.CapNhatTieuDe("Quản lý phong trào thi đua Ba Nhất");
             }
         }
+        //        private async void kryptonButton_LuuDataSoVang_Click(object sender, EventArgs e)
+        //        {
+        //            // Kiểm tra đã chọn dòng nào chưa thông qua ID lưu trong Tag
+        //            if (kryptonTextBox1_STT.Tag == null ||
+        //                !int.TryParse(kryptonTextBox1_STT.Tag.ToString(), out int id))
+        //            {
+        //                MessageBox.Show(
+        //                    "Vui lòng chọn một cán bộ trong danh sách trước khi lưu!",
+        //                    "Thông báo",
+        //                    MessageBoxButtons.OK,
+        //                    MessageBoxIcon.Warning);
+
+        //                return;
+        //            }
+
+        //            // Kiểm tra giới hạn số lượng ký tự trước khi lưu
+        //            int soKyTu = richTextBox1_ThanhTich.TextLength;
+
+        //            if (soKyTu > Module_BaNhat.GioiHanToiDa)
+        //            {
+        //                MessageBox.Show(
+        //                    $"Nội dung thành tích hiện có {soKyTu} ký tự,\nvượt quá giới hạn cho phép ({Module_BaNhat.GioiHanToiDa} ký tự).\nVui lòng rút gọn nội dung trước khi lưu.",
+        //                    "Không thể lưu dữ liệu",
+        //                    MessageBoxButtons.OK,
+        //                    MessageBoxIcon.Warning);
+
+        //                richTextBox1_ThanhTich.Focus();
+        //                return;
+        //            }
+        //            kryptonButton_LuuDataSoVang.Enabled = false;
+        //            kryptonButton_LuuDataSoVang.Text = "Đang lưu...";
+
+        //            try
+        //            {
+        //                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //                await conn.OpenAsync();
+
+        //                // ⭐ ĐÃ XÓA "STT = @STT" KHỎI CÂU LỆNH UPDATE
+        //                const string sqlUpdate = @"
+        //UPDATE DanhSach_SoVangBaNhat SET
+        //    HoVaTen = @HoVaTen,
+        //    SoHieu = @SoHieu,
+        //    NamSinh = @NamSinh,
+        //    QueQuan = @QueQuan,
+        //    NgayVaoCAND = @NgayVaoCAND,
+        //    CapBac = @CapBac,
+        //    ChucVu = @ChucVu,
+        //    DonVi = @DonVi,
+        //    PhanLoai = @PhanLoai,
+        //    GhiChu = @GhiChu,
+        //    ThanhTich = @ThanhTich,
+        //    ThongBaoTrungDoan = @TB,
+        //    SoTTTrongSo = @SoTT,
+        //    ThangCongNhan = @TCN
+        //WHERE ID = @ID";
+
+        //                using var cmd = new SqliteCommand(sqlUpdate, conn);
+
+        //                cmd.Parameters.AddWithValue("@ID", id);
+
+        //                // ⭐ ĐÃ RÚT CỘT STT RA KHỎI MẢNG NÀY ĐỂ KHÔNG BỊ MÃ HÓA AES
+        //                (string Name, string Value)[] parameters =
+        //                {
+        //                    ("@HoVaTen", kryptonTextBox1_HoVaTen.Text),
+        //                    ("@SoHieu", kryptonTextBox1_SoHieu.Text),
+        //                    ("@NamSinh", kryptonTextBox1_NamSinh.Text),
+        //                    ("@QueQuan", kryptonTextBox1_QueQuan.Text),
+        //                    ("@NgayVaoCAND", kryptonTextBox1_NgayVaoCAND.Text),
+        //                    ("@CapBac", kryptonTextBox1_CapBac.Text),
+        //                    ("@ChucVu", kryptonTextBox1_ChucVu.Text),
+        //                    ("@DonVi", kryptonTextBox1_DonVi.Text),
+        //                    ("@PhanLoai", kryptonTextBox1_PhanLoai.Text),
+        //                    ("@GhiChu", kryptonTextBox1_GhiChu.Text),
+        //                    ("@ThanhTich", richTextBox1_ThanhTich.Text),
+        //                    ("@TB", kryptonTextBox1_ThongBaoTrungDoan.Text),
+        //                    ("@SoTT", kryptonTextBox1_SoTTTrongSo.Text),
+        //                    ("@TCN", kryptonTextBox1_ThangCongNhan.Text)
+        //                };
+
+        //                foreach (var p in parameters)
+        //                {
+        //                    cmd.Parameters.AddWithValue(
+        //                        p.Name,
+        //                        BaoMatAES.MaHoa(p.Value.Trim()));
+        //                }
+
+        //                // Biên dịch câu lệnh trước khi thực thi
+        //                cmd.Prepare();
+
+        //                await cmd.ExecuteNonQueryAsync();
+
+        //                // Cập nhật lại dữ liệu
+        //                await LoadDuLieuSoVangBaNhatAsync();
+
+        //                toolStripStatusLabel1_ThongBao.Text = $"Đã lưu thông tin đồng chí {kryptonTextBox1_HoVaTen.Text.Trim()} thành công!";
+        //                await Task.Delay(300);
+        //                CapNhatThongKeSoLuong();
+        //                // Cập nhật lại danh sách đơn vị vì có thể đơn vị đó đã bị xóa hết
+        //                CapNhatDanhSachDonVi();
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                MessageBox.Show(
+        //                    "Lỗi khi lưu dữ liệu: " + ex.Message,
+        //                    "Lỗi hệ thống",
+        //                    MessageBoxButtons.OK,
+        //                    MessageBoxIcon.Error);
+        //            }
+        //            finally
+        //            {
+        //                kryptonButton_LuuDataSoVang.Enabled = true;
+        //                kryptonButton_LuuDataSoVang.Text = "Lưu dữ liệu";
+        //            }
+        //        }
+
         private async void kryptonButton_LuuDataSoVang_Click(object sender, EventArgs e)
         {
-            // Kiểm tra đã chọn dòng nào chưa thông qua ID lưu trong Tag
-            if (kryptonTextBox1_STT.Tag == null ||
-                !int.TryParse(kryptonTextBox1_STT.Tag.ToString(), out int id))
+            if (kryptonTextBox1_STT.Tag == null || !int.TryParse(kryptonTextBox1_STT.Tag.ToString(), out int id))
             {
-                MessageBox.Show(
-                    "Vui lòng chọn một cán bộ trong danh sách trước khi lưu!",
-                    "Thông báo",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
+                MessageBox.Show("Vui lòng chọn một cán bộ trong danh sách trước khi lưu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Kiểm tra giới hạn số lượng ký tự trước khi lưu
             int soKyTu = richTextBox1_ThanhTich.TextLength;
-
             if (soKyTu > Module_BaNhat.GioiHanToiDa)
             {
-                MessageBox.Show(
-                    $"Nội dung thành tích hiện có {soKyTu} ký tự,\nvượt quá giới hạn cho phép ({Module_BaNhat.GioiHanToiDa} ký tự).\nVui lòng rút gọn nội dung trước khi lưu.",
-                    "Không thể lưu dữ liệu",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-
+                MessageBox.Show($"Nội dung thành tích hiện có {soKyTu} ký tự,\nvượt quá giới hạn cho phép ({Module_BaNhat.GioiHanToiDa} ký tự).\nVui lòng rút gọn nội dung trước khi lưu.", "Không thể lưu dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 richTextBox1_ThanhTich.Focus();
                 return;
             }
@@ -438,30 +621,28 @@ namespace PhanMemThiDua2026
                 using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                 await conn.OpenAsync();
 
-                // ⭐ ĐÃ XÓA "STT = @STT" KHỎI CÂU LỆNH UPDATE
-                const string sqlUpdate = @"
-UPDATE DanhSach_SoVangBaNhat SET
-    HoVaTen = @HoVaTen,
-    SoHieu = @SoHieu,
-    NamSinh = @NamSinh,
-    QueQuan = @QueQuan,
-    NgayVaoCAND = @NgayVaoCAND,
-    CapBac = @CapBac,
-    ChucVu = @ChucVu,
-    DonVi = @DonVi,
-    PhanLoai = @PhanLoai,
-    GhiChu = @GhiChu,
-    ThanhTich = @ThanhTich,
-    ThongBaoTrungDoan = @TB,
-    SoTTTrongSo = @SoTT,
-    ThangCongNhan = @TCN
-WHERE ID = @ID";
+                // 🌟 SỬA: Thay thế tên bảng động trong chuỗi lệnh UPDATE
+                string sqlUpdate = $@"
+                UPDATE [{TenBangHienTai}] SET
+                    HoVaTen = @HoVaTen,
+                    SoHieu = @SoHieu,
+                    NamSinh = @NamSinh,
+                    QueQuan = @QueQuan,
+                    NgayVaoCAND = @NgayVaoCAND,
+                    CapBac = @CapBac,
+                    ChucVu = @ChucVu,
+                    DonVi = @DonVi,
+                    PhanLoai = @PhanLoai,
+                    GhiChu = @GhiChu,
+                    ThanhTich = @ThanhTich,
+                    ThongBaoTrungDoan = @TB,
+                    SoTTTrongSo = @SoTT,
+                    ThangCongNhan = @TCN
+                WHERE ID = @ID";
 
                 using var cmd = new SqliteCommand(sqlUpdate, conn);
-
                 cmd.Parameters.AddWithValue("@ID", id);
 
-                // ⭐ ĐÃ RÚT CỘT STT RA KHỎI MẢNG NÀY ĐỂ KHÔNG BỊ MÃ HÓA AES
                 (string Name, string Value)[] parameters =
                 {
                     ("@HoVaTen", kryptonTextBox1_HoVaTen.Text),
@@ -482,32 +663,21 @@ WHERE ID = @ID";
 
                 foreach (var p in parameters)
                 {
-                    cmd.Parameters.AddWithValue(
-                        p.Name,
-                        BaoMatAES.MaHoa(p.Value.Trim()));
+                    cmd.Parameters.AddWithValue(p.Name, BaoMatAES.MaHoa(p.Value.Trim()));
                 }
 
-                // Biên dịch câu lệnh trước khi thực thi
                 cmd.Prepare();
-
                 await cmd.ExecuteNonQueryAsync();
 
-                // Cập nhật lại dữ liệu
                 await LoadDuLieuSoVangBaNhatAsync();
-
                 toolStripStatusLabel1_ThongBao.Text = $"Đã lưu thông tin đồng chí {kryptonTextBox1_HoVaTen.Text.Trim()} thành công!";
                 await Task.Delay(300);
                 CapNhatThongKeSoLuong();
-                // Cập nhật lại danh sách đơn vị vì có thể đơn vị đó đã bị xóa hết
                 CapNhatDanhSachDonVi();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "Lỗi khi lưu dữ liệu: " + ex.Message,
-                    "Lỗi hệ thống",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi lưu dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -515,21 +685,112 @@ WHERE ID = @ID";
                 kryptonButton_LuuDataSoVang.Text = "Lưu dữ liệu";
             }
         }
+
+        //private async void kryptonButton1_XoaCBCS_Click(object sender, EventArgs e)
+        //{
+        //    // 1. Kiểm tra xem đã chọn cán bộ chưa
+        //    if (kryptonTextBox1_STT.Tag == null || !int.TryParse(kryptonTextBox1_STT.Tag.ToString(), out int idXoa))
+        //    {
+        //        MessageBox.Show("Vui lòng chọn một cán bộ trong danh sách để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //        return;
+        //    }
+
+        //    // 2. Lấy thông tin từ các TextBox tương ứng
+        //    string hoTen = kryptonTextBox1_HoVaTen.Text.Trim();
+        //    string soHieu = kryptonTextBox1_SoHieu.Text.Trim();
+        //    string donVi = kryptonTextBox1_DonVi.Text.Trim();
+
+        //    // 3. Hỏi xác nhận người dùng với thông tin chi tiết
+        //    string msg = $"Bạn có thực sự muốn xóa đồng chí:\n\n" +
+        //                 $"Họ và tên: {hoTen}\n" +
+        //                 $"Số hiệu: {soHieu}\n" +
+        //                 $"Đơn vị: {donVi}\n\n" +
+        //                 "Hành động này không thể hoàn tác!";
+
+        //    var result = MessageBox.Show(msg, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+        //    if (result != DialogResult.Yes) return;
+
+        //    try
+        //    {
+        //        using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //        await conn.OpenAsync();
+
+        //        // Mở giao dịch (Transaction) để đảm bảo an toàn tuyệt đối
+        //        using var transaction = conn.BeginTransaction();
+
+        //        try
+        //        {
+        //            // 3. Thực thi lệnh xóa
+        //            string sqlDelete = "DELETE FROM DanhSach_SoVangBaNhat WHERE ID = @ID";
+        //            using (var cmdDelete = new SqliteCommand(sqlDelete, conn, transaction))
+        //            {
+        //                cmdDelete.Parameters.AddWithValue("@ID", idXoa);
+        //                await cmdDelete.ExecuteNonQueryAsync();
+        //            }
+
+        //            // 4. ĐÁNH LẠI SỐ THỨ TỰ (RE-INDEX)
+        //            // Lấy danh sách ID hiện tại sắp xếp theo STT cũ
+        //            string sqlSelect = "SELECT ID FROM DanhSach_SoVangBaNhat ORDER BY STT ASC";
+        //            List<int> danhSachID = new List<int>();
+        //            using (var cmdSelect = new SqliteCommand(sqlSelect, conn, transaction))
+        //            {
+        //                using var reader = await cmdSelect.ExecuteReaderAsync();
+        //                while (await reader.ReadAsync())
+        //                {
+        //                    danhSachID.Add(reader.GetInt32(0));
+        //                }
+        //            }
+
+        //            // Cập nhật lại STT từ 1 đến N
+        //            string sqlUpdateSTT = "UPDATE DanhSach_SoVangBaNhat SET STT = @NewSTT WHERE ID = @ID";
+        //            for (int i = 0; i < danhSachID.Count; i++)
+        //            {
+        //                using var cmdUpdate = new SqliteCommand(sqlUpdateSTT, conn, transaction);
+        //                cmdUpdate.Parameters.AddWithValue("@NewSTT", i + 1);
+        //                cmdUpdate.Parameters.AddWithValue("@ID", danhSachID[i]);
+        //                await cmdUpdate.ExecuteNonQueryAsync();
+        //            }
+
+        //            // Commit transaction
+        //            await transaction.CommitAsync();
+
+        //            // 5. Cập nhật giao diện
+        //            await LoadDuLieuSoVangBaNhatAsync();
+        //            ClearTextBoxes();
+
+        //            toolStripStatusLabel1_ThongBao.Text = $"Đã xóa đồng chí {hoTen} thành công!";
+        //            await Task.Delay(300);
+        //            CapNhatThongKeSoLuong();
+        //            // Cập nhật lại danh sách đơn vị vì có thể đơn vị đó đã bị xóa hết
+        //            CapNhatDanhSachDonVi();
+        //            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Xóa CBCS & Đánh lại STT: {hoTen}", DateTime.Now.ToString());
+        //            // MessageBox.Show("Đã xóa và sắp xếp lại danh sách thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            await transaction.RollbackAsync(); // Hoàn tác nếu có lỗi
+        //            throw ex;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Lỗi khi thực hiện: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
+        // Hàm phụ trợ để xóa trắng các ô sau khi lưu hoặc xóa
         private async void kryptonButton1_XoaCBCS_Click(object sender, EventArgs e)
         {
-            // 1. Kiểm tra xem đã chọn cán bộ chưa
             if (kryptonTextBox1_STT.Tag == null || !int.TryParse(kryptonTextBox1_STT.Tag.ToString(), out int idXoa))
             {
                 MessageBox.Show("Vui lòng chọn một cán bộ trong danh sách để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. Lấy thông tin từ các TextBox tương ứng
             string hoTen = kryptonTextBox1_HoVaTen.Text.Trim();
             string soHieu = kryptonTextBox1_SoHieu.Text.Trim();
             string donVi = kryptonTextBox1_DonVi.Text.Trim();
 
-            // 3. Hỏi xác nhận người dùng với thông tin chi tiết
             string msg = $"Bạn có thực sự muốn xóa đồng chí:\n\n" +
                          $"Họ và tên: {hoTen}\n" +
                          $"Số hiệu: {soHieu}\n" +
@@ -537,7 +798,6 @@ WHERE ID = @ID";
                          "Hành động này không thể hoàn tác!";
 
             var result = MessageBox.Show(msg, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
             if (result != DialogResult.Yes) return;
 
             try
@@ -545,22 +805,18 @@ WHERE ID = @ID";
                 using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                 await conn.OpenAsync();
 
-                // Mở giao dịch (Transaction) để đảm bảo an toàn tuyệt đối
                 using var transaction = conn.BeginTransaction();
-
                 try
                 {
-                    // 3. Thực thi lệnh xóa
-                    string sqlDelete = "DELETE FROM DanhSach_SoVangBaNhat WHERE ID = @ID";
+                    // 🌟 SỬA 3 LỆNH SQL: Đưa biến TenBangHienTai vào xử lý xóa và sắp xếp lại
+                    string sqlDelete = $"DELETE FROM [{TenBangHienTai}] WHERE ID = @ID";
                     using (var cmdDelete = new SqliteCommand(sqlDelete, conn, transaction))
                     {
                         cmdDelete.Parameters.AddWithValue("@ID", idXoa);
                         await cmdDelete.ExecuteNonQueryAsync();
                     }
 
-                    // 4. ĐÁNH LẠI SỐ THỨ TỰ (RE-INDEX)
-                    // Lấy danh sách ID hiện tại sắp xếp theo STT cũ
-                    string sqlSelect = "SELECT ID FROM DanhSach_SoVangBaNhat ORDER BY STT ASC";
+                    string sqlSelect = $"SELECT ID FROM [{TenBangHienTai}] ORDER BY STT ASC";
                     List<int> danhSachID = new List<int>();
                     using (var cmdSelect = new SqliteCommand(sqlSelect, conn, transaction))
                     {
@@ -571,8 +827,7 @@ WHERE ID = @ID";
                         }
                     }
 
-                    // Cập nhật lại STT từ 1 đến N
-                    string sqlUpdateSTT = "UPDATE DanhSach_SoVangBaNhat SET STT = @NewSTT WHERE ID = @ID";
+                    string sqlUpdateSTT = $"UPDATE [{TenBangHienTai}] SET STT = @NewSTT WHERE ID = @ID";
                     for (int i = 0; i < danhSachID.Count; i++)
                     {
                         using var cmdUpdate = new SqliteCommand(sqlUpdateSTT, conn, transaction);
@@ -581,24 +836,20 @@ WHERE ID = @ID";
                         await cmdUpdate.ExecuteNonQueryAsync();
                     }
 
-                    // Commit transaction
                     await transaction.CommitAsync();
 
-                    // 5. Cập nhật giao diện
                     await LoadDuLieuSoVangBaNhatAsync();
                     ClearTextBoxes();
 
                     toolStripStatusLabel1_ThongBao.Text = $"Đã xóa đồng chí {hoTen} thành công!";
                     await Task.Delay(300);
                     CapNhatThongKeSoLuong();
-                    // Cập nhật lại danh sách đơn vị vì có thể đơn vị đó đã bị xóa hết
                     CapNhatDanhSachDonVi();
-                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Xóa CBCS & Đánh lại STT: {hoTen}", DateTime.Now.ToString());
-                    // MessageBox.Show("Đã xóa và sắp xếp lại danh sách thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Xóa và xếp lại STT bảng {TenBangHienTai}: {hoTen}", DateTime.Now.ToString());
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync(); // Hoàn tác nếu có lỗi
+                    await transaction.RollbackAsync();
                     throw ex;
                 }
             }
@@ -607,7 +858,8 @@ WHERE ID = @ID";
                 MessageBox.Show("Lỗi khi thực hiện: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        // Hàm phụ trợ để xóa trắng các ô sau khi lưu hoặc xóa
+
+
         private void ClearTextBoxes()
         {
             kryptonTextBox1_STT.Tag = null;
@@ -703,112 +955,6 @@ WHERE ID = @ID";
                 FillDataToControls(kryptonDataGridView1.Rows[e.RowIndex]);
             }
         }
-        //private async void ToolStripMenuItem_XuatDanhSach_Click(object sender, EventArgs e)
-        //{
-        //    SaveFileDialog saveFileDialog = new SaveFileDialog();
-        //    saveFileDialog.Filter = "Excel Files|*.xlsx";
-        //    saveFileDialog.FileName = "SoVangBaNhat_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".xlsx";
-
-        //    if (saveFileDialog.ShowDialog() == DialogResult.OK)
-        //    {
-        //        string filePath = saveFileDialog.FileName;
-
-        //        try
-        //        {
-        //            DataTable dtData = await LayDuLieuGiaiMaAsync();
-
-        //            using (var wb = new XLWorkbook())
-        //            {
-        //                var ws = wb.Worksheets.Add("Danh sách");
-        //                ws.PageSetup.PaperSize = XLPaperSize.A4Paper;
-        //                ws.PageSetup.PageOrientation = XLPageOrientation.Portrait;
-
-        //                // --- TIÊU ĐỀ ---
-        //                ws.Range("A1:E1").Merge().Value = "SỔ VÀNG";
-        //                ws.Range("A1:E1").Style.Font.SetBold(true).Font.SetFontName("Times New Roman").Font.SetFontSize(16);
-        //                ws.Range("A1:E1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        //                ws.Range("A1:E1").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-        //                ws.Range("A2:E2").Merge().Value = "BIỂU DƯƠNG GƯƠNG ĐIỂN HÌNH TRONG THỰC HIỆN PHONG TRÀO THI ĐUA BA NHẤT";
-        //                ws.Range("A2:E2").Style.Font.SetBold(true).Font.SetFontName("Times New Roman").Font.SetFontSize(12);
-        //                ws.Range("A2:E2").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        //                ws.Range("A2:E2").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        //                // --- ĐỊNH DẠNG HEADER (Dòng 4) ---
-        //                ws.Row(4).Height = 24; // Thiết lập chiều cao dòng 4 là 24 points
-        //                // --- HEADER (Dòng 4) ---
-
-
-        //                string[] headers = { "STT", "Họ và tên", "Thông báo của E29", "Vào sổ vàng số", "Ghi chú" };
-        //                //"Thông báo của " & nối chuổi với E29 (nhưng cần kết nối bảng KyHieu_DonVi cột  KyHieu_TrungDoan
-
-
-        //                for (int i = 0; i < headers.Length; i++)
-        //                {
-        //                    var cell = ws.Cell(4, i + 1);
-        //                    cell.Value = headers[i];
-        //                    cell.Style.Font.SetBold(true).Font.SetFontName("Times New Roman");
-        //                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        //                    cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        //                    cell.Style.Alignment.WrapText = true; // BẬT WRAP TEXT CHO HEADER
-        //                    cell.Style.Fill.BackgroundColor = XLColor.LightGray;
-        //                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        //                    cell.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        //                }
-
-        //                // --- ĐỘ RỘNG CỘT ---
-        //                ws.Column(1).Width = 5;
-        //                ws.Column(2).Width = 30;
-        //                ws.Column(3).Width = 40;
-        //                ws.Column(4).Width = 15;
-        //                ws.Column(5).Width = 15;
-
-        //                // --- ĐỔ DỮ LIỆU ---
-        //                int rowIdx = 5;
-        //                int sttCount = 1;
-        //                foreach (DataRow row in dtData.Rows)
-        //                {
-        //                    ws.Cell(rowIdx, 1).Value = sttCount++;
-        //                    ws.Cell(rowIdx, 2).Value = row["HoVaTen"].ToString();
-        //                    ws.Cell(rowIdx, 3).Value = row["ThongBaoTrungDoan"].ToString();
-        //                    ws.Cell(rowIdx, 4).Value = row["SoTTTrongSo"].ToString();
-        //                    ws.Cell(rowIdx, 5).Value = row["ThangCongNhan"].ToString();
-
-        //                    // Định dạng cho hàng dữ liệu
-        //                    var rngRow = ws.Range(rowIdx, 1, rowIdx, 5);
-        //                    rngRow.Style.Font.SetFontName("Times New Roman");
-        //                    rngRow.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        //                    rngRow.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        //                    rngRow.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-        //                    // BẬT WRAP TEXT CHO DỮ LIỆU
-        //                    rngRow.Style.Alignment.WrapText = true;
-
-        //                    // Căn chỉnh riêng từng cột
-        //                    ws.Cell(rowIdx, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; // STT
-        //                    ws.Cell(rowIdx, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;   // Họ tên
-        //                    ws.Cell(rowIdx, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;   // Thông báo
-        //                    ws.Cell(rowIdx, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; // Vào sổ
-        //                    ws.Cell(rowIdx, 5).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; // Ghi chú
-
-        //                    rowIdx++;
-        //                }
-
-        //                Module_BanQuyen.DongDauExcel(wb);
-        //                wb.SaveAs(filePath);
-        //            }
-
-        //            if (File.Exists(filePath))
-        //            {
-        //                Process.Start("explorer.exe", "/select, \"" + filePath + "\"");
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            MessageBox.Show("Lỗi khi xuất Excel: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        }
-        //    }
-        //}
-
         private async void ToolStripMenuItem_XuatDanhSach_Click(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
@@ -955,37 +1101,67 @@ WHERE ID = @ID";
                 return "[Lỗi giải mã]";
             }
         }
-        // Hàm phụ trợ để lấy và giải mã dữ liệu
+
+        //private async Task<DataTable> LayDuLieuGiaiMaAsync()
+        //{
+        //    DataTable dt = new DataTable();
+        //    // 1. Thêm cột 'ThangCongNhan' vào đây
+        //    dt.Columns.Add("STT");
+        //    dt.Columns.Add("HoVaTen");
+        //    dt.Columns.Add("ThongBaoTrungDoan");
+        //    dt.Columns.Add("SoTTTrongSo");
+        //    dt.Columns.Add("ThangCongNhan"); // <--- THÊM DÒNG NÀY
+
+        //    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //    await conn.OpenAsync();
+
+        //    // 2. Thêm cột 'ThangCongNhan' vào câu lệnh SELECT
+        //    using var cmd = new SqliteCommand("SELECT STT, HoVaTen, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan FROM DanhSach_SoVangBaNhat ORDER BY STT ASC", conn);
+
+        //    using var reader = await cmd.ExecuteReaderAsync();
+        //    while (await reader.ReadAsync())
+        //    {
+        //        // 3. Đọc dữ liệu và giải mã
+        //        dt.Rows.Add(
+        //            reader["STT"].ToString(),
+        //            SafeGiaiMa(reader["HoVaTen"].ToString()),
+        //            SafeGiaiMa(reader["ThongBaoTrungDoan"].ToString()),
+        //            SafeGiaiMa(reader["SoTTTrongSo"].ToString()),
+        //            SafeGiaiMa(reader["ThangCongNhan"].ToString()) // <--- THÊM DÒNG NÀY
+        //        );
+        //    }
+        //    return dt;
+        //}
+
         private async Task<DataTable> LayDuLieuGiaiMaAsync()
         {
             DataTable dt = new DataTable();
-            // 1. Thêm cột 'ThangCongNhan' vào đây
             dt.Columns.Add("STT");
             dt.Columns.Add("HoVaTen");
             dt.Columns.Add("ThongBaoTrungDoan");
             dt.Columns.Add("SoTTTrongSo");
-            dt.Columns.Add("ThangCongNhan"); // <--- THÊM DÒNG NÀY
+            dt.Columns.Add("ThangCongNhan");
 
             using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
             await conn.OpenAsync();
 
-            // 2. Thêm cột 'ThangCongNhan' vào câu lệnh SELECT
-            using var cmd = new SqliteCommand("SELECT STT, HoVaTen, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan FROM DanhSach_SoVangBaNhat ORDER BY STT ASC", conn);
+            // 🌟 SỬA: Cập nhật gọi tên bảng động cho câu lệnh xuất báo cáo Excel
+            using var cmd = new SqliteCommand($"SELECT STT, HoVaTen, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan FROM [{TenBangHienTai}] ORDER BY STT ASC", conn);
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                // 3. Đọc dữ liệu và giải mã
                 dt.Rows.Add(
                     reader["STT"].ToString(),
                     SafeGiaiMa(reader["HoVaTen"].ToString()),
                     SafeGiaiMa(reader["ThongBaoTrungDoan"].ToString()),
                     SafeGiaiMa(reader["SoTTTrongSo"].ToString()),
-                    SafeGiaiMa(reader["ThangCongNhan"].ToString()) // <--- THÊM DÒNG NÀY
+                    SafeGiaiMa(reader["ThangCongNhan"].ToString())
                 );
             }
             return dt;
         }
+
         private void LocDuLieu()
         {
             var dt = kryptonDataGridView1.DataSource as DataTable;
@@ -1031,33 +1207,6 @@ WHERE ID = @ID";
 
             kryptonTextBox1_TimKiemTheoTen.TextChanged += (s, ev) => LocDuLieu(); // Bật lại sự kiện
         }
-        //private void CapNhatDanhSachDonVi()
-        //{
-        //    var dt = kryptonDataGridView1.DataSource as DataTable;
-        //    if (dt == null) return;
-
-        //    // Chỉ lấy danh sách Đơn vị từ DataTable gốc (không qua Filter)
-        //    // Nếu dt đang bị Filter, ta phải lấy từ bảng gốc (dt.Table) hoặc tạo bảng mới
-        //    var dataView = dt.DefaultView;
-        //    var currentFilter = dataView.RowFilter;
-        //    dataView.RowFilter = string.Empty; // Bỏ lọc tạm thời để lấy danh sách đầy đủ
-
-        //    var distinctTable = dataView.ToTable(true, "DonVi");
-
-        //    comboBox_TimKiemDonVi.Items.Clear();
-        //    comboBox_TimKiemDonVi.Items.Add("Tất cả");
-
-        //    foreach (DataRow row in distinctTable.Rows)
-        //    {
-        //        if (row["DonVi"] != DBNull.Value && !string.IsNullOrWhiteSpace(row["DonVi"].ToString()))
-        //        {
-        //            comboBox_TimKiemDonVi.Items.Add(row["DonVi"].ToString());
-        //        }
-        //    }
-
-        //    comboBox_TimKiemDonVi.SelectedIndex = 0;
-        //    dataView.RowFilter = currentFilter; // Trả lại bộ lọc cũ
-        //}
         private void CapNhatDanhSachDonVi()
         {
             var dt = kryptonDataGridView1.DataSource as DataTable;
@@ -1173,9 +1322,7 @@ WHERE ID = @ID";
         }
         private async void toolStripMenuItem_XoaChonTatCa_Click(object sender, EventArgs e)
         {
-            // 1. Kiểm tra điều kiện thực thi
-           // if (!KiemTraDuLieuSanSang("xóa toàn bộ danh sách Sổ vàng Ba Nhất")) return;
-
+            // 1. Kiểm tra đường dẫn CSDL
             string dbPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
             {
@@ -1192,14 +1339,15 @@ WHERE ID = @ID";
                     conn.Open();
                     using (var cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = "SELECT COUNT(*) FROM \"DanhSach_SoVangBaNhat\";";
+                        // 🌟 SỬA ĐỊNH TUYẾN 1: Đếm số dòng trên bảng động
+                        cmd.CommandText = $"SELECT COUNT(*) FROM [{TenBangHienTai}];";
                         soDongTrongBang = Convert.ToInt32(cmd.ExecuteScalar());
                     }
                 }
 
                 if (soDongTrongBang == 0)
                 {
-                    MessageBox.Show("Danh sách Sổ vàng hiện đang trống.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"Danh sách Sổ vàng hệ thống [{TenBangHienTai}] hiện đang trống.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
@@ -1227,12 +1375,12 @@ WHERE ID = @ID";
                     {
                         cmd.Transaction = tran;
 
-                        // Xóa toàn bộ dữ liệu
-                        cmd.CommandText = "DELETE FROM \"DanhSach_SoVangBaNhat\";";
+                        // 🌟 SỬA ĐỊNH TUYẾN 2: Xóa toàn bộ dữ liệu trên bảng động
+                        cmd.CommandText = $"DELETE FROM [{TenBangHienTai}];";
                         soDongDaXoa = cmd.ExecuteNonQuery();
 
-                        // Reset lại chỉ số AutoIncrement của ID về 1
-                        cmd.CommandText = "DELETE FROM sqlite_sequence WHERE name='DanhSach_SoVangBaNhat';";
+                        // 🌟 SỬA ĐỊNH TUYẾN 3: Reset lại chỉ số AutoIncrement của ID về 1 cho đúng bảng
+                        cmd.CommandText = $"DELETE FROM sqlite_sequence WHERE name='{TenBangHienTai}';";
                         cmd.ExecuteNonQuery();
 
                         tran.Commit();
@@ -1249,7 +1397,7 @@ WHERE ID = @ID";
                 // 6. Ghi nhật ký hệ thống
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
-                    $"Xóa toàn bộ Sổ vàng Ba Nhất ({soDongDaXoa} dòng)",
+                    $"Xóa toàn bộ dữ liệu Sổ vàng Ba Nhất bảng [{TenBangHienTai}] ({soDongDaXoa} dòng)",
                     DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
                 );
 

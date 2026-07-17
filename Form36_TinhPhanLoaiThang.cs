@@ -106,6 +106,8 @@ namespace PhanMemThiDua2026
 
             CapNhatThongKeStatus();
             await KichHoatLoadGhiChuAnToanAsync();
+            // 1. Tích hợp giao diện xanh lá phẳng Classic từ module dùng chung (Đã tối ưu)
+            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
         }
         private void Form36_TinhPhanLoaiThang_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -1400,5 +1402,7 @@ namespace PhanMemThiDua2026
             var f = new Form38_XuatExcelTinhToan(_dvHienThi, _mapCotThoiGian, h1, h2, h3, h4);
             f.ShowDialog();
         }
+
+
     }
 }

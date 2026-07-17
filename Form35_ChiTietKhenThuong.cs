@@ -590,5 +590,7 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine("Lỗi đồng bộ: " + ex.Message);
             }
         }
+
+ 
     }
 }

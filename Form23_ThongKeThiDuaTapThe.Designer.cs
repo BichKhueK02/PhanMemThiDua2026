@@ -136,10 +136,10 @@
             // 
             kryptonButton_XuatTepExcel.Anchor = AnchorStyles.None;
             kryptonButton_XuatTepExcel.DialogResult = DialogResult.TryAgain;
-            kryptonButton_XuatTepExcel.Location = new Point(582, 7);
+            kryptonButton_XuatTepExcel.Location = new Point(582, 6);
             kryptonButton_XuatTepExcel.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatTepExcel.Name = "kryptonButton_XuatTepExcel";
-            kryptonButton_XuatTepExcel.Size = new Size(136, 28);
+            kryptonButton_XuatTepExcel.Size = new Size(136, 30);
             kryptonButton_XuatTepExcel.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatTepExcel.TabIndex = 3;
             kryptonButton_XuatTepExcel.Values.DropDownArrowColor = Color.Empty;
@@ -151,10 +151,10 @@
             // 
             kryptonButton1_CapNhat.Anchor = AnchorStyles.None;
             kryptonButton1_CapNhat.DialogResult = DialogResult.TryAgain;
-            kryptonButton1_CapNhat.Location = new Point(406, 7);
+            kryptonButton1_CapNhat.Location = new Point(406, 6);
             kryptonButton1_CapNhat.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_CapNhat.Name = "kryptonButton1_CapNhat";
-            kryptonButton1_CapNhat.Size = new Size(136, 28);
+            kryptonButton1_CapNhat.Size = new Size(136, 30);
             kryptonButton1_CapNhat.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CapNhat.TabIndex = 2;
             kryptonButton1_CapNhat.Values.DropDownArrowColor = Color.Empty;
@@ -203,10 +203,10 @@
             // 
             kryptonButton_Dong.Anchor = AnchorStyles.None;
             kryptonButton_Dong.DialogResult = DialogResult.TryAgain;
-            kryptonButton_Dong.Location = new Point(769, 7);
+            kryptonButton_Dong.Location = new Point(769, 6);
             kryptonButton_Dong.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Dong.Name = "kryptonButton_Dong";
-            kryptonButton_Dong.Size = new Size(136, 28);
+            kryptonButton_Dong.Size = new Size(136, 30);
             kryptonButton_Dong.StateCommon.Border.Rounding = 4F;
             kryptonButton_Dong.TabIndex = 4;
             kryptonButton_Dong.Values.DropDownArrowColor = Color.Empty;

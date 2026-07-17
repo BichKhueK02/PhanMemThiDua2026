@@ -170,10 +170,10 @@ namespace PhanMemThiDua2026
             // kryptonButton_TaoTepExcel
             // 
             kryptonButton_TaoTepExcel.Anchor = AnchorStyles.None;
-            kryptonButton_TaoTepExcel.Location = new Point(263, 18);
+            kryptonButton_TaoTepExcel.Location = new Point(263, 15);
             kryptonButton_TaoTepExcel.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_TaoTepExcel.Name = "kryptonButton_TaoTepExcel";
-            kryptonButton_TaoTepExcel.Size = new Size(158, 25);
+            kryptonButton_TaoTepExcel.Size = new Size(158, 30);
             kryptonButton_TaoTepExcel.StateCommon.Border.Rounding = 4F;
             kryptonButton_TaoTepExcel.TabIndex = 0;
             kryptonButton_TaoTepExcel.Values.DropDownArrowColor = Color.Empty;

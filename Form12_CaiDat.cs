@@ -27,6 +27,8 @@ namespace PhanMemThiDua2026
         private string _doiTuongBanDau = string.Empty; // lưu giá trị ban đầu của combobox
         private Dictionary<KryptonButton, System.Windows.Forms.Label> _menuMap;
         private Color _defaultLabelColor;
+        // Biến dùng để chống lỗi ẩn nhầm thông báo nếu người dùng bấm Lưu liên tục
+        private int _thongBaoCounter = 0;
         public Form12()
         {
             InitializeComponent();
@@ -37,7 +39,11 @@ namespace PhanMemThiDua2026
         {
             if (_hasLoaded) return;
             _isLoading = true;
-
+            // 👉 BỔ SUNG DÒNG NÀY: Ẩn thông báo khi vừa mở Form
+            if (label1_ThongBaoThanhCong != null)
+            {
+                label1_ThongBaoThanhCong.Visible = false;
+            }
             LoadComboBoxCauHinh();
             LoadComboBoxTuDongXoa();
             Module_DonVi.KhoiTao();
@@ -1029,6 +1035,80 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
                 kryptonButton_LuuCauHinh.Enabled = true;
             }
         }
+        //private async void kryptonButton_LuuThongTin_Click(object sender, EventArgs e)
+        //{
+        //    string textBanDau = kryptonButton_LuuThongTin.Values.Text;
+        //    Image anhBanDau = kryptonButton_LuuThongTin.Values.Image;
+
+        //    try
+        //    {
+        //        kryptonButton_LuuThongTin.Enabled = false;
+        //        kryptonButton_LuuThongTin.Values.Text = "Đang lưu...";
+        //        kryptonButton_LuuThongTin.Values.Image = null;
+
+        //        if (label1_ThongBaoThanhCong != null)
+        //        {
+        //            label1_ThongBaoThanhCong.ForeColor = Color.Black;
+        //            label1_ThongBaoThanhCong.Text = "Đang ghi dữ liệu vào hệ thống...";
+        //        }
+
+        //        await Task.Delay(100); // Nhịp nghỉ UX
+
+        //        // ⭐ BẢO HIỂM DỮ LIỆU TAB 2 & CÁC BẢNG LẺ Ở TAB 1
+        //        LuuCauHinhXemHuongDan();
+        //        if (!string.IsNullOrWhiteSpace(comboBox1_TuDongXoaNhatKy.Text))
+        //            LuuTuDongXoaVaoCSDL(comboBox1_TuDongXoaNhatKy.Text.Trim());
+
+        //        if (!string.IsNullOrWhiteSpace(comboBox1_ChonSuKienThoat.Text))
+        //            LuuSuKienThoat(comboBox1_ChonSuKienThoat.Text.Trim());
+
+        //        // ⭐ LƯU KÝ HIỆU VÀ NĂM NGAY TRƯỚC KHI LƯU CSDL CHÍNH
+        //        if (comboBox_KyHieu_TenTrungDoan != null && comboBox_KyHieu_TenTieuDoan != null)
+        //        {
+        //            LuuKyHieuDonVi(comboBox_KyHieu_TenTrungDoan.Text.Trim(), comboBox_KyHieu_TenTieuDoan.Text.Trim());
+        //        }
+
+        //        if (comboBox1_NamHienTai != null && !string.IsNullOrWhiteSpace(comboBox1_NamHienTai.Text))
+        //        {
+        //            LuuNamHeThong(comboBox1_NamHienTai.Text.Trim());
+        //        }
+
+        //        // Gọi hàm gốc lưu cấu hình chính
+        //        string thongBao = await SaveToSQLiteAsync();
+
+        //        // ===== BƯỚC 5: XỬ LÝ KẾT QUẢ THÔNG MINH =====
+        //        if (thongBao.Contains("thành công", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            // Nếu THÀNH CÔNG: Chỉ cập nhật Label, không hiện MessageBox
+        //            if (label1_ThongBaoThanhCong != null)
+        //            {
+        //                label1_ThongBaoThanhCong.ForeColor = Color.DarkGreen;
+        //                label1_ThongBaoThanhCong.Text = "✔ Đã lưu thành công lúc " + DateTime.Now.ToString("HH:mm:ss");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // Nếu THẤT BẠI: Vẫn phải hiện MessageBox để cảnh báo lỗi
+        //            if (label1_ThongBaoThanhCong != null)
+        //            {
+        //                label1_ThongBaoThanhCong.ForeColor = Color.Red;
+        //                label1_ThongBaoThanhCong.Text = "✘ Lưu thất bại!";
+        //            }
+
+        //            MessageBox.Show(thongBao, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Lỗi phát sinh: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //    finally
+        //    {
+        //        kryptonButton_LuuThongTin.Values.Text = textBanDau;
+        //        kryptonButton_LuuThongTin.Values.Image = anhBanDau;
+        //        kryptonButton_LuuThongTin.Enabled = true;
+        //    }
+        //}
         private async void kryptonButton_LuuThongTin_Click(object sender, EventArgs e)
         {
             string textBanDau = kryptonButton_LuuThongTin.Values.Text;
@@ -1042,6 +1122,7 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
 
                 if (label1_ThongBaoThanhCong != null)
                 {
+                    label1_ThongBaoThanhCong.Visible = true; // 👉 MỞ KHÓA TÀNG HÌNH LÊN
                     label1_ThongBaoThanhCong.ForeColor = Color.Black;
                     label1_ThongBaoThanhCong.Text = "Đang ghi dữ liệu vào hệ thống...";
                 }
@@ -1091,6 +1172,9 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
 
                     MessageBox.Show(thongBao, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+
+                // 👉 BƯỚC 6: GỌI HÀM ẨN THÔNG BÁO SAU 20 GIÂY (20000 mili-giây)
+                AnThongBaoSauDelay(20000);
             }
             catch (Exception ex)
             {
@@ -1103,6 +1187,23 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
                 kryptonButton_LuuThongTin.Enabled = true;
             }
         }
+
+        // 🌟 HÀM MỚI: ĐẾM NGƯỢC VÀ ẨN THÔNG BÁO CỰC KỲ AN TOÀN
+        private async void AnThongBaoSauDelay(int delayMs)
+        {
+            // Tăng biến đếm mỗi lần gọi để chốt danh tính cho phiên bấm này
+            int currentCounter = Interlocked.Increment(ref _thongBaoCounter);
+
+            // Chờ ngầm 20 giây mà không làm treo ứng dụng
+            await Task.Delay(delayMs);
+
+            // Chốt chặn: Chỉ ẩn đi nếu trong 20s qua người dùng KHÔNG bấm nút Lưu thêm lần nào nữa
+            if (currentCounter == _thongBaoCounter && label1_ThongBaoThanhCong != null)
+            {
+                label1_ThongBaoThanhCong.Visible = false;
+            }
+        }
+
         private void CheckpointSQLite(SqliteConnection cn)
         {
             try

@@ -1386,7 +1386,7 @@ namespace PhanMemThiDua2026
                 Directory.CreateDirectory(thuMucGoc);
 
                 int soThuTu = Directory.GetFiles(thuMucGoc, "*.xlsx").Length + 1;
-                string fileName = $"{soThuTu}. DANH SÁCH TRÌNH KÝ TÂN BINH - {DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                string fileName = $"{soThuTu}. DANH SÁCH TỜ TRÌNH - {DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                 string fileDich = Path.Combine(thuMucGoc, fileName);
 
                 // ================== 3. Mở file Excel mẫu ==================
@@ -1716,7 +1716,7 @@ namespace PhanMemThiDua2026
                 int soFileExcel = Directory.GetFiles(thuMucGoc, "*.xlsx").Length;
                 int soThuTu = soFileExcel + 1;
                 // Ghép tên file với số thứ tự và thời gian
-                string fileName = $"{soThuTu}. DANH SÁCH TRÌNH KÝ - {DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                string fileName = $"{soThuTu}. DANH SÁCH TỜ TRÌNH - {DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                 string fileDich = Path.Combine(thuMucGoc, fileName);
                 string fileMau = Module_DanduongGPS.DuongDanCSDL4ex;
                 if (!File.Exists(fileMau))

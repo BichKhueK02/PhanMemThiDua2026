@@ -78,10 +78,10 @@
             // kryptonButton_XoaDuLieuThangThongKe
             // 
             kryptonButton_XoaDuLieuThangThongKe.Anchor = AnchorStyles.None;
-            kryptonButton_XoaDuLieuThangThongKe.Location = new Point(154, 66);
+            kryptonButton_XoaDuLieuThangThongKe.Location = new Point(154, 64);
             kryptonButton_XoaDuLieuThangThongKe.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_XoaDuLieuThangThongKe.Name = "kryptonButton_XoaDuLieuThangThongKe";
-            kryptonButton_XoaDuLieuThangThongKe.Size = new Size(130, 27);
+            kryptonButton_XoaDuLieuThangThongKe.Size = new Size(130, 30);
             kryptonButton_XoaDuLieuThangThongKe.StateCommon.Border.Rounding = 4F;
             kryptonButton_XoaDuLieuThangThongKe.TabIndex = 1;
             kryptonButton_XoaDuLieuThangThongKe.Values.DropDownArrowColor = Color.Empty;

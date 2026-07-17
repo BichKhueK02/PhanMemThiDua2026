@@ -100,10 +100,10 @@
             // kryptonButton_XuatDuLieuSangThongKe
             // 
             kryptonButton_XuatDuLieuSangThongKe.Anchor = AnchorStyles.None;
-            kryptonButton_XuatDuLieuSangThongKe.Location = new Point(412, 7);
+            kryptonButton_XuatDuLieuSangThongKe.Location = new Point(412, 6);
             kryptonButton_XuatDuLieuSangThongKe.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_XuatDuLieuSangThongKe.Name = "kryptonButton_XuatDuLieuSangThongKe";
-            kryptonButton_XuatDuLieuSangThongKe.Size = new Size(130, 27);
+            kryptonButton_XuatDuLieuSangThongKe.Size = new Size(130, 30);
             kryptonButton_XuatDuLieuSangThongKe.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatDuLieuSangThongKe.TabIndex = 1;
             kryptonButton_XuatDuLieuSangThongKe.Values.DropDownArrowColor = Color.Empty;
@@ -162,7 +162,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.White;
+            BackColor = SystemColors.Control;
             ClientSize = new Size(572, 140);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");

@@ -386,7 +386,6 @@ namespace PhanMemThiDua2026
         // ====================================================================
         // HỆ THỐNG LƯU TRỮ CẤU HÌNH KHỞI ĐỘNG (THAY THẾ MY.SETTINGS)
         // ====================================================================
-
         /// <summary>
         /// Khởi tạo bảng Check_KhoiDong nếu chưa tồn tại
         /// </summary>
@@ -401,7 +400,6 @@ namespace PhanMemThiDua2026
             using var cmd = new SqliteCommand(sqlCreate, conn);
             await cmd.ExecuteNonQueryAsync();
         }
-
         /// <summary>
         /// Đọc trạng thái từ CSDL1 (Tự động fallback về false nếu có lỗi)
         /// </summary>
@@ -434,7 +432,6 @@ namespace PhanMemThiDua2026
             }
             return false; // Mặc định an toàn
         }
-
         /// <summary>
         /// Ghi trạng thái vào CSDL1 (Dùng UPSERT để cập nhật hoặc thêm mới)
         /// </summary>

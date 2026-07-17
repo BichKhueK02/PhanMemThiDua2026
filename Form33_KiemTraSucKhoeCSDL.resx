@@ -18222,17 +18222,17 @@
   </metadata>
   <data name="kryptonButton1_CapNhat.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAZdEVYdFNvZnR3YXJlAEFkb2JlIEltYWdlUmVhZHlxyWU8AAACDklEQVQ4T42Sy2sTURTGv6rg
-        KkJjdRFRxG6VLoLgTqhJm0zUjRrF1EdxI25ciOBCBJWYZJKWFvGRNGLrg04GrbioaAWhTaxtrMWYlBRm
-        koXoUtC/4JMzMTSZRPSDy9y595zfedwDkviXAgn88MfR3vB/AINj3Vz5OsEDkTYQO8CnQuuLgZ4o6ImA
-        /TFweBqcWtjGj9X77LVDGgH+eAfTcz7OmwNcqIb4oXqS85UQs8YAk1lQX9rCrBGmT22A1AF+FdQ/7+XL
-        8k5OFh2cLDmolRzW/klhE1N5MFPczLflS62AQ0Pr79yacVEzNjL8DhwcB0+layUIeGQR1E0nXxTPWWcA
-        3E2AQBx8uApemQa9YXzbdwE3/hhZ6+hoJ/XSEfZFbc5rGYAC2X8ZSQC7AXQpCTw6OFRLVYnhu5JYcw4k
-        oIm9+NV7UI/mkh+JlCke5rFRZ73WPXKvxBHrj+KnZCoZC6TlGaXGZ4Uz1CudHMmDMkDeCHg6DZ5/Cqo5
-        UKts4M2ZrfRcXac3AaS7r8sXmVlxcuwT+GAZHC+AE19qX1lTq9v5eKmHfrVDHHe0AOaM68wsdzGZA2eN
-        48yaQeYqQb6vBpkzg0zNeqjUxrrWTFsJbhnXRfM2n+ddHH4FnrgLhu7BcvLGwN5reNPyjDZZEJn9s6nu
-        eqTGtavJug1A5JbmKSp+2S9a9BeASKL12A/t+g3z7UkJzSxTEwAAAABJRU5ErkJggg==
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
+        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIOSURBVDhPjZLLaxNRFMa/quAqQmN1EVHEbpUuguBO
+        qEmbTNSNGsXUR3EjblyI4EIElZhkkpYW8ZE0YuuDTgatuKhoBaFNrG2sxZiUFGaShehS0L/gkzMxNJlE
+        9IPL3Ln3nN953AOS+JcCCfzwx9He8H8Ag2PdXPk6wQORNhA7wKdC64uBnijoiYD9MXB4Gpxa2MaP1fvs
+        tUMaAf54B9NzPs6bA1yohvihepLzlRCzxgCTWVBf2sKsEaZPbYDUAX4V1D/v5cvyTk4WHZwsOaiVHNb+
+        SWETU3kwU9zMt+VLrYBDQ+vv3JpxUTM2MvwOHBwHT6VrJQh4ZBHUTSdfFM9ZZwDcTYBAHHy4Cl6ZBr1h
+        fNt3ATf+GFnr6Ggn9dIR9kVtzmsZgALZfxlJALsBdCkJPDo4VEtVieG7klhzDiSgib341XtQj+aSH4mU
+        KR7msVFnvdY9cq/EEeuP4qdkKhkLpOUZpcZnhTPUK50cyYMyQN4IeDoNnn8KqjlQq2zgzZmt9FxdpzcB
+        pLuvyxeZWXFy7BP4YBkcL4ATX2pfWVOr2/l4qYd+tUMcd7QA5ozrzCx3MZkDZ43jzJpB5ipBvq8GmTOD
+        TM16qNTGutZMWwluGddF8zaf510cfgWeuAuG7sFy8sbA3mt40/KMNlkQmf2zqe56pMa1q8m6DUDkluYp
+        Kn7ZL1r0F4BIovXYD+36DfPtSQnNLFMTAAAAAElFTkSuQmCC
 </value>
   </data>
   <metadata name="kryptonButton1_CauhinhCSDL.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">

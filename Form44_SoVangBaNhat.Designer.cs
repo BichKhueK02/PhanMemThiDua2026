@@ -95,6 +95,7 @@
             kryptonButton_RefershCSDL = new Krypton.Toolkit.KryptonButton();
             tableLayoutPanel7 = new TableLayoutPanel();
             toolTip1 = new ToolTip(components);
+            groupBox1 = new GroupBox();
             tableLayoutPanel3.SuspendLayout();
             tableLayoutPanel4.SuspendLayout();
             tableLayoutPanel10.SuspendLayout();
@@ -112,6 +113,7 @@
             groupBox2_KhoiLenhDieuKhien.SuspendLayout();
             tableLayoutPanel6.SuspendLayout();
             tableLayoutPanel7.SuspendLayout();
+            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel3
@@ -525,8 +527,8 @@
             tableLayoutPanel8.ColumnCount = 1;
             tableLayoutPanel8.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             tableLayoutPanel8.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel8.Controls.Add(groupBox1, 0, 0);
             tableLayoutPanel8.Controls.Add(tableLayoutPanel9, 0, 1);
-            tableLayoutPanel8.Controls.Add(richTextBox1_ThanhTich, 0, 0);
             tableLayoutPanel8.Dock = DockStyle.Fill;
             tableLayoutPanel8.Location = new Point(748, 3);
             tableLayoutPanel8.Name = "tableLayoutPanel8";
@@ -587,10 +589,10 @@
             // 
             richTextBox1_ThanhTich.Dock = DockStyle.Fill;
             richTextBox1_ThanhTich.Font = new Font("Segoe UI", 12F, FontStyle.Italic, GraphicsUnit.Point, 0);
-            richTextBox1_ThanhTich.Location = new Point(2, 4);
+            richTextBox1_ThanhTich.Location = new Point(3, 20);
             richTextBox1_ThanhTich.Margin = new Padding(2, 4, 2, 4);
             richTextBox1_ThanhTich.Name = "richTextBox1_ThanhTich";
-            richTextBox1_ThanhTich.Size = new Size(485, 161);
+            richTextBox1_ThanhTich.Size = new Size(477, 140);
             richTextBox1_ThanhTich.TabIndex = 27;
             richTextBox1_ThanhTich.Text = "";
             // 
@@ -675,7 +677,7 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(192, 184);
+            contextMenuStrip1.Size = new Size(192, 162);
             // 
             // toolStripMenuItem3
             // 
@@ -920,6 +922,19 @@
             tableLayoutPanel7.Size = new Size(1258, 261);
             tableLayoutPanel7.TabIndex = 2;
             // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(richTextBox1_ThanhTich);
+            groupBox1.Dock = DockStyle.Fill;
+            groupBox1.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            groupBox1.ForeColor = Color.Red;
+            groupBox1.Location = new Point(3, 3);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(483, 163);
+            groupBox1.TabIndex = 30;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Thành tích";
+            // 
             // Form44_SoVangBaNhat
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -950,6 +965,7 @@
             groupBox2_KhoiLenhDieuKhien.ResumeLayout(false);
             tableLayoutPanel6.ResumeLayout(false);
             tableLayoutPanel7.ResumeLayout(false);
+            groupBox1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1022,5 +1038,6 @@
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox1_ThangCongNhan;
         private TableLayoutPanel tableLayoutPanel9;
         private Krypton.Toolkit.KryptonButton kryptonButton1_XoaCBCS;
+        private GroupBox groupBox1;
     }
 }

@@ -70,7 +70,7 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.BackColor = SystemColors.ActiveCaption;
+            statusStrip1.BackColor = SystemColors.Control;
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1_ThoiGianKhaiThac, toolStripProgressBar1, toolStripStatusLabel1_KetLuan });
             statusStrip1.Location = new Point(0, 655);
@@ -89,8 +89,9 @@
             // 
             // toolStripProgressBar1
             // 
+            toolStripProgressBar1.AutoSize = false;
             toolStripProgressBar1.Name = "toolStripProgressBar1";
-            toolStripProgressBar1.Size = new Size(78, 20);
+            toolStripProgressBar1.Size = new Size(120, 20);
             // 
             // toolStripStatusLabel1_KetLuan
             // 

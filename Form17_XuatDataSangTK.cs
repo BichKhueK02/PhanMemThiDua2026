@@ -57,6 +57,8 @@ namespace PhanMemThiDua2026
             {"Tuần 4 - Tháng 5", "Tuan_4_T5"},
             {"Kết quả Tháng 6", "Thang_6"}
         };
+        // ⭐ BỔ SUNG 1: Biến đếm để quản lý thời gian ẩn Label an toàn
+        private int _thongBaoCounter = 0;
         public Form17_XuatDataSangTK()
         {
             InitializeComponent();
@@ -68,7 +70,11 @@ namespace PhanMemThiDua2026
         }
         private void Form17_Load(object sender, EventArgs e)
         {
-
+            // ⭐ BỔ SUNG 2: Ẩn thông báo khi vừa khởi động Form
+            if (label3_ThongBaoThanhCong != null)
+            {
+                label3_ThongBaoThanhCong.Visible = false;
+            }
         }
         // =====================================================
         // Hàm hỗ trợ giải mã an toàn (tránh văng lỗi do Data rác)
@@ -133,6 +139,18 @@ namespace PhanMemThiDua2026
         // =====================================================
         // Xuất dữ liệu (Đã tối ưu UX thông báo trên Label)
         // =====================================================
+        // ⭐ BỔ SUNG 3: Hàm đếm ngược thời gian độc lập không làm đơ Form
+        private async void AnThongBaoSauDelay(int delayMs)
+        {
+            int currentCounter = Interlocked.Increment(ref _thongBaoCounter);
+            await Task.Delay(delayMs);
+
+            if (currentCounter == _thongBaoCounter && label3_ThongBaoThanhCong != null)
+            {
+                label3_ThongBaoThanhCong.Visible = false;
+            }
+        }
+
         private async void kryptonButton_XuatDuLieuSangThongKe_Click(object sender, EventArgs e)
         {
             // 1. LƯU TRẠNG THÁI GỐC CỦA NÚT
@@ -163,6 +181,7 @@ namespace PhanMemThiDua2026
 
                 if (label3_ThongBaoThanhCong != null)
                 {
+                    label3_ThongBaoThanhCong.Visible = true; // <--- CHÈN THÊM DÒNG NÀY VÀO ĐÂY
                     label3_ThongBaoThanhCong.ForeColor = Color.Black;
                     label3_ThongBaoThanhCong.Text = "Đang đồng bộ dữ liệu...";
                 }
@@ -263,6 +282,8 @@ namespace PhanMemThiDua2026
                 kryptonButton_XuatDuLieuSangThongKe.Values.Text = textBanDau;
                 kryptonButton_XuatDuLieuSangThongKe.Values.Image = anhBanDau;
                 kryptonButton_XuatDuLieuSangThongKe.Enabled = true;
+                // <--- CHÈN THÊM DÒNG NÀY VÀO ĐÂY: Gọi đếm ngược 20 giây (20000 ms)
+                AnThongBaoSauDelay(200);
             }
         }
         // =====================================================

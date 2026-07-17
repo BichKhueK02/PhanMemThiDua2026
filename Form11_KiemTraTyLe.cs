@@ -218,30 +218,26 @@ namespace PhanMemThiDua2026
             }
         }
         // KHỐI 3: THUẬT TOÁN TÍNH TỶ LỆ CHUẨN XÁC
-        // ⚡ Hàm này giờ chỉ tập trung tính toán, nhận luôn con số đầu vào từ nút bấm
+        // KHỐI 3: THUẬT TOÁN TÍNH TỶ LỆ CHUẨN XÁC
         private void ThucThiTinhToan(double tongQS, double pLoai1, double pLoai2, double pLoai3)
         {
             // Chuyển % sang hệ số thập phân
             pLoai1 /= 100.0; pLoai2 /= 100.0; pLoai3 /= 100.0;
 
-            // TÍNH TOÁN QUÂN SỐ CƠ BẢN
-            int qLoai2 = (int)Math.Round(tongQS * pLoai2);
-            int qLoai3 = (int)Math.Round(tongQS * pLoai3);
+            // =================================================================
+            // 🌟 ĐỒNG BỘ LUẬT MỚI: TÍNH TOÁN QUÂN SỐ CƠ BẢN DÙNG MATH.FLOOR
+            // =================================================================
 
-            // Loại 1 là tập con của Loại 2 (Chiến sĩ TĐCS xét từ LĐTT)
-            int qLoai1 = (int)Math.Round(qLoai2 * pLoai1);
+            // 1. Ép phần nguyên dưới để Loại 2 không vượt trần % quy định
+            int qLoai2 = (int)Math.Floor(tongQS * pLoai2);
+
+            // 2. ⚖️ CÂN BẰNG QUÂN SỐ: Loại 3 bắt buộc gánh toàn bộ phần dư để tổng L2 + L3 = Tổng QS
+            int qLoai3 = (int)tongQS - qLoai2;
+
+            // 3. Loại 1 là tập con của Loại 2 (Chiến sĩ TĐCS xét từ LĐTT)
+            // Ép phần nguyên dưới để Loại 1 không vượt trần % quy định
+            int qLoai1 = (int)Math.Floor(qLoai2 * pLoai1);
             if (qLoai1 > qLoai2) qLoai1 = qLoai2; // Rào chắn an toàn
-
-            // ⚖️ CÂN BẰNG QUÂN SỐ 
-            if (qLoai2 + qLoai3 > tongQS)
-            {
-                qLoai3 = (int)tongQS - qLoai2;
-                if (qLoai3 < 0) qLoai3 = 0;
-            }
-            else
-            {
-                qLoai3 = (int)tongQS - qLoai2;
-            }
 
             // TÍNH TOÁN LẠI TỶ LỆ THỰC TẾ ĐẠT ĐƯỢC SAU LÀM TRÒN
             double tlLoai1Thuc = qLoai2 == 0 ? 0 : Math.Round(qLoai1 * 100.0 / qLoai2, 2);
@@ -265,9 +261,9 @@ namespace PhanMemThiDua2026
 
             ListBox2.Items.Add("");
             ListBox2.Items.Add("3. Trích xuất báo cáo nhanh:");
-            ListBox2.Items.Add($"   + Số lượng L1/L2 : {qLoai1}/{qLoai2}");
-            ListBox2.Items.Add($"   + Số lượng L2/Tổng: {qLoai2}/{(int)tongQS}");
-            ListBox2.Items.Add($"   + Số lượng L3/Tổng: {qLoai3}/{(int)tongQS}");
+            ListBox2.Items.Add($"   + Số lượng L1/L2 : {qLoai1}/{qLoai2} = {tlLoai1Thuc.ToString(CultureInfo.InvariantCulture)}%");
+            ListBox2.Items.Add($"   + Số lượng L2/Tổng: {qLoai2}/{(int)tongQS} = {tlLoai2Thuc.ToString(CultureInfo.InvariantCulture)}%");
+            ListBox2.Items.Add($"   + Số lượng L3/Tổng: {qLoai3}/{(int)tongQS} = {tlLoai3Thuc.ToString(CultureInfo.InvariantCulture)}%");
         }
     }
 }

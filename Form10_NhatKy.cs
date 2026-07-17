@@ -37,7 +37,6 @@ namespace PhanMemThiDua2026
         private string _filterTaiKhoan = "Tất cả";
         // Thêm biến này ở khu vực khai báo biến đầu class
         private string _chuoiTuDongXoa = "";
-
         private string GetLocalIP()
         {
             if (!string.IsNullOrEmpty(_localIP)) return _localIP;
@@ -788,31 +787,6 @@ namespace PhanMemThiDua2026
 
             _currentPage = Math.Clamp(_currentPage, 1, _totalPages);
         }
-        private void ChuanHoaVaGiaiMaTrangHienTai()
-        {
-            string currentIP = GetLocalIP();
-
-            // 🔥 BÂY GIỜ CHÚNG TA MỚI GIẢI MÃ CÁC CỘT CÒN LẠI (Chỉ giải mã 500 dòng của trang hiện tại)
-            // 500 dòng thì CPU nháy mắt 1 cái là xong, không bao giờ lag.
-            foreach (var item in _listCurrentPage)
-            {
-                if (item.DaGiaiMa) continue;
-
-                // Không cần giải mã lại Thời Gian và Tài khoản nữa vì đã làm ở bước Load
-                item.TenMay = GiaiMaAnToan(item.TenMayRaw);
-                item.IP = currentIP;
-                item.ID_CPU = GiaiMaAnToan(item.ID_CPURaw);
-                item.HanhDong = GiaiMaAnToan(item.HanhDongRaw);
-                item.GhiChu = GiaiMaAnToan(item.GhiChuRaw);
-
-                // Xử lý Icon
-                string hd = item.HanhDong ?? "";
-                // ... (Giữ nguyên logic Icon của bạn) ...
-
-                item.DaGiaiMa = true;
-            }
-        }
-        // Cờ chung để chặn việc nhảy trang khi đang trong quá trình load
         private async void kryptonButton_TiepTheo_Click(object sender, EventArgs e)
         {
             // 1. CHẶN CLICK ĐÚP VÀ KIỂM TRA ĐIỀU KIỆN

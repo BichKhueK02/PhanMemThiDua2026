@@ -795,7 +795,7 @@ namespace PhanMemThiDua2026
             // 2. Nếu tìm thấy Form cha thì cập nhật lại tiêu đề
             if (formCha != null)
             {
-                formCha.CapNhatTieuDe("Trang xử lý dữ liệu");
+                formCha.CapNhatTieuDe("Trang phân loại thi đua");
             }
             // 3. Đóng form hiện tại
             this.Close();

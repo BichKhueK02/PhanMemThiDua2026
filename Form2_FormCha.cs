@@ -38,6 +38,19 @@ namespace PhanMemThiDua2026
         public Form2_FormCha()
         {
             InitializeComponent();
+            // === THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ICON TASKBAR ===
+            try
+            {
+                // Sử dụng lại icon ic_PhanMem có sẵn trong Resources của bạn
+                using (var ms = new System.IO.MemoryStream(Properties.Resources.ic_PhanMem))
+                {
+                    this.Icon = new Icon(ms); // Gán icon cho Form 2
+                }
+            }
+            catch (Exception)
+            {
+                // Bỏ qua nếu lỗi để không làm crash phần mềm
+            }
             // Gọi hàm tô màu cho nút mặc định ngay khi khởi tạo
             // Thay 'btnTrangChu' bằng (Name) thực tế của nút trang chủ của bạn
             // Xóa hết, chỉ cần 1 dòng này
@@ -487,7 +500,7 @@ namespace PhanMemThiDua2026
             // =================================================================
             // BẮT ĐẦU CODE GỐC
             // =================================================================
-            OpenChildForm<Form6_XuLyData>("Trang xử lý dữ liệu");
+            OpenChildForm<Form6_XuLyData>("Trang phân loại thi đua");
 
             // 🔥 Ưu tiên form đang hiển thị (nhanh nhất)
             if (_currentChild is Form6_XuLyData currentForm)

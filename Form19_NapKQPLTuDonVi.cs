@@ -251,6 +251,7 @@ namespace PhanMemThiDua2026
                 }
 
                 GoiRefershForm6();
+                await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
             }
             catch (Exception ex)
             {

@@ -33,35 +33,7 @@ namespace PhanMemThiDua2026
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
 
-        // ================== CẬP NHẬT STATUS BAR ==================
-        //public static void CapNhatStatusCSDL(StatusStrip status, ToolStripStatusLabel label)
-        //{
-        //    if (status == null || label == null) return;
-
-        //    bool csdlSanSang = Module_DanduongGPS.KiemTraTrangThaiSanSangCuaHeThongCSDL();
-        //    DateTime thoiGianDangNhap = SessionInfo.ThoiGianDangNhap;
-        //    //string thoiGianStr = thoiGianDangNhap == default ? "(chưa đăng nhập)" : thoiGianDangNhap.ToString("hh:mm tt dd/MM/yyyy");
-        //    // Giả định biến thoiGianDangNhap của bạn là kiểu DateTime hoặc DateTime?
-        //    string thoiGianStr = thoiGianDangNhap == default
-        //        ? "(chưa đăng nhập)"
-        //        : $"Truy cập lúc {thoiGianDangNhap.ToString("hh:mm tt")}, ngày {thoiGianDangNhap.ToString("dd/M/yyyy")}";
-        //    string tenMay = Environment.MachineName;
-        //    string tenUser = Environment.UserName;
-
-        //    string hienThiNgan = csdlSanSang
-        //        ? $"Đang kết nối CSDL | User: {tenUser} | Truy cập lúc {thoiGianStr}"
-        //        : $"Mất kết nối | User: {tenUser} | Truy cập lúc {thoiGianStr}";
-
-        //    string tooltipChiTiet = $"Máy tính: {tenMay}\nTài khoản Windows: {tenUser}\nPhiên kết nối: {thoiGianStr}";
-
-        //    status.BackColor = csdlSanSang ? Color.FromArgb(220, 248, 198) : Color.FromArgb(255, 224, 224);
-        //    label.Text = hienThiNgan;
-        //    label.ForeColor = csdlSanSang ? Color.DarkGreen : Color.DarkRed;
-
-        //    _sharedToolTip.SetToolTip(status, tooltipChiTiet);
-        //}
-
-        // 🛡️ ANTI-VIRUS SAFE: Tạo định danh không chạm tới vùng cấm của Registry
+  
         public static void CapNhatStatusCSDL(
        StatusStrip status,
        ToolStripStatusLabel label)
@@ -512,71 +484,7 @@ namespace PhanMemThiDua2026
                 lvInfo.Items.AddRange(items);
             }
 
-            //    private async Task LoadListViewDataAsync()
-            //    {
-            //        lvInfo.Items.Clear();
-
-            //        await Task.Run(() =>
-            //        {
-            //            // 1. Lấy thông tin Định dạng hệ thống (An toàn tuyệt đối)
-            //            string dinhDangVung = System.Globalization.CultureInfo.CurrentCulture.DisplayName;
-            //            string dinhDangNgay = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern;
-
-            //            // 2. Lấy thông tin Màn hình & DPI (Né lỗi vỡ giao diện WinForms)
-            //            string doPhanGiai = $"{Screen.PrimaryScreen.Bounds.Width} x {Screen.PrimaryScreen.Bounds.Height}";
-
-            //            // Cách lấy tỉ lệ Scaling % an toàn trong WinForms
-            //            int dpiX = 96;
-            //            using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
-            //            {
-            //                dpiX = (int)g.DpiX;
-            //            }
-            //            string scaling = $"{Math.Round((dpiX / 96.0) * 100)}%";
-
-            //            // 3. Kiểm tra ổ đĩa hiện tại (Chỉ kiểm tra ổ chạy App, cực kỳ an toàn)
-            //            string appDir = AppContext.BaseDirectory;
-            //            string rootDrive = Path.GetPathRoot(appDir) ?? "C:\\";
-            //            string thongTinOChuaApp = "Không xác định";
-            //            try
-            //            {
-            //                DriveInfo dInfo = new DriveInfo(rootDrive);
-            //                if (dInfo.IsReady)
-            //                {
-            //                    thongTinOChuaApp = $"Trống {dInfo.AvailableFreeSpace / 1073741824} GB / Tổng {dInfo.TotalSize / 1073741824} GB ({dInfo.DriveFormat})";
-            //                }
-            //            }
-            //            catch { }
-
-            //            var items = new[]
-            //            {
-            //    new ListViewItem(new[] { "Môi trường Windows", "" }) { BackColor = Color.AliceBlue, Font = new System.Drawing.Font(lvInfo.Font, System.Drawing.FontStyle.Bold) },
-            //    new ListViewItem(new[] { "Hệ điều hành", LayWindowsVersionChiTiet() }),
-            //    new ListViewItem(new[] { "Kiến trúc OS", Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit" }),
-            //    new ListViewItem(new[] { "Kiến trúc Ứng dụng", Environment.Is64BitProcess ? "64-bit (Tối ưu)" : "32-bit" }),
-            //    new ListViewItem(new[] { "Phân quyền ứng dụng", LayTrangThaiUAC() }),
-
-            //    // Thêm mới vào nhóm Giao diện & Vùng
-            //    new ListViewItem(new[] { "Cấu hình hiển thị & Vùng", "" }) { BackColor = Color.AliceBlue, Font = new System.Drawing.Font(lvInfo.Font, System.Drawing.FontStyle.Bold) },
-            //    new ListViewItem(new[] { "Độ phân giải màn hình", doPhanGiai }),
-            //    new ListViewItem(new[] { "Tỷ lệ thu phóng (Scaling)", scaling }),
-            //    new ListViewItem(new[] { "Định dạng vùng (Culture)", $"{dinhDangVung} ({dinhDangNgay})" }),
-            //    new ListViewItem(new[] { "Cấu hình thiết bị", "" }) { BackColor = Color.AliceBlue, Font = new System.Drawing.Font(lvInfo.Font, System.Drawing.FontStyle.Bold) },
-            //    new ListViewItem(new[] { "Vi xử lý (CPU)", GetCpuName() }),
-            //    new ListViewItem(new[] { "Số luồng xử lý", $"{Environment.ProcessorCount} Luồng" }),
-            //    new ListViewItem(new[] { "Định danh thiết bị", LayUUIDMayTinh() }),
-            //    new ListViewItem(new[] { "Khả năng lưu trữ", "" }) { BackColor = Color.AliceBlue, Font = new System.Drawing.Font(lvInfo.Font, System.Drawing.FontStyle.Bold) },
-            //    new ListViewItem(new[] { $"Ổ đĩa cài đặt phần mềm [{rootDrive}]", thongTinOChuaApp })
-            //};
-
-            //            this.Invoke(new Action(() =>
-            //            {
-            //                lvInfo.Items.AddRange(items);
-            //                // Giữ lại phần mềm bổ trợ
-            //                lvInfo.Items.Add(new ListViewItem(new[] { "Phần mềm bổ trợ", "" }) { BackColor = Color.AliceBlue, Font = new System.Drawing.Font(lvInfo.Font, System.Drawing.FontStyle.Bold) });
-            //                lvInfo.Items.Add(new ListViewItem(new[] { "Môi trường .NET", LayDotNetRuntime() }));
-            //            }));
-            //        });
-            //    }
+ 
             private void DrawFlatProgressBar(Graphics g, Rectangle bounds, float percent, bool isAppMem)
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -616,45 +524,6 @@ namespace PhanMemThiDua2026
                 path.CloseFigure();
                 return path;
             }
-
-            //private async Task HardwareSafePollingLoop(CancellationToken token)
-            //{
-            //    while (!token.IsCancellationRequested)
-            //    {
-            //        try
-            //        {
-            //            // 🌟 Lấy RAM chuẩn hệ thống qua API Kernel32 (Không dùng ComputerInfo VisualBasic)
-            //            MEMORYSTATUSEX memStatus = new MEMORYSTATUSEX();
-            //            memStatus.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
-
-            //            if (GlobalMemoryStatusEx(ref memStatus))
-            //            {
-            //                double totalRamGB = memStatus.ullTotalPhys / 1073741824.0;
-            //                double availableRamGB = memStatus.ullAvailPhys / 1073741824.0;
-            //                double usedRamGB = totalRamGB - availableRamGB;
-
-            //                _bgSysRamPercent = (float)((usedRamGB / totalRamGB) * 100);
-            //                _bgSysRamText = $"{usedRamGB:N1} / {totalRamGB:N1} GB";
-            //            }
-
-            //            using (Process proc = Process.GetCurrentProcess())
-            //            {
-            //                double appRamMB = proc.WorkingSet64 / 1048576.0;
-            //                _bgAppRamPercent = (float)Math.Min(appRamMB / 1024.0 * 100, 100);
-            //                _bgAppRamText = $"{appRamMB:N1} MB";
-            //            }
-            //        }
-            //        catch { }
-
-            //        try
-            //        {
-            //            await Task.Delay(2000, token);
-            //        }
-            //        catch (TaskCanceledException) { break; }
-            //    }
-            //}
-
-
             private async Task HardwareSafePollingLoop(CancellationToken token)
             {
                 // 🌟 CHUẨN KỸ SƯ: Khởi tạo đối tượng Process ĐÚNG 1 LẦN duy nhất bên ngoài vòng lặp.

@@ -91,7 +91,6 @@ namespace PhanMemThiDua2026
         { "Loại 4",   (toolStripStatusLabel2_Loai4,   System.Drawing.Color.FromArgb(220, 53, 69)) }, // Đỏ
         { "Không PL", (toolStripStatusLabel2_KhongPL, System.Drawing.Color.FromArgb(128, 0, 128)) }  // Tím
     };
-
             foreach (var item in cauHinhLabels)
             {
                 var lbl = item.Value.Label;
@@ -101,7 +100,6 @@ namespace PhanMemThiDua2026
                 lbl.AutoSize = true;
                 lbl.TextAlign = ContentAlignment.MiddleCenter;
             }
-
             // ===== KHỞI TẠO GIAO DIỆN LƯỚI =====
             InitGrid();
             DinhDangDataGridViewHienDai();
@@ -689,6 +687,8 @@ namespace PhanMemThiDua2026
             }
         }
         // HIỆU ỨNG UI: VIỀN XANH ĐẬM KHI HOVER VÀ FOCUS
+
+
         private void KiemTraDuLieu()
         {
             bool coDuLieu =
@@ -1912,6 +1912,7 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1.Text = "Xóa dữ liệu thành công.";
                 // Phát tín hiệu: "Dữ liệu đã thay đổi rồi nhé!"
                 Module_DanduongGPS.OnDatabaseChanged?.Invoke();
+                await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
             }
             catch (Exception ex)
             {
@@ -2708,7 +2709,7 @@ namespace PhanMemThiDua2026
         {
 
         }
-        private void kryptonButton_XoaKetQuaPhanLoai_Click(object sender, EventArgs e)
+        private async void kryptonButton_XoaKetQuaPhanLoai_Click(object sender, EventArgs e)
         {
             if (!KiemTraDuLieuSanSang("xóa kết quả phân loại")) return;
             // Bọc khởi tạo Form vào khối using để tự động giải phóng bộ nhớ khi đóng form
@@ -2726,6 +2727,7 @@ namespace PhanMemThiDua2026
             // THÊM 2 DÒNG NÀY ĐỂ UI CẬP NHẬT NGAY LẬP TỨC SAU KHI FORM 16 ĐÓNG
             kryptonButton_RefershCSDL.PerformClick(); // Load lại data từ DB (nếu form 16 xóa data gốc)
             CapNhatThongKeToanBoQuanSo(); // Cập nhật lại toàn bộ StatusLabel
+            await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
         }
         public void RefreshCSDL()
         {
@@ -3017,6 +3019,7 @@ namespace PhanMemThiDua2026
                 //ApplyColumnColoring();
                 CapNhatThongKeToanBoQuanSo();
                 KiemTraDuLieu();
+                await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
                 var frm12 = Application.OpenForms.OfType<Form12>().FirstOrDefault();
                 if (frm12 != null && frm12.IsHandleCreated && !frm12.IsDisposed)
                     frm12.BeginInvoke(new Action(() => frm12.LoadFromSQLite()));
@@ -3836,6 +3839,7 @@ namespace PhanMemThiDua2026
                 CapNhatThongKeToanBoQuanSo(); // 4. Cập nhật nhãn tổng quân số về 0
                 ThongBaoForm4CapNhatLoaiDeXuat();
                 KiemTraDuLieu();
+                await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
             }
             catch (Exception ex)
             {

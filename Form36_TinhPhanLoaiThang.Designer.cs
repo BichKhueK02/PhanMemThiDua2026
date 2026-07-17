@@ -135,28 +135,29 @@
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieu_ToolStripMenuItem, troVeThongKe_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(182, 88);
+            contextMenuStrip1.Size = new Size(185, 110);
+
             // 
             // lamMoi_ToolStripMenuItem
             // 
             lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
-            lamMoi_ToolStripMenuItem.Size = new Size(181, 26);
+            lamMoi_ToolStripMenuItem.Size = new Size(184, 26);
             lamMoi_ToolStripMenuItem.Text = "Làm mới";
             lamMoi_ToolStripMenuItem.Click += lamMoi_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(178, 6);
+            toolStripMenuItem1.Size = new Size(181, 6);
             // 
             // xuatDuLieu_ToolStripMenuItem
             // 
             xuatDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieu_ToolStripMenuItem.Image");
             xuatDuLieu_ToolStripMenuItem.Name = "xuatDuLieu_ToolStripMenuItem";
             xuatDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
-            xuatDuLieu_ToolStripMenuItem.Size = new Size(181, 26);
+            xuatDuLieu_ToolStripMenuItem.Size = new Size(184, 26);
             xuatDuLieu_ToolStripMenuItem.Text = "Xuất dữ liệu";
             xuatDuLieu_ToolStripMenuItem.Click += xuatDuLieu_ToolStripMenuItem_Click;
             // 
@@ -164,7 +165,7 @@
             // 
             troVeThongKe_ToolStripMenuItem.Image = (Image)resources.GetObject("troVeThongKe_ToolStripMenuItem.Image");
             troVeThongKe_ToolStripMenuItem.Name = "troVeThongKe_ToolStripMenuItem";
-            troVeThongKe_ToolStripMenuItem.Size = new Size(181, 26);
+            troVeThongKe_ToolStripMenuItem.Size = new Size(184, 26);
             troVeThongKe_ToolStripMenuItem.Text = "Trở về Thống kê";
             troVeThongKe_ToolStripMenuItem.Click += troVeThongKe_ToolStripMenuItem_Click;
             // 

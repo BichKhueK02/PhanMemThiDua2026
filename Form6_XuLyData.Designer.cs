@@ -976,7 +976,7 @@
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form6_XuLyData";
-            Text = "Trang xử lý dữ liệu";
+            Text = "Trang phân loại thi đua";
             Load += Form6_Load;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel2.ResumeLayout(false);

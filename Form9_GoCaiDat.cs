@@ -18,7 +18,6 @@ namespace PhanMemThiDua2026
         private static readonly Color NormalBorderColor = Color.Silver;
         private const int FocusBorderWidth = 2;
         private const int NormalBorderWidth = 1;
-
         public Form9_GoCaiDat()
         {
             InitializeComponent();
@@ -49,9 +48,7 @@ namespace PhanMemThiDua2026
             await ToQuoc_GoiTenAnhGiuaTroiThuongNhoAsync();
         }
 
-        // =========================================================================
         // 🌟 HÀM TÔ MÀU VIỀN CHUẨN KỸ SƯ (CHỐNG MEMORY LEAK)
-        // =========================================================================
         private void InitFocusEffects()
         {
             var controls = new List<KryptonTextBox> { Text_Admin, Text_Password };
@@ -70,7 +67,6 @@ namespace PhanMemThiDua2026
                 ktb.Leave += Ktb_LeaveFocus;
             }
         }
-
         private void Ktb_EnterFocus(object sender, EventArgs e)
         {
             if (sender is KryptonTextBox ktb)
@@ -80,7 +76,6 @@ namespace PhanMemThiDua2026
                 ktb.Refresh();
             }
         }
-
         private void Ktb_LeaveFocus(object sender, EventArgs e)
         {
             if (sender is KryptonTextBox ktb)
@@ -90,7 +85,6 @@ namespace PhanMemThiDua2026
                 ktb.Refresh();
             }
         }
-
         // 🌟 CHUYỂN SANG BẤT ĐỒNG BỘ ĐỂ TRÁNH GIẬT/LAG LÚC MỞ FORM
         private async Task ToQuoc_GoiTenAnhGiuaTroiThuongNhoAsync()
         {
@@ -126,7 +120,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Không thể đọc tài khoản Admin:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         // 🌟 KIỂM TRA MẬT KHẨU BẤT ĐỒNG BỘ
         private async Task<bool> KiemTraMatKhauAdminAsync(string matKhauNhap)
         {
@@ -161,7 +154,6 @@ namespace PhanMemThiDua2026
             }
             return false;
         }
-
         private bool SlowEquals(string a, string b)
         {
             if (a.Length != b.Length) return false;
@@ -172,7 +164,6 @@ namespace PhanMemThiDua2026
 
             return diff == 0;
         }
-
         // =======================================================
         // ⭐ BƯỚC ĐỌC DB, GỠ BẪY VÀ GIẢI MÃ V2 (CÓ CHỐNG SPAM)
         // =======================================================
@@ -246,26 +237,22 @@ namespace PhanMemThiDua2026
                 Btn_GoCaiDat.Enabled = true;
             }
         }
-
         private void CapNhatTrangThaiHienMatKhau()
         {
             bool isChecked = Chex_HienMatKhau.Checked;
             Text_Password.UseSystemPasswordChar = !isChecked;
             Chex_HienMatKhau.ForeColor = isChecked ? Color.Green : Color.Red;
         }
-
         private void Btn_Thoat_Click(object sender, EventArgs e)
         {
             Close();
         }
-
         private void Chex_HienMatKhau_CheckedChanged(object sender, EventArgs e)
         {
             CapNhatTrangThaiHienMatKhau();
         }
 
-
-
+  
         // CỤM HÀM TƯƠNG THÍCH NGƯỢC VỚI UNINSTALL.EXE (CHUẨN V1)
     }
 }

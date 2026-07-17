@@ -331,7 +331,7 @@
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Name = "quayLaiTrangXuLyDuLieu_ToolStripMenuItem";
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Size = new Size(264, 28);
-            quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Text = "Quay lại Trang xử lý dữ liệu";
+            quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Text = "Quay lại Trang phân loại thi đua";
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Click += quayLaiTrangXuLyDuLieu_ToolStripMenuItem_Click;
             // 
             // Form28_DataTrungTen

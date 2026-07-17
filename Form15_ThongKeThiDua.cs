@@ -2267,7 +2267,7 @@ namespace PhanMemThiDua2026
                 string donVi = "";
                 string hoTen = "";
                 string tinhTrang = "";
-
+                string soHieu = ""; // THÊM DÒNG NÀY
                 // =========================================================================
                 // 🚀 ĐỌC DỮ LIỆU TỪ RAM CHUẨN VIRTUAL MODE (Không đọc qua Grid.Rows)
                 // =========================================================================
@@ -2293,6 +2293,7 @@ namespace PhanMemThiDua2026
                         donVi = dataObj.DonViE;
                         hoTen = dataObj.HoTenE;
                         tinhTrang = dataObj.TinhTrang;
+                        soHieu = dataObj.SoHieuE; // THÊM DÒNG NÀY
                     }
                 }
                 else
@@ -2303,6 +2304,7 @@ namespace PhanMemThiDua2026
                     donVi = rowView["DonVi"]?.ToString() ?? "";
                     hoTen = rowView["HoVaTen"]?.ToString() ?? "";
                     tinhTrang = rowView["TinhTrang"]?.ToString() ?? "";
+                    soHieu = rowView["SoHieu"]?.ToString() ?? ""; // THÊM DÒNG NÀY
                 }
 
                 if (string.IsNullOrEmpty(id)) return;
@@ -2338,7 +2340,7 @@ namespace PhanMemThiDua2026
                     {
                         frm22.ID_CBCS = idInt;
                         frm22.HoVaTen = hoTen;
-                        frm22.SoHieu = "";
+                        frm22.SoHieu = soHieu;  // Truyền số hiệu vào Form22 Yêu mèo cam
                         frm22.TinhTrang = tinhTrang;
                         frm22.DonVi = donVi;
 

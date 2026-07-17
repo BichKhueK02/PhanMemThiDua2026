@@ -32,6 +32,9 @@ namespace PhanMemThiDua2026
             // ⭐ Bật DoubleBuffered để Form vẽ mượt hơn
             this.DoubleBuffered = true;
 
+            // ⭐ SỬA LỖI Ở ĐÂY: Kết nối sự kiện Load để Form nhận lệnh in dữ liệu lên Label
+            this.Load += Form22_ChinhSuaDataCBCS_Load;
+
             // Chuyển toàn bộ logic nặng sang sự kiện Shown
             this.Shown += Form22_ChinhSuaDataCBCS_Shown;
         }
@@ -80,7 +83,8 @@ namespace PhanMemThiDua2026
         private void BindHeaderInformation()
         {
             label1_ID_HoVaTen.Text = this.HoVaTen;
-            label_ID_SoHieu.Text = $"Số hiệu CAND: {this.SoHieu}";
+            //label_ID_SoHieu.Text = $"Số hiệu CAND: {this.SoHieu}";
+            label_ID_SoHieu.Text = this.SoHieu;
         }
         /// <summary>
         /// Thiết lập logic hiển thị trạng thái công tác (Mặc định: Đang công tác)
@@ -124,8 +128,12 @@ namespace PhanMemThiDua2026
 
             // 2. Cập nhật Text cơ bản trên Form
             label1_ID_HoVaTen.Text = HoVaTen;
-            label_ID_SoHieu.Text = "Số hiệu CAND: " + SoHieu;
+            //label_ID_SoHieu.Text = "Số hiệu CAND: " + SoHieu;
+            //this.Text = $"Hồ sơ thi đua - {HoVaTen}";// SỬA LẠI DÒNG DƯỚI ĐÂY: Bỏ chữ "Số hiệu CAND: " đi
+            label_ID_SoHieu.Text = SoHieu;
+
             this.Text = $"Hồ sơ thi đua - {HoVaTen}";
+
 
             if (!string.IsNullOrWhiteSpace(TinhTrang) &&
                 TinhTrang.Equals("Chuyển công tác", StringComparison.OrdinalIgnoreCase))

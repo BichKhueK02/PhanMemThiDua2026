@@ -161,10 +161,10 @@
             // kryptonButton3_DongForm
             // 
             kryptonButton3_DongForm.Anchor = AnchorStyles.None;
-            kryptonButton3_DongForm.Location = new Point(1118, 12);
-            kryptonButton3_DongForm.Margin = new Padding(2, 3, 2, 3);
+            kryptonButton3_DongForm.Location = new Point(1115, 11);
+            kryptonButton3_DongForm.Margin = new Padding(3, 2, 3, 2);
             kryptonButton3_DongForm.Name = "kryptonButton3_DongForm";
-            kryptonButton3_DongForm.Size = new Size(116, 30);
+            kryptonButton3_DongForm.Size = new Size(122, 32);
             kryptonButton3_DongForm.StateCommon.Border.Rounding = 4F;
             kryptonButton3_DongForm.TabIndex = 4;
             kryptonButton3_DongForm.Values.DropDownArrowColor = Color.Empty;
@@ -263,7 +263,7 @@
             comboBox_DonViKhenThuong.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox_DonViKhenThuong.FormattingEnabled = true;
             comboBox_DonViKhenThuong.Items.AddRange(new object[] { "Bộ Công an", "Bộ Tư lênh CSCĐ", "Công an tỉnh ", "UBND Tỉnh ", "UBND Tp. ", "UBND Xã ", "Đoàn Thanh niên BCA", "Đoàn Thanh niên K02", "Đoàn Thanh niên " });
-            comboBox_DonViKhenThuong.Location = new Point(1031, 12);
+            comboBox_DonViKhenThuong.Location = new Point(1031, 9);
             comboBox_DonViKhenThuong.Margin = new Padding(2, 3, 2, 3);
             comboBox_DonViKhenThuong.Name = "comboBox_DonViKhenThuong";
             comboBox_DonViKhenThuong.Size = new Size(219, 29);
@@ -348,7 +348,7 @@
             combobox_HinhThucKhen.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             combobox_HinhThucKhen.FormattingEnabled = true;
             combobox_HinhThucKhen.Items.AddRange(new object[] { "", "Giấy khen", "Bằng khen", "Huy chương", "Huân chương", "Kỷ niệm chương" });
-            combobox_HinhThucKhen.Location = new Point(137, 12);
+            combobox_HinhThucKhen.Location = new Point(137, 9);
             combobox_HinhThucKhen.Margin = new Padding(2, 3, 2, 3);
             combobox_HinhThucKhen.Name = "combobox_HinhThucKhen";
             combobox_HinhThucKhen.Size = new Size(131, 29);
@@ -399,7 +399,7 @@
             kryptonButton_Xoa.Location = new Point(12, 16);
             kryptonButton_Xoa.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Xoa.Name = "kryptonButton_Xoa";
-            kryptonButton_Xoa.Size = new Size(117, 30);
+            kryptonButton_Xoa.Size = new Size(118, 30);
             kryptonButton_Xoa.StateCommon.Border.Rounding = 4F;
             kryptonButton_Xoa.TabIndex = 5;
             kryptonButton_Xoa.Values.DropDownArrowColor = Color.Empty;
@@ -413,7 +413,7 @@
             kryptonButton_Sua.Location = new Point(12, 78);
             kryptonButton_Sua.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Sua.Name = "kryptonButton_Sua";
-            kryptonButton_Sua.Size = new Size(117, 30);
+            kryptonButton_Sua.Size = new Size(118, 30);
             kryptonButton_Sua.StateCommon.Border.Rounding = 4F;
             kryptonButton_Sua.TabIndex = 4;
             kryptonButton_Sua.Values.DropDownArrowColor = Color.Empty;
@@ -427,7 +427,7 @@
             kryptonButton_Them.Location = new Point(12, 140);
             kryptonButton_Them.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Them.Name = "kryptonButton_Them";
-            kryptonButton_Them.Size = new Size(117, 30);
+            kryptonButton_Them.Size = new Size(118, 30);
             kryptonButton_Them.StateCommon.Border.Rounding = 4F;
             kryptonButton_Them.TabIndex = 0;
             kryptonButton_Them.Values.DropDownArrowColor = Color.Empty;
@@ -573,6 +573,6 @@
         private Label label1_DonVi;
         private Label label1_SoHieu;
         private ComboBox combobox_HinhThucKhen;
-        private Krypton.Toolkit.KryptonButton kryptonButton3_DongForm;
+        internal Krypton.Toolkit.KryptonButton kryptonButton3_DongForm;
     }
 }

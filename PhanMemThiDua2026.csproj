@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\ic_PhanMem.ico</ApplicationIcon>
     <StartupObject>PhanMemThiDua2026.Program</StartupObject>
-    <Version>1.0.225</Version>
-    <AssemblyVersion>1.0.196</AssemblyVersion>
-    <FileVersion>1.0.225</FileVersion>
+    <Version>1.0.230</Version>
+    <AssemblyVersion>1.0.230</AssemblyVersion>
+    <FileVersion>1.0.230</FileVersion>
     <Copyright>TrungKien</Copyright>
     <PackageIcon>icon.ico</PackageIcon>
     
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Resources\icon.ico" />
+    <Content Include="Resources\ic_PhanMem.ico" />
   </ItemGroup>
 
   <ItemGroup>

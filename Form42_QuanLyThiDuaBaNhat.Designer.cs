@@ -153,21 +153,21 @@
             // 
             ToolStripMenuItem_XuatDanhSach.Image = (Image)resources.GetObject("ToolStripMenuItem_XuatDanhSach.Image");
             ToolStripMenuItem_XuatDanhSach.Name = "ToolStripMenuItem_XuatDanhSach";
-            ToolStripMenuItem_XuatDanhSach.Size = new Size(250, 28);
+            ToolStripMenuItem_XuatDanhSach.Size = new Size(207, 28);
             ToolStripMenuItem_XuatDanhSach.Text = "Xuất danh sách Báo cáo";
             ToolStripMenuItem_XuatDanhSach.Click += ToolStripMenuItem_XuatDanhSach_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(247, 6);
+            toolStripMenuItem1.Size = new Size(204, 6);
             // 
             // xoaTimKiem
             // 
             xoaTimKiem.Image = (Image)resources.GetObject("xoaTimKiem.Image");
             xoaTimKiem.Name = "xoaTimKiem";
             xoaTimKiem.ShortcutKeys = Keys.Control | Keys.D;
-            xoaTimKiem.Size = new Size(250, 28);
+            xoaTimKiem.Size = new Size(207, 28);
             xoaTimKiem.Text = "Xóa tìm kiếm";
             xoaTimKiem.Click += xoaTimKiem_Click;
             // 
@@ -176,7 +176,7 @@
             lamMoiHeThong.Image = (Image)resources.GetObject("lamMoiHeThong.Image");
             lamMoiHeThong.Name = "lamMoiHeThong";
             lamMoiHeThong.ShortcutKeys = Keys.F5;
-            lamMoiHeThong.Size = new Size(250, 28);
+            lamMoiHeThong.Size = new Size(207, 28);
             lamMoiHeThong.Text = "Làm mới trang";
             lamMoiHeThong.Click += lamMoiHeThong_Click;
             // 
@@ -186,13 +186,13 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5_XuatDanhSachGoc, toolStripMenuItem_NhapDuLieu, toolStripMenuItem5, toolStripMenuItem_ThiDuaTapThe, toolStripMenuItem4, toolStripMenuItem_luuVaoSoVang, toolStripMenuItem_MoSoVang, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(251, 314);
+            contextMenuStrip1.Size = new Size(208, 314);
             // 
             // toolStripMenuItem5_XuatDanhSachGoc
             // 
             toolStripMenuItem5_XuatDanhSachGoc.Image = (Image)resources.GetObject("toolStripMenuItem5_XuatDanhSachGoc.Image");
             toolStripMenuItem5_XuatDanhSachGoc.Name = "toolStripMenuItem5_XuatDanhSachGoc";
-            toolStripMenuItem5_XuatDanhSachGoc.Size = new Size(250, 28);
+            toolStripMenuItem5_XuatDanhSachGoc.Size = new Size(207, 28);
             toolStripMenuItem5_XuatDanhSachGoc.Text = "Xuất dữ liệu (Tệp excel)";
             toolStripMenuItem5_XuatDanhSachGoc.Click += toolStripMenuItem5_XuatDanhSachGoc_Click;
             // 
@@ -200,67 +200,67 @@
             // 
             toolStripMenuItem_NhapDuLieu.Image = (Image)resources.GetObject("toolStripMenuItem_NhapDuLieu.Image");
             toolStripMenuItem_NhapDuLieu.Name = "toolStripMenuItem_NhapDuLieu";
-            toolStripMenuItem_NhapDuLieu.Size = new Size(250, 28);
+            toolStripMenuItem_NhapDuLieu.Size = new Size(207, 28);
             toolStripMenuItem_NhapDuLieu.Text = "Nhập dữ liệu (Tệp excel)";
             toolStripMenuItem_NhapDuLieu.Click += toolStripMenuItem_NhapDuLieu_Click;
             // 
             // toolStripMenuItem5
             // 
             toolStripMenuItem5.Name = "toolStripMenuItem5";
-            toolStripMenuItem5.Size = new Size(247, 6);
+            toolStripMenuItem5.Size = new Size(204, 6);
             // 
             // toolStripMenuItem_ThiDuaTapThe
             // 
             toolStripMenuItem_ThiDuaTapThe.Image = (Image)resources.GetObject("toolStripMenuItem_ThiDuaTapThe.Image");
             toolStripMenuItem_ThiDuaTapThe.Name = "toolStripMenuItem_ThiDuaTapThe";
-            toolStripMenuItem_ThiDuaTapThe.Size = new Size(250, 28);
+            toolStripMenuItem_ThiDuaTapThe.Size = new Size(207, 28);
             toolStripMenuItem_ThiDuaTapThe.Text = "Báo cáo Thi đua tập thể";
             toolStripMenuItem_ThiDuaTapThe.Click += toolStripMenuItem_ThiDuaTapThe_Click;
             // 
             // toolStripMenuItem4
             // 
             toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new Size(247, 6);
+            toolStripMenuItem4.Size = new Size(204, 6);
             // 
             // toolStripMenuItem_luuVaoSoVang
             // 
             toolStripMenuItem_luuVaoSoVang.Image = (Image)resources.GetObject("toolStripMenuItem_luuVaoSoVang.Image");
             toolStripMenuItem_luuVaoSoVang.Name = "toolStripMenuItem_luuVaoSoVang";
-            toolStripMenuItem_luuVaoSoVang.Size = new Size(250, 28);
-            toolStripMenuItem_luuVaoSoVang.Text = "Lưu thông tin CBCS vào Sổ vàng";
+            toolStripMenuItem_luuVaoSoVang.Size = new Size(207, 28);
+            toolStripMenuItem_luuVaoSoVang.Text = "Lưu CBCS vào Sổ vàng";
             toolStripMenuItem_luuVaoSoVang.Click += toolStripMenuItem_luuVaoSoVang_Click;
             // 
             // toolStripMenuItem_MoSoVang
             // 
             toolStripMenuItem_MoSoVang.Image = (Image)resources.GetObject("toolStripMenuItem_MoSoVang.Image");
             toolStripMenuItem_MoSoVang.Name = "toolStripMenuItem_MoSoVang";
-            toolStripMenuItem_MoSoVang.Size = new Size(250, 28);
+            toolStripMenuItem_MoSoVang.Size = new Size(207, 28);
             toolStripMenuItem_MoSoVang.Text = "Mở sổ Vàng";
             toolStripMenuItem_MoSoVang.Click += toolStripMenuItem_MoSoVang_Click;
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new Size(247, 6);
+            toolStripMenuItem3.Size = new Size(204, 6);
             // 
             // toolStripMenuItem_XoaChonTatCa
             // 
             toolStripMenuItem_XoaChonTatCa.Image = (Image)resources.GetObject("toolStripMenuItem_XoaChonTatCa.Image");
             toolStripMenuItem_XoaChonTatCa.Name = "toolStripMenuItem_XoaChonTatCa";
-            toolStripMenuItem_XoaChonTatCa.Size = new Size(250, 28);
+            toolStripMenuItem_XoaChonTatCa.Size = new Size(207, 28);
             toolStripMenuItem_XoaChonTatCa.Text = "Xóa chọn tất cả";
             toolStripMenuItem_XoaChonTatCa.Click += toolStripMenuItem_XoaChonTatCa_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(247, 6);
+            toolStripMenuItem2.Size = new Size(204, 6);
             // 
             // toolStripMenuItem_ThoatTrang
             // 
             toolStripMenuItem_ThoatTrang.Image = (Image)resources.GetObject("toolStripMenuItem_ThoatTrang.Image");
             toolStripMenuItem_ThoatTrang.Name = "toolStripMenuItem_ThoatTrang";
-            toolStripMenuItem_ThoatTrang.Size = new Size(250, 28);
+            toolStripMenuItem_ThoatTrang.Size = new Size(207, 28);
             toolStripMenuItem_ThoatTrang.Text = "Thoát trang";
             toolStripMenuItem_ThoatTrang.Click += toolStripMenuItem_ThoatTrang_Click;
             // 

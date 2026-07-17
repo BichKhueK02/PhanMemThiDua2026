@@ -171,10 +171,10 @@
             // btn_BatDau
             // 
             btn_BatDau.Anchor = AnchorStyles.None;
-            btn_BatDau.Location = new Point(220, 251);
+            btn_BatDau.Location = new Point(219, 251);
             btn_BatDau.Margin = new Padding(2);
             btn_BatDau.Name = "btn_BatDau";
-            btn_BatDau.Size = new Size(118, 30);
+            btn_BatDau.Size = new Size(120, 30);
             btn_BatDau.StateCommon.Border.Rounding = 4F;
             btn_BatDau.TabIndex = 19;
             btn_BatDau.Values.DropDownArrowColor = Color.Empty;

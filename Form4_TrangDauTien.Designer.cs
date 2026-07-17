@@ -251,10 +251,10 @@
             // 
             kryptonButton_MayTinh.Anchor = AnchorStyles.None;
             kryptonButton_MayTinh.DialogResult = DialogResult.TryAgain;
-            kryptonButton_MayTinh.Location = new Point(374, 6);
+            kryptonButton_MayTinh.Location = new Point(374, 5);
             kryptonButton_MayTinh.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_MayTinh.Name = "kryptonButton_MayTinh";
-            kryptonButton_MayTinh.Size = new Size(157, 30);
+            kryptonButton_MayTinh.Size = new Size(157, 32);
             kryptonButton_MayTinh.StateCommon.Border.Rounding = 4F;
             kryptonButton_MayTinh.TabIndex = 3;
             kryptonButton_MayTinh.Values.DropDownArrowColor = Color.Empty;
@@ -266,10 +266,10 @@
             // 
             kryptonButton_KiemTraTLvaQS.Anchor = AnchorStyles.None;
             kryptonButton_KiemTraTLvaQS.DialogResult = DialogResult.TryAgain;
-            kryptonButton_KiemTraTLvaQS.Location = new Point(191, 6);
+            kryptonButton_KiemTraTLvaQS.Location = new Point(191, 5);
             kryptonButton_KiemTraTLvaQS.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_KiemTraTLvaQS.Name = "kryptonButton_KiemTraTLvaQS";
-            kryptonButton_KiemTraTLvaQS.Size = new Size(157, 30);
+            kryptonButton_KiemTraTLvaQS.Size = new Size(157, 32);
             kryptonButton_KiemTraTLvaQS.StateCommon.Border.Rounding = 4F;
             kryptonButton_KiemTraTLvaQS.TabIndex = 2;
             kryptonButton_KiemTraTLvaQS.Values.DropDownArrowColor = Color.Empty;
@@ -281,10 +281,10 @@
             // 
             kryptonButton_Refresh.Anchor = AnchorStyles.Left;
             kryptonButton_Refresh.DialogResult = DialogResult.TryAgain;
-            kryptonButton_Refresh.Location = new Point(2, 6);
+            kryptonButton_Refresh.Location = new Point(2, 5);
             kryptonButton_Refresh.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Refresh.Name = "kryptonButton_Refresh";
-            kryptonButton_Refresh.Size = new Size(157, 30);
+            kryptonButton_Refresh.Size = new Size(157, 32);
             kryptonButton_Refresh.StateCommon.Border.Rounding = 4F;
             kryptonButton_Refresh.TabIndex = 1;
             kryptonButton_Refresh.Values.DropDownArrowColor = Color.Empty;
@@ -313,11 +313,11 @@
             // kryptonButton_XuatTrinhKy
             // 
             kryptonButton_XuatTrinhKy.Anchor = AnchorStyles.Left;
-            kryptonButton_XuatTrinhKy.Location = new Point(2, 6);
+            kryptonButton_XuatTrinhKy.Location = new Point(2, 5);
             kryptonButton_XuatTrinhKy.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatTrinhKy.Name = "kryptonButton_XuatTrinhKy";
             kryptonButton_XuatTrinhKy.RightToLeft = RightToLeft.No;
-            kryptonButton_XuatTrinhKy.Size = new Size(157, 30);
+            kryptonButton_XuatTrinhKy.Size = new Size(157, 32);
             kryptonButton_XuatTrinhKy.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatTrinhKy.TabIndex = 0;
             kryptonButton_XuatTrinhKy.Values.DropDownArrowColor = Color.Empty;
@@ -328,11 +328,11 @@
             // kryptonButton_XuatTatCa
             // 
             kryptonButton_XuatTatCa.Anchor = AnchorStyles.None;
-            kryptonButton_XuatTatCa.Location = new Point(190, 6);
+            kryptonButton_XuatTatCa.Location = new Point(190, 5);
             kryptonButton_XuatTatCa.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatTatCa.Name = "kryptonButton_XuatTatCa";
             kryptonButton_XuatTatCa.RightToLeft = RightToLeft.No;
-            kryptonButton_XuatTatCa.Size = new Size(157, 30);
+            kryptonButton_XuatTatCa.Size = new Size(157, 32);
             kryptonButton_XuatTatCa.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatTatCa.TabIndex = 1;
             kryptonButton_XuatTatCa.Values.DropDownArrowColor = Color.Empty;
@@ -344,10 +344,10 @@
             // 
             kryptonButton_MoThuMuc.Anchor = AnchorStyles.None;
             kryptonButton_MoThuMuc.DialogResult = DialogResult.TryAgain;
-            kryptonButton_MoThuMuc.Location = new Point(374, 6);
+            kryptonButton_MoThuMuc.Location = new Point(374, 5);
             kryptonButton_MoThuMuc.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_MoThuMuc.Name = "kryptonButton_MoThuMuc";
-            kryptonButton_MoThuMuc.Size = new Size(157, 30);
+            kryptonButton_MoThuMuc.Size = new Size(157, 32);
             kryptonButton_MoThuMuc.StateCommon.Border.Rounding = 4F;
             kryptonButton_MoThuMuc.TabIndex = 2;
             kryptonButton_MoThuMuc.Values.DropDownArrowColor = Color.Empty;
@@ -440,10 +440,10 @@
             // 
             kryptonButton_XuatDanhSachLoai.Anchor = AnchorStyles.None;
             kryptonButton_XuatDanhSachLoai.DialogResult = DialogResult.TryAgain;
-            kryptonButton_XuatDanhSachLoai.Location = new Point(374, 6);
+            kryptonButton_XuatDanhSachLoai.Location = new Point(374, 5);
             kryptonButton_XuatDanhSachLoai.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatDanhSachLoai.Name = "kryptonButton_XuatDanhSachLoai";
-            kryptonButton_XuatDanhSachLoai.Size = new Size(157, 30);
+            kryptonButton_XuatDanhSachLoai.Size = new Size(157, 32);
             kryptonButton_XuatDanhSachLoai.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatDanhSachLoai.TabIndex = 1;
             kryptonButton_XuatDanhSachLoai.Values.DropDownArrowColor = Color.Empty;

@@ -136,7 +136,7 @@
             groupBox3.Size = new Size(351, 61);
             groupBox3.TabIndex = 8;
             groupBox3.TabStop = false;
-            groupBox3.Text = "2. Chọn sắp xếp";
+            groupBox3.Text = "3. Chọn sắp xếp";
             // 
             // tableLayoutPanel5
             // 
@@ -414,10 +414,10 @@
             // kryptonButton1_LocTheoNgayThangNam
             // 
             kryptonButton1_LocTheoNgayThangNam.Anchor = AnchorStyles.None;
-            kryptonButton1_LocTheoNgayThangNam.Location = new Point(951, 16);
+            kryptonButton1_LocTheoNgayThangNam.Location = new Point(951, 14);
             kryptonButton1_LocTheoNgayThangNam.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_LocTheoNgayThangNam.Name = "kryptonButton1_LocTheoNgayThangNam";
-            kryptonButton1_LocTheoNgayThangNam.Size = new Size(147, 26);
+            kryptonButton1_LocTheoNgayThangNam.Size = new Size(147, 30);
             kryptonButton1_LocTheoNgayThangNam.StateCommon.Border.Rounding = 4F;
             kryptonButton1_LocTheoNgayThangNam.TabIndex = 3;
             kryptonButton1_LocTheoNgayThangNam.Values.DropDownArrowColor = Color.Empty;

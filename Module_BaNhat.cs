@@ -795,19 +795,30 @@ public static class Module_BaNhat
             ws.Cell("K11").Value = deNghi;
 
             // Đọc Tóm tắt thành tích đổ vào L11
+            // ====================================================================================
+            // Đọc Tóm tắt thành tích đổ vào L11
+            // ====================================================================================
             string tomTatThanhTich = "";
             try
             {
+                // 🌟 BỔ SUNG: Kiểm tra phiên bản tĩnh ngay tại đây
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                string tenBangTomTat = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                    ? "TomTatThanhTichBaNhat_TanBinh"
+                    : "TomTatThanhTichBaNhat_CBCS";
+
                 using var cnTomTat = new SqliteConnection($"Data Source={csdl2}");
                 cnTomTat.Open();
-                using var cmdTomTat = new SqliteCommand("SELECT NoiDung FROM TomTatThanhTichBaNhat WHERE ID = 1", cnTomTat);
+
+                // 🌟 SỬA ĐỊNH TUYẾN: Truy vấn vào đúng bảng
+                using var cmdTomTat = new SqliteCommand($"SELECT NoiDung FROM [{tenBangTomTat}] WHERE ID = 1", cnTomTat);
+
                 var objResult = cmdTomTat.ExecuteScalar();
                 if (objResult != null && objResult != DBNull.Value)
                     tomTatThanhTich = BaoMatAES.GiaiMa(objResult.ToString()).Trim();
             }
             catch { }
             ws.Cell("L11").Value = tomTatThanhTich;
-
             // Thiết lập Công thức tính toán dữ liệu
             ws.Cell("E12").FormulaA1 = "=IFERROR((E11*100)/F11,\"Dữ liệu sai\")";
             ws.Cell("F12").FormulaA1 = "=IFERROR(IF(B11=0,0,(F11*100)/B11),\"Dữ liệu sai\")";

@@ -71,7 +71,7 @@
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 22.8571434F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 24.0816326F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 3.36134458F));
-            TableLayoutPanel1.Size = new Size(448, 204);
+            TableLayoutPanel1.Size = new Size(448, 210);
             TableLayoutPanel1.TabIndex = 9;
             // 
             // TableLayoutPanel3
@@ -83,21 +83,21 @@
             TableLayoutPanel3.Controls.Add(Btn_GoCaiDat, 2, 0);
             TableLayoutPanel3.Controls.Add(Btn_Thoat, 0, 0);
             TableLayoutPanel3.Dock = DockStyle.Fill;
-            TableLayoutPanel3.Location = new Point(3, 147);
+            TableLayoutPanel3.Location = new Point(3, 153);
             TableLayoutPanel3.Margin = new Padding(3, 2, 3, 2);
             TableLayoutPanel3.Name = "TableLayoutPanel3";
             TableLayoutPanel3.RowCount = 1;
             TableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            TableLayoutPanel3.Size = new Size(442, 45);
+            TableLayoutPanel3.Size = new Size(442, 46);
             TableLayoutPanel3.TabIndex = 10;
             // 
             // Btn_GoCaiDat
             // 
             Btn_GoCaiDat.Anchor = AnchorStyles.None;
-            Btn_GoCaiDat.Location = new Point(270, 9);
+            Btn_GoCaiDat.Location = new Point(270, 7);
             Btn_GoCaiDat.Margin = new Padding(3, 2, 3, 2);
             Btn_GoCaiDat.Name = "Btn_GoCaiDat";
-            Btn_GoCaiDat.Size = new Size(122, 27);
+            Btn_GoCaiDat.Size = new Size(122, 32);
             Btn_GoCaiDat.StateCommon.Border.Rounding = 4F;
             Btn_GoCaiDat.TabIndex = 0;
             Btn_GoCaiDat.Values.DropDownArrowColor = Color.Empty;
@@ -108,15 +108,16 @@
             // Btn_Thoat
             // 
             Btn_Thoat.Anchor = AnchorStyles.None;
-            Btn_Thoat.Location = new Point(46, 9);
+            Btn_Thoat.Location = new Point(46, 7);
             Btn_Thoat.Margin = new Padding(3, 2, 3, 2);
             Btn_Thoat.Name = "Btn_Thoat";
-            Btn_Thoat.Size = new Size(122, 27);
+            Btn_Thoat.Size = new Size(122, 32);
             Btn_Thoat.StateCommon.Border.Rounding = 4F;
             Btn_Thoat.TabIndex = 1;
             Btn_Thoat.Values.DropDownArrowColor = Color.Empty;
             Btn_Thoat.Values.Image = (Image)resources.GetObject("Btn_Thoat.Values.Image");
             Btn_Thoat.Values.Text = "Đóng";
+            Btn_Thoat.Click += Btn_Thoat_Click;
             // 
             // TableLayoutPanel4
             // 
@@ -127,12 +128,12 @@
             TableLayoutPanel4.Controls.Add(label2, 0, 0);
             TableLayoutPanel4.Controls.Add(Text_Password, 1, 0);
             TableLayoutPanel4.Dock = DockStyle.Fill;
-            TableLayoutPanel4.Location = new Point(3, 53);
+            TableLayoutPanel4.Location = new Point(3, 55);
             TableLayoutPanel4.Margin = new Padding(3, 2, 3, 2);
             TableLayoutPanel4.Name = "TableLayoutPanel4";
             TableLayoutPanel4.RowCount = 1;
             TableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            TableLayoutPanel4.Size = new Size(442, 44);
+            TableLayoutPanel4.Size = new Size(442, 46);
             TableLayoutPanel4.TabIndex = 11;
             // 
             // label2
@@ -141,7 +142,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label2.ForeColor = Color.FromArgb(0, 0, 192);
-            label2.Location = new Point(61, 12);
+            label2.Location = new Point(61, 13);
             label2.Name = "label2";
             label2.Size = new Size(68, 19);
             label2.TabIndex = 13;
@@ -150,7 +151,7 @@
             // Text_Password
             // 
             Text_Password.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_Password.Location = new Point(135, 7);
+            Text_Password.Location = new Point(135, 8);
             Text_Password.Margin = new Padding(3, 2, 3, 2);
             Text_Password.Name = "Text_Password";
             Text_Password.Size = new Size(281, 29);
@@ -172,7 +173,7 @@
             TableLayoutPanel2.Name = "TableLayoutPanel2";
             TableLayoutPanel2.RowCount = 1;
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            TableLayoutPanel2.Size = new Size(442, 47);
+            TableLayoutPanel2.Size = new Size(442, 49);
             TableLayoutPanel2.TabIndex = 0;
             // 
             // label1
@@ -181,7 +182,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label1.ForeColor = Color.FromArgb(0, 0, 192);
-            label1.Location = new Point(33, 14);
+            label1.Location = new Point(33, 15);
             label1.Name = "label1";
             label1.Size = new Size(95, 19);
             label1.TabIndex = 4;
@@ -190,7 +191,7 @@
             // Text_Admin
             // 
             Text_Admin.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_Admin.Location = new Point(134, 9);
+            Text_Admin.Location = new Point(134, 10);
             Text_Admin.Margin = new Padding(3, 2, 3, 2);
             Text_Admin.Name = "Text_Admin";
             Text_Admin.Size = new Size(282, 29);
@@ -204,7 +205,7 @@
             Chex_HienMatKhau.AutoSize = true;
             Chex_HienMatKhau.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             Chex_HienMatKhau.ForeColor = Color.Red;
-            Chex_HienMatKhau.Location = new Point(163, 110);
+            Chex_HienMatKhau.Location = new Point(163, 115);
             Chex_HienMatKhau.Margin = new Padding(3, 2, 3, 2);
             Chex_HienMatKhau.Name = "Chex_HienMatKhau";
             Chex_HienMatKhau.Size = new Size(121, 23);
@@ -239,14 +240,14 @@
             TableLayoutPanel5.Name = "TableLayoutPanel5";
             TableLayoutPanel5.RowCount = 1;
             TableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            TableLayoutPanel5.Size = new Size(619, 208);
+            TableLayoutPanel5.Size = new Size(619, 214);
             TableLayoutPanel5.TabIndex = 13;
             // 
             // PictureBox3
             // 
             PictureBox3.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             PictureBox3.Image = (Image)resources.GetObject("PictureBox3.Image");
-            PictureBox3.Location = new Point(3, 43);
+            PictureBox3.Location = new Point(3, 46);
             PictureBox3.Margin = new Padding(3, 2, 3, 2);
             PictureBox3.Name = "PictureBox3";
             PictureBox3.Size = new Size(154, 122);
@@ -258,7 +259,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(619, 208);
+            ClientSize = new Size(619, 214);
             Controls.Add(TableLayoutPanel5);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(3, 2, 3, 2);

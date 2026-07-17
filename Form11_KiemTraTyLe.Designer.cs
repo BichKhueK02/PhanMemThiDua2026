@@ -97,7 +97,7 @@
             // 
             // ListBox2
             // 
-            ListBox2.BackColor = Color.FromArgb(192, 192, 252);
+            ListBox2.BackColor = Color.FromArgb(243, 244, 246);
             ListBox2.Dock = DockStyle.Fill;
             ListBox2.Font = new Font("Segoe UI", 12.096F, FontStyle.Regular, GraphicsUnit.Point, 0);
             ListBox2.FormattingEnabled = true;
@@ -475,10 +475,10 @@
             // 
             btn_TextTinh.Anchor = AnchorStyles.None;
             btn_TextTinh.DialogResult = DialogResult.TryAgain;
-            btn_TextTinh.Location = new Point(10, 333);
+            btn_TextTinh.Location = new Point(11, 332);
             btn_TextTinh.Margin = new Padding(2);
             btn_TextTinh.Name = "btn_TextTinh";
-            btn_TextTinh.Size = new Size(191, 27);
+            btn_TextTinh.Size = new Size(190, 30);
             btn_TextTinh.StateCommon.Border.Rounding = 4F;
             btn_TextTinh.StateTracking.Back.Color1 = Color.FromArgb(192, 255, 192);
             btn_TextTinh.StateTracking.Back.Color2 = Color.FromArgb(192, 255, 192);
@@ -492,6 +492,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(234, 242, 255);
             ClientSize = new Size(756, 386);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");

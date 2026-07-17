@@ -392,7 +392,7 @@
             quayLaiTrangXuLyData_ToolStripMenuItem.Name = "quayLaiTrangXuLyData_ToolStripMenuItem";
             quayLaiTrangXuLyData_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
             quayLaiTrangXuLyData_ToolStripMenuItem.Size = new Size(264, 28);
-            quayLaiTrangXuLyData_ToolStripMenuItem.Text = "Quay lại Trang xử lý dữ liệu";
+            quayLaiTrangXuLyData_ToolStripMenuItem.Text = "Quay lại Trang phân loại thi đua";
             quayLaiTrangXuLyData_ToolStripMenuItem.Click += quayLaiTrangXuLyData_ToolStripMenuItem_Click;
             // 
             // statusStrip1

@@ -321,6 +321,8 @@ namespace PhanMemThiDua2026
             TextRenderer.DrawText(e.Graphics, rowIdx, grid.Font, headerBounds, Color.Black, flags);
         }
         private HashSet<string> _dsDonViBoQuaCanhBao = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        //Cập nhật quy định mới không vượt quá tỷ lệ (Làm tròn quá tay)
         private async Task Bang1_Async()
         {
             string csdl2Path = _csdl2Path;
@@ -549,13 +551,8 @@ namespace PhanMemThiDua2026
         }
         private void KhaoSatTyLePhanTramCacDonVi(object? sender, DataGridViewCellFormattingEventArgs e)
         {
-            // 1. Guard Clauses cơ bản
             if (sender is not DataGridView dgv || e.RowIndex < 0 || e.ColumnIndex < 0) return;
 
-            // =========================================================================
-            // 🛡️ KHIÊN BẢO VỆ GDI+: Tránh crash khi lưới đang bị Reset (DataSource = null)
-            // Hoặc trong trường hợp râu ông nọ cắm cằm bà kia (Form vô tình gọi nhầm lưới)
-            // =========================================================================
             if (!dgv.Columns.Contains("DonVi") ||
                 !dgv.Columns.Contains("TongQS") ||
                 !dgv.Columns.Contains("Loai_1") ||
@@ -564,16 +561,13 @@ namespace PhanMemThiDua2026
                 !dgv.Columns.Contains("Loai_4") ||
                 !dgv.Columns.Contains("Khong_PL"))
             {
-                return; // Lưới chưa có đủ cột -> Bỏ qua không vẽ màu để chống crash
+                return;
             }
 
             string donViName = dgv.Rows[e.RowIndex].Cells["DonVi"].Value?.ToString() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(donViName)) return;
 
-            // ====================================================================
-            // 🌟 THÊM CODE SỬA: ĐỒNG BỘ DÒNG "TỔNG CỘNG" THÀNH CHỮ IN THƯỜNG - MÀU XANH LÁ
-            // ====================================================================
-            if (donViName.Equals("Tổng cộng", StringComparison.OrdinalIgnoreCase))
+            if (donViName.Equals("Tổng cộng", StringComparison.OrdinalIgnoreCase) || _dsDonViBoQuaCanhBao.Contains(donViName.Trim()))
             {
                 if (dgv.Rows[e.RowIndex].Selected)
                 {
@@ -581,31 +575,11 @@ namespace PhanMemThiDua2026
                 }
                 else
                 {
-                    e.CellStyle.ForeColor = Color.FromArgb(0, 128, 0); // Đưa dòng tổng về màu xanh lá cây đồng bộ
+                    e.CellStyle.ForeColor = Color.FromArgb(0, 128, 0);
                 }
-
-                e.CellStyle.Font = new Font(dgv.Font, FontStyle.Regular); // Ép dòng tổng thành chữ in thường
-                return; // Thoát ngay, không chạy vào logic so sánh chỉ tiêu ở dưới
+                e.CellStyle.Font = new Font(dgv.Font, FontStyle.Regular);
+                return;
             }
-
-            // ====================================================================
-            // 🌟 ĐƠN VỊ ĐẶC BIỆT: ĐỒNG BỘ 100% THÀNH CHỮ IN THƯỜNG - MÀU XANH LÁ
-            // ====================================================================
-            if (_dsDonViBoQuaCanhBao.Contains(donViName.Trim()))
-            {
-                if (dgv.Rows[e.RowIndex].Selected)
-                {
-                    e.CellStyle.ForeColor = e.CellStyle.SelectionForeColor;
-                }
-                else
-                {
-                    e.CellStyle.ForeColor = Color.FromArgb(0, 128, 0); // Ép về màu xanh lá cây
-                }
-
-                e.CellStyle.Font = new Font(dgv.Font, FontStyle.Regular); // Ép kiểu chữ in thường, không in đậm
-                return; // Thoát ngay lập tức, chặn toàn bộ logic tính toán bôi màu đỏ phía dưới
-            }
-            // ====================================================================
 
             try
             {
@@ -623,7 +597,7 @@ namespace PhanMemThiDua2026
                 int kqCanDat_L3 = 0;
 
                 // ====================================================================
-                // 🚀 NHÁNH 1: LOGIC BAN CHỈ HUY (BCH)
+                // NHÁNH 1: LOGIC BAN CHỈ HUY (BCH)
                 // ====================================================================
                 if (donViName.Equals("BCH", StringComparison.OrdinalIgnoreCase))
                 {
@@ -647,7 +621,7 @@ namespace PhanMemThiDua2026
                                 }
                             }
                         }
-                        catch { /* Lỗi truy vấn -> coi như = 0 */ }
+                        catch { }
                         _cachedTongBCH = countBCH;
                     }
 
@@ -655,29 +629,25 @@ namespace PhanMemThiDua2026
 
                     if (deNghiTTe == "LOẠI 1")
                     {
-                        kqCanDat_L1 = (int)Math.Round(_cachedTongBCH * 0.75);
+                        kqCanDat_L1 = (int)Math.Floor(_cachedTongBCH * 0.75);
                         kqCanDat_L2_Thuan = _cachedTongBCH - kqCanDat_L1;
                         kqCanDat_L3 = 0;
                     }
                     else if (deNghiTTe == "LOẠI 2")
                     {
-                        kqCanDat_L1 = (int)Math.Round(_cachedTongBCH * 0.50);
+                        kqCanDat_L1 = (int)Math.Floor(_cachedTongBCH * 0.50);
                         kqCanDat_L2_Thuan = _cachedTongBCH - kqCanDat_L1;
                         kqCanDat_L3 = 0;
                     }
                     else if (deNghiTTe == "LOẠI 3" || deNghiTTe == "LOẠI 4")
                     {
                         kqCanDat_L1 = 0;
-                        kqCanDat_L2_Thuan = (int)Math.Round(_cachedTongBCH * 0.50);
+                        kqCanDat_L2_Thuan = (int)Math.Floor(_cachedTongBCH * 0.50);
                         kqCanDat_L3 = _cachedTongBCH - kqCanDat_L2_Thuan;
-                    }
-                    else
-                    {
-                        return;
                     }
                 }
                 // ====================================================================
-                // 🚀 NHÁNH 2: LOGIC CHIẾN SĨ
+                // NHÁNH 2: LOGIC CHIẾN SĨ (TÍNH TOÁN BÙ TRỪ KHỚP 100%)
                 // ====================================================================
                 else
                 {
@@ -686,35 +656,26 @@ namespace PhanMemThiDua2026
 
                     double rateL1 = phanTramLoai1 / 100.0;
                     double rateL2 = phanTramLoai2 / 100.0;
-                    double rateL3 = phanTramLoai3 / 100.0;
 
-                    int kqCanDat_L2_Tong = (int)Math.Round(duDieuKien * rateL2);
-                    kqCanDat_L3 = (int)Math.Round(duDieuKien * rateL3);
+                    // 1. Ép trần Tổng Loại 2
+                    int kqCanDat_L2_Tong = (int)Math.Floor(duDieuKien * rateL2);
 
-                    kqCanDat_L1 = (int)Math.Round(kqCanDat_L2_Tong * rateL1);
+                    // 2. Loại 3 BẮT BUỘC gánh phần dư để tổng 100%
+                    kqCanDat_L3 = duDieuKien - kqCanDat_L2_Tong;
+
+                    // 3. Ép trần Loại 1 từ Quỹ Loại 2
+                    kqCanDat_L1 = (int)Math.Floor(kqCanDat_L2_Tong * rateL1);
                     if (kqCanDat_L1 > kqCanDat_L2_Tong) kqCanDat_L1 = kqCanDat_L2_Tong;
-
-                    if (kqCanDat_L2_Tong + kqCanDat_L3 > duDieuKien)
-                    {
-                        kqCanDat_L3 = duDieuKien - kqCanDat_L2_Tong;
-                        if (kqCanDat_L3 < 0) kqCanDat_L3 = 0;
-                    }
 
                     kqCanDat_L2_Thuan = kqCanDat_L2_Tong - kqCanDat_L1;
                 }
 
-                // ====================================================================
-                // 3. THẨM ĐỊNH KẾT QUẢ VÀ SƠN MÀU
-                // ====================================================================
                 bool isLoai1HopLe = l1 >= kqCanDat_L1;
                 bool isLoai2HopLe = l2 >= kqCanDat_L2_Thuan;
                 bool isLoai3HopLe = l3 >= kqCanDat_L3;
-
                 bool isDonViDatChuan = isLoai1HopLe && isLoai2HopLe && isLoai3HopLe;
 
-                Color textColor = isDonViDatChuan
-                    ? Color.FromArgb(0, 128, 0)
-                    : Color.FromArgb(255, 0, 0);
+                Color textColor = isDonViDatChuan ? Color.FromArgb(0, 128, 0) : Color.FromArgb(255, 0, 0);
 
                 if (dgv.Rows[e.RowIndex].Selected)
                 {
@@ -722,304 +683,23 @@ namespace PhanMemThiDua2026
                 }
 
                 e.CellStyle.ForeColor = textColor;
-
-                // ĐỒNG BỘ ĐỒ HỌA: Cứ đạt chuẩn chỉ tiêu thì giữ nguyên chữ thường, dòng lỗi mới in đậm lên
-                if (isDonViDatChuan)
-                {
-                    e.CellStyle.Font = new Font(dgv.Font, FontStyle.Regular);
-                }
-                else
-                {
-                    e.CellStyle.Font = new Font(dgv.Font, FontStyle.Bold);
-                }
+                e.CellStyle.Font = new Font(dgv.Font, isDonViDatChuan ? FontStyle.Regular : FontStyle.Bold);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("[Lỗi khảo sát tỷ lệ Grid] " + ex.Message);
             }
         }
-        private async Task Bang2_Async()
-        {
-            // 🔥 CHẶN LUỒNG NGAY TỪ ĐẦU
-            if (!_allowLoadBang2)
-            {
-                _allowLoadBang2 = true; // auto recover
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path))
-                return;
-            string csdl2Path = _csdl2Path;
-            if (string.IsNullOrWhiteSpace(csdl2Path)) return;
-            try
-            {
-                using var connection = new SqliteConnection($"Data Source={csdl2Path}");
-
-                // 🟢 TRUE ASYNC: Mở kết nối không chặn UI
-                await connection.OpenAsync();
-                string kyHieuTrungDoan = "E29"; // fallback an toàn
-
-                try
-                {
-                    using var cmdKyHieu = new SqliteCommand("SELECT KyHieu_TrungDoan FROM KyHieu_DonVi WHERE ID = 1 LIMIT 1", connection);
-
-                    // 🟢 TRUE ASYNC: Đọc dữ liệu đơn lẻ
-                    var result = await cmdKyHieu.ExecuteScalarAsync();
-
-                    if (result != null && result != DBNull.Value)
-                    {
-                        string raw = result.ToString();
-                        string giaiMa = GiaiMaAnToan(raw);
-
-                        if (!string.IsNullOrWhiteSpace(giaiMa))
-                            kyHieuTrungDoan = giaiMa.Trim();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Lỗi đọc KyHieu_TrungDoan: " + ex.Message);
-                }
-
-                // --- Load dữ liệu QuanSoThiDuaD2 ---
-                DataTable dtQS = new DataTable();
-                using (var cmd = new SqliteCommand("SELECT * FROM QuanSoThiDuaD2 ORDER BY ID", connection))
-                using (var reader = await cmd.ExecuteReaderAsync()) // 🟢 TRUE ASYNC
-                {
-                    dtQS.Load(reader);
-                }
-                // --- SỬA CHỖ NÀY ---
-                if (dtQS.Rows.Count == 0)
-                {
-                    kryptonDataGridView2.DataSource = null;
-
-                    // ❗ KHÔNG TẮT VĨNH VIỄN
-                    _allowLoadBang2 = false;
-                    return;
-                }
-
-                // ✅ luôn bật lại khi có dữ liệu hợp lệ
-                _allowLoadBang2 = true;
-                DataRow totalRow =
-      dtQS.AsEnumerable()
-          .FirstOrDefault(r => r["DonVi"]?.ToString() == "Tổng cộng")
-      ?? dtQS.Rows[dtQS.Rows.Count - 1];
-
-                //double loai1Rate = phanTramLoai1;
-                //double loai2Rate = phanTramLoai2;
-                //double loai3Rate = phanTramLoai3;
-                double loai1Rate = phanTramLoai1;
-                double loai2Rate = phanTramLoai2;
-                double loai3Rate = phanTramLoai3;
-
-                // 🔥 CHẶN GIÁ TRỊ RÁC
-                if (loai1Rate <= 0) loai1Rate = 0;
-                if (loai2Rate <= 0) loai2Rate = 0;
-                if (loai3Rate <= 0) loai3Rate = 0;
-
-                int tongQuanSo = Convert.ToInt32(totalRow["TongQS"]);
-                int loai1 = Convert.ToInt32(totalRow["Loai_1"]);
-                int loai2 = Convert.ToInt32(totalRow["Loai_2"]);
-                int loai3 = Convert.ToInt32(totalRow["Loai_3"]);
-                int loai4 = Convert.ToInt32(totalRow["Loai_4"]);
-                int khongPL = Convert.ToInt32(totalRow["Khong_PL"]);
-
-                // ✅ TÍNH ĐỦ ĐIỀU KIỆN XÉT
-                int duDieuKien = tongQuanSo - loai4 - khongPL;
-                if (duDieuKien < 0) duDieuKien = 0;
-
-                // ✅ TÍNH KQ CẦN ĐẠT
-                int kqCanDat_Loai2 = (int)Math.Round(duDieuKien * loai2Rate / 100.0);
-                int kqCanDat_Loai3 = (int)Math.Round(duDieuKien * loai3Rate / 100.0);
-                int kqCanDat_Loai1 = (int)Math.Round(kqCanDat_Loai2 * loai1Rate / 100.0);
-
-                // 🟢 TRUE ASYNC: Khởi tạo Transaction
-                using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync();
-                using var cmdUpdate = connection.CreateCommand();
-                cmdUpdate.Transaction = transaction;
-
-                // 🟢 NÂNG CẤP HÀM CỤC BỘ THÀNH ASYNC ĐỂ UPDATE MƯỢT MÀ
-                async Task UpdateTyLeRowAsync(int id, int kqHienTai, int kqCanDat, string kqGuiE29, string ketLuan)
-                {
-                    cmdUpdate.Parameters.Clear();
-                    cmdUpdate.CommandText = @"UPDATE TyLe 
-            SET ""KQ Hien tai""=@kqHienTai,
-                ""KQ Can dat""=@kqCanDat,
-                ""KQ Gui E29""=@kqGuiE29,
-                ""Ket luan""=@ketLuan
-            WHERE ID=@id;";
-                    cmdUpdate.Parameters.AddWithValue("@kqHienTai", kqHienTai);
-                    cmdUpdate.Parameters.AddWithValue("@kqCanDat", kqCanDat);
-                    cmdUpdate.Parameters.AddWithValue("@kqGuiE29", kqGuiE29);
-                    cmdUpdate.Parameters.AddWithValue("@ketLuan", ketLuan);
-                    cmdUpdate.Parameters.AddWithValue("@id", id);
-
-                    await cmdUpdate.ExecuteNonQueryAsync(); // 🟢 TRUE ASYNC
-                }
-
-                string fmt(double v) => v.ToString("0.00");
-                string guiE29_Tong = $"{tongQuanSo}";
-
-                string guiE29_Loai1 = kqCanDat_Loai2 > 0
-                    ? $"{kqCanDat_Loai1}/{kqCanDat_Loai2} = {fmt(kqCanDat_Loai1 * 100.0 / kqCanDat_Loai2)}%"
-                    : "";
-
-                string guiE29_Loai2 = duDieuKien > 0 ? $"{kqCanDat_Loai2}/{duDieuKien} = {fmt(kqCanDat_Loai2 * 100.0 / duDieuKien)}%" : "";
-                string guiE29_Loai3 = duDieuKien > 0 ? $"{kqCanDat_Loai3}/{duDieuKien} = {fmt(kqCanDat_Loai3 * 100.0 / duDieuKien)}%" : "";
-
-                int[] kqHienTaiArr = { tongQuanSo, loai1, loai2, loai3, loai4, khongPL };
-                int[] kqGuiE29Arr = { tongQuanSo, kqCanDat_Loai1, kqCanDat_Loai2, kqCanDat_Loai3, 0, 0 };
-                string[] guiE29Arr = { guiE29_Tong, guiE29_Loai1, guiE29_Loai2, guiE29_Loai3, "", "" };
-
-                string KetLuanRow(int id, int kqHienTai, int kqCanDat, bool tinh)
-                {
-                    if (!tinh && (id < 5 || id > 6)) return "";
-
-                    switch (id)
-                    {
-                        case 1:
-                            bool loai1Ok = loai1 >= kqCanDat_Loai1;
-                            bool loai2Ok = loai2 >= (kqCanDat_Loai2 - kqCanDat_Loai1);
-                            bool loai3Ok = loai3 >= kqCanDat_Loai3;
-                            return (loai1Ok && loai2Ok && loai3Ok) ? "Đạt tỷ lệ quy định" : "Chưa đạt tỷ lệ quy định";
-                        case 2:
-                            if (kqHienTai == kqCanDat_Loai1) return "";
-                            return kqHienTai > kqCanDat_Loai1 ? $"Đang thừa {kqHienTai - kqCanDat_Loai1} đồng chí" : $"Đang thiếu {kqCanDat_Loai1 - kqHienTai} đồng chí";
-                        case 3:
-                            int kqCanDatLoai2Thuan = kqCanDat_Loai2 - kqCanDat_Loai1;
-                            if (kqHienTai == kqCanDatLoai2Thuan) return "";
-                            return kqHienTai > kqCanDatLoai2Thuan ? $"Đang thừa {kqHienTai - kqCanDatLoai2Thuan} đồng chí" : $"Đang thiếu {kqCanDatLoai2Thuan - kqHienTai} đồng chí";
-                        case 4:
-                            if (kqHienTai == kqCanDat_Loai3) return "";
-                            return kqHienTai > kqCanDat_Loai3 ? $"Đang thừa {kqHienTai - kqCanDat_Loai3} đồng chí" : $"Đang thiếu {kqCanDat_Loai3 - kqHienTai} đồng chí";
-                        case 5:
-                        case 6:
-                            if (kqHienTai == 0) return "";
-                            return $"Phát sinh {kqHienTai} đồng chí";
-                        default:
-                            return "";
-                    }
-                }
-
-                // Vòng lặp gọn gàng, xử lý TẤT CẢ trong 1 lượt
-                for (int i = 0; i < 6; i++)
-                {
-                    bool tinh = i < 4;
-                    int kqHienTaiSoSanh = (i == 2) ? loai2 : kqHienTaiArr[i];
-                    string kqGuiE29 = guiE29Arr[i];
-
-                    if (i == 4 || i == 5)
-                    {
-                        if (kqHienTaiArr[i] > 0 && tongQuanSo > 0)
-                        {
-                            double tyLe = (double)kqHienTaiArr[i] * 100 / tongQuanSo;
-                            kqGuiE29 = $"{kqHienTaiArr[i]:D2}/{duDieuKien} = {fmt(tyLe)}%";
-                        }
-                        else
-                        {
-                            kqGuiE29 = "";
-                        }
-                    }
-
-                    // 🟢 Gọi hàm update đã được Await
-                    await UpdateTyLeRowAsync(
-                        i + 1,
-                        kqHienTaiArr[i],
-                        kqGuiE29Arr[i],
-                        kqGuiE29,
-                        KetLuanRow(i + 1, kqHienTaiSoSanh, kqGuiE29Arr[i], tinh)
-                    );
-                }
-
-                // 🟢 TRUE ASYNC: Commit dữ liệu
-                await transaction.CommitAsync();
-
-                // --- Load lại DataGridView ---
-                DataTable dt = new DataTable();
-                using (var cmdLoadTyLe = new SqliteCommand("SELECT * FROM TyLe", connection))
-                using (var reader = await cmdLoadTyLe.ExecuteReaderAsync())
-                {
-                    dt.Load(reader);
-                }
-                kryptonDataGridView2.SuspendLayout();
-                kryptonDataGridView2.DataSource = dt;
-                // 1. GỌI HÀM CĂN CHỈNH FONT CELL CHỮ THƯỜNG (Gọi trước để làm nền)
-                AutoFitFont_DataGridView(kryptonDataGridView2);
-                // GIỐNG BẢNG CHUẨN
-                // ẨN CỘT ID
-                if (kryptonDataGridView2.Columns.Contains("ID"))
-                {
-                    kryptonDataGridView2.Columns["ID"].Visible = false;
-                }
-                // =========================================
-                kryptonDataGridView2.RowHeadersVisible = true;
-                kryptonDataGridView2.RowHeadersWidth = 60;
-                kryptonDataGridView2.AllowUserToAddRows = false;
-                kryptonDataGridView2.AllowUserToDeleteRows = false;
-                kryptonDataGridView2.ReadOnly = true;
-                kryptonDataGridView2.SelectionMode = DataGridViewSelectionMode.CellSelect;
-                kryptonDataGridView2.MultiSelect = false;
-                kryptonDataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-
-                void SetColumn(string colName, string headerText, float fillWeight)
-                {
-                    if (kryptonDataGridView2.Columns.Contains(colName))
-                    {
-                        var col = kryptonDataGridView2.Columns[colName];
-                        col.HeaderText = headerText;
-                        col.FillWeight = fillWeight;
-                        col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                        col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                    }
-                }
-
-                //SetColumn("ID", "STT", 5);
-
-                SetColumn("Thong tin", "Thông tin", 15);
-                SetColumn("KQ Hien tai", "KQ Hiện tại", 15);
-                SetColumn("KQ Can dat", "KQ Cần đạt", 17);
-                SetColumn("KQ Gui E29", $"KQ Gửi {kyHieuTrungDoan}", 17);
-                SetColumn("Ket luan", "Kết luận", 31);
-
-                // ==================== BẢO VỆ GDI+ VÀ LÀM ĐẬM HEADER ====================
-                // Lấy size Font hiện tại của lưới để tính toán
-                float baseSize = kryptonDataGridView2.Font.Size;
-                if (_cachedGridFont != null) baseSize = _cachedGridFont.Size;
-                kryptonDataGridView2.EnableHeadersVisualStyles = false;
-                // Tạo Font IN ĐẬM dành RIÊNG cho Tiêu đề cột (Header)
-                if (_cachedGrid2HeaderFont == null || Math.Abs(_cachedGrid2HeaderFont.Size - baseSize) > 0.1f)
-                {
-                    _cachedGrid2HeaderFont?.Dispose();
-                    // 🟢 TIÊU ĐỀ IN ĐẬM
-                    _cachedGrid2HeaderFont = new Font("Segoe UI", baseSize, FontStyle.Bold);
-                }
-                // Gán Font đậm vào Tiêu đề
-                kryptonDataGridView2.ColumnHeadersDefaultCellStyle.Font = _cachedGrid2HeaderFont;
-                foreach (DataGridViewColumn col in kryptonDataGridView2.Columns)
-                {
-                    col.SortMode = DataGridViewColumnSortMode.NotSortable;
-                }
-                kryptonDataGridView2.ResumeLayout();
-                kryptonDataGridView2.RowPostPaint -= KryptonDataGridView2_RowPostPaint;
-                kryptonDataGridView2.RowPostPaint += KryptonDataGridView2_RowPostPaint;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Bang2 ERROR: " + ex.Message);
-            }
-        }
         private void KryptonDataGridView1_CellClick_HienThiThongBao(object? sender, DataGridViewCellEventArgs e)
         {
-            // Bỏ qua nếu bấm vào Header, ra ngoài vùng dữ liệu, hoặc lưới chưa nạp đủ cột
             if (sender is not DataGridView dgv || e.RowIndex < 0 || e.ColumnIndex < 0) return;
             if (!dgv.Columns.Contains("DonVi")) return;
 
             string donViName = dgv.Rows[e.RowIndex].Cells["DonVi"].Value?.ToString() ?? string.Empty;
-
-            // Không hiển thị cho dòng "Tổng cộng" hoặc dòng trống
             if (string.IsNullOrWhiteSpace(donViName) || donViName.Equals("Tổng cộng", StringComparison.OrdinalIgnoreCase)) return;
 
             try
             {
-                // 1. Trích xuất số liệu của dòng vừa bấm
                 int tongQS = Convert.ToInt32(dgv.Rows[e.RowIndex].Cells["TongQS"].Value ?? 0);
                 int l1 = Convert.ToInt32(dgv.Rows[e.RowIndex].Cells["Loai_1"].Value ?? 0);
                 int l2 = Convert.ToInt32(dgv.Rows[e.RowIndex].Cells["Loai_2"].Value ?? 0);
@@ -1034,40 +714,33 @@ namespace PhanMemThiDua2026
                 int kqCanDat_L3 = 0;
                 int duDieuKien = tongQS - l4 - kpl;
 
-                // 2. Chạy lại thuật toán tính chuẩn
                 if (donViName.Equals("BCH", StringComparison.OrdinalIgnoreCase))
                 {
                     string deNghiTTe = com_DeNghi.Text.Trim().ToUpperInvariant();
                     if (string.IsNullOrWhiteSpace(deNghiTTe) || deNghiTTe.Contains("KHÔNG PL"))
                     {
                         MessageBox.Show($"Đơn vị: {donViName}\nTổng quân số: {tongQS}\n\nChưa có đề nghị phân loại tập thể nên không xét tỷ lệ.",
-                                        "Thông tin", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                             "Thông tin", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return;
                     }
 
                     int bchQS = _cachedTongBCH > 0 ? _cachedTongBCH : tongQS;
-                    if (deNghiTTe == "LOẠI 1") { kqCanDat_L1 = (int)Math.Round(bchQS * 0.75); kqCanDat_L2_Thuan = bchQS - kqCanDat_L1; kqCanDat_L3 = 0; }
-                    else if (deNghiTTe == "LOẠI 2") { kqCanDat_L1 = (int)Math.Round(bchQS * 0.50); kqCanDat_L2_Thuan = bchQS - kqCanDat_L1; kqCanDat_L3 = 0; }
-                    else if (deNghiTTe == "LOẠI 3" || deNghiTTe == "LOẠI 4") { kqCanDat_L1 = 0; kqCanDat_L2_Thuan = (int)Math.Round(bchQS * 0.50); kqCanDat_L3 = bchQS - kqCanDat_L2_Thuan; }
+
+                    if (deNghiTTe == "LOẠI 1") { kqCanDat_L1 = (int)Math.Floor(bchQS * 0.75); kqCanDat_L2_Thuan = bchQS - kqCanDat_L1; kqCanDat_L3 = 0; }
+                    else if (deNghiTTe == "LOẠI 2") { kqCanDat_L1 = (int)Math.Floor(bchQS * 0.50); kqCanDat_L2_Thuan = bchQS - kqCanDat_L1; kqCanDat_L3 = 0; }
+                    else if (deNghiTTe == "LOẠI 3" || deNghiTTe == "LOẠI 4") { kqCanDat_L1 = 0; kqCanDat_L2_Thuan = (int)Math.Floor(bchQS * 0.50); kqCanDat_L3 = bchQS - kqCanDat_L2_Thuan; }
                 }
                 else
                 {
                     if (duDieuKien < 0) duDieuKien = 0;
                     double rateL1 = phanTramLoai1 / 100.0;
                     double rateL2 = phanTramLoai2 / 100.0;
-                    double rateL3 = phanTramLoai3 / 100.0;
 
-                    int kqCanDat_L2_Tong = (int)Math.Round(duDieuKien * rateL2);
-                    kqCanDat_L3 = (int)Math.Round(duDieuKien * rateL3);
+                    int kqCanDat_L2_Tong = (int)Math.Floor(duDieuKien * rateL2);
+                    kqCanDat_L3 = duDieuKien - kqCanDat_L2_Tong;
 
-                    kqCanDat_L1 = (int)Math.Round(kqCanDat_L2_Tong * rateL1);
+                    kqCanDat_L1 = (int)Math.Floor(kqCanDat_L2_Tong * rateL1);
                     if (kqCanDat_L1 > kqCanDat_L2_Tong) kqCanDat_L1 = kqCanDat_L2_Tong;
-
-                    if (kqCanDat_L2_Tong + kqCanDat_L3 > duDieuKien)
-                    {
-                        kqCanDat_L3 = duDieuKien - kqCanDat_L2_Tong;
-                        if (kqCanDat_L3 < 0) kqCanDat_L3 = 0;
-                    }
 
                     kqCanDat_L2_Thuan = kqCanDat_L2_Tong - kqCanDat_L1;
                 }
@@ -1077,7 +750,6 @@ namespace PhanMemThiDua2026
                 bool isLoai3HopLe = l3 >= kqCanDat_L3;
                 bool isDonViDatChuan = isLoai1HopLe && isLoai2HopLe && isLoai3HopLe;
 
-                // 3. Xây dựng giao diện thông báo
                 var sb = new System.Text.StringBuilder();
                 sb.AppendLine($"Đơn vị: {donViName.ToUpper()}");
                 sb.AppendLine(new string('-', 40));
@@ -1103,9 +775,6 @@ namespace PhanMemThiDua2026
 
                 sb.AppendLine($" Kết luận: {(isDonViDatChuan ? "Đạt tỷ lệ quy định" : "Chưa đạt tỷ lệ quy định")}");
 
-                // ==========================================
-                // 💡 THÊM HƯỚNG DẪN THỪA/THIẾU NHƯ BẠN YÊU CẦU
-                // ==========================================
                 if (!isDonViDatChuan || l1 != kqCanDat_L1 || l2 != kqCanDat_L2_Thuan || l3 != kqCanDat_L3 || l4 > 0 || kpl > 0)
                 {
                     sb.AppendLine();
@@ -1124,7 +793,6 @@ namespace PhanMemThiDua2026
                         sb.AppendLine($"  - Chú ý: Đang có {kpl} đồng chí Không phân loại.");
                 }
 
-                // 4. Hiển thị Popup (Tự đổi icon theo trạng thái)
                 MessageBox.Show(
                     sb.ToString(),
                     "Phân tích chỉ tiêu thi đua",
@@ -1137,6 +805,209 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Lỗi hiển thị thông báo Click Bảng 1: " + ex.Message);
             }
         }
+        private async Task Bang2_Async()
+        {
+            if (!_allowLoadBang2)
+            {
+                _allowLoadBang2 = true;
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path))
+                return;
+            string csdl2Path = _csdl2Path;
+
+            try
+            {
+                using var connection = new SqliteConnection($"Data Source={csdl2Path}");
+                await connection.OpenAsync();
+                string kyHieuTrungDoan = "E29";
+
+                try
+                {
+                    using var cmdKyHieu = new SqliteCommand("SELECT KyHieu_TrungDoan FROM KyHieu_DonVi WHERE ID = 1 LIMIT 1", connection);
+                    var result = await cmdKyHieu.ExecuteScalarAsync();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        string giaiMa = GiaiMaAnToan(result.ToString());
+                        if (!string.IsNullOrWhiteSpace(giaiMa))
+                            kyHieuTrungDoan = giaiMa.Trim();
+                    }
+                }
+                catch (Exception ex) { Debug.WriteLine("Lỗi đọc KyHieu: " + ex.Message); }
+
+                DataTable dtQS = new DataTable();
+                using (var cmd = new SqliteCommand("SELECT * FROM QuanSoThiDuaD2 ORDER BY ID", connection))
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    dtQS.Load(reader);
+                }
+
+                if (dtQS.Rows.Count == 0)
+                {
+                    kryptonDataGridView2.DataSource = null;
+                    _allowLoadBang2 = false;
+                    return;
+                }
+
+                _allowLoadBang2 = true;
+                DataRow totalRow = dtQS.AsEnumerable().FirstOrDefault(r => r["DonVi"]?.ToString() == "Tổng cộng") ?? dtQS.Rows[dtQS.Rows.Count - 1];
+
+                double loai1Rate = phanTramLoai1 <= 0 ? 0 : phanTramLoai1;
+                double loai2Rate = phanTramLoai2 <= 0 ? 0 : phanTramLoai2;
+
+                int tongQuanSo = Convert.ToInt32(totalRow["TongQS"]);
+                int loai1 = Convert.ToInt32(totalRow["Loai_1"]);
+                int loai2 = Convert.ToInt32(totalRow["Loai_2"]);
+                int loai3 = Convert.ToInt32(totalRow["Loai_3"]);
+                int loai4 = Convert.ToInt32(totalRow["Loai_4"]);
+                int khongPL = Convert.ToInt32(totalRow["Khong_PL"]);
+
+                int duDieuKien = tongQuanSo - loai4 - khongPL;
+                if (duDieuKien < 0) duDieuKien = 0;
+
+                int kqCanDat_L2_Tong = (int)Math.Floor(duDieuKien * loai2Rate / 100.0);
+                int kqCanDat_L3 = duDieuKien - kqCanDat_L2_Tong;
+                int kqCanDat_L1 = (int)Math.Floor(kqCanDat_L2_Tong * loai1Rate / 100.0);
+
+                using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync();
+                using var cmdUpdate = connection.CreateCommand();
+                cmdUpdate.Transaction = transaction;
+
+                async Task UpdateTyLeRowAsync(int id, int kqHienTai, int kqCanDat, string kqGuiE29, string ketLuan)
+                {
+                    cmdUpdate.Parameters.Clear();
+                    cmdUpdate.CommandText = @"UPDATE TyLe SET ""KQ Hien tai""=@kqHienTai, ""KQ Can dat""=@kqCanDat, ""KQ Gui E29""=@kqGuiE29, ""Ket luan""=@ketLuan WHERE ID=@id;";
+                    cmdUpdate.Parameters.AddWithValue("@kqHienTai", kqHienTai);
+                    cmdUpdate.Parameters.AddWithValue("@kqCanDat", kqCanDat);
+                    cmdUpdate.Parameters.AddWithValue("@kqGuiE29", kqGuiE29);
+                    cmdUpdate.Parameters.AddWithValue("@ketLuan", ketLuan);
+                    cmdUpdate.Parameters.AddWithValue("@id", id);
+                    await cmdUpdate.ExecuteNonQueryAsync();
+                }
+
+                string fmt(double v) => v.ToString("0.00");
+                string guiE29_Tong = $"{tongQuanSo}";
+                string guiE29_Loai1 = kqCanDat_L2_Tong > 0 ? $"{kqCanDat_L1}/{kqCanDat_L2_Tong} = {fmt(kqCanDat_L1 * 100.0 / kqCanDat_L2_Tong)}%" : "";
+                string guiE29_Loai2 = duDieuKien > 0 ? $"{kqCanDat_L2_Tong}/{duDieuKien} = {fmt(kqCanDat_L2_Tong * 100.0 / duDieuKien)}%" : "";
+                string guiE29_Loai3 = duDieuKien > 0 ? $"{kqCanDat_L3}/{duDieuKien} = {fmt(kqCanDat_L3 * 100.0 / duDieuKien)}%" : "";
+
+                int[] kqHienTaiArr = { tongQuanSo, loai1, loai2, loai3, loai4, khongPL };
+                int[] kqGuiE29Arr = { tongQuanSo, kqCanDat_L1, kqCanDat_L2_Tong, kqCanDat_L3, 0, 0 };
+                string[] guiE29Arr = { guiE29_Tong, guiE29_Loai1, guiE29_Loai2, guiE29_Loai3, "", "" };
+
+                string KetLuanRow(int id, int kqHienTai, int kqCanDat, bool tinh)
+                {
+                    if (!tinh && (id < 5 || id > 6)) return "";
+
+                    switch (id)
+                    {
+                        case 1:
+                            bool loai1Ok = loai1 >= kqCanDat_L1;
+                            bool loai2Ok = loai2 >= (kqCanDat_L2_Tong - kqCanDat_L1);
+                            bool loai3Ok = loai3 >= kqCanDat_L3;
+                            return (loai1Ok && loai2Ok && loai3Ok) ? "Đạt tỷ lệ quy định" : "Chưa đạt tỷ lệ quy định";
+                        case 2:
+                            if (kqHienTai == kqCanDat_L1) return "";
+                            return kqHienTai > kqCanDat_L1 ? $"Đang thừa {kqHienTai - kqCanDat_L1} đồng chí" : $"Đang thiếu {kqCanDat_L1 - kqHienTai} đồng chí";
+                        case 3:
+                            int kqCanDatLoai2Thuan = kqCanDat_L2_Tong - kqCanDat_L1;
+                            if (kqHienTai == kqCanDatLoai2Thuan) return "";
+                            return kqHienTai > kqCanDatLoai2Thuan ? $"Đang thừa {kqHienTai - kqCanDatLoai2Thuan} đồng chí" : $"Đang thiếu {kqCanDatLoai2Thuan - kqHienTai} đồng chí";
+                        case 4:
+                            if (kqHienTai == kqCanDat_L3) return "";
+                            return kqHienTai > kqCanDat_L3 ? $"Đang thừa {kqHienTai - kqCanDat_L3} đồng chí" : $"Đang thiếu {kqCanDat_L3 - kqHienTai} đồng chí";
+                        case 5:
+                        case 6:
+                            if (kqHienTai == 0) return "";
+                            return $"Phát sinh {kqHienTai} đồng chí";
+                        default:
+                            return "";
+                    }
+                }
+
+                for (int i = 0; i < 6; i++)
+                {
+                    bool tinh = i < 4;
+                    int kqHienTaiSoSanh = (i == 2) ? loai2 : kqHienTaiArr[i];
+                    string kqGuiE29 = guiE29Arr[i];
+
+                    if (i == 4 || i == 5)
+                    {
+                        if (kqHienTaiArr[i] > 0 && tongQuanSo > 0)
+                        {
+                            kqGuiE29 = $"{kqHienTaiArr[i]:D2}/{duDieuKien} = {fmt((double)kqHienTaiArr[i] * 100 / tongQuanSo)}%";
+                        }
+                        else kqGuiE29 = "";
+                    }
+
+                    await UpdateTyLeRowAsync(i + 1, kqHienTaiArr[i], kqGuiE29Arr[i], kqGuiE29, KetLuanRow(i + 1, kqHienTaiSoSanh, kqGuiE29Arr[i], tinh));
+                }
+
+                await transaction.CommitAsync();
+
+                DataTable dt = new DataTable();
+                using (var cmdLoadTyLe = new SqliteCommand("SELECT * FROM TyLe", connection))
+                using (var reader = await cmdLoadTyLe.ExecuteReaderAsync())
+                {
+                    dt.Load(reader);
+                }
+                kryptonDataGridView2.SuspendLayout();
+                kryptonDataGridView2.DataSource = dt;
+                AutoFitFont_DataGridView(kryptonDataGridView2);
+
+                if (kryptonDataGridView2.Columns.Contains("ID")) kryptonDataGridView2.Columns["ID"].Visible = false;
+
+                kryptonDataGridView2.RowHeadersVisible = true;
+                kryptonDataGridView2.RowHeadersWidth = 60;
+                kryptonDataGridView2.AllowUserToAddRows = false;
+                kryptonDataGridView2.AllowUserToDeleteRows = false;
+                kryptonDataGridView2.ReadOnly = true;
+                kryptonDataGridView2.SelectionMode = DataGridViewSelectionMode.CellSelect;
+                kryptonDataGridView2.MultiSelect = false;
+                kryptonDataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+                void SetColumn(string colName, string headerText, float fillWeight)
+                {
+                    if (kryptonDataGridView2.Columns.Contains(colName))
+                    {
+                        var col = kryptonDataGridView2.Columns[colName];
+                        col.HeaderText = headerText;
+                        col.FillWeight = fillWeight;
+                        col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                        col.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    }
+                }
+
+                SetColumn("Thong tin", "Thông tin", 15);
+                SetColumn("KQ Hien tai", "KQ Hiện tại", 15);
+                SetColumn("KQ Can dat", "KQ Cần đạt", 17);
+                SetColumn("KQ Gui E29", $"KQ Gửi {kyHieuTrungDoan}", 17);
+                SetColumn("Ket luan", "Kết luận", 31);
+
+                float baseSize = kryptonDataGridView2.Font.Size;
+                if (_cachedGridFont != null) baseSize = _cachedGridFont.Size;
+                kryptonDataGridView2.EnableHeadersVisualStyles = false;
+                if (_cachedGrid2HeaderFont == null || Math.Abs(_cachedGrid2HeaderFont.Size - baseSize) > 0.1f)
+                {
+                    _cachedGrid2HeaderFont?.Dispose();
+                    _cachedGrid2HeaderFont = new Font("Segoe UI", baseSize, FontStyle.Bold);
+                }
+                kryptonDataGridView2.ColumnHeadersDefaultCellStyle.Font = _cachedGrid2HeaderFont;
+                foreach (DataGridViewColumn col in kryptonDataGridView2.Columns) col.SortMode = DataGridViewColumnSortMode.NotSortable;
+                kryptonDataGridView2.ResumeLayout();
+                kryptonDataGridView2.RowPostPaint -= KryptonDataGridView2_RowPostPaint;
+                kryptonDataGridView2.RowPostPaint += KryptonDataGridView2_RowPostPaint;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Bang2 ERROR: " + ex.Message);
+            }
+        }
+
+        ///        . Nguyên lý Khống chế trần tuyệt đối(Chống vượt % dưới mọi hình thức)Giả sử tổng quân số đủ điều kiện là $N$ (biến số động) và tỷ lệ Loại 2 lấy từ CSDL là $R$ (ví dụ: $79\% = 0.79$).Số lượng Loại 2 tối đa theo thuật toán của chúng ta là:$$Max = \lfloor N \times R \rfloor$$(Hàm Math.Floor chính là phép toán lấy phần nguyên lớn nhất không vượt quá giá trị thực).Bây giờ ta test ngược lại tỷ lệ phần trăm thực tế đạt được:$$\% \text{ Thực tế } = \frac{\lfloor N \times R \rfloor }{N
+        ///    }$$Theo tính chất toán học, $\lfloor X \rfloor \le X$. Do đó:$$\frac{\lfloor N \times R \rfloor }{N
+        ///} \le \frac{N \times R}{ N} = R$$👉 Kết luận 1: Tỷ lệ phần trăm tính ra luôn luôn nhỏ hơn hoặc bằng tỷ lệ quy định $R$, bất chấp quân số $N$ là số chẵn hay số lẻ. Quy định "tối đa chỉ bằng hoặc thấp hơn mức % quy định" được thỏa mãn tuyệt đối.Ví dụ Test Edge Case (Trường hợp dị biệt): Đơn vị siêu nhỏ có $N = 6$ người. Tỷ lệ quy định $R = 79\%$.Máy tính: $6 \times 0.79 = 4.74$.Thuật toán Math.Floor(4.74): Lấy $4$ người.Test tỷ lệ nộp báo cáo: $4 / 6 = 66.67\% \le 79\%$. (Hợp lệ hoàn toàn, nếu lấy 5 người sẽ ra $83.33\% \rightarrow$ vi phạm quy định).2. Nguyên lý Bảo toàn quân số (Không bao giờ rớt mất người)Trong quân đội hay công an, quân số báo cáo tổng phải khớp đến từng người. Quá trình làm tròn xuống (cho Loại 1 và Loại 2) chắc chắn sẽ sinh ra những "mảnh vỡ" số thập phân (như số $0.74$ ở ví dụ trên bị vứt bỏ). Nếu không cẩn thận, cộng lại sẽ bị mất tích người.Thuật toán của chúng ta xử lý thế này:Quỹ Loại 2 (gồm L1 + L2 thuần) = Math.Floor(N * 79%).Quỹ Loại 3 = N - Quỹ Loại 2.Bởi vì: $\text{Quỹ Loại 2} + \text{Quỹ Loại 3} = \text{Quỹ Loại 2} +(N - \text{Quỹ Loại 2}) = N$.👉 Kết luận 2: Tổng số người đánh giá luôn luôn khớp đúng $100\%$ với số $N$ đầu vào. Bất kể Math.Floor đã chém bỏ bao nhiêu phần thập phân của Loại 2, phần bị chém đó đều tự động biến thành $1$ con người hoàn chỉnh đẩy sang Loại 3. Không có ai bị bỏ sót.3. Giải đáp thắc mắc: Tại sao báo lỗi "Loại 3 đang thiếu" là hợp lý 100%?Bây giờ ta quay lại kịch bản báo cáo bị lỗi của đơn vị.Giả sử hệ thống đang cảnh báo:Loại 1: Thừa 1 đồng chí (Do xét quá tay 1 người).Loại 2: Vừa đủ số lượng.Loại 3: Thiếu 1 đồng chí.Anh băn khoăn rằng: "Ông Loại 1 đang bị dư, giáng cấp ông đó xuống thì ông đó phải vào Loại 2 chứ? Sao lại nhảy xuống Loại 3 để lấp vào chỗ thiếu?"Câu trả lời nằm ở định nghĩa Trần Quỹ Loại 2.Quy định nêu rõ: "Loại 1 được lấy trong tổng số Loại 2".Nghĩa là Loại 1 và Loại 2 đang dùng chung một cái rổ.Cái rổ này có sức chứa tối đa bị khóa cứng bởi lệnh Math.Floor(N * 79%).Nếu đơn vị đã chấm Loại 2 thuần "đầy mép" cái rổ rồi, thì 1 ông Loại 1 dư thừa kia khi giáng cấp xuống sẽ không thể chui vào cái rổ Loại 2 được nữa (vì nếu chui vào, cái rổ phình to ra, chia % sẽ bị vượt mốc $79\%$).Người này trượt khỏi cái rổ L1+L2, lực hấp dẫn tự động kéo thẳng ông ấy xuống cái rổ Loại 3.
+
         private void KryptonDataGridView2_RowPostPaint(
             object? sender,
             DataGridViewRowPostPaintEventArgs e)
@@ -1824,37 +1695,6 @@ namespace PhanMemThiDua2026
             // --- 3️⃣ Bật AutoSizeColumnsMode.Fill để full khung ---
             dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
-        private void LoadComboBoxLoaiXuat_CheckBox()
-        {
-            string csdlPath = _csdl2Path;
-            if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath)) return;
-
-            try
-            {
-                using var conn = new SqliteConnection($"Data Source={csdlPath}");
-                conn.Open();
-
-                using var cmd = new SqliteCommand("SELECT ChonDanhSachXuat, Chex_MoiThuMucXuat FROM ThongTin WHERE ID = 1", conn);
-                using var reader = cmd.ExecuteReader();
-                if (reader.Read())
-                {
-                    // ComboBox
-                    string chonXuat = reader["ChonDanhSachXuat"]?.ToString();
-                    comboBox1_ChonLoaiDeXuat.Text = string.IsNullOrWhiteSpace(chonXuat)
-                        ? ""
-                        : BaoMatAES.GiaiMa(chonXuat);
-
-                    // CheckBox
-                    string chex = reader["Chex_MoiThuMucXuat"]?.ToString();
-                    chex = string.IsNullOrWhiteSpace(chex) ? "FALSE" : BaoMatAES.GiaiMa(chex).ToUpper();
-                    Check_MoThuMuc.Checked = chex == "TRUE";
-                }
-            }
-            catch (Exception ex)
-            {
-                Module_ThongBao.Loi("Lỗi load dữ liệu lựa chọn xuất / mở thư mục: " + ex.Message);
-            }
-        }
         private void ComboBox_ChiHuyD_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboBox_ChiHuyD.SelectedItem == null)
@@ -2223,61 +2063,62 @@ WHERE ID = 1", conn);
             public string Text { get; set; }
             public override string ToString() => Text;
         }
+       //Biểu đồ tròn
         private void tabPage2_Click(object? sender, EventArgs e)
         {
             piePanel?.Invalidate();
         }
-        private async void KhoiTaoPieChart() // Đổi thành async
-        {
-            if (piePanel != null) return;
-            piePanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
-            piePanel.Paint += PiePanel_Paint;
-            pieChart.Controls.Clear();
-            pieChart.Controls.Add(piePanel);
+        //private async void KhoiTaoPieChart() // Đổi thành async
+        //{
+        //    if (piePanel != null) return;
+        //    piePanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
+        //    piePanel.Paint += PiePanel_Paint;
+        //    pieChart.Controls.Clear();
+        //    pieChart.Controls.Add(piePanel);
 
-            string csdl2Path = _csdl2Path;
-            if (string.IsNullOrWhiteSpace(csdl2Path)) return;
+        //    string csdl2Path = _csdl2Path;
+        //    if (string.IsNullOrWhiteSpace(csdl2Path)) return;
 
-            // 🔥 Đẩy việc đọc ổ cứng và Giải mã AES xuống luồng nền
-            pieData = await Task.Run(() =>
-            {
-                int l1 = 0, l2 = 0, l3 = 0, l4 = 0, kpl = 0;
-                try
-                {
-                    using (var conn = new SqliteConnection($"Data Source={csdl2Path}"))
-                    {
-                        conn.Open();
-                        using (var cmd = new SqliteCommand("SELECT PhanLoai FROM DanhSach", conn))
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                // Việc này ngốn CPU, may mắn là nó đang chạy ở luồng nền!
-                                string phanLoai = SafeDecrypt(reader["PhanLoai"]);
-                                switch (phanLoai)
-                                {
-                                    case "Loại 1": l1++; break;
-                                    case "Loại 2": l2++; break;
-                                    case "Loại 3": l3++; break;
-                                    case "Loại 4": l4++; break;
-                                    case "Không PL": kpl++; break;
-                                }
-                            }
-                        }
-                    }
-                }
-                catch { /* Bỏ qua lỗi đọc */ }
+        //    // 🔥 Đẩy việc đọc ổ cứng và Giải mã AES xuống luồng nền
+        //    pieData = await Task.Run(() =>
+        //    {
+        //        int l1 = 0, l2 = 0, l3 = 0, l4 = 0, kpl = 0;
+        //        try
+        //        {
+        //            using (var conn = new SqliteConnection($"Data Source={csdl2Path}"))
+        //            {
+        //                conn.Open();
+        //                using (var cmd = new SqliteCommand("SELECT PhanLoai FROM DanhSach", conn))
+        //                using (var reader = cmd.ExecuteReader())
+        //                {
+        //                    while (reader.Read())
+        //                    {
+        //                        // Việc này ngốn CPU, may mắn là nó đang chạy ở luồng nền!
+        //                        string phanLoai = SafeDecrypt(reader["PhanLoai"]);
+        //                        switch (phanLoai)
+        //                        {
+        //                            case "Loại 1": l1++; break;
+        //                            case "Loại 2": l2++; break;
+        //                            case "Loại 3": l3++; break;
+        //                            case "Loại 4": l4++; break;
+        //                            case "Không PL": kpl++; break;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        catch { /* Bỏ qua lỗi đọc */ }
 
-                return new Dictionary<string, int>
-        {
-            { "Loại 1", l1 }, { "Loại 2", l2 }, { "Loại 3", l3 },
-            { "Loại 4", l4 }, { "Không PL", kpl }
-        };
-            });
+        //        return new Dictionary<string, int>
+        //{
+        //    { "Loại 1", l1 }, { "Loại 2", l2 }, { "Loại 3", l3 },
+        //    { "Loại 4", l4 }, { "Không PL", kpl }
+        //};
+        //    });
 
-            // Sau khi Task.Run xong, nó tự quay về UI thread để vẽ
-            piePanel.Invalidate();
-        }
+        //    // Sau khi Task.Run xong, nó tự quay về UI thread để vẽ
+        //    piePanel.Invalidate();
+        //}
         private void PiePanel_Paint(object? sender, PaintEventArgs e)
         {
             if (piePanel == null || pieData == null || pieData.Count == 0) return;
@@ -2359,7 +2200,79 @@ WHERE ID = 1", conn);
 
                 startAngle += sweepAngle;
             }
-        }  
+        }
+        public async Task RefreshPieChartAsync()
+        {
+            string csdl2Path = _csdl2Path;
+            if (string.IsNullOrWhiteSpace(csdl2Path))
+                return;
+
+            pieData = await Task.Run(() =>
+            {
+                int l1 = 0, l2 = 0, l3 = 0, l4 = 0, kpl = 0;
+
+                try
+                {
+                    using (var conn = new SqliteConnection($"Data Source={csdl2Path}"))
+                    {
+                        conn.Open();
+
+                        using (var cmd = new SqliteCommand("SELECT PhanLoai FROM DanhSach", conn))
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string phanLoai = SafeDecrypt(reader["PhanLoai"]);
+
+                                switch (phanLoai)
+                                {
+                                    case "Loại 1": l1++; break;
+                                    case "Loại 2": l2++; break;
+                                    case "Loại 3": l3++; break;
+                                    case "Loại 4": l4++; break;
+                                    case "Không PL": kpl++; break;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                }
+
+                return new Dictionary<string, int>
+        {
+            { "Loại 1", l1 },
+            { "Loại 2", l2 },
+            { "Loại 3", l3 },
+            { "Loại 4", l4 },
+            { "Không PL", kpl }
+        };
+            });
+
+            if (piePanel != null && !piePanel.IsDisposed)
+                piePanel.Invalidate();
+        }
+        private async void KhoiTaoPieChart()
+        {
+            if (piePanel == null)
+            {
+                piePanel = new Panel
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = Color.White
+                };
+
+                piePanel.Paint += PiePanel_Paint;
+
+                pieChart.Controls.Clear();
+                pieChart.Controls.Add(piePanel);
+            }
+
+            await RefreshPieChartAsync();
+        }
+  
+        //Thuật toán khác
         private string _textGocNutMayTinh = null;
         private Image _anhGocNutMayTinh = null;
         private void kryptonButton_MayTinh_Click(object sender, EventArgs e)
