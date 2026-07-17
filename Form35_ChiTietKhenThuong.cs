@@ -20,9 +20,7 @@ namespace PhanMemThiDua2026
         private void Form37_ChiTietKhenThuong_Load(object sender, EventArgs e)
         {
         }
-        // ======================================================================
         // HÀM BẢO VỆ GIAO DIỆN (LỘT VỎ MÃ HÓA AN TOÀN)
-        // ======================================================================
         private string SafeDecrypt(object value)
         {
             if (value == null || value == DBNull.Value) return "";
@@ -590,7 +588,5 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine("Lỗi đồng bộ: " + ex.Message);
             }
         }
-
- 
     }
 }
