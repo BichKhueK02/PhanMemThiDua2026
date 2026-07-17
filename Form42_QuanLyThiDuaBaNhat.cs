@@ -29,6 +29,16 @@ namespace PhanMemThiDua2026
                     : "DanhSach_SoVangBaNhat";
             }
         }
+        private string TenBangDanhSachBaNhat
+        {
+            get
+            {
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                    ? "DanhSachBaNhat_TanBinh"
+                    : "DanhSachBaNhat";
+            }
+        }
         public Form42_QuanLyThiDuaBaNhat()
         {
             InitializeComponent();
@@ -269,6 +279,9 @@ namespace PhanMemThiDua2026
                 using (var cmdSelect = conn.CreateCommand())
                 {
                     cmdSelect.CommandText = "SELECT STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu FROM DanhSach";
+                   
+                    
+                    
                     using var reader = await cmdSelect.ExecuteReaderAsync();
 
                     while (await reader.ReadAsync())
@@ -308,7 +321,8 @@ namespace PhanMemThiDua2026
                 {
                     using var cmdCheck = conn.CreateCommand();
                     cmdCheck.Transaction = transaction;
-                    cmdCheck.CommandText = "SELECT EXISTS(SELECT 1 FROM DanhSachBaNhat WHERE SoHieu = @soHieu)";
+                    //cmdCheck.CommandText = "SELECT EXISTS(SELECT 1 FROM DanhSachBaNhat WHERE SoHieu = @soHieu)";
+                    cmdCheck.CommandText = $"SELECT EXISTS(SELECT 1 FROM [{TenBangDanhSachBaNhat}] WHERE SoHieu = @soHieu)";
                     cmdCheck.Parameters.AddWithValue("@soHieu", row["SoHieu"]);
 
                     bool daTonTai = Convert.ToInt64(await cmdCheck.ExecuteScalarAsync()) > 0;
@@ -318,12 +332,15 @@ namespace PhanMemThiDua2026
                         // KỊCH BẢN 1: Chưa tồn tại -> THÊM MỚI NGƯỜI NÀY (Đề nghị & Thành tích để trống)
                         using var cmdInsert = conn.CreateCommand();
                         cmdInsert.Transaction = transaction;
-                        cmdInsert.CommandText = @"
-                    INSERT INTO DanhSachBaNhat 
-                    (STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich) 
-                    VALUES 
-                    (@stt, @hoVaTen, @soHieu, @namSinh, @queQuan, @ngayVaoCAND, @capBac, @chucVu, @donVi, @phanLoai, @ghiChu, @deNghi, @thanhTich)";
-
+                        //    cmdInsert.CommandText = @"
+                        //INSERT INTO DanhSachBaNhat 
+                        //(STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich) 
+                        //VALUES 
+                        //(@stt, @hoVaTen, @soHieu, @namSinh, @queQuan, @ngayVaoCAND, @capBac, @chucVu, @donVi, @phanLoai, @ghiChu, @deNghi, @thanhTich)";
+                        cmdInsert.CommandText = $@"INSERT INTO [{TenBangDanhSachBaNhat}]
+(STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich)
+VALUES
+(@stt, @hoVaTen, @soHieu, @namSinh, @queQuan, @ngayVaoCAND, @capBac, @chucVu, @donVi, @phanLoai, @ghiChu, @deNghi, @thanhTich)";
                         cmdInsert.Parameters.AddWithValue("@stt", row["STT"]);
                         cmdInsert.Parameters.AddWithValue("@hoVaTen", row["HoVaTen"]);
                         cmdInsert.Parameters.AddWithValue("@soHieu", row["SoHieu"]);
@@ -345,19 +362,29 @@ namespace PhanMemThiDua2026
                         // KỊCH BẢN 2: Đã tồn tại -> CHỈ CẬP NHẬT HÀNH CHÍNH (KHÔNG UPDATE CỘT DE NGHI, THANH TICH)
                         using var cmdUpdate = conn.CreateCommand();
                         cmdUpdate.Transaction = transaction;
-                        cmdUpdate.CommandText = @"
-                    UPDATE DanhSachBaNhat SET 
-                    HoVaTen = @hoVaTen, 
-                    NamSinh = @namSinh, 
-                    QueQuan = @queQuan, 
-                    NgayVaoCAND = @ngayVaoCAND, 
-                    CapBac = @capBac, 
-                    ChucVu = @chucVu, 
-                    DonVi = @donVi, 
-                    PhanLoai = @phanLoai, 
-                    GhiChu = @ghiChu
-                    WHERE SoHieu = @soHieu"; // Khóa SoHieu chỉ dùng để tìm kiếm, không gán lại
-
+                        //    cmdUpdate.CommandText = @"
+                        //UPDATE DanhSachBaNhat SET 
+                        //HoVaTen = @hoVaTen, 
+                        //NamSinh = @namSinh, 
+                        //QueQuan = @queQuan, 
+                        //NgayVaoCAND = @ngayVaoCAND, 
+                        //CapBac = @capBac, 
+                        //ChucVu = @chucVu, 
+                        //DonVi = @donVi, 
+                        //PhanLoai = @phanLoai, 
+                        //GhiChu = @ghiChu
+                        //WHERE SoHieu = @soHieu"; // Khóa SoHieu chỉ dùng để tìm kiếm, không gán lại
+                        cmdUpdate.CommandText = $@"UPDATE [{TenBangDanhSachBaNhat}] SET
+HoVaTen = @hoVaTen,
+NamSinh = @namSinh,
+QueQuan = @queQuan,
+NgayVaoCAND = @ngayVaoCAND,
+CapBac = @capBac,
+ChucVu = @chucVu,
+DonVi = @donVi,
+PhanLoai = @phanLoai,
+GhiChu = @ghiChu
+WHERE SoHieu = @soHieu";
                         cmdUpdate.Parameters.AddWithValue("@hoVaTen", row["HoVaTen"]);
                         cmdUpdate.Parameters.AddWithValue("@soHieu", row["SoHieu"]);
                         cmdUpdate.Parameters.AddWithValue("@namSinh", row["NamSinh"]);
@@ -377,7 +404,8 @@ namespace PhanMemThiDua2026
                 using (var cmdSelectBaNhat = conn.CreateCommand())
                 {
                     cmdSelectBaNhat.Transaction = transaction;
-                    cmdSelectBaNhat.CommandText = "SELECT SoHieu FROM DanhSachBaNhat";
+                    //cmdSelectBaNhat.CommandText = "SELECT SoHieu FROM DanhSachBaNhat";
+                    cmdSelectBaNhat.CommandText = $"SELECT SoHieu FROM [{TenBangDanhSachBaNhat}]";
                     using var readerBaNhat = await cmdSelectBaNhat.ExecuteReaderAsync();
                     var soHieuCanXoa = new List<string>();
 
@@ -398,7 +426,8 @@ namespace PhanMemThiDua2026
                     {
                         using var cmdDelete = conn.CreateCommand();
                         cmdDelete.Transaction = transaction;
-                        cmdDelete.CommandText = "DELETE FROM DanhSachBaNhat WHERE SoHieu = @soHieu";
+                        //cmdDelete.CommandText = "DELETE FROM DanhSachBaNhat WHERE SoHieu = @soHieu";
+                        cmdDelete.CommandText = $"DELETE FROM [{TenBangDanhSachBaNhat}] WHERE SoHieu = @soHieu";
                         cmdDelete.Parameters.AddWithValue("@soHieu", shXoa);
                         await cmdDelete.ExecuteNonQueryAsync();
                     }
@@ -429,29 +458,9 @@ namespace PhanMemThiDua2026
                     await conn.OpenAsync();
 
                     await using var cmd = conn.CreateCommand();
-
-                    cmd.CommandText = @"
-SELECT
-    ID,
-    STT,
-    HoVaTen,
-    SoHieu,
-    NamSinh,
-    QueQuan,
-    NgayVaoCAND,
-    CapBac,
-    ChucVu,
-    DonVi,
-    PhanLoai,
-    GhiChu,
-    DeNghi,
-    ThanhTich
-FROM DanhSachBaNhat
-ORDER BY STT;";
-
+                    cmd.CommandText = $"SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich FROM [{TenBangDanhSachBaNhat}] ORDER BY STT ASC;";
                     await using var reader =
-                        await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
-
+                    await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
                     dtBaNhat.Columns.Add("ID", typeof(int));
                     dtBaNhat.Columns.Add("STT", typeof(int));
                     dtBaNhat.Columns.Add("HoVaTen", typeof(string));
@@ -528,7 +537,7 @@ ORDER BY STT;";
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(
-                    $"Lỗi nạp DanhSachBaNhat: {ex}");
+                    $"Lỗi nạp [{TenBangDanhSachBaNhat}]: {ex}");
             }
         }
         // Thêm hàm hỗ trợ này nếu bạn chưa có, nó giúp code ở vòng lặp while gọn hơn rất nhiều
@@ -1029,13 +1038,18 @@ ORDER BY STT;";
                 await conn.OpenAsync();
 
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"
-            UPDATE DanhSachBaNhat 
-            SET 
-                DeNghi = @DeNghi, 
-                ThanhTich = @ThanhTich 
-            WHERE ID = @ID;";
-
+                //    cmd.CommandText = @"
+                //UPDATE DanhSachBaNhat 
+                //SET 
+                //    DeNghi = @DeNghi, 
+                //    ThanhTich = @ThanhTich 
+                //WHERE ID = @ID;";
+                cmd.CommandText = $@"
+    UPDATE [{TenBangDanhSachBaNhat}]
+    SET
+        DeNghi = @DeNghi,
+        ThanhTich = @ThanhTich
+    WHERE ID = @ID;";
                 cmd.Parameters.AddWithValue("@DeNghi", deNghiEnc);
                 cmd.Parameters.AddWithValue("@ThanhTich", thanhTichEnc);
                 cmd.Parameters.AddWithValue("@ID", idBaNhat);
@@ -1332,11 +1346,13 @@ ORDER BY STT;";
                 await conn.OpenAsync();
                 using var cmd = conn.CreateCommand();
                 // Xóa toàn bộ các dòng trong bảng
-                cmd.CommandText = "DELETE FROM DanhSachBaNhat;";
+                //cmd.CommandText = "DELETE FROM DanhSachBaNhat;";
+                cmd.CommandText = $"DELETE FROM [{TenBangDanhSachBaNhat}];";
                 await cmd.ExecuteNonQueryAsync();
                 // Reset lại bộ đếm ID (AUTOINCREMENT) về 0
                 // Dùng DELETE an toàn và chuẩn xác hơn UPDATE theo đúng logic mẫu của bạn
-                cmd.CommandText = "DELETE FROM sqlite_sequence WHERE name='DanhSachBaNhat';";
+                //cmd.CommandText = "DELETE FROM sqlite_sequence WHERE name='DanhSachBaNhat';";
+                cmd.CommandText = $"DELETE FROM sqlite_sequence WHERE name='{TenBangDanhSachBaNhat}';";
                 try
                 {
                     await cmd.ExecuteNonQueryAsync();
@@ -1388,7 +1404,8 @@ ORDER BY STT;";
                 await conn.OpenAsync();
 
                 // 1. LẤY TẤT CẢ DỮ LIỆU (KHÔNG LỌC Ở SQL NỮA)
-                string sqlSelect = "SELECT * FROM DanhSachBaNhat";
+                //string sqlSelect = "SELECT * FROM DanhSachBaNhat";
+                string sqlSelect = $"SELECT * FROM [{TenBangDanhSachBaNhat}]";
                 DataTable dtTatCa = new DataTable();
                 using (var cmdSelect = new SqliteCommand(sqlSelect, conn))
                 {
@@ -1409,7 +1426,6 @@ ORDER BY STT;";
                         dsDeNghi.Add(row);
                     }
                 }
-
                 // 3. THÔNG BÁO CHO NGƯỜI DÙNG
                 int count = dsDeNghi.Count;
                 if (count == 0)
@@ -1671,7 +1687,8 @@ ORDER BY STT;";
                 {
                     await conn.OpenAsync();
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT * FROM DanhSachBaNhat ORDER BY STT ASC";
+                    //cmd.CommandText = "SELECT * FROM DanhSachBaNhat ORDER BY STT ASC";
+                    cmd.CommandText = $"SELECT * FROM [{TenBangDanhSachBaNhat}] ORDER BY STT ASC";
                     using var reader = await cmd.ExecuteReaderAsync();
                     dt.Load(reader);
                 }
@@ -2098,7 +2115,8 @@ ORDER BY STT;";
                 {
                     await conn.OpenAsync();
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT * FROM DanhSachBaNhat ORDER BY STT ASC";
+                   // cmd.CommandText = "SELECT * FROM DanhSachBaNhat ORDER BY STT ASC";
+                    cmd.CommandText = $"SELECT * FROM [{TenBangDanhSachBaNhat}] ORDER BY STT ASC";
                     using var reader = await cmd.ExecuteReaderAsync();
                     dt.Load(reader);
                 }
@@ -2278,7 +2296,8 @@ ORDER BY STT;";
                         var tuDienBaNhat = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                         using (var cmdTaiBaNhat = conn.CreateCommand())
                         {
-                            cmdTaiBaNhat.CommandText = "SELECT SoHieu FROM DanhSachBaNhat";
+                            //cmdTaiBaNhat.CommandText = "SELECT SoHieu FROM DanhSachBaNhat";
+                            cmdTaiBaNhat.CommandText = $"SELECT SoHieu FROM [{TenBangDanhSachBaNhat}]";
                             using var rdBaNhat = cmdTaiBaNhat.ExecuteReader();
                             while (rdBaNhat.Read())
                             {
@@ -2297,9 +2316,12 @@ ORDER BY STT;";
                         // LỆNH CẬP NHẬT (Chỉ tác động DeNghi và ThanhTich)
                         using var cmdUpdate = conn.CreateCommand();
                         cmdUpdate.Transaction = transaction;
-                        cmdUpdate.CommandText = @"UPDATE DanhSachBaNhat 
-                                          SET DeNghi = @dn, ThanhTich = @tt 
-                                          WHERE SoHieu = @shEncExact";
+                        //cmdUpdate.CommandText = @"UPDATE DanhSachBaNhat 
+                        //                  SET DeNghi = @dn, ThanhTich = @tt 
+                        //                  WHERE SoHieu = @shEncExact";
+                        cmdUpdate.CommandText = $@"UPDATE [{TenBangDanhSachBaNhat}]
+                           SET DeNghi = @dn, ThanhTich = @tt
+                           WHERE SoHieu = @shEncExact";
                         var paramShUpd = cmdUpdate.Parameters.Add("@shEncExact", Microsoft.Data.Sqlite.SqliteType.Text);
                         var paramDnUpd = cmdUpdate.Parameters.Add("@dn", Microsoft.Data.Sqlite.SqliteType.Text);
                         var paramTtUpd = cmdUpdate.Parameters.Add("@tt", Microsoft.Data.Sqlite.SqliteType.Text);
@@ -2468,7 +2490,8 @@ ORDER BY STT;";
                 {
                     await conn.OpenAsync();
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT DeNghi FROM DanhSachBaNhat";
+                    //cmd.CommandText = "SELECT DeNghi FROM DanhSachBaNhat";
+                    cmd.CommandText = $"SELECT DeNghi FROM [{TenBangDanhSachBaNhat}]";
                     using var reader = await cmd.ExecuteReaderAsync();
                     while (await reader.ReadAsync())
                     {
