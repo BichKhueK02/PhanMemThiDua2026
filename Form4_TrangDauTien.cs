@@ -27,7 +27,9 @@ namespace PhanMemThiDua2026
         private readonly Image _iconFalse = Properties.Resources._false; // Đảm bảo tên file trong Resources là false
         private Dictionary<string, string> _dictChiHuyD = new Dictionary<string, string>();
         private Font? _cachedGridFont;
+        private Font? _cachedGridFontBold;
         private Font? _cachedGrid2HeaderFont;
+
         private int _cachedTongBCH = -1; // -1 nghĩa là chưa đếm
         public void ResetCacheBCH()
         {
@@ -321,8 +323,6 @@ namespace PhanMemThiDua2026
             TextRenderer.DrawText(e.Graphics, rowIdx, grid.Font, headerBounds, Color.Black, flags);
         }
         private HashSet<string> _dsDonViBoQuaCanhBao = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        //Cập nhật quy định mới không vượt quá tỷ lệ (Làm tròn quá tay)
         private async Task Bang1_Async()
         {
             string csdl2Path = _csdl2Path;
@@ -460,7 +460,6 @@ namespace PhanMemThiDua2026
                                 cmdSave.Transaction = tran;
                                 cmdSave.CommandText = "DELETE FROM QuanSoThiDuaD2;";
                                 await cmdSave.ExecuteNonQueryAsync();
-
                                 cmdSave.CommandText = @"INSERT INTO QuanSoThiDuaD2 (DonVi, TongQS, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL) VALUES (@DonVi, @TongQS, @L1, @L2, @L3, @L4, @KPL);";
                                 foreach (DataRow r in dtGrid.Rows)
                                 {
@@ -489,19 +488,10 @@ namespace PhanMemThiDua2026
                             kryptonDataGridView1.DataSource = null;
                             oldDt.Dispose();
                         }
-
                         kryptonDataGridView1.DataSource = dtGrid;
                         kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                         kryptonDataGridView1.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                         kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-
-                        // FIX LỖI GDI+ Ở ĐÂY: Trích xuất thông số trước khi Dispose Font cũ
-                        Font currentHeaderFont = kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Font ?? kryptonDataGridView1.Font;
-                        string fontFamilyName = currentHeaderFont.FontFamily.Name;
-                        float fontSize = currentHeaderFont.Size;
-
-                        // Cấp phát Font mới dựa trên thông số copy, không liên quan đến Font cũ đã bị hủy
-                        kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font(fontFamilyName, fontSize, FontStyle.Bold);
 
                         var columnHeaderMap = new Dictionary<string, string>
                 {
@@ -537,8 +527,16 @@ namespace PhanMemThiDua2026
                         kryptonDataGridView1.CellClick -= KryptonDataGridView1_CellClick_HienThiThongBao;
                         kryptonDataGridView1.CellClick += KryptonDataGridView1_CellClick_HienThiThongBao;
 
+                        // 👉 BƯỚC 1: Gọi hàm cấu hình kích thước và ép chữ lưới thành chữ Mỏng (Regular)
                         AutoFitFont_DataGridView(kryptonDataGridView1);
                         UocLuongDoRongCacCot(kryptonDataGridView1);
+
+                        // 👉 BƯỚC 2: Gọi lệnh in đậm Header TẠI ĐÂY (Sau khi mọi thứ đã Regular)
+                        // Bằng cách này, chỉ duy nhất khu vực Header (Tiêu đề cột) bị ghi đè lại thành in đậm
+                        if (_cachedGridFontBold != null)
+                        {
+                            kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Font = _cachedGridFontBold;
+                        }
                     }
                     finally
                     {
@@ -578,6 +576,8 @@ namespace PhanMemThiDua2026
                     e.CellStyle.ForeColor = Color.FromArgb(0, 128, 0);
                 }
                 e.CellStyle.Font = new Font(dgv.Font, FontStyle.Regular);
+                // Dùng lại Font gốc của DataGridView, tuyệt đối không tạo Font mới
+                e.CellStyle.Font = dgv.Font;
                 return;
             }
 
@@ -675,15 +675,66 @@ namespace PhanMemThiDua2026
                 bool isLoai3HopLe = l3 >= kqCanDat_L3;
                 bool isDonViDatChuan = isLoai1HopLe && isLoai2HopLe && isLoai3HopLe;
 
-                Color textColor = isDonViDatChuan ? Color.FromArgb(0, 128, 0) : Color.FromArgb(255, 0, 0);
+                //// --- BẮT ĐẦU ĐOẠN CẦN THAY THẾ (Khoảng dòng 762) ---
+                //Color textColor = isDonViDatChuan ? Color.FromArgb(0, 128, 0) : Color.FromArgb(255, 0, 0);
 
+                //if (dgv.Rows[e.RowIndex].Selected)
+                //{
+                //    textColor = e.CellStyle.SelectionForeColor;
+                //}
+
+                //e.CellStyle.ForeColor = textColor;
+
+                //// 🔥 SỬA LỖI IN ĐẬM: Trực tiếp lấy Font gốc của Grid làm chuẩn để phân nhánh
+                //if (!isDonViDatChuan)
+                //{
+                //    // Nếu Chưa đạt (Màu Đỏ) -> Cảnh báo bằng cách in đậm
+                //    e.CellStyle.Font = new Font(dgv.Font, FontStyle.Bold);
+                //}
+                //else
+                //{
+                //    // Nếu Đạt (Màu Xanh) -> Mặc định lấy chữ mỏng (Regular) từ cấu hình lưới
+                //    e.CellStyle.Font = dgv.Font;
+                //}
+                // =====================================================================
+                // TÔ MÀU + FONT (KHÔNG TẠO FONT MỚI - TRÁNH RÒ RỈ GDI/RAM)
+                // =====================================================================
+
+                Color textColor = isDonViDatChuan
+                    ? Color.FromArgb(0, 128, 0)
+                    : Color.FromArgb(255, 0, 0);
+
+                // Khi đang chọn dòng thì giữ nguyên màu Selection của Windows
                 if (dgv.Rows[e.RowIndex].Selected)
                 {
-                    textColor = e.CellStyle.SelectionForeColor;
+                    e.CellStyle.ForeColor = e.CellStyle.SelectionForeColor;
+                }
+                else
+                {
+                    e.CellStyle.ForeColor = textColor;
                 }
 
-                e.CellStyle.ForeColor = textColor;
-                e.CellStyle.Font = new Font(dgv.Font, isDonViDatChuan ? FontStyle.Regular : FontStyle.Bold);
+                // 👇 FIX LỖI TRÀN GDI/RAM
+                // Không được new Font() trong CellFormatting.
+                // Luôn dùng lại Font đã cache.
+
+                if (!isDonViDatChuan)
+                {
+                    if (_cachedGridFontBold != null)
+                    {
+                        e.CellStyle.Font = _cachedGridFontBold;
+                    }
+                    else
+                    {
+                        // Phòng trường hợp cache chưa khởi tạo
+                        e.CellStyle.Font = dgv.Font;
+                    }
+                }
+                else
+                {
+                    e.CellStyle.Font = dgv.Font;
+                }
+
             }
             catch (Exception ex)
             {
@@ -1003,11 +1054,11 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Bang2 ERROR: " + ex.Message);
             }
         }
-
+       
         ///        . Nguyên lý Khống chế trần tuyệt đối(Chống vượt % dưới mọi hình thức)Giả sử tổng quân số đủ điều kiện là $N$ (biến số động) và tỷ lệ Loại 2 lấy từ CSDL là $R$ (ví dụ: $79\% = 0.79$).Số lượng Loại 2 tối đa theo thuật toán của chúng ta là:$$Max = \lfloor N \times R \rfloor$$(Hàm Math.Floor chính là phép toán lấy phần nguyên lớn nhất không vượt quá giá trị thực).Bây giờ ta test ngược lại tỷ lệ phần trăm thực tế đạt được:$$\% \text{ Thực tế } = \frac{\lfloor N \times R \rfloor }{N
         ///    }$$Theo tính chất toán học, $\lfloor X \rfloor \le X$. Do đó:$$\frac{\lfloor N \times R \rfloor }{N
         ///} \le \frac{N \times R}{ N} = R$$👉 Kết luận 1: Tỷ lệ phần trăm tính ra luôn luôn nhỏ hơn hoặc bằng tỷ lệ quy định $R$, bất chấp quân số $N$ là số chẵn hay số lẻ. Quy định "tối đa chỉ bằng hoặc thấp hơn mức % quy định" được thỏa mãn tuyệt đối.Ví dụ Test Edge Case (Trường hợp dị biệt): Đơn vị siêu nhỏ có $N = 6$ người. Tỷ lệ quy định $R = 79\%$.Máy tính: $6 \times 0.79 = 4.74$.Thuật toán Math.Floor(4.74): Lấy $4$ người.Test tỷ lệ nộp báo cáo: $4 / 6 = 66.67\% \le 79\%$. (Hợp lệ hoàn toàn, nếu lấy 5 người sẽ ra $83.33\% \rightarrow$ vi phạm quy định).2. Nguyên lý Bảo toàn quân số (Không bao giờ rớt mất người)Trong quân đội hay công an, quân số báo cáo tổng phải khớp đến từng người. Quá trình làm tròn xuống (cho Loại 1 và Loại 2) chắc chắn sẽ sinh ra những "mảnh vỡ" số thập phân (như số $0.74$ ở ví dụ trên bị vứt bỏ). Nếu không cẩn thận, cộng lại sẽ bị mất tích người.Thuật toán của chúng ta xử lý thế này:Quỹ Loại 2 (gồm L1 + L2 thuần) = Math.Floor(N * 79%).Quỹ Loại 3 = N - Quỹ Loại 2.Bởi vì: $\text{Quỹ Loại 2} + \text{Quỹ Loại 3} = \text{Quỹ Loại 2} +(N - \text{Quỹ Loại 2}) = N$.👉 Kết luận 2: Tổng số người đánh giá luôn luôn khớp đúng $100\%$ với số $N$ đầu vào. Bất kể Math.Floor đã chém bỏ bao nhiêu phần thập phân của Loại 2, phần bị chém đó đều tự động biến thành $1$ con người hoàn chỉnh đẩy sang Loại 3. Không có ai bị bỏ sót.3. Giải đáp thắc mắc: Tại sao báo lỗi "Loại 3 đang thiếu" là hợp lý 100%?Bây giờ ta quay lại kịch bản báo cáo bị lỗi của đơn vị.Giả sử hệ thống đang cảnh báo:Loại 1: Thừa 1 đồng chí (Do xét quá tay 1 người).Loại 2: Vừa đủ số lượng.Loại 3: Thiếu 1 đồng chí.Anh băn khoăn rằng: "Ông Loại 1 đang bị dư, giáng cấp ông đó xuống thì ông đó phải vào Loại 2 chứ? Sao lại nhảy xuống Loại 3 để lấp vào chỗ thiếu?"Câu trả lời nằm ở định nghĩa Trần Quỹ Loại 2.Quy định nêu rõ: "Loại 1 được lấy trong tổng số Loại 2".Nghĩa là Loại 1 và Loại 2 đang dùng chung một cái rổ.Cái rổ này có sức chứa tối đa bị khóa cứng bởi lệnh Math.Floor(N * 79%).Nếu đơn vị đã chấm Loại 2 thuần "đầy mép" cái rổ rồi, thì 1 ông Loại 1 dư thừa kia khi giáng cấp xuống sẽ không thể chui vào cái rổ Loại 2 được nữa (vì nếu chui vào, cái rổ phình to ra, chia % sẽ bị vượt mốc $79\%$).Người này trượt khỏi cái rổ L1+L2, lực hấp dẫn tự động kéo thẳng ông ấy xuống cái rổ Loại 3.
-
+       
         private void KryptonDataGridView2_RowPostPaint(
             object? sender,
             DataGridViewRowPostPaintEventArgs e)
@@ -1086,6 +1137,33 @@ namespace PhanMemThiDua2026
                 return s.Trim();
             }
         }
+        //private void AutoFitFont_DataGridView(DataGridView dgv)
+        //{
+        //    if (dgv == null || dgv.Rows.Count == 0) return;
+
+        //    dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+
+        //    int visibleRows = Math.Max(1, dgv.DisplayedRowCount(false));
+        //    int gridHeight = dgv.ClientSize.Height;
+
+        //    float estimatedRowHeight = (float)gridHeight / visibleRows;
+        //    float fontSize = Math.Clamp(estimatedRowHeight * 0.40f, 8f, 10f);
+
+        //    // CHỐNG LEAK GDI+: Chỉ tạo Font mới nếu size thay đổi
+        //    if (_cachedGridFont == null || Math.Abs(_cachedGridFont.Size - fontSize) > 0.1f)
+        //    {
+        //        _cachedGridFont?.Dispose(); // Tiêu hủy font cũ
+
+        //        // 🟢 ÉP BUỘC NỘI DUNG LÀ CHỮ THƯỜNG (FontStyle.Regular)
+        //        _cachedGridFont = new Font("Segoe UI", fontSize, FontStyle.Regular);
+        //    }
+
+        //    // Áp Font chữ thường cho toàn bộ Cell (Nội dung)
+        //    dgv.DefaultCellStyle.Font = _cachedGridFont;
+
+        //    // Tự động căn chỉnh độ cao hàng
+        //    dgv.RowTemplate.Height = TextRenderer.MeasureText("A", _cachedGridFont).Height + 6;
+        //}
         private void AutoFitFont_DataGridView(DataGridView dgv)
         {
             if (dgv == null || dgv.Rows.Count == 0) return;
@@ -1098,19 +1176,28 @@ namespace PhanMemThiDua2026
             float estimatedRowHeight = (float)gridHeight / visibleRows;
             float fontSize = Math.Clamp(estimatedRowHeight * 0.40f, 8f, 10f);
 
-            // CHỐNG LEAK GDI+: Chỉ tạo Font mới nếu size thay đổi
+            //if (_cachedGridFont == null || Math.Abs(_cachedGridFont.Size - fontSize) > 0.1f)
+            //{
+            //    _cachedGridFont?.Dispose();
+
+            //    // 🟢 Cố định ép font chữ là FontStyle.Regular (chữ thường)
+            //    _cachedGridFont = new Font("Segoe UI", fontSize, FontStyle.Regular);
+            //}
             if (_cachedGridFont == null || Math.Abs(_cachedGridFont.Size - fontSize) > 0.1f)
             {
-                _cachedGridFont?.Dispose(); // Tiêu hủy font cũ
-
-                // 🟢 ÉP BUỘC NỘI DUNG LÀ CHỮ THƯỜNG (FontStyle.Regular)
+                _cachedGridFont?.Dispose();
+                _cachedGridFontBold?.Dispose(); // 👈 Dọn dẹp font in đậm cũ
+                // 🟢 Cố định ép font chữ là FontStyle.Regular (chữ thường)
                 _cachedGridFont = new Font("Segoe UI", fontSize, FontStyle.Regular);
+                // 🟢 TẠO SẴN 1 FONT IN ĐẬM BỎ VÀO CACHE ĐỂ DÙNG CHUNG (Cực kỳ tối ưu RAM)
+                _cachedGridFontBold = new Font("Segoe UI", fontSize, FontStyle.Bold);
             }
-
-            // Áp Font chữ thường cho toàn bộ Cell (Nội dung)
+            // 🔥 SỬA CHỮA QUAN TRỌNG TẠI ĐÂY:
+            // Gán tường minh Font chữ thường cho Toàn bộ Bảng, và cho Cột (Cells)
+            dgv.Font = _cachedGridFont;
             dgv.DefaultCellStyle.Font = _cachedGridFont;
+            dgv.RowsDefaultCellStyle.Font = _cachedGridFont;
 
-            // Tự động căn chỉnh độ cao hàng
             dgv.RowTemplate.Height = TextRenderer.MeasureText("A", _cachedGridFont).Height + 6;
         }
         public async Task ReloadDuLieuAsync()
@@ -2271,7 +2358,6 @@ WHERE ID = 1", conn);
 
             await RefreshPieChartAsync();
         }
-  
         //Thuật toán khác
         private string _textGocNutMayTinh = null;
         private Image _anhGocNutMayTinh = null;
@@ -3639,8 +3725,8 @@ PTLoai3=@PTLoai3
             _iconTrue?.Dispose();
             _iconFalse?.Dispose();
             _cachedGridFont?.Dispose();
+            _cachedGridFontBold?.Dispose();
             _cachedGrid2HeaderFont?.Dispose(); // Thêm dòng này
-
             if (formTinhToan != null && !formTinhToan.IsDisposed) formTinhToan.Dispose();
             if (form11 != null && !form11.IsDisposed) form11.Dispose();
         }

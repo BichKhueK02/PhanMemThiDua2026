@@ -101,6 +101,7 @@
             comboBox1_ThoiGianThayDoiAnh = new ComboBox();
             groupBox3 = new GroupBox();
             tableLayoutPanel17 = new TableLayoutPanel();
+            kryptonButton_TyLePhanTramBaNhat = new Krypton.Toolkit.KryptonButton();
             kryptonButton_CapNhatDanhSachChiHuyD = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_CapNhatChucVu = new Krypton.Toolkit.KryptonButton();
             pictureBox4 = new PictureBox();
@@ -112,9 +113,9 @@
             kryptonButton2_ChuyenGiaoDuLieu = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet = new Krypton.Toolkit.KryptonButton();
             pictureBox13 = new PictureBox();
-            kryptonButton1_CaiDatFileExcel = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_CaiDatTyLePhanTramBCH = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_CaiDatTyLePhanTramE29 = new Krypton.Toolkit.KryptonButton();
+            kryptonButton1_CaiDatFileExcel = new Krypton.Toolkit.KryptonButton();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             tabPage3 = new TabPage();
@@ -1169,6 +1170,7 @@
             tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29.3103447F));
             tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28.62069F));
             tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29.6551723F));
+            tableLayoutPanel17.Controls.Add(kryptonButton_TyLePhanTramBaNhat, 3, 2);
             tableLayoutPanel17.Controls.Add(kryptonButton_CapNhatDanhSachChiHuyD, 3, 0);
             tableLayoutPanel17.Controls.Add(kryptonButton1_CapNhatChucVu, 2, 0);
             tableLayoutPanel17.Controls.Add(pictureBox4, 0, 1);
@@ -1180,9 +1182,9 @@
             tableLayoutPanel17.Controls.Add(kryptonButton2_ChuyenGiaoDuLieu, 3, 1);
             tableLayoutPanel17.Controls.Add(kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet, 1, 3);
             tableLayoutPanel17.Controls.Add(pictureBox13, 0, 3);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatFileExcel, 3, 2);
             tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatTyLePhanTramBCH, 1, 2);
             tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatTyLePhanTramE29, 2, 2);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatFileExcel, 2, 3);
             tableLayoutPanel17.Dock = DockStyle.Fill;
             tableLayoutPanel17.Location = new Point(2, 22);
             tableLayoutPanel17.Margin = new Padding(2, 4, 2, 4);
@@ -1195,6 +1197,20 @@
             tableLayoutPanel17.RowStyles.Add(new RowStyle(SizeType.Percent, 19.9999981F));
             tableLayoutPanel17.Size = new Size(580, 404);
             tableLayoutPanel17.TabIndex = 0;
+            // 
+            // kryptonButton_TyLePhanTramBaNhat
+            // 
+            kryptonButton_TyLePhanTramBaNhat.Anchor = AnchorStyles.None;
+            kryptonButton_TyLePhanTramBaNhat.Location = new Point(415, 185);
+            kryptonButton_TyLePhanTramBaNhat.Margin = new Padding(2, 4, 2, 4);
+            kryptonButton_TyLePhanTramBaNhat.Name = "kryptonButton_TyLePhanTramBaNhat";
+            kryptonButton_TyLePhanTramBaNhat.Size = new Size(157, 29);
+            kryptonButton_TyLePhanTramBaNhat.StateCommon.Border.Rounding = 4F;
+            kryptonButton_TyLePhanTramBaNhat.TabIndex = 53;
+            kryptonButton_TyLePhanTramBaNhat.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton_TyLePhanTramBaNhat.Values.Image = (Image)resources.GetObject("kryptonButton_TyLePhanTramBaNhat.Values.Image");
+            kryptonButton_TyLePhanTramBaNhat.Values.Text = "Đặt tỷ lệ % Ba nhất";
+            kryptonButton_TyLePhanTramBaNhat.Click += kryptonButton_TyLePhanTramBaNhat_Click;
             // 
             // kryptonButton_CapNhatDanhSachChiHuyD
             // 
@@ -1342,20 +1358,6 @@
             pictureBox13.TabIndex = 51;
             pictureBox13.TabStop = false;
             // 
-            // kryptonButton1_CaiDatFileExcel
-            // 
-            kryptonButton1_CaiDatFileExcel.Anchor = AnchorStyles.None;
-            kryptonButton1_CaiDatFileExcel.Location = new Point(419, 185);
-            kryptonButton1_CaiDatFileExcel.Margin = new Padding(2, 4, 2, 4);
-            kryptonButton1_CaiDatFileExcel.Name = "kryptonButton1_CaiDatFileExcel";
-            kryptonButton1_CaiDatFileExcel.Size = new Size(150, 29);
-            kryptonButton1_CaiDatFileExcel.StateCommon.Border.Rounding = 4F;
-            kryptonButton1_CaiDatFileExcel.TabIndex = 40;
-            kryptonButton1_CaiDatFileExcel.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CaiDatFileExcel.Values.Image = (Image)resources.GetObject("kryptonButton1_CaiDatFileExcel.Values.Image");
-            kryptonButton1_CaiDatFileExcel.Values.Text = "Tối ưu tệp nhúng";
-            kryptonButton1_CaiDatFileExcel.Click += kryptonButton1_CaiDatFileExcel_Click;
-            // 
             // kryptonButton1_CaiDatTyLePhanTramBCH
             // 
             kryptonButton1_CaiDatTyLePhanTramBCH.Anchor = AnchorStyles.None;
@@ -1383,6 +1385,20 @@
             kryptonButton1_CaiDatTyLePhanTramE29.Values.Image = (Image)resources.GetObject("kryptonButton1_CaiDatTyLePhanTramE29.Values.Image");
             kryptonButton1_CaiDatTyLePhanTramE29.Values.Text = "Đặt tỷ lệ % CBCS";
             kryptonButton1_CaiDatTyLePhanTramE29.Click += kryptonButton1_CaiDatTyLePhanTramE29_Click;
+            // 
+            // kryptonButton1_CaiDatFileExcel
+            // 
+            kryptonButton1_CaiDatFileExcel.Anchor = AnchorStyles.None;
+            kryptonButton1_CaiDatFileExcel.Location = new Point(250, 265);
+            kryptonButton1_CaiDatFileExcel.Margin = new Padding(2, 4, 2, 4);
+            kryptonButton1_CaiDatFileExcel.Name = "kryptonButton1_CaiDatFileExcel";
+            kryptonButton1_CaiDatFileExcel.Size = new Size(150, 29);
+            kryptonButton1_CaiDatFileExcel.StateCommon.Border.Rounding = 4F;
+            kryptonButton1_CaiDatFileExcel.TabIndex = 40;
+            kryptonButton1_CaiDatFileExcel.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton1_CaiDatFileExcel.Values.Image = (Image)resources.GetObject("kryptonButton1_CaiDatFileExcel.Values.Image");
+            kryptonButton1_CaiDatFileExcel.Values.Text = "Tối ưu tệp nhúng";
+            kryptonButton1_CaiDatFileExcel.Click += kryptonButton1_CaiDatFileExcel_Click;
             // 
             // statusStrip1
             // 
@@ -1587,5 +1603,6 @@
         internal Krypton.Toolkit.KryptonButton kryptonButton1_CaiDatTyLePhanTramBCH;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
+        internal Krypton.Toolkit.KryptonButton kryptonButton_TyLePhanTramBaNhat;
     }
 }

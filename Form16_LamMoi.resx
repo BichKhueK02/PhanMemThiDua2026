@@ -135,7 +135,66 @@
   <metadata name="tableLayoutPanel3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
+  <metadata name="btn_ResetPhanLoai.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="btn_ResetPhanLoai.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
+        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAI/SURBVDhPlZNPSJNxGMc/hw4dgqQ6mJdOHSJSM+wi
+        JMKwrdKM/klpVqOyWjphCSJBkeTrhn+mzpVu0y1n0iypDCr0oCloJDWhLtGhjkGXLgUdvvFuOtaUoC+8
+        8PK8z/N5v8/veX6QIZubXaUGRqnBk5Ne5Iqg+iiq9PEjM1fS3wGLQdGNGLozhY718LkhhIxxNDyPOl4j
+        axs3rQYzZe18XxNg/i0yiwKLKPIV5du5VeTE2/kyGet6i5zjmFV5qwAWg4rafhScQeE4qh9IJG4Gso97
+        +RV6h/xxVNKIb6Um00EWsKe4icemdUszQZuHHRYDtU2g1klUFUxAt1rdFKQANg+/7QFUF0XOR2hnJeUm
+        CMgB1i+/p54zfn66xhKglIOC6j4UXkDhj8jxMPlxLVX1oNE5FIyjim6WEgCrm7u9L1D/HPLOo+73qNSg
+        JrPYVIkL/71JFP6AGp6aBgR1IRSaQkNv0Akf37aXYy9tXe3iYDtTZv8Xg6hzNpGbBDgCKDKNXLFEUS6w
+        YbnflPa72XaqNwnN2UtZ7jlabJ5lwIV+dH8aFZzHdaSLPmcYXR1OHmhVKFl0KYA6JpAjiuoeIF8cOcaW
+        AbvtNLWMo8IGDrljaNjcg0UU/YQan6Pi29hHXqHBGTS4gIaW0OgXdNjN3MoUNpl29jVztHYAXRtClyOo
+        LoZOJ+e+pWkEeZ6h2jC6MoJqQig7j8L0RTJ73pg585WzyD/L9Wp/ApYeX5e5if9S1oG25AVK1/8ATCUu
+        ULpMwB/HXjT6+AhrewAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="tableLayoutPanel3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <metadata name="tableLayoutPanel2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="pictureBox1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="tableLayoutPanel2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="checkBox1_GuiNguyenKhongPhanLoai.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="checkBox1_GuiNguyenLoai4.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="checkBox1_GuiNguyenLoai3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="checkBox1_GuiNguyenLoai2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="label1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="label2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="label3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="label4.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="label5.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="checkBox1_GuiNguyenLoai1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <metadata name="checkBox1_GuiNguyenKhongPhanLoai.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -171,7 +230,6 @@
   <metadata name="pictureBox1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="pictureBox1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAABGdBTUEAALGOfPtRkwAAACBjSFJNAACH
@@ -1129,25 +1187,6 @@
         dxC8TfKvsOUcrIuWC3XQbl9ZS8kQDqIzR5E7jNRppNnFV4H0vml/+VhyYucEb5P8K2o5B+ui5UIdtNsq
         aTmxukJKzO4iv0dXaLf/c8s5WBctF9poo43eg5YLbbTRRu9By4U22mij96DlQhtttNF70HKhjTba6D34
         LwnVv17A9B7dAAAAAElFTkSuQmCC
-</value>
-  </data>
-  <metadata name="btn_ResetPhanLoai.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <data name="btn_ResetPhanLoai.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAI/SURBVDhPlZNPSJNxGMc/hw4dgqQ6mJdOHSJSM+wi
-        JMKwrdKM/klpVqOyWjphCSJBkeTrhn+mzpVu0y1n0iypDCr0oCloJDWhLtGhjkGXLgUdvvFuOtaUoC+8
-        8PK8z/N5v8/veX6QIZubXaUGRqnBk5Ne5Iqg+iiq9PEjM1fS3wGLQdGNGLozhY718LkhhIxxNDyPOl4j
-        axs3rQYzZe18XxNg/i0yiwKLKPIV5du5VeTE2/kyGet6i5zjmFV5qwAWg4rafhScQeE4qh9IJG4Gso97
-        +RV6h/xxVNKIb6Um00EWsKe4icemdUszQZuHHRYDtU2g1klUFUxAt1rdFKQANg+/7QFUF0XOR2hnJeUm
-        CMgB1i+/p54zfn66xhKglIOC6j4UXkDhj8jxMPlxLVX1oNE5FIyjim6WEgCrm7u9L1D/HPLOo+73qNSg
-        JrPYVIkL/71JFP6AGp6aBgR1IRSaQkNv0Akf37aXYy9tXe3iYDtTZv8Xg6hzNpGbBDgCKDKNXLFEUS6w
-        YbnflPa72XaqNwnN2UtZ7jlabJ5lwIV+dH8aFZzHdaSLPmcYXR1OHmhVKFl0KYA6JpAjiuoeIF8cOcaW
-        AbvtNLWMo8IGDrljaNjcg0UU/YQan6Pi29hHXqHBGTS4gIaW0OgXdNjN3MoUNpl29jVztHYAXRtClyOo
-        LoZOJ+e+pWkEeZ6h2jC6MoJqQig7j8L0RTJ73pg585WzyD/L9Wp/ApYeX5e5if9S1oG25AVK1/8ATCUu
-        ULpMwB/HXjT6+AhrewAAAABJRU5ErkJggg==
 </value>
   </data>
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

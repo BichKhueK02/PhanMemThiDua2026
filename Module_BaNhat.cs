@@ -23,6 +23,51 @@ public class CbcDTO
     public string ThanhTich { get; set; }
     public string GhiChu { get; set; }
 }
+// Dùng cho Form42 - Xuất danh sách gốc (Không cần điều kiện)
+public class DanhSachGocBaNhatDTO
+{
+    public int ID { get; set; }
+    public string HoVaTen { get; set; }
+    public string SoHieu { get; set; }
+    public string NamSinh { get; set; }
+    public string QueQuan { get; set; }
+    public string NgayVaoCAND { get; set; }
+    public string CapBac { get; set; }
+    public string ChucVu { get; set; }
+    public string DonVi { get; set; }
+    public string PhanLoai { get; set; }
+    public string GhiChu { get; set; }
+    public string DeNghi { get; set; }
+    public string ThanhTich { get; set; }
+}
+
+// Dùng cho Form42 - Xuất danh sách đề nghị (Có dùng File Mẫu)
+public class DeNghiBaNhatDTO
+{
+    public int ID { get; set; }
+    public string HoVaTen { get; set; }
+    public string SoHieu { get; set; }
+    public string NamSinh { get; set; }
+    public string NgayVaoCAND { get; set; }
+    public string CapBac { get; set; }
+    public string ChucVu { get; set; }
+    public string DonVi { get; set; }
+    public string PhanLoai { get; set; }
+    public string ThanhTich { get; set; }
+}
+
+// Dùng cho Form44 - Xuất Sổ vàng (Chỉ có 5 Cột)
+public class SoVangDTO
+{
+    public int STT { get; set; }
+    public string HoVaTen { get; set; }
+    public string ThongBaoTrungDoan { get; set; }
+    public string SoTTTrongSo { get; set; }
+    public string ThangCongNhan { get; set; }
+}
+
+//=========================
+
 public static class Module_BaNhat
 {
     public const int GioiHanToiDa = 3000;
@@ -37,11 +82,7 @@ public static class Module_BaNhat
         IntPtr apidl,
         int dwFlags);
     // Lưu ý: Vì Module_BaNhat là static class, nên hàm này cũng phải là "public static"
-
-
-    // ==============================================================================
     // HÀM NHẬP DỮ LIỆU (Đã tái cấu trúc tương thích tuyệt đối & Bắt lỗi cục bộ)
-    // ==============================================================================
     public static void XuatDuLieuVaoBangQuanLyBaNhat(ClosedXML.Excel.XLWorkbook package, string dbPath, bool epXuatFileMau)
     {
         try
@@ -333,166 +374,6 @@ public static class Module_BaNhat
             System.Diagnostics.Debug.WriteLine("[Lỗi NhapDataSoVang] " + ex.Message);
         }
     }
-    //public static void NhapDuLieuVaoBangQuanLyBaNhat(string excelPath, string dbPath)
-    //{
-    //    try
-    //    {
-    //        if (!File.Exists(excelPath) || !File.Exists(dbPath)) return;
-
-    //        var danhSachBoQua = new List<string>();
-
-    //        using (var wb = new ClosedXML.Excel.XLWorkbook(excelPath))
-    //        {
-    //            if (!wb.Worksheets.TryGetWorksheet("DS_BaNhat", out var ws)) return;
-
-    //            // KIỂM TRA HEADER: Khóa cứng cấu trúc dòng 3 tương thích với hàm Xuất
-    //            string[] mauHeaderChuan = { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú", "Đề nghị", "Thành tích" };
-    //            for (int i = 0; i < mauHeaderChuan.Length; i++)
-    //            {
-    //                string headerExcel = ws.Cell(3, i + 1).GetString().Trim();
-    //                if (!headerExcel.Equals(mauHeaderChuan[i], StringComparison.OrdinalIgnoreCase))
-    //                {
-    //                    System.Windows.Forms.MessageBox.Show(
-    //                        $"Cấu trúc tệp Excel không hợp lệ!\nCột số {i + 1} đang là '{headerExcel}', yêu cầu chuẩn phải là '{mauHeaderChuan[i]}'.\nVui lòng không tự ý chèn, xóa hoặc đổi tên cột mẫu.",
-    //                        "Lỗi cấu trúc tệp nhập", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
-    //                    return;
-    //                }
-    //            }
-
-    //            int lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
-    //            if (lastRow < 4) return;
-
-    //            using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}"))
-    //            {
-    //                conn.Open();
-
-    //                int nextSTT = 0;
-    //                using (var cmdMax = conn.CreateCommand())
-    //                {
-    //                    cmdMax.CommandText = "SELECT IFNULL(MAX(STT), 0) FROM DanhSachBaNhat";
-    //                    nextSTT = Convert.ToInt32(cmdMax.ExecuteScalar()) + 1;
-    //                }
-
-    //                // Khởi tạo Transaction bảo vệ dữ liệu toàn vẹn
-    //                using var transaction = conn.BeginTransaction();
-
-    //                using var cmdCheck = conn.CreateCommand();
-    //                cmdCheck.Transaction = transaction;
-    //                cmdCheck.CommandText = "SELECT EXISTS(SELECT 1 FROM DanhSachBaNhat WHERE SoHieu = @sh)";
-    //                var paramShCheck = cmdCheck.Parameters.Add("@sh", SqliteType.Text);
-
-    //                using var cmdUpdate = conn.CreateCommand();
-    //                cmdUpdate.Transaction = transaction;
-    //                cmdUpdate.CommandText = @"UPDATE DanhSachBaNhat SET 
-    //                HoVaTen = @ht, NamSinh = @ns, QueQuan = @qq, NgayVaoCAND = @nv, 
-    //                CapBac = @cb, ChucVu = @cv, DonVi = @dv, PhanLoai = @pl, 
-    //                GhiChu = @gc, 
-    //                DeNghi = CASE WHEN @dnTrong = 1 THEN DeNghi ELSE @dn END, 
-    //                ThanhTich = CASE WHEN @ttTrong = 1 THEN ThanhTich ELSE @tt END 
-    //                WHERE SoHieu = @sh";
-    //                PrepareParameters(cmdUpdate);
-    //                cmdUpdate.Parameters.Add("@dnTrong", SqliteType.Integer);
-    //                cmdUpdate.Parameters.Add("@ttTrong", SqliteType.Integer);
-
-    //                using var cmdInsert = conn.CreateCommand();
-    //                cmdInsert.Transaction = transaction;
-    //                cmdInsert.CommandText = @"INSERT INTO DanhSachBaNhat 
-    //                (STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich) 
-    //                VALUES (@stt, @ht, @sh, @ns, @qq, @nv, @cb, @cv, @dv, @pl, @gc, @dn, @tt)";
-    //                var paramSttInsert = cmdInsert.Parameters.Add("@stt", SqliteType.Integer);
-    //                PrepareParameters(cmdInsert);
-
-    //                for (int r = 4; r <= lastRow; r++)
-    //                {
-    //                    string hoTen = ws.Cell(r, 2).GetString().Trim();
-    //                    if (string.IsNullOrWhiteSpace(hoTen)) continue;
-
-    //                    // 🔥 TRY...CATCH CỤC BỘ: Bắt chính xác lỗi phát sinh trên từng CBCS
-    //                    try
-    //                    {
-    //                        string soHieu = ws.Cell(r, 3).GetString().Trim();
-    //                        string deNghi = ws.Cell(r, 12).GetString().Trim();
-
-    //                        if (string.IsNullOrWhiteSpace(soHieu))
-    //                        {
-    //                            danhSachBoQua.Add($"- Đồng chí: {hoTen} dòng {r} không thể nạp vì thiếu Số hiệu quân số.");
-    //                            continue;
-    //                        }
-
-    //                        if (!deNghi.Equals("X", StringComparison.OrdinalIgnoreCase))
-    //                        {
-    //                            danhSachBoQua.Add($"- Đồng chí: {hoTen} (Số hiệu: {soHieu}) bỏ qua do không có dấu X Đề nghị.");
-    //                            continue;
-    //                        }
-
-    //                        string namSinh = ws.Cell(r, 4).GetString().Trim();
-    //                        string queQuan = ws.Cell(r, 5).GetString().Trim();
-    //                        string ngayVao = ws.Cell(r, 6).GetString().Trim();
-    //                        string capBac = ws.Cell(r, 7).GetString().Trim();
-    //                        string chucVu = ws.Cell(r, 8).GetString().Trim();
-    //                        string donVi = ws.Cell(r, 9).GetString().Trim();
-    //                        string phanLoai = ws.Cell(r, 10).GetString().Trim();
-    //                        string ghiChu = ws.Cell(r, 11).GetString().Trim();
-    //                        string thanhTich = ws.Cell(r, 13).GetString().Trim();
-
-    //                        // Bước thực thi mã hóa AES & Thao tác DB (Điểm dễ phát sinh Exception nhất)
-    //                        string shMaHoa = BaoMatAES.MaHoa(soHieu);
-    //                        paramShCheck.Value = shMaHoa;
-    //                        bool daTonTai = Convert.ToInt64(cmdCheck.ExecuteScalar()) > 0;
-
-    //                        if (daTonTai)
-    //                        {
-    //                            BindParameterValues(cmdUpdate, shMaHoa, hoTen, namSinh, queQuan, ngayVao, capBac, chucVu, donVi, phanLoai, ghiChu, deNghi, thanhTich);
-    //                            cmdUpdate.Parameters["@dnTrong"].Value = string.IsNullOrWhiteSpace(deNghi) ? 1 : 0;
-    //                            cmdUpdate.Parameters["@ttTrong"].Value = string.IsNullOrWhiteSpace(thanhTich) ? 1 : 0;
-
-    //                            cmdUpdate.ExecuteNonQuery();
-    //                        }
-    //                        else
-    //                        {
-    //                            paramSttInsert.Value = nextSTT;
-    //                            BindParameterValues(cmdInsert, shMaHoa, hoTen, namSinh, queQuan, ngayVao, capBac, chucVu, donVi, phanLoai, ghiChu, deNghi, thanhTich);
-
-    //                            cmdInsert.ExecuteNonQuery();
-    //                            nextSTT++;
-    //                        }
-    //                    }
-    //                    catch (Exception ex)
-    //                    {
-    //                        // Ghi nhận đích danh đồng chí bị lỗi hệ thống/SQLite/AES và bỏ qua để nạp người tiếp theo
-    //                        danhSachBoQua.Add($"- Đồng chí: {hoTen} (Dòng {r}) - Lỗi kỹ thuật: {ex.Message}");
-    //                        continue;
-    //                    }
-    //                }
-
-    //                // Commit những người đã được xử lý thành công (Skip các dòng rơi vào catch)
-    //                transaction.Commit();
-    //            }
-    //        }
-
-    //        if (danhSachBoQua.Count > 0)
-    //        {
-    //            string msgCanhBao = string.Join("\n", danhSachBoQua.Take(15));
-    //            if (danhSachBoQua.Count > 15) msgCanhBao += $"\n... và {danhSachBoQua.Count - 15} trường hợp khác.";
-
-    //            var activeForms = System.Windows.Forms.Application.OpenForms;
-    //            if (activeForms.Count > 0)
-    //            {
-    //                activeForms[0].Invoke(new Action(() =>
-    //                {
-    //                    System.Windows.Forms.MessageBox.Show(activeForms[0], msgCanhBao, "Thông báo nạp Sổ Vàng", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Warning);
-    //                }));
-    //            }
-    //        }
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        System.Diagnostics.Debug.WriteLine("[Lỗi NhapDataSoVang] " + ex.Message);
-    //    }
-    //}
-    // ==============================================================================
-    // CÁC HÀM HELPER HỖ TRỢ (Khởi tạo và Gán Parameter)
-    // ==============================================================================
     private static void PrepareParameters(Microsoft.Data.Sqlite.SqliteCommand cmd)
     {
         cmd.Parameters.Add("@sh", SqliteType.Text);
@@ -612,13 +493,13 @@ public static class Module_BaNhat
             {
                 using var cnKyHieu = new SqliteConnection($"Data Source={csdl2}");
                 cnKyHieu.Open();
-                using var cmdKyHieu = new SqliteCommand("SELECT KyHieu_TrungDoan, KeHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1", cnKyHieu);
+                using var cmdKyHieu = new SqliteCommand("SELECT KyHieu_TrungDoan, KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1", cnKyHieu);
                 using var rdKyHieu = cmdKyHieu.ExecuteReader();
 
                 if (rdKyHieu.Read())
                 {
                     kyHieuTrungDoan = SafeDecrypt(rdKyHieu["KyHieu_TrungDoan"]);
-                    kyHieuTieuDoan = SafeDecrypt(rdKyHieu["KeHieu_TieuDoan"]);
+                    kyHieuTieuDoan = SafeDecrypt(rdKyHieu["KyHieu_TieuDoan"]);
                 }
             }
             catch { }
@@ -943,6 +824,737 @@ public static class Module_BaNhat
             c.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             c.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             if (addr != "L17") c.Style.Font.Bold = true;
+        }
+    }
+    public static async Task TinhToanVaHienThiTyLeBaNhatAsync(ToolStripStatusLabel labelTyLe)
+    {
+        // BẢO VỆ TẦNG 1: Tránh lỗi NullReference hoặc control đã bị hủy ngay từ đầu
+        if (labelTyLe == null || labelTyLe.IsDisposed) return;
+
+        string dbPath = Module_DanduongGPS.DuongDanCSDL2;
+        if (!System.IO.File.Exists(dbPath)) return;
+
+        int tyLe = 0;
+        int tongSoLoai1 = 0;
+        int soDangDeNghi = 0;
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                // BẢO VỆ TẦNG 2: Mở kết nối ĐỘC QUYỀN CHỈ ĐỌC (ReadOnly). 
+                // Triệt tiêu 100% lỗi "Database is locked" khi các Form khác đang thao tác Ghi/Lưu.
+                var builder = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder
+                {
+                    DataSource = dbPath,
+                    Mode = Microsoft.Data.Sqlite.SqliteOpenMode.ReadOnly
+                };
+
+                using var conn = new Microsoft.Data.Sqlite.SqliteConnection(builder.ConnectionString);
+                conn.Open();
+
+                // 1. Lấy và Giải mã % từ bảng QuyDinhTyLe_BaNhat
+                using (var cmdTyLe = conn.CreateCommand())
+                {
+                    cmdTyLe.CommandText = "SELECT TyLe FROM QuyDinhTyLe_BaNhat WHERE ID = 1";
+                    var result = cmdTyLe.ExecuteScalar();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        string tyLeMaHoa = result.ToString();
+                        if (!string.IsNullOrWhiteSpace(tyLeMaHoa))
+                        {
+                            try
+                            {
+                                string tyLeGoc = BaoMatAES.GiaiMa(tyLeMaHoa);
+                                int.TryParse(tyLeGoc, out tyLe);
+                            }
+                            catch { tyLe = 0; }
+                        }
+                    }
+                }
+
+                // 2. Đếm số lượng "Loại 1" trong bảng DanhSach
+                using (var cmdDemLoai1 = conn.CreateCommand())
+                {
+                    cmdDemLoai1.CommandText = "SELECT PhanLoai FROM DanhSach";
+                    using var reader = cmdDemLoai1.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        string phanLoaiMaHoa = reader["PhanLoai"]?.ToString() ?? "";
+                        if (!string.IsNullOrWhiteSpace(phanLoaiMaHoa))
+                        {
+                            try
+                            {
+                                string phanLoaiGoc = BaoMatAES.GiaiMa(phanLoaiMaHoa).Trim();
+                                if (phanLoaiGoc.Equals("Loại 1", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    tongSoLoai1++;
+                                }
+                            }
+                            catch { /* Bỏ qua an toàn */ }
+                        }
+                    }
+                }
+
+                // 3. Đếm số lượng đang được Đề nghị (Có chữ "X")
+                try
+                {
+                    string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                    string tenBangBaNhat = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                                         ? "DanhSachBaNhat_TanBinh"
+                                         : "DanhSachBaNhat";
+
+                    // BẢO VỆ TẦNG 3: Kiểm tra cấu trúc CSDL trực tiếp (Kiểm tra bảng tồn tại).
+                    // Giúp RAM không bị hao hụt bởi việc quăng Exception vô ích nếu bảng chưa được tạo.
+                    using var cmdCheckTable = conn.CreateCommand();
+                    cmdCheckTable.CommandText = "SELECT count(name) FROM sqlite_master WHERE type='table' AND name=@tableName";
+                    cmdCheckTable.Parameters.AddWithValue("@tableName", tenBangBaNhat);
+
+                    if (Convert.ToInt64(cmdCheckTable.ExecuteScalar()) > 0)
+                    {
+                        using var cmdDemDeNghi = conn.CreateCommand();
+                        cmdDemDeNghi.CommandText = $"SELECT DeNghi FROM [{tenBangBaNhat}]";
+                        using var readerDN = cmdDemDeNghi.ExecuteReader();
+                        while (readerDN.Read())
+                        {
+                            string deNghiMaHoa = readerDN["DeNghi"]?.ToString() ?? "";
+                            if (!string.IsNullOrWhiteSpace(deNghiMaHoa))
+                            {
+                                try
+                                {
+                                    string deNghiGoc = BaoMatAES.GiaiMa(deNghiMaHoa).Trim();
+                                    if (deNghiGoc.Equals("X", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        soDangDeNghi++;
+                                    }
+                                }
+                                catch { /* Bỏ qua an toàn */ }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Lỗi truy xuất cấu trúc: {ex.Message}");
+                }
+            });
+
+            // BẢO VỆ TẦNG 4: Quét lại vòng đời UI. 
+            // Nếu người dùng đóng Form ngay lúc Task.Run đang chạy, bỏ qua ngay để không gây Crash.
+            if (labelTyLe.IsDisposed) return;
+
+            // 4. Tính toán số lượng chỉ tiêu
+            int soLuongChiTieu = (int)Math.Round(tongSoLoai1 * (tyLe / 100.0), MidpointRounding.AwayFromZero);
+            double tyLeHienTai = tongSoLoai1 > 0 ? Math.Round((double)soDangDeNghi / tongSoLoai1 * 100, 1) : 0;
+
+            // 5. Xây dựng logic chuỗi
+            string trangThai;
+            if (soDangDeNghi == soLuongChiTieu)
+            {
+                trangThai = "Đạt tỷ lệ";
+            }
+            else if (soDangDeNghi < soLuongChiTieu)
+            {
+                trangThai = $"Đang thiếu: {soLuongChiTieu - soDangDeNghi}";
+            }
+            else
+            {
+                trangThai = $"Đang thừa: {soDangDeNghi - soLuongChiTieu}";
+            }
+
+            string textHienThi = $"           Chỉ tiêu “Ba nhất” {tyLe}% = {soLuongChiTieu} đồng chí | Tỷ lệ hiện tại {soDangDeNghi} đồng chí = {tyLeHienTai}% |      {trangThai}";
+
+            // 6. Đẩy kết quả lên UI
+            // BẢO VỆ TẦNG 5: Sử dụng GetCurrentParent và BeginInvoke để chống treo luồng cục bộ (Cross-thread Deadlock).
+            var parentControl = labelTyLe.GetCurrentParent();
+            if (parentControl != null && parentControl.InvokeRequired)
+            {
+                parentControl.BeginInvoke(new Action(() =>
+                {
+                    if (!labelTyLe.IsDisposed)
+                    {
+                        labelTyLe.Text = textHienThi;
+                    }
+                }));
+            }
+            else if (!labelTyLe.IsDisposed)
+            {
+                labelTyLe.Text = textHienThi;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Lỗi tính toán tỷ lệ Ba Nhất: {ex.Message}");
+        }
+    }
+    // Đường dẫn cơ sở dữ liệu csdl2.db của hệ thống
+
+    public static async Task CapNhatTinhTrangSoVangAsync()
+    {
+        // BẢO VỆ TẦNG 1: Kiểm tra đường dẫn CSDL
+        string dbPath = Module_DanduongGPS.DuongDanCSDL2;
+        if (string.IsNullOrWhiteSpace(dbPath) || !System.IO.File.Exists(dbPath)) return;
+
+        try
+        {
+            // BẢO VỆ TẦNG 2: Đẩy toàn bộ tác vụ nặng xuống luồng nền (Background Thread)
+            await Task.Run(async () =>
+            {
+                // Tự động nhận diện phiên bản đang sử dụng để trỏ đúng bảng
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                string bangDanhSach = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                    ? "DanhSachBaNhat_TanBinh"
+                    : "DanhSachBaNhat";
+                string bangSoVang = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                    ? "DanhSachTanBinh_SoVangBaNhat"
+                    : "DanhSach_SoVangBaNhat";
+
+                using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}");
+                await conn.OpenAsync();
+
+                // 1. Quét bảng Sổ Vàng để lấy danh sách Số Hiệu
+                HashSet<string> tapHopSoHieuDaVaoSo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                // BẢO VỆ TẦNG 3: Kiểm tra bảng Sổ Vàng có tồn tại không trước khi Query
+                using (var cmdCheckSV = conn.CreateCommand())
+                {
+                    cmdCheckSV.CommandText = "SELECT count(name) FROM sqlite_master WHERE type='table' AND name=@tableName";
+                    cmdCheckSV.Parameters.AddWithValue("@tableName", bangSoVang);
+
+                    if (Convert.ToInt64(await cmdCheckSV.ExecuteScalarAsync()) > 0)
+                    {
+                        using var cmdSV = conn.CreateCommand();
+                        cmdSV.CommandText = $"SELECT SoHieu FROM [{bangSoVang}]";
+                        using var readerSV = await cmdSV.ExecuteReaderAsync();
+                        while (await readerSV.ReadAsync())
+                        {
+                            string shEnc = readerSV["SoHieu"]?.ToString() ?? "";
+                            if (!string.IsNullOrWhiteSpace(shEnc))
+                            {
+                                try
+                                {
+                                    tapHopSoHieuDaVaoSo.Add(BaoMatAES.GiaiMa(shEnc).Trim());
+                                }
+                                catch { /* Bỏ qua dòng bị lỗi giải mã */ }
+                            }
+                        }
+                    }
+                }
+
+                // 2. Đối chiếu với Bảng Danh Sách Ba Nhất
+                var danhSachCanCapNhat = new List<(int ID, string TinhTrangMoi)>();
+
+                // Khởi tạo Transaction bảo vệ DB
+                using var transaction = conn.BeginTransaction();
+
+                using (var cmdDS = conn.CreateCommand())
+                {
+                    cmdDS.Transaction = transaction;
+
+                    // Kiểm tra bảng Danh Sách có tồn tại không
+                    cmdDS.CommandText = "SELECT count(name) FROM sqlite_master WHERE type='table' AND name=@tableNameDS";
+                    cmdDS.Parameters.AddWithValue("@tableNameDS", bangDanhSach);
+
+                    if (Convert.ToInt64(await cmdDS.ExecuteScalarAsync()) > 0)
+                    {
+                        cmdDS.CommandText = $"SELECT ID, SoHieu FROM [{bangDanhSach}]";
+                        using var readerDS = await cmdDS.ExecuteReaderAsync();
+                        while (await readerDS.ReadAsync())
+                        {
+                            int id = Convert.ToInt32(readerDS["ID"]);
+                            if (id == -1) continue; // Bỏ qua dòng đệm mồi của DB
+
+                            string shEnc = readerDS["SoHieu"]?.ToString() ?? "";
+                            string shDec = string.IsNullOrWhiteSpace(shEnc) ? "" : BaoMatAES.GiaiMa(shEnc).Trim();
+
+                            // NẾU Số hiệu có trong Hash Sổ Vàng -> "Đã đề nghị"
+                            string tinhTrangMoi = (!string.IsNullOrEmpty(shDec) && tapHopSoHieuDaVaoSo.Contains(shDec))
+                                                ? "Đã đề nghị"
+                                                : "Chưa đề nghị";
+
+                            danhSachCanCapNhat.Add((id, BaoMatAES.MaHoa(tinhTrangMoi)));
+                        }
+                    }
+                }
+
+                // 3. Thực thi UPDATE đồng loạt vào Cơ sở dữ liệu
+                if (danhSachCanCapNhat.Count > 0)
+                {
+                    using var cmdUpdate = conn.CreateCommand();
+                    cmdUpdate.Transaction = transaction;
+                    cmdUpdate.CommandText = $"UPDATE [{bangDanhSach}] SET TinhTrang = @tt WHERE ID = @id";
+
+                    var pTT = cmdUpdate.Parameters.Add("@tt", Microsoft.Data.Sqlite.SqliteType.Text);
+                    var pID = cmdUpdate.Parameters.Add("@id", Microsoft.Data.Sqlite.SqliteType.Integer);
+
+                    foreach (var item in danhSachCanCapNhat)
+                    {
+                        pTT.Value = item.TinhTrangMoi;
+                        pID.Value = item.ID;
+                        await cmdUpdate.ExecuteNonQueryAsync();
+                    }
+                }
+
+                // Chốt hạ dữ liệu an toàn
+                await transaction.CommitAsync();
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine("Lỗi tính toán tình trạng sổ vàng: " + ex.Message);
+        }
+    }
+    // ==============================================================================
+    // 1. HÀM XUẤT DANH SÁCH GỐC (Form 42 gọi)
+    // ==============================================================================
+    public static async Task XuatDuLieuRaTepExcelTuCSDL_ToiUu(List<DanhSachGocBaNhatDTO> danhSach, string filePathLuu)
+    {
+        try
+        {
+            await Task.Run(() =>
+            {
+                using (var wb = new XLWorkbook())
+                {
+                    var ws = wb.Worksheets.Add("DS_BANHAT_CSDL");
+
+                    string[] headers = { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú", "Đề nghị", "Thành tích" };
+                    ws.Row(1).Height = 36;
+
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        var cell = ws.Cell(1, i + 1);
+                        cell.Value = headers[i];
+                        cell.Style.Font.Bold = true;
+                        cell.Style.Font.FontName = "Times New Roman";
+                        cell.Style.Font.FontSize = 13;
+                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        cell.Style.Alignment.WrapText = true;
+                        cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#EBF1F5");
+                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        cell.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                    }
+
+                    double[] widths = { 6, 25, 12, 10, 25, 12, 14, 15, 15, 12, 20, 10, 35 };
+                    for (int i = 0; i < widths.Length; i++) ws.Column(i + 1).Width = widths[i];
+
+                    int startRow = 2;
+                    int stt = 1;
+
+                    foreach (var item in danhSach)
+                    {
+                        ws.Cell(startRow, 1).Value = stt++;
+                        ws.Cell(startRow, 2).Value = item.HoVaTen;
+                        ws.Cell(startRow, 3).Value = item.SoHieu;
+                        ws.Cell(startRow, 4).Value = item.NamSinh;
+                        ws.Cell(startRow, 5).Value = item.QueQuan;
+                        ws.Cell(startRow, 6).Value = item.NgayVaoCAND;
+                        ws.Cell(startRow, 7).Value = item.CapBac;
+                        ws.Cell(startRow, 8).Value = item.ChucVu;
+                        ws.Cell(startRow, 9).Value = item.DonVi;
+                        ws.Cell(startRow, 10).Value = item.PhanLoai;
+                        ws.Cell(startRow, 11).Value = item.GhiChu;
+                        ws.Cell(startRow, 12).Value = item.DeNghi;
+                        ws.Cell(startRow, 13).Value = item.ThanhTich;
+
+                        ws.Cell(startRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        ws.Cell(startRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 4).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 5).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        ws.Cell(startRow, 6).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 7).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 8).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 11).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        ws.Cell(startRow, 12).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 13).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+
+                        ws.Cell(startRow, 11).Style.Alignment.WrapText = true;
+                        ws.Cell(startRow, 13).Style.Alignment.WrapText = true;
+
+                        var range = ws.Range(startRow, 1, startRow, 13);
+                        range.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        range.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                        range.Style.Font.FontName = "Times New Roman";
+                        range.Style.Font.FontSize = 13;
+                        range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                        ws.Row(startRow).Height = 36;
+                        startRow++;
+                    }
+
+                    Module_BanQuyen.DongDauExcel(wb);
+                    wb.SaveAs(filePathLuu);
+                }
+            });
+
+            Module_NhatKy.GhiNhatKy(
+                taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                hanhDong: "Xuất tệp excel toàn bộ CSDL gốc Ba Nhất",
+                ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+            );
+
+            if (File.Exists(filePathLuu))
+            {
+                Module_BaNhat.MoTepExcelThiDuaPhongTrao3Nhat(filePathLuu);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Lỗi khi xuất file: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    // ==============================================================================
+    // 2. HÀM XUẤT DANH SÁCH ĐỀ NGHỊ CÓ BẢNG TỶ LỆ (Form 42 gọi)
+    // ==============================================================================
+    public static async Task XuatDanhSachBaNhatToExcelAsync(Form parentForm, List<DeNghiBaNhatDTO> danhSach)
+    {
+        string templatePath = Module_DanduongGPS.DuongDanCSDL4ex;
+        string dbPath = Module_DanduongGPS.DuongDanCSDL2; // Dùng biến toàn cục thay cho _csdl2Path
+
+        if (!File.Exists(templatePath))
+        {
+            MessageBox.Show("Không tìm thấy file mẫu Excel tại: " + templatePath, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        string kyHieuTieuDoan = "D2";
+        try
+        {
+            using (var conn = new SqliteConnection($"Data Source={dbPath}"))
+            {
+                await conn.OpenAsync();
+                using var cmdKyHieu = conn.CreateCommand();
+                cmdKyHieu.CommandText = "SELECT KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1";
+                using var reader = await cmdKyHieu.ExecuteReaderAsync();
+
+                if (await reader.ReadAsync())
+                {
+                    string giaiMaTD = BaoMatAES.GiaiMa(reader["KyHieu_TieuDoan"]?.ToString() ?? "");
+                    if (!string.IsNullOrWhiteSpace(giaiMaTD)) kyHieuTieuDoan = giaiMaTD;
+                }
+            }
+        }
+        catch (Exception ex) { Debug.WriteLine($"Lỗi đọc Ký hiệu: {ex.Message}"); }
+
+        using var sfd = new SaveFileDialog
+        {
+            Filter = "Excel Files|*.xlsx",
+            FileName = $"BÁO CÁO BIỂU DƯƠNG PHONG TRÀO BA NHẤT CỦA {kyHieuTieuDoan} {DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
+            Title = "Chọn nơi lưu file Excel"
+        };
+
+        if (sfd.ShowDialog() != DialogResult.OK) return;
+        string filePathLuu = sfd.FileName;
+        Form_Loading frmLoad = new Form_Loading("Đang tạo tệp excel, vui lòng đợi...");
+        bool isLoadShown = false;
+
+        // Gán icon theo Form cha nếu có
+        if (parentForm != null) frmLoad.Icon = parentForm.Icon;
+
+        try
+        {
+            // Khóa Form cha truyền vào thay vì dùng 'this'
+            if (parentForm != null) parentForm.Enabled = false;
+
+            frmLoad.Show(parentForm);
+            isLoadShown = true;
+            await Task.Delay(50);
+
+            await Task.Run(() =>
+            {
+                using (var wb = new XLWorkbook(templatePath))
+                {
+                    var danhSachSheetXoa = new List<string>();
+                    foreach (var worksheet in wb.Worksheets)
+                    {
+                        if (!worksheet.Name.Equals("BC_BANHAT", StringComparison.OrdinalIgnoreCase) &&
+                            !worksheet.Name.Equals("DS_BANHAT", StringComparison.OrdinalIgnoreCase))
+                            danhSachSheetXoa.Add(worksheet.Name);
+                    }
+                    foreach (var sheetName in danhSachSheetXoa) wb.Worksheets.Delete(sheetName);
+
+                    var ws = wb.Worksheet("DS_BANHAT");
+
+                    string dong1 = "", donviCapTrung = "", donviCapTieu = "";
+                    try
+                    {
+                        using (var conn = new SqliteConnection($"Data Source={dbPath}"))
+                        {
+                            conn.Open();
+                            using var cmd = conn.CreateCommand();
+                            cmd.CommandText = "SELECT textBox1_TenTrungDoanDong1, TenTrungDoan, TenTieuDoan FROM ThongTin WHERE ID = 1";
+                            using var rd = cmd.ExecuteReader();
+                            if (rd.Read())
+                            {
+                                dong1 = BaoMatAES.GiaiMa(rd[0].ToString());
+                                donviCapTrung = BaoMatAES.GiaiMa(rd[1].ToString());
+                                donviCapTieu = BaoMatAES.GiaiMa(rd[2].ToString());
+                            }
+                        }
+                    }
+                    catch { }
+
+                    void GanGachChan1Phan3(IXLCell cell, string text)
+                    {
+                        if (cell == null || string.IsNullOrWhiteSpace(text)) return;
+                        cell.Value = text;
+                        int totalLen = text.Length;
+                        int underlineLen = (int)Math.Ceiling(totalLen / 2.0);
+                        int start = (totalLen - underlineLen) / 2;
+                        cell.GetRichText().Substring(start, underlineLen).SetUnderline();
+                    }
+
+                    var cellA1 = ws.Cell("A1");
+                    cellA1.Value = string.IsNullOrWhiteSpace(dong1) ? "      " : dong1;
+                    cellA1.Style.Font.FontName = "Times New Roman"; cellA1.Style.Font.FontSize = 13;
+                    cellA1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                    if (!string.IsNullOrWhiteSpace(donviCapTrung))
+                    {
+                        var cellA2 = ws.Cell("A2"); cellA2.Value = donviCapTrung;
+                        cellA2.Style.Font.FontName = "Times New Roman"; cellA2.Style.Font.FontSize = 13;
+                        cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                        var cellA3 = ws.Cell("A3"); cellA3.Value = donviCapTieu;
+                        cellA3.Style.Font.FontName = "Times New Roman"; cellA3.Style.Font.FontSize = 13; cellA3.Style.Font.Bold = true;
+                        cellA3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        GanGachChan1Phan3(cellA3, donviCapTieu);
+                    }
+                    else
+                    {
+                        var cellA2 = ws.Cell("A2"); cellA2.Value = donviCapTieu;
+                        cellA2.Style.Font.FontName = "Times New Roman"; cellA2.Style.Font.FontSize = 13; cellA2.Style.Font.Bold = true;
+                        cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        GanGachChan1Phan3(cellA2, donviCapTieu);
+                        ws.Cell("A3").Value = "";
+                    }
+
+                    string thang = "", nam = "", ngay = "", diaDiem = "", kyHieuBaoCao = "...............";
+                    try
+                    {
+                        using var conn = new SqliteConnection($"Data Source={dbPath}");
+                        conn.Open();
+                        using var cmd = conn.CreateCommand();
+                        cmd.CommandText = "SELECT Thang, Nam, Ngay, DiaDiem, KyHieuBaoCao FROM ThongTin WHERE ID = 1";
+                        using var rd = cmd.ExecuteReader();
+                        if (rd.Read())
+                        {
+                            thang = BaoMatAES.GiaiMa(rd["Thang"]?.ToString() ?? "").Trim();
+                            nam = BaoMatAES.GiaiMa(rd["Nam"]?.ToString() ?? "").Trim();
+                            ngay = BaoMatAES.GiaiMa(rd["Ngay"]?.ToString() ?? "").Trim();
+                            diaDiem = BaoMatAES.GiaiMa(rd["DiaDiem"]?.ToString() ?? "").Trim();
+                            kyHieuBaoCao = BaoMatAES.GiaiMa(rd["KyHieuBaoCao"]?.ToString() ?? "");
+                        }
+                    }
+                    catch { }
+
+                    ws.Range("F3:J3").Clear(XLClearOptions.Contents);
+                    string tieuDeNgay = !string.IsNullOrWhiteSpace(diaDiem) ? $"{diaDiem}, ngày {ngay} tháng {thang} năm {nam}" : $"(ngày {ngay} tháng {thang} năm {nam})";
+                    var rangeF3 = ws.Range("F3:J3");
+                    rangeF3.Merge();
+                    var cellF3 = ws.Cell("F3");
+                    cellF3.Value = tieuDeNgay;
+                    cellF3.Style.Font.Italic = true;
+                    cellF3.Style.Font.FontName = "Times New Roman";
+                    cellF3.Style.Font.FontSize = 13;
+                    cellF3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    cellF3.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                    ws.Range("A9:J500000").Clear(XLClearOptions.All);
+
+                    ws.Range("A5:J5").Merge().Value = $"CBCS ĐỀ NGHỊ BIỂU DƯƠNG GƯƠNG ĐIỂN HÌNH TRONG THỰC HIỆN PHONG TRÀO THI ĐUA BA NHẤT THÁNG {thang}/{nam}";
+                    ws.Range("A5:J5").Style.Font.Bold = true; ws.Range("A5:J5").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    var rangeA6 = ws.Range("A6:J6");
+                    rangeA6.Merge();
+
+                    // Ở trong Module gọi về hàm tĩnh trong Form42 để dùng hoặc viết lại Logic (đã viết lại inline cho an toàn độc lập)
+                    string donViHienThi = string.IsNullOrWhiteSpace(donviCapTieu) ? "" : char.ToUpper(donviCapTieu.Trim().ToLower()[0]) + donviCapTieu.Trim().ToLower().Substring(1);
+
+                    string textA6 = $"(Kèm theo Báo cáo số:                 {kyHieuBaoCao}, ngày {ngay}/{thang}/{nam} của {donViHienThi})";
+                    var cellA6 = ws.Cell("A6");
+                    cellA6.Value = textA6;
+                    cellA6.Style.Font.Italic = true;
+                    cellA6.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                    int start = textA6.IndexOf("cáo");
+                    int end = textA6.IndexOf("của");
+                    if (start >= 0 && end > start)
+                    {
+                        cellA6.GetRichText().Substring(start, end - start + 4).SetUnderline();
+                    }
+
+                    int startRow = 9;
+                    int stt = 1;
+
+                    foreach (var item in danhSach)
+                    {
+                        ws.Cell(startRow, 1).Value = stt++;
+                        ws.Cell(startRow, 2).Value = item.HoVaTen;
+                        ws.Cell(startRow, 3).Value = item.SoHieu;
+                        ws.Cell(startRow, 4).Value = item.NamSinh;
+                        ws.Cell(startRow, 5).Value = item.NgayVaoCAND;
+                        ws.Cell(startRow, 6).Value = item.CapBac;
+                        ws.Cell(startRow, 7).Value = item.ChucVu;
+                        ws.Cell(startRow, 8).Value = item.DonVi;
+                        ws.Cell(startRow, 9).Value = item.PhanLoai;
+                        ws.Cell(startRow, 10).Value = item.ThanhTich;
+
+                        ws.Cell(startRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        for (int c = 3; c <= 9; c++) ws.Cell(startRow, c).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.Cell(startRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        ws.Cell(startRow, 10).Style.Alignment.WrapText = true;
+
+                        var range = ws.Range(startRow, 1, startRow, 10);
+                        range.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        range.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                        range.Style.Font.FontName = "Times New Roman";
+                        range.Style.Font.FontSize = 13;
+
+                        startRow++;
+                    }
+
+                    for (int i = 9; i < startRow; i++) ws.Row(i).ClearHeight();
+
+                    int tong = stt - 1;
+                    string tongStr = tong.ToString("00");
+                    var rngTong = ws.Range(startRow, 1, startRow, 2);
+                    rngTong.Merge();
+                    rngTong.Value = $"Tổng cộng: {tongStr} đồng chí./.";
+                    rngTong.Style.Font.Bold = true;
+                    rngTong.Style.Font.Italic = true;
+                    rngTong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    rngTong.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                    int rowTongCong = startRow;
+                    int dongKy = rowTongCong + 1;
+                    string hoTenKy = "";
+                    string chucVuTieuDoanTruong = "";
+                    int dongDauTienID = -1;
+                    string chucVuNguoiKy = "";
+                    int dongNguoiKyID = -1;
+
+                    using (var conn2 = new SqliteConnection($"Data Source={dbPath}"))
+                    {
+                        conn2.Open();
+                        try
+                        {
+                            using var cmdTT = conn2.CreateCommand();
+                            cmdTT.CommandText = "SELECT ChiHuyD FROM ThongTin WHERE ID = 1";
+                            var result = cmdTT.ExecuteScalar();
+                            if (result != null && result != DBNull.Value)
+                                hoTenKy = BaoMatAES.GiaiMa(result.ToString()).Trim();
+                        }
+                        catch { }
+
+                        try
+                        {
+                            using var cmdCH = conn2.CreateCommand();
+                            cmdCH.CommandText = "SELECT ID, HoVaTen, ChucVu FROM ChiHuyD ORDER BY ID ASC";
+                            using var rd = cmdCH.ExecuteReader();
+                            bool isFirst = true;
+                            bool foundMatch = false;
+                            while (rd.Read())
+                            {
+                                int id = Convert.ToInt32(rd["ID"]);
+                                string htRaw = rd["HoVaTen"]?.ToString() ?? "";
+                                string cvRaw = rd["ChucVu"]?.ToString() ?? "";
+                                string htDec = BaoMatAES.GiaiMa(htRaw).Trim();
+                                if (string.IsNullOrEmpty(htDec)) htDec = htRaw.Trim();
+                                string cvDec = BaoMatAES.GiaiMa(cvRaw).Trim();
+                                if (string.IsNullOrEmpty(cvDec)) cvDec = cvRaw.Trim();
+
+                                if (isFirst) { dongDauTienID = id; chucVuTieuDoanTruong = cvDec; isFirst = false; }
+                                if (htDec.Equals(hoTenKy, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    dongNguoiKyID = id; chucVuNguoiKy = cvDec; foundMatch = true;
+                                }
+                            }
+                            if (!foundMatch) { dongNguoiKyID = dongDauTienID; chucVuNguoiKy = chucVuTieuDoanTruong; }
+                        }
+                        catch { }
+                    }
+
+                    void GhiDongKy(string text)
+                    {
+                        var rangeKy = ws.Range(dongKy, 6, dongKy, 10);
+                        rangeKy.Merge();
+                        var c = ws.Cell(dongKy, 6);
+                        c.Value = text;
+                        c.Style.Font.Bold = true;
+                        c.Style.Font.FontName = "Times New Roman";
+                        c.Style.Font.FontSize = 14;
+                        c.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        c.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        dongKy++;
+                    }
+
+                    if (dongNguoiKyID == dongDauTienID)
+                    {
+                        GhiDongKy(chucVuTieuDoanTruong.ToUpper());
+                    }
+                    else
+                    {
+                        GhiDongKy("KT. " + chucVuTieuDoanTruong.ToUpper());
+                        GhiDongKy(chucVuNguoiKy.ToUpper());
+                    }
+
+                    dongKy += 4;
+                    GhiDongKy(hoTenKy);
+
+                    Module_BanQuyen.DongDauExcel(wb);
+
+                    try
+                    {
+                        var wsBaoCao = wb.Worksheet("BC_BANHAT");
+                        foreach (var sheet in wb.Worksheets)
+                        {
+                            try { sheet.SetTabSelected(false); } catch { }
+                        }
+                        wsBaoCao.SetTabActive();
+                        wsBaoCao.SetTabSelected(true);
+                        wsBaoCao.Cell("A1").SetActive();
+                        wsBaoCao.Range("A1").Select();
+                    }
+                    catch { }
+
+                    wb.SaveAs(filePathLuu);
+                }
+            });
+
+            Module_NhatKy.GhiNhatKy(
+                taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                hanhDong: "Xuất tệp excel báo cáo thi đua Ba Nhất",
+                ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+            );
+
+            // Xuất tiếp báo cáo tổng hợp
+            XuatBaoCaoTongHop(filePathLuu);
+
+            if (File.Exists(filePathLuu))
+            {
+                MoTepExcelThiDuaPhongTrao3Nhat(filePathLuu);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            if (isLoadShown)
+            {
+                frmLoad.Close();
+                if (parentForm != null)
+                {
+                    parentForm.Enabled = true;
+                    parentForm.Focus();
+                }
+            }
         }
     }
 }

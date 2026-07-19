@@ -1050,7 +1050,8 @@ namespace PhanMemThiDua2026
             {
                 Title = "Chọn nơi lưu file Excel",
                 InitialDirectory = desktopPath,
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+               // Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm",
                 FileName = $"Nhật ký Phần mềm Thi đua 2026 - {DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
                 AddExtension = true,
                 DefaultExt = "xlsx"

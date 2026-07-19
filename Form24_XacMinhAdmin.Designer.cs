@@ -97,10 +97,10 @@ namespace PhanMemThiDua2026
             // btn_XacThuc
             // 
             btn_XacThuc.Anchor = AnchorStyles.Top;
-            btn_XacThuc.Location = new Point(285, 2);
+            btn_XacThuc.Location = new Point(281, 2);
             btn_XacThuc.Margin = new Padding(2);
             btn_XacThuc.Name = "btn_XacThuc";
-            btn_XacThuc.Size = new Size(117, 28);
+            btn_XacThuc.Size = new Size(124, 30);
             btn_XacThuc.StateCommon.Border.Rounding = 4F;
             btn_XacThuc.TabIndex = 0;
             btn_XacThuc.Values.DropDownArrowColor = Color.Empty;
@@ -128,10 +128,10 @@ namespace PhanMemThiDua2026
             // btn_Thoat
             // 
             btn_Thoat.Anchor = AnchorStyles.Top;
-            btn_Thoat.Location = new Point(56, 2);
+            btn_Thoat.Location = new Point(52, 2);
             btn_Thoat.Margin = new Padding(2);
             btn_Thoat.Name = "btn_Thoat";
-            btn_Thoat.Size = new Size(117, 28);
+            btn_Thoat.Size = new Size(124, 30);
             btn_Thoat.StateCommon.Border.Rounding = 4F;
             btn_Thoat.TabIndex = 1;
             btn_Thoat.Values.DropDownArrowColor = Color.Empty;
@@ -228,6 +228,7 @@ namespace PhanMemThiDua2026
             Margin = new Padding(2);
             Name = "Form24_XacMinhAdmin";
             Text = "Xác thực quyền admin";
+            Load += Form24_XacMinhAdmin_Load;
             ((System.ComponentModel.ISupportInitialize)PictureBox1).EndInit();
             TableLayoutPanel3.ResumeLayout(false);
             TableLayoutPanel1.ResumeLayout(false);

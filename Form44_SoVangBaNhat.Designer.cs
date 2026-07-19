@@ -62,10 +62,11 @@
             kryptonTextBox1_SoTTTrongSo = new Krypton.Toolkit.KryptonTextBox();
             kryptonTextBox1_ThangCongNhan = new Krypton.Toolkit.KryptonTextBox();
             tableLayoutPanel8 = new TableLayoutPanel();
+            groupBox1 = new GroupBox();
+            richTextBox1_ThanhTich = new RichTextBox();
             tableLayoutPanel9 = new TableLayoutPanel();
             kryptonButton_LuuDataSoVang = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_XoaCBCS = new Krypton.Toolkit.KryptonButton();
-            richTextBox1_ThanhTich = new RichTextBox();
             groupBox3_ThongTinCBCS = new GroupBox();
             kryptonDataGridView1 = new Krypton.Toolkit.KryptonDataGridView();
             statusStrip1 = new StatusStrip();
@@ -95,11 +96,11 @@
             kryptonButton_RefershCSDL = new Krypton.Toolkit.KryptonButton();
             tableLayoutPanel7 = new TableLayoutPanel();
             toolTip1 = new ToolTip(components);
-            groupBox1 = new GroupBox();
             tableLayoutPanel3.SuspendLayout();
             tableLayoutPanel4.SuspendLayout();
             tableLayoutPanel10.SuspendLayout();
             tableLayoutPanel8.SuspendLayout();
+            groupBox1.SuspendLayout();
             tableLayoutPanel9.SuspendLayout();
             groupBox3_ThongTinCBCS.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)kryptonDataGridView1).BeginInit();
@@ -113,7 +114,6 @@
             groupBox2_KhoiLenhDieuKhien.SuspendLayout();
             tableLayoutPanel6.SuspendLayout();
             tableLayoutPanel7.SuspendLayout();
-            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel3
@@ -538,6 +538,30 @@
             tableLayoutPanel8.Size = new Size(489, 220);
             tableLayoutPanel8.TabIndex = 29;
             // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(richTextBox1_ThanhTich);
+            groupBox1.Dock = DockStyle.Fill;
+            groupBox1.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            groupBox1.ForeColor = Color.Red;
+            groupBox1.Location = new Point(3, 3);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(483, 163);
+            groupBox1.TabIndex = 30;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Thành tích";
+            // 
+            // richTextBox1_ThanhTich
+            // 
+            richTextBox1_ThanhTich.Dock = DockStyle.Fill;
+            richTextBox1_ThanhTich.Font = new Font("Segoe UI", 12F, FontStyle.Italic, GraphicsUnit.Point, 0);
+            richTextBox1_ThanhTich.Location = new Point(3, 20);
+            richTextBox1_ThanhTich.Margin = new Padding(2, 4, 2, 4);
+            richTextBox1_ThanhTich.Name = "richTextBox1_ThanhTich";
+            richTextBox1_ThanhTich.Size = new Size(477, 140);
+            richTextBox1_ThanhTich.TabIndex = 27;
+            richTextBox1_ThanhTich.Text = "";
+            // 
             // tableLayoutPanel9
             // 
             tableLayoutPanel9.ColumnCount = 2;
@@ -584,17 +608,6 @@
             kryptonButton1_XoaCBCS.Values.Image = (Image)resources.GetObject("kryptonButton1_XoaCBCS.Values.Image");
             kryptonButton1_XoaCBCS.Values.Text = "Xóa";
             kryptonButton1_XoaCBCS.Click += kryptonButton1_XoaCBCS_Click;
-            // 
-            // richTextBox1_ThanhTich
-            // 
-            richTextBox1_ThanhTich.Dock = DockStyle.Fill;
-            richTextBox1_ThanhTich.Font = new Font("Segoe UI", 12F, FontStyle.Italic, GraphicsUnit.Point, 0);
-            richTextBox1_ThanhTich.Location = new Point(3, 20);
-            richTextBox1_ThanhTich.Margin = new Padding(2, 4, 2, 4);
-            richTextBox1_ThanhTich.Name = "richTextBox1_ThanhTich";
-            richTextBox1_ThanhTich.Size = new Size(477, 140);
-            richTextBox1_ThanhTich.TabIndex = 27;
-            richTextBox1_ThanhTich.Text = "";
             // 
             // groupBox3_ThongTinCBCS
             // 
@@ -645,7 +658,7 @@
             ToolStripMenuItem_XuatDanhSach.Image = (Image)resources.GetObject("ToolStripMenuItem_XuatDanhSach.Image");
             ToolStripMenuItem_XuatDanhSach.Name = "ToolStripMenuItem_XuatDanhSach";
             ToolStripMenuItem_XuatDanhSach.Size = new Size(191, 28);
-            ToolStripMenuItem_XuatDanhSach.Text = "Xuất danh sách";
+            ToolStripMenuItem_XuatDanhSach.Text = "Xuất tệp (Sổ vàng)";
             ToolStripMenuItem_XuatDanhSach.Click += ToolStripMenuItem_XuatDanhSach_Click;
             // 
             // toolStripMenuItem1
@@ -922,19 +935,6 @@
             tableLayoutPanel7.Size = new Size(1258, 261);
             tableLayoutPanel7.TabIndex = 2;
             // 
-            // groupBox1
-            // 
-            groupBox1.Controls.Add(richTextBox1_ThanhTich);
-            groupBox1.Dock = DockStyle.Fill;
-            groupBox1.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            groupBox1.ForeColor = Color.Red;
-            groupBox1.Location = new Point(3, 3);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(483, 163);
-            groupBox1.TabIndex = 30;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "Thành tích";
-            // 
             // Form44_SoVangBaNhat
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -950,6 +950,7 @@
             tableLayoutPanel10.ResumeLayout(false);
             tableLayoutPanel10.PerformLayout();
             tableLayoutPanel8.ResumeLayout(false);
+            groupBox1.ResumeLayout(false);
             tableLayoutPanel9.ResumeLayout(false);
             groupBox3_ThongTinCBCS.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)kryptonDataGridView1).EndInit();
@@ -965,7 +966,6 @@
             groupBox2_KhoiLenhDieuKhien.ResumeLayout(false);
             tableLayoutPanel6.ResumeLayout(false);
             tableLayoutPanel7.ResumeLayout(false);
-            groupBox1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }

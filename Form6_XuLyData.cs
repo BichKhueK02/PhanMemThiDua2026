@@ -112,6 +112,7 @@ namespace PhanMemThiDua2026
             _ = ReloadDuLieu();
             // KHÓA Ô STT VÀ ĐĂNG KÝ SỰ KIỆN PHỤ
             textBox_STT.ReadOnly = true;
+            textBox_SoHieu.ReadOnly = true;
             kryptonDataGridView1.Resize += kryptonDataGridView1_Resize;
             kryptonDataGridView1.EnableDoubleBuffered(true);
             this.BeginInvoke(new Action(() =>
@@ -954,29 +955,26 @@ namespace PhanMemThiDua2026
 
                 // ==============================================================
                 // XỬ LÝ TRẠNG THÁI VÀ MÀU SẮC MẶC ĐỊNH CHO CÁC Ô BỊ KHÓA
+                // LÝ DO: STT chỉ để xem, Số hiệu là Khóa chính (Primary Key) nên cấm sửa tuyệt đối.
                 // ==============================================================
 
-                // 1. Ô STT: Luôn luôn chỉ xem, gán màu xám mặc định
+                // 1. Khóa cứng thuộc tính ReadOnly để không thể gõ phím
                 textBox_STT.ReadOnly = true;
-                textBox_STT.BackColor = System.Drawing.Color.LightGray; // Dành cho TextBox thường
+                textBox_SoHieu.ReadOnly = true;
+
+                // 2. Đổi màu nền sang xám (LightGray) cho TextBox chuẩn của Windows
+                textBox_STT.BackColor = System.Drawing.Color.LightGray;
+                textBox_SoHieu.BackColor = System.Drawing.Color.LightGray;
+
+                // 3. Đổi màu nền sang xám nếu sử dụng KryptonTextBox (Giao diện Krypton)
                 if (textBox_STT is Krypton.Toolkit.KryptonTextBox kStt)
                 {
-                    kStt.StateCommon.Back.Color1 = System.Drawing.Color.LightGray; // Dành cho Krypton
+                    kStt.StateCommon.Back.Color1 = System.Drawing.Color.LightGray;
                 }
 
-                // 2. Ô Số Hiệu: Khóa và tô xám nếu là Tân binh, ngược lại mở khóa và để nền trắng
-                textBox_SoHieu.ReadOnly = laTanBinh;
-                if (laTanBinh)
+                if (textBox_SoHieu is Krypton.Toolkit.KryptonTextBox kSoHieu)
                 {
-                    textBox_SoHieu.BackColor = System.Drawing.Color.LightGray;
-                    if (textBox_SoHieu is Krypton.Toolkit.KryptonTextBox kSoHieu)
-                        kSoHieu.StateCommon.Back.Color1 = System.Drawing.Color.LightGray;
-                }
-                else
-                {
-                    textBox_SoHieu.BackColor = System.Drawing.Color.White;
-                    if (textBox_SoHieu is Krypton.Toolkit.KryptonTextBox kSoHieu)
-                        kSoHieu.StateCommon.Back.Color1 = System.Drawing.Color.White;
+                    kSoHieu.StateCommon.Back.Color1 = System.Drawing.Color.LightGray;
                 }
             }
             catch (Exception ex)
@@ -2826,7 +2824,8 @@ namespace PhanMemThiDua2026
             #region BƯỚC 1: TƯƠNG TÁC NGƯỜI DÙNG & KIỂM TRA MÔI TRƯỜNG (UI Thread)
             using OpenFileDialog ofd = new OpenFileDialog
             {
-                Filter = "Excel Files (*.xlsx)|*.xlsx",
+                //Filter = "Excel Files (*.xlsx)|*.xlsx",
+                Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm",
                 Title = "Chọn tệp Excel để nạp dữ liệu"
             };
 

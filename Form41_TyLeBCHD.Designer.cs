@@ -38,7 +38,6 @@
             textBox_E1 = new Krypton.Toolkit.KryptonTextBox();
             textBox_D3 = new Krypton.Toolkit.KryptonTextBox();
             textBox_D2 = new Krypton.Toolkit.KryptonTextBox();
-            toolStripStatusLabel1 = new ToolStripStatusLabel();
             textBox_D1 = new Krypton.Toolkit.KryptonTextBox();
             textBox_C3 = new Krypton.Toolkit.KryptonTextBox();
             textBox_C2 = new Krypton.Toolkit.KryptonTextBox();
@@ -46,8 +45,6 @@
             textBox_B3 = new Krypton.Toolkit.KryptonTextBox();
             textBox_B2 = new Krypton.Toolkit.KryptonTextBox();
             textBox_B1 = new Krypton.Toolkit.KryptonTextBox();
-            statusStrip1 = new StatusStrip();
-            toolStripStatusLabel2 = new ToolStripStatusLabel();
             textBox_A3 = new Krypton.Toolkit.KryptonTextBox();
             textBox_A1 = new Krypton.Toolkit.KryptonTextBox();
             label19 = new Label();
@@ -64,11 +61,14 @@
             tableLayoutPanel1 = new TableLayoutPanel();
             groupBox_TyLeTheoQuyDinh = new GroupBox();
             toolTip1 = new ToolTip(components);
+            statusStrip1 = new StatusStrip();
+            toolStripStatusLabel1 = new ToolStripStatusLabel();
+            toolStripStatusLabel2 = new ToolStripStatusLabel();
             tableLayoutPanel2.SuspendLayout();
-            statusStrip1.SuspendLayout();
             tableLayoutPanel12.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             groupBox_TyLeTheoQuyDinh.SuspendLayout();
+            statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel2
@@ -79,21 +79,21 @@
             tableLayoutPanel2.Controls.Add(kryptonButton_LuuE29, 1, 0);
             tableLayoutPanel2.Controls.Add(label1_ThongBao, 0, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(3, 212);
+            tableLayoutPanel2.Location = new Point(3, 189);
             tableLayoutPanel2.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Size = new Size(798, 51);
+            tableLayoutPanel2.Size = new Size(786, 47);
             tableLayoutPanel2.TabIndex = 30;
             // 
             // kryptonButton_LuuE29
             // 
             kryptonButton_LuuE29.Anchor = AnchorStyles.None;
-            kryptonButton_LuuE29.Location = new Point(618, 11);
+            kryptonButton_LuuE29.Location = new Point(607, 8);
             kryptonButton_LuuE29.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_LuuE29.Name = "kryptonButton_LuuE29";
-            kryptonButton_LuuE29.Size = new Size(141, 28);
+            kryptonButton_LuuE29.Size = new Size(142, 30);
             kryptonButton_LuuE29.StateCommon.Border.Rounding = 4F;
             kryptonButton_LuuE29.TabIndex = 29;
             kryptonButton_LuuE29.Values.DropDownArrowColor = Color.Empty;
@@ -107,7 +107,7 @@
             label1_ThongBao.AutoSize = true;
             label1_ThongBao.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label1_ThongBao.ForeColor = Color.FromArgb(0, 0, 192);
-            label1_ThongBao.Location = new Point(3, 16);
+            label1_ThongBao.Location = new Point(3, 14);
             label1_ThongBao.Name = "label1_ThongBao";
             label1_ThongBao.Size = new Size(15, 19);
             label1_ThongBao.TabIndex = 30;
@@ -116,7 +116,7 @@
             // textBox_E3
             // 
             textBox_E3.Anchor = AnchorStyles.None;
-            textBox_E3.Location = new Point(688, 165);
+            textBox_E3.Location = new Point(677, 144);
             textBox_E3.Margin = new Padding(3, 2, 3, 2);
             textBox_E3.Name = "textBox_E3";
             textBox_E3.Size = new Size(60, 29);
@@ -128,7 +128,7 @@
             // textBox_E2
             // 
             textBox_E2.Anchor = AnchorStyles.None;
-            textBox_E2.Location = new Point(688, 113);
+            textBox_E2.Location = new Point(677, 98);
             textBox_E2.Margin = new Padding(3, 2, 3, 2);
             textBox_E2.Name = "textBox_E2";
             textBox_E2.Size = new Size(60, 29);
@@ -140,7 +140,7 @@
             // textBox_E1
             // 
             textBox_E1.Anchor = AnchorStyles.None;
-            textBox_E1.Location = new Point(688, 62);
+            textBox_E1.Location = new Point(677, 53);
             textBox_E1.Margin = new Padding(3, 2, 3, 2);
             textBox_E1.Name = "textBox_E1";
             textBox_E1.Size = new Size(60, 29);
@@ -152,7 +152,7 @@
             // textBox_D3
             // 
             textBox_D3.Anchor = AnchorStyles.None;
-            textBox_D3.Location = new Point(551, 165);
+            textBox_D3.Location = new Point(542, 144);
             textBox_D3.Margin = new Padding(3, 2, 3, 2);
             textBox_D3.Name = "textBox_D3";
             textBox_D3.Size = new Size(60, 29);
@@ -164,7 +164,7 @@
             // textBox_D2
             // 
             textBox_D2.Anchor = AnchorStyles.None;
-            textBox_D2.Location = new Point(551, 113);
+            textBox_D2.Location = new Point(542, 98);
             textBox_D2.Margin = new Padding(3, 2, 3, 2);
             textBox_D2.Name = "textBox_D2";
             textBox_D2.Size = new Size(60, 29);
@@ -173,17 +173,10 @@
             textBox_D2.TabIndex = 40;
             textBox_D2.TextAlign = HorizontalAlignment.Center;
             // 
-            // toolStripStatusLabel1
-            // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
-            toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(80, 20);
-            toolStripStatusLabel1.Text = "Phiên bản";
-            // 
             // textBox_D1
             // 
             textBox_D1.Anchor = AnchorStyles.None;
-            textBox_D1.Location = new Point(551, 62);
+            textBox_D1.Location = new Point(542, 53);
             textBox_D1.Margin = new Padding(3, 2, 3, 2);
             textBox_D1.Name = "textBox_D1";
             textBox_D1.Size = new Size(60, 29);
@@ -195,7 +188,7 @@
             // textBox_C3
             // 
             textBox_C3.Anchor = AnchorStyles.None;
-            textBox_C3.Location = new Point(436, 165);
+            textBox_C3.Location = new Point(429, 144);
             textBox_C3.Margin = new Padding(3, 2, 3, 2);
             textBox_C3.Name = "textBox_C3";
             textBox_C3.Size = new Size(60, 29);
@@ -207,7 +200,7 @@
             // textBox_C2
             // 
             textBox_C2.Anchor = AnchorStyles.None;
-            textBox_C2.Location = new Point(436, 113);
+            textBox_C2.Location = new Point(429, 98);
             textBox_C2.Margin = new Padding(3, 2, 3, 2);
             textBox_C2.Name = "textBox_C2";
             textBox_C2.Size = new Size(60, 29);
@@ -219,7 +212,7 @@
             // textBox_C1
             // 
             textBox_C1.Anchor = AnchorStyles.None;
-            textBox_C1.Location = new Point(436, 62);
+            textBox_C1.Location = new Point(429, 53);
             textBox_C1.Margin = new Padding(3, 2, 3, 2);
             textBox_C1.Name = "textBox_C1";
             textBox_C1.Size = new Size(60, 29);
@@ -231,7 +224,7 @@
             // textBox_B3
             // 
             textBox_B3.Anchor = AnchorStyles.None;
-            textBox_B3.Location = new Point(319, 165);
+            textBox_B3.Location = new Point(314, 144);
             textBox_B3.Margin = new Padding(3, 2, 3, 2);
             textBox_B3.Name = "textBox_B3";
             textBox_B3.Size = new Size(60, 29);
@@ -243,7 +236,7 @@
             // textBox_B2
             // 
             textBox_B2.Anchor = AnchorStyles.None;
-            textBox_B2.Location = new Point(319, 113);
+            textBox_B2.Location = new Point(314, 98);
             textBox_B2.Margin = new Padding(3, 2, 3, 2);
             textBox_B2.Name = "textBox_B2";
             textBox_B2.Size = new Size(60, 29);
@@ -255,7 +248,7 @@
             // textBox_B1
             // 
             textBox_B1.Anchor = AnchorStyles.None;
-            textBox_B1.Location = new Point(319, 62);
+            textBox_B1.Location = new Point(314, 53);
             textBox_B1.Margin = new Padding(3, 2, 3, 2);
             textBox_B1.Name = "textBox_B1";
             textBox_B1.Size = new Size(60, 29);
@@ -264,28 +257,10 @@
             textBox_B1.TabIndex = 33;
             textBox_B1.TextAlign = HorizontalAlignment.Center;
             // 
-            // statusStrip1
-            // 
-            statusStrip1.BackColor = Color.LightSteelBlue;
-            statusStrip1.ImageScalingSize = new Size(20, 20);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2 });
-            statusStrip1.Location = new Point(0, 276);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new Padding(1, 0, 12, 0);
-            statusStrip1.Size = new Size(810, 25);
-            statusStrip1.TabIndex = 33;
-            statusStrip1.Text = "statusStrip1";
-            // 
-            // toolStripStatusLabel2
-            // 
-            toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            toolStripStatusLabel2.Size = new Size(145, 20);
-            toolStripStatusLabel2.Text = "Ngày tháng năm cập nhật";
-            // 
             // textBox_A3
             // 
             textBox_A3.Anchor = AnchorStyles.None;
-            textBox_A3.Location = new Point(202, 165);
+            textBox_A3.Location = new Point(199, 144);
             textBox_A3.Margin = new Padding(3, 2, 3, 2);
             textBox_A3.Name = "textBox_A3";
             textBox_A3.Size = new Size(60, 29);
@@ -297,7 +272,7 @@
             // textBox_A1
             // 
             textBox_A1.Anchor = AnchorStyles.None;
-            textBox_A1.Location = new Point(202, 62);
+            textBox_A1.Location = new Point(199, 53);
             textBox_A1.Margin = new Padding(3, 2, 3, 2);
             textBox_A1.Name = "textBox_A1";
             textBox_A1.Size = new Size(60, 29);
@@ -312,7 +287,7 @@
             label19.AutoSize = true;
             label19.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label19.ForeColor = Color.FromArgb(0, 0, 192);
-            label19.Location = new Point(43, 66);
+            label19.Location = new Point(42, 57);
             label19.Name = "label19";
             label19.Size = new Size(88, 21);
             label19.TabIndex = 12;
@@ -325,7 +300,7 @@
             label18.AutoSize = true;
             label18.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label18.ForeColor = Color.FromArgb(0, 0, 192);
-            label18.Location = new Point(661, 16);
+            label18.Location = new Point(650, 13);
             label18.Name = "label18";
             label18.Size = new Size(113, 19);
             label18.TabIndex = 11;
@@ -337,7 +312,7 @@
             label17.AutoSize = true;
             label17.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label17.ForeColor = Color.FromArgb(0, 0, 192);
-            label17.Location = new Point(555, 15);
+            label17.Location = new Point(546, 12);
             label17.Name = "label17";
             label17.Size = new Size(52, 21);
             label17.TabIndex = 10;
@@ -349,7 +324,7 @@
             label13.AutoSize = true;
             label13.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label13.ForeColor = Color.FromArgb(0, 0, 192);
-            label13.Location = new Point(440, 15);
+            label13.Location = new Point(433, 12);
             label13.Name = "label13";
             label13.Size = new Size(52, 21);
             label13.TabIndex = 9;
@@ -361,7 +336,7 @@
             label12.AutoSize = true;
             label12.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label12.ForeColor = Color.FromArgb(0, 0, 192);
-            label12.Location = new Point(323, 15);
+            label12.Location = new Point(318, 12);
             label12.Name = "label12";
             label12.Size = new Size(52, 21);
             label12.TabIndex = 8;
@@ -373,7 +348,7 @@
             label11.AutoSize = true;
             label11.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label11.ForeColor = Color.FromArgb(0, 0, 192);
-            label11.Location = new Point(206, 15);
+            label11.Location = new Point(203, 12);
             label11.Name = "label11";
             label11.Size = new Size(52, 21);
             label11.TabIndex = 7;
@@ -385,7 +360,7 @@
             label10.AutoSize = true;
             label10.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label10.ForeColor = Color.FromArgb(0, 0, 192);
-            label10.Location = new Point(56, 15);
+            label10.Location = new Point(55, 12);
             label10.Name = "label10";
             label10.Size = new Size(61, 20);
             label10.TabIndex = 6;
@@ -397,7 +372,7 @@
             label20.AutoSize = true;
             label20.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label20.ForeColor = Color.FromArgb(0, 0, 192);
-            label20.Location = new Point(43, 117);
+            label20.Location = new Point(42, 102);
             label20.Name = "label20";
             label20.Size = new Size(88, 21);
             label20.TabIndex = 13;
@@ -410,7 +385,7 @@
             label21.AutoSize = true;
             label21.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             label21.ForeColor = Color.FromArgb(0, 0, 192);
-            label21.Location = new Point(43, 169);
+            label21.Location = new Point(42, 148);
             label21.Name = "label21";
             label21.Size = new Size(88, 21);
             label21.TabIndex = 14;
@@ -459,13 +434,13 @@
             tableLayoutPanel12.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
             tableLayoutPanel12.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
             tableLayoutPanel12.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
-            tableLayoutPanel12.Size = new Size(798, 206);
+            tableLayoutPanel12.Size = new Size(786, 183);
             tableLayoutPanel12.TabIndex = 28;
             // 
             // textBox_A2
             // 
             textBox_A2.Anchor = AnchorStyles.None;
-            textBox_A2.Location = new Point(202, 113);
+            textBox_A2.Location = new Point(199, 98);
             textBox_A2.Margin = new Padding(3, 2, 3, 2);
             textBox_A2.Name = "textBox_A2";
             textBox_A2.Size = new Size(60, 29);
@@ -478,6 +453,7 @@
             // 
             tableLayoutPanel1.ColumnCount = 1;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.Controls.Add(statusStrip1, 0, 2);
             tableLayoutPanel1.Controls.Add(tableLayoutPanel12, 0, 0);
             tableLayoutPanel1.Controls.Add(tableLayoutPanel2, 0, 1);
             tableLayoutPanel1.Dock = DockStyle.Fill;
@@ -485,10 +461,10 @@
             tableLayoutPanel1.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 3;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 75.8563F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 19.9233723F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 4.597701F));
-            tableLayoutPanel1.Size = new Size(804, 279);
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 69.32516F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 19.25926F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.4814816F));
+            tableLayoutPanel1.Size = new Size(792, 270);
             tableLayoutPanel1.TabIndex = 29;
             // 
             // groupBox_TyLeTheoQuyDinh
@@ -501,17 +477,42 @@
             groupBox_TyLeTheoQuyDinh.Margin = new Padding(3, 2, 3, 2);
             groupBox_TyLeTheoQuyDinh.Name = "groupBox_TyLeTheoQuyDinh";
             groupBox_TyLeTheoQuyDinh.Padding = new Padding(3, 2, 3, 2);
-            groupBox_TyLeTheoQuyDinh.Size = new Size(810, 301);
+            groupBox_TyLeTheoQuyDinh.Size = new Size(798, 292);
             groupBox_TyLeTheoQuyDinh.TabIndex = 34;
             groupBox_TyLeTheoQuyDinh.TabStop = false;
             groupBox_TyLeTheoQuyDinh.Text = "Tỷ lệ phần trăm Ban chỉ huy Tiểu đoàn (Tương đương)";
+            // 
+            // statusStrip1
+            // 
+            statusStrip1.BackColor = Color.LightSteelBlue;
+            statusStrip1.Dock = DockStyle.Fill;
+            statusStrip1.ImageScalingSize = new Size(20, 20);
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2 });
+            statusStrip1.Location = new Point(0, 238);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Padding = new Padding(1, 0, 12, 0);
+            statusStrip1.Size = new Size(792, 32);
+            statusStrip1.TabIndex = 34;
+            statusStrip1.Text = "statusStrip1";
+            // 
+            // toolStripStatusLabel1
+            // 
+            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
+            toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            toolStripStatusLabel1.Size = new Size(80, 27);
+            toolStripStatusLabel1.Text = "Phiên bản";
+            // 
+            // toolStripStatusLabel2
+            // 
+            toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            toolStripStatusLabel2.Size = new Size(145, 27);
+            toolStripStatusLabel2.Text = "Ngày tháng năm cập nhật";
             // 
             // Form41_TyLeBCHD
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(810, 301);
-            Controls.Add(statusStrip1);
+            ClientSize = new Size(798, 292);
             Controls.Add(groupBox_TyLeTheoQuyDinh);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form41_TyLeBCHD";
@@ -519,14 +520,14 @@
             Load += Form41_TyLeBCHD_Load;
             tableLayoutPanel2.ResumeLayout(false);
             tableLayoutPanel2.PerformLayout();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             tableLayoutPanel12.ResumeLayout(false);
             tableLayoutPanel12.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);
+            tableLayoutPanel1.PerformLayout();
             groupBox_TyLeTheoQuyDinh.ResumeLayout(false);
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
@@ -539,7 +540,6 @@
         private Krypton.Toolkit.KryptonTextBox textBox_E1;
         private Krypton.Toolkit.KryptonTextBox textBox_D3;
         private Krypton.Toolkit.KryptonTextBox textBox_D2;
-        private ToolStripStatusLabel toolStripStatusLabel1;
         private Krypton.Toolkit.KryptonTextBox textBox_D1;
         private Krypton.Toolkit.KryptonTextBox textBox_C3;
         private Krypton.Toolkit.KryptonTextBox textBox_C2;
@@ -547,8 +547,6 @@
         private Krypton.Toolkit.KryptonTextBox textBox_B3;
         private Krypton.Toolkit.KryptonTextBox textBox_B2;
         private Krypton.Toolkit.KryptonTextBox textBox_B1;
-        private StatusStrip statusStrip1;
-        private ToolStripStatusLabel toolStripStatusLabel2;
         private Krypton.Toolkit.KryptonTextBox textBox_A3;
         private Krypton.Toolkit.KryptonTextBox textBox_A1;
         private Label label19;
@@ -565,5 +563,8 @@
         private TableLayoutPanel tableLayoutPanel1;
         private GroupBox groupBox_TyLeTheoQuyDinh;
         private ToolTip toolTip1;
+        private StatusStrip statusStrip1;
+        private ToolStripStatusLabel toolStripStatusLabel1;
+        private ToolStripStatusLabel toolStripStatusLabel2;
     }
 }

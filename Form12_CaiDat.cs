@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Text;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form12 : Form
@@ -29,6 +28,8 @@ namespace PhanMemThiDua2026
         private Color _defaultLabelColor;
         // Biến dùng để chống lỗi ẩn nhầm thông báo nếu người dùng bấm Lưu liên tục
         private int _thongBaoCounter = 0;
+        private int _statusLabelCounter = 0; // Chống ẩn nhầm nếu kích hoạt tác vụ liên tiếp
+
         public Form12()
         {
             InitializeComponent();
@@ -44,6 +45,13 @@ namespace PhanMemThiDua2026
             {
                 label1_ThongBaoThanhCong.Visible = false;
             }
+            // 🔥 THÊM DÒNG NÀY: Khởi tạo ẩn thanh trạng thái dưới nền
+            if (toolStripStatusLabel1 != null)
+            {
+                toolStripStatusLabel1.Text = string.Empty;
+                toolStripStatusLabel1.Visible = false;
+            }
+
             LoadComboBoxCauHinh();
             LoadComboBoxTuDongXoa();
             Module_DonVi.KhoiTao();
@@ -204,6 +212,35 @@ namespace PhanMemThiDua2026
                 // Chặn crash toàn hệ thống UI
             }
         }
+        /// <summary>
+        /// Hàm tiện ích hiển thị thông báo dưới thanh trạng thái và tự động ẩn sau một khoảng thời gian.
+        /// </summary>
+        /// <param name="noiDung">Nội dung cần thông báo</param>
+        /// <param name="mauChu">Màu sắc của chữ (Mặc định là đen than)</param>
+        /// <param name="delayMs">Thời gian hiển thị (Mặc định là 200ms)</param>
+        private async void HienThongBaoStatus(string noiDung, Color? mauChu = null, int delayMs = 400)
+        {
+            if (toolStripStatusLabel1 == null) return;
+
+            // Chốt danh tính phiên kích hoạt bằng Interlocked để thread-safe
+            int currentSession = Interlocked.Increment(ref _statusLabelCounter);
+
+            // Cấu hình UI và hiển thị
+            toolStripStatusLabel1.ForeColor = mauChu ?? Color.FromArgb(40, 40, 40);
+            toolStripStatusLabel1.Text = noiDung;
+            toolStripStatusLabel1.Visible = true;
+
+            // Đếm ngược luồng chạy ngầm không gây đóng băng UI
+            await Task.Delay(delayMs);
+
+            // Kiểm tra chốt chặn: Nếu trong lúc chờ, không có hàm nào khác đè lên thì mới ẩn
+            if (currentSession == _statusLabelCounter && toolStripStatusLabel1 != null)
+            {
+                toolStripStatusLabel1.Text = string.Empty;
+                toolStripStatusLabel1.Visible = false;
+            }
+        }
+
         private void LoadComboBoxTuDongXoa()
         {
             comboBox1_TuDongXoaNhatKy.Items.Clear();
@@ -590,8 +627,8 @@ PRAGMA busy_timeout=15000;
                 using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
                 cn.Open();
                 using var cmd = cn.CreateCommand();
-                // Lưu ý: Cột Ký hiệu tiểu đoàn trong DB của bác tên là "KeHieu_TieuDoan" (chữ e)
-                cmd.CommandText = "UPDATE KyHieu_DonVi SET KyHieu_TrungDoan = @k1, KeHieu_TieuDoan = @k2 WHERE ID = 1";
+                // Lưu ý: Cột Ký hiệu tiểu đoàn trong DB của bác tên là "KyHieu_TieuDoan" (chữ e)
+                cmd.CommandText = "UPDATE KyHieu_DonVi SET KyHieu_TrungDoan = @k1, KyHieu_TieuDoan = @k2 WHERE ID = 1";
                 cmd.Parameters.AddWithValue("@k1", SafeEncrypt(kyHieuTrungDoan));
                 cmd.Parameters.AddWithValue("@k2", SafeEncrypt(kyHieuTieuDoan));
                 cmd.ExecuteNonQuery();
@@ -770,47 +807,6 @@ PRAGMA busy_timeout=15000;
             return dongY;
         }
         #endregion
-        private void LuuThoiGianThayDoiAnh(string thoiGian)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(thoiGian)) return;
-
-                using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
-                cn.Open();
-
-                // 1️⃣ Đảm bảo bảng lưu trữ luôn tồn tại trong hệ thống phân vùng
-                using (var cmdCreate = cn.CreateCommand())
-                {
-                    cmdCreate.CommandText = @"
-                CREATE TABLE IF NOT EXISTS CauHinh_ThoiGianAnh (
-                    ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    ThoiGian_DuocChon TEXT
-                );";
-                    cmdCreate.ExecuteNonQuery();
-                }
-
-                // 2️⃣ Cập nhật dữ liệu cấu hình vào vị trí bản ghi gốc ID = 1
-                using var cmdUpdate = cn.CreateCommand();
-                cmdUpdate.CommandText = "UPDATE CauHinh_ThoiGianAnh SET ThoiGian_DuocChon = @tg WHERE ID = 1";
-                cmdUpdate.Parameters.AddWithValue("@tg", thoiGian.Trim());
-                int rowsAffected = cmdUpdate.ExecuteNonQuery();
-
-                // 3️⃣ Nếu chưa có dữ liệu ban đầu -> Tiến hành chèn mới thiết lập
-                if (rowsAffected == 0)
-                {
-                    using var cmdInsert = cn.CreateCommand();
-                    cmdInsert.CommandText = "INSERT INTO CauHinh_ThoiGianAnh (ThoiGian_DuocChon) VALUES (@tg)";
-                    cmdInsert.Parameters.AddWithValue("@tg", thoiGian.Trim());
-                    cmdInsert.ExecuteNonQuery();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[Lỗi LuuThoiGianThayDoiAnh] {ex.Message}");
-            }
-        }
-
         private readonly SemaphoreSlim _sqliteLock = new SemaphoreSlim(1, 1);
         private async Task<string> SaveToSQLiteAsync()
         {
@@ -912,81 +908,225 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
                 return $"System Error: {ex.Message}";
             }
         }
+        //private async void kryptonButton_LuuCauHinh_Click(object sender, EventArgs e)
+        //{
+        //    string textBanDau = kryptonButton_LuuCauHinh.Values.Text;
+        //    Image anhBanDau = kryptonButton_LuuCauHinh.Values.Image;
+
+        //    try
+        //    {
+        //        if (string.IsNullOrWhiteSpace(comboBox_SoLuongDongChoPhepHienThi.Text))
+        //        {
+        //            MessageBox.Show("Bạn chưa chọn số lượng dòng!", "Cảnh báo",
+        //                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //            comboBox_SoLuongDongChoPhepHienThi.Focus();
+        //            return;
+        //        }
+
+        //        kryptonButton_LuuCauHinh.Enabled = false;
+        //        kryptonButton_LuuCauHinh.Values.Text = "Đang lưu...";
+        //        kryptonButton_LuuCauHinh.Values.Image = null;
+        //        // 2. 🔥 GỌI HÀM TRUNG GIAN ĐỂ TỰ ĐỘNG CẬP NHẬT SANG FORM10 (NẾU ĐANG MỞ)
+        //        Module_NhatKy.DocVaNapStatusLabelForm10();
+        //        // 🔥 GOM CÁC TÁC VỤ DB LẺ TẺ VÀO ĐÂY TRƯỚC KHI LƯU CHÍNH
+        //        LuuCauHinhXemHuongDan();
+
+        //        // ⭐ SỬA LỖI LƯU 2: Dùng .Text thay vì .SelectedItem để tuyệt đối không bị dội Null
+        //        if (!string.IsNullOrWhiteSpace(comboBox1_TuDongXoaNhatKy.Text))
+        //        {
+        //            LuuTuDongXoaVaoCSDL(comboBox1_TuDongXoaNhatKy.Text.Trim());
+        //        }
+
+        //        // ⭐ BỔ SUNG LƯU SỰ KIỆN THOÁT NGAY TẠI ĐÂY
+        //        if (!string.IsNullOrWhiteSpace(comboBox1_ChonSuKienThoat.Text))
+        //        {
+        //            LuuSuKienThoat(comboBox1_ChonSuKienThoat.Text.Trim());
+        //        }
+        //        // ⭐ BỔ SUNG LƯU SỰ KIỆN THOÁT NGAY TẠI ĐÂY
+        //        if (!string.IsNullOrWhiteSpace(comboBox1_ChonSuKienThoat.Text))
+        //        {
+        //            LuuSuKienThoat(comboBox1_ChonSuKienThoat.Text.Trim());
+        //        }
+
+        //        // ====================================================================
+        //        // 🌟 THÊM CODE: Thực thi lưu thời gian thay đổi ảnh khi bấm Lưu cấu hình
+        //        // ====================================================================
+        //        if (comboBox1_ThoiGianThayDoiAnh != null && !string.IsNullOrWhiteSpace(comboBox1_ThoiGianThayDoiAnh.Text))
+        //        {
+        //            Module_HinhAnhTrangChu.LuuCauHinhThoiGian(comboBox1_ThoiGianThayDoiAnh.Text.Trim());
+        //        }
+        //        // ====================================================================
+
+
+        //        string ketQua = await SaveToSQLiteAsync();
+
+        //        if (ketQua.Contains("thành công", StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            //if (toolStripStatusLabel1 != null)
+        //            //{
+        //            //    toolStripStatusLabel1.ForeColor = Color.DarkGreen;
+        //            //    toolStripStatusLabel1.Text = "✔ Đã lưu cấu hình lúc " + DateTime.Now.ToString("HH:mm:ss");
+        //            //}
+        //            // 🔥 THAY THẾ ĐOẠN GÁN CŨ BẰNG HÀM TỰ ĐỘNG ẨN SAU 200ms
+        //            HienThongBaoStatus("✔ Đã lưu cấu hình thành công!", Color.DarkGreen, 400);
+
+        //            var formCha = Application.OpenForms
+        //                .OfType<Form2_FormCha>()
+        //                .FirstOrDefault();
+
+        //            formCha?.KhoiTaoHeThongHinhNenAsync();
+
+        //            Module_DonVi.KhoiTao();
+        //            Module_ThongBao.ResetCacheSoDong();
+
+        //            if (_isDoiTuongChanged)
+        //            {
+        //                Module_NhatKy.GhiNhatKy(
+        //                    Module_TaiKhoan.TenTaiKhoan_RAM,
+        //                    "Đổi đối tượng phần mềm",
+        //                    $"Giá trị mới: {comboBox_DoiTuongPhanMem.Text}"
+        //                );
+
+        //                formCha?.CapNhatGiaoDienTheoPhienBan();
+
+        //                var result = MessageBox.Show(
+        //                    "Đã đổi đối tượng phần mềm thành công.\nBạn có muốn cập nhật danh sách đơn vị trực thuộc ngay không?",
+        //                    "Cập nhật danh sách",
+        //                    MessageBoxButtons.YesNo,
+        //                    MessageBoxIcon.Question
+        //                );
+
+        //                if (result == DialogResult.Yes)
+        //                {
+        //                    kryptonButton1_CapNhatDanhSachDonVi_Click(
+        //                        kryptonButton1_CapNhatDanhSachDonVi,
+        //                        EventArgs.Empty);
+        //                }
+
+        //                _doiTuongBanDau = comboBox_DoiTuongPhanMem.Text?.Trim() ?? "";
+        //                _isDoiTuongChanged = false;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            //if (toolStripStatusLabel1 != null)
+        //            //{
+        //            //    toolStripStatusLabel1.ForeColor = Color.Red;
+        //            //    toolStripStatusLabel1.Text = "✘ Lỗi lưu cấu hình!";
+        //            //}
+        //            HienThongBaoStatus("✘ Lỗi lưu cấu hình!", Color.Red, 400);
+        //            MessageBox.Show(ketQua, "Lỗi",
+        //                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Lỗi hệ thống: " + ex.Message,
+        //            "Lỗi",
+        //            MessageBoxButtons.OK,
+        //            MessageBoxIcon.Error);
+        //    }
+        //    finally
+        //    {
+        //        kryptonButton_LuuCauHinh.Values.Text = textBanDau;
+        //        kryptonButton_LuuCauHinh.Values.Image = anhBanDau;
+        //        kryptonButton_LuuCauHinh.Enabled = true;
+        //    }
+        //}
+
         private async void kryptonButton_LuuCauHinh_Click(object sender, EventArgs e)
         {
+            // =========================================================================
+            // STAGE 1: LƯU TRẠNG THÁI GIAO DIỆN & VALIDATE (UI Thread)
+            // =========================================================================
             string textBanDau = kryptonButton_LuuCauHinh.Values.Text;
             Image anhBanDau = kryptonButton_LuuCauHinh.Values.Image;
 
+            if (string.IsNullOrWhiteSpace(comboBox_SoLuongDongChoPhepHienThi.Text))
+            {
+                MessageBox.Show("Bạn chưa chọn số lượng dòng!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                comboBox_SoLuongDongChoPhepHienThi.Focus();
+                return;
+            }
+
+            // =========================================================================
+            // STAGE 2: GOM TOÀN BỘ DỮ LIỆU TỪ UI VÀO BIẾN (Tránh gọi UI ở Background)
+            // =========================================================================
+            string tuDongXoa = comboBox1_TuDongXoaNhatKy.Text?.Trim() ?? "";
+            string suKienThoat = comboBox1_ChonSuKienThoat.Text?.Trim() ?? "";
+            string thoiGianAnh = comboBox1_ThoiGianThayDoiAnh?.Text?.Trim() ?? "";
+            string cheDoHuongDan = comboBox1_XemHuongDanSuDung.SelectedItem?.ToString() ?? "Chế độ pdf";
+
+            string doiTuongMoi = comboBox_DoiTuongPhanMem.Text?.Trim() ?? "";
+            bool isDoiTuongChanged = _isDoiTuongChanged; // Chốt cờ hiện tại
+
+            // =========================================================================
+            // STAGE 3: CHUYỂN TRẠNG THÁI GIAO DIỆN SANG "ĐANG XỬ LÝ"
+            // =========================================================================
+            kryptonButton_LuuCauHinh.Enabled = false;
+            kryptonButton_LuuCauHinh.Values.Text = "Đang lưu...";
+            kryptonButton_LuuCauHinh.Values.Image = null;
+
             try
             {
-                if (string.IsNullOrWhiteSpace(comboBox_SoLuongDongChoPhepHienThi.Text))
-                {
-                    MessageBox.Show("Bạn chưa chọn số lượng dòng!", "Cảnh báo",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    comboBox_SoLuongDongChoPhepHienThi.Focus();
-                    return;
-                }
-
-                kryptonButton_LuuCauHinh.Enabled = false;
-                kryptonButton_LuuCauHinh.Values.Text = "Đang lưu...";
-                kryptonButton_LuuCauHinh.Values.Image = null;
-                // 2. 🔥 GỌI HÀM TRUNG GIAN ĐỂ TỰ ĐỘNG CẬP NHẬT SANG FORM10 (NẾU ĐANG MỞ)
+                // Cập nhật Form10
                 Module_NhatKy.DocVaNapStatusLabelForm10();
-                // 🔥 GOM CÁC TÁC VỤ DB LẺ TẺ VÀO ĐÂY TRƯỚC KHI LƯU CHÍNH
-                LuuCauHinhXemHuongDan();
 
-                // ⭐ SỬA LỖI LƯU 2: Dùng .Text thay vì .SelectedItem để tuyệt đối không bị dội Null
-                if (!string.IsNullOrWhiteSpace(comboBox1_TuDongXoaNhatKy.Text))
+                // =========================================================================
+                // STAGE 4: THỰC THI I/O TRÊN LUỒNG NGẦM (Background Thread)
+                // Giải quyết triệt để lỗi "UI bị khóa sớm", gom thao tác rời rạc không block UI
+                // =========================================================================
+                await Task.Run(() =>
                 {
-                    LuuTuDongXoaVaoCSDL(comboBox1_TuDongXoaNhatKy.Text.Trim());
-                }
-
-                // ⭐ BỔ SUNG LƯU SỰ KIỆN THOÁT NGAY TẠI ĐÂY
-                if (!string.IsNullOrWhiteSpace(comboBox1_ChonSuKienThoat.Text))
-                {
-                    LuuSuKienThoat(comboBox1_ChonSuKienThoat.Text.Trim());
-                }
-                // ⭐ BỔ SUNG LƯU SỰ KIỆN THOÁT NGAY TẠI ĐÂY
-                if (!string.IsNullOrWhiteSpace(comboBox1_ChonSuKienThoat.Text))
-                {
-                    LuuSuKienThoat(comboBox1_ChonSuKienThoat.Text.Trim());
-                }
-
-                // ====================================================================
-                // 🌟 THÊM CODE: Thực thi lưu thời gian thay đổi ảnh khi bấm Lưu cấu hình
-                // ====================================================================
-                if (comboBox1_ThoiGianThayDoiAnh != null && !string.IsNullOrWhiteSpace(comboBox1_ThoiGianThayDoiAnh.Text))
-                {
-                    Module_HinhAnhTrangChu.LuuCauHinhThoiGian(comboBox1_ThoiGianThayDoiAnh.Text.Trim());
-                }
-                // ====================================================================
-
-
-                string ketQua = await SaveToSQLiteAsync();
-
-                if (ketQua.Contains("thành công", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (toolStripStatusLabel1 != null)
+                    // 4.1 Lưu Cấu hình xem hướng dẫn (Gọi hàm Core không dính tới UI)
+                    if (!string.IsNullOrWhiteSpace(cheDoHuongDan))
                     {
-                        toolStripStatusLabel1.ForeColor = Color.DarkGreen;
-                        toolStripStatusLabel1.Text = "✔ Đã lưu cấu hình lúc " + DateTime.Now.ToString("HH:mm:ss");
+                        LuuCauHinhXemHuongDanCore(cheDoHuongDan);
                     }
 
-                    var formCha = Application.OpenForms
-                        .OfType<Form2_FormCha>()
-                        .FirstOrDefault();
+                    // 4.2 Lưu Tự động xóa
+                    if (!string.IsNullOrWhiteSpace(tuDongXoa))
+                    {
+                        LuuTuDongXoaVaoCSDL(tuDongXoa);
+                    }
 
+                    // 4.3 Lưu Sự kiện thoát (ĐÃ XÓA ĐOẠN CODE LẶP 2 LẦN)
+                    if (!string.IsNullOrWhiteSpace(suKienThoat))
+                    {
+                        LuuSuKienThoat(suKienThoat);
+                    }
+
+                    // 4.4 Lưu Thời gian đổi ảnh
+                    if (!string.IsNullOrWhiteSpace(thoiGianAnh))
+                    {
+                        Module_HinhAnhTrangChu.LuuCauHinhThoiGian(thoiGianAnh);
+                    }
+                });
+
+                // 4.5 Thực thi tác vụ lớn nhất (Bản thân SaveToSQLiteAsync đã tự chạy an toàn)
+                string ketQua = await SaveToSQLiteAsync();
+
+                // =========================================================================
+                // STAGE 5: ĐỒNG BỘ UI VÀ CACHE SAU KHI LƯU THÀNH CÔNG
+                // =========================================================================
+                if (ketQua.Contains("thành công", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Tăng thời gian hiển thị lên 2000ms để người dùng kịp đọc (UX tốt hơn)
+                    HienThongBaoStatus("✔ Đã lưu cấu hình thành công!", Color.DarkGreen, 2000);
+
+                    var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                     formCha?.KhoiTaoHeThongHinhNenAsync();
 
                     Module_DonVi.KhoiTao();
                     Module_ThongBao.ResetCacheSoDong();
 
-                    if (_isDoiTuongChanged)
+                    // Xử lý logic Đổi đối tượng phần mềm
+                    if (isDoiTuongChanged)
                     {
                         Module_NhatKy.GhiNhatKy(
-                            Module_TaiKhoan.TenTaiKhoan_RAM,
+                            Module_TaiKhoan.TenTaiKhoan_RAM ?? "Hệ thống",
                             "Đổi đối tượng phần mềm",
-                            $"Giá trị mới: {comboBox_DoiTuongPhanMem.Text}"
+                            $"Giá trị mới: {doiTuongMoi}"
                         );
 
                         formCha?.CapNhatGiaoDienTheoPhienBan();
@@ -1000,115 +1140,49 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
 
                         if (result == DialogResult.Yes)
                         {
-                            kryptonButton1_CapNhatDanhSachDonVi_Click(
-                                kryptonButton1_CapNhatDanhSachDonVi,
-                                EventArgs.Empty);
+                            // Tách logic event: Gọi thẳng hành động mở Form thay vì gọi "_Click"
+                            FormManager.OpenModal<Form20_DonVi>(this);
                         }
 
-                        _doiTuongBanDau = comboBox_DoiTuongPhanMem.Text?.Trim() ?? "";
+                        // Cập nhật lại mốc so sánh
+                        _doiTuongBanDau = doiTuongMoi;
                         _isDoiTuongChanged = false;
                     }
                 }
                 else
                 {
-                    if (toolStripStatusLabel1 != null)
-                    {
-                        toolStripStatusLabel1.ForeColor = Color.Red;
-                        toolStripStatusLabel1.Text = "✘ Lỗi lưu cấu hình!";
-                    }
-
-                    MessageBox.Show(ketQua, "Lỗi",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // Lỗi Database
+                    HienThongBaoStatus("✘ Lỗi lưu cấu hình!", Color.Red, 3000);
+                    MessageBox.Show(ketQua, "Lỗi cơ sở dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi hệ thống: " + ex.Message,
-                    "Lỗi",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                // =========================================================================
+                // STAGE 6: XỬ LÝ NGOẠI LỆ ĐÚNG CHUẨN (Ghi Log đầy đủ theo yêu cầu chuyên gia)
+                // =========================================================================
+                Debug.WriteLine($"[Lỗi kryptonButton_LuuCauHinh_Click] {ex}");
+
+                try
+                {
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Hệ thống", "Lỗi nghiêm trọng khi lưu cấu hình", ex.Message);
+                }
+                catch { } // Bọc try-catch để tránh crash nếu lỗi xuất phát từ chính ổ đĩa ghi Log
+
+                HienThongBaoStatus("✘ Lỗi hệ thống!", Color.Red, 3000);
+                MessageBox.Show("Lỗi hệ thống: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
+                // =========================================================================
+                // STAGE 7: KHÔI PHỤC NÚT BẤM AN TOÀN TRONG MỌI TRƯỜNG HỢP
+                // =========================================================================
                 kryptonButton_LuuCauHinh.Values.Text = textBanDau;
                 kryptonButton_LuuCauHinh.Values.Image = anhBanDau;
                 kryptonButton_LuuCauHinh.Enabled = true;
             }
         }
-        //private async void kryptonButton_LuuThongTin_Click(object sender, EventArgs e)
-        //{
-        //    string textBanDau = kryptonButton_LuuThongTin.Values.Text;
-        //    Image anhBanDau = kryptonButton_LuuThongTin.Values.Image;
 
-        //    try
-        //    {
-        //        kryptonButton_LuuThongTin.Enabled = false;
-        //        kryptonButton_LuuThongTin.Values.Text = "Đang lưu...";
-        //        kryptonButton_LuuThongTin.Values.Image = null;
-
-        //        if (label1_ThongBaoThanhCong != null)
-        //        {
-        //            label1_ThongBaoThanhCong.ForeColor = Color.Black;
-        //            label1_ThongBaoThanhCong.Text = "Đang ghi dữ liệu vào hệ thống...";
-        //        }
-
-        //        await Task.Delay(100); // Nhịp nghỉ UX
-
-        //        // ⭐ BẢO HIỂM DỮ LIỆU TAB 2 & CÁC BẢNG LẺ Ở TAB 1
-        //        LuuCauHinhXemHuongDan();
-        //        if (!string.IsNullOrWhiteSpace(comboBox1_TuDongXoaNhatKy.Text))
-        //            LuuTuDongXoaVaoCSDL(comboBox1_TuDongXoaNhatKy.Text.Trim());
-
-        //        if (!string.IsNullOrWhiteSpace(comboBox1_ChonSuKienThoat.Text))
-        //            LuuSuKienThoat(comboBox1_ChonSuKienThoat.Text.Trim());
-
-        //        // ⭐ LƯU KÝ HIỆU VÀ NĂM NGAY TRƯỚC KHI LƯU CSDL CHÍNH
-        //        if (comboBox_KyHieu_TenTrungDoan != null && comboBox_KyHieu_TenTieuDoan != null)
-        //        {
-        //            LuuKyHieuDonVi(comboBox_KyHieu_TenTrungDoan.Text.Trim(), comboBox_KyHieu_TenTieuDoan.Text.Trim());
-        //        }
-
-        //        if (comboBox1_NamHienTai != null && !string.IsNullOrWhiteSpace(comboBox1_NamHienTai.Text))
-        //        {
-        //            LuuNamHeThong(comboBox1_NamHienTai.Text.Trim());
-        //        }
-
-        //        // Gọi hàm gốc lưu cấu hình chính
-        //        string thongBao = await SaveToSQLiteAsync();
-
-        //        // ===== BƯỚC 5: XỬ LÝ KẾT QUẢ THÔNG MINH =====
-        //        if (thongBao.Contains("thành công", StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            // Nếu THÀNH CÔNG: Chỉ cập nhật Label, không hiện MessageBox
-        //            if (label1_ThongBaoThanhCong != null)
-        //            {
-        //                label1_ThongBaoThanhCong.ForeColor = Color.DarkGreen;
-        //                label1_ThongBaoThanhCong.Text = "✔ Đã lưu thành công lúc " + DateTime.Now.ToString("HH:mm:ss");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // Nếu THẤT BẠI: Vẫn phải hiện MessageBox để cảnh báo lỗi
-        //            if (label1_ThongBaoThanhCong != null)
-        //            {
-        //                label1_ThongBaoThanhCong.ForeColor = Color.Red;
-        //                label1_ThongBaoThanhCong.Text = "✘ Lưu thất bại!";
-        //            }
-
-        //            MessageBox.Show(thongBao, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show("Lỗi phát sinh: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //    }
-        //    finally
-        //    {
-        //        kryptonButton_LuuThongTin.Values.Text = textBanDau;
-        //        kryptonButton_LuuThongTin.Values.Image = anhBanDau;
-        //        kryptonButton_LuuThongTin.Enabled = true;
-        //    }
-        //}
         private async void kryptonButton_LuuThongTin_Click(object sender, EventArgs e)
         {
             string textBanDau = kryptonButton_LuuThongTin.Values.Text;
@@ -1187,7 +1261,6 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
                 kryptonButton_LuuThongTin.Enabled = true;
             }
         }
-
         // 🌟 HÀM MỚI: ĐẾM NGƯỢC VÀ ẨN THÔNG BÁO CỰC KỲ AN TOÀN
         private async void AnThongBaoSauDelay(int delayMs)
         {
@@ -1203,7 +1276,6 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
                 label1_ThongBaoThanhCong.Visible = false;
             }
         }
-
         private void CheckpointSQLite(SqliteConnection cn)
         {
             try
@@ -1286,38 +1358,6 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
             catch (Exception ex) { Debug.WriteLine("Lỗi hướng dẫn: " + ex.Message); }
         }
         // Lưu ý hàm LuuSuKienThoat và LuuTuDongXoaVaoCSDL của bạn đã có tham số truyền vào rồi, giữ nguyên logic lõi của 2 hàm đó.
-        private async Task<string> ThucHienLuuToanBoHeThongAsync()
-        {
-            if (IsDisposed) return "Form đã đóng.";
-
-            await _sqliteLock.WaitAsync();
-            try
-            {
-                // 1. CHỤP TOÀN BỘ DỮ LIỆU GIAO DIỆN (UI THREAD)
-                var uiData = CaptureUIData();
-
-                // 2. GỌI CÁC HÀM LƯU RỜI RẠC TRƯỚC (Sự kiện thoát, Hướng dẫn, Dọn dẹp)
-                LuuSuKienThoat(uiData.SuKienThoatPhanMem);
-                LuuCauHinhXemHuongDanCore(uiData.CheDoXemHuongDan);
-                LuuTuDongXoaVaoCSDL(uiData.TuDongXoaNhatKy);
-                // ====================================================================
-                // 🌟 CẬP NHẬT CODE: Đồng bộ hóa luồng nạp lưu ngầm an toàn vật lý
-                // ====================================================================
-                // LuuThoiGianThayDoiAnh(uiData.ThoiGianThayDoiAnh);
-                // THAY BẰNG ĐOẠN NÀY:
-                Module_HinhAnhTrangChu.LuuCauHinhThoiGian(uiData.ThoiGianThayDoiAnh);
-                // ====================================================================
-                // Cập nhật cấu hình thời gian chuyển ảnh (Nếu bạn có hàm ghi)
-                // Module_HinhAnhTrangChu.GhiCauHinhThoiGian(uiData.ThoiGianThayDoiAnh);
-
-                // 3. LƯU VÀO CSDL2 CHÍNH (Bảng ThongTin & PhienBan_DoiTuong)
-                return SaveToSQLiteCore(uiData);
-            }
-            finally
-            {
-                _sqliteLock.Release();
-            }
-        }
         private void LoadComboBoxCauHinh()
         {
             comboBox_SoLuongDongChoPhepHienThi.Items.Clear();
@@ -1855,7 +1895,7 @@ VALUES (1, strftime('%Y','now'));";
                 CREATE TABLE IF NOT EXISTS KyHieu_DonVi (
                     ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     KyHieu_TrungDoan TEXT,
-                    KeHieu_TieuDoan TEXT
+                    KyHieu_TieuDoan TEXT
                 );";
                     cmdTaoBang.ExecuteNonQuery();
                 }
@@ -1863,20 +1903,20 @@ VALUES (1, strftime('%Y','now'));";
                 // ⭐ Đảm bảo luôn có dòng ID=1 (Trống cũng được) để UPSERT phía sau hoạt động trơn tru
                 using (var cmdInit = cn.CreateCommand())
                 {
-                    cmdInit.CommandText = "INSERT OR IGNORE INTO KyHieu_DonVi (ID, KyHieu_TrungDoan, KeHieu_TieuDoan) VALUES (1, '', '');";
+                    cmdInit.CommandText = "INSERT OR IGNORE INTO KyHieu_DonVi (ID, KyHieu_TrungDoan, KyHieu_TieuDoan) VALUES (1, '', '');";
                     cmdInit.ExecuteNonQuery();
                 }
 
                 using (var cmd = cn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT KyHieu_TrungDoan, KeHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1";
+                    cmd.CommandText = "SELECT KyHieu_TrungDoan, KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1";
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
                         {
                             // Lấy ra và giải mã AES ngay lập tức
                             comboBox_KyHieu_TenTrungDoan.Text = SafeDecrypt(reader["KyHieu_TrungDoan"]);
-                            comboBox_KyHieu_TenTieuDoan.Text = SafeDecrypt(reader["KeHieu_TieuDoan"]);
+                            comboBox_KyHieu_TenTieuDoan.Text = SafeDecrypt(reader["KyHieu_TieuDoan"]);
                         }
                     }
                 }
@@ -3084,7 +3124,6 @@ VALUES (1, strftime('%Y','now'));";
                 KyHieuBaoCao = textBox1_KyHieuBaoCao.Text?.Trim() ?? ""
             };
         }
-
         private void kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet_Click(object sender, EventArgs e)
         {
             try
@@ -3113,10 +3152,14 @@ VALUES (1, strftime('%Y','now'));";
                 System.Diagnostics.Debug.WriteLine($"Lỗi khi gọi Form40: {ex.Message}");
             }
         }
-
         private void kryptonButton1_CaiDatTyLePhanTramBCH_Click(object sender, EventArgs e)
         {
             FormManager.OpenModal<Form41_TyLeBCHD>(this);
+        }
+
+        private void kryptonButton_TyLePhanTramBaNhat_Click(object sender, EventArgs e)
+        {
+            FormManager.OpenModal<Form45_TyLeBaNhat>(this);
         }
     }
 }//Ngoài luồng

@@ -270,193 +270,138 @@ namespace PhanMemThiDua2026
                             ? "ThiDuaThang_TanBinh"
                             : "ThiDuaThang";
 
-                        // =================================================
-                        // LOAD DICTIONARY
-                        // =================================================
 
-                        var dictDanhSach =
-                            new Dictionary<string, string>();
+                        // =================================================
+                        // LOAD DICTIONARY TỪ BẢNG GỐC DANH SÁCH (CSDL 2)
+                        // ĐÃ SỬA LỖI: Bỏ hoàn toàn TinhTrang khỏi câu lệnh SELECT
+                        // =================================================
+                        var dictDanhSach = new Dictionary<string, (string HoTen, string DonVi, string GhiChu)>();
 
-                        using (var cn2 =
-                            new SqliteConnection(
-                                $"Data Source={_csdl2Path}"))
+                        using (var cn2 = new SqliteConnection($"Data Source={_csdl2Path}"))
                         {
                             cn2.Open();
 
-                            using var cmd =
-                                new SqliteCommand(
-                                    "SELECT SoHieu, GhiChu FROM DanhSach",
-                                    cn2);
-
+                            // XÓA CHỮ TinhTrang Ở ĐÂY -> KHÔNG CÒN LỖI NO SUCH COLUMN
+                            using var cmd = new SqliteCommand("SELECT SoHieu, HoVaTen, DonVi, GhiChu FROM DanhSach", cn2);
                             using var rd = cmd.ExecuteReader();
 
                             while (rd.Read())
                             {
-                                string sh =
-                                    SafeDecrypt(
-                                        rd["SoHieu"]?.ToString());
+                                string sh = SafeDecrypt(rd["SoHieu"]?.ToString());
 
                                 if (!string.IsNullOrEmpty(sh))
                                 {
-                                    dictDanhSach[sh] =
-                                        SafeDecrypt(
-                                            rd["GhiChu"]?.ToString());
+                                    string htMoi = SafeDecrypt(rd["HoVaTen"]?.ToString());
+                                    string dvMoi = SafeDecrypt(rd["DonVi"]?.ToString());
+                                    string gcMoi = SafeDecrypt(rd["GhiChu"]?.ToString());
+
+                                    dictDanhSach[sh] = (htMoi, dvMoi, gcMoi);
                                 }
                             }
                         }
 
-                        var dictKhenThuong =
-                            new Dictionary<string, (string SoLuong, string GhiChu)>();
+                        // =================================================
+                        // GIỮ NGUYÊN ĐOẠN ĐỌC KHEN THƯỞNG VÀ ĐƠN VỊ KHEN THƯỞNG
+                        // =================================================
+                        var dictKhenThuong = new Dictionary<string, (string SoLuong, string GhiChu)>();
 
-                        using (var cn4 =
-                            new SqliteConnection(
-                                $"Data Source={_csdl4Path}"))
+                        using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path}"))
                         {
                             cn4.Open();
-
-                            using (var cmdTao =
-                                new SqliteCommand(
-                                    "CREATE TABLE IF NOT EXISTS ThongKeCBCS_DuocKhenThuong (SoHieu TEXT, SoLuong_Khen TEXT, GhiChu_Khen TEXT);",
-                                    cn4))
+                            using (var cmdTao = new SqliteCommand("CREATE TABLE IF NOT EXISTS ThongKeCBCS_DuocKhenThuong (SoHieu TEXT, SoLuong_Khen TEXT, GhiChu_Khen TEXT);", cn4))
                             {
                                 cmdTao.ExecuteNonQuery();
                             }
 
-                            using var cmd =
-                                new SqliteCommand(
-                                    "SELECT SoHieu, SoLuong_Khen, GhiChu_Khen FROM ThongKeCBCS_DuocKhenThuong",
-                                    cn4);
-
+                            using var cmd = new SqliteCommand("SELECT SoHieu, SoLuong_Khen, GhiChu_Khen FROM ThongKeCBCS_DuocKhenThuong", cn4);
                             using var rd = cmd.ExecuteReader();
 
                             while (rd.Read())
                             {
-                                string sh =
-                                    SafeDecrypt(
-                                        rd["SoHieu"]?.ToString());
-
+                                string sh = SafeDecrypt(rd["SoHieu"]?.ToString());
                                 if (!string.IsNullOrEmpty(sh))
                                 {
-                                    dictKhenThuong[sh] =
-                                    (
-                                        rd["SoLuong_Khen"]?.ToString() ?? "0",
-                                        rd["GhiChu_Khen"]?.ToString() ?? ""
-                                    );
+                                    dictKhenThuong[sh] = (rd["SoLuong_Khen"]?.ToString() ?? "0", rd["GhiChu_Khen"]?.ToString() ?? "");
                                 }
                             }
                         }
 
-                        var dictDVKhen =
-                            new Dictionary<string, HashSet<string>>();
+                        var dictDVKhen = new Dictionary<string, HashSet<string>>();
 
-                        using (var cn4 =
-                            new SqliteConnection(
-                                $"Data Source={_csdl4Path}"))
+                        using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path}"))
                         {
                             cn4.Open();
-
-                            using (var cmdTao2 =
-                                new SqliteCommand(
-                                    "CREATE TABLE IF NOT EXISTS ThongKe_GiayKhen (SoHieu TEXT, DonVi_Khen TEXT);",
-                                    cn4))
+                            using (var cmdTao2 = new SqliteCommand("CREATE TABLE IF NOT EXISTS ThongKe_GiayKhen (SoHieu TEXT, DonVi_Khen TEXT);", cn4))
                             {
                                 cmdTao2.ExecuteNonQuery();
                             }
 
-                            using var cmd =
-                                new SqliteCommand(
-                                    "SELECT SoHieu, DonVi_Khen FROM ThongKe_GiayKhen",
-                                    cn4);
-
+                            using var cmd = new SqliteCommand("SELECT SoHieu, DonVi_Khen FROM ThongKe_GiayKhen", cn4);
                             using var rd = cmd.ExecuteReader();
 
                             while (rd.Read())
                             {
-                                string sh =
-                                    SafeDecrypt(
-                                        rd["SoHieu"]?.ToString());
+                                string sh = SafeDecrypt(rd["SoHieu"]?.ToString());
+                                string dv = SafeDecrypt(rd["DonVi_Khen"]?.ToString());
 
-                                string dv =
-                                    SafeDecrypt(
-                                        rd["DonVi_Khen"]?.ToString());
-
-                                if (!string.IsNullOrEmpty(sh) &&
-                                    !string.IsNullOrEmpty(dv))
+                                if (!string.IsNullOrEmpty(sh) && !string.IsNullOrEmpty(dv))
                                 {
-                                    if (!dictDVKhen.ContainsKey(sh))
-                                    {
-                                        dictDVKhen[sh] =
-                                            new HashSet<string>();
-                                    }
-
+                                    if (!dictDVKhen.ContainsKey(sh)) dictDVKhen[sh] = new HashSet<string>();
                                     dictDVKhen[sh].Add(dv);
                                 }
                             }
                         }
 
                         // =================================================
-                        // BUILD LIST
+                        // BUILD LIST VÀ TỰ ĐỘNG NỘI SUY TÌNH TRẠNG CHUYỂN CÔNG TÁC
                         // =================================================
+                        var listTemp = new List<ThongTinKhenThuongCBCS>(2000);
 
-                        var listTemp =
-                            new List<ThongTinKhenThuongCBCS>(2000);
-
-                        using (var cn4 =
-                            new SqliteConnection(
-                                $"Data Source={_csdl4Path}"))
+                        using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path}"))
                         {
                             cn4.Open();
 
-                            using var cmd =
-                                new SqliteCommand(
-                                    $"SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang FROM {tableThiDua}",
-                                    cn4);
-
+                            // ĐÃ SỬA LỖI: XÓA CHỮ TinhTrang Ở ĐÂY NỮA
+                            using var cmd = new SqliteCommand($"SELECT ID, HoVaTen, SoHieu, DonVi FROM {tableThiDua}", cn4);
                             using var rd = cmd.ExecuteReader();
 
                             while (rd.Read())
                             {
-                                if (IsDisposed || Disposing)
-                                    break;
+                                if (IsDisposed || Disposing) break;
 
-                                string sh =
-                                    SafeDecrypt(
-                                        rd["SoHieu"]?.ToString());
+                                string sh = SafeDecrypt(rd["SoHieu"]?.ToString());
+                                if (string.IsNullOrEmpty(sh)) continue;
 
-                                if (string.IsNullOrEmpty(sh))
-                                    continue;
+                                // 1. BƯỚC ĐỐI CHIẾU
+                                bool coTrongDanhSachGoc = dictDanhSach.ContainsKey(sh);
 
-                                string soLuongKhenStr =
-                                    dictKhenThuong.ContainsKey(sh)
-                                    ? dictKhenThuong[sh].SoLuong
-                                    : "0";
+                                // 2. LẤY HỌ TÊN, ĐƠN VỊ TỪ GỐC
+                                string hoTenMoi = coTrongDanhSachGoc ? dictDanhSach[sh].HoTen : SafeDecrypt(rd["HoVaTen"]?.ToString());
+                                string donViMoi = coTrongDanhSachGoc ? dictDanhSach[sh].DonVi : SafeDecrypt(rd["DonVi"]?.ToString());
+                                string ghiChuMoi = coTrongDanhSachGoc ? dictDanhSach[sh].GhiChu : "";
 
-                                int.TryParse(
-                                    soLuongKhenStr,
-                                    out int slKhen);
+                                // 🔥 3. ÁP DỤNG LOGIC THÔNG MINH CỦA BẠN VÀO ĐÂY:
+                                // Nội suy Tình trạng dựa trên kết quả đối chiếu với Danh Sách Gốc
+                                string tinhTrangMoi = coTrongDanhSachGoc ? "Đang công tác" : "Chuyển công tác";
 
-                                listTemp.Add(
-                                    new ThongTinKhenThuongCBCS
-                                    {
-                                        ID = Convert.ToInt64(rd["ID"]),
-                                        HoVaTen = SafeDecrypt(rd["HoVaTen"]?.ToString()),
-                                        SoHieu = sh,
-                                        DonVi = SafeDecrypt(rd["DonVi"]?.ToString()),
-                                        TinhTrang = rd["TinhTrang"]?.ToString() ?? "",
-                                        SoLuong_Khen = slKhen,
-                                        GhiChu_Khen = dictKhenThuong.ContainsKey(sh)
-                                            ? dictKhenThuong[sh].GhiChu
-                                            : "",
-                                        GhiChu_DanhSach = dictDanhSach.ContainsKey(sh)
-                                            ? dictDanhSach[sh]
-                                            : "",
-                                        DanhSachDVKhen_An = dictDVKhen.ContainsKey(sh)
-                                            ? string.Join(", ", dictDVKhen[sh])
-                                            : ""
-                                    });
+                                // 4. THỐNG KÊ KHEN THƯỞNG
+                                string soLuongKhenStr = dictKhenThuong.ContainsKey(sh) ? dictKhenThuong[sh].SoLuong : "0";
+                                int.TryParse(soLuongKhenStr, out int slKhen);
+
+                                listTemp.Add(new ThongTinKhenThuongCBCS
+                                {
+                                    ID = Convert.ToInt64(rd["ID"]),
+                                    HoVaTen = hoTenMoi,
+                                    SoHieu = sh,
+                                    DonVi = donViMoi,
+                                    TinhTrang = tinhTrangMoi,   // <-- Đổ kết quả nội suy vào Class để hiện lên DataGrid
+                                    SoLuong_Khen = slKhen,
+                                    GhiChu_Khen = dictKhenThuong.ContainsKey(sh) ? dictKhenThuong[sh].GhiChu : "",
+                                    GhiChu_DanhSach = ghiChuMoi,
+                                    DanhSachDVKhen_An = dictDVKhen.ContainsKey(sh) ? string.Join(", ", dictDVKhen[sh]) : ""
+                                });
                             }
                         }
-
                         // =================================================
                         // SORT
                         // =================================================
@@ -594,107 +539,6 @@ namespace PhanMemThiDua2026
             }
         }
         private Font _fontBold;
-        //        private void DinhDangDataGridHienDai()
-        //        {
-        //            var grid = kryptonDataGridView1_DanhSachCBCS;
-        //            if (grid == null || grid.IsDisposed) return;
-
-        //            grid.SuspendLayout();
-        //            try
-        //            {
-        //                // 1. TỐI ƯU BỘ NHỚ VÀ ĐỒ HỌA (TRÁNH LEAK GDI VÀ CHỐNG NHÁY)
-        //                _fontBold ??= new Font(grid.Font, FontStyle.Bold); // Khởi tạo 1 lần duy nhất
-
-        //                // Bật DoubleBuffered qua Reflection để Grid cuộn mượt, không bị xé hình (Tear-tearing)
-        //                typeof(DataGridView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-        //                                    ?.SetValue(grid, true, null);
-
-        //                // 2. CẤU HÌNH GIAO DIỆN HEADER VÀ MÀU SẮC
-        //                grid.EnableHeadersVisualStyles = false;
-        //                grid.BackgroundColor = Color.White;
-        //                grid.BorderStyle = BorderStyle.None;
-
-        //                grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-        //                grid.ColumnHeadersHeight = grid.Font.Height + 25;
-        //                grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(235, 242, 249);
-        //                grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(60, 60, 60);
-        //                grid.ColumnHeadersDefaultCellStyle.Font = _fontBold; // Dùng Font đã Cache
-        //                grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
-        //                // 3. TỐI ƯU HIỆU SUẤT TỐI ĐA (CHỐNG RENDER THỪA BÃI)
-        //                grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None; // TẮT tính toán độ rộng toàn cục
-        //                grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;       // TẮT tính toán chiều cao toàn cục
-        //                grid.AllowUserToResizeRows = false;                              // Khóa resize dòng
-
-        //                grid.RowTemplate.Height = grid.Font.Height + 10;
-        //                grid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
-        //                grid.DefaultCellStyle.Padding = new Padding(2, 0, 2, 0);         // Giảm padding để paint nhẹ hơn
-
-        //                grid.ReadOnly = true;
-        //                grid.MultiSelect = false;                                        // Tránh logic tính toán chọn nhiều dòng
-        //                grid.StandardTab = true;
-        //                grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-        //                grid.EditMode = DataGridViewEditMode.EditProgrammatically;
-        //                grid.AllowUserToAddRows = false;
-        //                grid.AllowUserToDeleteRows = false;
-        //                grid.RowHeadersVisible = true;                                   // Vẫn giữ để vẽ số thứ tự
-        //                grid.RowHeadersWidth = 50;
-
-        //                // 4. KÍCH HOẠT VIRTUAL MODE VÀ DỌN DẸP AN TOÀN TRÁNH REDRAW KÉP
-        //                grid.VirtualMode = true;
-        //                if (grid.DataSource != null) grid.DataSource = null;
-        //                if (grid.Columns.Count > 0) grid.Columns.Clear();
-
-        //                // 5. TẠO CỘT THỦ CÔNG VÀ CHỈ ĐỊNH FILL ĐÚNG CHỖ
-        //                // 🚀 AutoSizeMode được gán cục bộ: "HoVaTen" và "DonVi" sẽ dãn tự động lấp đầy màn hình
-        //                // 5. TẠO CỘT THỦ CÔNG VÀ CHỈ ĐỊNH FILL ĐÚNG CHỖ
-        //                var cauHinhCot = new[]
-        //                {
-        //    (Ten: "HoVaTen", TieuDe: "Họ và tên", Rong: 250, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleLeft, InDam: false, MauChu: Color.Empty),
-        //    (Ten: "SoHieu", TieuDe: "Số hiệu", Rong: 120, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: false, MauChu: Color.Empty),
-        //    (Ten: "DonVi", TieuDe: "Đơn vị", Rong: 200, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleLeft, InDam: false, MauChu: Color.Empty),
-        //    (Ten: "TinhTrang", TieuDe: "Tình trạng", Rong: 140, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: false, MauChu: Color.Empty),
-        //    (Ten: "SoLuong_Khen", TieuDe: "Tổng số khen thưởng", Rong: 160, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: true, MauChu: Color.DarkBlue),
-        //    // ⭐ BỔ SUNG CỘT GHI CHÚ VÀO CUỐI CÙNG (Dùng Fill để lấp đầy màn hình)
-        //    (Ten: "GhiChu_DanhSach", TieuDe: "Ghi chú", Rong: 250, Fill: DataGridViewAutoSizeColumnMode.Fill, CanLe: DataGridViewContentAlignment.MiddleLeft, InDam: false, MauChu: Color.DarkSlateGray)
-        //};
-
-        //                foreach (var cot in cauHinhCot)
-        //                {
-        //                    var col = new DataGridViewTextBoxColumn
-        //                    {
-        //                        Name = cot.Ten,
-        //                        HeaderText = cot.TieuDe,
-        //                        Width = cot.Rong,
-        //                        AutoSizeMode = cot.Fill
-        //                    };
-
-        //                    col.DefaultCellStyle.Alignment = cot.CanLe;
-
-        //                    // ⭐ BỔ SUNG AN TOÀN: Bật WrapMode cho riêng cột Ghi chú để chữ dài không bị khuất
-        //                    if (cot.Ten == "GhiChu_DanhSach")
-        //                    {
-        //                        col.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-        //                    }
-
-        //                    if (cot.InDam || cot.MauChu != Color.Empty)
-        //                    {
-        //                        col.DefaultCellStyle.Font = cot.InDam ? _fontBold : grid.Font;
-        //                        if (cot.MauChu != Color.Empty) col.DefaultCellStyle.ForeColor = cot.MauChu;
-        //                    }
-        //                    grid.Columns.Add(col);
-        //                }
-
-        //                // 6. GẮN SỰ KIỆN NẠP DỮ LIỆU ẢO
-        //                grid.CellValueNeeded -= Grid_CellValueNeeded;
-        //                grid.CellValueNeeded += Grid_CellValueNeeded;
-        //            }
-        //            finally
-        //            {
-        //                grid.ResumeLayout();
-        //            }
-        //        }
-        // 🔥 SỰ KIỆN TRÁI TIM CỦA VIRTUAL MODE (Rất nhẹ, gọi hàng ngàn lần không lag)
         private void DinhDangDataGridHienDai()
         {
             var grid = kryptonDataGridView1_DanhSachCBCS;

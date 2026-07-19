@@ -106,14 +106,14 @@ namespace PhanMemThiDua2026
                     using var cnKyHieu = new SqliteConnection($"Data Source={csdl2}");
                     cnKyHieu.Open();
                     // Lọc chuẩn xác chỉ lấy ID = 1 theo yêu cầu
-                    using var cmdKyHieu = new SqliteCommand("SELECT KyHieu_TrungDoan, KeHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1", cnKyHieu);
+                    using var cmdKyHieu = new SqliteCommand("SELECT KyHieu_TrungDoan, KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1", cnKyHieu);
                     using var rdKyHieu = cmdKyHieu.ExecuteReader();
 
                     if (rdKyHieu.Read())
                     {
                         // Lấy dữ liệu và giải mã an toàn qua module V2
                         kyHieuTrungDoan = SafeDecrypt(rdKyHieu["KyHieu_TrungDoan"]);
-                        kyHieuTieuDoan = SafeDecrypt(rdKyHieu["KeHieu_TieuDoan"]);
+                        kyHieuTieuDoan = SafeDecrypt(rdKyHieu["KyHieu_TieuDoan"]);
                     }
                 }
                 catch (Exception ex)

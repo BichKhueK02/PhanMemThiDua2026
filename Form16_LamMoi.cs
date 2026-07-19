@@ -27,7 +27,6 @@ namespace PhanMemThiDua2026
         private static bool _memLoai3 = false;
         private static bool _memLoai4 = false;
         private static bool _memKhongPL = false;
-
         public Form16_LamMoi()
         {
             InitializeComponent();
@@ -36,37 +35,49 @@ namespace PhanMemThiDua2026
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.ShowInTaskbar = false;
-
             // Bật tính năng Click 1 chạm chuẩn của WinForms
             checkedListBox1_ChonDonViDeReset.CheckOnClick = true;
+            // ⭐ BỔ SUNG CODE KÍCH HOẠT CHẾ ĐỘ ĐỔI MÀU ĐỘNG CHO CHECKEDLISTBOX
+            //// ==============================================================
+            //checkedListBox1_ChonDonViDeReset.DrawMode = DrawMode.OwnerDrawFixed;
+            //// 👇 THÊM ĐÚNG DÒNG NÀY VÀO ĐÂY:
+            //checkedListBox1_ChonDonViDeReset.ItemHeight = 22;
+
+            //checkedListBox1_ChonDonViDeReset.DrawItem += CheckedListBox1_DrawItem;
+
+            // Ép hệ thống vẽ lại màu sắc NGAY LẬP TỨC khi tích/bỏ tích
+            checkedListBox1_ChonDonViDeReset.ItemCheck += (s, e) =>
+            {
+                this.BeginInvoke(new Action(() =>
+                {
+                    if (!checkedListBox1_ChonDonViDeReset.IsDisposed)
+                        checkedListBox1_ChonDonViDeReset.Invalidate();
+                }));
+            };
+            // ==============================================================
 
             this.Load += Form16_LamMoi_Load;
             this.FormClosing += Form16_LamMoi_FormClosing;
             InitCheckBoxEvents();
             InitToolTips();
         }
-
         private async void Form16_LamMoi_Load(object sender, EventArgs e)
         {
             // Tìm và cache Label trạng thái ngay từ đầu
             _lblTrangThai = Controls.Find("label_TrangThai", true).FirstOrDefault() as Label;
-
             // Phục hồi trạng thái từ RAM
             checkBox1_GuiNguyenLoai1.Checked = _memLoai1;
             checkBox1_GuiNguyenLoai3.Checked = _memLoai3;
             checkBox1_GuiNguyenLoai4.Checked = _memLoai4;
             checkBox1_GuiNguyenKhongPhanLoai.Checked = _memKhongPL;
-
             // Loại 2 luôn được set mặc định và không cho phép thay đổi
             checkBox1_GuiNguyenLoai2.AutoCheck = false;
             checkBox1_GuiNguyenLoai2.Checked = true;
             UpdateLabelColors();
             SetStatus("", this.ForeColor);
-
             // ⭐ GỌI HÀM NẠP DANH SÁCH ĐƠN VỊ KHI MỞ FORM
             await LoadDanhSachDonViAsync();
         }
-
         /// <summary>
         /// Nạp danh sách Đơn vị từ CSDL, giải mã AES và Mặc định check TẤT CẢ
         /// </summary>
@@ -98,7 +109,6 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-
                 // Sắp xếp theo ưu tiên
                 string[] thuTuUuTien = Module_DonVi.LayDanhSachDonViUuTienArray();
                 var sortedList = dsDonVi.OrderBy(item =>
@@ -117,7 +127,6 @@ namespace PhanMemThiDua2026
                     // Tham số 'true' giúp MẶC ĐỊNH TÍCH CHỌN tất cả các đơn vị
                     checkedListBox1_ChonDonViDeReset.Items.Add(dv, true);
                 }
-
                 checkedListBox1_ChonDonViDeReset.EndUpdate();
                 checkedListBox1_ChonDonViDeReset.SelectedIndexChanged += checkedListBox1_ChonDonViDeReset_SelectedIndexChanged;
             }
@@ -126,7 +135,6 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine($"Lỗi nạp đơn vị Form 16: {ex.Message}");
             }
         }
-
         /// <summary>
         /// UX MƯỢT MÀ: Chỉ xóa bôi xanh dòng để UI phẳng và tinh tế hơn.
         /// (Không tự ý đảo Check vì CheckOnClick = true đã làm việc đó rồi)
@@ -135,7 +143,10 @@ namespace PhanMemThiDua2026
         {
             checkedListBox1_ChonDonViDeReset.ClearSelected();
         }
-
+        /// <summary>
+        /// Hàm tự động vẽ màu sắc cho CheckedListBox: 
+        /// Checked = Màu Xanh, Unchecked = Màu Đỏ
+        /// </summary>   
         private void Form16_LamMoi_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (_isProcessing)
@@ -149,7 +160,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         #region UI Helpers
         private void SetStatus(string message, System.Drawing.Color color)
         {
@@ -209,7 +219,6 @@ namespace PhanMemThiDua2026
             }
         }
         #endregion
-
         private async void btn_ResetPhanLoai_Click(object sender, EventArgs e)
         {
             if (_isProcessing) return;
@@ -327,30 +336,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        private void HienThiBaoCaoChiTiet(int tongSoDong, List<string> chon, List<string> boQua)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("CẬP NHẬT DỮ LIỆU THÀNH CÔNG!");
-            sb.AppendLine("--------------------------------------------------");
-            sb.AppendLine($"Tự động reset tổng cộng: {tongSoDong} cán bộ chiến sĩ.\n");
-
-            sb.AppendLine($"✅ ĐÃ ÁP DỤNG ({chon.Count} đơn vị):");
-            sb.AppendLine(string.Join(", ", chon));
-            sb.AppendLine();
-
-            if (boQua.Count > 0)
-            {
-                sb.AppendLine($"⏭️ ĐÃ BỎ QUA ({boQua.Count} đơn vị):");
-                sb.AppendLine(string.Join(", ", boQua));
-            }
-            else
-            {
-                sb.AppendLine("⏭️ ĐÃ BỎ QUA: Không có (Đã áp dụng cho toàn lực lượng).");
-            }
-
-            MessageBox.Show(sb.ToString(), "Báo cáo chi tiết", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
         private (int soDongDaCapNhat, string thongBaoLoi) ThucThiResetDuLieu(HashSet<string> keepList, HashSet<string> danhSachDonViDuocChon, IProgress<int> progress, CancellationToken token)
         {
             var idsToUpdate = new List<long>();

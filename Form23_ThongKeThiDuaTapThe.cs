@@ -345,7 +345,7 @@ VALUES (1);";
             int nam = Module_NamHeThong.LayNamHeThong();
 
             string tenFile =
-                $"BẢNG TK PHÂN LOẠI THI ĐUA TẬP THỂ {tenDonVi} NĂM {nam}_{DateTime.Now:HHmmss}.xlsx";
+                $"BẢNG THỐNG KÊ PHÂN LOẠI THI ĐUA TẬP THỂ {tenDonVi} NĂM {nam}_{DateTime.Now:HHmmss}.xlsx";
 
             using SaveFileDialog sfd = new()
             {

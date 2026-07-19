@@ -3277,7 +3277,9 @@ namespace PhanMemThiDua2026
             using OpenFileDialog ofd = new OpenFileDialog
             {
                 Title = "Chọn tệp Excel dữ liệu thi đua",
-                Filter = "Excel Files (*.xlsx)|*.xlsx",
+                //Filter = "Excel Files (*.xlsx)|*.xlsx",
+                // 👇 ĐÃ SỬA: Bổ sung thêm *.xlsm vào bộ lọc (cách nhau bằng dấu chấm phẩy)
+                Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm",
                 Multiselect = false
             };
 

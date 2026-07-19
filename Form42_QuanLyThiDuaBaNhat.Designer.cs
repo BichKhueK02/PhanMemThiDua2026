@@ -106,6 +106,7 @@
             label17_SoLuongKyTu = new Label();
             kryptonButton2_GiamCoChuRichText = new Krypton.Toolkit.KryptonButton();
             toolTip1 = new ToolTip(components);
+            toolStripStatusLabel2_TyLeBaNhat = new ToolStripStatusLabel();
             statusStrip1.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -129,7 +130,7 @@
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new Size(21, 21);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripProgressBar1_LamMoi });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripProgressBar1_LamMoi, toolStripStatusLabel2_TyLeBaNhat });
             statusStrip1.Location = new Point(0, 655);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 10, 0);
@@ -1035,6 +1036,12 @@
             kryptonButton2_GiamCoChuRichText.Values.Text = "";
             kryptonButton2_GiamCoChuRichText.Click += kryptonButton2_GiamCoChuRichText_Click;
             // 
+            // toolStripStatusLabel2_TyLeBaNhat
+            // 
+            toolStripStatusLabel2_TyLeBaNhat.Name = "toolStripStatusLabel2_TyLeBaNhat";
+            toolStripStatusLabel2_TyLeBaNhat.Size = new Size(32, 21);
+            toolStripStatusLabel2_TyLeBaNhat.Text = "Tỷ lệ";
+            // 
             // Form42_QuanLyThiDuaBaNhat
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1151,5 +1158,6 @@
         private ToolStripMenuItem toolStripMenuItem_NhapDuLieu;
         private ToolStripMenuItem toolStripMenuItem5_XuatDanhSachGoc;
         private ToolStripSeparator toolStripMenuItem5;
+        private ToolStripStatusLabel toolStripStatusLabel2_TyLeBaNhat;
     }
 }

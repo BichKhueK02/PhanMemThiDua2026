@@ -21,12 +21,16 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1_DanhSach_DonVi.CellPainting += kryptonDataGridView1_DanhSach_DonVi_CellPainting;
             InitToolTips();
         }
-
         private void Form20_DonVi_Load(object? sender, EventArgs e)
         {
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.AcceptButton = kryptonButton1_Them; // ✅ Enter = Thêm
+
+            // ⭐ BỔ SUNG UX: Đổi tên Form để Admin khỏi bị nhầm lẫn
+            bool laTanBinh = Module_DonVi.LayTenBangDonVi().Contains("TanBinh");
+            this.Text = laTanBinh ? "Quản lý Danh sách Đơn vị (Dành cho Tân Binh)" : "Quản lý Danh sách Đơn vị";
+
             TaoBangNeuChuaCo();
             LoadDanhSachDonVi();
             ResetInput();
@@ -52,6 +56,24 @@ namespace PhanMemThiDua2026
                     toolTip1.SetToolTip(tip.Key, tip.Value);
             }
         }
+        //        private void TaoBangNeuChuaCo()
+        //        {
+        //            if (!File.Exists(_csdl2Path)) return;
+
+        //            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //            cn.Open();
+        //            using var cmd = cn.CreateCommand();
+        //            cmd.CommandText = @"
+        //CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
+        //    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        //    Ten_DonVi TEXT,
+        //    ThoiGian TEXT
+        //);";
+        //            cmd.ExecuteNonQuery();
+        //        }
+
+        // Đưa logic giải mã an toàn về một mối
+
         private void TaoBangNeuChuaCo()
         {
             if (!File.Exists(_csdl2Path)) return;
@@ -59,16 +81,17 @@ namespace PhanMemThiDua2026
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
             using var cmd = cn.CreateCommand();
-            cmd.CommandText = @"
-CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
+
+            string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
+
+            cmd.CommandText = $@"
+CREATE TABLE IF NOT EXISTS {tenBang} (
     ID INTEGER PRIMARY KEY AUTOINCREMENT,
     Ten_DonVi TEXT,
     ThoiGian TEXT
 );";
             cmd.ExecuteNonQuery();
         }
-
-        // Đưa logic giải mã an toàn về một mối
         private string TryGiaiMa(object value)
         {
             if (value == null || value == DBNull.Value) return string.Empty;
@@ -86,12 +109,58 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
             }
         }
 
+        //private void LoadDanhSachDonVi(int? selectID = null)
+        //{
+        //    using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //    cn.Open();
+        //    using var cmd = cn.CreateCommand();
+        //    cmd.CommandText = "SELECT ID, Ten_DonVi, ThoiGian FROM DanhSach_DonVi ORDER BY ID ASC";
+
+        //    var dt = new DataTable();
+        //    dt.Load(cmd.ExecuteReader());
+
+        //    // Thêm cột STT
+        //    if (!dt.Columns.Contains("STT"))
+        //        dt.Columns.Add("STT", typeof(string));
+
+        //    // Tạm thời gỡ DataSource để tăng tốc độ nạp/giải mã (tránh Grid vẽ lại liên tục)
+        //    kryptonDataGridView1_DanhSach_DonVi.DataSource = null;
+
+        //    int stt = 1;
+        //    foreach (DataRow row in dt.Rows)
+        //    {
+        //        string tenDonVi = TryGiaiMa(row["Ten_DonVi"]);
+        //        row["Ten_DonVi"] = tenDonVi;
+
+        //        string thoiGian = TryGiaiMa(row["ThoiGian"]);
+
+        //        // MẸO: Thêm khoảng trắng đầu chuỗi để tự tạo khoảng trống cho Icon (Tránh bị lệch viền Grid)
+        //        if (DateTime.TryParse(thoiGian, out DateTime dtParsed))
+        //        {
+        //            row["ThoiGian"] = "      " + dtParsed.ToString("dd-MM-yyyy HH:mm:ss");
+        //        }
+        //        else
+        //        {
+        //            row["ThoiGian"] = "      " + thoiGian;
+        //        }
+
+        //        row["STT"] = stt++.ToString();
+        //    }
+        //    // Gán lại DataSource sau khi đã giải mã toàn bộ bảng
+        //    kryptonDataGridView1_DanhSach_DonVi.DataSource = dt;
+        //    // Cập nhật số lượng lên Label ngay tại đây thay vì gọi hàm riêng để đỡ tốn 1 lần truy vấn
+        //    CapNhatLabelTongCongDonVi(dt.Rows.Count);
+        //    // Cấu hình giao diện Grid
+        //    CauHinhGiaoDienGrid(selectID);
+        //}
         private void LoadDanhSachDonVi(int? selectID = null)
         {
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
             using var cmd = cn.CreateCommand();
-            cmd.CommandText = "SELECT ID, Ten_DonVi, ThoiGian FROM DanhSach_DonVi ORDER BY ID ASC";
+
+            string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
+            cmd.CommandText = $"SELECT ID, Ten_DonVi, ThoiGian FROM {tenBang} ORDER BY ID ASC";
 
             var dt = new DataTable();
             dt.Load(cmd.ExecuteReader());
@@ -130,7 +199,6 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
             // Cấu hình giao diện Grid
             CauHinhGiaoDienGrid(selectID);
         }
-
         private void CauHinhGiaoDienGrid(int? selectID)
         {
             if (kryptonDataGridView1_DanhSach_DonVi.Columns.Count == 0) return;
@@ -212,6 +280,57 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
             this.AcceptButton = kryptonButton1_Them; // ✅ Enter = Thêm
         }
 
+        //private void kryptonButton1_Them_Click(object sender, EventArgs e)
+        //{
+        //    string tenDonVi = textBox_TenDonVi.Text.Trim();
+        //    if (string.IsNullOrWhiteSpace(tenDonVi))
+        //    {
+        //        MessageBox.Show(
+        //            "Chưa nhập tên đơn vị để lưu vào cơ sở dữ liệu!",
+        //            "Thông báo",
+        //            MessageBoxButtons.OK,
+        //            MessageBoxIcon.Warning
+        //        );
+        //        textBox_TenDonVi.Focus();
+        //        return;
+        //    }
+
+        //    using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //    cn.Open();
+
+        //    // Kiểm tra tồn tại
+        //    using var check = cn.CreateCommand();
+        //    check.CommandText = "SELECT ID, Ten_DonVi, ThoiGian FROM DanhSach_DonVi";
+        //    using var reader = check.ExecuteReader();
+        //    while (reader.Read())
+        //    {
+        //        string existingTen = TryGiaiMa(reader.GetString(1));
+        //        if (string.Equals(existingTen, tenDonVi, StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            int existingID = reader.GetInt32(0);
+        //            string tg = TryGiaiMa(reader.GetString(2));
+        //            MessageBox.Show(
+        //                $"Đơn vị '{tenDonVi}' (ID {existingID}) đã được tạo ngày {tg}.\nBạn không thể thêm trùng tên, nhưng có thể sửa tên!",
+        //                "Thông báo",
+        //                MessageBoxButtons.OK,
+        //                MessageBoxIcon.Warning
+        //            );
+        //            return;
+        //        }
+        //    }
+        //    reader.Close();
+
+        //    // Thêm mới
+        //    using var cmd = cn.CreateCommand();
+        //    cmd.CommandText = "INSERT INTO DanhSach_DonVi (Ten_DonVi, ThoiGian) VALUES (@ten, @time)";
+        //    cmd.Parameters.AddWithValue("@ten", BaoMatAES.MaHoa(tenDonVi));
+        //    cmd.Parameters.AddWithValue("@time", BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+        //    cmd.ExecuteNonQuery();
+
+        //    // Load lại dữ liệu và chọn dòng cuối
+        //    LoadDanhSachDonVi();
+        //    ResetInput();
+        //}
         private void kryptonButton1_Them_Click(object sender, EventArgs e)
         {
             string tenDonVi = textBox_TenDonVi.Text.Trim();
@@ -230,9 +349,11 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
 
+            string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
+
             // Kiểm tra tồn tại
             using var check = cn.CreateCommand();
-            check.CommandText = "SELECT ID, Ten_DonVi, ThoiGian FROM DanhSach_DonVi";
+            check.CommandText = $"SELECT ID, Ten_DonVi, ThoiGian FROM {tenBang}";
             using var reader = check.ExecuteReader();
             while (reader.Read())
             {
@@ -254,7 +375,7 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
 
             // Thêm mới
             using var cmd = cn.CreateCommand();
-            cmd.CommandText = "INSERT INTO DanhSach_DonVi (Ten_DonVi, ThoiGian) VALUES (@ten, @time)";
+            cmd.CommandText = $"INSERT INTO {tenBang} (Ten_DonVi, ThoiGian) VALUES (@ten, @time)";
             cmd.Parameters.AddWithValue("@ten", BaoMatAES.MaHoa(tenDonVi));
             cmd.Parameters.AddWithValue("@time", BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
             cmd.ExecuteNonQuery();
@@ -263,6 +384,59 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
             LoadDanhSachDonVi();
             ResetInput();
         }
+
+        //private void kryptonButton1_Sua_Click(object sender, EventArgs e)
+        //{
+        //    if (!isEditing || _selectedID < 0)
+        //    {
+        //        MessageBox.Show("Bạn chưa chọn đơn vị để sửa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //        return;
+        //    }
+
+        //    string tenDonViMoi = textBox_TenDonVi.Text.Trim();
+        //    if (string.IsNullOrWhiteSpace(tenDonViMoi))
+        //    {
+        //        MessageBox.Show("Chưa nhập tên đơn vị!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //        return;
+        //    }
+
+        //    using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //    cn.Open();
+
+        //    // Kiểm tra trùng tên
+        //    using var check = cn.CreateCommand();
+        //    check.CommandText = "SELECT ID, Ten_DonVi FROM DanhSach_DonVi WHERE ID <> @id";
+        //    check.Parameters.AddWithValue("@id", _selectedID);
+        //    using var reader = check.ExecuteReader();
+        //    while (reader.Read())
+        //    {
+        //        string existingTen = TryGiaiMa(reader.GetString(1));
+        //        if (string.Equals(existingTen, tenDonViMoi, StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            int existingID = reader.GetInt32(0);
+        //            MessageBox.Show(
+        //                $"Đơn vị '{tenDonViMoi}' (ID {existingID}) đã tồn tại.\nBạn không thể lưu trùng tên!",
+        //                "Thông báo",
+        //                MessageBoxButtons.OK,
+        //                MessageBoxIcon.Warning
+        //            );
+        //            return;
+        //        }
+        //    }
+        //    reader.Close();
+
+        //    // Cập nhật
+        //    using var cmd = cn.CreateCommand();
+        //    cmd.CommandText = "UPDATE DanhSach_DonVi SET Ten_DonVi=@ten, ThoiGian=@time WHERE ID=@id";
+        //    cmd.Parameters.AddWithValue("@ten", BaoMatAES.MaHoa(tenDonViMoi));
+        //    cmd.Parameters.AddWithValue("@time", BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+        //    cmd.Parameters.AddWithValue("@id", _selectedID);
+        //    cmd.ExecuteNonQuery();
+
+        //    // Load lại dữ liệu, cập nhật label và reset input
+        //    LoadDanhSachDonVi(_selectedID);
+        //    ResetInput();
+        //}
 
         private void kryptonButton1_Sua_Click(object sender, EventArgs e)
         {
@@ -282,9 +456,11 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
 
+            string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
+
             // Kiểm tra trùng tên
             using var check = cn.CreateCommand();
-            check.CommandText = "SELECT ID, Ten_DonVi FROM DanhSach_DonVi WHERE ID <> @id";
+            check.CommandText = $"SELECT ID, Ten_DonVi FROM {tenBang} WHERE ID <> @id";
             check.Parameters.AddWithValue("@id", _selectedID);
             using var reader = check.ExecuteReader();
             while (reader.Read())
@@ -306,7 +482,7 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
 
             // Cập nhật
             using var cmd = cn.CreateCommand();
-            cmd.CommandText = "UPDATE DanhSach_DonVi SET Ten_DonVi=@ten, ThoiGian=@time WHERE ID=@id";
+            cmd.CommandText = $"UPDATE {tenBang} SET Ten_DonVi=@ten, ThoiGian=@time WHERE ID=@id";
             cmd.Parameters.AddWithValue("@ten", BaoMatAES.MaHoa(tenDonViMoi));
             cmd.Parameters.AddWithValue("@time", BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
             cmd.Parameters.AddWithValue("@id", _selectedID);
@@ -317,6 +493,24 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
             ResetInput();
         }
 
+        //private void kryptonButton1_Xoa_Click(object sender, EventArgs e)
+        //{
+        //    if (!isEditing || _selectedID < 0)
+        //    {
+        //        MessageBox.Show("Bạn chưa chọn đơn vị để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        //        return;
+        //    }
+
+        //    using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //    cn.Open();
+        //    using var cmd = cn.CreateCommand();
+        //    cmd.CommandText = "DELETE FROM DanhSach_DonVi WHERE ID=@id";
+        //    cmd.Parameters.AddWithValue("@id", _selectedID);
+        //    cmd.ExecuteNonQuery();
+
+        //    LoadDanhSachDonVi();
+        //    ResetInput();
+        //}
         private void kryptonButton1_Xoa_Click(object sender, EventArgs e)
         {
             if (!isEditing || _selectedID < 0)
@@ -328,14 +522,16 @@ CREATE TABLE IF NOT EXISTS DanhSach_DonVi (
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
             using var cmd = cn.CreateCommand();
-            cmd.CommandText = "DELETE FROM DanhSach_DonVi WHERE ID=@id";
+
+            string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
+
+            cmd.CommandText = $"DELETE FROM {tenBang} WHERE ID=@id";
             cmd.Parameters.AddWithValue("@id", _selectedID);
             cmd.ExecuteNonQuery();
 
             LoadDanhSachDonVi();
             ResetInput();
         }
-
         private void CapNhatLabelTongCongDonVi(int soLuong)
         {
             try
