@@ -68,7 +68,8 @@ namespace PhanMemThiDua2026
             if (btn_TextTinh != null) toolTip1.SetToolTip(btn_TextTinh, "Nhấn Enter hoặc Click để tính toán");
             if (com_Textphanloai != null) toolTip1.SetToolTip(com_Textphanloai, "Chọn phân loại tập thể");
         }
-        // KHỐI 1: XỬ LÝ DATABASE & CACHE (HIỆU SUẤT)
+        // KHỐI 1: XỬ LÝ DATABASE & CACHE (HIỆU SUẤT) - HỖ TRỢ ĐA PHIÊN BẢN (CBCS / TÂN BINH)
+        // KHỐI 1: XỬ LÝ DATABASE & CACHE (HIỆU SUẤT) - HỖ TRỢ ĐA PHIÊN BẢN (CBCS / TÂN BINH)
         private void TaiDuLieuTuSQLiteVaoCache()
         {
             _cacheTyLe.Clear();
@@ -85,13 +86,26 @@ namespace PhanMemThiDua2026
 
             try
             {
+                // 🌟 Nhận diện phiên bản phần mềm để chọn đúng tên bảng quy định tỷ lệ
+                bool laTanBinh = false;
+                try
+                {
+                    string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                    laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                }
+                catch { }
+
+                // Chọn bảng "QuyDinhTyLe_TanBinh" nếu là tân binh, ngược lại dùng "QuyDinhTyLe" cho CBCS
+                string tableQuyDinh = laTanBinh ? "QuyDinhTyLe_TanBinh" : "QuyDinhTyLe";
+
                 using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_csdl2Path}"))
                 {
                     conn.Open();
                     using (var cmd = conn.CreateCommand())
                     {
-                        // Lấy luôn cả 4 cột, chỉ 1 vòng quét DB duy nhất
-                        cmd.CommandText = "SELECT ID, Loai_1, Loai_2, Loai_3, Loai_4 FROM QuyDinhTyLe WHERE ID IN (1, 2, 3)";
+                        // Truy vấn động dựa trên tên bảng đã xác định theo phiên bản
+                        cmd.CommandText = $"SELECT ID, Loai_1, Loai_2, Loai_3, Loai_4 FROM [{tableQuyDinh}] WHERE ID IN (1, 2, 3)";
+
                         using (var reader = cmd.ExecuteReader())
                         {
                             while (reader.Read())
@@ -217,7 +231,6 @@ namespace PhanMemThiDua2026
                 text_Texttongquanso.Focus();
             }
         }
-        // KHỐI 3: THUẬT TOÁN TÍNH TỶ LỆ CHUẨN XÁC
         // KHỐI 3: THUẬT TOÁN TÍNH TỶ LỆ CHUẨN XÁC
         private void ThucThiTinhToan(double tongQS, double pLoai1, double pLoai2, double pLoai3)
         {

@@ -139,14 +139,53 @@ namespace PhanMemThiDua2026
                 toolTip1.SetToolTip(kryptonButton_LuuE29, "Lưu quy định tỷ lệ vào cơ sở dữ liệu");
             }
         }
+
+        // ======================================================
+        // THÊM: BIẾN ĐỂ XÁC ĐỊNH BẢNG THEO CHẾ ĐỘ (TÂN BINH / CBCS)
+        // ======================================================
+        private string TenBangHienTai
+        {
+            get
+            {
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                    ? "QuyDinhTyLe_TanBinh"
+                    : "QuyDinhTyLe";
+            }
+        }
+
         private async Task LoadQuyDinhTyLeAsync()
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
 
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
                 await conn.OpenAsync();
+
+                string tableName = TenBangHienTai;
+
+                // Tự động tạo bảng chống lỗi văng form
+                using (var cmdCreate = conn.CreateCommand())
+                {
+                    cmdCreate.CommandText = $@"
+                    CREATE TABLE IF NOT EXISTS [{tableName}] (
+                        ID INTEGER NOT NULL,
+                        TenLoaiTapThe TEXT,
+                        Loai_1 TEXT,
+                        Loai_2 TEXT,
+                        Loai_3 TEXT,
+                        Loai_4 TEXT,
+                        Khong_PL TEXT,
+                        PRIMARY KEY(ID AUTOINCREMENT)
+                    );
+                    INSERT OR IGNORE INTO [{tableName}] (ID, TenLoaiTapThe, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL) 
+                    VALUES 
+                    (1, 'Loại 1', '0', '0', '0', '0', '0'),
+                    (2, 'Loại 2', '0', '0', '0', '0', '0'),
+                    (3, 'Loại 3', '0', '0', '0', '0', '0');";
+                    await cmdCreate.ExecuteNonQueryAsync();
+                }
 
                 DeNghiMapping.Clear();
 
@@ -158,8 +197,8 @@ namespace PhanMemThiDua2026
                     int[] values = new int[cols];
 
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = @"SELECT Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL 
-                                FROM QuyDinhTyLe WHERE ID=@id";
+                    cmd.CommandText = $@"SELECT Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL 
+                                FROM [{tableName}] WHERE ID=@id";
                     cmd.Parameters.AddWithValue("@id", id);
 
                     using var reader = await cmd.ExecuteReaderAsync();
@@ -167,9 +206,9 @@ namespace PhanMemThiDua2026
                     {
                         for (int i = 0; i < cols; i++)
                         {
-                            int val = reader.IsDBNull(i) ? 0 : reader.GetInt32(i);
-                            values[i] = val;
-                            _txtGrid[id - 1, i].Text = val.ToString();
+                            string valStr = reader[i]?.ToString() ?? "0";
+                            values[i] = int.TryParse(valStr, out int parsed) ? parsed : 0;
+                            _txtGrid[id - 1, i].Text = values[i].ToString();
                         }
                     }
 
@@ -178,10 +217,11 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi load dữ liệu!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Console.WriteLine(ex); // Có thể ghi log ra file
+                MessageBox.Show("Lỗi khi load dữ liệu tỷ lệ!\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                System.Diagnostics.Debug.WriteLine(ex);
             }
         }
+
         // Hàm Save dữ liệu từ TextBox về SQLite, chuẩn async + transaction + tối ưu
         // Truyền CancellationToken vào hàm
         private async Task SaveQuyDinhTyLeAsync(CancellationToken ct)
@@ -189,50 +229,44 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
 
             using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-            await conn.OpenAsync(ct); // Truyền token vào kết nối
+            await conn.OpenAsync(ct);
 
             using var tran = conn.BeginTransaction();
             try
             {
                 int rows = _txtGrid.GetLength(0);
                 int cols = _txtGrid.GetLength(1);
-
+                string tableName = TenBangHienTai;
                 var tempMapping = new Dictionary<string, int[]>();
 
                 using var cmd = conn.CreateCommand();
                 cmd.Transaction = tran;
-                cmd.CommandText = @"UPDATE QuyDinhTyLe 
+
+                cmd.CommandText = $@"UPDATE [{tableName}] 
                             SET Loai_1=@l1, Loai_2=@l2, Loai_3=@l3,
                                 Loai_4=@l4, Khong_PL=@kpl
                             WHERE ID=@id";
 
-                cmd.Parameters.Add("@l1", SqliteType.Integer);
-                cmd.Parameters.Add("@l2", SqliteType.Integer);
-                cmd.Parameters.Add("@l3", SqliteType.Integer);
-                cmd.Parameters.Add("@l4", SqliteType.Integer);
-                cmd.Parameters.Add("@kpl", SqliteType.Integer);
+                // Sử dụng SqliteType.Text để đồng bộ 100% với cấu trúc bảng SQLite 
+                cmd.Parameters.Add("@l1", SqliteType.Text);
+                cmd.Parameters.Add("@l2", SqliteType.Text);
+                cmd.Parameters.Add("@l3", SqliteType.Text);
+                cmd.Parameters.Add("@l4", SqliteType.Text);
+                cmd.Parameters.Add("@kpl", SqliteType.Text);
                 cmd.Parameters.Add("@id", SqliteType.Integer);
 
-                // NÂNG CẤP: Định nghĩa Hằng số để tránh Hardcode index (Magic Numbers)
-                const int COL_LOAI1 = 0;
-                const int COL_LOAI2 = 1;
-                const int COL_LOAI3 = 2;
-                const int COL_LOAI4 = 3;
-                const int COL_KHONGPL = 4;
+                const int COL_LOAI1 = 0, COL_LOAI2 = 1, COL_LOAI3 = 2, COL_LOAI4 = 3, COL_KHONGPL = 4;
 
                 for (int id = 1; id <= rows; id++)
                 {
-                    // Kiểm tra xem có lệnh hủy từ user không trước khi chạy mỗi vòng lặp
                     ct.ThrowIfCancellationRequested();
 
                     int[] values = new int[cols];
                     for (int i = 0; i < cols; i++)
                     {
-                        // NÂNG CẤP: Validate dữ liệu đầu vào (Chống số âm và giới hạn 100 nếu là phần trăm)
-                        // Nếu quy định tỷ lệ của bạn là % (từ 0 đến 100):
                         if (int.TryParse(_txtGrid[id - 1, i].Text, out int val))
                         {
-                            values[i] = Math.Clamp(val, 0, 100); // Ép giới hạn: nhỏ hơn 0 thành 0, lớn hơn 100 thành 100
+                            values[i] = Math.Clamp(val, 0, 100);
                         }
                         else
                         {
@@ -240,15 +274,15 @@ namespace PhanMemThiDua2026
                         }
                     }
 
-                    // Gán giá trị Parameters bằng hằng số
-                    cmd.Parameters["@l1"].Value = values[COL_LOAI1];
-                    cmd.Parameters["@l2"].Value = values[COL_LOAI2];
-                    cmd.Parameters["@l3"].Value = values[COL_LOAI3];
-                    cmd.Parameters["@l4"].Value = values[COL_LOAI4];
-                    cmd.Parameters["@kpl"].Value = values[COL_KHONGPL];
+                    // Ép kiểu chuỗi để tương thích với Type "TEXT" trong Database
+                    cmd.Parameters["@l1"].Value = values[COL_LOAI1].ToString();
+                    cmd.Parameters["@l2"].Value = values[COL_LOAI2].ToString();
+                    cmd.Parameters["@l3"].Value = values[COL_LOAI3].ToString();
+                    cmd.Parameters["@l4"].Value = values[COL_LOAI4].ToString();
+                    cmd.Parameters["@kpl"].Value = values[COL_KHONGPL].ToString();
                     cmd.Parameters["@id"].Value = id;
 
-                    await cmd.ExecuteNonQueryAsync(ct); // Truyền token vào truy vấn
+                    await cmd.ExecuteNonQueryAsync(ct);
                     tempMapping[$"Loại {id}"] = values;
                 }
 
@@ -257,21 +291,18 @@ namespace PhanMemThiDua2026
             }
             catch (OperationCanceledException)
             {
-                // Bắt lỗi riêng nếu user hủy (đóng form)
                 tran.Rollback();
-                // Không cần báo lỗi ầm ĩ nếu chính user là người đóng form
             }
             catch (Exception ex)
             {
                 tran.Rollback();
 
-                // NÂNG CẤP: Chống đụng độ luồng (Race Condition) khi ghi log
                 string logPath = Path.Combine(Application.StartupPath, "LoiHeThong.txt");
                 string noiDungLoi = $"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] Lỗi lưu E29: {ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}";
 
                 try
                 {
-                    lock (_logLock) // Xếp hàng nếu có nhiều luồng cùng báo lỗi 1 lúc
+                    lock (_logLock)
                     {
                         File.AppendAllText(logPath, noiDungLoi);
                     }
@@ -281,6 +312,148 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
+        //private async Task LoadQuyDinhTyLeAsync()
+        //{
+        //    if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+
+        //    try
+        //    {
+        //        using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //        await conn.OpenAsync();
+
+        //        DeNghiMapping.Clear();
+
+        //        int rows = _txtGrid.GetLength(0);
+        //        int cols = _txtGrid.GetLength(1);
+
+        //        for (int id = 1; id <= rows; id++)
+        //        {
+        //            int[] values = new int[cols];
+
+        //            using var cmd = conn.CreateCommand();
+        //            cmd.CommandText = @"SELECT Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL 
+        //                        FROM QuyDinhTyLe WHERE ID=@id";
+        //            cmd.Parameters.AddWithValue("@id", id);
+
+        //            using var reader = await cmd.ExecuteReaderAsync();
+        //            if (await reader.ReadAsync())
+        //            {
+        //                for (int i = 0; i < cols; i++)
+        //                {
+        //                    int val = reader.IsDBNull(i) ? 0 : reader.GetInt32(i);
+        //                    values[i] = val;
+        //                    _txtGrid[id - 1, i].Text = val.ToString();
+        //                }
+        //            }
+
+        //            DeNghiMapping[$"Loại {id}"] = values;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Lỗi khi load dữ liệu!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //        Console.WriteLine(ex); // Có thể ghi log ra file
+        //    }
+        //}
+        //// Hàm Save dữ liệu từ TextBox về SQLite, chuẩn async + transaction + tối ưu
+        //// Truyền CancellationToken vào hàm
+        //private async Task SaveQuyDinhTyLeAsync(CancellationToken ct)
+        //{
+        //    if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+
+        //    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //    await conn.OpenAsync(ct); // Truyền token vào kết nối
+
+        //    using var tran = conn.BeginTransaction();
+        //    try
+        //    {
+        //        int rows = _txtGrid.GetLength(0);
+        //        int cols = _txtGrid.GetLength(1);
+
+        //        var tempMapping = new Dictionary<string, int[]>();
+
+        //        using var cmd = conn.CreateCommand();
+        //        cmd.Transaction = tran;
+        //        cmd.CommandText = @"UPDATE QuyDinhTyLe 
+        //                    SET Loai_1=@l1, Loai_2=@l2, Loai_3=@l3,
+        //                        Loai_4=@l4, Khong_PL=@kpl
+        //                    WHERE ID=@id";
+
+        //        cmd.Parameters.Add("@l1", SqliteType.Integer);
+        //        cmd.Parameters.Add("@l2", SqliteType.Integer);
+        //        cmd.Parameters.Add("@l3", SqliteType.Integer);
+        //        cmd.Parameters.Add("@l4", SqliteType.Integer);
+        //        cmd.Parameters.Add("@kpl", SqliteType.Integer);
+        //        cmd.Parameters.Add("@id", SqliteType.Integer);
+
+        //        // NÂNG CẤP: Định nghĩa Hằng số để tránh Hardcode index (Magic Numbers)
+        //        const int COL_LOAI1 = 0;
+        //        const int COL_LOAI2 = 1;
+        //        const int COL_LOAI3 = 2;
+        //        const int COL_LOAI4 = 3;
+        //        const int COL_KHONGPL = 4;
+
+        //        for (int id = 1; id <= rows; id++)
+        //        {
+        //            // Kiểm tra xem có lệnh hủy từ user không trước khi chạy mỗi vòng lặp
+        //            ct.ThrowIfCancellationRequested();
+
+        //            int[] values = new int[cols];
+        //            for (int i = 0; i < cols; i++)
+        //            {
+        //                // NÂNG CẤP: Validate dữ liệu đầu vào (Chống số âm và giới hạn 100 nếu là phần trăm)
+        //                // Nếu quy định tỷ lệ của bạn là % (từ 0 đến 100):
+        //                if (int.TryParse(_txtGrid[id - 1, i].Text, out int val))
+        //                {
+        //                    values[i] = Math.Clamp(val, 0, 100); // Ép giới hạn: nhỏ hơn 0 thành 0, lớn hơn 100 thành 100
+        //                }
+        //                else
+        //                {
+        //                    values[i] = 0;
+        //                }
+        //            }
+
+        //            // Gán giá trị Parameters bằng hằng số
+        //            cmd.Parameters["@l1"].Value = values[COL_LOAI1];
+        //            cmd.Parameters["@l2"].Value = values[COL_LOAI2];
+        //            cmd.Parameters["@l3"].Value = values[COL_LOAI3];
+        //            cmd.Parameters["@l4"].Value = values[COL_LOAI4];
+        //            cmd.Parameters["@kpl"].Value = values[COL_KHONGPL];
+        //            cmd.Parameters["@id"].Value = id;
+
+        //            await cmd.ExecuteNonQueryAsync(ct); // Truyền token vào truy vấn
+        //            tempMapping[$"Loại {id}"] = values;
+        //        }
+
+        //        tran.Commit();
+        //        DeNghiMapping = tempMapping;
+        //    }
+        //    catch (OperationCanceledException)
+        //    {
+        //        // Bắt lỗi riêng nếu user hủy (đóng form)
+        //        tran.Rollback();
+        //        // Không cần báo lỗi ầm ĩ nếu chính user là người đóng form
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        tran.Rollback();
+
+        //        // NÂNG CẤP: Chống đụng độ luồng (Race Condition) khi ghi log
+        //        string logPath = Path.Combine(Application.StartupPath, "LoiHeThong.txt");
+        //        string noiDungLoi = $"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] Lỗi lưu E29: {ex.Message}{Environment.NewLine}{ex.StackTrace}{Environment.NewLine}";
+
+        //        try
+        //        {
+        //            lock (_logLock) // Xếp hàng nếu có nhiều luồng cùng báo lỗi 1 lúc
+        //            {
+        //                File.AppendAllText(logPath, noiDungLoi);
+        //            }
+        //        }
+        //        catch { /* Bỏ qua nếu mất quyền truy cập file */ }
+
+        //        throw;
+        //    }
+        //}
         private async void kryptonButton_LuuE29_Click(object sender, EventArgs e)
         {
             if (!kryptonButton_LuuE29.Enabled) return;

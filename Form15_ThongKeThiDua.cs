@@ -15,7 +15,6 @@ namespace PhanMemThiDua2026
         private const string PLACEHOLDER_TIMKIEM = "Nhập tìm kiếm";
         private bool _dangSetPlaceholder = false;
         private bool _isInitialized = false;
-        //private DataTable filteredTable; // khai báo ở ngoài tất cả các hàm, ngay trong class Form                                        // Dùng cho chế độ CBCS thông thường
         //private Dictionary<int, string> _colMap = new Dictionary<int, string>();
         private Dictionary<int, int> _colIndexMap = new Dictionary<int, int>(); // BẢN ĐỒ TỌA ĐỘ CỘT SIÊU NHANH  
         // BẢN ĐỒ TỌA ĐỘ CỘT SIÊU NHANH
@@ -65,24 +64,20 @@ namespace PhanMemThiDua2026
         private void Form15_ThongKeThiDua_Load(object sender, EventArgs e)
         {
             if (_isInitialized) return;
-          
+
             DinhDangDataGirdView_HienThi();
             toolStripProgressBar1_LamMoi.Visible = false;
             toolStripProgressBar1_LamMoi.Enabled = false;
             // 1. KIỂM TRA PHIÊN BẢN VÀ ẨN MENU (DÙNG .Available THAY VÌ .Visible)
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-
             // Dùng Available là lệnh "tuyệt đối" buộc WinForms ẩn mục này đi
             if (xemThongKeThiDuaTapThe != null)
                 xemThongKeThiDuaTapThe.Available = !laTanBinh;
-
             if (tinhPhanLoaiThang_ToolStripMenuItem != null)
                 tinhPhanLoaiThang_ToolStripMenuItem.Available = laTanBinh;
-
             // (TÙY CHỌN) Nếu lưới đang trống trơn khi mở Form, đồng chí cần bật dòng dưới đây lên để nạp dữ liệu:
             // ReloadData(); 
-
             _isInitialized = true;
             // 2. ÉP FOCUS CHUẨN KỸ SƯ (Dùng ActiveControl chống trượt)
             this.BeginInvoke(new Action(() =>
@@ -979,7 +974,6 @@ namespace PhanMemThiDua2026
         // Dùng ConcurrentDictionary vì ta sẽ gọi nó bên trong Parallel.For (Đa luồng)
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _aesCache
             = new System.Collections.Concurrent.ConcurrentDictionary<string, string>(StringComparer.Ordinal);
-
         // Hàm bọc (Wrapper) thông minh
         private string CachedSafeDecrypt(string encryptedText)
         {
@@ -1394,10 +1388,6 @@ namespace PhanMemThiDua2026
             {
                 bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
                 string tableDich = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
-
-                // Hàm cục bộ hỗ trợ tạo Khóa so sánh chuẩn (Plaintext)
-                // Cắt khoảng trắng và đưa về chữ thường để so sánh tuyệt đối chính xác
-                // Hàm cục bộ hỗ trợ tạo Khóa so sánh: Ưu tiên Số Hiệu tuyệt đối
                 string TaoKeySoSanh(string ht, string sh, string dv)
                 {
                     string safeSh = sh?.Trim().ToLower() ?? "";
@@ -1416,47 +1406,6 @@ namespace PhanMemThiDua2026
                 }
                 //// =======================================================
                 //// BƯỚC 1: Lấy CSDL2 (Gốc) - GIẢI MÃ RA PLAINTEXT LÀM CHUẨN
-                //// =======================================================
-                //var hashGocCSDL2 = new HashSet<string>();
-                //var listCsdl2 = new List<(string Key, string encHt, string encSh, string encDv)>();
-
-                //using (var cn2 = new SqliteConnection($"Data Source={_csdl2Path}"))
-                //{
-                //    cn2.Open();
-                //    using (var cmd = new SqliteCommand("SELECT HoVaTen, SoHieu, DonVi FROM DanhSach", cn2))
-                //    using (var rd = cmd.ExecuteReader())
-                //    {
-                //        while (rd.Read())
-                //        {
-                //            // Lấy chuỗi mã hóa V2 từ CSDL2
-                //            string encHt = rd["HoVaTen"]?.ToString() ?? "";
-                //            string encSh = rd["SoHieu"]?.ToString() ?? "";
-                //            string encDv = rd["DonVi"]?.ToString() ?? "";
-
-                //            // GIẢI MÃ RA VĂN BẢN GỐC
-                //            string plainHt = SafeDecrypt(encHt);
-                //            string plainSh = SafeDecrypt(encSh);
-                //            string plainDv = SafeDecrypt(encDv);
-
-                //            // Bỏ qua dòng lỗi/trống
-                //            if (string.IsNullOrWhiteSpace(plainHt) && string.IsNullOrWhiteSpace(plainSh)) continue;
-
-                //            // Tạo khóa tổ hợp: "nguyễn văn a|123456|đội 1"
-                //            string key = TaoKeySoSanh(plainHt, plainSh, plainDv);
-
-                //            hashGocCSDL2.Add(key); // Dùng để đối chiếu cực nhanh
-                //            listCsdl2.Add((key, encHt, encSh, encDv)); // Dùng để Insert nếu cần
-                //        }
-                //    }
-                //}
-                // =======================================================
-                // BƯỚC 1: Lấy CSDL2 (Gốc) - GIẢI MÃ RA PLAINTEXT LÀM CHUẨN
-                // =======================================================
-                // SỬA DÒNG NÀY: Dùng Dictionary thay cho HashSet để lưu trữ thông tin mã hóa
-                // =======================================================
-                // BƯỚC 1: Lấy CSDL2 (Gốc) - GIẢI MÃ RA PLAINTEXT LÀM CHUẨN
-                // =======================================================
-                // SỬA DÒNG NÀY: Dùng Dictionary thay cho HashSet để lưu trữ thông tin mã hóa
                 var dictGocCSDL2 = new Dictionary<string, (string encHt, string encSh, string encDv)>();
                 var listCsdl2 = new List<(string Key, string encHt, string encSh, string encDv)>();
 
@@ -1487,60 +1436,7 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                //// =======================================================
-                //// BƯỚC 2: Lấy CSDL4 (Đích) - GIẢI MÃ VÀ ĐỐI CHIẾU
-                //// =======================================================
-                //var hashDichCSDL4 = new HashSet<string>();
-                //var idChuyenCongTac = new List<int>();
-                //var idDangCongTac = new List<int>();
 
-                //using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path}"))
-                //{
-                //    cn4.Open();
-                //    // SỬA SELECT: Phải lấy cả Họ Tên và Đơn Vị lên để so sánh
-                //    using (var cmd = new SqliteCommand($"SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang FROM {tableDich}", cn4))
-                //    using (var rd = cmd.ExecuteReader())
-                //    {
-                //        while (rd.Read())
-                //        {
-                //            int id = Convert.ToInt32(rd["ID"]);
-                //            string ttHienTai = rd["TinhTrang"]?.ToString()?.Trim() ?? "";
-
-                //            string encHt = rd["HoVaTen"]?.ToString() ?? "";
-                //            string encSh = rd["SoHieu"]?.ToString() ?? "";
-                //            string encDv = rd["DonVi"]?.ToString() ?? "";
-
-                //            // GIẢI MÃ RA VĂN BẢN GỐC
-                //            string plainHt = SafeDecrypt(encHt);
-                //            string plainSh = SafeDecrypt(encSh);
-                //            string plainDv = SafeDecrypt(encDv);
-
-                //            string key = TaoKeySoSanh(plainHt, plainSh, plainDv);
-                //            hashDichCSDL4.Add(key); // Lưu lại để tý nữa lọc danh sách cần Insert
-
-                //            // ⭐ KIỂM TRA SO SÁNH CẢ 3 TRƯỜNG DỰA TRÊN PLAINTEXT KEY
-                //            if (hashGocCSDL2.Contains(key))
-                //            {
-                //                // Cả 3 trường (Họ Tên, Số Hiệu, Đơn Vị) đều khớp chuẩn xác với CSDL2
-                //                if (ttHienTai != "Đang công tác")
-                //                {
-                //                    idDangCongTac.Add(id); // Cập nhật lại thành Đang công tác
-                //                }
-                //            }
-                //            else
-                //            {
-                //                // Nếu sai lệch 1 trong 3 thông tin, HOẶC đã bị xóa khỏi CSDL2
-                //                if (ttHienTai != "Chuyển công tác")
-                //                {
-                //                    idChuyenCongTac.Add(id); // Ép thành Chuyển công tác
-                //                }
-                //            }
-                //        }
-                //    }
-                //}
-
-
-                // =======================================================
                 // BƯỚC 2: Lấy CSDL4 (Đích) - GIẢI MÃ VÀ ĐỐI CHIẾU
                 // =======================================================
                 var hashDichCSDL4 = new HashSet<string>();
@@ -1914,7 +1810,7 @@ namespace PhanMemThiDua2026
                 // --- 1. ĐỊNH DẠNG HEADER (TIÊU ĐỀ) ---
                 grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
                 grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-                grid.ColumnHeadersHeight = 65; // Đủ cao để chứa tiêu đề 2 dòng
+                grid.ColumnHeadersHeight = 85; // Đủ cao để chứa tiêu đề 2 dòng
                 grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
                 {
                     Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
@@ -3803,6 +3699,123 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.ResumeLayout();
                 this.UseWaitCursor = false;
                 Interlocked.Exchange(ref _dangXuLyLuongNen, 0);
+            }
+        }
+        private void toolStripMenuItem_LuuTruDataThiDuaTheoNam_Click(object sender, EventArgs e)
+        {
+            //Gọi from lưu trữ dữ liệu thi đua theo năm From46_ThongKeThiDuaNamCu
+            // 1. Tìm Form cha (Form2_FormCha) đang chạy để tương tác với PanelContainer
+            var formCha = Application.OpenForms
+                .OfType<Form2_FormCha>()
+                .FirstOrDefault();
+            if (formCha == null) return;
+
+            // 2. Kiểm tra xem Form46 đã được khởi tạo và tồn tại trong bộ nhớ RAM chưa
+            var f46 = Application.OpenForms
+                .OfType<Form46_ThongKeThiDuaNamCu>()
+                .FirstOrDefault();
+
+            if (f46 == null)
+            {
+                // 👉 TRƯỜNG HỢP 1: CHƯA TỒN TẠI -> Khởi tạo mới hoàn toàn
+                f46 = new Form46_ThongKeThiDuaNamCu
+                {
+                    Text = "Thống kê thi đua năm cũ",
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+
+                // Tìm vùng chứa PanelContainer trên Form cha
+                var panel = formCha.Controls.Find("PanelContainer", true)
+                                            .FirstOrDefault() as Panel;
+                if (panel == null) return;
+
+                // Nạp Form46 vào panel và đẩy lên bề mặt hiển thị
+                panel.Controls.Add(f46);
+                f46.Show();
+                f46.BringToFront();
+
+                // Ghi nhớ tham chiếu của Form15 hiện tại (this) để gọi lại khi Form46 đóng
+                var form15 = this;
+
+                f46.FormClosed += (s, ev) =>
+                {
+                    if (form15 != null && !form15.IsDisposed)
+                    {
+                        // Hiển thị lại Form15 nguyên bản ban đầu
+                        form15.Dock = DockStyle.Fill;
+                        form15.Show();
+                        form15.BringToFront();
+
+                        // Khôi phục lại tiêu đề chuẩn của Form15 trên thanh điều hướng
+                        var fChaCheck = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+                        if (fChaCheck != null)
+                        {
+                            int namHienTai = Module_NamHeThong.LayNamHeThong();
+                            fChaCheck.CapNhatTieuDe($"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {namHienTai}");
+                        }
+                    }
+                };
+
+                // Cập nhật tiêu đề trang mới cho Form cha
+                formCha.CapNhatTieuDe("Trang lưu trữ dữ liệu thi đua năm cũ");
+            }
+            else
+            {
+                // 👉 TRƯỜNG HỢP 2: ĐÃ TỒN TẠI TRONG RAM -> Chỉ cần lôi ra bề mặt (BringToFront)
+                // 👉 TRƯỜNG HỢP 2: ĐÃ TỒN TẠI TRONG RAM -> Ép rà soát file mới tạo và lôi ra bề mặt
+                f46.LoadDanhSachFileLichSu(); // <--- ⭐ BỔ SUNG DÒNG NÀY
+                f46.BringToFront();
+                formCha.CapNhatTieuDe("Trang lưu trữ dữ liệu thi đua năm cũ");
+            }
+        }
+        private async void taoBanSaoLuuTruTheoNamToolStripMenuItem_Click(object sender, EventArgs e)
+        {          
+            // 1. XÁC MINH QUYỀN ADMIN
+            DialogResult kq;
+            using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
+            {
+                frm.TopMost = true;
+                frm.StartPosition = FormStartPosition.CenterScreen;
+                kq = frm.ShowDialog();
+            }
+            if (kq != DialogResult.OK)
+                return;
+            // 3. KHÓA MENU
+            var menu = taoBanSaoLuuTruTheoNamToolStripMenuItem;
+            string textGoc = menu.Text;
+            try
+            {
+                menu.Enabled = false;
+                menu.Text = "Đang lưu trữ...";
+
+                // 4. THỰC HIỆN LƯU TRỮ
+                string duongDan = await Task.Run(Module_HoTroLuuDataTheoNamCu.LuuTruDuLieuThiDuaNam);
+                // Nếu Form46 đang mở ngầm hoặc chạy dưới nền, ra lệnh nạp tệp mới lập tức
+                var f46Check = Application.OpenForms.OfType<Form46_ThongKeThiDuaNamCu>().FirstOrDefault();
+                if (f46Check != null && !f46Check.IsDisposed)
+                {
+                    f46Check.LoadDanhSachFileLichSu();
+                }
+                MessageBox.Show(
+                    $"Đã lưu trữ dữ liệu thành công sang Hệ thống lưu trữ dữ liệu thi đua năm cũ.\n\n{duongDan}",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Không thể lưu trữ dữ liệu",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                menu.Enabled = true;
+                menu.Text = textGoc;
             }
         }
     }

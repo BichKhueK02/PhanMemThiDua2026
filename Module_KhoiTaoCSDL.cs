@@ -283,7 +283,7 @@ namespace PhanMemThiDua2026
             // 2. Cấu hình Database
             string dir2 = Path.GetFullPath(string.IsNullOrWhiteSpace(Module_DanduongGPS.ThuMucCoSoDuLieu) ? Path.Combine(baseDir, "Database") : Module_DanduongGPS.ThuMucCoSoDuLieu);
             var allowFiles2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx", "NhatKy_LamSach.txt" };
-            var allowDirs2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Bansaoluu", "CongCuQuanLyCSDL", "HuongDanSuDung" };
+            var allowDirs2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Bansaoluu", "CongCuQuanLyCSDL", "HuongDanSuDung", "LuuTruThiDua_LichSu"};
             DonDepVungQuanLy(dir2, allowFiles2, allowDirs2, false, true);
 
             // 3. Cấu hình window-x64

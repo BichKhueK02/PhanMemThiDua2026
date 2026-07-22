@@ -407,11 +407,11 @@
             // kryptonButton_ChonDuongDanLuu
             // 
             kryptonButton_ChonDuongDanLuu.Anchor = AnchorStyles.Left;
-            kryptonButton_ChonDuongDanLuu.Location = new Point(2, 6);
+            kryptonButton_ChonDuongDanLuu.Location = new Point(2, 5);
             kryptonButton_ChonDuongDanLuu.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_ChonDuongDanLuu.Name = "kryptonButton_ChonDuongDanLuu";
             kryptonButton_ChonDuongDanLuu.RightToLeft = RightToLeft.No;
-            kryptonButton_ChonDuongDanLuu.Size = new Size(47, 30);
+            kryptonButton_ChonDuongDanLuu.Size = new Size(47, 32);
             kryptonButton_ChonDuongDanLuu.StateCommon.Border.Rounding = 4F;
             kryptonButton_ChonDuongDanLuu.TabIndex = 0;
             kryptonButton_ChonDuongDanLuu.Values.DropDownArrowColor = Color.Empty;

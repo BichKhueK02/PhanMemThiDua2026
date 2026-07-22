@@ -22,7 +22,6 @@ namespace PhanMemThiDua2026
         public string DonVi { get; set; } = "";
         public string PhanLoai { get; set; } = "";
         public string GhiChu { get; set; } = "";
-
         // Ràng buộc hợp lệ: Bắt buộc phải có Họ tên
         public bool IsValid => !string.IsNullOrWhiteSpace(HoVaTen);
     }
@@ -75,12 +74,9 @@ namespace PhanMemThiDua2026
                             GhiChu = reader.IsDBNull(10) ? "" : BaoMatAES.GiaiMa(reader.GetString(10))
                         });
                     }
-                }
-
-                // =====================================================================
+                }           
                 // 🚀 FAST EMPTY EXPORT MODE (CÁN BỘ CHIẾN SĨ)
-                // Không có dữ liệu -> tạo file mẫu cực nhanh, bỏ qua toàn bộ logic nặng
-                // =====================================================================
+                // Không có dữ liệu -> tạo file mẫu cực nhanh, bỏ qua toàn bộ logic nặng          
                 if (danhSach.Count == 0)
                 {
                     using var wbEmpty = new XLWorkbook();
@@ -108,9 +104,9 @@ namespace PhanMemThiDua2026
                     return; // Thoát ngay lập tức
                 }
 
-                // =====================================================================
+                
                 // 🟢 FULL EXPORT MODE (Khi có dữ liệu)
-                // =====================================================================
+                
                 using var wb = new XLWorkbook();
                 var ws = wb.Worksheets.Add("DSCBCS_PhanMemThiDua2026");
 
@@ -186,10 +182,10 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                // =====================================================================
+                
                 // 🚀 FAST EMPTY EXPORT MODE (TÂN BINH)
                 // Không hiện MessageBox khó chịu, tạo luôn template rỗng 
-                // =====================================================================
+                
                 if (danhSach.Count == 0)
                 {
                     using var wbEmpty = new XLWorkbook();
@@ -218,9 +214,9 @@ namespace PhanMemThiDua2026
                     return; // Thoát ngay lập tức
                 }
 
-                // =====================================================================
+                
                 // 🟢 FULL EXPORT MODE (Khi có dữ liệu)
-                // =====================================================================
+                
                 using var wb = new XLWorkbook();
                 var ws = wb.Worksheets.Add("DSTanBinh_PhanMemThiDua2026");
                 ws.TabColor = XLColor.DarkGreen;
@@ -280,9 +276,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // =========================================================================
+       
         // 🛠️ HELPER: CHỈ ĐỊNH DẠNG VÀ ĐỔ DỮ LIỆU MẪU TRONG VÙNG A2:K5
-        // =========================================================================
+       
         private static void TaoDuLieuMauVungData(IXLWorksheet ws, int fontSize = 13)
         {
             // 1. Tự động nhận dạng chế độ dựa trên tên Sheet hoặc cấu hình hiện tại
@@ -334,9 +330,9 @@ namespace PhanMemThiDua2026
             ws.Column(2).Width += 4;
             ws.Column(5).Width += 4;
         }
-        // =========================================================================
+       
         // 🚀 HÀM MỚI: CHUYÊN BIỆT ĐỂ XUẤT FILE MẪU (KHÔNG CHẠM VÀO DB, KHÔNG ẢNH HƯỞNG HÀM GỐC)
-        // =========================================================================
+       
         public static void XuatTepExcelMau(string filePath, string phienBan)
         {
             using var wbEmpty = new XLWorkbook();
@@ -464,9 +460,9 @@ namespace PhanMemThiDua2026
 
             return new List<string>(); // CBCS không có logic trùng lặp phức tạp nên trả về rỗng
         }
-        // ========================================================
+        //====================================================
         // HÀM 4: NHẬP EXCEL (TÂN BINH) - ĐÃ LỌC SẠCH MESSAGEBOX
-        // ========================================================
+        //====================================================
         public static List<string> NhapDanhSachExcelTanBinh(string excelPath, bool xoaDuLieuCu)
         {
             if (string.IsNullOrWhiteSpace(excelPath) || !File.Exists(excelPath))
@@ -601,9 +597,9 @@ namespace PhanMemThiDua2026
 
             return dongTrung; // Trả về danh sách lỗi trùng để UI hiển thị
         }
-        // ========================================================
+        //====================================================
         // HÀM TIỆN ÍCH DÙNG CHUNG (Để code gọn hơn)
-        // ========================================================
+        //====================================================
         private static void GhiNhatKyVaMoThuMuc(int soLuong, string path, string doiTuong, bool isExport)
         {
             string taiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM;
@@ -747,9 +743,7 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        // ============================================================================
         // ĐỘNG CƠ FAST DATA READER DÀNH CHO TÂN BINH (TRÊN 1500 DÒNG)
-        // ============================================================================
         public static List<string> NhapDanhSachExcelTanBinhFastDataReader(string filePath, bool xoaDuLieuCu)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

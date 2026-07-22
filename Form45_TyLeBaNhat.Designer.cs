@@ -105,9 +105,9 @@
             // tableLayoutPanel2
             // 
             tableLayoutPanel2.ColumnCount = 3;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.913044F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28.405798F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37.391304F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28.985508F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.536232F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 43.47826F));
             tableLayoutPanel2.Controls.Add(label1, 2, 0);
             tableLayoutPanel2.Controls.Add(textBoxKrypton_TyLePhanTramBaNhat, 1, 0);
             tableLayoutPanel2.Controls.Add(label2_ChonTep, 0, 0);
@@ -125,19 +125,19 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 10.0173912F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(0, 0, 192);
-            label1.Location = new Point(218, 15);
+            label1.Location = new Point(198, 15);
             label1.Name = "label1";
-            label1.Size = new Size(69, 19);
+            label1.Size = new Size(128, 19);
             label1.TabIndex = 25;
-            label1.Text = "%/ Loại 1";
+            label1.Text = "%/ Số lượng Loại 1";
             // 
             // textBoxKrypton_TyLePhanTramBaNhat
             // 
             textBoxKrypton_TyLePhanTramBaNhat.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBoxKrypton_TyLePhanTramBaNhat.Location = new Point(119, 10);
+            textBoxKrypton_TyLePhanTramBaNhat.Location = new Point(102, 10);
             textBoxKrypton_TyLePhanTramBaNhat.Margin = new Padding(2);
             textBoxKrypton_TyLePhanTramBaNhat.Name = "textBoxKrypton_TyLePhanTramBaNhat";
-            textBoxKrypton_TyLePhanTramBaNhat.Size = new Size(94, 29);
+            textBoxKrypton_TyLePhanTramBaNhat.Size = new Size(91, 29);
             textBoxKrypton_TyLePhanTramBaNhat.StateCommon.Border.Rounding = 8F;
             textBoxKrypton_TyLePhanTramBaNhat.StateCommon.Border.Width = 1;
             textBoxKrypton_TyLePhanTramBaNhat.StateCommon.Content.Color1 = Color.Blue;

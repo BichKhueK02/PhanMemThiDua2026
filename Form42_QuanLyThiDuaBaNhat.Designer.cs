@@ -167,7 +167,7 @@
             // 
             xoaTimKiem.Image = (Image)resources.GetObject("xoaTimKiem.Image");
             xoaTimKiem.Name = "xoaTimKiem";
-            xoaTimKiem.ShortcutKeys = Keys.Control | Keys.D;
+           // xoaTimKiem.ShortcutKeys = Keys.Control | Keys.D;
             xoaTimKiem.Size = new Size(207, 28);
             xoaTimKiem.Text = "Xóa tìm kiếm";
             xoaTimKiem.Click += xoaTimKiem_Click;

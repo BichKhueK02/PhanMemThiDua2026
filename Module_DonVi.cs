@@ -9,9 +9,9 @@ namespace PhanMemThiDua2026
     {
         private static List<string> _cacheDonVi;
 
-        // =====================================================
+        
         // ⭐ HÀM MỚI: TỰ ĐỘNG NHẬN DIỆN BẢNG THEO PHIÊN BẢN PHẦN MỀM
-        // =====================================================
+        
         public static string LayTenBangDonVi()
         {
             bool laTanBinh = false;
@@ -24,9 +24,9 @@ namespace PhanMemThiDua2026
             return laTanBinh ? "DanhSach_DonVi_TanBinh" : "DanhSach_DonVi";
         }
 
-        // =====================================================
+        
         // LẤY DANH SÁCH ĐƠN VỊ (CHO COMBOBOX / SORT / BIẾN)
-        // =====================================================
+        
         public static List<string> GetDanhSachDonVi(bool forceReload = false)
         {
             if (_cacheDonVi != null && !forceReload)
@@ -91,9 +91,9 @@ namespace PhanMemThiDua2026
             GetDanhSachDonVi();
         }
 
-        // =====================================================
+        
         // CẬP NHẬT / THÊM ĐƠN VỊ → tự động reload cache
-        // =====================================================
+        
         public static void CapNhatDonVi(string tenDonVi, int? id = null)
         {
             string csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
@@ -132,9 +132,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // =====================================================
+        
         // XÓA ĐƠN VỊ → tự động reload cache
-        // =====================================================
+        
         public static void XoaDonVi(int id)
         {
             string csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
@@ -174,9 +174,9 @@ namespace PhanMemThiDua2026
 //    {
 //        private static List<string> _cacheDonVi;
 
-//        // =====================================================
+//        
 //        // LẤY DANH SÁCH ĐƠN VỊ (CHO COMBOBOX / SORT / BIẾN)
-//        // =====================================================
+//        
 //        public static List<string> GetDanhSachDonVi(bool forceReload = false)
 //        {
 //            if (_cacheDonVi != null && !forceReload)
@@ -236,9 +236,9 @@ namespace PhanMemThiDua2026
 //            GetDanhSachDonVi();
 //        }
 
-//        // =====================================================
+//        
 //        // HÀM MỚI: CẬP NHẬT / THÊM ĐƠN VỊ → tự động reload cache
-//        // =====================================================
+//        
 //        public static void CapNhatDonVi(string tenDonVi, int? id = null)
 //        {
 //            string csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
@@ -275,9 +275,9 @@ namespace PhanMemThiDua2026
 //            }
 //        }
 
-//        // =====================================================
+//        
 //        // HÀM MỚI: XÓA ĐƠN VỊ → tự động reload cache
-//        // =====================================================
+//        
 //        public static void XoaDonVi(int id)
 //        {
 //            string csdl2Path = Module_DanduongGPS.DuongDanCSDL2;

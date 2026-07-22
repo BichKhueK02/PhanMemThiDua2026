@@ -72,19 +72,14 @@ namespace PhanMemThiDua2026
                 usedRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                 usedRange.Style.Alignment.WrapText = false;
                 usedRange.Style.Fill.BackgroundColor = XLColor.FromArgb(220, 255, 220);
-
                 var rangeA = ws.Range("A1:A9");
                 rangeA.Style.Font.Bold = true;
                 rangeA.Style.Fill.BackgroundColor = XLColor.FromArgb(146, 208, 80);
-
                 var rangeB = ws.Range("B1:B9");
                 rangeB.Style.Fill.BackgroundColor = XLColor.FromArgb(180, 198, 231);
-
                 ws.Column(1).Width = 32;
-                ws.Column(2).Width = 42;
-
+                ws.Column(2).Width = 100;
                 for (int i = 1; i <= 9; i++) ws.Row(i).Height = 22;
-
                 ws.Cell("A1").SetActive();
             }
             catch { }

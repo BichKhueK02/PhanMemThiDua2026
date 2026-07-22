@@ -89,9 +89,7 @@ namespace PhanMemThiDua2026
             kryptonButton1_Btn_Capnhat.Click -= kryptonButton1_Btn_Capnhat_Click;
             kryptonButton1_Btn_Capnhat.Click += kryptonButton1_Btn_Capnhat_Click;
         }
-        // =========================================================
         // 🌟 HIỆU ỨNG VIỀN TEXTBOX (UX ENHANCEMENT)
-        // =========================================================
         // 🌟 BỔ SUNG ĐOẠN NÀY: Hàm bắt sự kiện Enter
         private void TextBox_KeyDown(object? sender, KeyEventArgs e)
         {
@@ -141,15 +139,79 @@ namespace PhanMemThiDua2026
                 tb.Refresh();
             }
         }
+        //private void LoadDuLieu()
+        //{
+        //    string csdl = _csdl2Path;
+        //    if (!System.IO.File.Exists(csdl)) return;
+
+        //    try
+        //    {
+        //        using var conn = new SqliteConnection($"Data Source={csdl}");
+        //        conn.Open();
+
+        //        var dtHienThi = new DataTable();
+        //        dtHienThi.Columns.Add("ID", typeof(int));
+        //        dtHienThi.Columns.Add("HoVaTen", typeof(string));
+        //        dtHienThi.Columns.Add("ChucVu", typeof(string));
+
+        //        using (var cmd = conn.CreateCommand())
+        //        {
+        //            cmd.CommandText = "SELECT ID, HoVaTen, ChucVu FROM ChiHuyD WHERE ID BETWEEN 1 AND 6 ORDER BY ID";
+        //            using var reader = cmd.ExecuteReader();
+
+        //            int i = 0;
+        //            while (reader.Read())
+        //            {
+        //                int id = reader.GetInt32(0);
+        //                // Giải mã an toàn trước khi hiển thị
+        //                string hoTen = GiaiMaSafe(reader["HoVaTen"]);
+        //                string chucVu = GiaiMaSafe(reader["ChucVu"]);
+
+        //                dtHienThi.Rows.Add(id, hoTen, chucVu);
+
+        //                // Đổ vào Textbox tương ứng
+        //                if (i < hovatenTextBoxes.Length)
+        //                {
+        //                    hovatenTextBoxes[i].Text = hoTen;
+        //                    chucvuTextBoxes[i].Text = chucVu;
+        //                }
+        //                i++;
+        //            }
+        //        }
+
+        //        kryptonDataGridView1.DataSource = dtHienThi;
+        //        DinhDangGrid();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine("Lỗi LoadDuLieu Form 13: " + ex.Message);
+        //    }
+        //}
         private void LoadDuLieu()
         {
             string csdl = _csdl2Path;
             if (!System.IO.File.Exists(csdl)) return;
 
+            // ⭐ XÁC ĐỊNH BẢNG TỰ ĐỘNG THEO PHIÊN BẢN
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
+
             try
             {
                 using var conn = new SqliteConnection($"Data Source={csdl}");
                 conn.Open();
+
+                // 🛡️ BẢO VỆ CSDL: Tự động tạo bảng nếu chưa tồn tại (chống sập khi vừa cài đặt)
+                using (var cmdInit = conn.CreateCommand())
+                {
+                    cmdInit.CommandText = $@"CREATE TABLE IF NOT EXISTS [{tableChiHuy}] (
+                                        ID INTEGER NOT NULL,
+                                        HoVaTen TEXT NOT NULL,
+                                        ChucVu TEXT NOT NULL,
+                                        PRIMARY KEY(ID AUTOINCREMENT)
+                                    );";
+                    cmdInit.ExecuteNonQuery();
+                }
 
                 var dtHienThi = new DataTable();
                 dtHienThi.Columns.Add("ID", typeof(int));
@@ -158,20 +220,19 @@ namespace PhanMemThiDua2026
 
                 using (var cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT ID, HoVaTen, ChucVu FROM ChiHuyD WHERE ID BETWEEN 1 AND 6 ORDER BY ID";
+                    // Trỏ thẳng vào biến tableChiHuy động
+                    cmd.CommandText = $"SELECT ID, HoVaTen, ChucVu FROM [{tableChiHuy}] WHERE ID BETWEEN 1 AND 6 ORDER BY ID";
                     using var reader = cmd.ExecuteReader();
 
                     int i = 0;
                     while (reader.Read())
                     {
                         int id = reader.GetInt32(0);
-                        // Giải mã an toàn trước khi hiển thị
                         string hoTen = GiaiMaSafe(reader["HoVaTen"]);
                         string chucVu = GiaiMaSafe(reader["ChucVu"]);
 
                         dtHienThi.Rows.Add(id, hoTen, chucVu);
 
-                        // Đổ vào Textbox tương ứng
                         if (i < hovatenTextBoxes.Length)
                         {
                             hovatenTextBoxes[i].Text = hoTen;
@@ -187,6 +248,77 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 Debug.WriteLine("Lỗi LoadDuLieu Form 13: " + ex.Message);
+            }
+        }
+        private async void kryptonButton1_Btn_Capnhat_Click(object? sender, EventArgs e)
+        {
+            if (!KiemTraHopLe()) return;
+
+            string textBanDau = kryptonButton1_Btn_Capnhat.Values.Text;
+            Image anhBanDau = kryptonButton1_Btn_Capnhat.Values.Image;
+
+            // ⭐ XÁC ĐỊNH BẢNG LƯU DỮ LIỆU
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
+
+            try
+            {
+                kryptonButton1_Btn_Capnhat.Enabled = false;
+                kryptonButton1_Btn_Capnhat.Values.Text = "Đang lưu...";
+                kryptonButton1_Btn_Capnhat.Values.Image = null;
+                label13.Text = "Đang mã hóa và lưu dữ liệu...";
+                label13.Visible = true;
+
+                await Task.Delay(100);
+
+                await Task.Run(() =>
+                {
+                    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                    conn.Open();
+                    using var tran = conn.BeginTransaction();
+
+                    try
+                    {
+                        for (int i = 0; i < hovatenTextBoxes.Length; i++)
+                        {
+                            string hoTenRaw = hovatenTextBoxes[i].Text.Trim();
+                            string chucVuRaw = chucvuTextBoxes[i].Text.Trim();
+
+                            string hoTenMaHoa = string.IsNullOrEmpty(hoTenRaw) ? "" : BaoMatAES.MaHoa(hoTenRaw);
+                            string chucVuMaHoa = string.IsNullOrEmpty(chucVuRaw) ? "" : BaoMatAES.MaHoa(chucVuRaw);
+
+                            using var cmd = conn.CreateCommand();
+                            cmd.Transaction = tran;
+                            // Ghi đè vào đúng bảng đã chọn
+                            cmd.CommandText = $"INSERT OR REPLACE INTO [{tableChiHuy}] (ID, HoVaTen, ChucVu) VALUES (@id, @hoten, @chucvu)";
+                            cmd.Parameters.AddWithValue("@id", i + 1);
+                            cmd.Parameters.AddWithValue("@hoten", hoTenMaHoa);
+                            cmd.Parameters.AddWithValue("@chucvu", chucVuMaHoa);
+                            cmd.ExecuteNonQuery();
+                        }
+                        tran.Commit();
+                    }
+                    catch { tran.Rollback(); throw; }
+                });
+
+                label13.ForeColor = Color.DarkGreen;
+                label13.Text = "✔ Đã bảo mật và lưu thành công.";
+
+                string danhXung = laTanBinh ? "Tân binh" : "CBCS";
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Cập nhật lãnh đạo ({danhXung})", "Thành công");
+                LoadDuLieu();
+            }
+            catch (Exception ex)
+            {
+                label13.ForeColor = Color.Red;
+                label13.Text = "Lỗi hệ thống!";
+                MessageBox.Show("Lỗi: " + ex.Message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                kryptonButton1_Btn_Capnhat.Values.Text = textBanDau;
+                kryptonButton1_Btn_Capnhat.Values.Image = anhBanDau;
+                kryptonButton1_Btn_Capnhat.Enabled = true;
             }
         }
         private void Hovaten_TextChanged(object? sender, EventArgs e)
@@ -262,74 +394,73 @@ namespace PhanMemThiDua2026
             dangKiemTra = false;
             return true;
         }
-        private async void kryptonButton1_Btn_Capnhat_Click(object? sender, EventArgs e)
-        {
-            if (!KiemTraHopLe()) return;
+        //private async void kryptonButton1_Btn_Capnhat_Click(object? sender, EventArgs e)
+        //{
+        //    if (!KiemTraHopLe()) return;
 
-            string textBanDau = kryptonButton1_Btn_Capnhat.Values.Text;
-            Image anhBanDau = kryptonButton1_Btn_Capnhat.Values.Image;
+        //    string textBanDau = kryptonButton1_Btn_Capnhat.Values.Text;
+        //    Image anhBanDau = kryptonButton1_Btn_Capnhat.Values.Image;
 
-            try
-            {
-                kryptonButton1_Btn_Capnhat.Enabled = false;
-                kryptonButton1_Btn_Capnhat.Values.Text = "Đang lưu...";
-                kryptonButton1_Btn_Capnhat.Values.Image = null;
-                label13.Text = "Đang mã hóa và lưu dữ liệu...";
-                label13.Visible = true;
+        //    try
+        //    {
+        //        kryptonButton1_Btn_Capnhat.Enabled = false;
+        //        kryptonButton1_Btn_Capnhat.Values.Text = "Đang lưu...";
+        //        kryptonButton1_Btn_Capnhat.Values.Image = null;
+        //        label13.Text = "Đang mã hóa và lưu dữ liệu...";
+        //        label13.Visible = true;
 
-                await Task.Delay(100); // Nhịp nghỉ cho UI
+        //        await Task.Delay(100); // Nhịp nghỉ cho UI
 
-                // Chạy tác vụ mã hóa và lưu trữ ngầm để không treo Form
-                await Task.Run(() =>
-                {
-                    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-                    conn.Open();
-                    using var tran = conn.BeginTransaction();
+        //        // Chạy tác vụ mã hóa và lưu trữ ngầm để không treo Form
+        //        await Task.Run(() =>
+        //        {
+        //            using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //            conn.Open();
+        //            using var tran = conn.BeginTransaction();
 
-                    try
-                    {
-                        for (int i = 0; i < hovatenTextBoxes.Length; i++)
-                        {
-                            string hoTenRaw = hovatenTextBoxes[i].Text.Trim();
-                            string chucVuRaw = chucvuTextBoxes[i].Text.Trim();
+        //            try
+        //            {
+        //                for (int i = 0; i < hovatenTextBoxes.Length; i++)
+        //                {
+        //                    string hoTenRaw = hovatenTextBoxes[i].Text.Trim();
+        //                    string chucVuRaw = chucvuTextBoxes[i].Text.Trim();
 
-                            // ⭐ THỰC HIỆN MÃ HÓA V2
-                            string hoTenMaHoa = string.IsNullOrEmpty(hoTenRaw) ? "" : BaoMatAES.MaHoa(hoTenRaw);
-                            string chucVuMaHoa = string.IsNullOrEmpty(chucVuRaw) ? "" : BaoMatAES.MaHoa(chucVuRaw);
+        //                    // ⭐ THỰC HIỆN MÃ HÓA V2
+        //                    string hoTenMaHoa = string.IsNullOrEmpty(hoTenRaw) ? "" : BaoMatAES.MaHoa(hoTenRaw);
+        //                    string chucVuMaHoa = string.IsNullOrEmpty(chucVuRaw) ? "" : BaoMatAES.MaHoa(chucVuRaw);
 
-                            using var cmd = conn.CreateCommand();
-                            cmd.Transaction = tran;
-                            cmd.CommandText = "INSERT OR REPLACE INTO ChiHuyD (ID, HoVaTen, ChucVu) VALUES (@id, @hoten, @chucvu)";
-                            cmd.Parameters.AddWithValue("@id", i + 1);
-                            cmd.Parameters.AddWithValue("@hoten", hoTenMaHoa);
-                            cmd.Parameters.AddWithValue("@chucvu", chucVuMaHoa);
-                            cmd.ExecuteNonQuery();
-                        }
-                        tran.Commit();
-                    }
-                    catch { tran.Rollback(); throw; }
-                });
+        //                    using var cmd = conn.CreateCommand();
+        //                    cmd.Transaction = tran;
+        //                    cmd.CommandText = "INSERT OR REPLACE INTO ChiHuyD (ID, HoVaTen, ChucVu) VALUES (@id, @hoten, @chucvu)";
+        //                    cmd.Parameters.AddWithValue("@id", i + 1);
+        //                    cmd.Parameters.AddWithValue("@hoten", hoTenMaHoa);
+        //                    cmd.Parameters.AddWithValue("@chucvu", chucVuMaHoa);
+        //                    cmd.ExecuteNonQuery();
+        //                }
+        //                tran.Commit();
+        //            }
+        //            catch { tran.Rollback(); throw; }
+        //        });
 
-                label13.ForeColor = Color.DarkGreen;
-                label13.Text = "✔ Đã bảo mật và lưu thành công.";
+        //        label13.ForeColor = Color.DarkGreen;
+        //        label13.Text = "✔ Đã bảo mật và lưu thành công.";
 
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Cập nhật lãnh đạo", "Thành công");
-                LoadDuLieu(); // Nạp lại để cập nhật Grid
-            }
-            catch (Exception ex)
-            {
-                label13.ForeColor = Color.Red;
-                label13.Text = "Lỗi hệ thống!";
-                MessageBox.Show("Lỗi: " + ex.Message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                kryptonButton1_Btn_Capnhat.Values.Text = textBanDau;
-                kryptonButton1_Btn_Capnhat.Values.Image = anhBanDau;
-                kryptonButton1_Btn_Capnhat.Enabled = true;
-            }
-        }
-
+        //        Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Cập nhật lãnh đạo", "Thành công");
+        //        LoadDuLieu(); // Nạp lại để cập nhật Grid
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        label13.ForeColor = Color.Red;
+        //        label13.Text = "Lỗi hệ thống!";
+        //        MessageBox.Show("Lỗi: " + ex.Message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //    finally
+        //    {
+        //        kryptonButton1_Btn_Capnhat.Values.Text = textBanDau;
+        //        kryptonButton1_Btn_Capnhat.Values.Image = anhBanDau;
+        //        kryptonButton1_Btn_Capnhat.Enabled = true;
+        //    }
+        //}
         private void DinhDangGrid()
         {
             var grid = kryptonDataGridView1;
@@ -390,7 +521,6 @@ namespace PhanMemThiDua2026
             foreach (DataGridViewColumn col in grid.Columns)
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;
         }
-
         private void CauHinhCot(string name, string header, int fillWeight, DataGridViewContentAlignment align)
         {
             if (kryptonDataGridView1.Columns.Contains(name))

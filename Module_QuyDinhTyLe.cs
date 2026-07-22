@@ -15,6 +15,23 @@ namespace PhanMemThiDua2026
         // ======================================================
         // LOAD E29: CSDL → TextBox Form12 + Dictionary
         // ======================================================
+        // ======================================================
+        // HÀM TRỢ GIÚP ĐỂ LẤY TÊN BẢNG LINH HOẠT
+        // ======================================================
+        private static string TenBangHienTai
+        {
+            get
+            {
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                    ? "QuyDinhTyLe_TanBinh"
+                    : "QuyDinhTyLe";
+            }
+        }
+
+        // ======================================================
+        // LOAD E29: CSDL → TextBox Form12 + Dictionary
+        // ======================================================
         public static void LoadE29(Control.ControlCollection controls)
         {
             string csdlPath = Module_DanduongGPS.DuongDanCSDL2;
@@ -22,23 +39,47 @@ namespace PhanMemThiDua2026
 
             DeNghiMapping.Clear();
 
-            // Mỗi cột = 1 mảng 3 phần tử (ID 1–3)
             int[] loai1 = new int[3];
             int[] loai2 = new int[3];
             int[] loai3 = new int[3];
             int[] loai4 = new int[3];
             int[] khongPL = new int[3];
 
-            using var conn = new SqliteConnection($"Data Source={csdlPath}");
+            // Dùng Mode=ReadWriteCreate để cho phép tự động tạo bảng nếu chưa có
+            using var conn = new SqliteConnection($"Data Source={csdlPath};Mode=ReadWriteCreate");
             conn.Open();
+
+            string tableName = TenBangHienTai;
+
+            // Đảm bảo bảng luôn tồn tại trước khi đọc (Chống lỗi văng phần mềm)
+            using (var cmdCreate = conn.CreateCommand())
+            {
+                cmdCreate.CommandText = $@"
+                CREATE TABLE IF NOT EXISTS [{tableName}] (
+                    ID INTEGER NOT NULL,
+                    TenLoaiTapThe TEXT,
+                    Loai_1 TEXT,
+                    Loai_2 TEXT,
+                    Loai_3 TEXT,
+                    Loai_4 TEXT,
+                    Khong_PL TEXT,
+                    PRIMARY KEY(ID AUTOINCREMENT)
+                );
+                INSERT OR IGNORE INTO [{tableName}] (ID, TenLoaiTapThe, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL) 
+                VALUES 
+                (1, 'Loại 1', '0', '0', '0', '0', '0'),
+                (2, 'Loại 2', '0', '0', '0', '0', '0'),
+                (3, 'Loại 3', '0', '0', '0', '0', '0');";
+                cmdCreate.ExecuteNonQuery();
+            }
 
             for (int row = 0; row < IDS.Length; row++)
             {
                 int id = IDS[row];
 
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT Loai_1,Loai_2,Loai_3,Loai_4,Khong_PL 
-                            FROM QuyDinhTyLe WHERE ID=@id";
+                cmd.CommandText = $@"SELECT Loai_1,Loai_2,Loai_3,Loai_4,Khong_PL 
+                            FROM [{tableName}] WHERE ID=@id";
                 cmd.Parameters.AddWithValue("@id", id);
 
                 using var rd = cmd.ExecuteReader();
@@ -50,7 +91,6 @@ namespace PhanMemThiDua2026
                 loai4[row] = int.TryParse(rd["Loai_4"]?.ToString(), out int v4) ? v4 : 0;
                 khongPL[row] = int.TryParse(rd["Khong_PL"]?.ToString(), out int v5) ? v5 : 0;
 
-                // Gán lên Form12 (theo chiều dọc)
                 if (controls.Find($"textBox_A{id}", true).FirstOrDefault() is TextBox a) a.Text = loai1[row].ToString();
                 if (controls.Find($"textBox_B{id}", true).FirstOrDefault() is TextBox b) b.Text = loai2[row].ToString();
                 if (controls.Find($"textBox_C{id}", true).FirstOrDefault() is TextBox c) c.Text = loai3[row].ToString();
@@ -58,13 +98,13 @@ namespace PhanMemThiDua2026
                 if (controls.Find($"textBox_E{id}", true).FirstOrDefault() is TextBox e) e.Text = khongPL[row].ToString();
             }
 
-            // Gán Dictionary – KHÔNG LỆCH CỘT
             DeNghiMapping["Loai1_TapThe"] = loai1;
             DeNghiMapping["Loai2_TapThe"] = loai2;
             DeNghiMapping["Loai3_TapThe"] = loai3;
             DeNghiMapping["Loai4_TapThe"] = loai4;
             DeNghiMapping["KhongPL_TapThe"] = khongPL;
         }
+
         public static void Reload()
         {
             string csdlPath = Module_DanduongGPS.DuongDanCSDL2;
@@ -78,35 +118,58 @@ namespace PhanMemThiDua2026
             int[] loai4 = new int[3];
             int[] khongPL = new int[3];
 
-            using var conn = new SqliteConnection($"Data Source={csdlPath}");
+            using var conn = new SqliteConnection($"Data Source={csdlPath};Mode=ReadWriteCreate");
             conn.Open();
+
+            string tableName = TenBangHienTai;
+
+            using (var cmdCreate = conn.CreateCommand())
+            {
+                cmdCreate.CommandText = $@"
+                CREATE TABLE IF NOT EXISTS [{tableName}] (
+                    ID INTEGER NOT NULL,
+                    TenLoaiTapThe TEXT,
+                    Loai_1 TEXT,
+                    Loai_2 TEXT,
+                    Loai_3 TEXT,
+                    Loai_4 TEXT,
+                    Khong_PL TEXT,
+                    PRIMARY KEY(ID AUTOINCREMENT)
+                );
+                INSERT OR IGNORE INTO [{tableName}] (ID, TenLoaiTapThe, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL) 
+                VALUES 
+                (1, 'Loại 1', '0', '0', '0', '0', '0'),
+                (2, 'Loại 2', '0', '0', '0', '0', '0'),
+                (3, 'Loại 3', '0', '0', '0', '0', '0');";
+                cmdCreate.ExecuteNonQuery();
+            }
 
             for (int row = 0; row < 3; row++)
             {
                 int id = row + 1;
 
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"SELECT Loai_1,Loai_2,Loai_3,Loai_4,Khong_PL 
-                            FROM QuyDinhTyLe WHERE ID=@id";
+                cmd.CommandText = $@"SELECT Loai_1,Loai_2,Loai_3,Loai_4,Khong_PL 
+                            FROM [{tableName}] WHERE ID=@id";
                 cmd.Parameters.AddWithValue("@id", id);
 
                 using var rd = cmd.ExecuteReader();
                 if (!rd.Read()) continue;
 
-                loai1[row] = rd.GetInt32(0);
-                loai2[row] = rd.GetInt32(1);
-                loai3[row] = rd.GetInt32(2);
-                loai4[row] = rd.GetInt32(3);
-                khongPL[row] = rd.GetInt32(4);
+                loai1[row] = int.TryParse(rd["Loai_1"]?.ToString(), out int v1) ? v1 : 0;
+                loai2[row] = int.TryParse(rd["Loai_2"]?.ToString(), out int v2) ? v2 : 0;
+                loai3[row] = int.TryParse(rd["Loai_3"]?.ToString(), out int v3) ? v3 : 0;
+                loai4[row] = int.TryParse(rd["Loai_4"]?.ToString(), out int v4) ? v4 : 0;
+                khongPL[row] = int.TryParse(rd["Khong_PL"]?.ToString(), out int v5) ? v5 : 0;
             }
 
-            // ✅ LƯU THEO CỘT (QUAN TRỌNG)
             DeNghiMapping["Loai1_TapThe"] = loai1;
             DeNghiMapping["Loai2_TapThe"] = loai2;
             DeNghiMapping["Loai3_TapThe"] = loai3;
             DeNghiMapping["Loai4_TapThe"] = loai4;
             DeNghiMapping["KhongPL_TapThe"] = khongPL;
         }
+
         // ======================================================
         // SAVE E29: TextBox Form12 → CSDL + Dictionary
         // ======================================================
@@ -119,6 +182,8 @@ namespace PhanMemThiDua2026
 
             using var conn = new SqliteConnection($"Data Source={csdlPath}");
             conn.Open();
+
+            string tableName = TenBangHienTai;
 
             for (int idx = 0; idx < IDS.Length; idx++)
             {
@@ -134,7 +199,8 @@ namespace PhanMemThiDua2026
                     values[i] = v;
 
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = $"UPDATE QuyDinhTyLe SET {COLS[i]}=@v WHERE ID=@id";
+                    cmd.CommandText = $"UPDATE [{tableName}] SET {COLS[i]}=@v WHERE ID=@id";
+                    // Ép về ToString để tương thích chuẩn cột TEXT của SQLite
                     cmd.Parameters.AddWithValue("@v", v.ToString());
                     cmd.Parameters.AddWithValue("@id", id);
                     cmd.ExecuteNonQuery();

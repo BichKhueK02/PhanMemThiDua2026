@@ -318,15 +318,34 @@ namespace PhanMemThiDua2026
                 }
                 catch (Exception ex) { Module_ThongBao.Loi("Lỗi lấy chỉ huy: " + ex.Message); }
 
+                //string chucVuTieuDoanTruong = "";
+                //int dongDauTienID = -1;
+                //string chucVuNguoiKy = "";
+                //int dongNguoiKyID = -1;
+
+                //using (var cn = new SqliteConnection("Data Source=" + fileDB))
+                //{
+                //    cn.Open();
+                //    using (var cmd = new SqliteCommand("SELECT ID, HoVaTen, ChucVu FROM ChiHuyD ORDER BY ID ASC", cn))
+                //    using (var rd = cmd.ExecuteReader())
+                //    {
+                //        bool isFirst = true;
+                //        bool foundMatch = false;
+
                 string chucVuTieuDoanTruong = "";
                 int dongDauTienID = -1;
                 string chucVuNguoiKy = "";
                 int dongNguoiKyID = -1;
 
+                // ⭐ BỔ SUNG: XÁC ĐỊNH BẢNG TỰ ĐỘNG THEO CHẾ ĐỘ
+               // bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
+
                 using (var cn = new SqliteConnection("Data Source=" + fileDB))
                 {
                     cn.Open();
-                    using (var cmd = new SqliteCommand("SELECT ID, HoVaTen, ChucVu FROM ChiHuyD ORDER BY ID ASC", cn))
+                    // ⭐ SỬA: ĐƯA BIẾN [{tableChiHuy}] VÀO CÂU LỆNH SQL
+                    using (var cmd = new SqliteCommand($"SELECT ID, HoVaTen, ChucVu FROM [{tableChiHuy}] ORDER BY ID ASC", cn))
                     using (var rd = cmd.ExecuteReader())
                     {
                         bool isFirst = true;
@@ -581,15 +600,21 @@ namespace PhanMemThiDua2026
             {
                 Module_ThongBao.Loi("Lỗi khi lấy thông tin ChiHuyD từ CSDL:\n" + ex.Message);
             }
+
             string chucVuTieuDoanTruong = "";
             int dongDauTienID = -1;
             string chucVuNguoiKy = "";
             int dongNguoiKyID = -1;
 
+            // ⭐ THÊM 2 DÒNG NÀY VÀO ĐỂ NHẬN DIỆN PHIÊN BẢN
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
+
             using (var cn = new SqliteConnection("Data Source=" + fileDB))
             {
                 cn.Open();
-                using (var cmd = new SqliteCommand("SELECT ID, HoVaTen, ChucVu FROM ChiHuyD ORDER BY ID ASC", cn))
+                // ⭐ ĐƯA BIẾN [{tableChiHuy}] VÀO CÂU LỆNH SQL
+                using (var cmd = new SqliteCommand($"SELECT ID, HoVaTen, ChucVu FROM [{tableChiHuy}] ORDER BY ID ASC", cn))
                 using (var rd = cmd.ExecuteReader())
                 {
                     bool isFirst = true;

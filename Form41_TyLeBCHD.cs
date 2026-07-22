@@ -137,9 +137,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // ====================================================================
+        
         // LOAD DỮ LIỆU: Bỏ hoàn toàn ký tự % khi nạp lên giao diện TextBox
-        // ====================================================================
+        
         private async Task LoadQuyDinhTyLeBCHAsync()
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
@@ -189,9 +189,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // ====================================================================
+        
         // SAVE DỮ LIỆU: Lưu số thuần túy vào TEXT CSDL (Không chèn thêm đuôi %)
-        // ====================================================================
+        
         private async Task SaveQuyDinhTyLeBCHAsync(CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;

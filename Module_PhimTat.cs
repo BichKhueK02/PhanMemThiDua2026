@@ -75,9 +75,9 @@
             return false;
         }
 
-        // ======================================
+        
         // HÀM GỌI (INVOKE) AN TOÀN VÀ CHỐNG SPAM
-        // ======================================
+        
         private static bool Invoke(Action? action)
         {
             if (action == null) return false;

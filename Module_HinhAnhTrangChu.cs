@@ -5,12 +5,8 @@ namespace PhanMemThiDua2026
     public static class Module_HinhAnhTrangChu
     {
         private static int _indexHienTai = 1;
-        private static readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-
-        // ==============================================================
+        private static readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;       
         // 1. TẦNG LOGIC HÌNH ẢNH (CHẠY NGẦM)
-        // ==============================================================
-
         public static Image LayHinhTiepTheo()
         {
             _indexHienTai++;
@@ -40,12 +36,8 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine($"[Lỗi trích xuất hình nền]: {ex.Message}");
             }
             return null;
-        }
-
-        // ==============================================================
+        }   
         // 2. TẦNG TRUY XUẤT CƠ SỞ DỮ LIỆU (CSDL 2)
-        // ==============================================================
-
         public static string DocCauHinhThoiGian()
         {
             try
@@ -80,7 +72,6 @@ namespace PhanMemThiDua2026
 
             return "Mặc định"; // Nếu lỗi hoặc CSDL rỗng thì trả về cấu hình an toàn
         }
-
         public static void LuuCauHinhThoiGian(string giaTriDuocChon)
         {
             try

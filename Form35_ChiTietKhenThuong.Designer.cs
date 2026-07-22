@@ -263,7 +263,7 @@
             comboBox_DonViKhenThuong.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox_DonViKhenThuong.FormattingEnabled = true;
             comboBox_DonViKhenThuong.Items.AddRange(new object[] { "Bộ Công an", "Bộ Tư lênh CSCĐ", "Công an tỉnh ", "UBND Tỉnh ", "UBND Tp. ", "UBND Xã ", "Đoàn Thanh niên BCA", "Đoàn Thanh niên K02", "Đoàn Thanh niên " });
-            comboBox_DonViKhenThuong.Location = new Point(1031, 9);
+            comboBox_DonViKhenThuong.Location = new Point(1031, 12);
             comboBox_DonViKhenThuong.Margin = new Padding(2, 3, 2, 3);
             comboBox_DonViKhenThuong.Name = "comboBox_DonViKhenThuong";
             comboBox_DonViKhenThuong.Size = new Size(219, 29);
@@ -348,7 +348,7 @@
             combobox_HinhThucKhen.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             combobox_HinhThucKhen.FormattingEnabled = true;
             combobox_HinhThucKhen.Items.AddRange(new object[] { "", "Giấy khen", "Bằng khen", "Huy chương", "Huân chương", "Kỷ niệm chương" });
-            combobox_HinhThucKhen.Location = new Point(137, 9);
+            combobox_HinhThucKhen.Location = new Point(137, 12);
             combobox_HinhThucKhen.Margin = new Padding(2, 3, 2, 3);
             combobox_HinhThucKhen.Name = "combobox_HinhThucKhen";
             combobox_HinhThucKhen.Size = new Size(131, 29);

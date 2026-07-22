@@ -59,16 +59,16 @@
             tableLayoutPanel12 = new TableLayoutPanel();
             textBox_A2 = new Krypton.Toolkit.KryptonTextBox();
             tableLayoutPanel1 = new TableLayoutPanel();
-            groupBox_TyLeTheoQuyDinh = new GroupBox();
-            toolTip1 = new ToolTip(components);
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             toolStripStatusLabel2 = new ToolStripStatusLabel();
+            groupBox_TyLeTheoQuyDinh = new GroupBox();
+            toolTip1 = new ToolTip(components);
             tableLayoutPanel2.SuspendLayout();
             tableLayoutPanel12.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
-            groupBox_TyLeTheoQuyDinh.SuspendLayout();
             statusStrip1.SuspendLayout();
+            groupBox_TyLeTheoQuyDinh.SuspendLayout();
             SuspendLayout();
             // 
             // tableLayoutPanel2
@@ -84,13 +84,13 @@
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Size = new Size(786, 47);
+            tableLayoutPanel2.Size = new Size(786, 53);
             tableLayoutPanel2.TabIndex = 30;
             // 
             // kryptonButton_LuuE29
             // 
             kryptonButton_LuuE29.Anchor = AnchorStyles.None;
-            kryptonButton_LuuE29.Location = new Point(607, 8);
+            kryptonButton_LuuE29.Location = new Point(607, 11);
             kryptonButton_LuuE29.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_LuuE29.Name = "kryptonButton_LuuE29";
             kryptonButton_LuuE29.Size = new Size(142, 30);
@@ -107,7 +107,7 @@
             label1_ThongBao.AutoSize = true;
             label1_ThongBao.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label1_ThongBao.ForeColor = Color.FromArgb(0, 0, 192);
-            label1_ThongBao.Location = new Point(3, 14);
+            label1_ThongBao.Location = new Point(3, 17);
             label1_ThongBao.Name = "label1_ThongBao";
             label1_ThongBao.Size = new Size(15, 19);
             label1_ThongBao.TabIndex = 30;
@@ -462,10 +462,38 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 3;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 69.32516F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 19.25926F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 11.4814816F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 21.4814816F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 9.259259F));
             tableLayoutPanel1.Size = new Size(792, 270);
             tableLayoutPanel1.TabIndex = 29;
+            // 
+            // statusStrip1
+            // 
+            statusStrip1.BackColor = Color.LightSteelBlue;
+            statusStrip1.Dock = DockStyle.Fill;
+            statusStrip1.ImageScalingSize = new Size(20, 20);
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2 });
+            statusStrip1.Location = new Point(0, 244);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Padding = new Padding(1, 0, 12, 0);
+            statusStrip1.Size = new Size(792, 26);
+            statusStrip1.TabIndex = 34;
+            statusStrip1.Text = "statusStrip1";
+            // 
+            // toolStripStatusLabel1
+            // 
+            toolStripStatusLabel1.ForeColor = Color.Black;
+            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
+            toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+            toolStripStatusLabel1.Size = new Size(80, 21);
+            toolStripStatusLabel1.Text = "Phiên bản";
+            // 
+            // toolStripStatusLabel2
+            // 
+            toolStripStatusLabel2.ForeColor = Color.Black;
+            toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            toolStripStatusLabel2.Size = new Size(145, 21);
+            toolStripStatusLabel2.Text = "Ngày tháng năm cập nhật";
             // 
             // groupBox_TyLeTheoQuyDinh
             // 
@@ -481,32 +509,6 @@
             groupBox_TyLeTheoQuyDinh.TabIndex = 34;
             groupBox_TyLeTheoQuyDinh.TabStop = false;
             groupBox_TyLeTheoQuyDinh.Text = "Tỷ lệ phần trăm Ban chỉ huy Tiểu đoàn (Tương đương)";
-            // 
-            // statusStrip1
-            // 
-            statusStrip1.BackColor = Color.LightSteelBlue;
-            statusStrip1.Dock = DockStyle.Fill;
-            statusStrip1.ImageScalingSize = new Size(20, 20);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2 });
-            statusStrip1.Location = new Point(0, 238);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new Padding(1, 0, 12, 0);
-            statusStrip1.Size = new Size(792, 32);
-            statusStrip1.TabIndex = 34;
-            statusStrip1.Text = "statusStrip1";
-            // 
-            // toolStripStatusLabel1
-            // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
-            toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(80, 27);
-            toolStripStatusLabel1.Text = "Phiên bản";
-            // 
-            // toolStripStatusLabel2
-            // 
-            toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            toolStripStatusLabel2.Size = new Size(145, 27);
-            toolStripStatusLabel2.Text = "Ngày tháng năm cập nhật";
             // 
             // Form41_TyLeBCHD
             // 
@@ -524,9 +526,9 @@
             tableLayoutPanel12.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
-            groupBox_TyLeTheoQuyDinh.ResumeLayout(false);
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            groupBox_TyLeTheoQuyDinh.ResumeLayout(false);
             ResumeLayout(false);
         }
 

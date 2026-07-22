@@ -24,10 +24,7 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
-        // =========================================================
-        // 1. TẠO DẤU VÂN TAY "TÀNG HÌNH" - HIỆU SUẤT CAO, AN TOÀN AV
-        // =========================================================
+        // 1. TẠO DẤU VÂN TAY "TÀNG HÌNH" - HIỆU SUẤT CAO, AN TOÀN AV      
         private static string GenerateCurrentFingerprint()
         {
             try
@@ -48,7 +45,6 @@ namespace PhanMemThiDua2026
                 {
                     dirTicks = new DirectoryInfo(winDir).CreationTimeUtc.Ticks;
                 }
-
                 // Gộp tất cả thành một chuỗi đặc trưng môi trường
                 string rawData = $"{taiKhoan}|{tenMay}|{userWindows}|{dirTicks}";
 
@@ -69,11 +65,8 @@ namespace PhanMemThiDua2026
                 // Nếu lỗi, trả về một chuỗi ngẫu nhiên cố định để không làm sập phần mềm
                 return "FAILSAFE_FINGERPRINT_2026";
             }
-        }
-
-        // =========================================================
+        }     
         // 2. KHỞI TẠO BẢNG DỮ LIỆU
-        // =========================================================
         public static void KhoiTaoBangWelcome()
         {
             string dbPath = Csdl2Path;
@@ -108,10 +101,7 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("KhoiTaoBangWelcome lỗi: " + ex.Message);
             }
         }
-
-        // =========================================================
-        // 3. ĐỌC DẤU VÂN TAY CŨ TỪ CSDL
-        // =========================================================
+        // 3. ĐỌC DẤU VÂN TAY CŨ TỪ CSDL 
         private static string GetSavedFingerprintFromDB()
         {
             string dbPath = Csdl2Path;
@@ -136,11 +126,8 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("GetSavedFingerprintFromDB lỗi: " + ex.Message);
                 return string.Empty;
             }
-        }
-
-        // =========================================================
-        // 4. LƯU DẤU VÂN TAY MỚI VÀO CSDL
-        // =========================================================
+        }      
+        // 4. LƯU DẤU VÂN TAY MỚI VÀO CSDL  
         public static void SaveFingerprintAfterShow()
         {
             string dbPath = Csdl2Path;
@@ -163,11 +150,8 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine("SaveFingerprintAfterShow lỗi: " + ex.Message);
             }
-        }
-
-        // =========================================================
-        // 5. BỘ NÃO ĐIỀU KHIỂN - GỌI KHI KHỞI ĐỘNG PHẦN MỀM
-        // =========================================================
+        }   
+        // 5. BỘ NÃO ĐIỀU KHIỂN - GỌI KHI KHỞI ĐỘNG PHẦN MỀM    
         public static void ShowWelcomeIfNeeded()
         {
             // Kiểm tra đường dẫn CSDL trước khi làm việc

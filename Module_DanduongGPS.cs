@@ -6,6 +6,8 @@ namespace PhanMemThiDua2026
     internal static class Module_DanduongGPS
     {
         public static readonly string ThuMucCoSoDuLieu = Path.Combine(AppContext.BaseDirectory, "Database");
+        // Đường dẫn toàn cục của thư mục lịch sử thi đua năm
+        public static string ThuMucLichSuThiDua => Path.Combine(ThuMucCoSoDuLieu, "LuuTruThiDua_LichSu");
         public static string DuongDanCSDL1 { get; private set; } = string.Empty;
         public static string DuongDanCSDL2 { get; private set; } = string.Empty;
         public static string DuongDanCSDL3 { get; private set; } = string.Empty;
@@ -199,6 +201,10 @@ namespace PhanMemThiDua2026
             if (!Directory.Exists(ThuMucCoSoDuLieu))
             {
                 Directory.CreateDirectory(ThuMucCoSoDuLieu);
+            }
+            if (!Directory.Exists(ThuMucLichSuThiDua))
+            {
+                Directory.CreateDirectory(ThuMucLichSuThiDua);
             }
         }
         private static string ConDuongToLua(string tenFile)

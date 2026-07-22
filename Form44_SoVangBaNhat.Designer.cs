@@ -76,6 +76,9 @@
             xoaTimKiem = new ToolStripMenuItem();
             lamMoiHeThong = new ToolStripMenuItem();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            toolStripMenuItem5 = new ToolStripSeparator();
+            toolStripMenuItem_XuatSoVangGoc = new ToolStripMenuItem();
+            toolStripMenuItem4_NhapDataVaoCSDL = new ToolStripMenuItem();
             toolStripMenuItem3 = new ToolStripSeparator();
             toolStripMenuItem_XoaChonTatCa = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripSeparator();
@@ -657,21 +660,21 @@
             // 
             ToolStripMenuItem_XuatDanhSach.Image = (Image)resources.GetObject("ToolStripMenuItem_XuatDanhSach.Image");
             ToolStripMenuItem_XuatDanhSach.Name = "ToolStripMenuItem_XuatDanhSach";
-            ToolStripMenuItem_XuatDanhSach.Size = new Size(191, 28);
+            ToolStripMenuItem_XuatDanhSach.Size = new Size(230, 28);
             ToolStripMenuItem_XuatDanhSach.Text = "Xuất tệp (Sổ vàng)";
             ToolStripMenuItem_XuatDanhSach.Click += ToolStripMenuItem_XuatDanhSach_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(188, 6);
+            toolStripMenuItem1.Size = new Size(227, 6);
             // 
             // xoaTimKiem
             // 
             xoaTimKiem.Image = (Image)resources.GetObject("xoaTimKiem.Image");
             xoaTimKiem.Name = "xoaTimKiem";
-            xoaTimKiem.ShortcutKeys = Keys.Control | Keys.D;
-            xoaTimKiem.Size = new Size(191, 28);
+            //xoaTimKiem.ShortcutKeys = Keys.Control | Keys.D;
+            xoaTimKiem.Size = new Size(230, 28);
             xoaTimKiem.Text = "Xóa tìm kiếm";
             xoaTimKiem.Click += xoaTimKiem_Click;
             // 
@@ -680,7 +683,7 @@
             lamMoiHeThong.Image = (Image)resources.GetObject("lamMoiHeThong.Image");
             lamMoiHeThong.Name = "lamMoiHeThong";
             lamMoiHeThong.ShortcutKeys = Keys.F5;
-            lamMoiHeThong.Size = new Size(191, 28);
+            lamMoiHeThong.Size = new Size(230, 28);
             lamMoiHeThong.Text = "Làm mới trang";
             lamMoiHeThong.Click += lamMoiHeThong_Click;
             // 
@@ -688,33 +691,54 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5, toolStripMenuItem_XuatSoVangGoc, toolStripMenuItem4_NhapDataVaoCSDL, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(192, 162);
+            contextMenuStrip1.Size = new Size(231, 246);
+            // 
+            // toolStripMenuItem5
+            // 
+            toolStripMenuItem5.Name = "toolStripMenuItem5";
+            toolStripMenuItem5.Size = new Size(227, 6);
+            // 
+            // toolStripMenuItem_XuatSoVangGoc
+            // 
+            toolStripMenuItem_XuatSoVangGoc.Image = (Image)resources.GetObject("toolStripMenuItem_XuatSoVangGoc.Image");
+            toolStripMenuItem_XuatSoVangGoc.Name = "toolStripMenuItem_XuatSoVangGoc";
+            toolStripMenuItem_XuatSoVangGoc.Size = new Size(230, 28);
+            toolStripMenuItem_XuatSoVangGoc.Text = "Xuất dữ liệu gốc (Tệp excel)";
+            toolStripMenuItem_XuatSoVangGoc.Click += toolStripMenuItem_XuatSoVangGoc_Click;
+            // 
+            // toolStripMenuItem4_NhapDataVaoCSDL
+            // 
+            toolStripMenuItem4_NhapDataVaoCSDL.Image = (Image)resources.GetObject("toolStripMenuItem4_NhapDataVaoCSDL.Image");
+            toolStripMenuItem4_NhapDataVaoCSDL.Name = "toolStripMenuItem4_NhapDataVaoCSDL";
+            toolStripMenuItem4_NhapDataVaoCSDL.Size = new Size(230, 28);
+            toolStripMenuItem4_NhapDataVaoCSDL.Text = "Nhập dữ liệu gốc (Tệp excel)";
+            toolStripMenuItem4_NhapDataVaoCSDL.Click += toolStripMenuItem4_NhapDataVaoCSDL_Click;
             // 
             // toolStripMenuItem3
             // 
             toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new Size(188, 6);
+            toolStripMenuItem3.Size = new Size(227, 6);
             // 
             // toolStripMenuItem_XoaChonTatCa
             // 
             toolStripMenuItem_XoaChonTatCa.Image = (Image)resources.GetObject("toolStripMenuItem_XoaChonTatCa.Image");
             toolStripMenuItem_XoaChonTatCa.Name = "toolStripMenuItem_XoaChonTatCa";
-            toolStripMenuItem_XoaChonTatCa.Size = new Size(191, 28);
+            toolStripMenuItem_XoaChonTatCa.Size = new Size(230, 28);
             toolStripMenuItem_XoaChonTatCa.Text = "Xóa chọn tất cả";
             toolStripMenuItem_XoaChonTatCa.Click += toolStripMenuItem_XoaChonTatCa_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(188, 6);
+            toolStripMenuItem2.Size = new Size(227, 6);
             // 
             // toolStripMenuItem_ThoatTrang
             // 
             toolStripMenuItem_ThoatTrang.Image = (Image)resources.GetObject("toolStripMenuItem_ThoatTrang.Image");
             toolStripMenuItem_ThoatTrang.Name = "toolStripMenuItem_ThoatTrang";
-            toolStripMenuItem_ThoatTrang.Size = new Size(191, 28);
+            toolStripMenuItem_ThoatTrang.Size = new Size(230, 28);
             toolStripMenuItem_ThoatTrang.Text = "Thoát trang";
             toolStripMenuItem_ThoatTrang.Click += toolStripMenuItem_ThoatTrang_Click;
             // 
@@ -1039,5 +1063,9 @@
         private TableLayoutPanel tableLayoutPanel9;
         private Krypton.Toolkit.KryptonButton kryptonButton1_XoaCBCS;
         private GroupBox groupBox1;
+        private ToolStripMenuItem toolStripMenuItem4_NhapDataVaoCSDL;
+        private ToolStripMenuItem toolStripMenuItem_XuatSoVangGoc;
+        private ToolStripSeparator toolStripMenuItem5;
+        private ToolStripMenuItem toolStripMenuItem4;
     }
 }

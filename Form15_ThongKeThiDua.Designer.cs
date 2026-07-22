@@ -60,6 +60,9 @@
             xemThongKeThiDuaTapThe = new ToolStripMenuItem();
             tinhPhanLoaiThang_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripSeparator();
+            toolStripMenuItem_LuuTruDataThiDuaTheoNam = new ToolStripMenuItem();
+            taoBanSaoLuuTruTheoNamToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem3 = new ToolStripSeparator();
             xoaTatCaDuLieu_ToolStripMenuItem = new ToolStripMenuItem();
             xoaDuLieu_ToolStripMenuItem = new ToolStripMenuItem();
             xoaDuLieuThiDuaThang_ToolStripMenuItem = new ToolStripMenuItem();
@@ -364,9 +367,9 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, dongBoDuLieu_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieu_ToolStripMenuItem, nhapDuLieuTuTepExcel_ExcelToolStripMenuItem, xemThongKeThiDuaTapThe, tinhPhanLoaiThang_ToolStripMenuItem, toolStripMenuItem2, xoaTatCaDuLieu_ToolStripMenuItem, xoaDuLieu_ToolStripMenuItem, xoaDuLieuThiDuaThang_ToolStripMenuItem });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, dongBoDuLieu_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieu_ToolStripMenuItem, nhapDuLieuTuTepExcel_ExcelToolStripMenuItem, xemThongKeThiDuaTapThe, tinhPhanLoaiThang_ToolStripMenuItem, toolStripMenuItem2, toolStripMenuItem_LuuTruDataThiDuaTheoNam, taoBanSaoLuuTruTheoNamToolStripMenuItem, toolStripMenuItem3, xoaTatCaDuLieu_ToolStripMenuItem, xoaDuLieu_ToolStripMenuItem, xoaDuLieuThiDuaThang_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(290, 268);
+            contextMenuStrip1.Size = new Size(290, 330);
             // 
             // lamMoi_ToolStripMenuItem
             // 
@@ -431,6 +434,27 @@
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
             toolStripMenuItem2.Size = new Size(286, 6);
+            // 
+            // toolStripMenuItem_LuuTruDataThiDuaTheoNam
+            // 
+            toolStripMenuItem_LuuTruDataThiDuaTheoNam.Image = (Image)resources.GetObject("toolStripMenuItem_LuuTruDataThiDuaTheoNam.Image");
+            toolStripMenuItem_LuuTruDataThiDuaTheoNam.Name = "toolStripMenuItem_LuuTruDataThiDuaTheoNam";
+            toolStripMenuItem_LuuTruDataThiDuaTheoNam.Size = new Size(289, 28);
+            toolStripMenuItem_LuuTruDataThiDuaTheoNam.Text = "Quản lý thi đua năm cũ";
+            toolStripMenuItem_LuuTruDataThiDuaTheoNam.Click += toolStripMenuItem_LuuTruDataThiDuaTheoNam_Click;
+            // 
+            // taoBanSaoLuuTruTheoNamToolStripMenuItem
+            // 
+            taoBanSaoLuuTruTheoNamToolStripMenuItem.Image = (Image)resources.GetObject("taoBanSaoLuuTruTheoNamToolStripMenuItem.Image");
+            taoBanSaoLuuTruTheoNamToolStripMenuItem.Name = "taoBanSaoLuuTruTheoNamToolStripMenuItem";
+            taoBanSaoLuuTruTheoNamToolStripMenuItem.Size = new Size(289, 28);
+            taoBanSaoLuuTruTheoNamToolStripMenuItem.Text = "Lưu kết quả thi đua năm";
+            taoBanSaoLuuTruTheoNamToolStripMenuItem.Click += taoBanSaoLuuTruTheoNamToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(286, 6);
             // 
             // xoaTatCaDuLieu_ToolStripMenuItem
             // 
@@ -523,5 +547,8 @@
         private Krypton.Toolkit.KryptonTextBox textBox_TimKiemTheoTen;
         private ToolStripSeparator toolStripMenuItem1;
         private ToolStripSeparator toolStripMenuItem2;
+        private ToolStripMenuItem toolStripMenuItem_LuuTruDataThiDuaTheoNam;
+        private ToolStripSeparator toolStripMenuItem3;
+        private ToolStripMenuItem taoBanSaoLuuTruTheoNamToolStripMenuItem;
     }
 }

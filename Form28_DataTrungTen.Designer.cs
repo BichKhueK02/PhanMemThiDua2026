@@ -163,10 +163,10 @@
             // 
             kryptonButton_TimKiem.Anchor = AnchorStyles.Left;
             kryptonButton_TimKiem.DialogResult = DialogResult.TryAgain;
-            kryptonButton_TimKiem.Location = new Point(529, 7);
+            kryptonButton_TimKiem.Location = new Point(529, 6);
             kryptonButton_TimKiem.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_TimKiem.Name = "kryptonButton_TimKiem";
-            kryptonButton_TimKiem.Size = new Size(107, 28);
+            kryptonButton_TimKiem.Size = new Size(108, 30);
             kryptonButton_TimKiem.StateCommon.Border.Rounding = 4F;
             kryptonButton_TimKiem.StateTracking.Back.Color1 = Color.FromArgb(255, 128, 255);
             kryptonButton_TimKiem.StateTracking.Back.Color2 = Color.FromArgb(255, 128, 255);
@@ -236,10 +236,10 @@
             // kryptonButton_LamMoi
             // 
             kryptonButton_LamMoi.Anchor = AnchorStyles.None;
-            kryptonButton_LamMoi.Location = new Point(47, 7);
+            kryptonButton_LamMoi.Location = new Point(46, 6);
             kryptonButton_LamMoi.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_LamMoi.Name = "kryptonButton_LamMoi";
-            kryptonButton_LamMoi.Size = new Size(117, 28);
+            kryptonButton_LamMoi.Size = new Size(118, 30);
             kryptonButton_LamMoi.StateCommon.Border.Rounding = 4F;
             kryptonButton_LamMoi.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoi.TabIndex = 7;
@@ -252,10 +252,10 @@
             // 
             kryptonButton_Dong.Anchor = AnchorStyles.None;
             kryptonButton_Dong.DialogResult = DialogResult.TryAgain;
-            kryptonButton_Dong.Location = new Point(258, 7);
+            kryptonButton_Dong.Location = new Point(258, 6);
             kryptonButton_Dong.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Dong.Name = "kryptonButton_Dong";
-            kryptonButton_Dong.Size = new Size(117, 28);
+            kryptonButton_Dong.Size = new Size(118, 30);
             kryptonButton_Dong.StateCommon.Border.Rounding = 4F;
             kryptonButton_Dong.StateTracking.Back.Color1 = Color.FromArgb(255, 128, 255);
             kryptonButton_Dong.StateTracking.Back.Color2 = Color.FromArgb(255, 128, 255);
@@ -300,28 +300,28 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, toolStripMenuItem1, xoaTimKiem_ToolStripMenuItem, quayLaiTrangXuLyDuLieu_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(265, 94);
+            contextMenuStrip1.Size = new Size(291, 94);
             // 
             // lamMoi_ToolStripMenuItem
             // 
             lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
-            lamMoi_ToolStripMenuItem.Size = new Size(264, 28);
+            lamMoi_ToolStripMenuItem.Size = new Size(290, 28);
             lamMoi_ToolStripMenuItem.Text = "Làm mới trang";
             lamMoi_ToolStripMenuItem.Click += lamMoi_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(261, 6);
+            toolStripMenuItem1.Size = new Size(287, 6);
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
             xoaTimKiem_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaTimKiem_ToolStripMenuItem.Image");
             xoaTimKiem_ToolStripMenuItem.Name = "xoaTimKiem_ToolStripMenuItem";
             xoaTimKiem_ToolStripMenuItem.ShortcutKeys = Keys.F4;
-            xoaTimKiem_ToolStripMenuItem.Size = new Size(264, 28);
+            xoaTimKiem_ToolStripMenuItem.Size = new Size(290, 28);
             xoaTimKiem_ToolStripMenuItem.Text = "Xóa tìm kiếm";
             xoaTimKiem_ToolStripMenuItem.Click += xoaTimKiem_ToolStripMenuItem_Click;
             // 
@@ -330,7 +330,7 @@
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Image");
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Name = "quayLaiTrangXuLyDuLieu_ToolStripMenuItem";
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
-            quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Size = new Size(264, 28);
+            quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Size = new Size(290, 28);
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Text = "Quay lại Trang phân loại thi đua";
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Click += quayLaiTrangXuLyDuLieu_ToolStripMenuItem_Click;
             // 
