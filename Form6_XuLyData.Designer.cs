@@ -351,9 +351,9 @@
             // kryptonButton1_PhanTich
             // 
             kryptonButton1_PhanTich.Anchor = AnchorStyles.None;
-            kryptonButton1_PhanTich.Location = new Point(10, 7);
+            kryptonButton1_PhanTich.Location = new Point(9, 7);
             kryptonButton1_PhanTich.Name = "kryptonButton1_PhanTich";
-            kryptonButton1_PhanTich.Size = new Size(100, 30);
+            kryptonButton1_PhanTich.Size = new Size(102, 30);
             kryptonButton1_PhanTich.StateCommon.Border.Rounding = 4F;
             kryptonButton1_PhanTich.StateCommon.Content.LongText.Font = new Font("Segoe UI", 8.064F, FontStyle.Regular, GraphicsUnit.Point, 0);
             kryptonButton1_PhanTich.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
@@ -367,9 +367,9 @@
             // kryptonButton_RefershCSDL
             // 
             kryptonButton_RefershCSDL.Anchor = AnchorStyles.None;
-            kryptonButton_RefershCSDL.Location = new Point(130, 7);
+            kryptonButton_RefershCSDL.Location = new Point(129, 7);
             kryptonButton_RefershCSDL.Name = "kryptonButton_RefershCSDL";
-            kryptonButton_RefershCSDL.Size = new Size(101, 30);
+            kryptonButton_RefershCSDL.Size = new Size(102, 30);
             kryptonButton_RefershCSDL.StateCommon.Border.Rounding = 4F;
             kryptonButton_RefershCSDL.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
             kryptonButton_RefershCSDL.StateTracking.Border.Rounding = 4F;

@@ -72,83 +72,16 @@ VALUES(1, '');
                         return ""; // Trả về rỗng nếu AES đổi key
                     }
                 });
-
                 textBoxKrypton_TyLePhanTramBaNhat.Text = tyLe;
+                // Đưa con trỏ về cuối chuỗi
+                textBoxKrypton_TyLePhanTramBaNhat.SelectionStart = textBoxKrypton_TyLePhanTramBaNhat.TextLength;
+                textBoxKrypton_TyLePhanTramBaNhat.SelectionLength = 0;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Không thể đọc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-        //        private async void btnLuu_Click(object sender, EventArgs e)
-        //        {
-        //            string text = textBoxKrypton_TyLePhanTramBaNhat.Text.Trim();
-
-        //            // Gộp 2 lệnh IF của bạn làm 1 cho gọn
-        //            if (!int.TryParse(text, out int tyLe) || tyLe < 0 || tyLe > 100)
-        //            {
-        //                MessageBox.Show("Vui lòng nhập một số nguyên từ 0 đến 100.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        //                textBoxKrypton_TyLePhanTramBaNhat.Focus();
-        //                textBoxKrypton_TyLePhanTramBaNhat.SelectAll();
-        //                return;
-        //            }
-
-        //            await SaveTyLeBaNhatAsync(tyLe);
-        //        }
-        //        private async Task SaveTyLeBaNhatAsync(int tyLe)
-        //        {
-        //            string textGoc = btnLuu.Values.Text;
-        //            btnLuu.Enabled = false;
-        //            btnLuu.Values.Text = "Đang lưu...";
-
-        //            try
-        //            {
-        //                await Task.Run(() =>
-        //                {
-        //                    using var cn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
-        //                    cn.Open();
-        //                    using var tran = cn.BeginTransaction();
-
-        //                    try
-        //                    {
-        //                        using var cmd = cn.CreateCommand();
-        //                        cmd.Transaction = tran;
-
-        //                        // Kỹ thuật UPSERT của bạn rất xuất sắc, mình giữ nguyên
-        //                        cmd.CommandText = @"
-        //CREATE TABLE IF NOT EXISTS QuyDinhTyLe_BaNhat
-        //(
-        //    ID INTEGER PRIMARY KEY,
-        //    TyLe TEXT NOT NULL
-        //);
-        //INSERT INTO QuyDinhTyLe_BaNhat(ID, TyLe)
-        //VALUES(1, @TyLe)
-        //ON CONFLICT(ID)
-        //DO UPDATE SET TyLe=excluded.TyLe;
-        //";
-        //                        cmd.Parameters.AddWithValue("@TyLe", BaoMatAES.MaHoa(tyLe.ToString()));
-        //                        cmd.ExecuteNonQuery();
-        //                        tran.Commit();
-        //                    }
-        //                    catch
-        //                    {
-        //                        tran.Rollback();
-        //                        throw;
-        //                    }
-        //                });
-
-        //                MessageBox.Show("Đã lưu thành công.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                MessageBox.Show(ex.Message, "Không thể lưu dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //            }
-        //            finally
-        //            {
-        //                btnLuu.Enabled = true;
-        //                btnLuu.Values.Text = textGoc;
-        //            }
-        //        }
         private async void btnLuu_Click(object sender, EventArgs e)
         {
             string text = textBoxKrypton_TyLePhanTramBaNhat.Text.Trim();

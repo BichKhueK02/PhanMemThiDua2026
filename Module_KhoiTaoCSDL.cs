@@ -18,7 +18,6 @@ namespace PhanMemThiDua2026
             public string BackupName, WinName, DbName;
             public ResourceInfo(string b, string w, string d) { BackupName = b; WinName = w; DbName = d; }
         }
-
         private const string THU_MUC_CONG_CU = "CongCuQuanLyCSDL";
         private const string THU_MUC_HUONG_DAN = "HuongDanSuDung";
         // ⭐ KHỞI ĐỘNG BẤT ĐỒNG BỘ: Không gây đơ ứng dụng trên máy cấu hình yếu
@@ -125,9 +124,9 @@ namespace PhanMemThiDua2026
             string[] folders = { THU_MUC_CONG_CU, THU_MUC_HUONG_DAN };
             List<string> log = new List<string>();
 
-            // =========================
+            // ============
             // 1. SYNC 2 CHIỀU
-            // =========================
+            // ============
             foreach (string folder in folders)
             {
                 string A = Path.Combine(srcDir, folder);
@@ -140,9 +139,9 @@ namespace PhanMemThiDua2026
                 SyncFolder(B, A, log);
             }
 
-            // =========================
+            // ============
             // 2. SELF HEAL LOOP (2 lần)
-            // =========================
+            // ============
             for (int i = 0; i < 2; i++)
             {
                 foreach (string folder in folders)
@@ -155,9 +154,9 @@ namespace PhanMemThiDua2026
                 }
             }
 
-            // =========================
+            // ============
             // 3. VERIFY LOOP (100% MATCH CHECK)
-            // =========================
+            // ============
             foreach (string folder in folders)
             {
                 string A = Path.Combine(srcDir, folder);
@@ -267,9 +266,47 @@ namespace PhanMemThiDua2026
             }
         }
         // ⭐ LOCAL QUARANTINE: Chuyển vùng cách ly vào root phần mềm, né lỗi Folder Redirection trên máy AD Domain
-
-
         // ⭐ BẢO VỆ HỆ THỐNG: Quét dọn tự động chạy ngầm, không block UI
+        /// <summary>
+        /// Hàm dọn dẹp tuyệt đối: Chỉ giữ lại các tệp có đuôi *.db.
+        /// Toàn bộ tệp rác khác (kể cả .db-wal, .db-shm, .tmp, .txt, v.v.) sẽ bị xóa sạch.
+        /// </summary>
+        /// <param name="folderPath">Đường dẫn thư mục cần làm sạch (VD: LuuTruThiDua_LichSu)</param>
+        public static void donRacThuMucBaoVe(string folderPath)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
+                    return;
+
+                // Quét toàn bộ tệp trong thư mục mục tiêu
+                string[] files = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly);
+
+                foreach (string filePath in files)
+                {
+                    FileInfo fi = new FileInfo(filePath);
+
+                    // Kiểm tra: Nếu KHÔNG PHẢI đuôi .db thì tiến hành xóa
+                    if (!fi.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))
+                    {
+                        try
+                        {
+                            fi.Attributes = FileAttributes.Normal; // Tháo bỏ thuộc tính ReadOnly nếu có
+                            fi.Delete();
+                            Debug.WriteLine($"[ĐÃ XÓA TỆP RÁC]: {fi.Name}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"[LỖI XÓA TỆP RÁC {fi.Name}]: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[LỖI QUÉT THƯ MỤC DỌN RÁC]: {ex.Message}");
+            }
+        }
         public static void ChinhSachLamSach()
         {
             string baseDir = Path.GetFullPath(AppContext.BaseDirectory).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
@@ -295,12 +332,15 @@ namespace PhanMemThiDua2026
             string dir4 = Path.Combine(baseDir, "Database", "Bansaoluu");
             var allowFiles4 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "NhatKy_LamSach.txt", "GiayPhepCapQuyen_ServiceRestore.dat", "GiayPhepCapQuyen_ServiceBackup.dat" };
             DonDepVungQuanLy(dir4, allowFiles4, null, true, false);
+            // 🌟 5. BỔ SUNG: Dọn dẹp triệt để thư mục Lịch sử thi đua (Chỉ giữ lại *.db)
+            string dirLichSu = Module_DanduongGPS.ThuMucLichSuThiDua;
+            donRacThuMucBaoVe(dirLichSu);
         }
         private static void DonDepVungQuanLy(string dirPath, HashSet<string> allowedFiles, HashSet<string> allowedDirs, bool deleteSubDirs, bool isSQLiteZone)
         {
-            // =================================================================================
+            
             // ⭐ BỘ LỌC AN TOÀN CHUẨN KỸ SƯ: CHẶN HỦY DIỆT FILE KHI ĐANG LẬP TRÌNH/TEST CODE
-            // =================================================================================
+            
             string currentExePath = AppDomain.CurrentDomain.BaseDirectory;
             bool isDevelopmentEnv = currentExePath.Contains(@"\bin\Debug\", StringComparison.OrdinalIgnoreCase) ||
                                     currentExePath.Contains(@"\bin\Release\", StringComparison.OrdinalIgnoreCase);
@@ -324,7 +364,7 @@ namespace PhanMemThiDua2026
             {
                 try { Directory.CreateDirectory(currentDir); } catch { return; }
             }
-            // =================================================================================
+            
 
             List<string> chiTiet = new List<string>();
             int fCount = 0, dCount = 0;
@@ -476,9 +516,9 @@ namespace PhanMemThiDua2026
 
             try
             {
-                // =================================================================
+                // 
                 // 1. XỬ LÝ THƯ MỤC LẠ
-                // =================================================================
+                // 
                 try
                 {
                     foreach (string dirPath in Directory.EnumerateDirectories(rootPath))
@@ -506,9 +546,9 @@ namespace PhanMemThiDua2026
                 }
                 catch { /* Bỏ qua lỗi Access Denied cấp thư mục gốc nếu có */ }
 
-                // =================================================================
+                // 
                 // 2. XỬ LÝ TỆP TIN LẠ
-                // =================================================================
+                // 
                 try
                 {
                     foreach (string filePath in Directory.EnumerateFiles(rootPath))
@@ -561,9 +601,9 @@ namespace PhanMemThiDua2026
                 }
                 catch { /* Bỏ qua lỗi Access Denied cấp thư mục gốc */ }
 
-                // =================================================================
+                // 
                 // 3. ĐỒNG BỘ GHI NHẬT KÝ
-                // =================================================================
+                // 
                 if (fCount > 0 || dCount > 0 || eCount > 0)
                 {
                     GhiDeNhatKy(logPath, TaoNoiDungBaoCao(fCount, dCount, eCount, chiTiet));
@@ -779,10 +819,8 @@ namespace PhanMemThiDua2026
                     KimTuThapAiCapCopyDirectory(dir, Path.Combine(dst, Path.GetFileName(dir)));
             }
             catch { }
-        }
-        // ====================================================================
-        // ⭐ QUẢN LÝ COMBOBOX CÂU HỎI BẢO MẬT
-        // ====================================================================
+        }       
+        // ⭐ QUẢN LÝ COMBOBOX CÂU HỎI BẢO MẬT      
         public static readonly string[] DanhSachCauHoiNhom1 =
         {
             "Họ và tên của bạn?", "Bạn sinh ra ở Tỉnh/Thành phố nào?", "Món ăn yêu thích nhất của bạn là gì?",

@@ -11,7 +11,6 @@ namespace PhanMemThiDua2026
 
         private static readonly Size SIZE_DA_KY = new Size(1000, 720);
         private static readonly Size SIZE_LOI_OR_HET_HAN = new Size(840, 640);
-
         // ===== HÀM HIỂN THỊ CHÍNH (TỔNG HỢP LOGIC) =====
         public static void HienThiThongTinChungThu()
         {
@@ -90,7 +89,6 @@ namespace PhanMemThiDua2026
                 HienThiFormAoChung("LỖI HỆ THỐNG", sb.ToString(), MessageBoxIcon.Error, SIZE_LOI_OR_HET_HAN);
             }
         }
-
         // ===== DỰNG FORM ẢO =====
         public static void HienThiFormAoChung(string tieuDe, string noiDung, MessageBoxIcon icon, Size formSize)
         {
@@ -185,7 +183,6 @@ namespace PhanMemThiDua2026
 
             formAo.ShowDialog();
         }
-
         // ===== PARSER CHUYỂN ĐỔI ĐỊNH DẠNG MÀU SẮC =====
         private static void FormatRichText(RichTextBox rtb, string text)
         {
@@ -261,7 +258,6 @@ namespace PhanMemThiDua2026
             rtb.SelectionStart = 0;
             rtb.SelectionLength = 0;
         }
-
         // ===== CÁC HÀM HỖ TRỢ ĐỊNH DẠNG TỐI ƯU CHIỀU NGANG (BUILDER) =====
         private static void AppendHeader(StringBuilder sb)
         {

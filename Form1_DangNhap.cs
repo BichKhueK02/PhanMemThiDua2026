@@ -383,9 +383,9 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        // ====================================================================
+        
         // HỆ THỐNG LƯU TRỮ CẤU HÌNH KHỞI ĐỘNG (THAY THẾ MY.SETTINGS)
-        // ====================================================================
+        
         /// <summary>
         /// Khởi tạo bảng Check_KhoiDong nếu chưa tồn tại
         /// </summary>
@@ -626,9 +626,9 @@ namespace PhanMemThiDua2026
                     return;
                 }
 
-                // ====================================================================
+                
                 // 3. MỞ KẾT NỐI CSDL BẤT ĐỒNG BỘ VỚI TIMEOUT AN TOÀN
-                // ====================================================================
+                
                 string connectionString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
                 await using var conn = new SqliteConnection(connectionString);
                 await conn.OpenAsync();
@@ -664,9 +664,9 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                // ====================================================================
+                
                 // BƯỚC 2: KIỂM TRA TÀI KHOẢN THƯỜNG TRONG BẢNG ADMIN
-                // ====================================================================
+                
                 string sqlUser = "SELECT TenTaiKhoan, MatKhau FROM Admin";
                 bool isLoginSuccess = false;
 
@@ -687,9 +687,9 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                // ====================================================================
+                
                 // 4. XỬ LÝ KẾT QUẢ CUỐI CÙNG
-                // ====================================================================
+                
                 if (isLoginSuccess)
                 {
                     XacNhanDangNhapThanhCong(tenNhap, "Đăng nhập thành công");

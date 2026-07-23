@@ -76,7 +76,6 @@ namespace PhanMemThiDua2026
         }
         private void Form6_Load(object sender, EventArgs e)
         {
-          
             if (_isInit) return;
             _isInit = true;
             // ⭐ ĐIỂM SỬA CHỮA CỐT LÕI: Gán liên kết Menu chuột phải vào lưới dữ liệu Krypton
@@ -2119,7 +2118,7 @@ namespace PhanMemThiDua2026
                 // 17. THÔNG BÁO THÀNH CÔNG
                 toolStripStatusLabel1.Text = "Đã làm mới dữ liệu";
 
-                SystemSounds.Asterisk.Play();
+               // SystemSounds.Asterisk.Play();
             }
             catch (OperationCanceledException)
             {

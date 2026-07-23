@@ -1009,7 +1009,7 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
                         Module_NhatKy.GhiNhatKy(
                             Module_TaiKhoan.TenTaiKhoan_RAM ?? "Hệ thống",
                             "Đổi đối tượng phần mềm",
-                            $"Giá trị mới: {doiTuongMoi}"
+                            $"Chuyển đổi chế độ: {doiTuongMoi}"
                         );
 
                         formCha?.CapNhatGiaoDienTheoPhienBan();
@@ -1220,7 +1220,8 @@ KyHieuBaoCao = excluded.KyHieuBaoCao;";
 
             // đánh dấu dữ liệu thay đổi
             _dataChanged = _isDoiTuongChanged;
-
+            // 🌟 CHÈN THÊM DÒNG NÀY: Cập nhật ngay tên nút và ẩn/hiện nút Bỏ qua khi đổi ComboBox
+            CapNhatTenNutCaiDatTyLe();
             // (debug nếu cần)
             // Debug.WriteLine("Đối tượng thay đổi: " + currentValue);
         }
@@ -3110,7 +3111,6 @@ VALUES (1, strftime('%Y','now'));";
                         }
                     }
                 }
-
                 // Phục hồi giá trị cũ
                 if (!string.IsNullOrWhiteSpace(giaTriTenCu) && comboBox_TenTieuDoan.Items.Contains(giaTriTenCu))
                     comboBox_TenTieuDoan.Text = giaTriTenCu;
@@ -3172,17 +3172,21 @@ VALUES (1, strftime('%Y','now'));";
         {
             if (kryptonButton1_CaiDatTyLePhanTramE29 == null) return;
 
-            // Lấy giá trị đang được chọn trực tiếp trên giao diện ComboBox
+            // Lấy phiên bản đang chọn trên giao diện
             string phienBan = comboBox_DoiTuongPhanMem.Text.Trim();
 
-            // Dùng .Values.Text vì đây là KryptonButton
-            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
+            // Xác định có phải phiên bản Tân binh hay không
+            bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+
+            // Cập nhật tên nút theo phiên bản
+            kryptonButton1_CaiDatTyLePhanTramE29.Values.Text = laTanBinh
+                ? "Tỷ lệ % Tân binh"
+                : "Tỷ lệ % CBCS";
+
+            // Tự động ẩn/hiện nút "Bỏ qua kiểm tra tỷ lệ"
+            if (kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet != null)
             {
-                kryptonButton1_CaiDatTyLePhanTramE29.Values.Text = "Đặt tỷ lệ % Tân binh";
-            }
-            else
-            {
-                kryptonButton1_CaiDatTyLePhanTramE29.Values.Text = "Đặt tỷ lệ % CBCS";
+                kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Visible = !laTanBinh;
             }
         }
 
