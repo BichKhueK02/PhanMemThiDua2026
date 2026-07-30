@@ -103,7 +103,6 @@ namespace PhanMemThiDua2026
 
             KhoiTaoTimerTuDongAnMenu();
             DangKySuKienTuDongAnMenu();
-
             EnsureSuKienThoatTonTai();
             // ⭐ THÊM VÀO ĐÂY: Thiết lập mũi tên ban đầu khi load Form
             CapNhatMuiTenGiaoDien();
