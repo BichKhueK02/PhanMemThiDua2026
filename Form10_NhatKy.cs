@@ -7,6 +7,7 @@ namespace PhanMemThiDua2026
 {
     public partial class Form10_NhatKy : Form
     {
+            // Lê Trung Kiên -  Yêu mèo cam
         private readonly string _csdl3Path = Module_DanduongGPS.DuongDanCSDL3;
         private const int PAGE_SIZE_DEFAULT = 500;
         private const int PAGE_SIZE_MIN = 100;
@@ -17,6 +18,7 @@ namespace PhanMemThiDua2026
         private bool _daCaiDatCot = false;
         private int _soDongDaXoaTuDong = 0;
         private bool _sortAsc = false;
+        
         // 🔥 BIẾN CACHE HÌNH ẢNH (Load 1 lần để tối ưu RAM)
         private readonly Image _iconLogin = Properties.Resources.ic_login;
         private readonly Image _iconDb = Properties.Resources.ic_database;
