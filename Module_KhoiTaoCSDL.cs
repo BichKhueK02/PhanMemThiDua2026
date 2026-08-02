@@ -452,8 +452,8 @@ namespace PhanMemThiDua2026
 
                                 Module_NhatKy.GhiNhatKy(
                                     taiKhoan: tenTaiKhoan,
-                                    hanhDong: "XÓA THƯ MỤC HỆ THỐNG (AUTO CLEAN)",
-                                    ghiChu: $"=== THÔNG TIN XÓA THƯ MỤC ==={Environment.NewLine}" +
+                                    hanhDong: "Xóa thư mục hệ thống (Auto Clean)",
+                                    ghiChu: $"Thông tin xóa thu mục {Environment.NewLine}" +
                                            $"Thư mục cha   : {currentDir}{Environment.NewLine}" +
                                            $"Tên thư mục   : {di.Name}{Environment.NewLine}" +
                                            $"Dung lượng    : {FormatSize(folderSize)}{Environment.NewLine}" +

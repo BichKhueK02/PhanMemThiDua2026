@@ -65,32 +65,33 @@ namespace PhanMemThiDua2026
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
+            MinimizeBox = false;
             LoadComboBoxThang();
             InitToolTips();
         }
         private void Form17_Load(object sender, EventArgs e)
         {
-            // ⭐ BỔ SUNG 2: Ẩn thông báo khi vừa khởi động Form
-            if (label3_ThongBaoThanhCong != null)
+            // ⭐ Đã chuyển sang ToolStripStatusLabel và ẩn gọn gàng khi Form khởi động
+            if (toolStripStatusLabel1_ThongBaoThanhCong != null)
             {
-                label3_ThongBaoThanhCong.Visible = false;
+                toolStripStatusLabel1_ThongBaoThanhCong.Visible = false;
+                toolStripStatusLabel1_ThongBaoThanhCong.Text = "";
+            }
+
+            // ⭐ Cập nhật ToolStripStatusLabel hiển thị phiên bản và chế độ
+            if (toolStripStatusLabel1_PhienBanPhanMem != null)
+            {
+                string phienBan = Module_PhienBan.GetFullVersion();
+                string cheDo = LaPhienBanTanBinh() ? "Chế độ Tân binh" : "Chế độ CBCS";
+                toolStripStatusLabel1_PhienBanPhanMem.Text = $"Phiên bản {phienBan} - {cheDo}";
             }
         }
-        // =====================================================
-        // Hàm hỗ trợ giải mã an toàn (tránh văng lỗi do Data rác)
-        // =====================================================
         private string TryDec(string val)
         {
             if (string.IsNullOrEmpty(val)) return "";
             try { return BaoMatAES.GiaiMa(val).Trim(); }
             catch { return val; } // Nếu không mã hóa thì trả về gốc
         }
-        // =====================================================
-        // Load combobox tháng
-        // =====================================================
-        // =====================================================
-        // Load combobox tháng
-        // =====================================================
         private void LoadComboBoxThang()
         {
             comboBox1_ChonThangCanXuat.Items.Clear();
@@ -136,18 +137,18 @@ namespace PhanMemThiDua2026
 
             comboBox1_ChonThangCanXuat.SelectedIndex = indexMacDinh;
         }
-        // =====================================================
-        // Xuất dữ liệu (Đã tối ưu UX thông báo trên Label)
-        // =====================================================
-        // ⭐ BỔ SUNG 3: Hàm đếm ngược thời gian độc lập không làm đơ Form
+
+        // ⭐ Hàm đếm ngược thời gian độc lập không làm đơ Form
         private async void AnThongBaoSauDelay(int delayMs)
         {
             int currentCounter = Interlocked.Increment(ref _thongBaoCounter);
             await Task.Delay(delayMs);
 
-            if (currentCounter == _thongBaoCounter && label3_ThongBaoThanhCong != null)
+            if (currentCounter == _thongBaoCounter && toolStripStatusLabel1_ThongBaoThanhCong != null)
             {
-                label3_ThongBaoThanhCong.Visible = false;
+                // Ẩn và xóa text sau khi hết thời gian chờ
+                toolStripStatusLabel1_ThongBaoThanhCong.Visible = false;
+                toolStripStatusLabel1_ThongBaoThanhCong.Text = "";
             }
         }
 
@@ -179,11 +180,11 @@ namespace PhanMemThiDua2026
                 kryptonButton_XuatDuLieuSangThongKe.Values.Text = "Đang xuất...";
                 kryptonButton_XuatDuLieuSangThongKe.Values.Image = null;
 
-                if (label3_ThongBaoThanhCong != null)
+                if (toolStripStatusLabel1_ThongBaoThanhCong != null)
                 {
-                    label3_ThongBaoThanhCong.Visible = true; // <--- CHÈN THÊM DÒNG NÀY VÀO ĐÂY
-                    label3_ThongBaoThanhCong.ForeColor = Color.Black;
-                    label3_ThongBaoThanhCong.Text = "Đang đồng bộ dữ liệu...";
+                    toolStripStatusLabel1_ThongBaoThanhCong.Visible = true;
+                    toolStripStatusLabel1_ThongBaoThanhCong.ForeColor = Color.Black;
+                    toolStripStatusLabel1_ThongBaoThanhCong.Text = "Đang đồng bộ dữ liệu...";
                 }
 
                 await Task.Delay(300); // Nhịp nghỉ UX tạo cảm giác "máy đang chạy"
@@ -248,10 +249,10 @@ namespace PhanMemThiDua2026
                 if (thongBao.Contains("thành công", StringComparison.OrdinalIgnoreCase))
                 {
                     // THÀNH CÔNG: Cập nhật Label, êm ru không gián đoạn
-                    if (label3_ThongBaoThanhCong != null)
+                    if (toolStripStatusLabel1_ThongBaoThanhCong != null)
                     {
-                        label3_ThongBaoThanhCong.ForeColor = Color.DarkGreen;
-                        label3_ThongBaoThanhCong.Text = $"✔ {thongBao} lúc {DateTime.Now:HH:mm:ss}";
+                        toolStripStatusLabel1_ThongBaoThanhCong.ForeColor = Color.DarkGreen;
+                        toolStripStatusLabel1_ThongBaoThanhCong.Text = $"✔ {thongBao} lúc {DateTime.Now:HH:mm:ss}";
                     }
 
                     NapThongKePhanLoaiTapThe(); // Chạy hàm bổ trợ
@@ -259,20 +260,20 @@ namespace PhanMemThiDua2026
                 else
                 {
                     // THẤT BẠI: Hiện cảnh báo trên Label và bật MessageBox
-                    if (label3_ThongBaoThanhCong != null)
+                    if (toolStripStatusLabel1_ThongBaoThanhCong != null)
                     {
-                        label3_ThongBaoThanhCong.ForeColor = Color.Red;
-                        label3_ThongBaoThanhCong.Text = "✘ Xuất dữ liệu thất bại!";
+                        toolStripStatusLabel1_ThongBaoThanhCong.ForeColor = Color.Red;
+                        toolStripStatusLabel1_ThongBaoThanhCong.Text = "✘ Xuất dữ liệu thất bại!";
                     }
                     MessageBox.Show(thongBao, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
             {
-                if (label3_ThongBaoThanhCong != null)
+                if (toolStripStatusLabel1_ThongBaoThanhCong != null)
                 {
-                    label3_ThongBaoThanhCong.ForeColor = Color.Red;
-                    label3_ThongBaoThanhCong.Text = "✘ Phát sinh lỗi!";
+                    toolStripStatusLabel1_ThongBaoThanhCong.ForeColor = Color.Red;
+                    toolStripStatusLabel1_ThongBaoThanhCong.Text = "✘ Phát sinh lỗi!";
                 }
                 MessageBox.Show("Lỗi chương trình: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -282,13 +283,13 @@ namespace PhanMemThiDua2026
                 kryptonButton_XuatDuLieuSangThongKe.Values.Text = textBanDau;
                 kryptonButton_XuatDuLieuSangThongKe.Values.Image = anhBanDau;
                 kryptonButton_XuatDuLieuSangThongKe.Enabled = true;
-                // <--- CHÈN THÊM DÒNG NÀY VÀO ĐÂY: Gọi đếm ngược 20 giây (20000 ms)
-                AnThongBaoSauDelay(200);
+
+                // Gọi đếm ngược ẩn đi sau 20 giây (20000 ms) 
+                AnThongBaoSauDelay(400);
             }
         }
-        // =====================================================
-        // Lấy danh sách CBCS
-        // =====================================================
+
+
         private List<RecordCBCS> LayDanhSachCBCS(SqliteConnection cn)
         {
             List<RecordCBCS> list = new();
@@ -319,7 +320,6 @@ namespace PhanMemThiDua2026
 
             return list;
         }
-        // =====================================================
         // Map ID để lookup nhanh (Phải giải mã để map chuẩn)
         // =====================================================
         private Dictionary<(string, string), int> LayMapID(SqliteConnection cn, string table)

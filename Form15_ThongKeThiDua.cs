@@ -3701,9 +3701,9 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _dangXuLyLuongNen, 0);
             }
         }
+  
         private void toolStripMenuItem_LuuTruDataThiDuaTheoNam_Click(object sender, EventArgs e)
         {
-            //Gọi from lưu trữ dữ liệu thi đua theo năm From46_ThongKeThiDuaNamCu
             // 1. Tìm Form cha (Form2_FormCha) đang chạy để tương tác với PanelContainer
             var formCha = Application.OpenForms
                 .OfType<Form2_FormCha>()
@@ -3727,8 +3727,7 @@ namespace PhanMemThiDua2026
                 };
 
                 // Tìm vùng chứa PanelContainer trên Form cha
-                var panel = formCha.Controls.Find("PanelContainer", true)
-                                            .FirstOrDefault() as Panel;
+                var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
                 if (panel == null) return;
 
                 // Nạp Form46 vào panel và đẩy lên bề mặt hiển thị
@@ -3736,19 +3735,14 @@ namespace PhanMemThiDua2026
                 f46.Show();
                 f46.BringToFront();
 
-                // Ghi nhớ tham chiếu của Form15 hiện tại (this) để gọi lại khi Form46 đóng
                 var form15 = this;
-
                 f46.FormClosed += (s, ev) =>
                 {
                     if (form15 != null && !form15.IsDisposed)
                     {
-                        // Hiển thị lại Form15 nguyên bản ban đầu
                         form15.Dock = DockStyle.Fill;
                         form15.Show();
                         form15.BringToFront();
-
-                        // Khôi phục lại tiêu đề chuẩn của Form15 trên thanh điều hướng
                         var fChaCheck = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                         if (fChaCheck != null)
                         {
@@ -3758,64 +3752,17 @@ namespace PhanMemThiDua2026
                     }
                 };
 
-                // Cập nhật tiêu đề trang mới cho Form cha
-                formCha.CapNhatTieuDe("Trang lưu trữ dữ liệu thi đua năm cũ");
+                // ⭐ SỬA Ở ĐÂY: Truyền động tên Text của f46 thay vì fix cứng
+                formCha.CapNhatTieuDe(f46.Text);
             }
             else
             {
-                // 👉 TRƯỜNG HỢP 2: ĐÃ TỒN TẠI TRONG RAM -> Chỉ cần lôi ra bề mặt (BringToFront)
-                // 👉 TRƯỜNG HỢP 2: ĐÃ TỒN TẠI TRONG RAM -> Ép rà soát file mới tạo và lôi ra bề mặt
-                f46.LoadDanhSachFileLichSu(); // <--- ⭐ BỔ SUNG DÒNG NÀY
+                // 👉 TRƯỜNG HỢP 2: ĐÃ TỒN TẠI TRONG RAM
+                f46.LoadDanhSachFileLichSu();
                 f46.BringToFront();
-                formCha.CapNhatTieuDe("Trang lưu trữ dữ liệu thi đua năm cũ");
-            }
-        }
-        private async void taoBanSaoLuuTruTheoNamToolStripMenuItem_Click(object sender, EventArgs e)
-        {          
-            // 1. XÁC MINH QUYỀN ADMIN
-            DialogResult kq;
-            using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
-            {
-                frm.TopMost = true;
-                frm.StartPosition = FormStartPosition.CenterScreen;
-                kq = frm.ShowDialog();
-            }
-            if (kq != DialogResult.OK)
-                return;
-            // 3. KHÓA MENU
-            var menu = taoBanSaoLuuTruTheoNamToolStripMenuItem;
-            string textGoc = menu.Text;
-            try
-            {
-                menu.Enabled = false;
-                menu.Text = "Đang lưu trữ...";
 
-                // 4. THỰC HIỆN LƯU TRỮ
-                string duongDan = await Task.Run(Module_HoTroLuuDataTheoNamCu.LuuTruDuLieuThiDuaNam);
-                // Nếu Form46 đang mở ngầm hoặc chạy dưới nền, ra lệnh nạp tệp mới lập tức
-                var f46Check = Application.OpenForms.OfType<Form46_ThongKeThiDuaNamCu>().FirstOrDefault();
-                if (f46Check != null && !f46Check.IsDisposed)
-                {
-                    f46Check.LoadDanhSachFileLichSu();
-                }
-                MessageBox.Show(
-                    $"Đã lưu trữ dữ liệu thành công sang Hệ thống lưu trữ dữ liệu thi đua năm cũ.\n\n{duongDan}",
-                    "Thông báo",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    ex.Message,
-                    "Không thể lưu trữ dữ liệu",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
-            finally
-            {
-                menu.Enabled = true;
-                menu.Text = textGoc;
+                // ⭐ SỬA Ở ĐÂY: Truyền động tên Text của f46 thay vì fix cứng
+                formCha.CapNhatTieuDe(f46.Text);
             }
         }
     }

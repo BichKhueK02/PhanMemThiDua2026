@@ -1811,20 +1811,86 @@ VALUES (1, strftime('%Y','now'));";
         }
         private void NapDanhSachKyHieuChung()
         {
-            // Chỉ chứa ký hiệu dành riêng cho cấp Trung đoàn (cấp trên)
-            string[] danhSachKyHieu = {
-        "E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E09", "E10"
-    };
+            if (comboBox_KyHieu_TenTrungDoan == null) return;
 
-            comboBox_KyHieu_TenTrungDoan.SuspendLayout();
+            try
+            {
+                // Khóa vẽ UI để nạp dữ liệu mượt mà, không chớp giật hay treo Form
+                comboBox_KyHieu_TenTrungDoan.BeginUpdate();
 
-            comboBox_KyHieu_TenTrungDoan.Items.Clear();
-            comboBox_KyHieu_TenTrungDoan.Items.AddRange(danhSachKyHieu);
+                // 1. LƯU LẠI GIÁ TRỊ CŨ
+                string giaTriKyHieuCu = comboBox_KyHieu_TenTrungDoan.Text;
 
-            comboBox_KyHieu_TenTrungDoan.SelectedIndex = -1;
-            comboBox_KyHieu_TenTrungDoan.Text = string.Empty;
+                // Làm sạch danh sách
+                comboBox_KyHieu_TenTrungDoan.Items.Clear();
 
-            comboBox_KyHieu_TenTrungDoan.ResumeLayout();
+                // 2. NẠP DANH SÁCH CỨNG
+                string[] danhSachKyHieuCung = { "E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E09", "E10" };
+                foreach (string kh in danhSachKyHieuCung)
+                {
+                    comboBox_KyHieu_TenTrungDoan.Items.Add(kh);
+                }
+
+                // 3. NẠP THÊM TỪ CƠ SỞ DỮ LIỆU ĐỘNG
+                string csdl2Path = _csdl2Path;
+                if (!string.IsNullOrWhiteSpace(csdl2Path) && File.Exists(csdl2Path))
+                {
+                    using var conn = new SqliteConnection($"Data Source={csdl2Path};Mode=ReadOnly");
+                    conn.Open();
+
+                    // SỬ DỤNG ĐÚNG BẢNG: DanhSachDonVi_CapTrucThuoc
+                    string sqlCheck = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='DanhSachDonVi_CapTrucThuoc'";
+                    using (var cmdCheck = new SqliteCommand(sqlCheck, conn))
+                    {
+                        if (Convert.ToInt64(cmdCheck.ExecuteScalar()) > 0)
+                        {
+                            // Lấy cột KyHieu
+                            string sql = "SELECT KyHieu FROM DanhSachDonVi_CapTrucThuoc ORDER BY STT ASC, ID ASC";
+                            using var cmd = new SqliteCommand(sql, conn);
+                            using var rd = cmd.ExecuteReader();
+
+                            while (rd.Read())
+                            {
+                                string rawKyHieu = rd.IsDBNull(0) ? "" : rd.GetString(0);
+
+                                // GIẢI MÃ CỘT KÝ HIỆU
+                                string kyHieuDec = SafeDecrypt(rawKyHieu).Trim();
+                                if (string.IsNullOrEmpty(kyHieuDec)) kyHieuDec = rawKyHieu.Trim(); // Dự phòng nếu không giải mã được
+
+                                // Chỉ nạp thêm nếu có chữ & chưa tồn tại (Chống trùng E01-E10)
+                                if (!string.IsNullOrWhiteSpace(kyHieuDec) && !comboBox_KyHieu_TenTrungDoan.Items.Contains(kyHieuDec))
+                                {
+                                    comboBox_KyHieu_TenTrungDoan.Items.Add(kyHieuDec);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 4. PHỤC HỒI LẠI GIÁ TRỊ CŨ ĐỂ KHÔNG BỊ MẤT TEXT
+                if (!string.IsNullOrWhiteSpace(giaTriKyHieuCu))
+                {
+                    if (!comboBox_KyHieu_TenTrungDoan.Items.Contains(giaTriKyHieuCu))
+                    {
+                        comboBox_KyHieu_TenTrungDoan.Items.Add(giaTriKyHieuCu);
+                    }
+                    comboBox_KyHieu_TenTrungDoan.Text = giaTriKyHieuCu;
+                }
+                else
+                {
+                    comboBox_KyHieu_TenTrungDoan.SelectedIndex = -1;
+                    comboBox_KyHieu_TenTrungDoan.Text = string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[NapDanhSachKyHieuChung Error]: " + ex.Message);
+            }
+            finally
+            {
+                // Mở khóa UI, bắt buộc gọi trong khối finally
+                comboBox_KyHieu_TenTrungDoan.EndUpdate();
+            }
         }
         // 1. Khai báo biến toàn cục dạng static để Cache Form5 vĩnh viễn trên RAM
         private static Form5_QuenPass _cachedForm5;
@@ -3029,8 +3095,7 @@ VALUES (1, strftime('%Y','now'));";
             FormManager.OpenModal<Form47_DonViTrucThuoc>(this);
             // ⭐ CHẠY NGAY TỨC THÌ KHI FORM 47 VỪA ĐÓNG LẠI
             LoadDanhSachDonViVaKyHieu();
-        }
-        private void LoadDanhSachDonViVaKyHieu()
+        }      private void LoadDanhSachDonViVaKyHieu()
         {
             if (comboBox_TenTieuDoan == null || comboBox_KyHieu_TenTieuDoan == null) return;
 
@@ -3136,6 +3201,7 @@ VALUES (1, strftime('%Y','now'));";
                 comboBox_KyHieu_TenTieuDoan.EndUpdate();
             }
         }
+  
         // Sự kiện: Khi người dùng chọn Tên Đơn Vị -> Tự động nhảy Ký Hiệu
         private void ComboBox_TenTieuDoan_SelectedIndexChanged(object sender, EventArgs e)
         {

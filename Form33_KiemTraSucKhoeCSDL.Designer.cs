@@ -36,13 +36,13 @@
             toolStripStatusLabel1_KetLuan = new ToolStripStatusLabel();
             tableLayoutPanel1 = new TableLayoutPanel();
             tableLayoutPanel2 = new TableLayoutPanel();
+            kryptonButton1_CauhinhCSDL = new Krypton.Toolkit.KryptonButton();
+            kryptonButton1_CapNhat = new Krypton.Toolkit.KryptonButton();
             tableLayoutPanel3 = new TableLayoutPanel();
             pictureBox3 = new PictureBox();
             pictureBox2 = new PictureBox();
             label_TenAdminDangNhap = new Label();
             lable_phienban = new Label();
-            kryptonButton1_CapNhat = new Krypton.Toolkit.KryptonButton();
-            kryptonButton1_CauhinhCSDL = new Krypton.Toolkit.KryptonButton();
             pictureBox4 = new PictureBox();
             groupBox1 = new GroupBox();
             kryptonDataGridView1 = new Krypton.Toolkit.KryptonDataGridView();
@@ -70,7 +70,7 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.BackColor = SystemColors.Control;
+            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1_ThoiGianKhaiThac, toolStripProgressBar1, toolStripStatusLabel1_KetLuan });
             statusStrip1.Location = new Point(0, 655);
@@ -137,6 +137,36 @@
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel2.Size = new Size(1260, 94);
             tableLayoutPanel2.TabIndex = 0;
+            // 
+            // kryptonButton1_CauhinhCSDL
+            // 
+            kryptonButton1_CauhinhCSDL.Anchor = AnchorStyles.None;
+            kryptonButton1_CauhinhCSDL.DialogResult = DialogResult.TryAgain;
+            kryptonButton1_CauhinhCSDL.Location = new Point(1077, 30);
+            kryptonButton1_CauhinhCSDL.Margin = new Padding(2, 3, 2, 3);
+            kryptonButton1_CauhinhCSDL.Name = "kryptonButton1_CauhinhCSDL";
+            kryptonButton1_CauhinhCSDL.Size = new Size(130, 34);
+            kryptonButton1_CauhinhCSDL.StateCommon.Border.Rounding = 4F;
+            kryptonButton1_CauhinhCSDL.TabIndex = 29;
+            kryptonButton1_CauhinhCSDL.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton1_CauhinhCSDL.Values.Image = (Image)resources.GetObject("kryptonButton1_CauhinhCSDL.Values.Image");
+            kryptonButton1_CauhinhCSDL.Values.Text = "Cấu hình CSDL";
+            kryptonButton1_CauhinhCSDL.Click += kryptonButton1_CauhinhCSDL_Click;
+            // 
+            // kryptonButton1_CapNhat
+            // 
+            kryptonButton1_CapNhat.Anchor = AnchorStyles.None;
+            kryptonButton1_CapNhat.DialogResult = DialogResult.TryAgain;
+            kryptonButton1_CapNhat.Location = new Point(850, 30);
+            kryptonButton1_CapNhat.Margin = new Padding(2, 3, 2, 3);
+            kryptonButton1_CapNhat.Name = "kryptonButton1_CapNhat";
+            kryptonButton1_CapNhat.Size = new Size(130, 34);
+            kryptonButton1_CapNhat.StateCommon.Border.Rounding = 4F;
+            kryptonButton1_CapNhat.TabIndex = 3;
+            kryptonButton1_CapNhat.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton1_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton1_CapNhat.Values.Image");
+            kryptonButton1_CapNhat.Values.Text = "Làm mới";
+            kryptonButton1_CapNhat.Click += kryptonButton1_CapNhat_Click;
             // 
             // tableLayoutPanel3
             // 
@@ -206,36 +236,6 @@
             lable_phienban.Size = new Size(72, 19);
             lable_phienban.TabIndex = 26;
             lable_phienban.Text = "Phiên bản";
-            // 
-            // kryptonButton1_CapNhat
-            // 
-            kryptonButton1_CapNhat.Anchor = AnchorStyles.None;
-            kryptonButton1_CapNhat.DialogResult = DialogResult.TryAgain;
-            kryptonButton1_CapNhat.Location = new Point(850, 30);
-            kryptonButton1_CapNhat.Margin = new Padding(2, 3, 2, 3);
-            kryptonButton1_CapNhat.Name = "kryptonButton1_CapNhat";
-            kryptonButton1_CapNhat.Size = new Size(130, 34);
-            kryptonButton1_CapNhat.StateCommon.Border.Rounding = 4F;
-            kryptonButton1_CapNhat.TabIndex = 3;
-            kryptonButton1_CapNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton1_CapNhat.Values.Image");
-            kryptonButton1_CapNhat.Values.Text = "Làm mới";
-            kryptonButton1_CapNhat.Click += kryptonButton1_CapNhat_Click;
-            // 
-            // kryptonButton1_CauhinhCSDL
-            // 
-            kryptonButton1_CauhinhCSDL.Anchor = AnchorStyles.None;
-            kryptonButton1_CauhinhCSDL.DialogResult = DialogResult.TryAgain;
-            kryptonButton1_CauhinhCSDL.Location = new Point(1077, 30);
-            kryptonButton1_CauhinhCSDL.Margin = new Padding(2, 3, 2, 3);
-            kryptonButton1_CauhinhCSDL.Name = "kryptonButton1_CauhinhCSDL";
-            kryptonButton1_CauhinhCSDL.Size = new Size(130, 34);
-            kryptonButton1_CauhinhCSDL.StateCommon.Border.Rounding = 4F;
-            kryptonButton1_CauhinhCSDL.TabIndex = 29;
-            kryptonButton1_CauhinhCSDL.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CauhinhCSDL.Values.Image = (Image)resources.GetObject("kryptonButton1_CauhinhCSDL.Values.Image");
-            kryptonButton1_CauhinhCSDL.Values.Text = "Cấu hình CSDL";
-            kryptonButton1_CauhinhCSDL.Click += kryptonButton1_CauhinhCSDL_Click;
             // 
             // pictureBox4
             // 

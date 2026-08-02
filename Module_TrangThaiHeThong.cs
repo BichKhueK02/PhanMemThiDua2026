@@ -408,7 +408,6 @@ namespace PhanMemThiDua2026
             }
 
             private async Task LoadListViewDataAsync()
-
             {
                 lvInfo.Items.Clear();
 
@@ -452,9 +451,25 @@ namespace PhanMemThiDua2026
                 string doPhanGiai = $"{Screen.PrimaryScreen.Bounds.Width} x {Screen.PrimaryScreen.Bounds.Height}";
                 int dpiX = 96;
                 using (Graphics g = Graphics.FromHwnd(IntPtr.Zero)) { dpiX = (int)g.DpiX; }
-                string scaling = $"{Math.Round((dpiX / 96.0) * 100)}%";
+
+                // --- TÍNH TOÁN VÀ KIỂM TRA TỶ LỆ THU PHÓNG (SCALING) ---
+                int scalePercent = (int)Math.Round((dpiX / 96.0) * 100);
+                string scaling = $"{scalePercent}%";
+                bool isScalingHigh = scalePercent > 125;
+
+                if (isScalingHigh)
+                {
+                    scaling += " (Khuyến cáo: Chỉ nên đặt từ 100% - 125%, quá cao có thể lỗi hiển thị giao diện)";
+                }
 
                 Font boldFont = new System.Drawing.Font(lvInfo.Font, System.Drawing.FontStyle.Bold);
+
+                // Tạo item Scaling riêng để tô màu đỏ khi tỷ lệ lớn hơn 125%
+                ListViewItem itemScaling = new ListViewItem(new[] { "Tỷ lệ thu phóng (Scaling)", scaling });
+                if (isScalingHigh)
+                {
+                    itemScaling.ForeColor = Color.FromArgb(214, 48, 49); // Màu đỏ cảnh báo
+                }
 
                 var items = new[]
                 {
@@ -466,7 +481,7 @@ namespace PhanMemThiDua2026
 
                     new ListViewItem(new[] { "Cấu hình hiển thị & Vùng", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
                     new ListViewItem(new[] { "Độ phân giải màn hình", doPhanGiai }),
-                    new ListViewItem(new[] { "Tỷ lệ thu phóng (Scaling)", scaling }),
+                    itemScaling,
                     new ListViewItem(new[] { "Định dạng vùng (Culture)", sysData.DinhDangVung }),
 
                     new ListViewItem(new[] { "Cấu hình thiết bị", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
@@ -484,7 +499,7 @@ namespace PhanMemThiDua2026
                 lvInfo.Items.AddRange(items);
             }
 
- 
+
             private void DrawFlatProgressBar(Graphics g, Rectangle bounds, float percent, bool isAppMem)
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;

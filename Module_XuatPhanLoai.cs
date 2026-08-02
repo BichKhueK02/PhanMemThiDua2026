@@ -475,20 +475,47 @@ namespace PhanMemThiDua2026
                     ws.Cell("A3").Value = "";
                 }
 
-                // ⭐ TIÊU ĐỀ A6 (CHUYỂN ĐỔI "KHÔNG PL" THÀNH "KHÔNG PHÂN LOẠI")
+                // ⭐ TIÊU ĐỀ A6 (GIA CỐ BẢO MẬT & CHUẨN HÓA DỮ LIỆU DÀI HẠN)
                 var cellA6 = ws.Cell("A6");
-                string tmp = BaoMatAES.GiaiMa(phanLoai ?? "").Trim();
-                string phanLoaiGiaiMa = string.IsNullOrEmpty(tmp) ? (phanLoai ?? "") : tmp;
 
-                // Logic bổ sung:
-                if (phanLoaiGiaiMa.Equals("KHÔNG PL", StringComparison.OrdinalIgnoreCase))
+                // 1. Giải mã AES an toàn (Bọc Try-Catch ngầm phòng trừ dữ liệu plain-text hoặc hỏng Key)
+                string phanLoaiGiaiMa = "";
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(phanLoai))
+                    {
+                        string dec = BaoMatAES.GiaiMa(phanLoai).Trim();
+                        phanLoaiGiaiMa = string.IsNullOrEmpty(dec) ? phanLoai.Trim() : dec;
+                    }
+                }
+                catch
+                {
+                    phanLoaiGiaiMa = (phanLoai ?? "").Trim(); // Fallback dùng chuỗi gốc nếu giải mã lỗi
+                }
+
+                // 2. Chuẩn hóa chuỗi so sánh (Loại bỏ toàn bộ khoảng trắng thừa, đưa về In Hoa)
+                string checkVal = phanLoaiGiaiMa.ToUpperInvariant();
+
+                // 3. Nhận diện thông minh tất cả biến thể của "KHÔNG PHÂN LOẠI"
+                if (checkVal.Contains("KHÔNG PL") || checkVal.Contains("KHONG PL") || checkVal.Contains("KPL") || checkVal.Contains("KHÔNG PHÂN LOẠI"))
                 {
                     phanLoaiGiaiMa = "KHÔNG PHÂN LOẠI";
                 }
+                else
+                {
+                    // Bắt các trường hợp Loại 1, Loại 2, Loại 3, Loại 4
+                    phanLoaiGiaiMa = phanLoaiGiaiMa.ToUpperInvariant();
+                }
 
-                cellA6.Value = $"CBCS ĐỀ NGHỊ {InHoa(phanLoaiGiaiMa)} TRONG PHONG TRÀO THI ĐUA \"VÌ ANTQ\" {chuoiThoiGian}";
-                cellA6.Style.Font.FontName = "Times New Roman"; cellA6.Style.Font.FontSize = 14; cellA6.Style.Font.Bold = true;
+                // 4. Gán giá trị tiêu đề (Tránh gọi lại hàm InHoa để bảo vệ Unicode Tiếng Việt)
+                cellA6.Value = $"CBCS ĐỀ NGHỊ {phanLoaiGiaiMa} TRONG PHONG TRÀO THI ĐUA \"VÌ ANTQ\" {chuoiThoiGian}";
+
+                // 5. Định dạng Cell chuẩn chỉ (Bổ sung Vertical Alignment để không bị lệch khung Excel)
+                cellA6.Style.Font.FontName = "Times New Roman";
+                cellA6.Style.Font.FontSize = 14;
+                cellA6.Style.Font.Bold = true;
                 cellA6.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                cellA6.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                 // --- PHẦN A7 (GIỮ NGUYÊN GỐC) ---
                 var cellA7 = ws.Cell("A7");
@@ -862,20 +889,47 @@ namespace PhanMemThiDua2026
                 cellA3.Value = "";
                 cellA3.Style.Font.Bold = false;
             }
-
-            // A6
+            // ⭐ TIÊU ĐỀ A6 (GIA CỐ BẢO MẬT & CHUẨN HÓA DỮ LIỆU DÀI HẠN)
             var cellA6 = ws.Cell("A6");
-            // Giải mã thử
-            string tmp = BaoMatAES.GiaiMa(phanLoai ?? "").Trim();
-            // Nếu chuỗi rỗng (do lỗi giải mã kép bị BaoMatAES nuốt), dùng lại chuỗi gốc ban đầu
-            string phanLoaiGiaiMa = string.IsNullOrEmpty(tmp) ? (phanLoai ?? "") : tmp;
-            cellA6.Value = $"CBCS ĐỀ NGHỊ {InHoa(phanLoaiGiaiMa)} TRONG PHONG TRÀO THI ĐUA \"VÌ ANTQ\" {chuoiThoiGian}";
+
+            // 1. Giải mã AES an toàn (Bọc Try-Catch ngầm phòng trừ dữ liệu plain-text hoặc hỏng Key)
+            string phanLoaiGiaiMa = "";
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(phanLoai))
+                {
+                    string dec = BaoMatAES.GiaiMa(phanLoai).Trim();
+                    phanLoaiGiaiMa = string.IsNullOrEmpty(dec) ? phanLoai.Trim() : dec;
+                }
+            }
+            catch
+            {
+                phanLoaiGiaiMa = (phanLoai ?? "").Trim(); // Fallback dùng chuỗi gốc nếu giải mã lỗi
+            }
+
+            // 2. Chuẩn hóa chuỗi so sánh (Loại bỏ toàn bộ khoảng trắng thừa, đưa về In Hoa)
+            string checkVal = phanLoaiGiaiMa.ToUpperInvariant();
+
+            // 3. Nhận diện thông minh tất cả biến thể của "KHÔNG PHÂN LOẠI"
+            if (checkVal.Contains("KHÔNG PL") || checkVal.Contains("KHONG PL") || checkVal.Contains("KPL") || checkVal.Contains("KHÔNG PHÂN LOẠI"))
+            {
+                phanLoaiGiaiMa = "KHÔNG PHÂN LOẠI";
+            }
+            else
+            {
+                // Bắt các trường hợp Loại 1, Loại 2, Loại 3, Loại 4
+                phanLoaiGiaiMa = phanLoaiGiaiMa.ToUpperInvariant();
+            }
+
+            // 4. Gán giá trị tiêu đề (Tránh gọi lại hàm InHoa để bảo vệ Unicode Tiếng Việt)
+            cellA6.Value = $"CBCS ĐỀ NGHỊ {phanLoaiGiaiMa} TRONG PHONG TRÀO THI ĐUA \"VÌ ANTQ\" {chuoiThoiGian}";
+
+            // 5. Định dạng Cell chuẩn chỉ (Bổ sung Vertical Alignment để không bị lệch khung Excel)
             cellA6.Style.Font.FontName = "Times New Roman";
             cellA6.Style.Font.FontSize = 14;
             cellA6.Style.Font.Bold = true;
             cellA6.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             cellA6.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
             // A7
             // ===== A7 =====
             var cellA7 = ws.Cell("A7");

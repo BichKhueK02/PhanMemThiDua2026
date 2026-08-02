@@ -949,14 +949,14 @@ public static class Module_BaNhat
             }
             else if (soDangDeNghi < soLuongChiTieu)
             {
-                trangThai = $"Đang thiếu: {soLuongChiTieu - soDangDeNghi}";
+                trangThai = $"Đang thiếu: {soLuongChiTieu - soDangDeNghi} đồng chí";
             }
             else
             {
-                trangThai = $"Đang thừa: {soDangDeNghi - soLuongChiTieu}";
+                trangThai = $"Đang thừa: {soDangDeNghi - soLuongChiTieu} đồng chí";
             }
 
-            string textHienThi = $"           Chỉ tiêu “Ba nhất” {tyLe}% = {soLuongChiTieu} đồng chí | Tỷ lệ hiện tại {soDangDeNghi} đồng chí = {tyLeHienTai}% |      {trangThai}";
+            string textHienThi = $"           Chỉ tiêu “Ba nhất” {tyLe}% = {soLuongChiTieu} đồng chí    |    Tỷ lệ hiện tại {soDangDeNghi} đồng chí = {tyLeHienTai}%    |    {trangThai}";
 
             // 6. Đẩy kết quả lên UI
             // BẢO VỆ TẦNG 5: Sử dụng GetCurrentParent và BeginInvoke để chống treo luồng cục bộ (Cross-thread Deadlock).
@@ -968,12 +968,16 @@ public static class Module_BaNhat
                     if (!labelTyLe.IsDisposed)
                     {
                         labelTyLe.Text = textHienThi;
+                        // ⭐ BỔ SUNG: Định dạng màu chữ (Đạt = Xanh đậm, Ngược lại = Đỏ)
+                        labelTyLe.ForeColor = (soDangDeNghi == soLuongChiTieu) ? System.Drawing.Color.DarkGreen : System.Drawing.Color.Red;
                     }
                 }));
             }
             else if (!labelTyLe.IsDisposed)
             {
                 labelTyLe.Text = textHienThi;
+                // ⭐ BỔ SUNG: Định dạng màu chữ (Đạt = Xanh đậm, Ngược lại = Đỏ)
+                labelTyLe.ForeColor = (soDangDeNghi == soLuongChiTieu) ? System.Drawing.Color.DarkGreen : System.Drawing.Color.Red;
             }
         }
         catch (Exception ex)
@@ -981,7 +985,6 @@ public static class Module_BaNhat
             System.Diagnostics.Debug.WriteLine($"Lỗi tính toán tỷ lệ Ba Nhất: {ex.Message}");
         }
     }
-    // Đường dẫn cơ sở dữ liệu csdl2.db của hệ thống
     public static async Task CapNhatTinhTrangSoVangAsync()
     {
         // BẢO VỆ TẦNG 1: Kiểm tra đường dẫn CSDL

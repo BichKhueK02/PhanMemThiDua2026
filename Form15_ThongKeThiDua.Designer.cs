@@ -187,7 +187,7 @@
             comboBox1_TinhTrang.Font = new Font("Segoe UI", 9.792F);
             comboBox1_TinhTrang.FormattingEnabled = true;
             comboBox1_TinhTrang.Items.AddRange(new object[] { "Tất cả", "Đang công tác", "Chuyển công tác" });
-            comboBox1_TinhTrang.Location = new Point(688, 7);
+            comboBox1_TinhTrang.Location = new Point(688, 8);
             comboBox1_TinhTrang.Margin = new Padding(2, 3, 2, 3);
             comboBox1_TinhTrang.Name = "comboBox1_TinhTrang";
             comboBox1_TinhTrang.Size = new Size(138, 25);
@@ -226,7 +226,7 @@
             comboBox_TimKiemDonVi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_TimKiemDonVi.Font = new Font("Segoe UI", 9.792F);
             comboBox_TimKiemDonVi.FormattingEnabled = true;
-            comboBox_TimKiemDonVi.Location = new Point(458, 7);
+            comboBox_TimKiemDonVi.Location = new Point(458, 8);
             comboBox_TimKiemDonVi.Margin = new Padding(2, 3, 2, 3);
             comboBox_TimKiemDonVi.Name = "comboBox_TimKiemDonVi";
             comboBox_TimKiemDonVi.Size = new Size(111, 25);
@@ -335,6 +335,7 @@
             // 
             // statusStrip1
             // 
+            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripProgressBar1_LamMoi, toolStripStatusLabel2 });
             statusStrip1.Location = new Point(0, 655);
@@ -449,7 +450,6 @@
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Name = "taoBanSaoLuuTruTheoNamToolStripMenuItem";
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Size = new Size(289, 28);
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Text = "Lưu kết quả thi đua năm";
-            taoBanSaoLuuTruTheoNamToolStripMenuItem.Click += taoBanSaoLuuTruTheoNamToolStripMenuItem_Click;
             // 
             // toolStripMenuItem3
             // 

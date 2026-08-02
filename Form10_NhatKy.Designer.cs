@@ -303,7 +303,7 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.BackColor = SystemColors.Control;
+            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.Dock = DockStyle.Fill;
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel4, toolStripStatusLabel2, toolStripStatusLabel3, thongTinNguoiDung_toolstrip });

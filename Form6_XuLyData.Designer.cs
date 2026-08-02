@@ -795,6 +795,7 @@
             // 
             // statusStrip1
             // 
+            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2_Loai1, toolStripStatusLabel2_Loai2, toolStripStatusLabel2_Loai3, toolStripStatusLabel2_Loai4, toolStripStatusLabel2_KhongPL });
             statusStrip1.Location = new Point(0, 655);

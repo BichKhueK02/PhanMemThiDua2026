@@ -186,6 +186,8 @@ namespace PhanMemThiDua2026
                 _dtHienTai = null;
                 CapNhatTrangThaiHienThi();
             }
+            // ⭐ BỔ SUNG VÀO ĐÂY: Cập nhật tiêu đề khi vừa load xong danh sách ComboBox lúc mở Form
+            CapNhatTieuDeTheoNamDuocChon();
         }
         private void KhoiTaoBoLocComboBox(bool laTanBinh)
         {
@@ -241,6 +243,8 @@ namespace PhanMemThiDua2026
         {
             if (!this.IsHandleCreated) return;
             ThucHienTaiDuLieuLichSu();
+            // ⭐ BỔ SUNG VÀO ĐÂY: Cập nhật tiêu đề khi đổi năm
+            CapNhatTieuDeTheoNamDuocChon();
         }
         // ⭐ TRÁI TIM BỘ LỌC ĐA TẦNG ĐƯỢC SAO CHÉP NGUYÊN BẢN VÀ PHÁT TRIỂN TỪ FORM 15
         private void ApplyFilter()
@@ -1192,7 +1196,37 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"Không thể xóa tệp CSDL do tệp đang bị ứng dụng khác chiếm dụng hoặc lỗi hệ thống:\n\n{ex.Message}", "Lỗi xóa tệp", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void dong_ToolStripMenuItem_Click(object sender, EventArgs e) => kryptonButton_Dong.PerformClick();     
+        private void dong_ToolStripMenuItem_Click(object sender, EventArgs e) => kryptonButton_Dong.PerformClick();
+
+        private void CapNhatTieuDeTheoNamDuocChon()
+        {
+            // Kiểm tra xem người dùng có đang chọn một file lịch sử hợp lệ không
+            if (comboBox_ChonCSDLNam.SelectedItem is FileLichSuDTO selectedFile)
+            {
+                // selectedFile.TenHienThi thường có dạng (VD: "Năm 2025 - CBCS")
+                string tieuDeMoi = $"Thống kê thi đua năm cũ - {selectedFile.TenHienThi}";
+                this.Text = tieuDeMoi;
+
+                // Cập nhật ngay lên thanh điều hướng của Form 2 (Form Cha)
+                var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+                if (formCha != null)
+                {
+                    formCha.CapNhatTieuDe(tieuDeMoi);
+                }
+            }
+            else
+            {
+                // Nếu không có file nào được chọn
+                this.Text = "Thống kê thi đua năm cũ";
+                var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+                if (formCha != null)
+                {
+                    formCha.CapNhatTieuDe("Thống kê thi đua năm cũ");
+                }
+            }
+        }
+
+
     }
         public class ColumnExportMeta
     {

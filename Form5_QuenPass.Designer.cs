@@ -339,6 +339,7 @@
             // 
             // statusStrip1
             // 
+            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { label1_PhienBanPhanMem, toolStripStatusLabel1 });
             statusStrip1.Location = new Point(0, 403);

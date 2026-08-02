@@ -640,6 +640,7 @@
             // 
             // statusStrip1
             // 
+            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1_ThongBao });
             statusStrip1.Location = new Point(0, 655);
@@ -673,7 +674,6 @@
             // 
             xoaTimKiem.Image = (Image)resources.GetObject("xoaTimKiem.Image");
             xoaTimKiem.Name = "xoaTimKiem";
-            //xoaTimKiem.ShortcutKeys = Keys.Control | Keys.D;
             xoaTimKiem.Size = new Size(230, 28);
             xoaTimKiem.Text = "Xóa tìm kiếm";
             xoaTimKiem.Click += xoaTimKiem_Click;
@@ -693,7 +693,7 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5, toolStripMenuItem_XuatSoVangGoc, toolStripMenuItem4_NhapDataVaoCSDL, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(231, 246);
+            contextMenuStrip1.Size = new Size(231, 224);
             // 
             // toolStripMenuItem5
             // 

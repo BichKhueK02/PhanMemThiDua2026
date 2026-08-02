@@ -724,54 +724,72 @@ namespace PhanMemThiDua2026
         {
             if (kryptonDataGridView1 == null) return;
 
+            // TỐI ƯU HIỆU NĂNG: Ép bật DoubleBuffered bằng Reflection để cuộn mượt, không giật nháy
             Type dgvType = kryptonDataGridView1.GetType();
             System.Reflection.PropertyInfo pi = dgvType.GetProperty("DoubleBuffered",
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             pi?.SetValue(kryptonDataGridView1, true, null);
 
+            // CẤU HÌNH THAO TÁC CƠ BẢN
             kryptonDataGridView1.AllowUserToAddRows = false;
             kryptonDataGridView1.AllowUserToDeleteRows = false;
             kryptonDataGridView1.AllowUserToResizeRows = false;
             kryptonDataGridView1.RowHeadersVisible = false;
             kryptonDataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             kryptonDataGridView1.MultiSelect = false;
-
             kryptonDataGridView1.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
 
+            // TỐI ƯU RENDER: Chốt cứng chiều cao, không AutoSize để chống lag
             kryptonDataGridView1.RowTemplate.Height = 36;
+            kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
             kryptonDataGridView1.ColumnHeadersHeight = 60;
             kryptonDataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
+            // ĐỊNH DẠNG FONT & VIỀN
             kryptonDataGridView1.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
             kryptonDataGridView1.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-
             kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             kryptonDataGridView1.StateCommon.HeaderRow.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
             kryptonDataGridView1.StateCommon.HeaderRow.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
 
             kryptonDataGridView1.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
-
             kryptonDataGridView1.StateCommon.DataCell.Border.Color1 = System.Drawing.Color.FromArgb(224, 224, 224);
             kryptonDataGridView1.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
             kryptonDataGridView1.StateCommon.DataCell.Border.Width = 1;
 
+            // MÀU SẮC KHI CHỌN DÒNG
             kryptonDataGridView1.StateSelected.DataCell.Back.Color1 = System.Drawing.Color.FromArgb(232, 244, 253);
             kryptonDataGridView1.StateSelected.DataCell.Back.Color2 = System.Drawing.Color.FromArgb(232, 244, 253);
             kryptonDataGridView1.StateSelected.DataCell.Content.Color1 = System.Drawing.Color.FromArgb(0, 102, 204);
-            //kryptonDataGridView1.Padding = new Padding(0, 0, 0, 30); // Tạo khoảng đệm 30px dưới đáy lưới độc lập với dòng dữ liệu
 
-            // Thay bằng dòng này (nếu cần khoảng trống):
+            // KHOẢNG TRỐNG DƯỚI ĐÁY BẢNG
             kryptonDataGridView1.Margin = new Padding(0, 0, 0, 30);
+
             if (kryptonDataGridView1.Columns.Count == 0) return;
 
+            // Vô hiệu hóa sắp xếp khi click tiêu đề cột
             foreach (DataGridViewColumn col in kryptonDataGridView1.Columns)
             {
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;
             }
 
-            if (kryptonDataGridView1.Columns["ID"] != null) kryptonDataGridView1.Columns["ID"].Visible = false;
+            // ================= CẤU HÌNH CHI TIẾT TỪNG CỘT =================
 
+            // 1. CÁC CỘT ẨN
+            if (kryptonDataGridView1.Columns["ID"] != null)
+                kryptonDataGridView1.Columns["ID"].Visible = false;
+
+            if (kryptonDataGridView1.Columns["PhanLoai"] != null)
+            {
+                kryptonDataGridView1.Columns["PhanLoai"].Visible = false; // ĐÃ CHUYỂN VỀ ĐÚNG KHỐI
+                kryptonDataGridView1.Columns["PhanLoai"].HeaderText = "Phân loại";
+                kryptonDataGridView1.Columns["PhanLoai"].Width = 90;
+                kryptonDataGridView1.Columns["PhanLoai"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                kryptonDataGridView1.Columns["PhanLoai"].ReadOnly = true;
+            }
+
+            // 2. CÁC CỘT HIỂN THỊ CHIỀU NGANG CỐ ĐỊNH
             if (kryptonDataGridView1.Columns["STT"] != null)
             {
                 kryptonDataGridView1.Columns["STT"].Visible = true;
@@ -825,7 +843,9 @@ namespace PhanMemThiDua2026
             {
                 kryptonDataGridView1.Columns["CapBac"].HeaderText = "Cấp bậc";
                 kryptonDataGridView1.Columns["CapBac"].Width = 90;
-                kryptonDataGridView1.Columns["CapBac"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                // ĐÃ GỘP: Căn giữa Header và Cell gọn gàng vào 1 chỗ
+                kryptonDataGridView1.Columns["CapBac"].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                kryptonDataGridView1.Columns["CapBac"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["CapBac"].ReadOnly = true;
             }
 
@@ -833,50 +853,18 @@ namespace PhanMemThiDua2026
             {
                 kryptonDataGridView1.Columns["ChucVu"].HeaderText = "Chức vụ";
                 kryptonDataGridView1.Columns["ChucVu"].Width = 110;
-                kryptonDataGridView1.Columns["ChucVu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                // ĐÃ GỘP: Căn giữa Header và Cell gọn gàng vào 1 chỗ
+                kryptonDataGridView1.Columns["ChucVu"].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                kryptonDataGridView1.Columns["ChucVu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["ChucVu"].ReadOnly = true;
             }
-            // Bổ sung vào bên trong hàm DinhDangGiaoDienDataGridBaNhat()
-            // Căn giữa cột Cấp bậc
-            if (kryptonDataGridView1.Columns.Contains("CapBac"))
-            {
-                // Căn giữa nội dung của các ô dữ liệu
-                kryptonDataGridView1.Columns["CapBac"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-                // Căn giữa chữ trên tiêu đề cột (Header)
-                kryptonDataGridView1.Columns["CapBac"].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            // Căn giữa cột Chức vụ
-            if (kryptonDataGridView1.Columns.Contains("ChucVu"))
-            {
-                // Căn giữa nội dung của các ô dữ liệu
-                kryptonDataGridView1.Columns["ChucVu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
-                // Căn giữa chữ trên tiêu đề cột (Header)
-                kryptonDataGridView1.Columns["ChucVu"].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
             if (kryptonDataGridView1.Columns["DonVi"] != null)
             {
                 kryptonDataGridView1.Columns["DonVi"].HeaderText = "Đơn vị";
                 kryptonDataGridView1.Columns["DonVi"].Width = 85;
                 kryptonDataGridView1.Columns["DonVi"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["DonVi"].ReadOnly = true;
-            }
-            if (kryptonDataGridView1.Columns["PhanLoai"] != null)
-            {
-                kryptonDataGridView1.Columns["PhanLoai"].HeaderText = "Phân loại";
-                kryptonDataGridView1.Columns["PhanLoai"].Width = 90;
-                kryptonDataGridView1.Columns["PhanLoai"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                kryptonDataGridView1.Columns["PhanLoai"].ReadOnly = true;
-            }
-            if (kryptonDataGridView1.Columns["GhiChu"] != null)
-            {
-                kryptonDataGridView1.Columns["GhiChu"].HeaderText = "Ghi chú";
-                kryptonDataGridView1.Columns["GhiChu"].ReadOnly = true;
-                kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                kryptonDataGridView1.Columns["GhiChu"].FillWeight = 50;
-                kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-                kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
             }
 
             if (kryptonDataGridView1.Columns["DeNghi"] != null)
@@ -887,27 +875,33 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["DeNghi"].ReadOnly = false;
             }
 
-            if (kryptonDataGridView1.Columns["ThanhTich"] != null)
-            {
-                kryptonDataGridView1.Columns["ThanhTich"].HeaderText = "Thành tích";
-                kryptonDataGridView1.Columns["ThanhTich"].ReadOnly = false;
-                kryptonDataGridView1.Columns["ThanhTich"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                kryptonDataGridView1.Columns["ThanhTich"].FillWeight = 50;
-                kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-                kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-                kryptonDataGridView1.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-                //kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-                // Thay thế AutoSizeRowsMode = AllCells bằng:
-                kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
-                kryptonDataGridView1.RowTemplate.Height = 36;
-            }
-            // ⭐ MỚI: Hiển thị cột Tình trạng
             if (kryptonDataGridView1.Columns["TinhTrang"] != null)
             {
                 kryptonDataGridView1.Columns["TinhTrang"].HeaderText = "Tình trạng";
                 kryptonDataGridView1.Columns["TinhTrang"].Width = 120;
                 kryptonDataGridView1.Columns["TinhTrang"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["TinhTrang"].ReadOnly = true;
+            }
+
+            // 3. CÁC CỘT ĐỘNG (Lấp đầy khoảng trống còn lại)
+            if (kryptonDataGridView1.Columns["GhiChu"] != null)
+            {
+                kryptonDataGridView1.Columns["GhiChu"].HeaderText = "Ghi chú";
+                kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                kryptonDataGridView1.Columns["GhiChu"].FillWeight = 50;
+                kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                kryptonDataGridView1.Columns["GhiChu"].ReadOnly = true;
+            }
+
+            if (kryptonDataGridView1.Columns["ThanhTich"] != null)
+            {
+                kryptonDataGridView1.Columns["ThanhTich"].HeaderText = "Thành tích";
+                kryptonDataGridView1.Columns["ThanhTich"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                kryptonDataGridView1.Columns["ThanhTich"].FillWeight = 50;
+                kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                kryptonDataGridView1.Columns["ThanhTich"].ReadOnly = false;
             }
         }
         private void kryptonDataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)

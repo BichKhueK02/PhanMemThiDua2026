@@ -33,6 +33,7 @@
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             toolStripProgressBar1_LamMoi = new ToolStripProgressBar();
+            toolStripStatusLabel2_TyLeBaNhat = new ToolStripStatusLabel();
             ToolStripMenuItem_XuatDanhSach = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripSeparator();
             xoaTimKiem = new ToolStripMenuItem();
@@ -106,7 +107,6 @@
             label17_SoLuongKyTu = new Label();
             kryptonButton2_GiamCoChuRichText = new Krypton.Toolkit.KryptonButton();
             toolTip1 = new ToolTip(components);
-            toolStripStatusLabel2_TyLeBaNhat = new ToolStripStatusLabel();
             statusStrip1.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -129,6 +129,7 @@
             // 
             // statusStrip1
             // 
+            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripProgressBar1_LamMoi, toolStripStatusLabel2_TyLeBaNhat });
             statusStrip1.Location = new Point(0, 655);
@@ -150,6 +151,12 @@
             toolStripProgressBar1_LamMoi.Name = "toolStripProgressBar1_LamMoi";
             toolStripProgressBar1_LamMoi.Size = new Size(100, 20);
             // 
+            // toolStripStatusLabel2_TyLeBaNhat
+            // 
+            toolStripStatusLabel2_TyLeBaNhat.Name = "toolStripStatusLabel2_TyLeBaNhat";
+            toolStripStatusLabel2_TyLeBaNhat.Size = new Size(32, 21);
+            toolStripStatusLabel2_TyLeBaNhat.Text = "Tỷ lệ";
+            // 
             // ToolStripMenuItem_XuatDanhSach
             // 
             ToolStripMenuItem_XuatDanhSach.Image = (Image)resources.GetObject("ToolStripMenuItem_XuatDanhSach.Image");
@@ -167,7 +174,6 @@
             // 
             xoaTimKiem.Image = (Image)resources.GetObject("xoaTimKiem.Image");
             xoaTimKiem.Name = "xoaTimKiem";
-           // xoaTimKiem.ShortcutKeys = Keys.Control | Keys.D;
             xoaTimKiem.Size = new Size(207, 28);
             xoaTimKiem.Text = "Xóa tìm kiếm";
             xoaTimKiem.Click += xoaTimKiem_Click;
@@ -1035,12 +1041,6 @@
             kryptonButton2_GiamCoChuRichText.Values.Image = (Image)resources.GetObject("kryptonButton2_GiamCoChuRichText.Values.Image");
             kryptonButton2_GiamCoChuRichText.Values.Text = "";
             kryptonButton2_GiamCoChuRichText.Click += kryptonButton2_GiamCoChuRichText_Click;
-            // 
-            // toolStripStatusLabel2_TyLeBaNhat
-            // 
-            toolStripStatusLabel2_TyLeBaNhat.Name = "toolStripStatusLabel2_TyLeBaNhat";
-            toolStripStatusLabel2_TyLeBaNhat.Size = new Size(32, 21);
-            toolStripStatusLabel2_TyLeBaNhat.Text = "Tỷ lệ";
             // 
             // Form42_QuanLyThiDuaBaNhat
             // 

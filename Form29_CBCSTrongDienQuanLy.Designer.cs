@@ -352,28 +352,28 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, toolStripMenuItem1, xoaTimKiem_ToolStripMenuItem, xuatDuLieu_ToolStripMenuItem, quayLaiTrangXuLyData_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(265, 122);
+            contextMenuStrip1.Size = new Size(291, 122);
             // 
             // lamMoi_ToolStripMenuItem
             // 
             lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
-            lamMoi_ToolStripMenuItem.Size = new Size(264, 28);
+            lamMoi_ToolStripMenuItem.Size = new Size(290, 28);
             lamMoi_ToolStripMenuItem.Text = "Làm mới trang";
             lamMoi_ToolStripMenuItem.Click += lamMoi_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(261, 6);
+            toolStripMenuItem1.Size = new Size(287, 6);
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
             xoaTimKiem_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaTimKiem_ToolStripMenuItem.Image");
             xoaTimKiem_ToolStripMenuItem.Name = "xoaTimKiem_ToolStripMenuItem";
             xoaTimKiem_ToolStripMenuItem.ShortcutKeys = Keys.F4;
-            xoaTimKiem_ToolStripMenuItem.Size = new Size(264, 28);
+            xoaTimKiem_ToolStripMenuItem.Size = new Size(290, 28);
             xoaTimKiem_ToolStripMenuItem.Text = "Xóa tìm kiếm";
             xoaTimKiem_ToolStripMenuItem.Click += xoaTimKiem_ToolStripMenuItem_Click;
             // 
@@ -382,7 +382,7 @@
             xuatDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieu_ToolStripMenuItem.Image");
             xuatDuLieu_ToolStripMenuItem.Name = "xuatDuLieu_ToolStripMenuItem";
             xuatDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
-            xuatDuLieu_ToolStripMenuItem.Size = new Size(264, 28);
+            xuatDuLieu_ToolStripMenuItem.Size = new Size(290, 28);
             xuatDuLieu_ToolStripMenuItem.Text = "Xuất dữ liệu";
             xuatDuLieu_ToolStripMenuItem.Click += xuatDuLieu_ToolStripMenuItem_Click;
             // 
@@ -391,12 +391,13 @@
             quayLaiTrangXuLyData_ToolStripMenuItem.Image = (Image)resources.GetObject("quayLaiTrangXuLyData_ToolStripMenuItem.Image");
             quayLaiTrangXuLyData_ToolStripMenuItem.Name = "quayLaiTrangXuLyData_ToolStripMenuItem";
             quayLaiTrangXuLyData_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
-            quayLaiTrangXuLyData_ToolStripMenuItem.Size = new Size(264, 28);
+            quayLaiTrangXuLyData_ToolStripMenuItem.Size = new Size(290, 28);
             quayLaiTrangXuLyData_ToolStripMenuItem.Text = "Quay lại Trang phân loại thi đua";
             quayLaiTrangXuLyData_ToolStripMenuItem.Click += quayLaiTrangXuLyData_ToolStripMenuItem_Click;
             // 
             // statusStrip1
             // 
+            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel4, toolStripStatusLabel_TongSoLoai1, toolStripStatusLabel_TongSoLoai2, toolStripStatusLabel_TongSoLoai3, toolStripStatusLabel_TongSoLoai4, toolStripStatusLabel_TongSoKhongPhanLoai });
             statusStrip1.Location = new Point(0, 655);

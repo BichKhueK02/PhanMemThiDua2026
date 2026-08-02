@@ -47,8 +47,8 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                this.Text = "Đăng nhập phần mềm phân loại thi đua năm " + Module_NamHeThong.LayNamHeThong();
 
+                label3_HienThiTenPhanMem.Text = "Phần mềm phân loại thi đua năm " + Module_NamHeThong.LayNamHeThong();
                 // ===== Center Form =====
                 var screen = Screen.PrimaryScreen;
                 if (screen != null)
@@ -62,7 +62,7 @@ namespace PhanMemThiDua2026
 
                 // ===== Mật khẩu & checkbox =====
                 text_MatKhau.UseSystemPasswordChar = true;
-               
+
                 // Thêm await để giao diện đợi lấy cấu hình từ DB xong mới chạy tiếp
                 await KhoiTaoCheckBox(Check_HienMatKhau, text_MatKhau);
                 // ===== Gán event PictureBox1 luôn trước async =====
@@ -138,7 +138,7 @@ namespace PhanMemThiDua2026
                     await using var cmd = new SqliteCommand("SELECT LinkLabel1_DangKyTaiKhoanMoi FROM ThongTin WHERE ID = 1", conn);
                     var result = await cmd.ExecuteScalarAsync();
                     if (result != null && !string.IsNullOrEmpty(result.ToString()) && BaoMatAES.GiaiMa(result.ToString() ?? string.Empty) == "TRUE")
-                        //if (!string.IsNullOrEmpty(result?.ToString()) && BaoMatAES.GiaiMa(result.ToString()) == "TRUE")
+                    //if (!string.IsNullOrEmpty(result?.ToString()) && BaoMatAES.GiaiMa(result.ToString()) == "TRUE")
                     {
                         hienThiLink = false;
                     }
@@ -213,8 +213,8 @@ namespace PhanMemThiDua2026
         private void KryptonTextBox_EnterFocus(object? sender, EventArgs e)
         {
             //if (sender is KryptonTextBox ktb)
-                if (sender != null && sender is KryptonTextBox ktb)
-                {
+            if (sender != null && sender is KryptonTextBox ktb)
+            {
                 ktb.StateCommon.Border.Color1 = FocusBorderColor;
                 ktb.StateCommon.Border.Color2 = FocusBorderColor;
                 ktb.StateCommon.Border.Width = FocusBorderWidth;
@@ -224,8 +224,8 @@ namespace PhanMemThiDua2026
         private void KryptonTextBox_LeaveFocus(object? sender, EventArgs e)
         {
             //if (sender is KryptonTextBox ktb)
-                if (sender != null && sender is KryptonTextBox ktb)
-                {
+            if (sender != null && sender is KryptonTextBox ktb)
+            {
                 ktb.StateCommon.Border.Color1 = NormalBorderColor;
                 ktb.StateCommon.Border.Color2 = NormalBorderColor;
                 ktb.StateCommon.Border.Width = NormalBorderWidth;
@@ -383,9 +383,9 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        
+
         // HỆ THỐNG LƯU TRỮ CẤU HÌNH KHỞI ĐỘNG (THAY THẾ MY.SETTINGS)
-        
+
         /// <summary>
         /// Khởi tạo bảng Check_KhoiDong nếu chưa tồn tại
         /// </summary>
@@ -626,9 +626,9 @@ namespace PhanMemThiDua2026
                     return;
                 }
 
-                
+
                 // 3. MỞ KẾT NỐI CSDL BẤT ĐỒNG BỘ VỚI TIMEOUT AN TOÀN
-                
+
                 string connectionString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
                 await using var conn = new SqliteConnection(connectionString);
                 await conn.OpenAsync();
@@ -664,9 +664,9 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                
+
                 // BƯỚC 2: KIỂM TRA TÀI KHOẢN THƯỜNG TRONG BẢNG ADMIN
-                
+
                 string sqlUser = "SELECT TenTaiKhoan, MatKhau FROM Admin";
                 bool isLoginSuccess = false;
 
@@ -687,9 +687,9 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                
+
                 // 4. XỬ LÝ KẾT QUẢ CUỐI CÙNG
-                
+
                 if (isLoginSuccess)
                 {
                     XacNhanDangNhapThanhCong(tenNhap, "Đăng nhập thành công");
