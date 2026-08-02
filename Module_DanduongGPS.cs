@@ -6,6 +6,7 @@ namespace PhanMemThiDua2026
 {
     internal static class Module_DanduongGPS
     {
+                // Lê Trung Kiên -  Yêu mèo cam
         public static readonly string ThuMucCoSoDuLieu = Path.Combine(AppContext.BaseDirectory, "Database");
         // Đường dẫn toàn cục của thư mục lịch sử thi đua năm
         public static string ThuMucLichSuThiDua => Path.Combine(ThuMucCoSoDuLieu, "LuuTruThiDua_LichSu");
