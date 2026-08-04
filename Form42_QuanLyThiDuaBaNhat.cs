@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 namespace PhanMemThiDua2026
 {
@@ -54,7 +55,7 @@ namespace PhanMemThiDua2026
             textBox_HoVaTen.TextChanged += (s, e) => CapNhatTrangThaiNut();
         }
         private async void Form42_QuanLyThiDuaBaNhat_Load(object sender, EventArgs e)
-        {             
+        {
             kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
             kryptonDataGridView1.CellFormatting += kryptonDataGridView1_CellFormatting;
             kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
@@ -62,7 +63,7 @@ namespace PhanMemThiDua2026
             // ⭐ BỔ SUNG DÒNG NÀY: Lắng nghe sự kiện khi gõ vào ô Tóm tắt thành tích
             richTextBox1_ThanhTich.TextChanged += richTextBox1_ThanhTich_TextChanged;
             // ⭐ TUYỆT CHIÊU TRỊ KRYPTON: Ép bảng màu ngay trước tích tắc Menu mở lên
-              Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
             // THÊM DÒNG NÀY VÀO CUỐI HÀM LOAD:
             await Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(toolStripStatusLabel2_TyLeBaNhat);
             // ⭐ GỌI HÀM Ở ĐÂY ĐỂ TÍNH TOÁN TÌNH TRẠNG TRƯỚC KHI LOAD LÊN LƯỚI
@@ -219,19 +220,6 @@ namespace PhanMemThiDua2026
             {
                 cauThongKe = $"Tổng cộng: {tongCong} đồng chí.";
             }
-
-            //// Cập nhật lên thanh trạng thái dưới cùng của Form
-            //if (toolStripStatusLabel1 != null)
-            //{
-            //    if (hienThongBaoLamMoi)
-            //    {
-            //        toolStripStatusLabel1.Text = $"Làm mới thành công! {cauThongKe}";
-            //    }
-            //    else
-            //    {
-            //        toolStripStatusLabel1.Text = cauThongKe;
-            //    }
-            //}
         }
         private void KhoaCacTextBox()
         {
@@ -544,7 +532,7 @@ namespace PhanMemThiDua2026
 
                 comboBox1_DeNghi.SelectedIndexChanged += comboBox_TimKiemDonVi_SelectedIndexChanged; // Gán lại event
             }
-        } 
+        }
         private void ThucHienLocDuLieu()
         {
             if (kryptonDataGridView1.DataSource is DataTable dt)
@@ -1350,7 +1338,7 @@ namespace PhanMemThiDua2026
                 await Task.Delay(200);
                 // Gọi lại hàm thống kê để trả dòng chữ Tổng cộng về bình thường
                 ThongKeSoLuongBaNhat(false);
-                CapNhatTrangThaiDuoiNen();      
+                CapNhatTrangThaiDuoiNen();
                 //MessageBox.Show("Đã xóa và đồng bộ lại dữ liệu thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // 5. Ghi nhật ký hành động xóa
                 Module_NhatKy.GhiNhatKy(
@@ -1762,7 +1750,7 @@ namespace PhanMemThiDua2026
                 // await XuatDuLieuRaTepExcelTuCSDL_ToiUu(danhSachGoc, filePathLuu);
                 // Thay bằng dòng này:
                 await Module_BaNhat.XuatDuLieuRaTepExcelTuCSDL_ToiUu(danhSachGoc, filePathLuu);
-                
+
             }
             catch (Exception ex)
             {
@@ -1897,6 +1885,298 @@ namespace PhanMemThiDua2026
                 ToolStripMenuItem_XuatDanhSach.Text = textBanDau;
                 ToolStripMenuItem_XuatDanhSach.Image = anhBanDau;
                 ToolStripMenuItem_XuatDanhSach.Enabled = true;
+            }
+        }
+
+        private async void toolStripMenuItem_ToTrinhBaNhat_Click(object sender, EventArgs e)
+        {
+            string templatePath = Module_DanduongGPS.DuongDanCSDL4ex;
+            if (!File.Exists(templatePath))
+            {
+                MessageBox.Show("Không tìm thấy file mẫu Excel tại: " + templatePath, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // =========================================================================
+            // 🌟 UX: CHỌN THƯ MỤC LƯU (Thay vì SaveFileDialog bắt nhập tên)
+            // =========================================================================
+            // =========================================================================
+            // 🌟 UX: LẤY ĐƯỜNG DẪN THƯ MỤC ĐANG MỞ HOẶC DESKTOP
+            // =========================================================================
+            string thuMucMacDinh = Environment.GetFolderPath(Environment.SpecialFolder.Desktop); // Mặc định là Desktop
+            try
+            {
+                using (var conn = new SqliteConnection($"Data Source={_csdl2Path}"))
+                {
+                    conn.Open();
+                    using (var cmd = new SqliteCommand("SELECT ChonDuongDanXuatTep FROM ThongTin WHERE ID = 1", conn))
+                    {
+                        var result = cmd.ExecuteScalar();
+                        if (result != null && result != DBNull.Value)
+                        {
+                            // Giải mã đường dẫn đã lưu trong hệ thống
+                            string giaiMaPath = BaoMatAES.GiaiMa(result.ToString() ?? "").Trim();
+                            if (Directory.Exists(giaiMaPath))
+                            {
+                                thuMucMacDinh = giaiMaPath; // Ghi đè bằng thư mục hiện tại nếu đường dẫn hợp lệ
+                            }
+                        }
+                    }
+                }
+            }
+            catch { /* Nếu lỗi hoặc chưa cấu hình thì giữ nguyên Desktop */ }
+
+            // =========================================================================
+            // 🌟 UX: CHỌN THƯ MỤC LƯU (Tự động focus thư mục)
+            // =========================================================================
+            using var fbd = new FolderBrowserDialog
+            {
+                Description = "Chọn thư mục để lưu Tờ trình Ba Nhất",
+                ShowNewFolderButton = true,
+                SelectedPath = thuMucMacDinh // 👈 ĐÂY LÀ DÒNG LỆNH GÁN TÊN THƯ MỤC LÊN HỘP THOẠI
+            };
+
+            if (fbd.ShowDialog() != DialogResult.OK) return;
+            string directoryPath = fbd.SelectedPath;
+
+            // =========================================================================
+            // 🌟 THUẬT TOÁN ĐẾM VÀ TỰ ĐỘNG ĐẶT TÊN TỆP THEO ĐÚNG Ý TƯỞNG CỦA BẠN
+            // =========================================================================
+            string keyword = "TỜ TRÌNH ĐỀ NGHỊ BIỂU DƯƠNG BA NHẤT THÁNG";
+            string[] existingSpecificFiles = Directory.GetFiles(directoryPath, $"*{keyword}*");
+            int prefixNumber = 1;
+
+            if (existingSpecificFiles.Length > 0)
+            {
+                // TH1: Đã có tệp tờ trình cùng loại -> Đếm tệp cùng loại + 1
+                prefixNumber = existingSpecificFiles.Length + 1;
+            }
+            else
+            {
+                // TH2: Chưa có tệp tờ trình nào -> Đếm tổng số lượng mọi tệp trong thư mục + 1
+                string[] allFiles = Directory.GetFiles(directoryPath);
+                prefixNumber = allFiles.Length + 1;
+            }
+
+            // Vòng lặp Fail-Safe: Chống ghi đè trong trường hợp người dùng xóa tệp lộn xộn gây trùng số
+            string filePathLuu = "";
+            while (true)
+            {
+                string fileName = $"{prefixNumber}. {keyword} {DateTime.Now:MM_yyyy}.xlsx";
+                filePathLuu = Path.Combine(directoryPath, fileName);
+                if (!File.Exists(filePathLuu)) break; // Tên chưa tồn tại -> Chốt tên này
+                prefixNumber++; // Đã tồn tại -> Tăng số đếm lên tiếp
+            }
+
+            Form_Loading frmLoad = new Form_Loading("Đang khởi tạo tờ trình, vui lòng đợi...");
+            bool isLoadShown = false;
+            frmLoad.Icon = this.Icon;
+
+            try
+            {
+                this.Enabled = false;
+                frmLoad.Show(this);
+                isLoadShown = true;
+                await Task.Delay(50); // Nhường nhịp cho UI vẽ Form Loading
+
+                await Task.Run(() =>
+                {
+                    // =========================================================================
+                    // 1. LẤY DỮ LIỆU TỪ CƠ SỞ DỮ LIỆU (Chạy ngầm)
+                    // =========================================================================
+                    string tenTrungDoan = "", tenTieuDoan = "", diaDiem = "", ngay = "", thang = "", nam = "";
+                    int tongSoLoai1 = 0;
+                    int tyLeQuyDinh = 30; // Mặc định nếu không đọc được
+                    var danhSachDeNghi = new List<DeNghiBaNhatDTO>();
+
+                    using (var conn = new SqliteConnection($"Data Source={_csdl2Path}"))
+                    {
+                        conn.Open();
+
+                        // Đọc Thông tin chung
+                        using (var cmdTT = new SqliteCommand("SELECT TenTrungDoan, TenTieuDoan, DiaDiem, Ngay, Thang, Nam FROM ThongTin WHERE ID = 1", conn))
+                        using (var rd = cmdTT.ExecuteReader())
+                        {
+                            if (rd.Read())
+                            {
+                                tenTrungDoan = BaoMatAES.GiaiMa(rd["TenTrungDoan"]?.ToString() ?? "");
+                                tenTieuDoan = BaoMatAES.GiaiMa(rd["TenTieuDoan"]?.ToString() ?? "");
+                                diaDiem = BaoMatAES.GiaiMa(rd["DiaDiem"]?.ToString() ?? "");
+                                ngay = BaoMatAES.GiaiMa(rd["Ngay"]?.ToString() ?? "");
+                                thang = BaoMatAES.GiaiMa(rd["Thang"]?.ToString() ?? "");
+                                nam = BaoMatAES.GiaiMa(rd["Nam"]?.ToString() ?? "");
+                            }
+                        }
+
+                        // Đọc Tỷ lệ quy định
+                        using (var cmdTyLe = new SqliteCommand("SELECT TyLe FROM QuyDinhTyLe_BaNhat WHERE ID = 1", conn))
+                        {
+                            var res = cmdTyLe.ExecuteScalar();
+                            if (res != null) int.TryParse(BaoMatAES.GiaiMa(res.ToString()), out tyLeQuyDinh);
+                        }
+
+                        // Đếm tổng số CBCS đạt Loại 1 làm mốc tính chỉ tiêu
+                        using (var cmdDem = new SqliteCommand("SELECT PhanLoai FROM DanhSach", conn))
+                        using (var rd = cmdDem.ExecuteReader())
+                        {
+                            while (rd.Read())
+                            {
+                                if (BaoMatAES.GiaiMa(rd["PhanLoai"]?.ToString() ?? "").Trim().Equals("Loại 1", StringComparison.OrdinalIgnoreCase))
+                                    tongSoLoai1++;
+                            }
+                        }
+
+                        // Lấy Danh sách CBCS được đề nghị "Ba Nhất"
+                        using (var cmdDS = new SqliteCommand($"SELECT * FROM [{TenBangDanhSachBaNhat}] ORDER BY STT ASC", conn))
+                        using (var rd = cmdDS.ExecuteReader())
+                        {
+                            while (rd.Read())
+                            {
+                                int id = rd["ID"] != DBNull.Value ? Convert.ToInt32(rd["ID"]) : 0;
+                                if (id == -1) continue;
+
+                                string deNghiEnc = rd["DeNghi"]?.ToString() ?? "";
+                                string deNghiDec = BaoMatAES.GiaiMa(deNghiEnc).Trim();
+
+                                if (deNghiDec.Equals("X", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    danhSachDeNghi.Add(new DeNghiBaNhatDTO
+                                    {
+                                        ID = id,
+                                        HoVaTen = BaoMatAES.GiaiMa(rd["HoVaTen"]?.ToString() ?? ""),
+                                        SoHieu = BaoMatAES.GiaiMa(rd["SoHieu"]?.ToString() ?? ""),
+                                        NamSinh = BaoMatAES.GiaiMa(rd["NamSinh"]?.ToString() ?? ""),
+                                        NgayVaoCAND = BaoMatAES.GiaiMa(rd["NgayVaoCAND"]?.ToString() ?? ""),
+                                        CapBac = BaoMatAES.GiaiMa(rd["CapBac"]?.ToString() ?? ""),
+                                        ChucVu = BaoMatAES.GiaiMa(rd["ChucVu"]?.ToString() ?? ""),
+                                        DonVi = BaoMatAES.GiaiMa(rd["DonVi"]?.ToString() ?? ""),
+                                        PhanLoai = BaoMatAES.GiaiMa(rd["PhanLoai"]?.ToString() ?? "")
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    // =========================================================================
+                    // 2. XỬ LÝ ĐỔ DỮ LIỆU RA EXCEL (Tôn trọng tuyệt đối Template có sẵn)
+                    // =========================================================================
+                    using (var wb = new XLWorkbook(templatePath))
+                    {
+                        // 1. Kiểm tra và dọn dẹp Worksheet
+                        if (!wb.Worksheets.TryGetWorksheet("TOTRINH_BANHAT", out var ws))
+                        {
+                            throw new Exception("Tệp mẫu không có sheet mang tên 'TOTRINH_BANHAT'. Vui lòng kiểm tra lại file mẫu.");
+                        }
+
+                        // 2. XÓA TẤT CẢ CÁC SHEET KHÁC (Chỉ giữ lại duy nhất TOTRINH_BANHAT)
+                        var sheetsToDelete = wb.Worksheets.Where(w => !w.Name.Equals("TOTRINH_BANHAT", StringComparison.OrdinalIgnoreCase)).Select(w => w.Name).ToList();
+                        foreach (var sName in sheetsToDelete)
+                        {
+                            wb.Worksheets.Delete(sName);
+                        }
+
+                        // 3. Đổ dữ liệu tĩnh vào khung có sẵn (Không đụng chạm Font/Style)
+                        ws.Cell("A1").Value = string.IsNullOrWhiteSpace(tenTieuDoan) ? tenTrungDoan.ToUpper() : $"{tenTrungDoan.ToUpper()}\n{tenTieuDoan.ToUpper()}".Trim();
+                        ws.Cell("A2").Value = ""; // Xóa value cũ để dùng RichText
+                        ws.Cell("A2").GetRichText().AddText("TỔ ");
+                        ws.Cell("A2").GetRichText().AddText("CHÍNH ").SetUnderline(); // Chỉ gạch chân đoạn này
+                        ws.Cell("A2").GetRichText().AddText("TRỊ");
+                        ws.Cell("F3").Value = $"{diaDiem}, ngày {ngay} tháng {thang} năm {nam}";
+                        ws.Cell("A5").Value = $"ĐỀ NGHỊ BIỂU DƯƠNG GƯƠNG ĐIỂN HÌNH TRONG THỰC HIỆN PHONG TRÀO THI ĐUA \"BA NHẤT\" THÁNG {thang}/{nam}";
+
+                        // 4. Đổ danh sách dữ liệu động từ dòng 9
+                        int startRow = 9;
+                        int stt = 1;
+                        foreach (var item in danhSachDeNghi)
+                        {
+                            ws.Cell(startRow, 1).Value = stt++;
+                            ws.Cell(startRow, 2).Value = item.HoVaTen;
+                            ws.Cell(startRow, 3).Value = item.SoHieu;
+                            ws.Cell(startRow, 4).Value = item.NamSinh;
+                            ws.Cell(startRow, 5).Value = item.NgayVaoCAND;
+                            ws.Cell(startRow, 6).Value = item.CapBac;
+                            ws.Cell(startRow, 7).Value = item.ChucVu;
+                            ws.Cell(startRow, 8).Value = item.DonVi;
+                            ws.Cell(startRow, 9).Value = item.PhanLoai;
+                            ws.Cell(startRow, 10).Value = ""; // Cột xin ý kiến để trống
+
+                            // Kẻ bảng nét đứt/mỏng cho dòng mới tạo ra để duy trì thiết kế table
+                            var rowRange = ws.Range(startRow, 1, startRow, 10);
+                            rowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                            rowRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+                            // Ép Alignment cho cột STT và Cột chứa text dài
+                            ws.Cell(startRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            ws.Cell(startRow, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                            ws.Cell(startRow, 2).Style.Alignment.WrapText = true;
+                            // =========================================================
+                            // 🌟 CODE BẠN YÊU CẦU THÊM:
+                            // Căn giữa ngang (Horizontal) và dọc (Vertical) từ Cột C (3) đến Cột J (10)
+                            var rangeCenter = ws.Range(startRow, 3, startRow, 10);
+                            rangeCenter.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            rangeCenter.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                            // Cố định chiều cao dòng (Row Height) là 20 pixels
+                            ws.Row(startRow).Height = 20;
+                            startRow++;
+                        }
+
+                        // 5. Chốt danh sách "Tổng cộng" ngay dưới danh sách
+                        var rngTongCong = ws.Range(startRow, 1, startRow, 10);
+                        rngTongCong.Merge().Value = $"Tổng cộng: {danhSachDeNghi.Count:00} đồng chí./.";
+                        rngTongCong.Style.Font.Bold = true;
+                        rngTongCong.Style.Font.Italic = true;
+                        rngTongCong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        ws.Row(startRow).Height = 20;
+
+                        // 6. Xử lý khối logic thống kê n+2
+                        int soLuongChiTieu = (int)Math.Round(tongSoLoai1 * (tyLeQuyDinh / 100.0), MidpointRounding.AwayFromZero);
+                        double tyLeHienTai = tongSoLoai1 > 0 ? Math.Round((double)danhSachDeNghi.Count / tongSoLoai1 * 100, 1) : 0;
+
+                        // 🌟 ĐÃ SỬA: Lồng phép tính trừ trực tiếp vào trong chuỗi để ra số thực tế
+                        string trangThai = danhSachDeNghi.Count == soLuongChiTieu
+                            ? "Đạt tỷ lệ"
+                            : (danhSachDeNghi.Count < soLuongChiTieu
+                                ? $"Thiếu {soLuongChiTieu - danhSachDeNghi.Count} đồng chí"
+                                : $"Thừa {danhSachDeNghi.Count - soLuongChiTieu} đồng chí");
+
+                        int rowThongTin = startRow + 2;
+                        var cellThongTin = ws.Cell(rowThongTin, 1);
+                        ws.Range(rowThongTin, 1, rowThongTin + 5, 10).Merge(); // Gộp một vùng để chứa text
+
+                        cellThongTin.Value = $"Tổng cộng: {tongSoLoai1} đồng chí, đề nghị: {danhSachDeNghi.Count} đồng chí.\n" +
+                                             $"Chỉ tiêu \"Ba nhất\": {tyLeQuyDinh}% = {soLuongChiTieu} đồng chí\n" +
+                                             $"Tỷ lệ hiện tại: {danhSachDeNghi.Count} đồng chí = {tyLeHienTai}%\n" +
+                                             $"Kết luận: {trangThai}";
+                        cellThongTin.Style.Font.Bold = true;
+                        cellThongTin.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
+                        cellThongTin.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        cellThongTin.Style.Alignment.WrapText = true;
+
+
+
+                        // 7. Active sheet lại đúng "TOTRINH_BANHAT" trước khi save
+                        ws.SetTabActive();
+                        wb.SaveAs(filePathLuu);
+                    }
+                });
+
+                // Tự động mở file excel ngay khi tạo xong
+                if (File.Exists(filePathLuu))
+                {
+                    Module_BaNhat.MoTepExcelThiDuaPhongTrao3Nhat(filePathLuu);
+                }
+
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Hệ thống", "Xuất tờ trình biểu dương Ba Nhất", $"Thành công. Thời gian: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi hệ thống khi xuất tờ trình: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (isLoadShown) frmLoad.Close();
+                this.Enabled = true;
+                this.Focus();
             }
         }
     }

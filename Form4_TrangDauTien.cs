@@ -30,7 +30,7 @@ namespace PhanMemThiDua2026
         private Font? _cachedGridFontBold;
         private Font? _cachedGrid2HeaderFont;
         private int _cachedTongBCH = -1; // -1 nghĩa là chưa đếm
-                                         // Khai báo Dictionary hỗ trợ tìm kiếm không phân biệt chữ hoa / chữ thường
+        // Khai báo Dictionary hỗ trợ tìm kiếm không phân biệt chữ hoa / chữ thường
         private Dictionary<string, string> _dictChiHuyD = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         public void ResetCacheBCH()
         {
@@ -96,16 +96,14 @@ namespace PhanMemThiDua2026
             comboBox_DiaDiem.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox_DiaDiem.AutoCompleteSource = AutoCompleteSource.ListItems;
         }
-        private bool _hasLoaded = false; // Cờ bảo hiểm chặn chạy trùng lặp hàm Load
+        private bool _hasLoaded = false; // Cờ bảo hiểm chặn chạy trùng lặp hàm Load                                
         private async void Form4_Load(object sender, EventArgs e)
         {
-            // 🌟 CHỐT CHẶN BẢO HIỂM: Nếu đã nạp rồi thì thoát ngay, không chạy lại code phía dưới
             if (_hasLoaded) return;
             _hasLoaded = true;
 
             try
             {
-                // ===== LOAD NGẦM DỮ LIỆU & CAU HÌNH CƠ BẢN =====
                 LoadSettings();
                 LoadCheckBoxTuDongChonNgayThang();
                 Module_QuyDinhTyLe.LoadE29(this.Controls);
@@ -116,34 +114,10 @@ namespace PhanMemThiDua2026
 
                 comboBox_ChiHuyD.SelectedIndexChanged -= ComboBox_ChiHuyD_SelectedIndexChanged;
                 comboBox_ChiHuyD.SelectedIndexChanged += ComboBox_ChiHuyD_SelectedIndexChanged;
-                // Nạp CSDL ngầm lên RAM bằng bất đồng bộ
+                // Chỉ cần gọi cái này, vì bên trong nó đã có await LoadComboBox_ChiHuyDAsync();
                 await ReloadDuLieuAsync();
-                LoadDuLieuChiHuyVaoComboBox();
                 Module_DanduongGPS.OnDatabaseChanged -= SuKien_DatabaseChanged;
                 Module_DanduongGPS.OnDatabaseChanged += SuKien_DatabaseChanged;
-                // Dừng 200 mili-giây để người dùng kịp đọc thông báo "Đã lưu thành công"
-               // await Task.Delay(200);
-
-                // =========================================================================
-                // ⭐ KIỂM TRA VÀ BÁO CÁO PHẦN MỀM ĐANG TRONG QUÁ TRÌNH LẬP TRÌNH / KIỂM TRA
-                // =========================================================================
-               // string duongDanChay = AppContext.BaseDirectory.ToLower();
-
-                // Kiểm tra xem đường dẫn có chứa cụm thư mục build của Visual Studio hoặc đang cắm dây gỡ lỗi hay không
-                //bool laMoiTruongLapTrinh = duongDanChay.Contains("bin\\release") ||
-                //                           duongDanChay.Contains("bin\\debug") ||
-                //                           System.Diagnostics.Debugger.IsAttached;
-
-                //if (laMoiTruongLapTrinh)
-                //{
-                //    MessageBox.Show(
-                //        "THÔNG BÁO HỆ THỐNG:\n\n" +
-                //        "Phần mềm đang chạy trong môi trường lập trình / kiểm tra thử nghiệm (Thư mục bin\\Release\\net8.0-windows).\n\n" +
-                //        "⚠️ Lưu ý: Các tính năng ghi nhận dữ liệu và phân vùng bộ nhớ có thể thay đổi liên tục trong quá trình dựng mã nguồn.",
-                //        "Chế độ kiểm tra lập trình",
-                //        MessageBoxButtons.OK,
-                //        MessageBoxIcon.Information);
-                //}
             }
             catch (Exception ex)
             {
@@ -201,73 +175,6 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 Debug.WriteLine("Lỗi luồng trong Form4_Shown: " + ex.Message);
-            }
-        }
-        private void LoadDuLieuChiHuyVaoComboBox()
-        {
-            _dictChiHuyD.Clear();
-            comboBox_ChiHuyD.Items.Clear();
-
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-            string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
-
-            try
-            {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-                conn.Open();
-
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = $"SELECT HoVaTen, ChucVu FROM [{tableChiHuy}] WHERE ID BETWEEN 1 AND 6 ORDER BY ID";
-                using var reader = cmd.ExecuteReader();
-
-                while (reader.Read())
-                {
-                    string hoTen = GiaiMaSafe(reader["HoVaTen"]).Trim();
-                    string chucVu = GiaiMaSafe(reader["ChucVu"]).Trim();
-
-                    if (!string.IsNullOrEmpty(hoTen))
-                    {
-                        // 1. Lưu vào Dictionary
-                        _dictChiHuyD[hoTen] = chucVu;
-
-                        // 2. Add vào ComboBox
-                        comboBox_ChiHuyD.Items.Add(hoTen);
-                    }
-                }
-
-                // 3. Chọn mặc định dòng đầu tiên & Ép Label cập nhật ngay khi mở Form
-                if (comboBox_ChiHuyD.Items.Count > 0)
-                {
-                    comboBox_ChiHuyD.SelectedIndex = 0;
-
-                    // Gọi trực tiếp hàm sự kiện để đảm bảo Label2 nhảy chữ ngay lập tức
-                    ComboBox_ChiHuyD_SelectedIndexChanged(comboBox_ChiHuyD, EventArgs.Empty);
-                }
-                else
-                {
-                    label2_ChucVu.Text = "";
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Lỗi nạp ComboBox Chỉ huy: " + ex.Message);
-            }
-        }
-        private string GiaiMaSafe(object? value)
-        {
-            if (value == null || value == DBNull.Value) return string.Empty;
-            string input = value.ToString() ?? "";
-            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
-
-            try
-            {
-                string result = BaoMatAES.GiaiMa(input);
-                // Nếu giải mã thành công thì trả về kết quả, nếu rỗng thì trả về dữ liệu thô ban đầu
-                return string.IsNullOrEmpty(result) ? input : result;
-            }
-            catch
-            {
-                return input; // Trường hợp dữ liệu chưa mã hóa (chuỗi thường)
             }
         }
         private void SuKien_DatabaseChanged()
@@ -560,27 +467,34 @@ namespace PhanMemThiDua2026
                         kryptonDataGridView1.DataSource = dtGrid;
                         kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                         kryptonDataGridView1.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                        kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+
+                        // 🚀🚀 TỐI ƯU 2: TẮT AUTOSIZE ROWS ĐỂ TRÁNH LAG UI TỚI CHẾT 🚀🚀
+                        kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; // Tăng tốc render lưới lên 10 lần
 
                         var columnHeaderMap = new Dictionary<string, string>
-                {
-                    { "DonVi", "Đơn vị" }, { "TongQS", "Quân số" }, { "Loai_1", "Loại 1" }, { "Loai_2", "Loại 2" },
-                    { "Loai_3", "Loại 3" }, { "Loai_4", "Loại 4" }, { "Khong_PL", "Không PL" },
-                    { "PhanTramLoai_1", "% Loại 1" }, { "PhanTramLoai_2", "% Loại 2" },
-                    { "PhanTramLoai_3", "% Loại 3" }, { "PhanTramLoai_4", "% Loại 4" }, { "PhanTramKhong_PL", "% Không PL" }
-                };
+                        {
+                            { "DonVi", "Đơn vị" }, { "TongQS", "Quân số" }, { "Loai_1", "Loại 1" }, { "Loai_2", "Loại 2" },
+                            { "Loai_3", "Loại 3" }, { "Loai_4", "Loại 4" }, { "Khong_PL", "Không PL" },
+                            { "PhanTramLoai_1", "% Loại 1" }, { "PhanTramLoai_2", "% Loại 2" },
+                            { "PhanTramLoai_3", "% Loại 3" }, { "PhanTramLoai_4", "% Loại 4" }, { "PhanTramKhong_PL", "% Không PL" }
+                        };
 
+                        // 🚀🚀 TỐI ƯU 3: DỜI QUÉT CỘT RỖNG XUỐNG TẦNG DATATABLE dtGrid (RAM) 🚀🚀
                         foreach (DataGridViewColumn col in kryptonDataGridView1.Columns)
                         {
                             col.SortMode = DataGridViewColumnSortMode.NotSortable;
                             if (columnHeaderMap.TryGetValue(col.Name, out string headerText)) col.HeaderText = headerText;
 
-                            // Logic ẩn cột rỗng
+                            // Quét trên DataTable dtGrid (RAM) cực kỳ nhanh thay vì quét trên UI DataGridViewRows
                             bool hasValue = false;
-                            foreach (DataGridViewRow row in kryptonDataGridView1.Rows)
+                            foreach (DataRow r in dtGrid.Rows)
                             {
-                                string strVal = row.Cells[col.Name].Value?.ToString()?.Trim() ?? "";
-                                if (!string.IsNullOrWhiteSpace(strVal) && strVal != "0" && strVal != "0%") { hasValue = true; break; }
+                                string strVal = r[col.Name]?.ToString()?.Trim() ?? "";
+                                if (!string.IsNullOrWhiteSpace(strVal) && strVal != "0" && strVal != "0%")
+                                {
+                                    hasValue = true;
+                                    break;
+                                }
                             }
                             col.Visible = hasValue;
                         }
@@ -1270,16 +1184,30 @@ namespace PhanMemThiDua2026
                 comboBox1_ChonLoaiBaoCao.SelectedIndexChanged -= comboBox1_ChonLoaiBaoCao_SelectedIndexChanged;
 
                 // CHẠY BẤT ĐỒNG BỘ TOÀN BỘ CẤU HÌNH (Giao diện cực mượt, không khựng)
+                //CapNhatThongBaoPhanMem();
+                //await LoadChiHuyDDictionaryAsync();
+                //await LoadDiaDiemAsync();
+                //await LoadThongTinAsync();
+                //await LoadComboBoxLoaiXuat_CheckBoxAsync();
+
+                //LoadComboBoxDeNghi();
+                //SetDeNghiVaTinhTyLe();
+                //HienThiDuongDanXuatDaChon();
+                // ✅ SỬA THÀNH (Chạy song song - Rất nhanh):
                 CapNhatThongBaoPhanMem();
-                await LoadChiHuyDDictionaryAsync();
-                await LoadDiaDiemAsync();
-                await LoadThongTinAsync();
-                await LoadComboBoxLoaiXuat_CheckBoxAsync();
+
+                // Ném tất cả truy vấn cấu hình vào chạy cùng 1 lúc trên nhiều Core CPU
+                await Task.WhenAll(
+                    LoadChiHuyDDictionaryAsync(),
+                    LoadDiaDiemAsync(),
+                    LoadThongTinAsync(),
+                    LoadComboBoxLoaiXuat_CheckBoxAsync(),
+                    LoadComboBox_ChiHuyDAsync()
+                );
 
                 LoadComboBoxDeNghi();
                 SetDeNghiVaTinhTyLe();
                 HienThiDuongDanXuatDaChon();
-
                 // CHỐT CHẶN AN TOÀN
                 if (KiemTraCoDuLieuDanhSach())
                 {

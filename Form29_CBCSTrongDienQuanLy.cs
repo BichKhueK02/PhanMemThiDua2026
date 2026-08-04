@@ -660,6 +660,11 @@ namespace PhanMemThiDua2026
 
             grid.RowHeadersVisible = false;
             grid.AllowUserToAddRows = false;
+
+            // ⭐ BỔ SUNG Ở ĐÂY: Khóa tuyệt đối tính năng kéo thả thay đổi chiều cao dòng của người dùng
+            grid.AllowUserToResizeRows = false;
+            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; // Tối ưu thêm để chống chớp giật UI khi cuộn chuột
+
             grid.ScrollBars = ScrollBars.Vertical;
 
             colSTT.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
@@ -993,6 +998,20 @@ namespace PhanMemThiDua2026
             toolStripStatusLabel_TongSoKhongPhanLoai.Visible = false;
         }
 
+        private void kryptonButton_LamMoiCacOTimKiem_Click(object sender, EventArgs e)
+        {
+            // 1. Dừng timer tìm kiếm đang chạy ngầm (nếu có) để tránh xung đột luồng
+            _searchTimer?.Stop();
+
+            // 2. Khôi phục các ComboBox về "Tất cả" và TextBox về Placeholder (Sử dụng hàm ResetUI an toàn đã có sẵn)
+            ResetUI();
+
+            // 3. Trả Focus về lại lưới dữ liệu để UX mượt mà, tránh tình trạng con trỏ nháy bị kẹt
+            kryptonDataGridView2.Focus();
+
+            // 4. Áp dụng lại màng lọc (lúc này các tiêu chí đã bị xóa sạch nên sẽ tự động hiển thị lại 100% dữ liệu)
+            ApplyFilter_Virtual();
+        }
     }
     //Lê Trung Kiên
     // ⭐ ĐÃ ĐỔI TÊN THÀNH CBCSQuanLyModel ĐỂ TRÁNH XUNG ĐỘT (AMBIGUITY ERROR) VỚI CÁC FORM KHÁC

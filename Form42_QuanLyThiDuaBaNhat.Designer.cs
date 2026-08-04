@@ -107,6 +107,7 @@
             label17_SoLuongKyTu = new Label();
             kryptonButton2_GiamCoChuRichText = new Krypton.Toolkit.KryptonButton();
             toolTip1 = new ToolTip(components);
+            toolStripMenuItem_ToTrinhBaNhat = new ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -191,9 +192,9 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5_XuatDanhSachGoc, toolStripMenuItem_NhapDuLieu, toolStripMenuItem5, toolStripMenuItem_ThiDuaTapThe, toolStripMenuItem4, toolStripMenuItem_luuVaoSoVang, toolStripMenuItem_MoSoVang, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, toolStripMenuItem_ToTrinhBaNhat, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5_XuatDanhSachGoc, toolStripMenuItem_NhapDuLieu, toolStripMenuItem5, toolStripMenuItem_ThiDuaTapThe, toolStripMenuItem4, toolStripMenuItem_luuVaoSoVang, toolStripMenuItem_MoSoVang, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(208, 314);
+            contextMenuStrip1.Size = new Size(208, 364);
             // 
             // toolStripMenuItem5_XuatDanhSachGoc
             // 
@@ -1042,6 +1043,14 @@
             kryptonButton2_GiamCoChuRichText.Values.Text = "";
             kryptonButton2_GiamCoChuRichText.Click += kryptonButton2_GiamCoChuRichText_Click;
             // 
+            // toolStripMenuItem_ToTrinhBaNhat
+            // 
+            toolStripMenuItem_ToTrinhBaNhat.Image = (Image)resources.GetObject("toolStripMenuItem_ToTrinhBaNhat.Image");
+            toolStripMenuItem_ToTrinhBaNhat.Name = "toolStripMenuItem_ToTrinhBaNhat";
+            toolStripMenuItem_ToTrinhBaNhat.Size = new Size(207, 28);
+            toolStripMenuItem_ToTrinhBaNhat.Text = "Tờ trình Ba Nhất";
+            toolStripMenuItem_ToTrinhBaNhat.Click += toolStripMenuItem_ToTrinhBaNhat_Click;
+            // 
             // Form42_QuanLyThiDuaBaNhat
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1159,5 +1168,6 @@
         private ToolStripMenuItem toolStripMenuItem5_XuatDanhSachGoc;
         private ToolStripSeparator toolStripMenuItem5;
         private ToolStripStatusLabel toolStripStatusLabel2_TyLeBaNhat;
+        private ToolStripMenuItem toolStripMenuItem_ToTrinhBaNhat;
     }
 }

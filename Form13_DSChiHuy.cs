@@ -139,54 +139,6 @@ namespace PhanMemThiDua2026
                 tb.Refresh();
             }
         }
-        //private void LoadDuLieu()
-        //{
-        //    string csdl = _csdl2Path;
-        //    if (!System.IO.File.Exists(csdl)) return;
-
-        //    try
-        //    {
-        //        using var conn = new SqliteConnection($"Data Source={csdl}");
-        //        conn.Open();
-
-        //        var dtHienThi = new DataTable();
-        //        dtHienThi.Columns.Add("ID", typeof(int));
-        //        dtHienThi.Columns.Add("HoVaTen", typeof(string));
-        //        dtHienThi.Columns.Add("ChucVu", typeof(string));
-
-        //        using (var cmd = conn.CreateCommand())
-        //        {
-        //            cmd.CommandText = "SELECT ID, HoVaTen, ChucVu FROM ChiHuyD WHERE ID BETWEEN 1 AND 6 ORDER BY ID";
-        //            using var reader = cmd.ExecuteReader();
-
-        //            int i = 0;
-        //            while (reader.Read())
-        //            {
-        //                int id = reader.GetInt32(0);
-        //                // Giải mã an toàn trước khi hiển thị
-        //                string hoTen = GiaiMaSafe(reader["HoVaTen"]);
-        //                string chucVu = GiaiMaSafe(reader["ChucVu"]);
-
-        //                dtHienThi.Rows.Add(id, hoTen, chucVu);
-
-        //                // Đổ vào Textbox tương ứng
-        //                if (i < hovatenTextBoxes.Length)
-        //                {
-        //                    hovatenTextBoxes[i].Text = hoTen;
-        //                    chucvuTextBoxes[i].Text = chucVu;
-        //                }
-        //                i++;
-        //            }
-        //        }
-
-        //        kryptonDataGridView1.DataSource = dtHienThi;
-        //        DinhDangGrid();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Debug.WriteLine("Lỗi LoadDuLieu Form 13: " + ex.Message);
-        //    }
-        //}
         private void LoadDuLieu()
         {
             string csdl = _csdl2Path;
@@ -394,132 +346,89 @@ namespace PhanMemThiDua2026
             dangKiemTra = false;
             return true;
         }
-        //private async void kryptonButton1_Btn_Capnhat_Click(object? sender, EventArgs e)
-        //{
-        //    if (!KiemTraHopLe()) return;
-
-        //    string textBanDau = kryptonButton1_Btn_Capnhat.Values.Text;
-        //    Image anhBanDau = kryptonButton1_Btn_Capnhat.Values.Image;
-
-        //    try
-        //    {
-        //        kryptonButton1_Btn_Capnhat.Enabled = false;
-        //        kryptonButton1_Btn_Capnhat.Values.Text = "Đang lưu...";
-        //        kryptonButton1_Btn_Capnhat.Values.Image = null;
-        //        label13.Text = "Đang mã hóa và lưu dữ liệu...";
-        //        label13.Visible = true;
-
-        //        await Task.Delay(100); // Nhịp nghỉ cho UI
-
-        //        // Chạy tác vụ mã hóa và lưu trữ ngầm để không treo Form
-        //        await Task.Run(() =>
-        //        {
-        //            using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-        //            conn.Open();
-        //            using var tran = conn.BeginTransaction();
-
-        //            try
-        //            {
-        //                for (int i = 0; i < hovatenTextBoxes.Length; i++)
-        //                {
-        //                    string hoTenRaw = hovatenTextBoxes[i].Text.Trim();
-        //                    string chucVuRaw = chucvuTextBoxes[i].Text.Trim();
-
-        //                    // ⭐ THỰC HIỆN MÃ HÓA V2
-        //                    string hoTenMaHoa = string.IsNullOrEmpty(hoTenRaw) ? "" : BaoMatAES.MaHoa(hoTenRaw);
-        //                    string chucVuMaHoa = string.IsNullOrEmpty(chucVuRaw) ? "" : BaoMatAES.MaHoa(chucVuRaw);
-
-        //                    using var cmd = conn.CreateCommand();
-        //                    cmd.Transaction = tran;
-        //                    cmd.CommandText = "INSERT OR REPLACE INTO ChiHuyD (ID, HoVaTen, ChucVu) VALUES (@id, @hoten, @chucvu)";
-        //                    cmd.Parameters.AddWithValue("@id", i + 1);
-        //                    cmd.Parameters.AddWithValue("@hoten", hoTenMaHoa);
-        //                    cmd.Parameters.AddWithValue("@chucvu", chucVuMaHoa);
-        //                    cmd.ExecuteNonQuery();
-        //                }
-        //                tran.Commit();
-        //            }
-        //            catch { tran.Rollback(); throw; }
-        //        });
-
-        //        label13.ForeColor = Color.DarkGreen;
-        //        label13.Text = "✔ Đã bảo mật và lưu thành công.";
-
-        //        Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Cập nhật lãnh đạo", "Thành công");
-        //        LoadDuLieu(); // Nạp lại để cập nhật Grid
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        label13.ForeColor = Color.Red;
-        //        label13.Text = "Lỗi hệ thống!";
-        //        MessageBox.Show("Lỗi: " + ex.Message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //    }
-        //    finally
-        //    {
-        //        kryptonButton1_Btn_Capnhat.Values.Text = textBanDau;
-        //        kryptonButton1_Btn_Capnhat.Values.Image = anhBanDau;
-        //        kryptonButton1_Btn_Capnhat.Enabled = true;
-        //    }
-        //}
         private void DinhDangGrid()
         {
             var grid = kryptonDataGridView1;
 
-            // ===== CẤU HÌNH CHUNG =====
-            grid.Dock = DockStyle.Fill;
-            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            grid.RowHeadersVisible = false;
-            grid.AllowUserToAddRows = false;
-            grid.AllowUserToResizeRows = false;
-            grid.AllowUserToResizeColumns = false;
-            grid.AllowUserToOrderColumns = false;
-            grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            grid.MultiSelect = false;
-            grid.ReadOnly = true;
-            grid.EnableHeadersVisualStyles = false;
+            // 🛑 TỐI ƯU 1: Khóa render trong lúc đang định dạng để chống chớp giật và vỡ khung
+            grid.SuspendLayout();
 
-            // ===== THIẾT KẾ PHẲNG & HIỆN ĐẠI (NEW) =====
-            grid.BackgroundColor = Color.White;
-            grid.BorderStyle = BorderStyle.None;
-            grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal; // Chỉ hiện kẻ ngang, bỏ kẻ dọc nhìn rất sang
-            grid.GridColor = Color.FromArgb(235, 235, 235); // Màu kẻ ngang xám nhạt tinh tế
-
-            // ===== STYLE HEADER =====
-            grid.ColumnHeadersHeight = 50; // Tăng độ rộng (chiều cao) tiêu đề để thoáng hơn
-            grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; // Khóa cứng chiều cao
-            grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None; // Bỏ viền bao quanh tiêu đề
-
-            grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+            try
             {
-                Font = new Font("Segoe UI", 10.5F, FontStyle.Bold), // Phóng to font lên một xíu
-                Alignment = DataGridViewContentAlignment.MiddleCenter,
-                BackColor = Color.FromArgb(240, 244, 248), // Nền tiêu đề màu xanh xám nhạt cực êm mắt
-                ForeColor = Color.FromArgb(40, 40, 40),    // Chữ màu xám than (không dùng đen tuyền)
-                SelectionBackColor = Color.FromArgb(240, 244, 248) // Giữ nguyên màu khi lỡ click vào header
-            };
+                // ===== CẤU HÌNH CHUNG =====
+                grid.Dock = DockStyle.Fill;
+                grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
-            // ===== STYLE ROW =====
-            grid.RowTemplate.Height = 38; // Tăng chiều cao của từng dòng dữ liệu để không bị tù túng
+                // 🛑 TỐI ƯU 2: Khóa chặt AutoSizeRowsMode về None để bảo vệ tuyệt đối thông số RowTemplate.Height
+                grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
 
-            grid.DefaultCellStyle = new DataGridViewCellStyle
+                grid.RowHeadersVisible = false;
+                grid.AllowUserToAddRows = false;
+                grid.AllowUserToResizeRows = false;
+                grid.AllowUserToResizeColumns = false;
+                grid.AllowUserToOrderColumns = false;
+                grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                grid.MultiSelect = false;
+                grid.ReadOnly = true;
+                grid.EnableHeadersVisualStyles = false;
+
+                // ===== THIẾT KẾ PHẲNG & HIỆN ĐẠI =====
+                grid.BackgroundColor = Color.White;
+                grid.BorderStyle = BorderStyle.None;
+                grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+                grid.GridColor = Color.FromArgb(235, 235, 235);
+
+                // ===== STYLE HEADER =====
+                grid.ColumnHeadersHeight = 50;
+                grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+                grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+
+                grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
+                    Alignment = DataGridViewContentAlignment.MiddleCenter,
+                    BackColor = Color.FromArgb(240, 244, 248),
+                    ForeColor = Color.FromArgb(40, 40, 40),
+                    SelectionBackColor = Color.FromArgb(240, 244, 248)
+                };
+
+                // ===== STYLE ROW =====
+                grid.RowTemplate.Height = 30; // Chiều cao mục tiêu
+
+                // 🛑 TỐI ƯU 3: Quét và ép lại chiều cao thực tế cho tất cả các dòng hiện có 
+                // (Vì đôi khi RowTemplate chỉ ăn vào những dòng được thêm mới sau này)
+                foreach (DataGridViewRow row in grid.Rows)
+                {
+                    row.Height = 30;
+                }
+
+                grid.DefaultCellStyle = new DataGridViewCellStyle
+                {
+                    Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+                    ForeColor = Color.FromArgb(45, 45, 45),
+                    Padding = new Padding(5, 0, 5, 0),
+                    SelectionBackColor = Color.FromArgb(232, 244, 253),
+                    SelectionForeColor = Color.FromArgb(0, 102, 204)
+                };
+
+                grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(252, 252, 252);
+
+                // ===== CẤU HÌNH CỘT =====
+                CauHinhCot("ID", "STT", 10, DataGridViewContentAlignment.MiddleCenter);
+                CauHinhCot("HoVaTen", "Họ và tên chỉ huy", 45, DataGridViewContentAlignment.MiddleLeft);
+                CauHinhCot("ChucVu", "Chức vụ chỉ huy", 45, DataGridViewContentAlignment.MiddleLeft);
+
+                // ===== TẮT SORT =====
+                foreach (DataGridViewColumn col in grid.Columns)
+                {
+                    col.SortMode = DataGridViewColumnSortMode.NotSortable;
+                }
+            }
+            finally
             {
-                Font = new Font("Segoe UI", 10F, FontStyle.Regular),
-                ForeColor = Color.FromArgb(45, 45, 45),
-                Padding = new Padding(5, 0, 5, 0), // Lùi lề chữ vào 5px để không bị sát vách
-                SelectionBackColor = Color.FromArgb(232, 244, 253), // Khi chọn dòng: nền xanh nước biển nhạt
-                SelectionForeColor = Color.FromArgb(0, 102, 204)    // Khi chọn dòng: chữ xanh dương đậm
-            };
-
-            grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(252, 252, 252); // Sọc dưa cực nhạt cho dòng chẵn/lẻ
-
-            // ===== CẤU HÌNH CỘT =====
-            CauHinhCot("ID", "STT", 15, DataGridViewContentAlignment.MiddleCenter);
-            CauHinhCot("HoVaTen", "Họ và tên chỉ huy", 45, DataGridViewContentAlignment.MiddleLeft);
-            CauHinhCot("ChucVu", "Chức vụ chỉ huy", 40, DataGridViewContentAlignment.MiddleLeft);
-
-            // ===== TẮT SORT =====
-            foreach (DataGridViewColumn col in grid.Columns)
-                col.SortMode = DataGridViewColumnSortMode.NotSortable;
+                // Mở khóa render
+                grid.ResumeLayout();
+            }
         }
         private void CauHinhCot(string name, string header, int fillWeight, DataGridViewContentAlignment align)
         {

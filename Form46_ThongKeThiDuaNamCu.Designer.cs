@@ -70,6 +70,8 @@
             xoaCSDL_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripSeparator();
             dong_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem3 = new ToolStripSeparator();
+            huongDan_ToolStripMenuItem = new ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)kryptonDataGridView1).BeginInit();
@@ -518,9 +520,9 @@
             // contextMenuStrip1
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieuTepExcel_ToolStripMenuItem, xoaCSDL_ToolStripMenuItem, toolStripMenuItem2, dong_ToolStripMenuItem });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieuTepExcel_ToolStripMenuItem, xoaCSDL_ToolStripMenuItem, toolStripMenuItem2, dong_ToolStripMenuItem, toolStripMenuItem3, huongDan_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(198, 104);
+            contextMenuStrip1.Size = new Size(198, 132);
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
@@ -563,6 +565,19 @@
             dong_ToolStripMenuItem.Size = new Size(197, 22);
             dong_ToolStripMenuItem.Text = "Trở về Thống kê";
             dong_ToolStripMenuItem.Click += dong_ToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(194, 6);
+            // 
+            // huongDan_ToolStripMenuItem
+            // 
+            huongDan_ToolStripMenuItem.Image = (Image)resources.GetObject("huongDan_ToolStripMenuItem.Image");
+            huongDan_ToolStripMenuItem.Name = "huongDan_ToolStripMenuItem";
+            huongDan_ToolStripMenuItem.Size = new Size(197, 22);
+            huongDan_ToolStripMenuItem.Text = "Hướng dấn sử dụng";
+            huongDan_ToolStripMenuItem.Click += huongDan_ToolStripMenuItem_Click;
             // 
             // Form46_ThongKeThiDuaNamCu
             // 
@@ -638,5 +653,7 @@
         private ToolStripSeparator toolStripMenuItem1;
         private ToolStripSeparator toolStripMenuItem2;
         private ToolStripMenuItem huongDanSuDung_ToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem3;
+        private ToolStripMenuItem huongDan_ToolStripMenuItem;
     }
 }

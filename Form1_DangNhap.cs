@@ -43,36 +43,19 @@ namespace PhanMemThiDua2026
             text_TenDangNhap.KeyDown += Text_TenDangNhap_KeyDown;
             text_MatKhau.KeyDown += Text_MatKhau_KeyDown;
         }
-        private async void Form1_Load(object sender, EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
             try
             {
-
+                // 1. Tối ưu UI thuần túy: Gán text nhanh
                 label3_HienThiTenPhanMem.Text = "Phần mềm phân loại thi đua năm " + Module_NamHeThong.LayNamHeThong();
-                // ===== Center Form =====
-                var screen = Screen.PrimaryScreen;
-                if (screen != null)
-                {
-                    int screenWidth = screen.Bounds.Width;
-                    int screenHeight = screen.Bounds.Height;
-                    int formWidth = this.Width > 0 ? this.Width : 800;
-                    int formHeight = this.Height > 0 ? this.Height : 600;
-                    this.Location = new Point((screenWidth - formWidth) / 2, (screenHeight - formHeight) / 2);
-                }
-
-                // ===== Mật khẩu & checkbox =====
                 text_MatKhau.UseSystemPasswordChar = true;
 
-                // Thêm await để giao diện đợi lấy cấu hình từ DB xong mới chạy tiếp
-                await KhoiTaoCheckBox(Check_HienMatKhau, text_MatKhau);
-                // ===== Gán event PictureBox1 luôn trước async =====
-                PictureBox1.Click -= PictureBox1_Click;
-                PictureBox1.Click += PictureBox1_Click;
+                // Căn giữa màn hình (Nên set StartPosition = CenterScreen ở file Designer, nếu chưa set thì dùng code này)
+                this.CenterToScreen();
 
-                // ===== Hiển thị thông báo phiên bản tân binh =====
                 string phienBan = Module_TaiKhoan.LayPhienBanPhanMem();
-                if (!string.IsNullOrWhiteSpace(phienBan) &&
-                    phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(phienBan) && phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
                 {
                     label1_ThongBaoPhienBan.Text = phienBan;
                     label1_ThongBaoPhienBan.Visible = true;
@@ -82,88 +65,120 @@ namespace PhanMemThiDua2026
                     label1_ThongBaoPhienBan.Visible = false;
                 }
 
-                // 🌟 TÍCH HỢP UX FOCUS (Chạy khi Handle Form đã sẵn sàng)
-                InitFocusEffects();
+                PictureBox1.Click -= PictureBox1_Click;
+                PictureBox1.Click += PictureBox1_Click;
 
-                // ===== Preload Form2 vào RAM =====
-                Module_KhoiDongTrangChu.PreloadForm2();
+                InitFocusEffects(); // Khởi tạo viền Focus
             }
             catch (Exception ex)
             {
-                Module_ThongBao.Loi("Lỗi khởi tạo form: " + ex.Message);
+                Debug.WriteLine("Lỗi khởi tạo UI Form1: " + ex.Message);
             }
+            // ❌ Đã xóa await KhoiTaoCheckBox và PreloadForm2 khỏi đây để dời xuống chạy ngầm ở hàm Show.
         }
-        private async void Form1_Show(object sender, EventArgs e)
+        private void Form1_Show(object sender, EventArgs e)
         {
+            // 1. Ép trỏ chuột Focus ngay lập tức để người dùng có thể gõ phím tức thì
             text_TenDangNhap.Focus();
 
-            // ===== Gợi ý tên tài khoản (async) =====
-            if (CoChoPhepGoiYTenTaiKhoan())
+            // Hiển thị phiên bản (Thao tác nhẹ, cho hiển thị luôn)
+            if (label1_PhienBanPhanMem != null && this.IsHandleCreated)
             {
-                try
-                {
-                    // 🛡️ SQLITE SAFETY: ReadOnly & Timeout chống khóa file lúc Boot
-                    string connStr = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
-                    await using var conn = new SqliteConnection(connStr);
-                    await conn.OpenAsync();
-
-                    await using var cmd = new SqliteCommand("SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1", conn);
-                    object val = await cmd.ExecuteScalarAsync();
-
-                    //if (val != null)
-                    //{
-                    //    text_TenDangNhap.Text = BaoMatAES.GiaiMa(val.ToString());
-                    //    text_MatKhau.Focus();
-                    //}
-                    if (val != null)
-                    {
-                        text_TenDangNhap.Text = BaoMatAES.GiaiMa(val.ToString() ?? string.Empty);
-                        text_MatKhau.Focus();
-                    }
-                }
-                catch { /* Không gợi ý được → im lặng */ }
+                label1_PhienBanPhanMem.AutoSize = true;
+                label1_PhienBanPhanMem.Text = "Phiên bản: " + Module_PhienBan.SoftwareVersion;
+                label1_PhienBanPhanMem.Visible = true;
+                label1_PhienBanPhanMem.BringToFront();
             }
 
-            // ===== Kiểm tra LinkLabel đăng ký tài khoản mới (async) =====
+            InitToolTips();
+
+            // 🌟 2. KIẾN TRÚC MỚI: BẮT ĐẦU NẠP DỮ LIỆU NGẦM (FIRE AND FORGET)
+            // Lệnh '_' báo cho hệ thống biết ta ném tác vụ này chạy ngầm, không bắt Form phải đợi
+            _ = ChayCacTacVuNangNgamAsync();
+        }
+
+        // HÀM MỚI: Động cơ xử lý ngầm chuẩn kỹ sư
+        private async Task ChayCacTacVuNangNgamAsync()
+        {
             try
             {
-                bool hienThiLink = true;
+                // 1. Chạy SONG SONG 3 tác vụ đọc Database cùng 1 lúc (Tiết kiệm 60% thời gian)
+                var taskGoiY = KiemTraVaGoiYTaiKhoanAsync();
+                var taskLink = KiemTraLinkDangKyAsync();
+                var taskCheckBox = KhoiTaoCheckBox(Check_HienMatKhau, text_MatKhau);
+
+                await Task.WhenAll(taskGoiY, taskLink, taskCheckBox);
+
+                // 2. SAU KHI DB ĐÃ XONG VÀ CPU RẢNH RỖI: Bắt đầu tống Form 2 vào RAM
+                // Đưa vào Task.Run để giải phóng hoàn toàn sức ép lên Main Thread của Form 1
+                _ = Task.Run(() =>
+                {
+                    try { Module_KhoiDongTrangChu.PreloadForm2(); }
+                    catch { /* Bỏ qua lỗi nạp trước để không ảnh hưởng đăng nhập */ }
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[Lỗi Load Ngầm Form 1]: " + ex.Message);
+            }
+        }
+
+        private async Task KiemTraVaGoiYTaiKhoanAsync()
+        {
+            if (!CoChoPhepGoiYTenTaiKhoan()) return;
+
+            try
+            {
+                string connStr = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
+                await using var conn = new SqliteConnection(connStr);
+                await conn.OpenAsync();
+
+                await using var cmd = new SqliteCommand("SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1", conn);
+                object val = await cmd.ExecuteScalarAsync();
+
+                if (val != null && !this.IsDisposed)
+                {
+                    string tenTK = BaoMatAES.GiaiMa(val.ToString() ?? string.Empty);
+                    // Update UI bắt buộc phải gọi Invoke/Đồng bộ luồng chính
+                    this.Invoke(new Action(() =>
+                    {
+                        text_TenDangNhap.Text = tenTK;
+                        text_MatKhau.Focus(); // Tự động nhảy con trỏ xuống ô Mật khẩu
+                    }));
+                }
+            }
+            catch { /* Im lặng nếu lỗi gợi ý */ }
+        }
+
+        private async Task KiemTraLinkDangKyAsync()
+        {
+            bool hienThiLink = true;
+            try
+            {
                 if (!string.IsNullOrWhiteSpace(_csdl2Path) && File.Exists(_csdl2Path))
                 {
-                    // 🛡️ SQLITE SAFETY
                     string connStr = $"Data Source={_csdl2Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
                     await using var conn = new SqliteConnection(connStr);
                     await conn.OpenAsync();
 
                     await using var cmd = new SqliteCommand("SELECT LinkLabel1_DangKyTaiKhoanMoi FROM ThongTin WHERE ID = 1", conn);
                     var result = await cmd.ExecuteScalarAsync();
+
                     if (result != null && !string.IsNullOrEmpty(result.ToString()) && BaoMatAES.GiaiMa(result.ToString() ?? string.Empty) == "TRUE")
-                    //if (!string.IsNullOrEmpty(result?.ToString()) && BaoMatAES.GiaiMa(result.ToString()) == "TRUE")
                     {
                         hienThiLink = false;
                     }
                 }
-                LinkLabel1_DangKyTaiKhoanMoi.Visible = hienThiLink;
             }
-            catch { LinkLabel1_DangKyTaiKhoanMoi.Visible = true; }
-
-            // ===== Hiển thị phiên bản phần mềm chắc chắn =====
-            this.BeginInvoke((Action)(() =>
+            catch { hienThiLink = true; }
+            finally
             {
-                if (label1_PhienBanPhanMem != null && this.IsHandleCreated)
+                if (!this.IsDisposed)
                 {
-                    label1_PhienBanPhanMem.AutoSize = true;
-                    label1_PhienBanPhanMem.Visible = true;
-                    label1_PhienBanPhanMem.Text = "Phiên bản: " + Module_PhienBan.SoftwareVersion;
-                    label1_PhienBanPhanMem.ForeColor = Color.Black;
-                    label1_PhienBanPhanMem.BringToFront();
+                    this.Invoke(new Action(() => LinkLabel1_DangKyTaiKhoanMoi.Visible = hienThiLink));
                 }
-            }));
-
-            InitToolTips();
-
+            }
         }
-        // 🌟 LOGIC UX: QUẢN LÝ VIỀN KRYPTON THÔNG MINH
         private IEnumerable<Control> GetAllTextBoxes()
         {
             // Trả về danh sách tĩnh để tránh đệ quy quét Form tốn CPU

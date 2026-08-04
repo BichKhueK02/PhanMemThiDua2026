@@ -151,17 +151,16 @@
   </metadata>
   <data name="kryptonButton_Dong.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAImSURBVDhPbZLfS1NhHMbfv8CL7lt3Nd1Mh9BiR9ky
-        pmg6FWlszRlbaksZGSiBXUjUbd1EdxFF3TQaXlYQW0kX/Q0SCUa/jFpnO/OcteyJ5ztfZasXXr48z/fz
-        PJyxV6mW8zrQcffVSbdd9B+DvtT0W1kAB2Ld8Aysh7rw7uo8yrn7cF7k4TzPy6Smzz25fwpovo0EYT59
-        AOveLWynh/ExcBgffIdkUtPnnpwuOSgIdqH6LI+fK3P4HHbjU98R1N+8BA8nNX3uyZHfL+Bv27p9A+XV
-        eWyP+vA10oMv/UclrA81fe7JkWdOCoqBDsd6eAc/Jvz4ftaQ+23oOOqbG40v2NwQrXfkyDOnC2DfXEQp
-        FkQpcQqleEgge+2RFHBS05d9LCg8c40Cwwt76TzKyTDM6UGYyQGYsRAq1y9LASe1+NODwpFnrlHQ2wln
-        NgIrPYIKb+oMKlNhlMf9MIe6ZVKLnx4RjjxzUlDo66xZM2OwMxOozo2jOhOBda4ftbXH8gWc1PS5J0ee
-        OSnI+dufvI+eRj0bg7MQhZ2ZxM5UWP8Bcqjpc0+OPHP6HbiKvV5Yl6L4fSWJX9k4ahdGm76Amj735Mgz
-        t/+QVttdC3wcO9k4sJzCn8UEdjOT2J0dk0lNn3ty5JteolKqjWbB8GArMYz6Ugq4lgFWLsqkps/9Xrit
-        tUBKlFI9uRPuXMHw1ggXAh4JUdPnXof/V6CPSynl24P1pabfdFjwF3jZKpFRTZfXAAAAAElFTkSuQmCC
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAH+SURBVDhPpdLfS1NhGAfwL4SQN11UVhdmzVmxUlerbP7ApGwXsmqUMK3YytaKpcfp5g5iyhgW
+        Rt4EIQyiFkSFN2ENlFhuOpC5MAeiIIHUXVf1J3zj3bFsZ2cg+MBzLp7zfD+8nPcAW60vsombbXU2W+LF
+        4qiVidCFtaJtsIgGYAZQDaACwD4AxQWBdOAEE/6T/PlBZvJFT7wQYB3dSYSRjzwJuDntNXJ15Cx/xR9z
+        rMMYzwOe4XU2rAWk/McZk6q5EjLzR+QW79bsFksbwDC6RfBRZlgB1D3Xa+SnziouBc/we8SVCwxAFkuh
+        xSD96R56U518sCAzlBmiNH+P8IFIeqs46TnGzOApfgvfyAXCYPDrEC1T51gfrWHzVCOtMQvtMzZKabcC
+        zHRVMuo2cKHfxOWnrZonuJ6w83KshY5kG91zzmx4MNOnANOeo3x/+whTfiPHAtcoOy9pfgPv/H0loO4R
+        n4vjjgrOdlfyrdTEjpbaXOD/W/CBJMXjX2PSdYhv2nX87DFwVq7nndO78gGguPnhDm3g4009I61lFFBM
+        MtFjVl3jOiD2xLXnAaJeXildmnDoGHUZ2FVbIqYibACgB1C2jhQVBJ7bSsvftR34PeHUs7dhj5ieB9AI
+        oA7AYQDb//54moCoV1f328bbD7K/aa+Y2gFcBKDb2FBKDfwBjK1jEwr9NRQAAAAASUVORK5CYII=
 </value>
   </data>
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

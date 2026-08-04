@@ -8,6 +8,9 @@ namespace PhanMemThiDua2026
     {
         private readonly Form6_XuLyData _form6Ref;
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+        // --- THÊM 2 BIẾN NÀY ĐỂ CHỐNG NẠP TRÙNG ---
+        private string _donViDaNapThanhCong = "";
+        private string _fileDaNapThanhCong = "";
         public Form19_NapKQPLTuDonVi(Form6_XuLyData form6)
         {
             InitializeComponent();
@@ -18,8 +21,8 @@ namespace PhanMemThiDua2026
             this.ShowInTaskbar = false;
 
             // DÒNG 1: Ẩn label ngay khi khởi tạo Form
-            if (label3_ThongBaoThanhCong != null)
-                label3_ThongBaoThanhCong.Visible = false;
+            if (toolStripStatusLabel1_ThongBao != null)
+                toolStripStatusLabel1_ThongBao.Visible = false;
 
             // FIX LỖI: Thống nhất dùng chữ thường 'k' theo Designer
             kryptonButton_NhapKetQua.Click -= kryptonButton_NhapKetQua_Click;
@@ -67,7 +70,9 @@ namespace PhanMemThiDua2026
         }
         private void GoiRefershForm6()
         {
-            if (_form6Ref != null && !_form6Ref.IsDisposed)
+            if (_form6Ref != null &&
+         !_form6Ref.IsDisposed &&
+         _form6Ref.IsHandleCreated)
             {
                 _form6Ref.Invoke(new Action(() =>
                 {
@@ -137,12 +142,18 @@ namespace PhanMemThiDua2026
         {
             using var cn = new SqliteConnection("Data Source=" + _csdl2Path);
             cn.Open();
+
             using var tran = cn.BeginTransaction();
 
             try
             {
-                var lookup = new Dictionary<string, int>();
-                using (var cmdAll = new SqliteCommand("SELECT ID, DonVi, SoHieu FROM DanhSach", cn, tran))
+                // Từ điển tra cứu không phân biệt chữ hoa/thường
+                var lookup = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                using (var cmdAll = new SqliteCommand(
+                    "SELECT ID, DonVi, SoHieu FROM DanhSach",
+                    cn,
+                    tran))
                 using (var reader = cmdAll.ExecuteReader())
                 {
                     while (reader.Read())
@@ -150,20 +161,30 @@ namespace PhanMemThiDua2026
                         try
                         {
                             int id = Convert.ToInt32(reader["ID"]);
+
                             string donViCS = BaoMatAES.GiaiMa(reader["DonVi"]?.ToString() ?? "").Trim();
                             string soHieuCS = BaoMatAES.GiaiMa(reader["SoHieu"]?.ToString() ?? "").Trim();
 
-                            if (!string.IsNullOrEmpty(donViCS) && !string.IsNullOrEmpty(soHieuCS))
+                            if (!string.IsNullOrWhiteSpace(donViCS) &&
+                                !string.IsNullOrWhiteSpace(soHieuCS))
                             {
-                                lookup[(donViCS + "|" + soHieuCS).ToLower()] = id;
+                                lookup[donViCS + "|" + soHieuCS] = id;
                             }
                         }
-                        catch { }
+                        catch
+                        {
+                            // Bỏ qua bản ghi lỗi và tiếp tục xử lý
+                        }
                     }
                 }
 
                 int soDongCapNhat = 0;
-                using var cmdUpdate = new SqliteCommand("UPDATE DanhSach SET PhanLoai=@PhanLoai WHERE ID=@ID", cn, tran);
+
+                using var cmdUpdate = new SqliteCommand(
+                    "UPDATE DanhSach SET PhanLoai=@PhanLoai WHERE ID=@ID",
+                    cn,
+                    tran);
+
                 var pPhanLoai = cmdUpdate.Parameters.Add("@PhanLoai", SqliteType.Text);
                 var pID = cmdUpdate.Parameters.Add("@ID", SqliteType.Integer);
 
@@ -176,14 +197,16 @@ namespace PhanMemThiDua2026
                     if (!donViExcel.Equals(donViChon, StringComparison.OrdinalIgnoreCase))
                         continue;
 
-                    if (lookup.TryGetValue((donViExcel + "|" + soHieuExcel).ToLower(), out int id))
+                    if (lookup.TryGetValue(donViExcel + "|" + soHieuExcel, out int id))
                     {
                         pPhanLoai.Value = BaoMatAES.MaHoa(phanLoaiExcel);
                         pID.Value = id;
+
                         cmdUpdate.ExecuteNonQuery();
                         soDongCapNhat++;
                     }
                 }
+
                 tran.Commit();
                 return soDongCapNhat;
             }
@@ -195,12 +218,45 @@ namespace PhanMemThiDua2026
         }
         private async void kryptonButton_NhapKetQua_Click(object sender, EventArgs e)
         {
+            // Lấy thông tin ngay từ đầu để kiểm tra trước
+            string donViChon = comboBox1_DonVi.Text.Trim();
+            string duongDanFile = label_DuongDan.Text?.Trim();
+
+            // 1. Kiểm tra rỗng
+            if (string.IsNullOrWhiteSpace(donViChon))
+            {
+                MessageBox.Show("Bạn chưa chọn đơn vị!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(duongDanFile) || duongDanFile == "Chưa chọn tệp" || !File.Exists(duongDanFile))
+            {
+                MessageBox.Show("Vui lòng chọn file Excel!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                kryptonButton1_ChonDuongDan.PerformClick();
+                return;
+            }
+
+            // 2. THÊM CHỐT CHẶN: Nếu người dùng bấm lại y xì thông tin vừa nạp thành công
+            if (donViChon.Equals(_donViDaNapThanhCong, StringComparison.OrdinalIgnoreCase) &&
+                duongDanFile.Equals(_fileDaNapThanhCong, StringComparison.OrdinalIgnoreCase))
+            {
+                if (toolStripStatusLabel1_ThongBao != null)
+                {
+                    toolStripStatusLabel1_ThongBao.ForeColor = Color.DarkOrange; // Đổi sang màu cam/đỏ để gây chú ý
+                    toolStripStatusLabel1_ThongBao.Text = $"Dữ liệu của \"{donViChon}\" từ tệp này đã nạp rồi. Vui lòng chọn đơn vị/tệp khác!";
+                    toolStripStatusLabel1_ThongBao.Visible = true;
+
+                    // Tự động dọn dẹp dòng cảnh báo này sau 5 giây
+                    _ = TuDongAnThongBaoSau(5000);
+                }
+                return; // Chặn ngay, không cho chạy xuống dưới
+            }
+
             string textBanDau = kryptonButton_NhapKetQua.Values.Text;
             Image anhBanDau = kryptonButton_NhapKetQua.Values.Image;
 
-            // DÒNG 2: Ẩn thông báo cũ trước khi bắt đầu tiến trình mới
-            if (label3_ThongBaoThanhCong != null)
-                label3_ThongBaoThanhCong.Visible = false;
+            // Ẩn thông báo cũ trước khi bắt đầu tiến trình mới
+            if (toolStripStatusLabel1_ThongBao != null)
+                toolStripStatusLabel1_ThongBao.Visible = false;
 
             try
             {
@@ -208,30 +264,24 @@ namespace PhanMemThiDua2026
                 kryptonButton_NhapKetQua.Values.Text = "Đang xử lý ...";
                 kryptonButton_NhapKetQua.Values.Image = null;
 
-                await Task.Delay(100);
+                await Task.Delay(100); // Đợi UI cập nhật trạng thái nút bấm
 
-                string donViChon = comboBox1_DonVi.Text.Trim();
-                if (string.IsNullOrWhiteSpace(donViChon))
-                {
-                    MessageBox.Show("Bạn chưa chọn đơn vị!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                string duongDanFile = label_DuongDan.Text?.Trim();
-                if (string.IsNullOrWhiteSpace(duongDanFile) || duongDanFile == "Chưa chọn tệp" || !File.Exists(duongDanFile))
-                {
-                    MessageBox.Show("Vui lòng chọn file Excel!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    kryptonButton1_ChonDuongDan.PerformClick();
-                    return;
-                }
-
+                // Chạy ngầm tác vụ nạp DB
                 int soDongCapNhat = await Task.Run(() =>
                 {
                     Module_BaNhat.NhapDuLieuVaoBangQuanLyBaNhat(duongDanFile, _csdl2Path);
-                    DataTable dtExcel = DocExcel(duongDanFile);
-                    if (dtExcel == null || dtExcel.Rows.Count == 0) return -1;
-                    return CapNhatPhanLoai(donViChon, dtExcel);
+
+                    // Dùng using để thu hồi RAM của DataTable ngay sau khi lấy xong
+                    using (DataTable dtExcel = DocExcel(duongDanFile))
+                    {
+                        if (dtExcel == null || dtExcel.Rows.Count == 0) return -1;
+                        return CapNhatPhanLoai(donViChon, dtExcel);
+                    }
                 });
+
+                // Chặn lỗi văng nếu người dùng lỡ tắt Form lúc đang chạy ngầm
+                if (IsDisposed || Disposing)
+                    return;
 
                 if (soDongCapNhat == -1)
                 {
@@ -239,38 +289,48 @@ namespace PhanMemThiDua2026
                     return;
                 }
 
-                // DÒNG 3: XỬ LÝ CHÍNH XÁC KHI THÀNH CÔNG
-                if (label3_ThongBaoThanhCong != null)
+                // XỬ LÝ CHÍNH XÁC KHI THÀNH CÔNG
+                if (toolStripStatusLabel1_ThongBao != null)
                 {
-                    label3_ThongBaoThanhCong.ForeColor = Color.DarkGreen;
-                    label3_ThongBaoThanhCong.Text = $"Vào lúc [{DateTime.Now:HH:mm:ss}] Đã cập nhật {soDongCapNhat} bản ghi.";
+                    toolStripStatusLabel1_ThongBao.ForeColor = Color.DarkGreen;
+                    toolStripStatusLabel1_ThongBao.Text = $"[{DateTime.Now:HH:mm:ss}] Đã cập nhật thành công {soDongCapNhat} bản ghi của đơn vị \"{donViChon}\".";
+                    toolStripStatusLabel1_ThongBao.Visible = true;
 
-                    label3_ThongBaoThanhCong.Visible = true; // HIỆN LÊN khi gán giá trị thành công
-
-                    _ = TuDongAnThongBaoSau(5000); // Gọi hàm phụ tự động ẩn sau 5 giây (5000ms)
+                    _ = TuDongAnThongBaoSau(5000); // Tự động ẩn sau 5 giây
                 }
+
+                // ==========================================
+                // LƯU LỊCH SỬ ĐỂ CHỐNG NGƯỜI DÙNG BẤM TRÙNG
+                _donViDaNapThanhCong = donViChon;
+                _fileDaNapThanhCong = duongDanFile;
+                // ==========================================
 
                 GoiRefershForm6();
                 await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Có lỗi xảy ra: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (!IsDisposed)
+                {
+                    MessageBox.Show($"Có lỗi xảy ra: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             finally
             {
-                kryptonButton_NhapKetQua.Values.Text = textBanDau;
-                kryptonButton_NhapKetQua.Values.Image = anhBanDau;
-                kryptonButton_NhapKetQua.Enabled = true;
+                if (!IsDisposed)
+                {
+                    kryptonButton_NhapKetQua.Values.Text = textBanDau;
+                    kryptonButton_NhapKetQua.Values.Image = anhBanDau;
+                    kryptonButton_NhapKetQua.Enabled = true;
+                }
             }
         }
-        // DÒNG 4: Hàm phụ trợ đếm ngược thời gian để tự động ẩn label (An toàn không treo UI)
         private async Task TuDongAnThongBaoSau(int milliseconds)
         {
             await Task.Delay(milliseconds);
-            if (label3_ThongBaoThanhCong != null && !label3_ThongBaoThanhCong.IsDisposed)
+            if (toolStripStatusLabel1_ThongBao != null && !toolStripStatusLabel1_ThongBao.IsDisposed)
             {
-                label3_ThongBaoThanhCong.Visible = false;
+                toolStripStatusLabel1_ThongBao.Visible = false;
             }
         }
         private void LoadComboBoxDonVi()
@@ -292,15 +352,53 @@ namespace PhanMemThiDua2026
         {
             using var ofd = new OpenFileDialog
             {
-                Filter = "Excel Files|*.xlsx;*.xls",
+                Filter = "Excel Files|*.xlsx;*.xlsm",
                 Title = "Chọn tệp Excel"
             };
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
+                // Cập nhật nhãn đường dẫn
                 label_DuongDan.Text = ofd.FileName;
                 label_DuongDan.ForeColor = Color.Green;
+
+                // THÊM MỚI: Báo cho người dùng biết đã chọn tệp thành công
+                if (toolStripStatusLabel1_ThongBao != null)
+                {
+                    // Dùng màu Blue (hoặc màu bạn thích) để phân biệt với thông báo nạp CSDL (DarkGreen)
+                    toolStripStatusLabel1_ThongBao.ForeColor = Color.Blue;
+                    toolStripStatusLabel1_ThongBao.Text = "Đã chọn tệp excel, vui lòng chọn đơn vị và bấm [Nhập kết quả] để tiến hành đồng bộ.";
+                    toolStripStatusLabel1_ThongBao.Visible = true;
+
+                    // Gọi hàm ẩn tự động sau 5 giây (không làm treo UI)
+                    _ = TuDongAnThongBaoSau(5000);
+                }
             }
         }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            // Tạo nội dung hướng dẫn sử dụng (dùng ký tự @ để viết chuỗi trên nhiều dòng)
+            string msgHuongDan = @"GIỚI THIỆU:
+Chức năng này giúp nạp hàng loạt kết quả phân loại thi đua từ file Excel vào hệ thống tự động, bảo mật và chính xác.
+
+HƯỚNG DẪN SỬ DỤNG:
+1. Chuẩn bị file Excel: Đảm bảo có dòng tiêu đề và chứa 3 cột bắt buộc (viết đúng chính tả): Số hiệu, Đơn vị, Phân loại.
+2. Chọn Đơn vị: Click vào danh sách và chọn đúng đơn vị cần nạp.
+3. Chọn File: Bấm [ Chọn đường dẫn ] và tìm tệp Excel vừa chuẩn bị.
+4. Thực hiện: Bấm [ Nhập kết quả ] và đợi hệ thống xử lý.
+
+LƯU Ý: 
+- Không đóng cửa sổ trong lúc phần mềm đang chạy.
+- Hệ thống sẽ tự động đối chiếu, mã hóa dữ liệu và cập nhật biểu đồ sau khi hoàn tất.";
+
+            // Hiển thị hộp thoại thông báo
+            MessageBox.Show(msgHuongDan,
+                            "Hướng dẫn sử dụng - Nạp Kết Quả",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+        }
+
+
     }
 }

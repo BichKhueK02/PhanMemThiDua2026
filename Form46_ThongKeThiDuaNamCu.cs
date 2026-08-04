@@ -1226,9 +1226,30 @@ namespace PhanMemThiDua2026
             }
         }
 
+        private void huongDan_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string msgHuongDan = @"GIỚI THIỆU CHỨC NĂNG:
+Màn hình ""Thống kê thi đua năm cũ"" giúp tra cứu, tổng hợp và kết xuất dữ liệu lịch sử của các năm trước. Hệ thống được trang bị lõi xử lý hiệu năng cao, tự động thay đổi cấu trúc bảng biểu phù hợp cho từng nhóm đối tượng (Cán bộ chiến sĩ hoặc Tân binh).
 
+HƯỚNG DẪN SỬ DỤNG:
+1. Chọn dữ liệu: Chọn tệp CSDL năm cũ (VD: Năm 2025 - CBCS) tại danh sách thả xuống góc trái.
+2. Tìm kiếm nhanh: 
+   - Hỗ trợ lọc đa tầng theo: Đơn vị, Tình trạng, và Phân loại.
+   - Ô tìm kiếm tên: Chỉ cần gõ tên (không cần bấm Enter), hệ thống sẽ tự động lọc kết quả sau 0.3 giây.
+   - Bấm [Làm mới] để xóa các bộ lọc và hiển thị lại toàn bộ danh sách.
+3. Cập nhật dữ liệu: Bấm [Cập nhật] để đồng bộ trạng thái mới nhất của quân số vào hồ sơ năm cũ.
+4. Trích xuất báo cáo: Bấm [Xuất Data] để xuất danh sách đang hiển thị trên lưới ra tệp Excel chuyên nghiệp.
+
+LƯU Ý QUAN TRỌNG:
+- Chức năng [Xóa CSDL] (chuột phải) sẽ xóa vĩnh viễn tệp lịch sử khỏi hệ thống. Thao tác này không thể hoàn tác và yêu cầu phải có mật khẩu Admin.";
+
+            MessageBox.Show(msgHuongDan,
+                            "Hướng Dẫn Sử Dụng - Thống Kê Năm Cũ",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+        }
     }
-        public class ColumnExportMeta
+    public class ColumnExportMeta
     {
         public string Name { get; set; }
         public string HeaderText { get; set; }
