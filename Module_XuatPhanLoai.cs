@@ -191,12 +191,27 @@ namespace PhanMemThiDua2026
                 }
 
                 // Chuẩn bị thư mục và tên file xuất
+                //string thuMucGoc = Module_XuatPhanLoai.GetLinkLuuDuongDanTepXuat();
+                //if (string.IsNullOrWhiteSpace(thuMucGoc))
+                //    throw new Exception("Bạn chưa chọn thư mục lưu!");
+                //string thangHT = LayThangHeThong();
+                //string namHT = LayNamHeThong();
+                //string tenThuMuc = $"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {thangHT} NĂM {namHT}";
+
+
                 string thuMucGoc = Module_XuatPhanLoai.GetLinkLuuDuongDanTepXuat();
                 if (string.IsNullOrWhiteSpace(thuMucGoc))
                     throw new Exception("Bạn chưa chọn thư mục lưu!");
+
                 string thangHT = LayThangHeThong();
+                // Bổ sung khối lệnh này để ép chuẩn tháng cho thư mục và tiêu đề
+                if (int.TryParse(thangHT, out int htSo))
+                {
+                    thangHT = htSo < 3 ? htSo.ToString("00") : htSo.ToString();
+                }
                 string namHT = LayNamHeThong();
                 string tenThuMuc = $"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {thangHT} NĂM {namHT}";
+
                 string thuMucDich = Path.Combine(thuMucGoc, tenThuMuc);
                 Directory.CreateDirectory(thuMucDich);
 
@@ -395,9 +410,26 @@ namespace PhanMemThiDua2026
                         {
                             if (reader.Read())
                             {
-                                thang = BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? "").Trim();
+                                // 1. Xử lý THÁNG (Nhỏ hơn 3 thì thêm 0)
+                                string thangGiaiMa = BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? "").Trim();
+                                if (string.IsNullOrWhiteSpace(thangGiaiMa)) { thang = khoangTrang; }
+                                else if (int.TryParse(thangGiaiMa, out int thangSo))
+                                {
+                                    thang = (thangSo < 3) ? thangSo.ToString("00") : thangSo.ToString();
+                                }
+                                else { thang = thangGiaiMa; }
+
+                                // 2. BỔ SUNG Xử lý NGÀY (Nhỏ hơn 10 thì thêm 0)
+                                string ngayGiaiMa = BaoMatAES.GiaiMa(reader["Ngay"]?.ToString() ?? "").Trim();
+                                if (string.IsNullOrWhiteSpace(ngayGiaiMa)) { ngay = khoangTrang; }
+                                else if (int.TryParse(ngayGiaiMa, out int ngaySo))
+                                {
+                                    ngay = (ngaySo < 10) ? ngaySo.ToString("00") : ngaySo.ToString();
+                                }
+                                else { ngay = ngayGiaiMa; }
+
+                                // 3. Năm và Địa Điểm (Giữ nguyên)
                                 nam = BaoMatAES.GiaiMa(reader["Nam"]?.ToString() ?? "").Trim();
-                                ngay = BaoMatAES.GiaiMa(reader["Ngay"]?.ToString() ?? "").Trim();
                                 diaDiem = BaoMatAES.GiaiMa(reader["DiaDiem"]?.ToString() ?? "").Trim();
                             }
                         }
@@ -416,11 +448,28 @@ namespace PhanMemThiDua2026
                 catch { }
                 if (string.IsNullOrEmpty(thang)) thang = khoangTrang; if (string.IsNullOrEmpty(nam)) nam = khoangTrang;
                 if (string.IsNullOrEmpty(ngay)) ngay = khoangTrang; if (string.IsNullOrEmpty(diaDiem)) diaDiem = khoangTrang;
+                // 1. Lấy chuẩn xác Tháng và Năm từ Module (Tháng tự động sạch số 0, Năm tự động chống rỗng)
+                //string thangHT = Module_XuatPhanLoai.LayThangHeThong();
+                //string namHT = Module_XuatPhanLoai.LayNamHeThong();
 
-                // Xử lý chuỗi thời gian cho tiêu đề
-                string chuoiThoiGian = loaiBaoCao.Equals("Tuần", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(tuanBaoCao)
-                    ? $"{tuanBaoCao.Trim().ToUpper()} THÁNG {thangHT}/{nam}"
-                    : $"THÁNG {thangHT}/{nam}";
+
+                string chuoiThoiGian = "";
+
+                if (loaiBaoCao.Equals("Tuần", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(tuanBaoCao))
+                {
+                    string tuanClean = tuanBaoCao.Trim().ToUpperInvariant();
+                    if (!tuanClean.Contains("TUẦN"))
+                    {
+                        tuanClean = "TUẦN " + tuanClean;
+                    }
+
+                    chuoiThoiGian = $"{tuanClean} THÁNG {thangHT}/{namHT}";
+                }
+                else
+                {
+                    chuoiThoiGian = $"THÁNG {thangHT}/{namHT}";
+                }
+
 
                 // --- PHẦN ĐỊNH DẠNG ĐƠN VỊ A1, A2, A3 (GIỮ NGUYÊN GỐC) ---
                 string dong1TrungDoan = "";
@@ -730,9 +779,27 @@ namespace PhanMemThiDua2026
 
                     if (reader.Read())
                     {
-                        thang = string.IsNullOrWhiteSpace(BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? ""))
-                                    ? khoangTrang
-                                    : BaoMatAES.GiaiMa(reader["Thang"].ToString());
+                        string thangGiaiMa = BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? "").Trim();
+
+                        if (string.IsNullOrWhiteSpace(thangGiaiMa))
+                        {
+                            thang = khoangTrang;
+                        }
+                        else if (int.TryParse(thangGiaiMa, out int thangSo))
+                        {
+                            // Quy định:
+                            // 1 -> 01
+                            // 2 -> 02
+                            // 3..12 giữ nguyên
+                            thang = (thangSo == 1 || thangSo == 2)
+                                ? thangSo.ToString("00")
+                                : thangSo.ToString();
+                        }
+                        else
+                        {
+                            // Nếu dữ liệu không phải số thì giữ nguyên
+                            thang = thangGiaiMa;
+                        }
 
                         nam = string.IsNullOrWhiteSpace(BaoMatAES.GiaiMa(reader["Nam"]?.ToString() ?? ""))
                               ? khoangTrang
@@ -1528,9 +1595,27 @@ namespace PhanMemThiDua2026
 
                     if (reader.Read())
                     {
-                        thang = string.IsNullOrWhiteSpace(BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? ""))
-                                ? khoangTrang
-                                : BaoMatAES.GiaiMa(reader["Thang"].ToString());
+                        string thangGiaiMa = BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? "").Trim();
+
+                        if (string.IsNullOrWhiteSpace(thangGiaiMa))
+                        {
+                            thang = khoangTrang;
+                        }
+                        else if (int.TryParse(thangGiaiMa, out int thangSo))
+                        {
+                            // Quy định:
+                            // 1 -> 01
+                            // 2 -> 02
+                            // 3..12 giữ nguyên
+                            thang = (thangSo == 1 || thangSo == 2)
+                                ? thangSo.ToString("00")
+                                : thangSo.ToString();
+                        }
+                        else
+                        {
+                            // Nếu dữ liệu không phải số thì giữ nguyên
+                            thang = thangGiaiMa;
+                        }
 
                         nam = string.IsNullOrWhiteSpace(BaoMatAES.GiaiMa(reader["Nam"]?.ToString() ?? ""))
                               ? khoangTrang
@@ -1832,9 +1917,27 @@ namespace PhanMemThiDua2026
 
                     if (reader.Read())
                     {
-                        thang = string.IsNullOrWhiteSpace(BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? ""))
-                                ? khoangTrang
-                                : BaoMatAES.GiaiMa(reader["Thang"].ToString());
+                        string thangGiaiMa = BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? "").Trim();
+
+                        if (string.IsNullOrWhiteSpace(thangGiaiMa))
+                        {
+                            thang = khoangTrang;
+                        }
+                        else if (int.TryParse(thangGiaiMa, out int thangSo))
+                        {
+                            // Quy định:
+                            // 1 -> 01
+                            // 2 -> 02
+                            // 3..12 giữ nguyên
+                            thang = (thangSo == 1 || thangSo == 2)
+                                ? thangSo.ToString("00")
+                                : thangSo.ToString();
+                        }
+                        else
+                        {
+                            // Nếu dữ liệu không phải số thì giữ nguyên
+                            thang = thangGiaiMa;
+                        }
 
                         nam = string.IsNullOrWhiteSpace(BaoMatAES.GiaiMa(reader["Nam"]?.ToString() ?? ""))
                               ? khoangTrang
@@ -2475,14 +2578,16 @@ namespace PhanMemThiDua2026
                 return $"PHAN_LOAI_THI_DUA_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
             }
         }
+        // 🌟 HÀM GỐC LẤY THÁNG ĐÃ ĐƯỢC VÁ LỖI TRIỆT ĐỂ (LOẠI BỎ SỐ 0 THỪA TỪ THÁNG 3 TRỞ ĐI)
         public static string LayThangHeThong()
         {
+            string thangKetQua = DateTime.Now.Month.ToString();
+
             try
             {
                 using var conn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
                 conn.Open();
 
-                // ⭐ THÊM DÒNG NÀY: Đảm bảo bảng tồn tại trước khi truy vấn (Fix lỗi sập ngầm)
                 string sqlCreate = @"CREATE TABLE IF NOT EXISTS ThangHeThong (ID INTEGER PRIMARY KEY, Thang TEXT);";
                 using (var cmdCreate = new SqliteCommand(sqlCreate, conn))
                 {
@@ -2493,17 +2598,22 @@ namespace PhanMemThiDua2026
                 var res = cmd.ExecuteScalar();
                 if (res != null && res != DBNull.Value)
                 {
-                    // Đọc trực tiếp, không giải mã
-                    string thangGiaiMa = res.ToString().Trim();
-                    if (!string.IsNullOrEmpty(thangGiaiMa))
+                    string thangDb = res.ToString().Trim();
+                    if (!string.IsNullOrEmpty(thangDb))
                     {
-                        return thangGiaiMa.PadLeft(2, '0'); // Đảm bảo luôn ra định dạng 01, 02...
+                        thangKetQua = thangDb;
                     }
                 }
             }
             catch { }
 
-            return DateTime.Now.ToString("MM"); // Chỉ lấy tháng máy tính khi CSDL thực sự hỏng
+            // BỘ LỌC CHỐT CHẶN: Chỉ giữ số 0 cho tháng 1 và 2. Từ tháng 3-12 trả về số tự nhiên.
+            if (int.TryParse(thangKetQua, out int thangSo))
+            {
+                return (thangSo == 1 || thangSo == 2) ? thangSo.ToString("00") : thangSo.ToString();
+            }
+
+            return thangKetQua;
         }
         public static string LayNamHeThong()
         {

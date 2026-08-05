@@ -172,9 +172,28 @@ namespace PhanMemThiDua2026
 
                     if (reader.Read())
                     {
-                        thang = string.IsNullOrWhiteSpace(reader["Thang"]?.ToString())
-                            ? khoangTrang
-                            : BaoMatAES.GiaiMa(reader["Thang"].ToString());
+                        string thangGiaiMa = BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? "").Trim();
+                        int thangSoLocal = 0; // Đổi tên biến để tránh đụng độ với phạm vi bên ngoài
+
+                        if (string.IsNullOrWhiteSpace(thangGiaiMa))
+                        {
+                            thang = khoangTrang;
+                        }
+                        else if (int.TryParse(thangGiaiMa, out thangSoLocal))
+                        {
+                            // Quy định:
+                            // 1 -> 01
+                            // 2 -> 02
+                            // 3..12 giữ nguyên
+                            thang = (thangSoLocal == 1 || thangSoLocal == 2)
+                                ? thangSoLocal.ToString("00")
+                                : thangSoLocal.ToString();
+                        }
+                        else
+                        {
+                            // Nếu dữ liệu không phải số thì giữ nguyên
+                            thang = thangGiaiMa;
+                        }
 
                         nam = string.IsNullOrWhiteSpace(reader["Nam"]?.ToString())
                             ? khoangTrang
@@ -331,12 +350,21 @@ namespace PhanMemThiDua2026
                 loaiBaoCao = (loaiBaoCao ?? "").Trim().ToUpper();
                 tuanBaoCao = (tuanBaoCao ?? "").Trim();
 
-                // 👉 GỌI HÀM LẤY THÁNG HỆ THỐNG TỪ MODULE XUẤT PHÂN LOẠI
-                string thangHT = Module_XuatPhanLoai.LayThangHeThong();
+                // 👉 LẤY THÁNG VÀ NĂM HỆ THỐNG
+                string rawThang = Module_XuatPhanLoai.LayThangHeThong();
+                string namHT = Module_XuatPhanLoai.LayNamHeThong();
+
+                // 🌟 CHỐT CHẶN TRIỆT ĐỂ: Ép kiểu tháng để loại bỏ sạch sẽ số 0 thừa từ tháng 3 đến 12
+                string thangHT = rawThang;
+                if (int.TryParse(rawThang, out int thangSo))
+                {
+                    // Tháng 1 và 2 giữ nguyên dạng "01", "02". Từ tháng 3 đến 12 chuyển thành "3", "4"... "12"
+                    thangHT = (thangSo == 1 || thangSo == 2) ? thangSo.ToString("00") : thangSo.ToString();
+                }
 
                 if (loaiBaoCao.Contains("TUẦN"))
                 {
-                    // nếu dữ liệu là "Tuần 1" → lấy số 1
+                    // Nếu dữ liệu là "Tuần 1" → lấy số 1
                     if (tuanBaoCao.ToUpper().Contains("TUẦN"))
                     {
                         tuanBaoCao = tuanBaoCao.ToUpper().Replace("TUẦN", "").Trim();
@@ -345,24 +373,23 @@ namespace PhanMemThiDua2026
                     if (string.IsNullOrWhiteSpace(tuanBaoCao))
                         tuanBaoCao = "1";
 
-                    // ✅ Đổi 'thang' thành 'thangHT'
-                    chuoiThoiGian = $"TUẦN {tuanBaoCao} THÁNG {thangHT}/{nam}";
+                    // Vẫn giữ nguyên dấu "/" theo đúng quy chuẩn của đơn vị bạn
+                    chuoiThoiGian = $"TUẦN {tuanBaoCao} THÁNG {thangHT}/{namHT}";
                 }
                 else
                 {
-                    // ✅ Đổi 'thang' thành 'thangHT'
-                    chuoiThoiGian = $"THÁNG {thangHT}/{nam}";
+                    chuoiThoiGian = $"THÁNG {thangHT}/{namHT}";
                 }
+
                 var tieuDe = ws.Range("A6:M6");
-
                 tieuDe.Merge();
-                tieuDe.Value = $"DANH SÁCH TỔNG HỢP CÁC LOẠI {chuoiThoiGian}";
 
+                tieuDe.Value = $"DANH SÁCH TỔNG HỢP CÁC LOẠI {chuoiThoiGian}";
                 tieuDe.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                tieuDe.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center; // Kéo chữ nằm ngay giữa ô gộp
                 tieuDe.Style.Font.Bold = true;
                 tieuDe.Style.Font.FontName = "Times New Roman";
                 tieuDe.Style.Font.FontSize = 14;
-
                 // ===== 6. DÒNG A7 (RICH TEXT) =====
                 var cellA7 = ws.Cell("A7");
                 cellA7.Clear(XLClearOptions.Contents);

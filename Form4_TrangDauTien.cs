@@ -25,7 +25,7 @@ namespace PhanMemThiDua2026
         private readonly Icon _appIcon;
         private readonly Image _iconTrue = Properties.Resources._true;   // Đảm bảo tên file trong Resources là true
         private readonly Image _iconFalse = Properties.Resources._false; // Đảm bảo tên file trong Resources là false
-       // private Dictionary<string, string> _dictChiHuyD = new Dictionary<string, string>();
+                                                                         // private Dictionary<string, string> _dictChiHuyD = new Dictionary<string, string>();
         private Font? _cachedGridFont;
         private Font? _cachedGridFontBold;
         private Font? _cachedGrid2HeaderFont;
@@ -1047,7 +1047,7 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine("Bang2 ERROR: " + ex.Message);
             }
-        }      
+        }
         ///   Nguyên lý Khống chế trần tuyệt đối(Chống vượt % dưới mọi hình thức)Giả sử tổng quân số đủ điều kiện là $N$ (biến số động) và tỷ lệ Loại 2 lấy từ CSDL là $R$ (ví dụ: $79\% = 0.79$).Số lượng Loại 2 tối đa theo thuật toán của chúng ta là:$$Max = \lfloor N \times R \rfloor$$(Hàm Math.Floor chính là phép toán lấy phần nguyên lớn nhất không vượt quá giá trị thực).Bây giờ ta test ngược lại tỷ lệ phần trăm thực tế đạt được:$$\% \text{ Thực tế } = \frac{\lfloor N \times R \rfloor }{N
         ///    }$$Theo tính chất toán học, $\lfloor X \rfloor \le X$. Do đó:$$\frac{\lfloor N \times R \rfloor }{N
         ///} \le \frac{N \times R}{ N} = R$$👉 Kết luận 1: Tỷ lệ phần trăm tính ra luôn luôn nhỏ hơn hoặc bằng tỷ lệ quy định $R$, bất chấp quân số $N$ là số chẵn hay số lẻ. Quy định "tối đa chỉ bằng hoặc thấp hơn mức % quy định" được thỏa mãn tuyệt đối.Ví dụ Test Edge Case (Trường hợp dị biệt): Đơn vị siêu nhỏ có $N = 6$ người. Tỷ lệ quy định $R = 79\%$.Máy tính: $6 \times 0.79 = 4.74$.Thuật toán Math.Floor(4.74): Lấy $4$ người.Test tỷ lệ nộp báo cáo: $4 / 6 = 66.67\% \le 79\%$. (Hợp lệ hoàn toàn, nếu lấy 5 người sẽ ra $83.33\% \rightarrow$ vi phạm quy định).2. Nguyên lý Bảo toàn quân số (Không bao giờ rớt mất người)Trong quân đội hay công an, quân số báo cáo tổng phải khớp đến từng người. Quá trình làm tròn xuống (cho Loại 1 và Loại 2) chắc chắn sẽ sinh ra những "mảnh vỡ" số thập phân (như số $0.74$ ở ví dụ trên bị vứt bỏ). Nếu không cẩn thận, cộng lại sẽ bị mất tích người.Thuật toán của chúng ta xử lý thế này:Quỹ Loại 2 (gồm L1 + L2 thuần) = Math.Floor(N * 79%).Quỹ Loại 3 = N - Quỹ Loại 2.Bởi vì: $\text{Quỹ Loại 2} + \text{Quỹ Loại 3} = \text{Quỹ Loại 2} +(N - \text{Quỹ Loại 2}) = N$.👉 Kết luận 2: Tổng số người đánh giá luôn luôn khớp đúng $100\%$ với số $N$ đầu vào. Bất kể Math.Floor đã chém bỏ bao nhiêu phần thập phân của Loại 2, phần bị chém đó đều tự động biến thành $1$ con người hoàn chỉnh đẩy sang Loại 3. Không có ai bị bỏ sót.3. Giải đáp thắc mắc: Tại sao báo lỗi "Loại 3 đang thiếu" là hợp lý 100%?Bây giờ ta quay lại kịch bản báo cáo bị lỗi của đơn vị.Giả sử hệ thống đang cảnh báo:Loại 1: Thừa 1 đồng chí (Do xét quá tay 1 người).Loại 2: Vừa đủ số lượng.Loại 3: Thiếu 1 đồng chí.Anh băn khoăn rằng: "Ông Loại 1 đang bị dư, giáng cấp ông đó xuống thì ông đó phải vào Loại 2 chứ? Sao lại nhảy xuống Loại 3 để lấp vào chỗ thiếu?"Câu trả lời nằm ở định nghĩa Trần Quỹ Loại 2.Quy định nêu rõ: "Loại 1 được lấy trong tổng số Loại 2".Nghĩa là Loại 1 và Loại 2 đang dùng chung một cái rổ.Cái rổ này có sức chứa tối đa bị khóa cứng bởi lệnh Math.Floor(N * 79%).Nếu đơn vị đã chấm Loại 2 thuần "đầy mép" cái rổ rồi, thì 1 ông Loại 1 dư thừa kia khi giáng cấp xuống sẽ không thể chui vào cái rổ Loại 2 được nữa (vì nếu chui vào, cái rổ phình to ra, chia % sẽ bị vượt mốc $79\%$).Người này trượt khỏi cái rổ L1+L2, lực hấp dẫn tự động kéo thẳng ông ấy xuống cái rổ Loại 3.
@@ -1733,6 +1733,7 @@ namespace PhanMemThiDua2026
         { kryptonButton_XuatTrinhKy, "Xuất tệp trình ký theo mẫu quy định" },
         { kryptonButton_XuatTatCa, "Xuất toàn bộ dữ liệu ra các tệp Excel" },
         { kryptonButton_MoThuMuc, "Mở thư mục chứa các tệp đã xuất" },
+        { kryptonButton1_XuatTepPdf, "Xuất tệp *.pdf để gửi lên phần mềm QLVB ĐHTN" },
     };
 
             foreach (var tip in tips)
@@ -1759,8 +1760,13 @@ namespace PhanMemThiDua2026
                 for (int i = 1; i <= 31; i++)
                     comboBox_Ngay.Items.Add(i.ToString("D2"));
 
+                // 🌟 SỬA TẠI ĐÂY: Thêm logic định dạng tháng cho Combobox
                 for (int i = 1; i <= 12; i++)
-                    comboBox_Thang.Items.Add(i.ToString("D2"));
+                {
+                    // Tháng 1, 2 hiển thị "01", "02". Tháng 3 đến 12 hiển thị "3", "4"... "12"
+                    string hienThiThang = (i == 1 || i == 2) ? i.ToString("D2") : i.ToString();
+                    comboBox_Thang.Items.Add(hienThiThang);
+                }
 
                 for (int i = namHeThong - 1; i <= namHeThong + 10; i++)
                     comboBox_Nam.Items.Add(i.ToString());
@@ -1768,9 +1774,12 @@ namespace PhanMemThiDua2026
                 isComboBoxInitDone = true;
             }
 
-            // Gán giá trị hiện tại (đã chắc chắn format khớp)
+            // Gán giá trị hiện tại theo đúng quy luật mới
             comboBox_Ngay.SelectedItem = now.Day.ToString("D2");
-            comboBox_Thang.SelectedItem = now.Month.ToString("D2");
+
+            // Gán tháng hiện tại cho khớp với danh sách item vừa nạp
+            comboBox_Thang.SelectedItem = (now.Month == 1 || now.Month == 2) ? now.Month.ToString("D2") : now.Month.ToString();
+
             comboBox_Nam.SelectedItem = namHeThong.ToString();
 
             // Enable / Disable đồng bộ
@@ -2126,14 +2135,14 @@ WHERE ID = 1", conn);
             {
                 toolStripStatusLabel1.Text = message;
             }
-        }   
+        }
         private class ComboItem
         {
             public int ID { get; set; }
             public string Text { get; set; }
             public override string ToString() => Text;
         }
-       //Biểu đồ tròn
+        //Biểu đồ tròn
         private void tabPage2_Click(object? sender, EventArgs e)
         {
             piePanel?.Invalidate();
@@ -2375,7 +2384,8 @@ WHERE ID = 1", conn);
             if (IsDisposed || Disposing) return;
 
             int targetValue = 0;
-            Action calcTarget = () => {
+            Action calcTarget = () =>
+            {
                 targetValue = toolStripProgressBar1.Value + value;
                 if (targetValue > toolStripProgressBar1.Maximum) targetValue = toolStripProgressBar1.Maximum;
                 if (targetValue < toolStripProgressBar1.Minimum) targetValue = toolStripProgressBar1.Minimum;
@@ -2387,7 +2397,8 @@ WHERE ID = 1", conn);
                 if (IsDisposed || Disposing) break;
 
                 bool isReached = false;
-                Action stepUp = () => {
+                Action stepUp = () =>
+                {
                     // Tăng bước nhảy lên 2% mỗi khung hình thay vì 1% để trượt nhanh hơn
                     toolStripProgressBar1.Value += (toolStripProgressBar1.Value + 2 <= targetValue) ? 2 : 1;
 
@@ -2411,7 +2422,8 @@ WHERE ID = 1", conn);
             int current = 0;
             int max = 100;
 
-            Action getValues = () => {
+            Action getValues = () =>
+            {
                 current = toolStripProgressBar1.Value;
                 max = toolStripProgressBar1.Maximum;
             };
@@ -2425,7 +2437,8 @@ WHERE ID = 1", conn);
             // ⭐ ÉP XUNG: Giảm thời gian khựng lại lúc đạt 100% từ 200ms xuống 50ms
             await Task.Delay(50);
 
-            Action closeProgress = () => {
+            Action closeProgress = () =>
+            {
                 toolStripProgressBar1.Visible = false;
                 toolStripProgressBar1.Value = 0;
             };
@@ -2433,7 +2446,7 @@ WHERE ID = 1", conn);
         }
 
         // ⭐ NÂNG CẤP END: Cho trượt nốt phần còn lại tới 100% rồi mới đóng
-      
+
         #endregion
         private async void kryptonButton_Refresh_Click(object sender, EventArgs e)
         {
@@ -3661,6 +3674,56 @@ PTLoai3=@PTLoai3
             _cachedGrid2HeaderFont?.Dispose(); // Thêm dòng này
             if (formTinhToan != null && !formTinhToan.IsDisposed) formTinhToan.Dispose();
             if (form11 != null && !form11.IsDisposed) form11.Dispose();
+        }
+
+        // KHI BÁO CÁC BIẾN NÀY Ở ĐẦU CLASS (Cùng chỗ với form11)
+        private Form48_XuatTepPdf form48;
+        private string _textGocNutXuatPdf = null;
+        private Image _anhGocNutXuatPdf = null;
+
+        // HÀM XỬ LÝ SỰ KIỆN CLICK
+        private void kryptonButton1_XuatTepPdf_Click(object sender, EventArgs e)
+        {
+            // 1. Lưu lại Text và Icon gốc ở lần bấm đầu tiên (tránh lưu nhầm chữ "Đang xử lý...")
+            if (_textGocNutXuatPdf == null)
+            {
+                _textGocNutXuatPdf = kryptonButton1_XuatTepPdf.Values.Text;
+                _anhGocNutXuatPdf = kryptonButton1_XuatTepPdf.Values.Image;
+            }
+
+            // 2. Đổi giao diện nút thành "Đang xử lý..." để phản hồi thao tác người dùng
+            kryptonButton1_XuatTepPdf.Values.Text = "Đang xử lý...";
+            // kryptonButton1_XuatTepPdf.Values.Image = null; // Mở comment dòng này nếu bạn muốn tạm ẩn icon lúc đang xử lý
+
+            // 3. Khởi tạo Form 48 nếu chưa có hoặc đã bị Dispose (đóng) trước đó
+            if (form48 == null || form48.IsDisposed)
+            {
+                form48 = new Form48_XuatTepPdf
+                {
+                    Owner = this,          // Xác định form cha để giữ logic hiển thị tốt nhất
+                    ShowInTaskbar = false  // Tùy chọn ẩn icon dưới taskbar để tập trung vào Form chính
+                };
+
+                // 🌟 BÍ QUYẾT: Đăng ký sự kiện khi Form 48 ĐÓNG thì trả lại tên cũ cho nút bấm
+                form48.FormClosed += (s, ev) =>
+                {
+                    // Kiểm tra an toàn xem Form hiện tại (form cha) còn sống không trước khi gán UI
+                    if (!this.IsDisposed && this.IsHandleCreated)
+                    {
+                        kryptonButton1_XuatTepPdf.Values.Text = _textGocNutXuatPdf;
+                        kryptonButton1_XuatTepPdf.Values.Image = _anhGocNutXuatPdf;
+                    }
+                };
+            }
+
+            // 4. Hiển thị và đưa Form 48 lên lớp mặt trên cùng
+            if (!form48.Visible)
+            {
+                form48.Show();
+            }
+
+            // Kích hoạt (Focus) vào form để người dùng sử dụng ngay
+            form48.Activate();
         }
     }
 }

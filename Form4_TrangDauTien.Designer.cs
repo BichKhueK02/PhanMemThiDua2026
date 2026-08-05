@@ -43,9 +43,9 @@
             kryptonButton_KiemTraTLvaQS = new Krypton.Toolkit.KryptonButton();
             kryptonButton_Refresh = new Krypton.Toolkit.KryptonButton();
             tableLayoutPanel12 = new TableLayoutPanel();
+            kryptonButton1_XuatTepPdf = new Krypton.Toolkit.KryptonButton();
             kryptonButton_XuatTrinhKy = new Krypton.Toolkit.KryptonButton();
             kryptonButton_XuatTatCa = new Krypton.Toolkit.KryptonButton();
-            kryptonButton_MoThuMuc = new Krypton.Toolkit.KryptonButton();
             tableLayoutPanel11 = new TableLayoutPanel();
             label11 = new Label();
             Check_MoThuMuc = new CheckBox();
@@ -53,6 +53,7 @@
             tableLayoutPanel14 = new TableLayoutPanel();
             kryptonButton_XuatDanhSachLoai = new Krypton.Toolkit.KryptonButton();
             label3 = new Label();
+            kryptonButton_MoThuMuc = new Krypton.Toolkit.KryptonButton();
             comboBox1_ChonLoaiDeXuat = new ComboBox();
             groupBox5 = new GroupBox();
             tableLayoutPanel5 = new TableLayoutPanel();
@@ -298,9 +299,9 @@
             tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32.31598F));
             tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34.11131F));
             tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
+            tableLayoutPanel12.Controls.Add(kryptonButton1_XuatTepPdf, 2, 0);
             tableLayoutPanel12.Controls.Add(kryptonButton_XuatTrinhKy, 0, 0);
             tableLayoutPanel12.Controls.Add(kryptonButton_XuatTatCa, 1, 0);
-            tableLayoutPanel12.Controls.Add(kryptonButton_MoThuMuc, 2, 0);
             tableLayoutPanel12.Dock = DockStyle.Fill;
             tableLayoutPanel12.Location = new Point(7, 99);
             tableLayoutPanel12.Margin = new Padding(2, 3, 2, 3);
@@ -309,6 +310,21 @@
             tableLayoutPanel12.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel12.Size = new Size(544, 42);
             tableLayoutPanel12.TabIndex = 12;
+            // 
+            // kryptonButton1_XuatTepPdf
+            // 
+            kryptonButton1_XuatTepPdf.Anchor = AnchorStyles.None;
+            kryptonButton1_XuatTepPdf.Location = new Point(374, 5);
+            kryptonButton1_XuatTepPdf.Margin = new Padding(2, 3, 2, 3);
+            kryptonButton1_XuatTepPdf.Name = "kryptonButton1_XuatTepPdf";
+            kryptonButton1_XuatTepPdf.RightToLeft = RightToLeft.No;
+            kryptonButton1_XuatTepPdf.Size = new Size(157, 32);
+            kryptonButton1_XuatTepPdf.StateCommon.Border.Rounding = 4F;
+            kryptonButton1_XuatTepPdf.TabIndex = 2;
+            kryptonButton1_XuatTepPdf.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton1_XuatTepPdf.Values.Image = (Image)resources.GetObject("kryptonButton1_XuatTepPdf.Values.Image");
+            kryptonButton1_XuatTepPdf.Values.Text = "Xuất tệp (*.pdf)";
+            kryptonButton1_XuatTepPdf.Click += kryptonButton1_XuatTepPdf_Click;
             // 
             // kryptonButton_XuatTrinhKy
             // 
@@ -339,21 +355,6 @@
             kryptonButton_XuatTatCa.Values.Image = (Image)resources.GetObject("kryptonButton_XuatTatCa.Values.Image");
             kryptonButton_XuatTatCa.Values.Text = "Xuất tất cả";
             kryptonButton_XuatTatCa.Click += kryptonButton_XuatTatCa_Click;
-            // 
-            // kryptonButton_MoThuMuc
-            // 
-            kryptonButton_MoThuMuc.Anchor = AnchorStyles.None;
-            kryptonButton_MoThuMuc.DialogResult = DialogResult.TryAgain;
-            kryptonButton_MoThuMuc.Location = new Point(374, 5);
-            kryptonButton_MoThuMuc.Margin = new Padding(2, 3, 2, 3);
-            kryptonButton_MoThuMuc.Name = "kryptonButton_MoThuMuc";
-            kryptonButton_MoThuMuc.Size = new Size(157, 32);
-            kryptonButton_MoThuMuc.StateCommon.Border.Rounding = 4F;
-            kryptonButton_MoThuMuc.TabIndex = 2;
-            kryptonButton_MoThuMuc.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_MoThuMuc.Values.Image = (Image)resources.GetObject("kryptonButton_MoThuMuc.Values.Image");
-            kryptonButton_MoThuMuc.Values.Text = "Mở thư mục";
-            kryptonButton_MoThuMuc.Click += kryptonButton_MoThuMuc_Click;
             // 
             // tableLayoutPanel11
             // 
@@ -420,12 +421,14 @@
             // 
             // tableLayoutPanel14
             // 
-            tableLayoutPanel14.ColumnCount = 3;
-            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
+            tableLayoutPanel14.ColumnCount = 4;
+            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.080883F));
+            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22.42647F));
+            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.57353F));
+            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26.2867641F));
             tableLayoutPanel14.Controls.Add(kryptonButton_XuatDanhSachLoai, 2, 0);
             tableLayoutPanel14.Controls.Add(label3, 0, 0);
+            tableLayoutPanel14.Controls.Add(kryptonButton_MoThuMuc, 3, 0);
             tableLayoutPanel14.Controls.Add(comboBox1_ChonLoaiDeXuat, 1, 0);
             tableLayoutPanel14.Dock = DockStyle.Fill;
             tableLayoutPanel14.Location = new Point(7, 51);
@@ -440,10 +443,10 @@
             // 
             kryptonButton_XuatDanhSachLoai.Anchor = AnchorStyles.None;
             kryptonButton_XuatDanhSachLoai.DialogResult = DialogResult.TryAgain;
-            kryptonButton_XuatDanhSachLoai.Location = new Point(374, 5);
+            kryptonButton_XuatDanhSachLoai.Location = new Point(262, 5);
             kryptonButton_XuatDanhSachLoai.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatDanhSachLoai.Name = "kryptonButton_XuatDanhSachLoai";
-            kryptonButton_XuatDanhSachLoai.Size = new Size(157, 32);
+            kryptonButton_XuatDanhSachLoai.Size = new Size(126, 32);
             kryptonButton_XuatDanhSachLoai.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatDanhSachLoai.TabIndex = 1;
             kryptonButton_XuatDanhSachLoai.Values.DropDownArrowColor = Color.Empty;
@@ -457,7 +460,7 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(0, 0, 192);
-            label3.Location = new Point(35, 11);
+            label3.Location = new Point(10, 11);
             label3.Margin = new Padding(2, 0, 2, 0);
             label3.Name = "label3";
             label3.RightToLeft = RightToLeft.No;
@@ -466,6 +469,21 @@
             label3.Text = "Chọn danh sách";
             label3.TextAlign = ContentAlignment.MiddleLeft;
             // 
+            // kryptonButton_MoThuMuc
+            // 
+            kryptonButton_MoThuMuc.Anchor = AnchorStyles.None;
+            kryptonButton_MoThuMuc.DialogResult = DialogResult.TryAgain;
+            kryptonButton_MoThuMuc.Location = new Point(409, 5);
+            kryptonButton_MoThuMuc.Margin = new Padding(2, 3, 2, 3);
+            kryptonButton_MoThuMuc.Name = "kryptonButton_MoThuMuc";
+            kryptonButton_MoThuMuc.Size = new Size(126, 32);
+            kryptonButton_MoThuMuc.StateCommon.Border.Rounding = 4F;
+            kryptonButton_MoThuMuc.TabIndex = 2;
+            kryptonButton_MoThuMuc.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton_MoThuMuc.Values.Image = (Image)resources.GetObject("kryptonButton_MoThuMuc.Values.Image");
+            kryptonButton_MoThuMuc.Values.Text = "Mở thư mục";
+            kryptonButton_MoThuMuc.Click += kryptonButton_MoThuMuc_Click;
+            // 
             // comboBox1_ChonLoaiDeXuat
             // 
             comboBox1_ChonLoaiDeXuat.Anchor = AnchorStyles.None;
@@ -473,11 +491,11 @@
             comboBox1_ChonLoaiDeXuat.Font = new Font("Segoe UI", 9.216F);
             comboBox1_ChonLoaiDeXuat.ForeColor = Color.Black;
             comboBox1_ChonLoaiDeXuat.FormattingEnabled = true;
-            comboBox1_ChonLoaiDeXuat.Location = new Point(193, 8);
+            comboBox1_ChonLoaiDeXuat.Location = new Point(132, 8);
             comboBox1_ChonLoaiDeXuat.Margin = new Padding(2, 3, 2, 3);
             comboBox1_ChonLoaiDeXuat.Name = "comboBox1_ChonLoaiDeXuat";
             comboBox1_ChonLoaiDeXuat.RightToLeft = RightToLeft.No;
-            comboBox1_ChonLoaiDeXuat.Size = new Size(157, 23);
+            comboBox1_ChonLoaiDeXuat.Size = new Size(117, 23);
             comboBox1_ChonLoaiDeXuat.TabIndex = 0;
             // 
             // groupBox5
@@ -1256,5 +1274,6 @@
         private ComboBox comboBox1_ChonLoaiDeXuat;
         private GroupBox groupBox4;
         private GroupBox groupBox5;
+        private Krypton.Toolkit.KryptonButton kryptonButton1_XuatTepPdf;
     }
 }
