@@ -61,5 +61,36 @@ namespace PhanMemThiDua2026
 
             return _form2Instance;
         }
+        public static void KiemTraVaCanhBaoTyLeManHinh()
+        {
+            try
+            {
+                float dpiX;
+                // Lấy DPI thực tế của màn hình chính bằng Graphics Hwnd(0)
+                using (Graphics graphics = Graphics.FromHwnd(IntPtr.Zero))
+                {
+                    dpiX = graphics.DpiX;
+                }
+
+                // Tính toán phần trăm Scale (100% = 96 DPI)
+                float scalePercentage = (dpiX / 96f) * 100f;
+
+                // Nếu tỷ lệ >= 150%
+                if (scalePercentage >= 150f)
+                {
+                    MessageBox.Show(
+                        $"Hệ thống phát hiện tỷ lệ hiển thị màn hình (Scale/Zoom) của máy tính đang ở mức {Math.Round(scalePercentage)}%.\n\n" +
+                        "Điều này có thể làm một số giao diện của phần mềm bị phóng to quá mức, che khuất nút bấm hoặc hiển thị không chính xác.\n\n" +
+                        "Khuyến nghị: Nhấn chuột phải vào màn hình Desktop -> Chọn 'Display settings' -> Chỉnh mục 'Scale' về mức 100% hoặc tối đa 125% để có trải nghiệm tốt nhất.",
+                        "Cảnh báo tỷ lệ màn hình",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi kiểm tra DPI màn hình: " + ex.Message);
+            }
+        }
     }
 }

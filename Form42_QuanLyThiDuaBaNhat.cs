@@ -1708,9 +1708,9 @@ namespace PhanMemThiDua2026
                 isLoadShown = true;
                 await Task.Delay(50); // Nhường luồng cho UI vẽ form loading mượt
 
-                // =========================================================================
+                
                 // TỐI ƯU: ĐỌC VÀ GIẢI MÃ MỘT LẦN VÀO LIST DTO TRÊN LUỒNG BẤT ĐỒNG BỘ
-                // =========================================================================
+                
                 List<DanhSachGocBaNhatDTO> danhSachGoc = new List<DanhSachGocBaNhatDTO>();
 
                 using (var conn = new SqliteConnection($"Data Source={_csdl2Path}"))
@@ -1887,7 +1887,6 @@ namespace PhanMemThiDua2026
                 ToolStripMenuItem_XuatDanhSach.Enabled = true;
             }
         }
-
         private async void toolStripMenuItem_ToTrinhBaNhat_Click(object sender, EventArgs e)
         {
             string templatePath = Module_DanduongGPS.DuongDanCSDL4ex;
@@ -1897,51 +1896,21 @@ namespace PhanMemThiDua2026
                 return;
             }
 
-            // =========================================================================
-            // 🌟 UX: CHỌN THƯ MỤC LƯU (Thay vì SaveFileDialog bắt nhập tên)
-            // =========================================================================
-            // =========================================================================
-            // 🌟 UX: LẤY ĐƯỜNG DẪN THƯ MỤC ĐANG MỞ HOẶC DESKTOP
-            // =========================================================================
-            string thuMucMacDinh = Environment.GetFolderPath(Environment.SpecialFolder.Desktop); // Mặc định là Desktop
-            try
-            {
-                using (var conn = new SqliteConnection($"Data Source={_csdl2Path}"))
-                {
-                    conn.Open();
-                    using (var cmd = new SqliteCommand("SELECT ChonDuongDanXuatTep FROM ThongTin WHERE ID = 1", conn))
-                    {
-                        var result = cmd.ExecuteScalar();
-                        if (result != null && result != DBNull.Value)
-                        {
-                            // Giải mã đường dẫn đã lưu trong hệ thống
-                            string giaiMaPath = BaoMatAES.GiaiMa(result.ToString() ?? "").Trim();
-                            if (Directory.Exists(giaiMaPath))
-                            {
-                                thuMucMacDinh = giaiMaPath; // Ghi đè bằng thư mục hiện tại nếu đường dẫn hợp lệ
-                            }
-                        }
-                    }
-                }
-            }
-            catch { /* Nếu lỗi hoặc chưa cấu hình thì giữ nguyên Desktop */ }
-
-            // =========================================================================
-            // 🌟 UX: CHỌN THƯ MỤC LƯU (Tự động focus thư mục)
-            // =========================================================================
+            
+            // 🌟 UX: LUÔN LUÔN MỞ MẶC ĐỊNH LÀ MÀN HÌNH DESKTOP (Cho người dùng tiện)          
+            string thuMucMacDinh = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             using var fbd = new FolderBrowserDialog
             {
                 Description = "Chọn thư mục để lưu Tờ trình Ba Nhất",
                 ShowNewFolderButton = true,
-                SelectedPath = thuMucMacDinh // 👈 ĐÂY LÀ DÒNG LỆNH GÁN TÊN THƯ MỤC LÊN HỘP THOẠI
+                // Ép Windows mở thẳng vào Desktop
+                InitialDirectory = thuMucMacDinh,
+                SelectedPath = thuMucMacDinh
             };
 
             if (fbd.ShowDialog() != DialogResult.OK) return;
-            string directoryPath = fbd.SelectedPath;
-
-            // =========================================================================
-            // 🌟 THUẬT TOÁN ĐẾM VÀ TỰ ĐỘNG ĐẶT TÊN TỆP THEO ĐÚNG Ý TƯỞNG CỦA BẠN
-            // =========================================================================
+            string directoryPath = fbd.SelectedPath;          
+            // 🌟 THUẬT TOÁN ĐẾM VÀ TỰ ĐỘNG ĐẶT TÊN TỆP THEO ĐÚNG Ý TƯỞNG CỦA BẠN          
             string keyword = "TỜ TRÌNH ĐỀ NGHỊ BIỂU DƯƠNG BA NHẤT THÁNG";
             string[] existingSpecificFiles = Directory.GetFiles(directoryPath, $"*{keyword}*");
             int prefixNumber = 1;
@@ -1962,7 +1931,7 @@ namespace PhanMemThiDua2026
             string filePathLuu = "";
             while (true)
             {
-                string fileName = $"{prefixNumber}. {keyword} {DateTime.Now:MM_yyyy}.xlsx";
+                string fileName = $"{prefixNumber}. {keyword} {DateTime.Now:MM-yyyy}.xlsx";
                 filePathLuu = Path.Combine(directoryPath, fileName);
                 if (!File.Exists(filePathLuu)) break; // Tên chưa tồn tại -> Chốt tên này
                 prefixNumber++; // Đã tồn tại -> Tăng số đếm lên tiếp
@@ -1971,7 +1940,6 @@ namespace PhanMemThiDua2026
             Form_Loading frmLoad = new Form_Loading("Đang khởi tạo tờ trình, vui lòng đợi...");
             bool isLoadShown = false;
             frmLoad.Icon = this.Icon;
-
             try
             {
                 this.Enabled = false;
@@ -1980,10 +1948,8 @@ namespace PhanMemThiDua2026
                 await Task.Delay(50); // Nhường nhịp cho UI vẽ Form Loading
 
                 await Task.Run(() =>
-                {
-                    // =========================================================================
+                {                
                     // 1. LẤY DỮ LIỆU TỪ CƠ SỞ DỮ LIỆU (Chạy ngầm)
-                    // =========================================================================
                     string tenTrungDoan = "", tenTieuDoan = "", diaDiem = "", ngay = "", thang = "", nam = "";
                     int tongSoLoai1 = 0;
                     int tyLeQuyDinh = 30; // Mặc định nếu không đọc được
@@ -2055,11 +2021,8 @@ namespace PhanMemThiDua2026
                                 }
                             }
                         }
-                    }
-
-                    // =========================================================================
-                    // 2. XỬ LÝ ĐỔ DỮ LIỆU RA EXCEL (Tôn trọng tuyệt đối Template có sẵn)
-                    // =========================================================================
+                    }                
+                    // 2. XỬ LÝ ĐỔ DỮ LIỆU RA EXCEL (Tôn trọng tuyệt đối Template có sẵn)                    
                     using (var wb = new XLWorkbook(templatePath))
                     {
                         // 1. Kiểm tra và dọn dẹp Worksheet
@@ -2099,7 +2062,6 @@ namespace PhanMemThiDua2026
                             ws.Cell(startRow, 8).Value = item.DonVi;
                             ws.Cell(startRow, 9).Value = item.PhanLoai;
                             ws.Cell(startRow, 10).Value = ""; // Cột xin ý kiến để trống
-
                             // Kẻ bảng nét đứt/mỏng cho dòng mới tạo ra để duy trì thiết kế table
                             var rowRange = ws.Range(startRow, 1, startRow, 10);
                             rowRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
@@ -2119,7 +2081,6 @@ namespace PhanMemThiDua2026
                             ws.Row(startRow).Height = 20;
                             startRow++;
                         }
-
                         // 5. Chốt danh sách "Tổng cộng" ngay dưới danh sách
                         var rngTongCong = ws.Range(startRow, 1, startRow, 10);
                         rngTongCong.Merge().Value = $"Tổng cộng: {danhSachDeNghi.Count:00} đồng chí./.";
@@ -2151,9 +2112,6 @@ namespace PhanMemThiDua2026
                         cellThongTin.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
                         cellThongTin.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         cellThongTin.Style.Alignment.WrapText = true;
-
-
-
                         // 7. Active sheet lại đúng "TOTRINH_BANHAT" trước khi save
                         ws.SetTabActive();
                         wb.SaveAs(filePathLuu);

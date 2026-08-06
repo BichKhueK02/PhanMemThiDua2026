@@ -146,7 +146,7 @@
             toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.RightToLeft = RightToLeft.No;
-            toolStripStatusLabel1.Size = new Size(139, 21);
+            toolStripStatusLabel1.Size = new Size(152, 21);
             toolStripStatusLabel1.Text = "toolStripStatusLabel1";
             // 
             // toolStripProgressBar1
@@ -157,7 +157,7 @@
             // toolStripStatusLabel2
             // 
             toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            toolStripStatusLabel2.Size = new Size(118, 21);
+            toolStripStatusLabel2.Size = new Size(131, 21);
             toolStripStatusLabel2.Text = "toolStripStatusLabel2";
             // 
             // tableLayoutPanel1
@@ -423,9 +423,9 @@
             // 
             tableLayoutPanel14.ColumnCount = 4;
             tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.080883F));
-            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22.42647F));
+            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20.955883F));
+            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.3897057F));
             tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.57353F));
-            tableLayoutPanel14.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26.2867641F));
             tableLayoutPanel14.Controls.Add(kryptonButton_XuatDanhSachLoai, 2, 0);
             tableLayoutPanel14.Controls.Add(label3, 0, 0);
             tableLayoutPanel14.Controls.Add(kryptonButton_MoThuMuc, 3, 0);
@@ -443,10 +443,10 @@
             // 
             kryptonButton_XuatDanhSachLoai.Anchor = AnchorStyles.None;
             kryptonButton_XuatDanhSachLoai.DialogResult = DialogResult.TryAgain;
-            kryptonButton_XuatDanhSachLoai.Location = new Point(262, 5);
+            kryptonButton_XuatDanhSachLoai.Location = new Point(255, 5);
             kryptonButton_XuatDanhSachLoai.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatDanhSachLoai.Name = "kryptonButton_XuatDanhSachLoai";
-            kryptonButton_XuatDanhSachLoai.Size = new Size(126, 32);
+            kryptonButton_XuatDanhSachLoai.Size = new Size(128, 32);
             kryptonButton_XuatDanhSachLoai.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatDanhSachLoai.TabIndex = 1;
             kryptonButton_XuatDanhSachLoai.Values.DropDownArrowColor = Color.Empty;
@@ -473,10 +473,10 @@
             // 
             kryptonButton_MoThuMuc.Anchor = AnchorStyles.None;
             kryptonButton_MoThuMuc.DialogResult = DialogResult.TryAgain;
-            kryptonButton_MoThuMuc.Location = new Point(409, 5);
+            kryptonButton_MoThuMuc.Location = new Point(408, 5);
             kryptonButton_MoThuMuc.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_MoThuMuc.Name = "kryptonButton_MoThuMuc";
-            kryptonButton_MoThuMuc.Size = new Size(126, 32);
+            kryptonButton_MoThuMuc.Size = new Size(122, 32);
             kryptonButton_MoThuMuc.StateCommon.Border.Rounding = 4F;
             kryptonButton_MoThuMuc.TabIndex = 2;
             kryptonButton_MoThuMuc.Values.DropDownArrowColor = Color.Empty;
@@ -491,11 +491,11 @@
             comboBox1_ChonLoaiDeXuat.Font = new Font("Segoe UI", 9.216F);
             comboBox1_ChonLoaiDeXuat.ForeColor = Color.Black;
             comboBox1_ChonLoaiDeXuat.FormattingEnabled = true;
-            comboBox1_ChonLoaiDeXuat.Location = new Point(132, 8);
+            comboBox1_ChonLoaiDeXuat.Location = new Point(133, 8);
             comboBox1_ChonLoaiDeXuat.Margin = new Padding(2, 3, 2, 3);
             comboBox1_ChonLoaiDeXuat.Name = "comboBox1_ChonLoaiDeXuat";
             comboBox1_ChonLoaiDeXuat.RightToLeft = RightToLeft.No;
-            comboBox1_ChonLoaiDeXuat.Size = new Size(117, 23);
+            comboBox1_ChonLoaiDeXuat.Size = new Size(110, 23);
             comboBox1_ChonLoaiDeXuat.TabIndex = 0;
             // 
             // groupBox5

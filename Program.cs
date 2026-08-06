@@ -20,13 +20,11 @@ namespace PhanMemThiDua2026
             SetBrowserFeatureControl();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
             // Tăng độ ưu tiên cho Process giúp app mượt hơn
             using (Process p = Process.GetCurrentProcess())
             {
                 p.PriorityClass = ProcessPriorityClass.AboveNormal;
             }
-
             bool isPrimaryInstance = false;
             try
             {
@@ -39,25 +37,22 @@ namespace PhanMemThiDua2026
                 {
                     isPrimaryInstance = true;
                 }
-
                 if (!isPrimaryInstance)
                 {
                     ShowSingleInstanceMessage();
                     return;
                 }
-
                 // 3. Khởi tạo cấu hình WinForms mặc định
                 ApplicationConfiguration.Initialize();
-
+                // 🌟 THÊM MỚI Ở ĐÂY: Kiểm tra tỷ lệ màn hình ngay sau khi init cấu hình WinForms
+                Module_KhoiDongTrangChu.KiemTraVaCanhBaoTyLeManHinh();
                 // 4. Thiết lập bẫy lỗi toàn cục
                 ConfigureGlobalExceptionHandlers();
-
                 // 5. Khởi tạo hệ thống lõi (Khởi tạo DB, giải mã đường dẫn)
                 if (!KiemTraTrangThaiKhoiDong()) // Đã đổi tên từ NewMethod
                 {
                     return; // Dừng khởi động nếu lõi có vấn đề
                 }
-
                 // 6. ĐỒNG BỘ DỮ LIỆU
                 try
                 {
@@ -248,5 +243,10 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
+
+
+    
     }
+
 }
+

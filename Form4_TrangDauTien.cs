@@ -1733,7 +1733,7 @@ namespace PhanMemThiDua2026
         { kryptonButton_XuatTrinhKy, "Xuất tệp trình ký theo mẫu quy định" },
         { kryptonButton_XuatTatCa, "Xuất toàn bộ dữ liệu ra các tệp Excel" },
         { kryptonButton_MoThuMuc, "Mở thư mục chứa các tệp đã xuất" },
-        { kryptonButton1_XuatTepPdf, "Xuất tệp *.pdf để gửi lên phần mềm QLVB ĐHTN" },
+        { kryptonButton1_XuatTepPdf, "Xuất tệp *.pdf để gửi lên phần mềm QLVB ĐHTN" }
     };
 
             foreach (var tip in tips)
@@ -2120,7 +2120,8 @@ WHERE ID = 1", conn);
                 kryptonButton_XuatTatCa,
                 kryptonButton_LuuThongTin,
                 kryptonButton_ChonDuongDanLuu,
-                kryptonButton_MoThuMuc
+                kryptonButton_MoThuMuc,
+                kryptonButton1_XuatTepPdf // 🌟 BỔ SUNG THÊM NÚT NÀY VÀO ĐÂY ĐỂ ĐỒNG BỘ CHIỀU CAO
             };
             foreach (var btn in buttons)
                 btn.Height = h + 3;
@@ -3684,46 +3685,32 @@ PTLoai3=@PTLoai3
         // HÀM XỬ LÝ SỰ KIỆN CLICK
         private void kryptonButton1_XuatTepPdf_Click(object sender, EventArgs e)
         {
-            // 1. Lưu lại Text và Icon gốc ở lần bấm đầu tiên (tránh lưu nhầm chữ "Đang xử lý...")
+            // 1. Lưu lại Text và Icon gốc ở lần bấm đầu tiên
             if (_textGocNutXuatPdf == null)
             {
                 _textGocNutXuatPdf = kryptonButton1_XuatTepPdf.Values.Text;
                 _anhGocNutXuatPdf = kryptonButton1_XuatTepPdf.Values.Image;
             }
 
-            // 2. Đổi giao diện nút thành "Đang xử lý..." để phản hồi thao tác người dùng
-            kryptonButton1_XuatTepPdf.Values.Text = "Đang xử lý...";
-            // kryptonButton1_XuatTepPdf.Values.Image = null; // Mở comment dòng này nếu bạn muốn tạm ẩn icon lúc đang xử lý
+            // 2. Đổi giao diện nút thành "Đang xử lý..."
+            kryptonButton1_XuatTepPdf.Values.Text = "Đang mở...";
+            // kryptonButton1_XuatTepPdf.Values.Image = null; // Bỏ comment nếu muốn ẩn icon
 
-            // 3. Khởi tạo Form 48 nếu chưa có hoặc đã bị Dispose (đóng) trước đó
-            if (form48 == null || form48.IsDisposed)
+            // 3. Khởi tạo và hiển thị Form 48 dưới dạng chặn (Modal)
+            // Dùng khối using để đảm bảo form tự động giải phóng bộ nhớ (Dispose) ngay khi đóng
+            using (var form48 = new Form48_XuatTepPdf())
             {
-                form48 = new Form48_XuatTepPdf
-                {
-                    Owner = this,          // Xác định form cha để giữ logic hiển thị tốt nhất
-                    ShowInTaskbar = false  // Tùy chọn ẩn icon dưới taskbar để tập trung vào Form chính
-                };
+                form48.ShowInTaskbar = false;
+                form48.StartPosition = FormStartPosition.CenterParent; // Hiển thị form con ra ngay giữa form cha cho đẹp
 
-                // 🌟 BÍ QUYẾT: Đăng ký sự kiện khi Form 48 ĐÓNG thì trả lại tên cũ cho nút bấm
-                form48.FormClosed += (s, ev) =>
-                {
-                    // Kiểm tra an toàn xem Form hiện tại (form cha) còn sống không trước khi gán UI
-                    if (!this.IsDisposed && this.IsHandleCreated)
-                    {
-                        kryptonButton1_XuatTepPdf.Values.Text = _textGocNutXuatPdf;
-                        kryptonButton1_XuatTepPdf.Values.Image = _anhGocNutXuatPdf;
-                    }
-                };
+                // Lệnh ShowDialog sẽ KHÓA (block) form hiện tại. 
+                // Luồng mã sẽ đứng im tại dòng này chờ đến khi người dùng tắt form48 đi.
+                form48.ShowDialog(this);
             }
 
-            // 4. Hiển thị và đưa Form 48 lên lớp mặt trên cùng
-            if (!form48.Visible)
-            {
-                form48.Show();
-            }
-
-            // Kích hoạt (Focus) vào form để người dùng sử dụng ngay
-            form48.Activate();
+            // 4. Form 48 ĐÃ ĐÓNG XONG -> Tự động chạy tiếp các lệnh dưới đây để trả lại giao diện nút
+            kryptonButton1_XuatTepPdf.Values.Text = _textGocNutXuatPdf;
+            kryptonButton1_XuatTepPdf.Values.Image = _anhGocNutXuatPdf;
         }
     }
 }

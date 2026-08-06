@@ -222,17 +222,16 @@
   <data name="kryptonButton1_XuatTepPdf.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJSSURBVDhPlZNdSFNhGMcfg+bsIukizA80soiSUElF
-        KLNQsui2qO7rugIR2+ZGJ8eBoaR9SphZSXQTRbhN3fIjwgwMDNK5ooQJghBISima/eJ9p9sMifrDn/Oe
-        85zzex/O+3+kzNzyvOiKhULXBgpcSeS7hHxXkr4vNiyUm5ueVXlEsswhyTFfSo4ZWGMpMiz8TaWGsLX+
-        vWS4ByTTHZBMd49krThbAdROSmda0jjfvpf5xTkeDjo527KN/nAHhU7BWvcGq6Mbq92nneLwsdnpI72+
-        e0ZU20rFjUL/pydcfHqAc4/zuOo/pZ/vuixrOkqUgsQASgebhKFJH4ea4x/tqBUYPg1Dx3F6J2HwKLyu
-        1LUUhzcOKGkU3k75ONIsDE8HNOTd1x722ISGnm+4/ZOY/i8Y3gnqXnyOAuxeYv+gpEG4MHCYS68qKGsS
-        yq8LFbeEPJsw/Qsii9DgDTGxAB+/R7uz2juRIiN5tdt1tbtWmAGml6GpK8TUEkQWojUNKHWk9hcbGyl0
-        Cfscws4aIada2F4t5NYIJ2+e4G4wwu3uMHcC49zoGuOa90McICK5IrJf2eIY1gW1wTywBLT1RvgBqK5b
-        AiHmgJnlhA4qPalS5UmSNPeIJNuDMYCyeq8tGOYnaN8LhjRUwWOAYx6RDHNEJ02FRKk1MEprcIz23nEe
-        DYR50Deurdb3e0O0BkfjAJXxbDMaU3Usf6qjL7TuWilFAaIDEtTZVsn6H+kkrk6VGox0wz+rHipysq0T
-        q7J95ZqwVnU9C4Z/Vp1CogpWT+QfXfAbpWiYIqe5rdIAAAAASUVORK5CYII=
+        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIXSURBVDhPlZDfS5NRHIdfwgjyomb7KTFoLayJqamJ
+        P8NJY+Zo6UKHklDWzSiIogtBKAmCorCoaIV1oWZ/QBfRH9D9LlxrMH9kG2PiaLI1m5pPnLMazinRged9
+        3/N+P5/nwFEARRDUlC4EVFoC+9Q7oCGo0s4rm5boyYdAlHk3BW8ns++/iP34OExM4Hv2gmCxanJ7wX4N
+        vH5DoLiEoEqXQ+wZG2NaKUIs38PHOUmhwOslpDMyazTnCOmN8PIV/qK9fJcK8D33CvnUFoEWRp8wZzzC
+        V7Mlx/yhMpbsDqL1TfiV3fh37YFHo8h8wR3cf8CCuZzwsaosRyv5ZrIQtTnITH+Wpy8cPCxzMl8gGLlL
+        xFJN9HhdFks1cc91WVwPh0kMjxAxl8tcoaBEB0PDxKrqWaxtYrGmkVhZpSyvhWaJlpqIVdTKucjJfIHg
+        xi2WTrYSb2gjXtdC6s69P9eWXUvVDXIuctsI9OC5SqL5NMstNhInmln/EmQjHCF12cOPazdZbmyXc5GT
+        +TzBAT0MXiHZ1kGqqZ2fT73y1PTQbZKtNlLWM6TaO0laO2VO5gsEfQOkrQ7W3n+Q5V+hGVZOdbBi72Kl
+        o1uStndB/8AOAlcvGdcFWd6YmSPjdLPq6GH1rDsPzvduI1AbwNkNPRfhXB909We/3Ze2MAhOFzK/WfBJ
+        bfgofgrzP1EbEPk8gaIoJkVRav4Dk+j9BsvJc4G8P5uPAAAAAElFTkSuQmCC
 </value>
   </data>
   <metadata name="kryptonButton_XuatTrinhKy.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">

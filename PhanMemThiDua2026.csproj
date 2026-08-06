@@ -8,15 +8,21 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Resources\ic_PhanMem.ico</ApplicationIcon>
     <StartupObject>PhanMemThiDua2026.Program</StartupObject>
-    <Version>1.0.230</Version>
-    <AssemblyVersion>1.0.230</AssemblyVersion>
-    <FileVersion>1.0.230</FileVersion>
+    <Version>1.0.250</Version>
+    <AssemblyVersion>1.0.250</AssemblyVersion>
+    <FileVersion>1.0.250</FileVersion>
     <Copyright>TrungKien</Copyright>
     <PackageIcon>icon.ico</PackageIcon>
     
     <!-- CẤU HÌNH DPI CHUẨN HIỆN ĐẠI (THÊM MỚI VÀO ĐÂY) -->
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <AssemblyTitle>Phần mềm Thi đua 2026</AssemblyTitle>
+    <Title>Phần mềm Thi đua 2026</Title>
+    <Company>@TrungKien</Company>
+    <Product>@TrungKien</Product>
+    <Description>Phần mềm Thi đua 2026</Description>
+    <PackageProjectUrl>https://github.com/BichKhueK02/PhanMemThiDua2026</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
