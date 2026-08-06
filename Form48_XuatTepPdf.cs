@@ -264,6 +264,53 @@ namespace PhanMemThiDua2026
                 { "DS_BANHAT", $"Danh sách đề nghị biểu dương gương tiêu biểu phong trào thi đua \"Ba nhất\" {baseString}" }
             };
         }
+        //private async void KryptonButton1_ChonDuongDanTepExcel_Click(object sender, EventArgs e)
+        //{
+        //    using var ofd = new OpenFileDialog
+        //    {
+        //        Title = "Chọn tệp Excel nguồn",
+        //        Filter = "Excel Files|*.xlsx;*.xlsm",
+        //        CheckFileExists = true
+        //    };
+
+        //    if (ofd.ShowDialog() == DialogResult.OK)
+        //    {
+        //        string selectedFile = ofd.FileName;
+
+        //        // 🌟 BƯỚC 1: CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC
+        //        label_DuongDanExcel.Text = selectedFile;
+        //        label_DuongDanExcel.ForeColor = Color.DarkGreen;
+
+        //        // Khóa nút trong lúc chờ load để tránh user bấm spam liên tục
+        //        kryptonButton1_ChonDuongDanTepExcel.Enabled = false;
+        //        kryptonButton_XuatTepPdf.Enabled = false;
+
+        //        // Hiện thông báo đang Load dưới StatusStrip
+        //        // (Hãy đảm bảo bạn đã tạo một ToolStripStatusLabel tên là toolStripStatusLabel1_DangLoad trong Designer)
+        //        if (toolStripStatusLabel1_DangLoad != null)
+        //        {
+        //            toolStripStatusLabel1_DangLoad.Visible = true;
+        //            toolStripStatusLabel1_DangLoad.Text = "Đang phân tích tệp Excel, vui lòng đợi...";
+        //        }
+
+        //        // 🌟 BƯỚC 2: GỌI HÀM XỬ LÝ NGẦM
+        //        await PhanTichVaAnhXaSheetTuExcelAsync(selectedFile);
+
+        //        // 🌟 BƯỚC 3: MỞ KHÓA VÀ DỌN DẸP GIAO DIỆN
+        //        kryptonButton1_ChonDuongDanTepExcel.Enabled = true;
+
+        //        // Nếu load thành công và có sheet thì mới cho bấm nút Xuất
+        //        kryptonButton_XuatTepPdf.Enabled = checkedListBox1_LietKeTenCacSheet.Items.Count > 0;
+
+        //        // Ẩn thông báo đang Load
+        //        if (toolStripStatusLabel1_DangLoad != null)
+        //        {
+        //            toolStripStatusLabel1_DangLoad.Visible = false;
+        //            toolStripStatusLabel1_DangLoad.Text = "";
+        //        }
+        //    }
+        //}
+
         private async void KryptonButton1_ChonDuongDanTepExcel_Click(object sender, EventArgs e)
         {
             using var ofd = new OpenFileDialog
@@ -281,12 +328,22 @@ namespace PhanMemThiDua2026
                 label_DuongDanExcel.Text = selectedFile;
                 label_DuongDanExcel.ForeColor = Color.DarkGreen;
 
+                // =========================================================================
+                // 🌟 TÍNH NĂNG THÔNG MINH MỚI: Tự động gán thư mục của Excel cho PDF
+                // =========================================================================
+                string thuMucChuaTep = Path.GetDirectoryName(selectedFile);
+                if (!string.IsNullOrEmpty(thuMucChuaTep))
+                {
+                    label_DuongDanPdf.Text = thuMucChuaTep;
+                    label_DuongDanPdf.ForeColor = Color.DarkGreen; // Đổi màu chữ báo hiệu đã sẵn sàng
+                }
+                // =========================================================================
+
                 // Khóa nút trong lúc chờ load để tránh user bấm spam liên tục
                 kryptonButton1_ChonDuongDanTepExcel.Enabled = false;
                 kryptonButton_XuatTepPdf.Enabled = false;
 
                 // Hiện thông báo đang Load dưới StatusStrip
-                // (Hãy đảm bảo bạn đã tạo một ToolStripStatusLabel tên là toolStripStatusLabel1_DangLoad trong Designer)
                 if (toolStripStatusLabel1_DangLoad != null)
                 {
                     toolStripStatusLabel1_DangLoad.Visible = true;

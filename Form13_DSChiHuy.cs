@@ -415,8 +415,8 @@ namespace PhanMemThiDua2026
 
                 // ===== CẤU HÌNH CỘT =====
                 CauHinhCot("ID", "STT", 10, DataGridViewContentAlignment.MiddleCenter);
-                CauHinhCot("HoVaTen", "Họ và tên chỉ huy", 45, DataGridViewContentAlignment.MiddleLeft);
-                CauHinhCot("ChucVu", "Chức vụ chỉ huy", 45, DataGridViewContentAlignment.MiddleLeft);
+                CauHinhCot("HoVaTen", "Cấp bậc - Họ và tên chỉ huy", 45, DataGridViewContentAlignment.MiddleLeft);
+                CauHinhCot("ChucVu", "Chức vụ", 45, DataGridViewContentAlignment.MiddleLeft);
 
                 // ===== TẮT SORT =====
                 foreach (DataGridViewColumn col in grid.Columns)

@@ -1048,9 +1048,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Bang2 ERROR: " + ex.Message);
             }
         }
-        ///   Nguyên lý Khống chế trần tuyệt đối(Chống vượt % dưới mọi hình thức)Giả sử tổng quân số đủ điều kiện là $N$ (biến số động) và tỷ lệ Loại 2 lấy từ CSDL là $R$ (ví dụ: $79\% = 0.79$).Số lượng Loại 2 tối đa theo thuật toán của chúng ta là:$$Max = \lfloor N \times R \rfloor$$(Hàm Math.Floor chính là phép toán lấy phần nguyên lớn nhất không vượt quá giá trị thực).Bây giờ ta test ngược lại tỷ lệ phần trăm thực tế đạt được:$$\% \text{ Thực tế } = \frac{\lfloor N \times R \rfloor }{N
-        ///    }$$Theo tính chất toán học, $\lfloor X \rfloor \le X$. Do đó:$$\frac{\lfloor N \times R \rfloor }{N
-        ///} \le \frac{N \times R}{ N} = R$$👉 Kết luận 1: Tỷ lệ phần trăm tính ra luôn luôn nhỏ hơn hoặc bằng tỷ lệ quy định $R$, bất chấp quân số $N$ là số chẵn hay số lẻ. Quy định "tối đa chỉ bằng hoặc thấp hơn mức % quy định" được thỏa mãn tuyệt đối.Ví dụ Test Edge Case (Trường hợp dị biệt): Đơn vị siêu nhỏ có $N = 6$ người. Tỷ lệ quy định $R = 79\%$.Máy tính: $6 \times 0.79 = 4.74$.Thuật toán Math.Floor(4.74): Lấy $4$ người.Test tỷ lệ nộp báo cáo: $4 / 6 = 66.67\% \le 79\%$. (Hợp lệ hoàn toàn, nếu lấy 5 người sẽ ra $83.33\% \rightarrow$ vi phạm quy định).2. Nguyên lý Bảo toàn quân số (Không bao giờ rớt mất người)Trong quân đội hay công an, quân số báo cáo tổng phải khớp đến từng người. Quá trình làm tròn xuống (cho Loại 1 và Loại 2) chắc chắn sẽ sinh ra những "mảnh vỡ" số thập phân (như số $0.74$ ở ví dụ trên bị vứt bỏ). Nếu không cẩn thận, cộng lại sẽ bị mất tích người.Thuật toán của chúng ta xử lý thế này:Quỹ Loại 2 (gồm L1 + L2 thuần) = Math.Floor(N * 79%).Quỹ Loại 3 = N - Quỹ Loại 2.Bởi vì: $\text{Quỹ Loại 2} + \text{Quỹ Loại 3} = \text{Quỹ Loại 2} +(N - \text{Quỹ Loại 2}) = N$.👉 Kết luận 2: Tổng số người đánh giá luôn luôn khớp đúng $100\%$ với số $N$ đầu vào. Bất kể Math.Floor đã chém bỏ bao nhiêu phần thập phân của Loại 2, phần bị chém đó đều tự động biến thành $1$ con người hoàn chỉnh đẩy sang Loại 3. Không có ai bị bỏ sót.3. Giải đáp thắc mắc: Tại sao báo lỗi "Loại 3 đang thiếu" là hợp lý 100%?Bây giờ ta quay lại kịch bản báo cáo bị lỗi của đơn vị.Giả sử hệ thống đang cảnh báo:Loại 1: Thừa 1 đồng chí (Do xét quá tay 1 người).Loại 2: Vừa đủ số lượng.Loại 3: Thiếu 1 đồng chí.Anh băn khoăn rằng: "Ông Loại 1 đang bị dư, giáng cấp ông đó xuống thì ông đó phải vào Loại 2 chứ? Sao lại nhảy xuống Loại 3 để lấp vào chỗ thiếu?"Câu trả lời nằm ở định nghĩa Trần Quỹ Loại 2.Quy định nêu rõ: "Loại 1 được lấy trong tổng số Loại 2".Nghĩa là Loại 1 và Loại 2 đang dùng chung một cái rổ.Cái rổ này có sức chứa tối đa bị khóa cứng bởi lệnh Math.Floor(N * 79%).Nếu đơn vị đã chấm Loại 2 thuần "đầy mép" cái rổ rồi, thì 1 ông Loại 1 dư thừa kia khi giáng cấp xuống sẽ không thể chui vào cái rổ Loại 2 được nữa (vì nếu chui vào, cái rổ phình to ra, chia % sẽ bị vượt mốc $79\%$).Người này trượt khỏi cái rổ L1+L2, lực hấp dẫn tự động kéo thẳng ông ấy xuống cái rổ Loại 3.
         private void KryptonDataGridView2_RowPostPaint(
             object? sender,
             DataGridViewRowPostPaintEventArgs e)
@@ -2344,22 +2341,6 @@ WHERE ID = 1", conn);
         }
         private Form11_KiemTraTyLe form11;
         #region ProgressBar Safe Control
-        //private void Progress_Start()
-        //{
-        //    if (IsDisposed || Disposing) return;
-
-        //    if (InvokeRequired)
-        //    {
-        //        Invoke(new Action(Progress_Start));
-        //        return;
-        //    }
-
-        //    toolStripProgressBar1.Visible = true;
-        //    toolStripProgressBar1.Minimum = 0;
-        //    toolStripProgressBar1.Maximum = 100;
-        //    toolStripProgressBar1.Value = 0;
-        //}
-
         private void Progress_Start()
         {
             if (IsDisposed || Disposing) return;
@@ -3676,13 +3657,10 @@ PTLoai3=@PTLoai3
             if (formTinhToan != null && !formTinhToan.IsDisposed) formTinhToan.Dispose();
             if (form11 != null && !form11.IsDisposed) form11.Dispose();
         }
-
         // KHI BÁO CÁC BIẾN NÀY Ở ĐẦU CLASS (Cùng chỗ với form11)
         private Form48_XuatTepPdf form48;
         private string _textGocNutXuatPdf = null;
         private Image _anhGocNutXuatPdf = null;
-
-        // HÀM XỬ LÝ SỰ KIỆN CLICK
         private void kryptonButton1_XuatTepPdf_Click(object sender, EventArgs e)
         {
             // 1. Lưu lại Text và Icon gốc ở lần bấm đầu tiên
