@@ -700,21 +700,7 @@ namespace PhanMemThiDua2026
                 else LoadThongKe_CBCS();
             }
         }
-        //public async void ReloadData()
-        //{
-        //    if ((DateTime.Now - _lastReload).TotalMilliseconds < 500) return;
-        //    _lastReload = DateTime.Now;
-
-        //    bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-
-        //    CapNhatThongKe();
-
-        //    // SỬA Ở ĐÂY: Dùng hàm điều phối thay cho gọi trực tiếp
-        //    await DieuPhoiLoadDuLieuAsync(laTanBinh);
-
-        //    LoadComboBoxDonVi();
-        //    comboBox1_TinhTrang.SelectedIndex = 0;
-        //}
+      
         // 🌟 SỬA 1: Đổi 'async void' thành 'async Task' để Form 2 có thể 'await' chờ nó load xong
         public async Task ReloadData()
         {
@@ -1097,28 +1083,89 @@ namespace PhanMemThiDua2026
             return base.ProcessCmdKey(ref msg, keyData);
         }
         private DateTime _lastReload = DateTime.MinValue;
+        // ========================================================================
+        // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
+        // ========================================================================
+        private bool _daKhoiTaoToolTip = false;
+
         private void InitToolTips()
         {
-            toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
-            toolTip1.ToolTipIcon = ToolTipIcon.Info;
-            // Đã sửa đổi ở dòng này: dùng System.Windows.Forms.Control
-            var tips = new Dictionary<System.Windows.Forms.Control, string>
-        {
-            // Tìm kiếm
-            { textBox_TimKiemTheoTen, "Gõ tên cần tìm (không phân biệt chữ hoa / thường)" },
-            { comboBox_TimKiemDonVi, "Chọn đơn vị để tìm kiếm tự động" },
-            { comboBox1_TinhTrang, "Chọn tình trạng công tác để tìm kiếm tự động" },
-            // Thao tác
-            { kryptonButton_LamMoiCacOTimKiem, "Xóa toàn bộ các trường tìm kiếm (F5)" },
-            { kryptonButton_CapNhat, "Đồng bộ cơ sở dữ liệu (F6)" },
-            { kryptonButton_XuatData, "Xuất dữ liệu ra tệp (Ctrl + E)" }
-        };
+            // Chống gọi lại nhiều lần không cần thiết
+            if (_daKhoiTaoToolTip) return;
 
-            foreach (var tip in tips)
+            // An toàn từ gốc: Kiểm tra ToolTip có tồn tại không
+            if (toolTip1 == null) return;
+
+            try
             {
-                if (tip.Key != null) // an toàn khi ẩn / refactor control
-                    toolTip1.SetToolTip(tip.Key, tip.Value);
+                // ================= CẤU HÌNH CHUNG =================
+                toolTip1.IsBalloon = true;
+                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipIcon = ToolTipIcon.Info;
+
+                // UX: Phản hồi nhanh – không gây khó chịu
+                toolTip1.InitialDelay = 300;
+                toolTip1.AutoPopDelay = 2500;
+                toolTip1.ReshowDelay = 100;
+                toolTip1.ShowAlways = true;
+
+                // ========================================================================
+                // 🌟 TỐI ƯU CẤU TRÚC RAM: Dùng mảng ValueTuple thay cho Dictionary
+                // Triệt tiêu chi phí băm (Hashing Overhead) và dọn sạch Heap Allocation.
+                // ========================================================================
+                (System.Windows.Forms.Control? control, string noiDung)[] danhSachToolTip = new (System.Windows.Forms.Control?, string)[]
+                {
+                    // ===== TÌM KIẾM =====
+                    (textBox_TimKiemTheoTen,             "Gõ tên cần tìm (không phân biệt chữ hoa / thường)"),
+                    (comboBox_TimKiemDonVi,              "Chọn đơn vị để tìm kiếm tự động"),
+                    (comboBox1_TinhTrang,                "Chọn tình trạng công tác để tìm kiếm tự động"),
+
+                    // ===== THAO TÁC =====
+                    (kryptonButton_LamMoiCacOTimKiem,    "Xóa toàn bộ các trường tìm kiếm (F5)"),
+                    (kryptonButton_CapNhat,              "Đồng bộ cơ sở dữ liệu (F6)"),
+                    (kryptonButton_XuatData,             "Xuất dữ liệu ra tệp (Ctrl + E)")
+                };
+
+                // ========================================================================
+                // 🌟 XỬ LÝ LỖI PHÂN MẢNH (ISOLATED EXCEPTION)
+                // ========================================================================
+                int soLoi = 0;
+                foreach (var (control, noiDung) in danhSachToolTip)
+                {
+                    // Bỏ qua an toàn nếu control chưa kịp render hoặc bị null
+                    if (control == null)
+                    {
+                        soLoi++;
+                        continue;
+                    }
+
+                    try
+                    {
+                        // Kiểm tra vòng đời của Control trước khi gán API
+                        if (control.IsDisposed) continue;
+
+                        toolTip1.SetToolTip(control, noiDung);
+                    }
+                    catch
+                    {
+                        // Bẫy lỗi cục bộ: Lỗi ở 1 nút không làm sập vòng lặp gán của các nút khác
+                        soLoi++;
+                    }
+                }
+
+#if DEBUG
+                // Hệ thống cảnh báo nội bộ dành riêng cho Lập trình viên (Không hiện ở bản Release)
+                if (soLoi > 0)
+                    System.Diagnostics.Debug.WriteLine($"[InitToolTips] Hệ thống bỏ qua {soLoi} control do chưa khởi tạo hoặc bị null.");
+#endif
+
+                // Đánh dấu hoàn tất để khóa cổng
+                _daKhoiTaoToolTip = true;
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi tổng và in ra Output để Lập trình viên theo dõi
+                System.Diagnostics.Debug.WriteLine($"[Lỗi nghiêm trọng tại InitToolTips]: {ex.Message}");
             }
         }
         private void InitPlaceholderTimKiem()

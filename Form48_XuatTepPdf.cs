@@ -595,8 +595,24 @@ namespace PhanMemThiDua2026
                 // Mở tệp Excel nguồn
                 workbook = workbooks.Open(excelFilePath, Type.Missing, true);
 
+                // =========================================================================
+                // 🌟 CHÈN METADATA TẠI ĐÂY: Nhồi thuộc tính vào RAM trước khi xuất
+                // Microsoft Office sẽ tự động "thừa kế" các thuộc tính này sang tệp PDF
+                // =========================================================================
+                try
+                {
+                    workbook.BuiltinDocumentProperties("Title").Value = "Bản quyền thuộc PhanMemThiDua2026";
+                    workbook.BuiltinDocumentProperties("Author").Value = "TrungKien_0975287973";
+                    workbook.BuiltinDocumentProperties("Comments").Value = "Tệp tin được kết xuất tự động từ hệ thống";
+                    workbook.BuiltinDocumentProperties("Company").Value = "Admin: " + Module_TaiKhoan.TenTaiKhoan_RAM;
+                }
+                catch (Exception exProp)
+                {
+                    Debug.WriteLine("Cảnh báo: Không thể nạp Metadata qua Interop: " + exProp.Message);
+                }
+                // =========================================================================
                 // BƯỚC 2: DUYỆT VÀ XUẤT TỪNG SHEET RA PDF
-                foreach (var item in itemsToExport)
+                    foreach (var item in itemsToExport)
                 {
                     dynamic sheet = null;
                     try
@@ -839,6 +855,15 @@ namespace PhanMemThiDua2026
                             using (var tempWb = new XLWorkbook())
                             {
                                 wbGoc.Worksheet(item.OriginalSheetName).CopyTo(tempWb, item.OriginalSheetName);
+                                // =========================================================================
+                                // 🌟 CHÈN METADATA TẠI ĐÂY: Gắn thuộc tính qua ClosedXML
+                                // LibreOffice sẽ tự động đọc các thuộc tính này và áp dụng cho PDF
+                                // =========================================================================
+                                tempWb.Properties.Title = "Bản quyền thuộc PhanMemThiDua2026";
+                                tempWb.Properties.Author = "TrungKien_0975287973";
+                                tempWb.Properties.Comments = "Tệp tin được trích xuất từ hệ thống";
+                                tempWb.Properties.Company = "Tác giả: TrungKien";
+                                // =========================================================================
                                 tempWb.SaveAs(tempExcel);
                             }
 

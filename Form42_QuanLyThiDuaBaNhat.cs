@@ -90,34 +90,94 @@ namespace PhanMemThiDua2026
             InitToolTips();
 
         }
+        // ========================================================================
+        // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
+        // ========================================================================
+        private bool _daKhoiTaoToolTip = false;
+
         private void InitToolTips()
         {
-            toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
-            toolTip1.ToolTipIcon = ToolTipIcon.Info;
-            // UX: phản hồi nhanh – không gây khó chịu
-            toolTip1.InitialDelay = 300;
-            toolTip1.AutoPopDelay = 2500;
-            toolTip1.ReshowDelay = 100;
-            toolTip1.ShowAlways = true;
-            var tips = new Dictionary<Control, string>
-{
-             //THÔNG TIN ĐƠN VỊ / ĐỊA ĐIỂM ==
-        // Thêm vào nhóm LƯU / KIỂM TRA / CƠ SỞ DỮ LIỆU
-        { kryptonButton_LuuDataDeNghi, "Lưu dữ liệu đề nghị biểu dương ba nhất" },
-        { kryptonButton_RefershCSDL, "Tải lại và cập nhật dữ liệu mới nhất từ cơ sở dữ liệu" },
-        // Thêm vào nhóm THÀNH TÍCH / KHEN THƯỞNG (hoặc nhóm phù hợp)
-        { kryptonButton1_ThanhTichTapThe, "Xem và quản lý bảng thành tích của tập thể đơn vị" },
-        // Thêm vào cuối cùng (Nhóm HỆ THỐNG)
-        { kryptonButton1_MoSoVang, "Mở trang quản lý Sổ vàng" },
-        { kryptonButton1_Thoat, "Thoát trang này, trở về trang dữ liệu" },
-         { kryptonButton2_GiamCoChuRichText, "Giảm cỡ chữ" },
-        { kryptonButton2_TangCoChuRichText, "Tăng cỡ chữ" }
-        };
-            foreach (var tip in tips)
+            // Chống gọi lại nhiều lần không cần thiết
+            if (_daKhoiTaoToolTip) return;
+
+            // An toàn từ gốc: Kiểm tra ToolTip có tồn tại không
+            if (toolTip1 == null) return;
+
+            try
             {
-                if (tip.Key != null) // an toàn khi control bị ẩn / đổi tên
-                    toolTip1.SetToolTip(tip.Key, tip.Value);
+                // ================= CẤU HÌNH CHUNG =================
+                toolTip1.IsBalloon = true;
+                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipIcon = ToolTipIcon.Info;
+
+                // UX: Phản hồi nhanh – không gây khó chịu
+                toolTip1.InitialDelay = 300;
+                toolTip1.AutoPopDelay = 2500;
+                toolTip1.ReshowDelay = 100;
+                toolTip1.ShowAlways = true;
+
+                // ========================================================================
+                // 🌟 TỐI ƯU CẤU TRÚC RAM: Dùng mảng ValueTuple thay cho Dictionary
+                // Triệt tiêu chi phí băm (Hashing Overhead) và dọn sạch Heap Allocation.
+                // ========================================================================
+                (System.Windows.Forms.Control? control, string noiDung)[] danhSachToolTip = new (System.Windows.Forms.Control?, string)[]
+                {
+                    // ===== LƯU / KIỂM TRA / CƠ SỞ DỮ LIỆU =====
+                    (kryptonButton_LuuDataDeNghi,      "Lưu dữ liệu đề nghị biểu dương ba nhất"),
+                    (kryptonButton_RefershCSDL,        "Tải lại và cập nhật dữ liệu mới nhất từ cơ sở dữ liệu"),
+
+                    // ===== THÀNH TÍCH / KHEN THƯỞNG =====
+                    (kryptonButton1_ThanhTichTapThe,   "Xem và quản lý bảng thành tích của tập thể đơn vị"),
+
+                    // ===== ĐIỀU CHỈNH GIAO DIỆN =====
+                    (kryptonButton2_TangCoChuRichText, "Tăng cỡ chữ"),
+                    (kryptonButton2_GiamCoChuRichText, "Giảm cỡ chữ"),
+
+                    // ===== HỆ THỐNG =====
+                    (kryptonButton1_MoSoVang,          "Mở trang quản lý Sổ vàng"),
+                    (kryptonButton1_Thoat,             "Thoát trang này, trở về trang dữ liệu")
+                };
+
+                // ========================================================================
+                // 🌟 XỬ LÝ LỖI PHÂN MẢNH (ISOLATED EXCEPTION)
+                // ========================================================================
+                int soLoi = 0;
+                foreach (var (control, noiDung) in danhSachToolTip)
+                {
+                    // Bỏ qua an toàn nếu control chưa kịp render hoặc bị null
+                    if (control == null)
+                    {
+                        soLoi++;
+                        continue;
+                    }
+
+                    try
+                    {
+                        // Kiểm tra vòng đời của Control trước khi gán API
+                        if (control.IsDisposed) continue;
+
+                        toolTip1.SetToolTip(control, noiDung);
+                    }
+                    catch
+                    {
+                        // Bẫy lỗi cục bộ: Lỗi ở 1 nút không làm sập vòng lặp gán của các nút khác
+                        soLoi++;
+                    }
+                }
+
+#if DEBUG
+                // Hệ thống cảnh báo nội bộ dành riêng cho Lập trình viên (Không hiện ở bản Release)
+                if (soLoi > 0)
+                    System.Diagnostics.Debug.WriteLine($"[InitToolTips] Hệ thống bỏ qua {soLoi} control do chưa khởi tạo hoặc bị null.");
+#endif
+
+                // Đánh dấu hoàn tất để khóa cổng
+                _daKhoiTaoToolTip = true;
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi tổng và in ra Output để Lập trình viên theo dõi
+                System.Diagnostics.Debug.WriteLine($"[Lỗi nghiêm trọng tại InitToolTips]: {ex.Message}");
             }
         }
         private void kryptonDataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -762,6 +822,24 @@ namespace PhanMemThiDua2026
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;
             }
 
+            // =====================================================================
+            // 🌟 KHÓA CHẶT THỨ TỰ CÁC CỘT BẰNG DISPLAYINDEX (CHỐNG LỘN XỘN)
+            // =====================================================================
+            string[] columnOrder = {
+                "ID", "STT", "HoVaTen", "SoHieu", "NamSinh", "QueQuan",
+                "NgayVaoCAND", "CapBac", "ChucVu", "DonVi", "PhanLoai",
+                "DeNghi", "TinhTrang", "GhiChu", "ThanhTich"
+            };
+
+            for (int i = 0; i < columnOrder.Length; i++)
+            {
+                if (kryptonDataGridView1.Columns[columnOrder[i]] != null)
+                {
+                    kryptonDataGridView1.Columns[columnOrder[i]].DisplayIndex = i;
+                }
+            }
+            // =====================================================================
+
             // ================= CẤU HÌNH CHI TIẾT TỪNG CỘT =================
 
             // 1. CÁC CỘT ẨN
@@ -770,7 +848,7 @@ namespace PhanMemThiDua2026
 
             if (kryptonDataGridView1.Columns["PhanLoai"] != null)
             {
-                kryptonDataGridView1.Columns["PhanLoai"].Visible = false; // ĐÃ CHUYỂN VỀ ĐÚNG KHỐI
+                kryptonDataGridView1.Columns["PhanLoai"].Visible = false;
                 kryptonDataGridView1.Columns["PhanLoai"].HeaderText = "Phân loại";
                 kryptonDataGridView1.Columns["PhanLoai"].Width = 90;
                 kryptonDataGridView1.Columns["PhanLoai"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -831,7 +909,6 @@ namespace PhanMemThiDua2026
             {
                 kryptonDataGridView1.Columns["CapBac"].HeaderText = "Cấp bậc";
                 kryptonDataGridView1.Columns["CapBac"].Width = 90;
-                // ĐÃ GỘP: Căn giữa Header và Cell gọn gàng vào 1 chỗ
                 kryptonDataGridView1.Columns["CapBac"].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["CapBac"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["CapBac"].ReadOnly = true;
@@ -841,7 +918,6 @@ namespace PhanMemThiDua2026
             {
                 kryptonDataGridView1.Columns["ChucVu"].HeaderText = "Chức vụ";
                 kryptonDataGridView1.Columns["ChucVu"].Width = 110;
-                // ĐÃ GỘP: Căn giữa Header và Cell gọn gàng vào 1 chỗ
                 kryptonDataGridView1.Columns["ChucVu"].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["ChucVu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["ChucVu"].ReadOnly = true;
@@ -861,9 +937,6 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["DeNghi"].Width = 70;
                 kryptonDataGridView1.Columns["DeNghi"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["DeNghi"].ReadOnly = false;
-
-                // ⭐ ÉP CỘT NÀY ĐỨNG Ở VỊ TRÍ SỐ 9 (Ngay sau cột Đơn vị)
-                kryptonDataGridView1.Columns["DeNghi"].DisplayIndex = 9;
             }
 
             if (kryptonDataGridView1.Columns["TinhTrang"] != null)
@@ -872,9 +945,6 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["TinhTrang"].Width = 120;
                 kryptonDataGridView1.Columns["TinhTrang"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["TinhTrang"].ReadOnly = true;
-
-                // ⭐ ÉP CỘT NÀY ĐỨNG Ở VỊ TRÍ SỐ 10 (Ngay sau cột Đề nghị)
-                kryptonDataGridView1.Columns["TinhTrang"].DisplayIndex = 10;
             }
 
             // 3. CÁC CỘT ĐỘNG (Lấp đầy khoảng trống còn lại)
@@ -883,16 +953,10 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["GhiChu"].HeaderText = "Ghi chú";
                 kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 kryptonDataGridView1.Columns["GhiChu"].FillWeight = 50;
-
-                // ⭐ KHÓA MIN WIDTH = 100 ĐỂ KHÔNG BỊ BÓP THÀNH ĐƯỜNG KẺ TRÊN MÀN HÌNH NHỎ
                 kryptonDataGridView1.Columns["GhiChu"].MinimumWidth = 100;
-
                 kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
                 kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 kryptonDataGridView1.Columns["GhiChu"].ReadOnly = true;
-
-                // ⭐ ĐẨY CỘT NÀY RA PHÍA SAU
-                kryptonDataGridView1.Columns["GhiChu"].DisplayIndex = 11;
             }
 
             if (kryptonDataGridView1.Columns["ThanhTich"] != null)
@@ -900,16 +964,10 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["ThanhTich"].HeaderText = "Thành tích";
                 kryptonDataGridView1.Columns["ThanhTich"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 kryptonDataGridView1.Columns["ThanhTich"].FillWeight = 50;
-
-                // ⭐ KHÓA MIN WIDTH = 150
                 kryptonDataGridView1.Columns["ThanhTich"].MinimumWidth = 150;
-
                 kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
                 kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 kryptonDataGridView1.Columns["ThanhTich"].ReadOnly = false;
-
-                // ⭐ ĐẨY CỘT NÀY XUỐNG CHÓT CÙNG BẢNG
-                kryptonDataGridView1.Columns["ThanhTich"].DisplayIndex = 12;
             }
         }
         private void kryptonDataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)

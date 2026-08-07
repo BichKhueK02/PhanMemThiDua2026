@@ -530,7 +530,6 @@ namespace PhanMemThiDua2026
                 });
             }
         }
-
         private DataTable XuLyDuLieuNgam(string csdlPath)
         {
             if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))
@@ -797,8 +796,6 @@ namespace PhanMemThiDua2026
             }
         }
         // HIỆU ỨNG UI: VIỀN XANH ĐẬM KHI HOVER VÀ FOCUS
-
-
         private void KiemTraDuLieu()
         {
             bool coDuLieu =
@@ -989,36 +986,92 @@ namespace PhanMemThiDua2026
                 }
             }
         }
+        // ========================================================================
+        // 🌟 TỐI ƯU BỘ NHỚ: Khai báo ở cấp Class để tái sử dụng, chống GDI Leak
+        // ========================================================================
+        private bool _daKhoiTaoToolTip = false;
+        private System.Windows.Forms.ToolTip _toolTipMain;
         private void InitToolTips()
         {
-            var toolTip_Main = new System.Windows.Forms.ToolTip
-            {
-                IsBalloon = true,
-                ToolTipTitle = "Gợi ý thao tác",
-                ToolTipIcon = ToolTipIcon.Info,
-                InitialDelay = 200,
-                AutoPopDelay = 1500,
-                ReshowDelay = 100,
-                ShowAlways = true
-            };
+            // Chống gọi lặp gây lãng phí chu kỳ CPU
+            if (_daKhoiTaoToolTip) return;
 
-            var tips = new Dictionary<System.Windows.Forms.Control, string>
-    {
-        { textBox_TimKiemTheoTen, "Nhập họ và tên CBCS cần tìm (có thể nhập một phần)" },
-        { comboBox_TimKiemDonVi, "Lọc danh sách theo đơn vị công tác" },
-        { comboBox_XepLoaiThiDua, "Lọc theo kết quả xếp loại thi đua" },
-        { kryptonButton_LamMoiCacOTimKiem, "Xóa toàn bộ điều kiện tìm kiếm (Ctrl + D)" },
-        { kryptonButton1_PhanTich, "Phân tích cơ cấu quân số (F9)" },
-        { kryptonButton_RefershCSDL, "Nạp lại dữ liệu từ CSDL gốc (F5)" },
-        { kryptonButton_XoaKetQuaPhanLoai, "Xóa kết quả phân loại (F8)" },
-        { kryptonButton_XoaDataCBCS, "Xóa dữ liệu CBCS (cần xác nhận)" },
-        { kryptonButton1_HuongDanThemDuLieu, "Hướng dẫn tạo tệp excel để nhập dữ liệu vào phần mềm" },
-        { kryptonButton_LuuDataCapNhat, "Lưu toàn bộ dữ liệu đã chỉnh sửa (Ctrl + S)" }
-    };
-            foreach (var tip in tips)
+            try
             {
-                if (tip.Key != null)
-                    toolTip_Main.SetToolTip(tip.Key, tip.Value);
+                // Khởi tạo ToolTip duy nhất 1 lần trong suốt vòng đời của Form
+                if (_toolTipMain == null)
+                {
+                    _toolTipMain = new System.Windows.Forms.ToolTip
+                    {
+                        IsBalloon = true,
+                        ToolTipTitle = "Gợi ý thao tác",
+                        ToolTipIcon = ToolTipIcon.Info,
+                        InitialDelay = 200,
+                        AutoPopDelay = 1500,
+                        ReshowDelay = 100,
+                        ShowAlways = true
+                    };
+                }
+
+                // ========================================================================
+                // 🌟 TỐI ƯU CẤU TRÚC: Dùng mảng Tuple thay cho Dictionary
+                // Triệt tiêu chi phí băm (Hashing Overhead) và giúp bộ thu gom rác (GC)
+                // dọn dẹp bộ nhớ ngay lập tức sau khi mảng chạy xong.
+                // ========================================================================
+                (System.Windows.Forms.Control control, string noiDung)[] danhSachToolTip = new (System.Windows.Forms.Control, string)[]
+                {
+                    (textBox_TimKiemTheoTen,             "Nhập họ và tên CBCS cần tìm (có thể nhập một phần)"),
+                    (comboBox_TimKiemDonVi,              "Lọc danh sách theo đơn vị công tác"),
+                    (comboBox_XepLoaiThiDua,             "Lọc theo kết quả xếp loại thi đua"),
+                    (kryptonButton_LamMoiCacOTimKiem,    "Xóa toàn bộ điều kiện tìm kiếm (Ctrl + D)"),
+                    (kryptonButton1_PhanTich,            "Phân tích cơ cấu quân số (F9)"),
+                    (kryptonButton_RefershCSDL,          "Nạp lại dữ liệu từ CSDL gốc (F5)"),
+                    (kryptonButton_XoaKetQuaPhanLoai,    "Xóa kết quả phân loại (F8)"),
+                    (kryptonButton_XoaDataCBCS,          "Xóa dữ liệu CBCS (cần xác nhận)"),
+                    (kryptonButton1_HuongDanThemDuLieu,  "Hướng dẫn tạo tệp excel để nhập dữ liệu vào phần mềm"),
+                    (kryptonButton_LuuDataCapNhat,       "Lưu toàn bộ dữ liệu đã chỉnh sửa (Ctrl + S)")
+                };
+
+                // ========================================================================
+                // 🌟 XỬ LÝ LỖI PHÂN MẢNH (ISOLATED EXCEPTION HANDLING)
+                // ========================================================================
+                int soLoi = 0;
+                foreach (var (control, noiDung) in danhSachToolTip)
+                {
+                    // Bỏ qua an toàn nếu control chưa kịp render hoặc bị null
+                    if (control == null)
+                    {
+                        soLoi++;
+                        continue;
+                    }
+
+                    try
+                    {
+                        // Kiểm tra vòng đời của Control trước khi gắn API
+                        if (control.IsDisposed) continue;
+
+                        _toolTipMain.SetToolTip(control, noiDung);
+                    }
+                    catch
+                    {
+                        // Bẫy lỗi cục bộ: Lỗi ở 1 nút không làm sập tiến trình gắn của các nút khác
+                        soLoi++;
+                    }
+                }
+
+#if DEBUG
+                // Hệ thống cảnh báo nội bộ dành riêng cho Lập trình viên (Không hiện ở bản Release)
+                if (soLoi > 0)
+                    System.Diagnostics.Debug.WriteLine($"[InitToolTips] Hệ thống bỏ qua {soLoi} control do chưa khởi tạo hoặc bị null.");
+#endif
+
+                // Đánh dấu hoàn tất để khóa cổng
+                _daKhoiTaoToolTip = true;
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi tổng và in ra màn hình Output để theo dõi
+                System.Diagnostics.Debug.WriteLine($"[Lỗi nghiêm trọng tại InitToolTips]: {ex.Message}");
             }
         }
         private void EnsureLastRowVisible(DataGridView dgv)
@@ -4032,7 +4085,6 @@ namespace PhanMemThiDua2026
                 comboBox_ChucVu.EndUpdate();
             }
         }
-
         public static List<string> LayDanhSachPhanLoaiThucTe()
         {
             var uniqueList = new HashSet<string>();
@@ -4085,7 +4137,6 @@ namespace PhanMemThiDua2026
 
             return danhSachDaLoc;
         }
-
         private void LoadComboBoxXepLoaiThiDua()
         {
             // Kiểm tra an toàn: Nếu chưa có data thì bỏ qua

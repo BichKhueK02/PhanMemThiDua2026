@@ -1,5 +1,7 @@
 ﻿using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
+using System;
+using System.IO;
 
 namespace PhanMemThiDua2026
 {
@@ -18,11 +20,49 @@ namespace PhanMemThiDua2026
             "Token",
             "Phiên bản" // ⭐ Thêm tiêu đề cho hàng 9
         };
+
+        // Hàm đóng dấu thuộc tính (Metadata) bằng chữ không dấu
+        public static void DongDauMetadata(XLWorkbook workbook)
+        {
+            if (workbook == null) return;
+            try
+            {
+                // ❌ ĐÃ XÓA DÒNG GỌI NHẦM Ở ĐÂY ĐỂ TRÁNH LỖI ĐỆ QUY
+
+                string tenUser = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
+                                 ? "He thong"
+                                 : Module_TaiKhoan.TenTaiKhoan_RAM;
+
+                // 1. Nhóm thông tin mô tả (Description)
+                workbook.Properties.Title = "Bao cao du lieu thi dua";
+                workbook.Properties.Subject = "Phan mem Thi dua 2026";
+                workbook.Properties.Keywords = "thi dua, bao cao, ba nhat, phong trao";
+                workbook.Properties.Category = "Ho tro Cong tac thi dua";
+                workbook.Properties.Comments = "Ban quyen thuoc TrungKien-0975287973";
+
+                // 2. Nhóm nguồn gốc (Origin)
+                workbook.Properties.Author = Module_PhienBan.TenPhanMem;
+                workbook.Properties.LastModifiedBy = tenUser;
+                workbook.Properties.Company = "D2-E09";
+                workbook.Properties.Manager = "@TrungKien";
+
+                // 3. Nhóm nội dung (Content)
+                workbook.Properties.Status = "Luu hanh noi bo";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Loi dong dau Metadata: " + ex.Message);
+            }
+        }
+
         public static void DongDauExcel(XLWorkbook workbook)
         {
             if (workbook == null) return;
             try
             {
+                // ✅ GỌI HÀM ĐÓNG DẤU METADATA Ở ĐÚNG VỊ TRÍ NÀY
+                DongDauMetadata(workbook);
+
                 if (workbook.Worksheets.Contains(SheetName))
                 {
                     workbook.Worksheet(SheetName).Delete();
@@ -84,6 +124,7 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
+
         private static string DocTokenAnToan()
         {
             try

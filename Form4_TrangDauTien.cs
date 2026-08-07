@@ -1717,47 +1717,100 @@ namespace PhanMemThiDua2026
         {
             CapNhatTrangThaiTuan();
         }
+        // ========================================================================
+        // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
+        // ========================================================================
+        private bool _daKhoiTaoToolTip = false;
+
         private void InitToolTips()
         {
-            toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
-            toolTip1.ToolTipIcon = ToolTipIcon.Info;
+            // Chống gọi lại nhiều lần không cần thiết
+            if (_daKhoiTaoToolTip) return;
 
-            // UX: phản hồi nhanh – không gây khó chịu
-            toolTip1.InitialDelay = 300;
-            toolTip1.AutoPopDelay = 2500;
-            toolTip1.ReshowDelay = 100;
-            toolTip1.ShowAlways = true;
+            // An toàn từ gốc: Kiểm tra ToolTip có tồn tại không
+            if (toolTip1 == null) return;
 
-            var tips = new Dictionary<Control, string>
-    {
-        // ===== THÔNG TIN ĐƠN VỊ / ĐỊA ĐIỂM =====
-        { comboBox_DiaDiem, "Chọn địa điểm tổ chức hoặc áp dụng thống kê" },
-        { comboBox_ChiHuyD, "Chọn chỉ huy đơn vị phê duyệt" },
-        { com_DeNghi, "Kết quả phân loại tập thể đơn vị do Cụm thi đua xét" },
-
-        // ===== LƯU / KIỂM TRA =====
-        { kryptonButton_LuuThongTin, "Lưu toàn bộ thông tin đã nhập" },
-        { kryptonButton_Refresh, "Làm mới dữ liệu và nhập lại từ đầu" },
-        { kryptonButton_KiemTraTLvaQS, "Kiểm tra quân số và tỷ lệ theo dữ liệu hiện có" },
-        { kryptonButton_MayTinh, "Mở công cụ máy tính hỗ trợ tính toán nhanh" },
-
-        // ===== XUẤT TỆP =====
-        { kryptonButton_ChonDuongDanLuu, "Chọn đường dẫn để lưu tệp xuất ra" },
-        { Check_MoThuMuc, "Tự động mở thư mục chứa tệp sau khi xuất" },
-        { comboBox1_ChonLoaiDeXuat, "Chọn loại dữ liệu cần xuất ra Excel" },
-
-        { kryptonButton_XuatDanhSachLoai, "Xuất danh sách Excel theo loại đã chọn" },
-        { kryptonButton_XuatTrinhKy, "Xuất tệp trình ký theo mẫu quy định" },
-        { kryptonButton_XuatTatCa, "Xuất toàn bộ dữ liệu ra các tệp Excel" },
-        { kryptonButton_MoThuMuc, "Mở thư mục chứa các tệp đã xuất" },
-        { kryptonButton1_XuatTepPdf, "Xuất tệp *.pdf để gửi lên phần mềm QLVB ĐHTN" }
-    };
-
-            foreach (var tip in tips)
+            try
             {
-                if (tip.Key != null) // an toàn khi control bị ẩn / đổi tên
-                    toolTip1.SetToolTip(tip.Key, tip.Value);
+                // ================= CẤU HÌNH CHUNG =================
+                toolTip1.IsBalloon = true;
+                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipIcon = ToolTipIcon.Info;
+
+                // UX: phản hồi nhanh – không gây khó chịu
+                toolTip1.InitialDelay = 300;
+                toolTip1.AutoPopDelay = 2500;
+                toolTip1.ReshowDelay = 100;
+                toolTip1.ShowAlways = true;
+
+                // ========================================================================
+                // 🌟 TỐI ƯU CẤU TRÚC RAM: Dùng mảng ValueTuple thay cho Dictionary
+                // Triệt tiêu chi phí băm (Hashing Overhead) và dọn sạch Heap Allocation.
+                // ========================================================================
+                (Control? control, string noiDung)[] danhSachToolTip = new (Control?, string)[]
+                {
+                    // ===== THÔNG TIN ĐƠN VỊ / ĐỊA ĐIỂM =====
+                    (comboBox_DiaDiem,                 "Chọn địa điểm tổ chức hoặc áp dụng thống kê"),
+                    (comboBox_ChiHuyD,                 "Chọn chỉ huy đơn vị phê duyệt"),
+                    (com_DeNghi,                       "Kết quả phân loại tập thể đơn vị do Cụm thi đua xét"),
+
+                    // ===== LƯU / KIỂM TRA =====
+                    (kryptonButton_LuuThongTin,        "Lưu toàn bộ thông tin đã nhập"),
+                    (kryptonButton_Refresh,            "Làm mới dữ liệu và nhập lại từ đầu"),
+                    (kryptonButton_KiemTraTLvaQS,      "Kiểm tra quân số và tỷ lệ theo dữ liệu hiện có"),
+                    (kryptonButton_MayTinh,            "Mở công cụ máy tính hỗ trợ tính toán nhanh"),
+
+                    // ===== XUẤT TỆP =====
+                    (kryptonButton_ChonDuongDanLuu,    "Chọn đường dẫn để lưu tệp xuất ra"),
+                    (Check_MoThuMuc,                   "Tự động mở thư mục chứa tệp sau khi xuất"),
+                    (comboBox1_ChonLoaiDeXuat,         "Chọn loại dữ liệu cần xuất ra Excel"),
+                    (kryptonButton_XuatDanhSachLoai,   "Xuất danh sách Excel theo loại đã chọn"),
+                    (kryptonButton_XuatTrinhKy,        "Xuất tệp trình ký theo mẫu quy định"),
+                    (kryptonButton_XuatTatCa,          "Xuất toàn bộ dữ liệu ra các tệp Excel"),
+                    (kryptonButton_MoThuMuc,           "Mở thư mục chứa các tệp đã xuất"),
+                    (kryptonButton1_XuatTepPdf,        "Xuất tệp *.pdf để gửi lên phần mềm QLVB ĐHTN")
+                };
+
+                // ========================================================================
+                // 🌟 XỬ LÝ LỖI PHÂN MẢNH (ISOLATED EXCEPTION)
+                // ========================================================================
+                int soLoi = 0;
+                foreach (var (control, noiDung) in danhSachToolTip)
+                {
+                    // Bỏ qua an toàn nếu control chưa kịp render hoặc bị null
+                    if (control == null)
+                    {
+                        soLoi++;
+                        continue;
+                    }
+
+                    try
+                    {
+                        // Kiểm tra vòng đời của Control trước khi gán API
+                        if (control.IsDisposed) continue;
+
+                        toolTip1.SetToolTip(control, noiDung);
+                    }
+                    catch
+                    {
+                        // Bẫy lỗi cục bộ: Lỗi ở 1 nút không làm sập vòng lặp gán của các nút khác
+                        soLoi++;
+                    }
+                }
+
+#if DEBUG
+                // Hệ thống cảnh báo nội bộ dành riêng cho Lập trình viên (Không hiện ở bản Release)
+                if (soLoi > 0)
+                    System.Diagnostics.Debug.WriteLine($"[InitToolTips] Hệ thống bỏ qua {soLoi} control do chưa khởi tạo hoặc bị null.");
+#endif
+
+                // Đánh dấu hoàn tất để khóa cổng
+                _daKhoiTaoToolTip = true;
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi tổng và in ra Output để Lập trình viên theo dõi
+                System.Diagnostics.Debug.WriteLine($"[Lỗi nghiêm trọng tại InitToolTips]: {ex.Message}");
             }
         }
         private void GanNgayThangNamVaoCombobox(bool khoaCombobox)

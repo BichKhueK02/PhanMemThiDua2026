@@ -189,7 +189,7 @@ namespace PhanMemThiDua2026
             kryptonButton1_CaiDatPhanMem.Values.DropDownArrowColor = Color.Empty;
             kryptonButton1_CaiDatPhanMem.Values.Image = (Image)resources.GetObject("kryptonButton1_CaiDatPhanMem.Values.Image");
             kryptonButton1_CaiDatPhanMem.Values.Text = "Cài đặt";
-            kryptonButton1_CaiDatPhanMem.Click += kryptonButton3_Click;
+            kryptonButton1_CaiDatPhanMem.Click += kryptonButton1_CaiDatPhanMem_Click;
             // 
             // checkBox1_TuDongAnMenu
             // 

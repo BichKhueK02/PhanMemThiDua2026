@@ -259,7 +259,7 @@ namespace PhanMemThiDua2026
             int namHienTai = Module_NamHeThong.LayNamHeThong();
             OpenChildForm<Form4_TrangDauTien>(
                 $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
-           
+
             // 🚀 TỐI ƯU UX: ẨN NÚT KHEN THƯỞNG NẾU LÀ TÂN BINH
             try
             {
@@ -449,7 +449,7 @@ namespace PhanMemThiDua2026
 
             if (sidebarExpanded)
             {
-                AnMenu(); 
+                AnMenu();
             }
             else
             {
@@ -504,6 +504,15 @@ namespace PhanMemThiDua2026
                 }
             }
             // =================================================================
+        }
+        private void kryptonButton1_CaiDatPhanMem_Click(object sender, EventArgs e)
+        {
+            DongToanBoHuongDanSuDung(); //
+            if (!AllowSwitch()) return;
+            //ClosePdfIfOpen(); // 🔹 add ở đây
+            // Gọi hàm đổi màu và truyền nút hiện tại vào
+            HighlightNavButton((KryptonButton)sender);
+            OpenChildForm<Form12>("Cài đặt");
         }
         private void SafeReload(Form6_XuLyData frm)
         {
@@ -574,16 +583,7 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Warning);
             }
         }
-        private void kryptonButton3_Click(object sender, EventArgs e)
-        {
-            DongToanBoHuongDanSuDung(); //
-            if (!AllowSwitch()) return;
-            //ClosePdfIfOpen(); // 🔹 add ở đây
-            // Gọi hàm đổi màu và truyền nút hiện tại vào
-            HighlightNavButton((KryptonButton)sender);
-            OpenChildForm<Form12>("Cài đặt");
 
-        }
         private bool _tuDongAnMenu;
         private void checkBox1_TuDongAnMenu_CheckedChanged(
     object sender,
@@ -737,7 +737,7 @@ namespace PhanMemThiDua2026
                 "Mở Form Nhật ký phần mềm",
                 "Người dùng mở form nhật ký từ Form2"
             );
-        }      
+        }
         private void SafeReloadForm10(Form10_NhatKy frm)
         {
             if (frm == null) return;
@@ -1421,6 +1421,7 @@ namespace PhanMemThiDua2026
             // 🌟 Thay Refresh thành Invalidate
             btn.Invalidate();
         }
+       
     }
 }
 public static class UIHelper

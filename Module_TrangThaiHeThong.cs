@@ -8,12 +8,9 @@ namespace PhanMemThiDua2026
 {
     internal static class Module_TrangThaiHeThong
     {
-
-
         // ================== BỘ NHỚ ĐỆM & TÀI NGUYÊN DÙNG CHUNG ==================
         private static readonly ToolTip _sharedToolTip = new ToolTip { AutoPopDelay = 10000, InitialDelay = 500, ReshowDelay = 100, ShowAlways = true };
         private static string _cachedCpuName = string.Empty;
-
         // 🌟 KẾT NỐI KERNEL32: Đọc RAM siêu tốc, né hoàn toàn Antivirus / EDR
         [StructLayout(LayoutKind.Sequential)] // ĐÃ SỬA: LayoutMode -> LayoutKind
         private struct MEMORYSTATUSEX
@@ -28,12 +25,9 @@ namespace PhanMemThiDua2026
             public ulong ullAvailVirtual;
             public ulong ullAvailExtendedVirtual;
         }
-
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
-
-  
         public static void CapNhatStatusCSDL(
        StatusStrip status,
        ToolStripStatusLabel label)
@@ -176,6 +170,45 @@ namespace PhanMemThiDua2026
             fTask.BringToFront();
         }
         // ================== CÁC HÀM TRUY VẤN ==================
+        private static string LayUngDungDocExcel()
+        {
+            try
+            {
+                // Truy cập vào khóa định dạng đuôi .xlsx trong Registry
+                using (var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(".xlsx"))
+                {
+                    if (key != null)
+                    {
+                        string progId = key.GetValue("")?.ToString();
+                        if (!string.IsNullOrEmpty(progId))
+                        {
+                            // Phân tích ProgID để nhận diện các phần mềm phổ biến
+                            if (progId.IndexOf("Excel", StringComparison.OrdinalIgnoreCase) >= 0)
+                                return "Microsoft Office - Microsoft Excel";
+                            if (progId.IndexOf("WPS", StringComparison.OrdinalIgnoreCase) >= 0)
+                                return "WPS Office";
+                            if (progId.IndexOf("opendocument.spreadsheet", StringComparison.OrdinalIgnoreCase) >= 0 || progId.IndexOf("LibreOffice", StringComparison.OrdinalIgnoreCase) >= 0)
+                                return "LibreOffice / OpenOffice";
+
+                            // Nếu là ứng dụng lạ, thử đọc tên hiển thị (Friendly Name) của nó
+                            using (var progIdKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
+                            {
+                                string appName = progIdKey?.GetValue("")?.ToString();
+                                if (!string.IsNullOrWhiteSpace(appName))
+                                    return appName;
+                            }
+
+                            return progId; // Fallback: Trả về mã gốc nếu không xác định được tên
+                        }
+                    }
+                }
+                return "Chưa cài đặt phần mềm đọc Excel";
+            }
+            catch
+            {
+                return "Không thể xác định (Khóa quyền truy cập Registry)";
+            }
+        }
         private static string GetCpuName()
         {
             if (!string.IsNullOrWhiteSpace(_cachedCpuName))
@@ -240,7 +273,6 @@ namespace PhanMemThiDua2026
                 this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
             }
         }
-
         // =========================================================================================
         // 🚀 FORM NỘI BỘ (COMPACT WIDGET LAYOUT)
         // =========================================================================================
@@ -407,11 +439,11 @@ namespace PhanMemThiDua2026
                 this.ResumeLayout(false);
             }
 
-            private async Task LoadListViewDataAsync()
+              private async Task LoadListViewDataAsync()
             {
                 lvInfo.Items.Clear();
 
-                // 🌟 BƯỚC 1: Xử lý các tác vụ truy vấn dữ liệu nặng trên Background Thread (Không đụng UI)
+                // 🌟 BƯỚC 1: Xử lý các tác vụ truy vấn dữ liệu nặng trên Background Thread
                 var sysData = await Task.Run(() =>
                 {
                     string dinhDangVung = System.Globalization.CultureInfo.CurrentCulture.DisplayName;
@@ -442,12 +474,14 @@ namespace PhanMemThiDua2026
                         UUID = LayUUIDMayTinh(),
                         RootDrive = rootDrive,
                         ThongTinOChuaApp = thongTinOChuaApp,
-                        DotNetVer = LayDotNetRuntime()
+                        DotNetVer = LayDotNetRuntime(),
+
+                        // ⭐ GỌI HÀM LẤY TÊN PHẦN MỀM ĐỌC EXCEL TẠI ĐÂY
+                        AppDocExcel = LayUngDungDocExcel()
                     };
                 });
 
                 // 🌟 BƯỚC 2: Thao tác giao diện (Control, Font, Màu) độc quyền trên luồng UI
-                // Đảm bảo không bao giờ bị dính Exception Cross-Thread
                 string doPhanGiai = $"{Screen.PrimaryScreen.Bounds.Width} x {Screen.PrimaryScreen.Bounds.Height}";
                 int dpiX = 96;
                 using (Graphics g = Graphics.FromHwnd(IntPtr.Zero)) { dpiX = (int)g.DpiX; }
@@ -492,14 +526,15 @@ namespace PhanMemThiDua2026
                     new ListViewItem(new[] { "Khả năng lưu trữ", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
                     new ListViewItem(new[] { $"Ổ đĩa cài đặt phần mềm [{sysData.RootDrive}]", sysData.ThongTinOChuaApp }),
 
-                    new ListViewItem(new[] { "Phần mềm bổ trợ", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
-                    new ListViewItem(new[] { "Môi trường .NET", sysData.DotNetVer })
+                    new ListViewItem(new[] { "Môi trường triển khai", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
+                    new ListViewItem(new[] { "Môi trường .NET", sysData.DotNetVer + " (Phát hành bởi Microsoft)" }),
+                    new ListViewItem(new[] { "Phần mềm hỗ trợ", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
+                    // ⭐ HIỂN THỊ LÊN LƯỚI DANH SÁCH TẠI ĐÂY
+                    new ListViewItem(new[] { "Ứng dụng xử lý Excel", sysData.AppDocExcel })
                 };
 
                 lvInfo.Items.AddRange(items);
             }
-
-
             private void DrawFlatProgressBar(Graphics g, Rectangle bounds, float percent, bool isAppMem)
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;

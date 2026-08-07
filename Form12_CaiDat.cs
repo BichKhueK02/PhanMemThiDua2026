@@ -41,10 +41,15 @@ namespace PhanMemThiDua2026
             richTextBox1_TomTatGhiChu.HideSelection = false;
             this.UpdateStyles();
         }
-        private void Form12_Load(object sender, EventArgs e)
+        private async void Form12_Load(object sender, EventArgs e)
         {
             if (_hasLoaded) return;
             _isLoading = true;
+
+            // ⭐ TUYỆT CHIÊU TỐI ƯU UX: Nhường luồng 30ms cho UI Thread.
+            // Việc này giúp Form12 hiện ra NGAY LẬP TỨC khi bấm nút ở Form cha mà không bị khựng (lag)
+            await Task.Delay(30);
+
             // 👉 BỔ SUNG DÒNG NÀY: Ẩn thông báo khi vừa mở Form
             if (label1_ThongBaoThanhCong != null)
             {
@@ -56,9 +61,11 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1.Text = string.Empty;
                 toolStripStatusLabel1.Visible = false;
             }
+
             LoadComboBoxCauHinh();
             LoadComboBoxTuDongXoa();
             Module_DonVi.KhoiTao();
+
             // ⭐ SỬA LỖI LOAD 1: Phải đảm bảo có Items trước, và dùng .Text thay vì .SelectedItem
             if (comboBox1_ChonSuKienThoat != null)
             {
@@ -72,19 +79,25 @@ namespace PhanMemThiDua2026
             InitToolTips();
             NapDanhSachNam();
             LoadNamHeThong();
+
             // 1. Nạp danh sách trắng trước
             NapDanhSachKyHieuChung();
-            // ⭐ Nạp trước danh sách ComboBox Tiểu đoàn từ bảng DanhSachDonVi_CapTrucThuoc
-            LoadDanhSachDonViVaKyHieu();
+
+            // ⭐ ĐÃ XÓA 1 DÒNG GỌI LẶP LoadDanhSachDonViVaKyHieu() Ở ĐÂY ĐỂ TĂNG TỐC
+
             // ⭐ 2. Nạp dữ liệu tự động cho Tiểu Đoàn và Ký hiệu từ Form 47
             LoadDanhSachDonViVaKyHieu();
+
             // 2. Ép dữ liệu từ DB lên
             LoadFromSQLite();
+
             // Thêm vào Form12_Load
             LoadCauHinhXemHuongDan();
+
             // 3. Gắn sự kiện
             GanSuKien();
             _currentFontSize = richTextBox1_TomTatGhiChu.Font.Size;
+
             // ⭐ BƯỚC 4: TRỊ DỨT ĐIỂM HIGHLIGHT (Tuyệt chiêu)
             this.BeginInvoke(new Action(() =>
             {
@@ -101,6 +114,7 @@ namespace PhanMemThiDua2026
                 if (comboBox_TenTieuDoan != null) comboBox_TenTieuDoan.SelectionLength = 0;
                 if (comboBox1_NamHienTai != null) comboBox1_NamHienTai.SelectionLength = 0;
             }));
+
             // 👉 BỔ SUNG: NẠP LẠI GIÁ TRỊ CẤU HÌNH TỪ CSDL VÀO COMBOBOX
             if (comboBox1_ThoiGianThayDoiAnh != null)
             {
@@ -110,6 +124,7 @@ namespace PhanMemThiDua2026
                 }
                 comboBox1_ThoiGianThayDoiAnh.Text = Module_HinhAnhTrangChu.DocCauHinhThoiGian();
             }
+
             // Gán tên máy tính vào TextBox khi giao diện vừa khởi tạo
             _isLoading = false;
             _hasLoaded = true;
@@ -160,72 +175,87 @@ namespace PhanMemThiDua2026
             if (_isLoading) return;
             _dataChanged = true;
         }
+        private bool _daKhoiTaoToolTip = false; // chống gọi lặp lãng phí RAM
         private void InitToolTips()
         {
+            // Chống gọi lại nhiều lần không cần thiết
+            if (_daKhoiTaoToolTip) return;
+
+            // ⭐ SỬA Ở ĐÂY: Chỉ kiểm tra null, bỏ kiểm tra IsDisposed vì ToolTip không hỗ trợ
+            if (toolTip1 == null)
+                return;
+
             try
             {
-                
-                // CẤU HÌNH CHUNG
-                
+                // ================= CẤU HÌNH CHUNG =================
                 toolTip1.IsBalloon = true;
                 toolTip1.ToolTipTitle = "Chức năng";
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
-                
-                // DANH SÁCH TOOLTIP
-                
-                var toolTips = new Dictionary<Control, string>()
-        {
-            { kryptonButton_LuuThongTin, "Lưu thông tin chỉnh sửa" },
-            { kryptonButton1_CapNhatDanhSachDonVi, "Cập nhật danh sách đơn vị" },
-            { kryptonButton1_CapNhatChucVu, "Cập nhật danh sách chức vụ" },
-            { kryptonButton_CapNhatDanhSachChiHuyD, "Cập nhật danh sách chỉ huy ký duyệt" },
-            { kryptonButton1_SaoLuu, "Sao lưu dữ liệu hệ thống" },
-            { kryptonButton1_Khoiphuc, "Khôi phục dữ liệu từ bản sao lưu" },
-            { kryptonButton_LuuCauHinh, "Lưu cấu hình" },
-            { kryptonButton1_CaiDatFileExcel, "Căn chỉnh in ấn tệp excel" },
-            { kryptonButton2_TangCoChuRichText, "Tăng cỡ chữ" },
-            { kryptonButton2_GiamCoChuRichText, "Giảm cỡ chữ" },
-            { kryptonButton2_ChuyenGiaoDuLieu, "Chuyển giao dữ liệu khi chuyển sang phiên bản phần mềm mới" },
-            { kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet, "Chọn đơn vị có thể bỏ qua việc tính tỷ lệ % ở Bảng 3 - Trang chủ" },
-            { kryptonButton_CapNhat, "Cập nhật danh sách đơn vị trực thuộc" },
-            { kryptonButton1_CaiDatTyLePhanTramE29, "Cài đặt tỷ lệ % theo quy định của Trung đoàn" }
-        };
-
-                
-                // GÁN TOOLTIP AN TOÀN
-                
-                foreach (var item in toolTips)
+                // ================= DANH SÁCH TOOLTIP =================
+                // Dùng mảng tuple thay vì Dictionary:
+                // - Không có overhead hashing/bucket của Dictionary
+                // - Không bị crash toàn bộ nếu 1 phần tử có Control = null
+                (Control? control, string noiDung)[] danhSachToolTip = new (Control?, string)[]
                 {
+                    (kryptonButton_LuuThongTin,                    "Lưu thông tin chỉnh sửa"),
+                    (kryptonButton1_CapNhatDanhSachDonVi,           "Cập nhật danh sách đơn vị"),
+                    (kryptonButton1_CapNhatChucVu,                  "Cập nhật danh sách chức vụ"),
+                    (kryptonButton_CapNhatDanhSachChiHuyD,          "Cập nhật danh sách chỉ huy ký duyệt"),
+                    (kryptonButton1_SaoLuu,                         "Sao lưu dữ liệu hệ thống"),
+                    (kryptonButton1_Khoiphuc,                       "Khôi phục dữ liệu từ bản sao lưu"),
+                    (kryptonButton_LuuCauHinh,                      "Lưu cấu hình"),
+                    (kryptonButton1_CaiDatFileExcel,                "Căn chỉnh in ấn tệp excel"),
+                    (kryptonButton2_TangCoChuRichText,               "Tăng cỡ chữ"),
+                    (kryptonButton2_GiamCoChuRichText,               "Giảm cỡ chữ"),
+                    (kryptonButton2_ChuyenGiaoDuLieu,                "Chuyển giao dữ liệu khi chuyển sang phiên bản phần mềm mới"),
+                    (kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet,     "Chọn đơn vị có thể bỏ qua việc tính tỷ lệ % ở Bảng 3 - Trang chủ"),
+                    (kryptonButton_CapNhat,                          "Cập nhật danh sách đơn vị trực thuộc"),
+                    (kryptonButton_TyLePhanTramBaNhat,               "Cập nhật tỷ lệ % của phong trào thi đua Ba Nhất"),
+                    (kryptonButton1_CaiDatTyLePhanTramBCH,           "Cập nhật tỷ lệ % của BCH"),
+                    (kryptonButton1_CaiDatTyLePhanTramE29,           "Cập nhật tỷ lệ % của CBCS"),
+                };
+
+                // ================= GÁN TOOLTIP AN TOÀN =================
+                int soLoi = 0;
+                foreach (var (control, noiDung) in danhSachToolTip)
+                {
+                    // Bỏ qua an toàn nếu control chưa tồn tại (null) — không còn nguy cơ crash cả khối
+                    if (control == null)
+                    {
+                        soLoi++;
+                        continue;
+                    }
+
                     try
                     {
-                        Control? control = item.Key;
-
-                        if (control == null)
-                            continue;
-
+                        // Control bình thường thì vẫn có IsDisposed nên check ở đây là chuẩn xác
                         if (control.IsDisposed)
                             continue;
 
-                        toolTip1.SetToolTip(control, item.Value);
+                        toolTip1.SetToolTip(control, noiDung);
                     }
                     catch
                     {
-                        // Không cho 1 control lỗi làm sập toàn bộ UI
+                        // Không cho 1 control lỗi làm sập toàn bộ vòng lặp gán tooltip
+                        soLoi++;
                     }
                 }
+
+#if DEBUG
+                // Cảnh báo cho lập trình viên biết ngay trong lúc phát triển nếu có control bị thiếu/null
+                if (soLoi > 0)
+                    System.Diagnostics.Debug.WriteLine($"[InitToolTips] Có {soLoi} control không gán được tooltip (null hoặc lỗi).");
+#endif
+
+                _daKhoiTaoToolTip = true;
             }
-            catch
+            catch (Exception ex)
             {
-                // Chặn crash toàn hệ thống UI
+                // Chặn crash toàn hệ thống UI và xuất log nếu cần
+                System.Diagnostics.Debug.WriteLine($"[Lỗi InitToolTips]: {ex.Message}");
             }
         }
-        /// <summary>
-        /// Hàm tiện ích hiển thị thông báo dưới thanh trạng thái và tự động ẩn sau một khoảng thời gian.
-        /// </summary>
-        /// <param name="noiDung">Nội dung cần thông báo</param>
-        /// <param name="mauChu">Màu sắc của chữ (Mặc định là đen than)</param>
-        /// <param name="delayMs">Thời gian hiển thị (Mặc định là 200ms)</param>
         private async void HienThongBaoStatus(string noiDung, Color? mauChu = null, int delayMs = 400)
         {
             if (toolStripStatusLabel1 == null) return;

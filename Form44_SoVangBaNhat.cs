@@ -112,35 +112,91 @@ namespace PhanMemThiDua2026
                 richTextBox1_ThanhTich.Text = thanhTichMoi;
             }
         }
+        // ========================================================================
+        // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
+        // ========================================================================
+        // ========================================================================
+        // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
+        // ========================================================================
+        // ========================================================================
+        // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
+        // ========================================================================
+        private bool _daKhoiTaoToolTip = false;
+
         private void InitToolTips()
         {
-            toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
-            toolTip1.ToolTipIcon = ToolTipIcon.Info;
+            // Chống gọi lại nhiều lần không cần thiết
+            if (_daKhoiTaoToolTip) return;
 
-            // UX: phản hồi nhanh – không gây khó chịu khi rê chuột qua
-            toolTip1.InitialDelay = 300;
-            toolTip1.AutoPopDelay = 2500;
-            toolTip1.ReshowDelay = 100;
-            toolTip1.ShowAlways = true;
+            // An toàn từ gốc: Kiểm tra ToolTip có tồn tại không
+            if (toolTip1 == null) return;
 
-            // Bản đồ ánh xạ các nút điều khiển và nội dung hướng dẫn tương ứng
-            var tips = new Dictionary<Control, string>
-    {
-        { kryptonButton_LamMoiCacOTimKiem, "Xóa nội dung tìm kiếm và đặt lại các bộ lọc về trạng thái mặc định" },
-        { kryptonButton_RefershCSDL, "Tải lại toàn bộ dữ liệu mới nhất từ cơ sở dữ liệu và làm mới trang" },
-        { kryptonButton1_XoaCBCS, "Xóa thông tin cán bộ chiến sĩ đang chọn khỏi danh sách Sổ vàng Ba Nhất" },
-        { kryptonButton_LuuDataSoVang, "Lưu hoặc cập nhật thông tin dữ liệu Sổ vàng của cán bộ vào cơ sở dữ liệu" },
-        { kryptonButton1_Thoat, "Thoát khỏi trang quản lý Sổ vàng và quay trở về giao diện trước đó" }
-    };
-
-            foreach (var tip in tips)
+            try
             {
-                // Kiểm tra an toàn để tránh lỗi NullReference nếu nút chưa được khởi tạo hoặc bị hủy
-                if (tip.Key != null && !tip.Key.IsDisposed)
+                // ================= CẤU HÌNH CHUNG =================
+                toolTip1.IsBalloon = true;
+                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipIcon = ToolTipIcon.Info;
+
+                // UX: Phản hồi nhanh – không gây khó chịu khi rê chuột qua
+                toolTip1.InitialDelay = 300;
+                toolTip1.AutoPopDelay = 2500;
+                toolTip1.ReshowDelay = 100;
+                toolTip1.ShowAlways = true;
+
+                // ========================================================================
+                // 🌟 TỐI ƯU CẤU TRÚC RAM: Dùng mảng ValueTuple thay cho Dictionary
+                // Triệt tiêu chi phí băm (Hashing Overhead) và dọn sạch Heap Allocation.
+                // ========================================================================
+                (System.Windows.Forms.Control? control, string noiDung)[] danhSachToolTip = new (System.Windows.Forms.Control?, string)[]
                 {
-                    toolTip1.SetToolTip(tip.Key, tip.Value);
+                    (kryptonButton_LamMoiCacOTimKiem, "Xóa nội dung tìm kiếm và đặt lại các bộ lọc về trạng thái mặc định"),
+                    (kryptonButton_RefershCSDL,       "Tải lại toàn bộ dữ liệu mới nhất từ cơ sở dữ liệu và làm mới trang"),
+                    (kryptonButton1_XoaCBCS,          "Xóa thông tin cán bộ chiến sĩ đang chọn khỏi danh sách Sổ vàng Ba Nhất"),
+                    (kryptonButton_LuuDataSoVang,     "Lưu hoặc cập nhật thông tin dữ liệu Sổ vàng của cán bộ vào cơ sở dữ liệu"),
+                    (kryptonButton1_Thoat,            "Thoát khỏi trang quản lý Sổ vàng và quay trở về giao diện trước đó")
+                };
+
+                // ========================================================================
+                // 🌟 XỬ LÝ LỖI PHÂN MẢNH (ISOLATED EXCEPTION)
+                // ========================================================================
+                int soLoi = 0;
+                foreach (var (control, noiDung) in danhSachToolTip)
+                {
+                    // Bỏ qua an toàn nếu control chưa kịp render hoặc bị null
+                    if (control == null)
+                    {
+                        soLoi++;
+                        continue;
+                    }
+
+                    try
+                    {
+                        // Kiểm tra vòng đời của Control trước khi gán API
+                        if (control.IsDisposed) continue;
+
+                        toolTip1.SetToolTip(control, noiDung);
+                    }
+                    catch
+                    {
+                        // Bẫy lỗi cục bộ: Lỗi ở 1 nút không làm sập vòng lặp gán của các nút khác
+                        soLoi++;
+                    }
                 }
+
+#if DEBUG
+                // Hệ thống cảnh báo nội bộ dành riêng cho Lập trình viên (Không hiện ở bản Release)
+                if (soLoi > 0)
+                    System.Diagnostics.Debug.WriteLine($"[InitToolTips] Hệ thống bỏ qua {soLoi} control do chưa khởi tạo hoặc bị null.");
+#endif
+
+                // Đánh dấu hoàn tất để khóa cổng
+                _daKhoiTaoToolTip = true;
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi tổng và in ra Output để Lập trình viên theo dõi
+                System.Diagnostics.Debug.WriteLine($"[Lỗi nghiêm trọng tại InitToolTips]: {ex.Message}");
             }
         }
         public async Task LoadDuLieuSoVangBaNhatAsync()
