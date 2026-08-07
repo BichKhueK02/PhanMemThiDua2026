@@ -126,7 +126,7 @@
             ComboBox2_CauHoi2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             ComboBox2_CauHoi2.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold);
             ComboBox2_CauHoi2.FormattingEnabled = true;
-            ComboBox2_CauHoi2.Location = new Point(100, 7);
+            ComboBox2_CauHoi2.Location = new Point(100, 6);
             ComboBox2_CauHoi2.Name = "ComboBox2_CauHoi2";
             ComboBox2_CauHoi2.Size = new Size(356, 25);
             ComboBox2_CauHoi2.TabIndex = 0;
@@ -136,7 +136,7 @@
             ComboBox1_CauHoi1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             ComboBox1_CauHoi1.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold);
             ComboBox1_CauHoi1.FormattingEnabled = true;
-            ComboBox1_CauHoi1.Location = new Point(100, 7);
+            ComboBox1_CauHoi1.Location = new Point(100, 6);
             ComboBox1_CauHoi1.Name = "ComboBox1_CauHoi1";
             ComboBox1_CauHoi1.Size = new Size(356, 25);
             ComboBox1_CauHoi1.TabIndex = 0;
@@ -419,9 +419,9 @@
             // btn_Thoat
             // 
             btn_Thoat.Anchor = AnchorStyles.None;
-            btn_Thoat.Location = new Point(59, 7);
+            btn_Thoat.Location = new Point(59, 6);
             btn_Thoat.Name = "btn_Thoat";
-            btn_Thoat.Size = new Size(111, 28);
+            btn_Thoat.Size = new Size(111, 30);
             btn_Thoat.StateCommon.Border.Rounding = 4F;
             btn_Thoat.TabIndex = 1;
             btn_Thoat.Values.DropDownArrowColor = Color.Empty;
@@ -432,9 +432,9 @@
             // btn_Luu
             // 
             btn_Luu.Anchor = AnchorStyles.None;
-            btn_Luu.Location = new Point(288, 7);
+            btn_Luu.Location = new Point(288, 6);
             btn_Luu.Name = "btn_Luu";
-            btn_Luu.Size = new Size(111, 28);
+            btn_Luu.Size = new Size(111, 30);
             btn_Luu.StateCommon.Border.Rounding = 4F;
             btn_Luu.TabIndex = 0;
             btn_Luu.Values.DropDownArrowColor = Color.Empty;
@@ -579,9 +579,9 @@
             // kryptonButton1_ThemAnhDaiDien
             // 
             kryptonButton1_ThemAnhDaiDien.Anchor = AnchorStyles.None;
-            kryptonButton1_ThemAnhDaiDien.Location = new Point(3, 55);
+            kryptonButton1_ThemAnhDaiDien.Location = new Point(3, 54);
             kryptonButton1_ThemAnhDaiDien.Name = "kryptonButton1_ThemAnhDaiDien";
-            kryptonButton1_ThemAnhDaiDien.Size = new Size(101, 28);
+            kryptonButton1_ThemAnhDaiDien.Size = new Size(101, 30);
             kryptonButton1_ThemAnhDaiDien.StateCommon.Border.Rounding = 4F;
             kryptonButton1_ThemAnhDaiDien.TabIndex = 2;
             kryptonButton1_ThemAnhDaiDien.Values.DropDownArrowColor = Color.Empty;

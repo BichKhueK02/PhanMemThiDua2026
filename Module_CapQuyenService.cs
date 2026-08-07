@@ -57,18 +57,18 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                // ---------------------------------------------
+                
                 // Tạo nội dung giấy phép
-                // ---------------------------------------------
+                
                 string noiDung =
           TaoNoiDungGiayPhep(tenPhanMem);
 
                 byte[] plainBytes =
                   Encoding.UTF8.GetBytes(noiDung);
 
-                // ---------------------------------------------
+                
                 // AES
-                // ---------------------------------------------
+                
                 using Aes aes = Aes.Create();
 
                 aes.Key = SHARED_KEY;
@@ -80,11 +80,11 @@ namespace PhanMemThiDua2026
                 // IV random mỗi lần tạo
                 aes.GenerateIV();
 
-                // ---------------------------------------------
+                
                 // Encrypt
                 // Format:
                 // [IV][CIPHER]
-                // ---------------------------------------------
+                
                 byte[] cipherBytes;
 
                 using (MemoryStream ms = new MemoryStream())
@@ -115,10 +115,10 @@ namespace PhanMemThiDua2026
                     cipherBytes = ms.ToArray();
                 }
 
-                // ---------------------------------------------
+                
                 // HMACSHA256
                 // Chống sửa đổi file
-                // ---------------------------------------------
+                
                 byte[] hmacBytes;
 
                 using (HMACSHA256 hmac =
@@ -128,11 +128,11 @@ namespace PhanMemThiDua2026
                       hmac.ComputeHash(cipherBytes);
                 }
 
-                // ---------------------------------------------
+                
                 // Final file
                 // Format:
                 // [IV][CIPHER][HMAC]
-                // ---------------------------------------------
+                
                 byte[] finalBytes =
           new byte[
             cipherBytes.Length +
@@ -155,9 +155,9 @@ namespace PhanMemThiDua2026
                   hmacBytes.Length
                 );
 
-                // ---------------------------------------------
+                
                 // Ghi file
-                // ---------------------------------------------
+                
                 File.WriteAllBytes(
           fileName,
           finalBytes
@@ -178,9 +178,9 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                // ---------------------------------------------
+                
                 // File tồn tại ?
-                // ---------------------------------------------
+                
                 if (!File.Exists(fileName))
                 {
                     return false;
@@ -189,20 +189,20 @@ namespace PhanMemThiDua2026
                 byte[] fullBytes =
                   File.ReadAllBytes(fileName);
 
-                // ---------------------------------------------
+                
                 // Kiểm tra độ dài tối thiểu
                 // AES IV = 16 bytes
                 // HMACSHA256 = 32 bytes
-                // ---------------------------------------------
+                
                 if (fullBytes.Length < 48)
                 {
                     return false;
                 }
 
-                // ---------------------------------------------
+                
                 // Tách:
                 // [IV][CIPHER][HMAC]
-                // ---------------------------------------------
+                
                 const int HMAC_SIZE = 32;
 
                 int cipherLength =
@@ -230,9 +230,9 @@ namespace PhanMemThiDua2026
                   HMAC_SIZE
                 );
 
-                // ---------------------------------------------
+                
                 // Verify HMAC trước
-                // ---------------------------------------------
+                
                 byte[] computedHmac;
 
                 using (HMACSHA256 hmac =
@@ -254,18 +254,18 @@ namespace PhanMemThiDua2026
                     return false;
                 }
 
-                // ---------------------------------------------
+                
                 // AES
-                // ---------------------------------------------
+                
                 using Aes aes = Aes.Create();
 
                 aes.Key = SHARED_KEY;
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.PKCS7;
 
-                // ---------------------------------------------
+                
                 // Đọc IV
-                // ---------------------------------------------
+                
                 byte[] iv =
           new byte[aes.BlockSize / 8];
 
@@ -279,9 +279,9 @@ namespace PhanMemThiDua2026
 
                 aes.IV = iv;
 
-                // ---------------------------------------------
+                
                 // Giải mã
-                // ---------------------------------------------
+                
                 string noiDungGoc;
 
                 using (
@@ -316,9 +316,9 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                // ---------------------------------------------
+                
                 // Parse & Validate
-                // ---------------------------------------------
+                
                 return ParseAndValidate(
           noiDungGoc,
           tenPhanMemCuaToi
@@ -374,9 +374,9 @@ namespace PhanMemThiDua2026
                     data[key] = value;
                 }
 
-                // ---------------------------------------------
+                
                 // Validate APP
-                // ---------------------------------------------
+                
                 if (!data.TryGetValue(
           "APP",
           out string appName))
@@ -393,9 +393,9 @@ namespace PhanMemThiDua2026
                     return false;
                 }
 
-                // ---------------------------------------------
+                
                 // Validate MACHINE
-                // ---------------------------------------------
+                
                 if (!data.TryGetValue(
           "MACHINE",
           out string machine))

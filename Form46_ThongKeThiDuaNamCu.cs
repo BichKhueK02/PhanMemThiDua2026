@@ -13,6 +13,7 @@ namespace PhanMemThiDua2026
 {
     public partial class Form46_ThongKeThiDuaNamCu : Form
     {
+        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private DataTable _dtHienTai;
         private List<int> _filteredIndexes = new List<int>(); // Lưu trữ chỉ số dòng đã qua bộ lọc (Virtual Mode Core)
         private Dictionary<int, int> _colIndexMap = new Dictionary<int, int>(); // Bản đồ tọa độ cột siêu tốc
@@ -22,7 +23,6 @@ namespace PhanMemThiDua2026
         private List<string> _cotPhatSinhCacheThongKe;
         private bool _isDataMaxMode = false;
         private const int NGUONG_DU_LIEU = 3000;
-
         private const string PLACEHOLDER_TIMKIEM = "Nhập tìm kiếm";
         private bool _dangSetPlaceholder = false;
         private bool _isInitialized = false;
@@ -658,9 +658,9 @@ namespace PhanMemThiDua2026
             // ⭐ ĐỌC DỮ LIỆU TỪ GIAO DIỆN (UI THREAD) TRƯỚC KHI VÀO TASK.RUN
             var selectedFile = comboBox_ChonCSDLNam.SelectedItem as FileLichSuDTO;
 
-            // =========================================================
+            
             // 1. LỚP VỎ UX: LƯU TRẠNG THÁI GỐC ĐỂ PHỤC HỒI SAU KHI XONG
-            // =========================================================
+            
             string textBanDau = kryptonButton_CapNhat.Values.Text;
             Image anhBanDau = kryptonButton_CapNhat.Values.Image;
 
@@ -683,7 +683,7 @@ namespace PhanMemThiDua2026
                 // ⭐ NẾU CÓ CHỌN TỆP THÌ MỚI CHẠY ĐỐI CHIẾU
                 if (selectedFile != null)
                 {
-                    string pathCsdl2 = Module_DanduongGPS.DuongDanCSDL2;
+                    string pathCsdl2 = _csdl2Path;
                     string pathCsdlNamCu = selectedFile.DuongDan;
                     bool laTanBinh = selectedFile.LaTanBinh;
 
@@ -722,9 +722,9 @@ namespace PhanMemThiDua2026
         }
         private async void kryptonButton_XuatData_Click(object sender, EventArgs e)
         {
-            // =========================================================
+            
             // 1. LỚP VỎ UX: LƯU TRẠNG THÁI GỐC CHỐNG CLICK TRÙNG LUỒNG
-            // =========================================================
+            
             string textBanDau = kryptonButton_XuatData.Values.Text;
             Image anhBanDau = kryptonButton_XuatData.Values.Image;
 
@@ -738,18 +738,18 @@ namespace PhanMemThiDua2026
             if (comboBox_ChonCSDLNam.SelectedItem == null) return;
             var selectedFile = (FileLichSuDTO)comboBox_ChonCSDLNam.SelectedItem;
 
-            // =========================================================
+            
             // ⭐ XỬ LÝ TÊN TỆP ĐỘNG THEO YÊU CẦU
-            // =========================================================
+            
             string loai = selectedFile.LaTanBinh ? "TanBinh" : "CBCS";
             // Trích xuất năm từ chuỗi "Năm 2026 - CBCS" -> lấy số 2026
             string[] parts = selectedFile.TenHienThi.Split(' ');
             string nam = (parts.Length > 1) ? parts[1] : DateTime.Now.Year.ToString();
             string fileName = $"ThongKeThiDua_{loai}_Nam{nam}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
 
-            // =========================================================
+            
             // 2. KHỞI TẠO HỘP THOẠI LƯU TỆP EXCEL
-            // =========================================================
+            
             using var sfd = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu file Excel thống kê",
@@ -773,9 +773,9 @@ namespace PhanMemThiDua2026
                 kryptonButton_XuatData.Values.Image = null;
                 await Task.Delay(100);
 
-                // =========================================================
+                
                 // 3. ĐỌC TIÊN QUYẾT TIÊU CHÍ CỘT THỰC TẾ TRONG FILE SQLITE
-                // =========================================================
+                
                 var cotTrongBang = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 string tenBang = selectedFile.LaTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
 
@@ -792,9 +792,9 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                // =========================================================================
+                
                 // 4. TRÍCH XUẤT SIÊU DỮ LIỆU CỘT
-                // =========================================================================
+                
                 var columnsMeta = kryptonDataGridView1.Columns
                     .Cast<DataGridViewColumn>()
                     .Where(c => cotTrongBang.Contains(c.Name))
@@ -822,9 +822,9 @@ namespace PhanMemThiDua2026
 
                 string tenTieuDoan = XacDinhTenTieuDoan();
 
-                // =========================================================================
+                
                 // 5. KÍCH HOẠT TIẾN TRÌNH LUỒNG NỀN
-                // =========================================================================
+                
                 await Task.Run(() =>
                 {
                     Module_HoTroLuuDataTheoNamCu.XuatExcelLichSuCore(
@@ -874,7 +874,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var conn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
+                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin WHERE ID=1";
@@ -900,7 +900,7 @@ namespace PhanMemThiDua2026
                 this.Cursor = Cursors.WaitCursor;
                 // ⭐ ĐỒNG BỘ TÌNH TRẠNG NGAY TRƯỚC KHI LOAD
                 Module_HoTroLuuDataTheoNamCu.CapNhatTinhTrangLichSuTuDanhSachGoc(
-                    Module_DanduongGPS.DuongDanCSDL2,
+                    _csdl2Path,
                     selectedFile.DuongDan,
                     selectedFile.LaTanBinh
                 );
@@ -1070,9 +1070,9 @@ namespace PhanMemThiDua2026
         private void xuatDuLieuTepExcel_ToolStripMenuItem_Click(object sender, EventArgs e) => kryptonButton_XuatData.PerformClick();
         private void xoaCSDL_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // =========================================================
+            
             // 1. KIỂM TRA TỆP CSDL LỊCH SỬ ĐANG ĐƯỢC CHỌN
-            // =========================================================
+            
             if (comboBox_ChonCSDLNam.SelectedItem == null)
             {
                 MessageBox.Show("Vui lòng chọn tệp CSDL năm cũ cần xóa trên danh sách!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1088,9 +1088,9 @@ namespace PhanMemThiDua2026
                 return;
             }
 
-            // =========================================================
+            
             // 2. BẢO VỆ MẤT DỮ LIỆU: HỎI XÁC NHẬN CẢNH BÁO NGUY HIỂM
-            // =========================================================
+            
             var confirm = MessageBox.Show(
                 $"Bạn có chắc chắn muốn Xóa vĩnh viễn tệp CSDL lưu trữ lịch sử:\n👉 {selectedFile.TenHienThi}\n⚠️ Cảnh báo: Tệp này sẽ bị xóa khỏi ổ cứng và không thể khôi phục!",
                 "Xác nhận xóa tệp CSDL năm cũ",
@@ -1101,9 +1101,9 @@ namespace PhanMemThiDua2026
             if (confirm != DialogResult.Yes)
                 return;
 
-            // =========================================================
+            
             // 3. XÁC MINH QUYỀN ADMIN (FORM 24)
-            // =========================================================
+            
             DialogResult kq;
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
@@ -1115,9 +1115,9 @@ namespace PhanMemThiDua2026
             if (kq != DialogResult.OK)
                 return;
 
-            // =========================================================
+            
             // 4. ⭐ QUY TRÌNH BẢO AN: CẮT LIÊN KẾT GRID VÀ DỌN SẠCH RAM TRƯỚC
-            // =========================================================
+            
             try
             {
                 // 4.1. Ngắt tạm thời sự kiện ComboBox để tránh tự động gọi ThucHienTaiDuLieuLichSu() dồn dập
@@ -1148,9 +1148,9 @@ namespace PhanMemThiDua2026
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
-                // =========================================================
+                
                 // 5. THỰC HIỆN XÓA TỆP TRÊN Ổ ĐĨA
-                // =========================================================
+                
                 File.Delete(fileToDelete);
 
                 // Ghi nhật ký thao tác hệ thống
@@ -1197,7 +1197,6 @@ namespace PhanMemThiDua2026
             }
         }
         private void dong_ToolStripMenuItem_Click(object sender, EventArgs e) => kryptonButton_Dong.PerformClick();
-
         private void CapNhatTieuDeTheoNamDuocChon()
         {
             // Kiểm tra xem người dùng có đang chọn một file lịch sử hợp lệ không
@@ -1225,7 +1224,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         private void huongDan_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string msgHuongDan = @"GIỚI THIỆU CHỨC NĂNG:

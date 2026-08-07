@@ -175,7 +175,7 @@ namespace PhanMemThiDua2026
                         string tinhTrang;
                         if (isCurrent) tinhTrang = "Đang sử dụng";
                         else if (isSystem) tinhTrang = "Hệ thống";
-                        else tinhTrang = "Đã lưu";
+                        else tinhTrang = "Ngừng sử dụng";
 
                         list.Add(new ThongKeTaiKhoanModel
                         {

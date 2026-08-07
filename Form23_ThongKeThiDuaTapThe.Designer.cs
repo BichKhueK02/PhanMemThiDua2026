@@ -56,7 +56,7 @@
             toolStrip1.Font = new Font("Segoe UI", 9F);
             toolStrip1.ImageScalingSize = new Size(21, 21);
             toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripLabel1, toolStripLabel2, toolStripLabel3 });
-            toolStrip1.Location = new Point(0, 176);
+            toolStrip1.Location = new Point(0, 236);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new Size(936, 25);
             toolStrip1.TabIndex = 0;
@@ -91,9 +91,9 @@
             tableLayoutPanel1.Margin = new Padding(2, 3, 2, 3);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 2;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 72.15909F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 27.84091F));
-            tableLayoutPanel1.Size = new Size(936, 176);
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 78.81356F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 21.1864414F));
+            tableLayoutPanel1.Size = new Size(936, 236);
             tableLayoutPanel1.TabIndex = 1;
             // 
             // kryptonDataGridView1
@@ -105,7 +105,7 @@
             kryptonDataGridView1.Margin = new Padding(2, 3, 2, 3);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(932, 121);
+            kryptonDataGridView1.Size = new Size(932, 180);
             kryptonDataGridView1.TabIndex = 10;
             // 
             // tableLayoutPanel2
@@ -124,19 +124,19 @@
             tableLayoutPanel2.Controls.Add(comboBox1_ChonThangCanXuat, 1, 0);
             tableLayoutPanel2.Controls.Add(kryptonButton_Dong, 5, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(2, 130);
+            tableLayoutPanel2.Location = new Point(2, 189);
             tableLayoutPanel2.Margin = new Padding(2, 3, 2, 3);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.Size = new Size(932, 43);
+            tableLayoutPanel2.Size = new Size(932, 44);
             tableLayoutPanel2.TabIndex = 11;
             // 
             // kryptonButton_XuatTepExcel
             // 
             kryptonButton_XuatTepExcel.Anchor = AnchorStyles.None;
             kryptonButton_XuatTepExcel.DialogResult = DialogResult.TryAgain;
-            kryptonButton_XuatTepExcel.Location = new Point(582, 6);
+            kryptonButton_XuatTepExcel.Location = new Point(582, 7);
             kryptonButton_XuatTepExcel.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatTepExcel.Name = "kryptonButton_XuatTepExcel";
             kryptonButton_XuatTepExcel.Size = new Size(136, 30);
@@ -151,7 +151,7 @@
             // 
             kryptonButton1_CapNhat.Anchor = AnchorStyles.None;
             kryptonButton1_CapNhat.DialogResult = DialogResult.TryAgain;
-            kryptonButton1_CapNhat.Location = new Point(406, 6);
+            kryptonButton1_CapNhat.Location = new Point(406, 7);
             kryptonButton1_CapNhat.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_CapNhat.Name = "kryptonButton1_CapNhat";
             kryptonButton1_CapNhat.Size = new Size(136, 30);
@@ -203,7 +203,7 @@
             // 
             kryptonButton_Dong.Anchor = AnchorStyles.None;
             kryptonButton_Dong.DialogResult = DialogResult.TryAgain;
-            kryptonButton_Dong.Location = new Point(769, 6);
+            kryptonButton_Dong.Location = new Point(769, 7);
             kryptonButton_Dong.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Dong.Name = "kryptonButton_Dong";
             kryptonButton_Dong.Size = new Size(136, 30);
@@ -218,7 +218,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(936, 201);
+            ClientSize = new Size(936, 261);
             Controls.Add(tableLayoutPanel1);
             Controls.Add(toolStrip1);
             Icon = (Icon)resources.GetObject("$this.Icon");

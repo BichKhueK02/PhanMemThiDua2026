@@ -861,6 +861,9 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["DeNghi"].Width = 70;
                 kryptonDataGridView1.Columns["DeNghi"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["DeNghi"].ReadOnly = false;
+
+                // ⭐ ÉP CỘT NÀY ĐỨNG Ở VỊ TRÍ SỐ 9 (Ngay sau cột Đơn vị)
+                kryptonDataGridView1.Columns["DeNghi"].DisplayIndex = 9;
             }
 
             if (kryptonDataGridView1.Columns["TinhTrang"] != null)
@@ -869,6 +872,9 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["TinhTrang"].Width = 120;
                 kryptonDataGridView1.Columns["TinhTrang"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 kryptonDataGridView1.Columns["TinhTrang"].ReadOnly = true;
+
+                // ⭐ ÉP CỘT NÀY ĐỨNG Ở VỊ TRÍ SỐ 10 (Ngay sau cột Đề nghị)
+                kryptonDataGridView1.Columns["TinhTrang"].DisplayIndex = 10;
             }
 
             // 3. CÁC CỘT ĐỘNG (Lấp đầy khoảng trống còn lại)
@@ -877,9 +883,16 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["GhiChu"].HeaderText = "Ghi chú";
                 kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 kryptonDataGridView1.Columns["GhiChu"].FillWeight = 50;
+
+                // ⭐ KHÓA MIN WIDTH = 100 ĐỂ KHÔNG BỊ BÓP THÀNH ĐƯỜNG KẺ TRÊN MÀN HÌNH NHỎ
+                kryptonDataGridView1.Columns["GhiChu"].MinimumWidth = 100;
+
                 kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
                 kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 kryptonDataGridView1.Columns["GhiChu"].ReadOnly = true;
+
+                // ⭐ ĐẨY CỘT NÀY RA PHÍA SAU
+                kryptonDataGridView1.Columns["GhiChu"].DisplayIndex = 11;
             }
 
             if (kryptonDataGridView1.Columns["ThanhTich"] != null)
@@ -887,9 +900,16 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["ThanhTich"].HeaderText = "Thành tích";
                 kryptonDataGridView1.Columns["ThanhTich"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                 kryptonDataGridView1.Columns["ThanhTich"].FillWeight = 50;
+
+                // ⭐ KHÓA MIN WIDTH = 150
+                kryptonDataGridView1.Columns["ThanhTich"].MinimumWidth = 150;
+
                 kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
                 kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 kryptonDataGridView1.Columns["ThanhTich"].ReadOnly = false;
+
+                // ⭐ ĐẨY CỘT NÀY XUỐNG CHÓT CÙNG BẢNG
+                kryptonDataGridView1.Columns["ThanhTich"].DisplayIndex = 12;
             }
         }
         private void kryptonDataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)

@@ -780,9 +780,9 @@
             // 
             pictureBox1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(3, 9);
+            pictureBox1.Location = new Point(3, 11);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(80, 53);
+            pictureBox1.Size = new Size(80, 49);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
@@ -875,7 +875,7 @@
             kryptonButton_LamMoiCacOTimKiem.Anchor = AnchorStyles.None;
             kryptonButton_LamMoiCacOTimKiem.Location = new Point(622, 5);
             kryptonButton_LamMoiCacOTimKiem.Name = "kryptonButton_LamMoiCacOTimKiem";
-            kryptonButton_LamMoiCacOTimKiem.Size = new Size(52, 33);
+            kryptonButton_LamMoiCacOTimKiem.Size = new Size(52, 32);
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 3;

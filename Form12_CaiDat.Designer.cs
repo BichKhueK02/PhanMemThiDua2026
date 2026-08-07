@@ -373,10 +373,10 @@
             // kryptonButton2_TangCoChuRichText
             // 
             kryptonButton2_TangCoChuRichText.Anchor = AnchorStyles.None;
-            kryptonButton2_TangCoChuRichText.Location = new Point(1156, 9);
+            kryptonButton2_TangCoChuRichText.Location = new Point(1158, 5);
             kryptonButton2_TangCoChuRichText.Margin = new Padding(2, 4, 2, 4);
             kryptonButton2_TangCoChuRichText.Name = "kryptonButton2_TangCoChuRichText";
-            kryptonButton2_TangCoChuRichText.Size = new Size(55, 29);
+            kryptonButton2_TangCoChuRichText.Size = new Size(51, 36);
             kryptonButton2_TangCoChuRichText.StateCommon.Border.Rounding = 4F;
             kryptonButton2_TangCoChuRichText.TabIndex = 39;
             kryptonButton2_TangCoChuRichText.Values.DropDownArrowColor = Color.Empty;
@@ -387,10 +387,10 @@
             // kryptonButton2_GiamCoChuRichText
             // 
             kryptonButton2_GiamCoChuRichText.Anchor = AnchorStyles.None;
-            kryptonButton2_GiamCoChuRichText.Location = new Point(1055, 9);
+            kryptonButton2_GiamCoChuRichText.Location = new Point(1055, 8);
             kryptonButton2_GiamCoChuRichText.Margin = new Padding(2, 4, 2, 4);
             kryptonButton2_GiamCoChuRichText.Name = "kryptonButton2_GiamCoChuRichText";
-            kryptonButton2_GiamCoChuRichText.Size = new Size(51, 29);
+            kryptonButton2_GiamCoChuRichText.Size = new Size(51, 30);
             kryptonButton2_GiamCoChuRichText.StateCommon.Border.Rounding = 4F;
             kryptonButton2_GiamCoChuRichText.TabIndex = 38;
             kryptonButton2_GiamCoChuRichText.Values.DropDownArrowColor = Color.Empty;
@@ -414,10 +414,10 @@
             // 
             pictureBox10.Anchor = AnchorStyles.None;
             pictureBox10.Image = (Image)resources.GetObject("pictureBox10.Image");
-            pictureBox10.Location = new Point(4, 8);
+            pictureBox10.Location = new Point(4, 5);
             pictureBox10.Margin = new Padding(2, 4, 2, 4);
             pictureBox10.Name = "pictureBox10";
-            pictureBox10.Size = new Size(51, 30);
+            pictureBox10.Size = new Size(51, 36);
             pictureBox10.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox10.TabIndex = 17;
             pictureBox10.TabStop = false;
@@ -564,10 +564,10 @@
             // 
             pictureBox12.Anchor = AnchorStyles.None;
             pictureBox12.Image = (Image)resources.GetObject("pictureBox12.Image");
-            pictureBox12.Location = new Point(14, 4);
+            pictureBox12.Location = new Point(15, 4);
             pictureBox12.Margin = new Padding(2, 4, 2, 4);
             pictureBox12.Name = "pictureBox12";
-            pictureBox12.Size = new Size(53, 37);
+            pictureBox12.Size = new Size(51, 36);
             pictureBox12.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox12.TabIndex = 33;
             pictureBox12.TabStop = false;
@@ -601,10 +601,10 @@
             // 
             pictureBox11.Anchor = AnchorStyles.None;
             pictureBox11.Image = (Image)resources.GetObject("pictureBox11.Image");
-            pictureBox11.Location = new Point(1178, 11);
+            pictureBox11.Location = new Point(1178, 7);
             pictureBox11.Margin = new Padding(2, 4, 2, 4);
             pictureBox11.Name = "pictureBox11";
-            pictureBox11.Size = new Size(47, 23);
+            pictureBox11.Size = new Size(47, 30);
             pictureBox11.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox11.TabIndex = 30;
             pictureBox11.TabStop = false;
@@ -639,8 +639,8 @@
             // 
             tableLayoutPanel6.ColumnCount = 6;
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 6.56401968F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18.2333889F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20.2265377F));
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18.28479F));
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19.6601944F));
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 9.46602F));
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 14.4822006F));
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 31.3915863F));
@@ -666,7 +666,7 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.Green;
-            label6.Location = new Point(161, 12);
+            label6.Location = new Point(164, 12);
             label6.Margin = new Padding(2, 0, 2, 0);
             label6.Name = "label6";
             label6.Size = new Size(141, 17);
@@ -680,20 +680,20 @@
             comboBox_TenTieuDoan.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_TenTieuDoan.FormattingEnabled = true;
             comboBox_TenTieuDoan.Items.AddRange(new object[] { "TIỂU ĐOÀN 1", "TIỂU ĐOÀN 2", "TIỂU ĐOÀN 3", "TIỂU ĐOÀN BVMT BVHĐB", "TIỂU ĐOÀN HUẤN LUYỆN 1", "TIỂU ĐOÀN HUẤN LUYỆN 2", "ĐỘI ĐẶC NHIỆM", "ĐẠI ĐỘI NGHI LỄ", "ĐẠI ĐỘI 1", "ĐẠI ĐỘI 2", "ĐẠI ĐỘI 3", "ĐẠI ĐỘI 4", "ĐẠI ĐỘI 5", "ĐẠI ĐỘI 6", "ĐẠI ĐỘI CƠ GIỚI", "TỔ THAM MƯU", "TỔ CHÍNH TRỊ", "TỔ HẬU CẦN", "TỔ THAM MƯU CHÍNH TRỊ", "BAN THAM MƯU", "BAN HUẤN LUYỆN", "BAN CHÍNH TRỊ", "BAN HẬU CẦN", "BỆNH XÁ" });
-            comboBox_TenTieuDoan.Location = new Point(306, 8);
+            comboBox_TenTieuDoan.Location = new Point(309, 8);
             comboBox_TenTieuDoan.Margin = new Padding(2, 4, 2, 4);
             comboBox_TenTieuDoan.Name = "comboBox_TenTieuDoan";
-            comboBox_TenTieuDoan.Size = new Size(245, 23);
+            comboBox_TenTieuDoan.Size = new Size(239, 23);
             comboBox_TenTieuDoan.TabIndex = 0;
             // 
             // pictureBox3
             // 
             pictureBox3.Anchor = AnchorStyles.None;
             pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
-            pictureBox3.Location = new Point(11, 4);
+            pictureBox3.Location = new Point(15, 4);
             pictureBox3.Margin = new Padding(2, 4, 2, 4);
             pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(57, 33);
+            pictureBox3.Size = new Size(51, 33);
             pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox3.TabIndex = 3;
             pictureBox3.TabStop = false;
@@ -704,7 +704,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.Green;
-            label2.Location = new Point(571, 12);
+            label2.Location = new Point(569, 12);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(96, 17);
@@ -717,16 +717,16 @@
             comboBox_KyHieu_TenTieuDoan.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KyHieu_TenTieuDoan.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_KyHieu_TenTieuDoan.FormattingEnabled = true;
-            comboBox_KyHieu_TenTieuDoan.Location = new Point(671, 8);
+            comboBox_KyHieu_TenTieuDoan.Location = new Point(669, 8);
             comboBox_KyHieu_TenTieuDoan.Margin = new Padding(2, 4, 2, 4);
             comboBox_KyHieu_TenTieuDoan.Name = "comboBox_KyHieu_TenTieuDoan";
-            comboBox_KyHieu_TenTieuDoan.Size = new Size(174, 23);
+            comboBox_KyHieu_TenTieuDoan.Size = new Size(175, 23);
             comboBox_KyHieu_TenTieuDoan.TabIndex = 30;
             // 
             // kryptonButton_CapNhat
             // 
             kryptonButton_CapNhat.Anchor = AnchorStyles.Left;
-            kryptonButton_CapNhat.Location = new Point(849, 9);
+            kryptonButton_CapNhat.Location = new Point(848, 9);
             kryptonButton_CapNhat.Margin = new Padding(2, 4, 2, 4);
             kryptonButton_CapNhat.Name = "kryptonButton_CapNhat";
             kryptonButton_CapNhat.Size = new Size(32, 23);
@@ -1418,6 +1418,7 @@
             // statusStrip1
             // 
             statusStrip1.Dock = DockStyle.Fill;
+            statusStrip1.ImageScalingSize = new Size(19, 19);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1 });
             statusStrip1.Location = new Point(0, 527);
             statusStrip1.Name = "statusStrip1";
@@ -1430,7 +1431,7 @@
             toolStripStatusLabel1.ForeColor = Color.Blue;
             toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(28, 27);
+            toolStripStatusLabel1.Size = new Size(31, 27);
             toolStripStatusLabel1.Text = "*";
             // 
             // tabPage3

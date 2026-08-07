@@ -174,10 +174,10 @@
             // 
             pictureBox1.Anchor = AnchorStyles.None;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(8, 7);
+            pictureBox1.Location = new Point(8, 8);
             pictureBox1.Margin = new Padding(2, 3, 2, 3);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(86, 56);
+            pictureBox1.Size = new Size(86, 53);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
@@ -319,10 +319,10 @@
             // kryptonButton_LamMoiCacOTimKiem
             // 
             kryptonButton_LamMoiCacOTimKiem.Anchor = AnchorStyles.None;
-            kryptonButton_LamMoiCacOTimKiem.Location = new Point(1085, 7);
+            kryptonButton_LamMoiCacOTimKiem.Location = new Point(1085, 5);
             kryptonButton_LamMoiCacOTimKiem.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_LamMoiCacOTimKiem.Name = "kryptonButton_LamMoiCacOTimKiem";
-            kryptonButton_LamMoiCacOTimKiem.Size = new Size(44, 26);
+            kryptonButton_LamMoiCacOTimKiem.Size = new Size(44, 30);
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 3;
@@ -368,8 +368,8 @@
             tableLayoutPanel7.Name = "tableLayoutPanel7";
             tableLayoutPanel7.RowCount = 1;
             tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Absolute, 62F));
-            tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Absolute, 62F));
+            tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F));
+            tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Absolute, 55F));
             tableLayoutPanel7.Size = new Size(1260, 73);
             tableLayoutPanel7.TabIndex = 2;
             // 

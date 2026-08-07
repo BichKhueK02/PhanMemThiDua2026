@@ -3201,7 +3201,6 @@ VALUES (1, strftime('%Y','now'));";
                 comboBox_KyHieu_TenTieuDoan.EndUpdate();
             }
         }
-  
         // Sự kiện: Khi người dùng chọn Tên Đơn Vị -> Tự động nhảy Ký Hiệu
         private void ComboBox_TenTieuDoan_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -3232,7 +3231,6 @@ VALUES (1, strftime('%Y','now'));";
                 _isSyncingComboBoxes = false; // Tắt cờ chặn
             }
         }
-
         // 🌟 HÀM MỚI: Tự động đổi tên nút cài đặt tỷ lệ theo phiên bản
         private void CapNhatTenNutCaiDatTyLe()
         {

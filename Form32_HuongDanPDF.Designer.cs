@@ -38,7 +38,6 @@
             ClientSize = new Size(1264, 681);
             Name = "Form32_HuongDanPDF";
             Text = "Form32_HuongDanPDF";
-            //Load += Form32_HuongDanPDF_Load;
             ResumeLayout(false);
         }
 

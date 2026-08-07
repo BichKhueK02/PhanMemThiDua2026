@@ -73,7 +73,7 @@
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 82.8908539F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 17.1091442F));
-            tableLayoutPanel1.Size = new Size(701, 341);
+            tableLayoutPanel1.Size = new Size(700, 319);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // tableLayoutPanel4
@@ -88,9 +88,9 @@
             tableLayoutPanel4.Name = "tableLayoutPanel4";
             tableLayoutPanel4.RowCount = 1;
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel4.Size = new Size(695, 276);
+            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 239F));
+            tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 239F));
+            tableLayoutPanel4.Size = new Size(694, 258);
             tableLayoutPanel4.TabIndex = 1;
             // 
             // groupBox2
@@ -99,11 +99,11 @@
             groupBox2.Dock = DockStyle.Fill;
             groupBox2.Font = new Font("Times New Roman", 12.096F, FontStyle.Italic, GraphicsUnit.Point, 0);
             groupBox2.ForeColor = Color.FromArgb(0, 0, 192);
-            groupBox2.Location = new Point(375, 3);
+            groupBox2.Location = new Point(374, 3);
             groupBox2.Margin = new Padding(2, 3, 2, 3);
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new Padding(2, 3, 2, 3);
-            groupBox2.Size = new Size(318, 270);
+            groupBox2.Size = new Size(318, 252);
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
             groupBox2.Text = "2. Chọn đơn vị để reset phân loại";
@@ -116,7 +116,7 @@
             checkedListBox1_ChonDonViDeReset.FormattingEnabled = true;
             checkedListBox1_ChonDonViDeReset.Location = new Point(2, 22);
             checkedListBox1_ChonDonViDeReset.Name = "checkedListBox1_ChonDonViDeReset";
-            checkedListBox1_ChonDonViDeReset.Size = new Size(314, 245);
+            checkedListBox1_ChonDonViDeReset.Size = new Size(314, 227);
             checkedListBox1_ChonDonViDeReset.TabIndex = 2;
             // 
             // groupBox1
@@ -129,7 +129,7 @@
             groupBox1.Margin = new Padding(2, 3, 2, 3);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(2, 3, 2, 3);
-            groupBox1.Size = new Size(369, 270);
+            groupBox1.Size = new Size(368, 252);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "1. Chọn phân loại bạn muốn giữ lại";
@@ -147,7 +147,7 @@
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.Size = new Size(365, 245);
+            tableLayoutPanel3.Size = new Size(364, 227);
             tableLayoutPanel3.TabIndex = 1;
             // 
             // tableLayoutPanel2
@@ -175,14 +175,14 @@
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 20F));
-            tableLayoutPanel2.Size = new Size(263, 239);
+            tableLayoutPanel2.Size = new Size(262, 221);
             tableLayoutPanel2.TabIndex = 0;
             // 
             // checkBox1_GuiNguyenKhongPhanLoai
             // 
             checkBox1_GuiNguyenKhongPhanLoai.Anchor = AnchorStyles.Left;
             checkBox1_GuiNguyenKhongPhanLoai.AutoSize = true;
-            checkBox1_GuiNguyenKhongPhanLoai.Location = new Point(117, 202);
+            checkBox1_GuiNguyenKhongPhanLoai.Location = new Point(116, 187);
             checkBox1_GuiNguyenKhongPhanLoai.Margin = new Padding(2, 3, 2, 3);
             checkBox1_GuiNguyenKhongPhanLoai.Name = "checkBox1_GuiNguyenKhongPhanLoai";
             checkBox1_GuiNguyenKhongPhanLoai.Size = new Size(110, 23);
@@ -194,7 +194,7 @@
             // 
             checkBox1_GuiNguyenLoai4.Anchor = AnchorStyles.Left;
             checkBox1_GuiNguyenLoai4.AutoSize = true;
-            checkBox1_GuiNguyenLoai4.Location = new Point(117, 153);
+            checkBox1_GuiNguyenLoai4.Location = new Point(116, 142);
             checkBox1_GuiNguyenLoai4.Margin = new Padding(2, 3, 2, 3);
             checkBox1_GuiNguyenLoai4.Name = "checkBox1_GuiNguyenLoai4";
             checkBox1_GuiNguyenLoai4.Size = new Size(110, 23);
@@ -206,7 +206,7 @@
             // 
             checkBox1_GuiNguyenLoai3.Anchor = AnchorStyles.Left;
             checkBox1_GuiNguyenLoai3.AutoSize = true;
-            checkBox1_GuiNguyenLoai3.Location = new Point(117, 106);
+            checkBox1_GuiNguyenLoai3.Location = new Point(116, 98);
             checkBox1_GuiNguyenLoai3.Margin = new Padding(2, 3, 2, 3);
             checkBox1_GuiNguyenLoai3.Name = "checkBox1_GuiNguyenLoai3";
             checkBox1_GuiNguyenLoai3.Size = new Size(110, 23);
@@ -220,7 +220,7 @@
             checkBox1_GuiNguyenLoai2.AutoSize = true;
             checkBox1_GuiNguyenLoai2.Checked = true;
             checkBox1_GuiNguyenLoai2.CheckState = CheckState.Checked;
-            checkBox1_GuiNguyenLoai2.Location = new Point(117, 59);
+            checkBox1_GuiNguyenLoai2.Location = new Point(116, 54);
             checkBox1_GuiNguyenLoai2.Margin = new Padding(2, 3, 2, 3);
             checkBox1_GuiNguyenLoai2.Name = "checkBox1_GuiNguyenLoai2";
             checkBox1_GuiNguyenLoai2.Size = new Size(110, 23);
@@ -233,7 +233,7 @@
             label1.Anchor = AnchorStyles.Left;
             label1.AutoSize = true;
             label1.Font = new Font("Times New Roman", 12.096F, FontStyle.Bold | FontStyle.Italic);
-            label1.Location = new Point(2, 13);
+            label1.Location = new Point(2, 12);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new Size(54, 20);
@@ -246,7 +246,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Times New Roman", 12.096F, FontStyle.Bold | FontStyle.Italic);
             label2.ForeColor = Color.Red;
-            label2.Location = new Point(2, 60);
+            label2.Location = new Point(2, 56);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(54, 20);
@@ -258,7 +258,7 @@
             label3.Anchor = AnchorStyles.Left;
             label3.AutoSize = true;
             label3.Font = new Font("Times New Roman", 12.096F, FontStyle.Bold | FontStyle.Italic);
-            label3.Location = new Point(2, 107);
+            label3.Location = new Point(2, 100);
             label3.Margin = new Padding(2, 0, 2, 0);
             label3.Name = "label3";
             label3.Size = new Size(54, 20);
@@ -270,7 +270,7 @@
             label4.Anchor = AnchorStyles.Left;
             label4.AutoSize = true;
             label4.Font = new Font("Times New Roman", 12.096F, FontStyle.Bold | FontStyle.Italic);
-            label4.Location = new Point(2, 154);
+            label4.Location = new Point(2, 144);
             label4.Margin = new Padding(2, 0, 2, 0);
             label4.Name = "label4";
             label4.Size = new Size(54, 20);
@@ -282,7 +282,7 @@
             label5.Anchor = AnchorStyles.Left;
             label5.AutoSize = true;
             label5.Font = new Font("Times New Roman", 12.096F, FontStyle.Bold | FontStyle.Italic);
-            label5.Location = new Point(2, 203);
+            label5.Location = new Point(2, 188);
             label5.Margin = new Padding(2, 0, 2, 0);
             label5.Name = "label5";
             label5.Size = new Size(79, 20);
@@ -293,7 +293,7 @@
             // 
             checkBox1_GuiNguyenLoai1.Anchor = AnchorStyles.Left;
             checkBox1_GuiNguyenLoai1.AutoSize = true;
-            checkBox1_GuiNguyenLoai1.Location = new Point(117, 12);
+            checkBox1_GuiNguyenLoai1.Location = new Point(116, 10);
             checkBox1_GuiNguyenLoai1.Margin = new Padding(2, 3, 2, 3);
             checkBox1_GuiNguyenLoai1.Name = "checkBox1_GuiNguyenLoai1";
             checkBox1_GuiNguyenLoai1.Size = new Size(110, 23);
@@ -305,7 +305,7 @@
             // 
             pictureBox1.Anchor = AnchorStyles.None;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(2, 71);
+            pictureBox1.Location = new Point(2, 62);
             pictureBox1.Margin = new Padding(2, 3, 2, 3);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(94, 102);
@@ -316,7 +316,7 @@
             // btn_ResetPhanLoai
             // 
             btn_ResetPhanLoai.Anchor = AnchorStyles.None;
-            btn_ResetPhanLoai.Location = new Point(237, 295);
+            btn_ResetPhanLoai.Location = new Point(237, 275);
             btn_ResetPhanLoai.Margin = new Padding(2, 3, 2, 3);
             btn_ResetPhanLoai.Name = "btn_ResetPhanLoai";
             btn_ResetPhanLoai.Size = new Size(226, 32);
@@ -331,7 +331,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(701, 341);
+            ClientSize = new Size(700, 319);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(2, 3, 2, 3);

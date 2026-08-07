@@ -106,6 +106,7 @@ namespace PhanMemThiDua2026
             {
                 LoadSettings();
                 LoadCheckBoxTuDongChonNgayThang();
+
                 Module_QuyDinhTyLe.LoadE29(this.Controls);
 
                 loai1 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai1_TapThe");
@@ -116,8 +117,11 @@ namespace PhanMemThiDua2026
                 comboBox_ChiHuyD.SelectedIndexChanged += ComboBox_ChiHuyD_SelectedIndexChanged;
                 // Chỉ cần gọi cái này, vì bên trong nó đã có await LoadComboBox_ChiHuyDAsync();
                 await ReloadDuLieuAsync();
+
                 Module_DanduongGPS.OnDatabaseChanged -= SuKien_DatabaseChanged;
                 Module_DanduongGPS.OnDatabaseChanged += SuKien_DatabaseChanged;
+                // Gắn vào constructor hoặc hàm Load
+                label11.TextChanged += (s, e) => DieuChinhCoChuLabel11();
             }
             catch (Exception ex)
             {
@@ -299,6 +303,38 @@ namespace PhanMemThiDua2026
             TextRenderer.DrawText(e.Graphics, rowIdx, grid.Font, headerBounds, Color.Black, flags);
         }
         private HashSet<string> _dsDonViBoQuaCanhBao = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        private void DieuChinhCoChuLabel11()
+        {
+            // Bỏ qua nếu label chưa được khởi tạo hoặc đang rỗng
+            if (label11 == null || string.IsNullOrWhiteSpace(label11.Text)) return;
+
+            string duongDan = label11.Text.Trim();
+            float coChuMoi = label11.Font.Size; // Lấy cỡ chữ hiện tại làm gốc
+
+            // 🌟 ƯU TIÊN 1: Nếu đường dẫn dài từ 70 ký tự trở lên -> Ép về cỡ 8 để chống tràn
+            if (duongDan.Length >= 70)
+            {
+                coChuMoi = 8f;
+            }
+            // 🌟 ƯU TIÊN 2: Nếu kết thúc bằng chữ "Desktop" (Không phân biệt hoa/thường) -> Phóng to cỡ 10
+            else if (duongDan.EndsWith("Desktop", StringComparison.OrdinalIgnoreCase))
+            {
+                coChuMoi = 10f;
+            }
+            else
+            {
+                // (Tùy chọn) Bạn có thể set cỡ chữ mặc định ở đây cho các trường hợp còn lại
+                // coChuMoi = 9f; 
+            }
+
+            // TỐI ƯU HIỆU NĂNG: Chỉ khởi tạo lại đối tượng Font khi cỡ chữ thực sự có thay đổi
+            if (label11.Font.Size != coChuMoi)
+            {
+                // Giữ nguyên kiểu chữ (FontFamily) và định dạng (Style: Bold, Italic...) hiện có
+                label11.Font = new Font(label11.Font.FontFamily, coChuMoi, label11.Font.Style);
+            }
+        }
         private async Task Bang1_Async()
         {
             string csdl2Path = _csdl2Path;
@@ -1179,20 +1215,7 @@ namespace PhanMemThiDua2026
                 com_DeNghi.SelectedIndexChanged -= Com_DeNghi_SelectedIndexChanged;
                 comboBox_ChiHuyD.SelectedIndexChanged -= ComboBox_ChiHuyD_SelectedIndexChanged;
                 comboBox1_ChonLoaiBaoCao.SelectedIndexChanged -= comboBox1_ChonLoaiBaoCao_SelectedIndexChanged;
-
-                // CHẠY BẤT ĐỒNG BỘ TOÀN BỘ CẤU HÌNH (Giao diện cực mượt, không khựng)
-                //CapNhatThongBaoPhanMem();
-                //await LoadChiHuyDDictionaryAsync();
-                //await LoadDiaDiemAsync();
-                //await LoadThongTinAsync();
-                //await LoadComboBoxLoaiXuat_CheckBoxAsync();
-
-                //LoadComboBoxDeNghi();
-                //SetDeNghiVaTinhTyLe();
-                //HienThiDuongDanXuatDaChon();
-                // ✅ SỬA THÀNH (Chạy song song - Rất nhanh):
                 CapNhatThongBaoPhanMem();
-
                 // Ném tất cả truy vấn cấu hình vào chạy cùng 1 lúc trên nhiều Core CPU
                 await Task.WhenAll(
                     LoadChiHuyDDictionaryAsync(),
@@ -1201,7 +1224,6 @@ namespace PhanMemThiDua2026
                     LoadComboBoxLoaiXuat_CheckBoxAsync(),
                     LoadComboBox_ChiHuyDAsync()
                 );
-
                 LoadComboBoxDeNghi();
                 SetDeNghiVaTinhTyLe();
                 HienThiDuongDanXuatDaChon();
@@ -1219,11 +1241,9 @@ namespace PhanMemThiDua2026
                     kryptonDataGridView1.DataSource = null;
                     kryptonDataGridView2.DataSource = null;
                 }
-
                 await KiemTraVaDongBoCSDLAsync();
                 Module_XuatPhanLoai.NapLinkLuuDuongDanTepXuat();
                 KiemTraDuLieuDanhSachVaKhoaNut();
-
                 bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
                 CauHoiGiaoDien_PhienBan(laTanBinh);
                 // ⭐ GIA CỐ CHUẨN KỸ SƯ: Gọi hàm mới tại đây để nạp và khớp dữ liệu Chỉ huy
@@ -1231,6 +1251,7 @@ namespace PhanMemThiDua2026
                 // Giải phóng luồng UI khi lọc data
                 await CapNhatDanhSachPhanLoaiDeXuatAsync();
                 Module_TrangThaiHeThong.CapNhatStatusCSDL(statusStrip1, toolStripStatusLabel1);
+           
                 // GẮN LẠI SỰ KIỆN
                 Check_MoThuMuc.CheckedChanged += Check_MoThuMuc_CheckedChanged;
                 comboBox1_ChonLoaiDeXuat.SelectedIndexChanged += comboBox1_ChonLoaiDeXuat_SelectedIndexChanged;
@@ -3657,38 +3678,44 @@ PTLoai3=@PTLoai3
             if (formTinhToan != null && !formTinhToan.IsDisposed) formTinhToan.Dispose();
             if (form11 != null && !form11.IsDisposed) form11.Dispose();
         }
-        // KHI BÁO CÁC BIẾN NÀY Ở ĐẦU CLASS (Cùng chỗ với form11)
-        private Form48_XuatTepPdf form48;
+        private Form48_XuatTepPdf _form48; // giữ sống suốt vòng đời form cha
         private string _textGocNutXuatPdf = null;
         private Image _anhGocNutXuatPdf = null;
+
         private void kryptonButton1_XuatTepPdf_Click(object sender, EventArgs e)
         {
-            // 1. Lưu lại Text và Icon gốc ở lần bấm đầu tiên
             if (_textGocNutXuatPdf == null)
             {
                 _textGocNutXuatPdf = kryptonButton1_XuatTepPdf.Values.Text;
                 _anhGocNutXuatPdf = kryptonButton1_XuatTepPdf.Values.Image;
             }
 
-            // 2. Đổi giao diện nút thành "Đang xử lý..."
+            kryptonButton1_XuatTepPdf.Enabled = false;
             kryptonButton1_XuatTepPdf.Values.Text = "Đang mở...";
-            // kryptonButton1_XuatTepPdf.Values.Image = null; // Bỏ comment nếu muốn ẩn icon
 
-            // 3. Khởi tạo và hiển thị Form 48 dưới dạng chặn (Modal)
-            // Dùng khối using để đảm bảo form tự động giải phóng bộ nhớ (Dispose) ngay khi đóng
-            using (var form48 = new Form48_XuatTepPdf())
+            try
             {
-                form48.ShowInTaskbar = false;
-                form48.StartPosition = FormStartPosition.CenterParent; // Hiển thị form con ra ngay giữa form cha cho đẹp
+                // Chỉ tạo mới nếu chưa có hoặc đã bị Dispose trước đó
+                if (_form48 == null || _form48.IsDisposed)
+                {
+                    _form48 = new Form48_XuatTepPdf();
+                    _form48.ShowInTaskbar = false;
+                    _form48.StartPosition = FormStartPosition.CenterParent;
+                }
 
-                // Lệnh ShowDialog sẽ KHÓA (block) form hiện tại. 
-                // Luồng mã sẽ đứng im tại dòng này chờ đến khi người dùng tắt form48 đi.
-                form48.ShowDialog(this);
+                _form48.ShowDialog(this); // vẫn modal, vẫn phải chờ đóng
             }
-
-            // 4. Form 48 ĐÃ ĐÓNG XONG -> Tự động chạy tiếp các lệnh dưới đây để trả lại giao diện nút
-            kryptonButton1_XuatTepPdf.Values.Text = _textGocNutXuatPdf;
-            kryptonButton1_XuatTepPdf.Values.Image = _anhGocNutXuatPdf;
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Đã xảy ra lỗi khi mở form xuất PDF: {ex.Message}",
+                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                kryptonButton1_XuatTepPdf.Values.Text = _textGocNutXuatPdf;
+                kryptonButton1_XuatTepPdf.Values.Image = _anhGocNutXuatPdf;
+                kryptonButton1_XuatTepPdf.Enabled = true;
+            }
         }
     }
 }

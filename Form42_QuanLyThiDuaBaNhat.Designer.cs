@@ -39,6 +39,7 @@
             xoaTimKiem = new ToolStripMenuItem();
             lamMoiHeThong = new ToolStripMenuItem();
             contextMenuStrip1 = new ContextMenuStrip(components);
+            toolStripMenuItem_ToTrinhBaNhat = new ToolStripMenuItem();
             toolStripMenuItem5_XuatDanhSachGoc = new ToolStripMenuItem();
             toolStripMenuItem_NhapDuLieu = new ToolStripMenuItem();
             toolStripMenuItem5 = new ToolStripSeparator();
@@ -64,10 +65,10 @@
             kryptonButton_LamMoiCacOTimKiem = new Krypton.Toolkit.KryptonButton();
             groupBox2_KhoiLenhDieuKhien = new GroupBox();
             tableLayoutPanel6 = new TableLayoutPanel();
-            kryptonButton1_MoSoVang = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_Thoat = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_ThanhTichTapThe = new Krypton.Toolkit.KryptonButton();
             kryptonButton_RefershCSDL = new Krypton.Toolkit.KryptonButton();
+            kryptonButton1_MoSoVang = new Krypton.Toolkit.KryptonButton();
             kryptonDataGridView1 = new Krypton.Toolkit.KryptonDataGridView();
             tableLayoutPanel7 = new TableLayoutPanel();
             groupBox3_ThongTinCBCS = new GroupBox();
@@ -107,7 +108,6 @@
             label17_SoLuongKyTu = new Label();
             kryptonButton2_GiamCoChuRichText = new Krypton.Toolkit.KryptonButton();
             toolTip1 = new ToolTip(components);
-            toolStripMenuItem_ToTrinhBaNhat = new ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -194,7 +194,15 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, toolStripMenuItem_ToTrinhBaNhat, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5_XuatDanhSachGoc, toolStripMenuItem_NhapDuLieu, toolStripMenuItem5, toolStripMenuItem_ThiDuaTapThe, toolStripMenuItem4, toolStripMenuItem_luuVaoSoVang, toolStripMenuItem_MoSoVang, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(208, 364);
+            contextMenuStrip1.Size = new Size(208, 342);
+            // 
+            // toolStripMenuItem_ToTrinhBaNhat
+            // 
+            toolStripMenuItem_ToTrinhBaNhat.Image = (Image)resources.GetObject("toolStripMenuItem_ToTrinhBaNhat.Image");
+            toolStripMenuItem_ToTrinhBaNhat.Name = "toolStripMenuItem_ToTrinhBaNhat";
+            toolStripMenuItem_ToTrinhBaNhat.Size = new Size(207, 28);
+            toolStripMenuItem_ToTrinhBaNhat.Text = "Tờ trình Ba Nhất";
+            toolStripMenuItem_ToTrinhBaNhat.Click += toolStripMenuItem_ToTrinhBaNhat_Click;
             // 
             // toolStripMenuItem5_XuatDanhSachGoc
             // 
@@ -428,9 +436,9 @@
             // kryptonButton_LamMoiCacOTimKiem
             // 
             kryptonButton_LamMoiCacOTimKiem.Anchor = AnchorStyles.None;
-            kryptonButton_LamMoiCacOTimKiem.Location = new Point(598, 7);
+            kryptonButton_LamMoiCacOTimKiem.Location = new Point(598, 5);
             kryptonButton_LamMoiCacOTimKiem.Name = "kryptonButton_LamMoiCacOTimKiem";
-            kryptonButton_LamMoiCacOTimKiem.Size = new Size(48, 29);
+            kryptonButton_LamMoiCacOTimKiem.Size = new Size(48, 32);
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 3;
@@ -459,10 +467,10 @@
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34.1463432F));
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.3414631F));
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20.7317066F));
-            tableLayoutPanel6.Controls.Add(kryptonButton1_MoSoVang, 2, 0);
             tableLayoutPanel6.Controls.Add(kryptonButton1_Thoat, 3, 0);
             tableLayoutPanel6.Controls.Add(kryptonButton1_ThanhTichTapThe, 1, 0);
             tableLayoutPanel6.Controls.Add(kryptonButton_RefershCSDL, 0, 0);
+            tableLayoutPanel6.Controls.Add(kryptonButton1_MoSoVang, 2, 0);
             tableLayoutPanel6.Dock = DockStyle.Fill;
             tableLayoutPanel6.Location = new Point(3, 20);
             tableLayoutPanel6.Name = "tableLayoutPanel6";
@@ -471,27 +479,12 @@
             tableLayoutPanel6.Size = new Size(492, 43);
             tableLayoutPanel6.TabIndex = 1;
             // 
-            // kryptonButton1_MoSoVang
-            // 
-            kryptonButton1_MoSoVang.Anchor = AnchorStyles.None;
-            kryptonButton1_MoSoVang.Location = new Point(288, 6);
-            kryptonButton1_MoSoVang.Name = "kryptonButton1_MoSoVang";
-            kryptonButton1_MoSoVang.Size = new Size(98, 30);
-            kryptonButton1_MoSoVang.StateCommon.Border.Rounding = 4F;
-            kryptonButton1_MoSoVang.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
-            kryptonButton1_MoSoVang.StateTracking.Border.Rounding = 4F;
-            kryptonButton1_MoSoVang.TabIndex = 4;
-            kryptonButton1_MoSoVang.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_MoSoVang.Values.Image = (Image)resources.GetObject("kryptonButton1_MoSoVang.Values.Image");
-            kryptonButton1_MoSoVang.Values.Text = "Sổ vàng";
-            kryptonButton1_MoSoVang.Click += kryptonButton1_MoSoVang_Click;
-            // 
             // kryptonButton1_Thoat
             // 
             kryptonButton1_Thoat.Anchor = AnchorStyles.None;
-            kryptonButton1_Thoat.Location = new Point(394, 6);
+            kryptonButton1_Thoat.Location = new Point(392, 5);
             kryptonButton1_Thoat.Name = "kryptonButton1_Thoat";
-            kryptonButton1_Thoat.Size = new Size(92, 30);
+            kryptonButton1_Thoat.Size = new Size(97, 32);
             kryptonButton1_Thoat.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Thoat.StateCommon.Content.LongText.Font = new Font("Segoe UI", 8.064F, FontStyle.Regular, GraphicsUnit.Point, 0);
             kryptonButton1_Thoat.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
@@ -505,9 +498,9 @@
             // kryptonButton1_ThanhTichTapThe
             // 
             kryptonButton1_ThanhTichTapThe.Anchor = AnchorStyles.None;
-            kryptonButton1_ThanhTichTapThe.Location = new Point(122, 6);
+            kryptonButton1_ThanhTichTapThe.Location = new Point(123, 5);
             kryptonButton1_ThanhTichTapThe.Name = "kryptonButton1_ThanhTichTapThe";
-            kryptonButton1_ThanhTichTapThe.Size = new Size(159, 30);
+            kryptonButton1_ThanhTichTapThe.Size = new Size(157, 32);
             kryptonButton1_ThanhTichTapThe.StateCommon.Border.Rounding = 4F;
             kryptonButton1_ThanhTichTapThe.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
             kryptonButton1_ThanhTichTapThe.StateTracking.Border.Rounding = 4F;
@@ -520,9 +513,9 @@
             // kryptonButton_RefershCSDL
             // 
             kryptonButton_RefershCSDL.Anchor = AnchorStyles.None;
-            kryptonButton_RefershCSDL.Location = new Point(3, 6);
+            kryptonButton_RefershCSDL.Location = new Point(10, 5);
             kryptonButton_RefershCSDL.Name = "kryptonButton_RefershCSDL";
-            kryptonButton_RefershCSDL.Size = new Size(112, 30);
+            kryptonButton_RefershCSDL.Size = new Size(98, 32);
             kryptonButton_RefershCSDL.StateCommon.Border.Rounding = 4F;
             kryptonButton_RefershCSDL.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
             kryptonButton_RefershCSDL.StateTracking.Border.Rounding = 4F;
@@ -531,6 +524,21 @@
             kryptonButton_RefershCSDL.Values.Image = (Image)resources.GetObject("kryptonButton_RefershCSDL.Values.Image");
             kryptonButton_RefershCSDL.Values.Text = "Refresh";
             kryptonButton_RefershCSDL.Click += kryptonButton_RefershCSDL_Click;
+            // 
+            // kryptonButton1_MoSoVang
+            // 
+            kryptonButton1_MoSoVang.Anchor = AnchorStyles.None;
+            kryptonButton1_MoSoVang.Location = new Point(288, 5);
+            kryptonButton1_MoSoVang.Name = "kryptonButton1_MoSoVang";
+            kryptonButton1_MoSoVang.Size = new Size(98, 32);
+            kryptonButton1_MoSoVang.StateCommon.Border.Rounding = 4F;
+            kryptonButton1_MoSoVang.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
+            kryptonButton1_MoSoVang.StateTracking.Border.Rounding = 4F;
+            kryptonButton1_MoSoVang.TabIndex = 4;
+            kryptonButton1_MoSoVang.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton1_MoSoVang.Values.Image = (Image)resources.GetObject("kryptonButton1_MoSoVang.Values.Image");
+            kryptonButton1_MoSoVang.Values.Text = "Sổ vàng";
+            kryptonButton1_MoSoVang.Click += kryptonButton1_MoSoVang_Click;
             // 
             // kryptonDataGridView1
             // 
@@ -991,9 +999,9 @@
             // kryptonButton_LuuDataDeNghi
             // 
             kryptonButton_LuuDataDeNghi.Anchor = AnchorStyles.None;
-            kryptonButton_LuuDataDeNghi.Location = new Point(335, 7);
+            kryptonButton_LuuDataDeNghi.Location = new Point(340, 6);
             kryptonButton_LuuDataDeNghi.Name = "kryptonButton_LuuDataDeNghi";
-            kryptonButton_LuuDataDeNghi.Size = new Size(140, 30);
+            kryptonButton_LuuDataDeNghi.Size = new Size(130, 32);
             kryptonButton_LuuDataDeNghi.StateCommon.Border.Rounding = 4F;
             kryptonButton_LuuDataDeNghi.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
             kryptonButton_LuuDataDeNghi.StateTracking.Border.Rounding = 4F;
@@ -1006,10 +1014,10 @@
             // kryptonButton2_TangCoChuRichText
             // 
             kryptonButton2_TangCoChuRichText.Anchor = AnchorStyles.None;
-            kryptonButton2_TangCoChuRichText.Location = new Point(268, 7);
+            kryptonButton2_TangCoChuRichText.Location = new Point(269, 6);
             kryptonButton2_TangCoChuRichText.Margin = new Padding(2, 4, 2, 4);
             kryptonButton2_TangCoChuRichText.Name = "kryptonButton2_TangCoChuRichText";
-            kryptonButton2_TangCoChuRichText.Size = new Size(55, 29);
+            kryptonButton2_TangCoChuRichText.Size = new Size(53, 32);
             kryptonButton2_TangCoChuRichText.StateCommon.Border.Rounding = 4F;
             kryptonButton2_TangCoChuRichText.TabIndex = 40;
             kryptonButton2_TangCoChuRichText.Values.DropDownArrowColor = Color.Empty;
@@ -1032,24 +1040,16 @@
             // kryptonButton2_GiamCoChuRichText
             // 
             kryptonButton2_GiamCoChuRichText.Anchor = AnchorStyles.None;
-            kryptonButton2_GiamCoChuRichText.Location = new Point(205, 7);
+            kryptonButton2_GiamCoChuRichText.Location = new Point(205, 6);
             kryptonButton2_GiamCoChuRichText.Margin = new Padding(2, 4, 2, 4);
             kryptonButton2_GiamCoChuRichText.Name = "kryptonButton2_GiamCoChuRichText";
-            kryptonButton2_GiamCoChuRichText.Size = new Size(51, 29);
+            kryptonButton2_GiamCoChuRichText.Size = new Size(51, 32);
             kryptonButton2_GiamCoChuRichText.StateCommon.Border.Rounding = 4F;
             kryptonButton2_GiamCoChuRichText.TabIndex = 39;
             kryptonButton2_GiamCoChuRichText.Values.DropDownArrowColor = Color.Empty;
             kryptonButton2_GiamCoChuRichText.Values.Image = (Image)resources.GetObject("kryptonButton2_GiamCoChuRichText.Values.Image");
             kryptonButton2_GiamCoChuRichText.Values.Text = "";
             kryptonButton2_GiamCoChuRichText.Click += kryptonButton2_GiamCoChuRichText_Click;
-            // 
-            // toolStripMenuItem_ToTrinhBaNhat
-            // 
-            toolStripMenuItem_ToTrinhBaNhat.Image = (Image)resources.GetObject("toolStripMenuItem_ToTrinhBaNhat.Image");
-            toolStripMenuItem_ToTrinhBaNhat.Name = "toolStripMenuItem_ToTrinhBaNhat";
-            toolStripMenuItem_ToTrinhBaNhat.Size = new Size(207, 28);
-            toolStripMenuItem_ToTrinhBaNhat.Text = "Tờ trình Ba Nhất";
-            toolStripMenuItem_ToTrinhBaNhat.Click += toolStripMenuItem_ToTrinhBaNhat_Click;
             // 
             // Form42_QuanLyThiDuaBaNhat
             // 

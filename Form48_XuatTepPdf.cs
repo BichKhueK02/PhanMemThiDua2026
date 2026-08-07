@@ -21,18 +21,17 @@ namespace PhanMemThiDua2026
         // KHAI BÁO WINDOWS API: GỌI THƯ MỤC VÀ CHỌN TỆP ĐƠN NHIỆM     
         [DllImport("shell32.dll", ExactSpelling = true)]
         private static extern void ILFree(IntPtr pidl);
-
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
         private static extern IntPtr ILCreateFromPathW(string pszPath);
         [DllImport("shell32.dll", ExactSpelling = true)]
         private static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, uint cidl, [In, MarshalAs(UnmanagedType.LPArray)] IntPtr[] apidl, uint dwFlags);
-        // CLASS LƯU TRỮ TRẠNG THÁI ÁNH XẠ
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
         // CLASS LƯU TRỮ TRẠNG THÁI ÁNH XẠ
         public class SheetExportItem
         {
             public string OriginalSheetName { get; set; }
             public string TargetPdfName { get; set; }
-
             public override string ToString()
             {
                 // Kiểm tra xem đây có phải là sheet tự do (không nằm trong danh sách quy định) hay không.
@@ -46,7 +45,6 @@ namespace PhanMemThiDua2026
 
                     return $"{TargetPdfName}.pdf";
                 }
-
                 // Nếu nằm trong quy định (đã được phần mềm đổi thành tên dài): Hiển thị mũi tên ánh xạ
                 if (TargetPdfName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
                     return $"[{OriginalSheetName}] ➔ {TargetPdfName}";
@@ -66,22 +64,17 @@ namespace PhanMemThiDua2026
             this.Text = "Trình chuyển đổi tệp excel sang *.pdf";
             this.Load += Form48_XuatTepPdf_Load;
             this.ShowInTaskbar = false;
-
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.AcceptButton = kryptonButton_XuatTepPdf;
-
             // Đăng ký sự kiện
             kryptonButton1_ChonDuongDanTepExcel.Click -= KryptonButton1_ChonDuongDanTepExcel_Click;
             kryptonButton1_ChonDuongDanTepExcel.Click += KryptonButton1_ChonDuongDanTepExcel_Click;
-
             kryptonButton1_ChonDuongDanLuuTepPdf.Click -= kryptonButton1_ChonDuongDanLuuTepPdf_Click;
             kryptonButton1_ChonDuongDanLuuTepPdf.Click += kryptonButton1_ChonDuongDanLuuTepPdf_Click;
-
             kryptonButton_XuatTepPdf.Click -= kryptonButton_XuatTepPdf_Click;
             kryptonButton_XuatTepPdf.Click += kryptonButton_XuatTepPdf_Click;
-
             // Tùy chỉnh màu sắc CheckedListBox (Xanh/Đỏ) và tính năng 1 chạm
             checkedListBox1_LietKeTenCacSheet.DrawMode = DrawMode.OwnerDrawFixed;
             checkedListBox1_LietKeTenCacSheet.DrawItem += CheckedListBox1_DrawItem;
@@ -148,7 +141,6 @@ namespace PhanMemThiDua2026
         private bool _dangXuatFile = false;
         private int _soFileDaXong = 0;
         private int _tongSoFile = 0;
-
         // HÀM TẠO HIỆU ỨNG TĂNG DẦN ĐỀU (CHẠY NGẦM SONG SONG)
         private async Task HieuUngThanhTienTrinhAsync()
         {
@@ -221,7 +213,7 @@ namespace PhanMemThiDua2026
 
             try
             {
-                using var conn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
+                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                 conn.Open();
 
                 using var cmd = new SqliteCommand("SELECT TenTieuDoan FROM ThongTin WHERE ID = 1", conn);
@@ -264,53 +256,6 @@ namespace PhanMemThiDua2026
                 { "DS_BANHAT", $"Danh sách đề nghị biểu dương gương tiêu biểu phong trào thi đua \"Ba nhất\" {baseString}" }
             };
         }
-        //private async void KryptonButton1_ChonDuongDanTepExcel_Click(object sender, EventArgs e)
-        //{
-        //    using var ofd = new OpenFileDialog
-        //    {
-        //        Title = "Chọn tệp Excel nguồn",
-        //        Filter = "Excel Files|*.xlsx;*.xlsm",
-        //        CheckFileExists = true
-        //    };
-
-        //    if (ofd.ShowDialog() == DialogResult.OK)
-        //    {
-        //        string selectedFile = ofd.FileName;
-
-        //        // 🌟 BƯỚC 1: CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC
-        //        label_DuongDanExcel.Text = selectedFile;
-        //        label_DuongDanExcel.ForeColor = Color.DarkGreen;
-
-        //        // Khóa nút trong lúc chờ load để tránh user bấm spam liên tục
-        //        kryptonButton1_ChonDuongDanTepExcel.Enabled = false;
-        //        kryptonButton_XuatTepPdf.Enabled = false;
-
-        //        // Hiện thông báo đang Load dưới StatusStrip
-        //        // (Hãy đảm bảo bạn đã tạo một ToolStripStatusLabel tên là toolStripStatusLabel1_DangLoad trong Designer)
-        //        if (toolStripStatusLabel1_DangLoad != null)
-        //        {
-        //            toolStripStatusLabel1_DangLoad.Visible = true;
-        //            toolStripStatusLabel1_DangLoad.Text = "Đang phân tích tệp Excel, vui lòng đợi...";
-        //        }
-
-        //        // 🌟 BƯỚC 2: GỌI HÀM XỬ LÝ NGẦM
-        //        await PhanTichVaAnhXaSheetTuExcelAsync(selectedFile);
-
-        //        // 🌟 BƯỚC 3: MỞ KHÓA VÀ DỌN DẸP GIAO DIỆN
-        //        kryptonButton1_ChonDuongDanTepExcel.Enabled = true;
-
-        //        // Nếu load thành công và có sheet thì mới cho bấm nút Xuất
-        //        kryptonButton_XuatTepPdf.Enabled = checkedListBox1_LietKeTenCacSheet.Items.Count > 0;
-
-        //        // Ẩn thông báo đang Load
-        //        if (toolStripStatusLabel1_DangLoad != null)
-        //        {
-        //            toolStripStatusLabel1_DangLoad.Visible = false;
-        //            toolStripStatusLabel1_DangLoad.Text = "";
-        //        }
-        //    }
-        //}
-
         private async void KryptonButton1_ChonDuongDanTepExcel_Click(object sender, EventArgs e)
         {
             using var ofd = new OpenFileDialog
@@ -539,7 +484,424 @@ namespace PhanMemThiDua2026
 
             toolStripStatusLabel1_TongCongTepPdf.Text = string.Join(" | ", dsThongTin);
         }
-        // TRUNG TÂM ĐIỀU PHỐI ĐỘNG CƠ (DUAL-ENGINE ORCHESTRATOR)       
+        private (int SuccessCount, string LastFileCreated) ExportUsingExcel(
+            string excelFilePath,
+            string destinationFolder,
+            List<SheetExportItem> itemsToExport,
+            Type ignoredType,
+            (string diaDiemThangNam, string textKemTheo, int lenDau, int lenGiua) dataThayThe)
+        {
+            int successCount = 0;
+            string lastFileCreated = string.Empty;
+
+            // SỬ DỤNG DYNAMIC THAY VÌ KHAI BÁO CHẾT KIỂU EXCEL.APPLICATION
+            dynamic excelApp = null;
+            dynamic workbooks = null;
+            dynamic workbook = null;
+
+            try
+            {
+                // BƯỚC 1: TẠO TIẾN TRÌNH TÀNG HÌNH (Ưu tiên Excel -> WPS)
+                Type excelType = Type.GetTypeFromProgID("Excel.Application")
+                              ?? Type.GetTypeFromProgID("KWPS.Application")
+                              ?? Type.GetTypeFromProgID("Ket.Application");
+
+                if (excelType == null)
+                    throw new NotSupportedException("ENGINE_FAILED: Không tìm thấy COM Excel hoặc WPS Office trên hệ thống.");
+
+                excelApp = Activator.CreateInstance(excelType);
+
+                // =========================================================================
+                // 🌟 GIA CỐ MỨC 2: KIỂM TRA EXCEL READY & GIA CỐ MỨC 4: KILL KHI BỊ ACTIVATION WIZARD
+                // =========================================================================
+                // Kiểm tra xem Excel có đang bị kẹt ở các hộp thoại khởi động (như Activation Wizard, Safe Mode) hay không
+                try
+                {
+                    if (!excelApp.Ready)
+                    {
+                        // Thử lấy ID tiến trình để tiêu diệt
+                        int hwnd = excelApp.Hwnd;
+                        uint processId;
+                        GetWindowThreadProcessId((IntPtr)hwnd, out processId);
+                        if (processId > 0)
+                        {
+                            try { Process.GetProcessById((int)processId).Kill(); } catch { }
+                        }
+                        throw new TimeoutException("EXCEL_HANG: Ứng dụng Excel bị treo hoặc đang chờ phản hồi từ hộp thoại (Activation Wizard).");
+                    }
+                }
+                catch (System.Runtime.InteropServices.COMException)
+                {
+                    // Lỗi RPC_E_CALL_REJECTED thường xảy ra khi Excel đang mở hộp thoại chặn COM
+                    int hwnd = 0;
+                    try { hwnd = excelApp.Hwnd; } catch { }
+                    if (hwnd != 0)
+                    {
+                        uint processId;
+                        GetWindowThreadProcessId((IntPtr)hwnd, out processId);
+                        if (processId > 0)
+                        {
+                            try { Process.GetProcessById((int)processId).Kill(); } catch { }
+                        }
+                    }
+                    throw new TimeoutException("EXCEL_HANG: Ứng dụng Excel từ chối kết nối COM do đang hiện hộp thoại (Có thể là hộp thoại kích hoạt bản quyền).");
+                }
+
+
+                excelApp.Visible = false;
+                excelApp.DisplayAlerts = false;
+                excelApp.ScreenUpdating = false;
+
+                workbooks = excelApp.Workbooks;
+
+                // Mở tệp Excel nguồn
+                workbook = workbooks.Open(excelFilePath, Type.Missing, true);
+
+                // BƯỚC 2: DUYỆT VÀ XUẤT TỪNG SHEET RA PDF
+                foreach (var item in itemsToExport)
+                {
+                    dynamic sheet = null;
+                    try
+                    {
+                        sheet = workbook.Worksheets[item.OriginalSheetName];
+                        string sName = item.OriginalSheetName.ToUpperInvariant();
+
+                        // 2.1 Định dạng dữ liệu (Lỗi ở đây không nghiêm trọng, cho phép chạy tiếp)
+                        try
+                        {
+                            if (sName == "LOAI_1" || sName == "LOAI_2" || sName == "LOAI_3" || sName == "LOAI_4" || sName == "KHONG_PL")
+                            {
+                                FormatDiaDiem(sheet.Range["E4"], dataThayThe.diaDiemThangNam);
+                                FormatKemTheo(sheet.Range["A7"], dataThayThe.textKemTheo, dataThayThe.lenDau, dataThayThe.lenGiua);
+                            }
+                            else if (sName == "BAO CAO TONG HOP" || sName == "BC_BANHAT")
+                            {
+                                FormatDiaDiem(sheet.Range["H4"], dataThayThe.diaDiemThangNam);
+                                FormatKemTheo(sheet.Range["A7"], dataThayThe.textKemTheo, dataThayThe.lenDau, dataThayThe.lenGiua);
+                            }
+                            else if (sName == "DS_BANHAT")
+                            {
+                                FormatDiaDiem(sheet.Range["F3"], dataThayThe.diaDiemThangNam);
+                                FormatKemTheo(sheet.Range["A6"], dataThayThe.textKemTheo, dataThayThe.lenDau, dataThayThe.lenGiua);
+                            }
+                        }
+                        catch (Exception exFormat)
+                        {
+                            Debug.WriteLine($"Cảnh báo: Định dạng Sheet {sName} thất bại - {exFormat.Message}");
+                        }
+
+                        string finalPdfName = CleanFileName(item.TargetPdfName);
+                        string fullPdfPath = Path.Combine(destinationFolder, finalPdfName);
+
+                        // 2.2 Validate độ dài đường dẫn (Chống lỗi Windows cũ)
+                        if (fullPdfPath.Length >= 250)
+                        {
+                            throw new PathTooLongException($"Đường dẫn lưu file quá dài ({fullPdfPath.Length} ký tự). Vui lòng chọn thư mục lưu ngắn hơn (VD: Desktop).");
+                        }
+
+                        // 2.3 Validate kẹt tệp tin đích (File Lock)
+                        if (File.Exists(fullPdfPath))
+                        {
+                            try
+                            {
+                                // Thử mở độc quyền, nếu có app khác đang xem nó sẽ văng lỗi IOException
+                                using (FileStream fs = File.Open(fullPdfPath, FileMode.Open, FileAccess.Write, FileShare.None)) { }
+                            }
+                            catch (IOException)
+                            {
+                                throw new IOException($"Tệp PDF '{finalPdfName}' đang được mở bằng phần mềm khác (Foxit Reader, Chrome...). Vui lòng đóng tệp đó lại và xuất lại.");
+                            }
+                        }
+
+                        // =========================================================================
+                        // 🌟 GIA CỐ MỨC 1: TIMEOUT CHO TOÀN BỘ ENGINE EXCEL (KHI XUẤT PDF)
+                        // =========================================================================
+                        var exportTask = Task.Run(() =>
+                        {
+                            try
+                            {
+                                // Tham số 1 (0): Excel.XlFixedFormatType.xlTypePDF
+                                // Tham số 3 (0): Excel.XlFixedFormatQuality.xlQualityStandard
+                                sheet.ExportAsFixedFormat(0, fullPdfPath, 0, true, false, Type.Missing, Type.Missing, false);
+                            }
+                            catch (System.Runtime.InteropServices.COMException comEx)
+                            {
+                                // Mã lỗi -2146827284 hoặc -2146827285: Office cũ thiếu Add-in xuất PDF hoặc lỗi Reduced Functionality
+                                if (comEx.ErrorCode == -2146827284 || comEx.ErrorCode == -2146827285)
+                                {
+                                    throw new NotSupportedException("ENGINE_FAILED: Phiên bản MS Office trên máy tính này không hỗ trợ xuất PDF trực tiếp hoặc đang bị giới hạn chức năng (Reduced Functionality Mode).");
+                                }
+                                throw;
+                            }
+                        });
+
+                        // Cài đặt thời gian chờ tối đa 60 giây cho mỗi lệnh Export
+                        if (!exportTask.Wait(TimeSpan.FromSeconds(60)))
+                        {
+                            // Nếu Task chưa chạy xong trong 60s -> Hủy tiến trình Excel
+                            int hwnd = 0;
+                            try { hwnd = excelApp.Hwnd; } catch { }
+                            if (hwnd != 0)
+                            {
+                                uint processId;
+                                GetWindowThreadProcessId((IntPtr)hwnd, out processId);
+                                if (processId > 0)
+                                {
+                                    try { Process.GetProcessById((int)processId).Kill(); } catch { }
+                                }
+                            }
+                            throw new TimeoutException($"EXCEL_HANG: Tiến trình Excel bị treo quá 60 giây khi xuất {item.OriginalSheetName} (Có thể do hộp thoại ẩn). Đã ép buộc dừng.");
+                        }
+
+                        // Nếu Task chạy bị lỗi (NotSupportedException, COMException...) thì ném lỗi ra
+                        if (exportTask.IsFaulted && exportTask.Exception != null)
+                        {
+                            throw exportTask.Exception.InnerException ?? exportTask.Exception;
+                        }
+
+                        // =========================================================================
+                        // 🌟 GIA CỐ MỨC 3: KIỂM TRA PDF THỰC SỰ ĐƯỢC TẠO
+                        // =========================================================================
+                        if (!File.Exists(fullPdfPath) || new FileInfo(fullPdfPath).Length == 0)
+                        {
+                            throw new FileNotFoundException($"ENGINE_FAILED: Excel báo thành công nhưng file PDF '{finalPdfName}' bị trống hoặc không được tạo ra.");
+                        }
+
+                        successCount++;
+                        lastFileCreated = fullPdfPath;
+
+                        // Báo cáo tiến trình lên UI
+                        ReportProgress(successCount, itemsToExport.Count);
+                    }
+                    // 🌟 CÁC LỚP BẮT LỖI PHÂN CẤP (EXCEPTION BUBBLING) 🌟
+                    catch (NotSupportedException)
+                    {
+                        // Lỗi lõi (Engine) -> Ném văng ra ngoài cùng để "kích nổ" cơ chế gọi LibreOffice
+                        throw;
+                    }
+                    catch (TimeoutException)
+                    {
+                        // Lỗi treo (Hang) -> Ném văng ra để kích LibreOffice
+                        throw;
+                    }
+                    catch (FileNotFoundException fnfEx)
+                    {
+                        // Lỗi tạo file PDF rỗng -> Chuyển sang LibreOffice
+                        throw new NotSupportedException(fnfEx.Message);
+                    }
+                    catch (PathTooLongException ptEx)
+                    {
+                        // Lỗi đường dẫn -> Dừng hẳn quá trình xuất để người dùng đổi thư mục
+                        throw new Exception(ptEx.Message);
+                    }
+                    catch (IOException ioEx)
+                    {
+                        // Lỗi kẹt file đích -> Dừng hẳn quá trình xuất để người dùng tắt file đang mở
+                        throw new Exception(ioEx.Message);
+                    }
+                    catch (Exception exSheet)
+                    {
+                        // Lỗi lặt vặt riêng của 1 sheet (hoặc COM chung chung) -> Ghi log, bỏ qua sheet này và chạy tiếp
+                        Debug.WriteLine($"Lỗi xuất PDF sheet {item.OriginalSheetName}: {exSheet.Message}");
+                    }
+                    finally
+                    {
+                        // Tránh kẹt RAM rò rỉ (Memory Leak) ở cấp độ Sheet
+                        if (sheet != null) Marshal.ReleaseComObject(sheet);
+                    }
+                }
+            }
+            finally
+            {
+                // BƯỚC 3: DỌN RÁC VÀ TIÊU DIỆT HOÀN TOÀN TIẾN TRÌNH EXCEL MA DƯỚI NỀN
+                if (workbook != null)
+                {
+                    try { workbook.Close(false); } catch { }
+                    Marshal.ReleaseComObject(workbook);
+                }
+                if (workbooks != null)
+                {
+                    Marshal.ReleaseComObject(workbooks);
+                }
+                if (excelApp != null)
+                {
+                    try { excelApp.Quit(); } catch { }
+                    Marshal.ReleaseComObject(excelApp);
+                }
+
+                // ÉP WIN GIẢI PHÓNG TIẾN TRÌNH MA (CHẠY 2 CHU KỲ ĐỂ CLEAR SẠCH COM INTEROP)
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            return (successCount, lastFileCreated);
+        }
+        private (int SuccessCount, string LastFileCreated) ExportUsingLibreOffice(
+            string excelFilePath,
+            string destinationFolder,
+            List<SheetExportItem> itemsToExport,
+            string librePath,
+            (string diaDiemThangNam, string textKemTheo, int lenDau, int lenGiua) dataThayThe)
+        {
+            int successCount = 0;
+            string lastFileCreated = string.Empty;
+
+            // Bọc trong try-catch lớn để phòng rủi ro từ việc đọc tệp bằng ClosedXML
+            try
+            {
+                using (var wbGoc = new XLWorkbook(excelFilePath))
+                {
+                    // =========================================================================
+                    // BƯỚC 1: XỬ LÝ FORMAT TRƯỚC KHI XUẤT (Xử lý trên RAM)
+                    // =========================================================================
+                    foreach (var ws in wbGoc.Worksheets)
+                    {
+                        string sName = ws.Name.ToUpperInvariant();
+                        try
+                        {
+                            if (sName == "LOAI_1" || sName == "LOAI_2" || sName == "LOAI_3" || sName == "LOAI_4" || sName == "KHONG_PL")
+                            {
+                                ws.Cell("E4").Value = dataThayThe.diaDiemThangNam;
+                                ws.Cell("A7").Value = dataThayThe.textKemTheo;
+                                ws.Cell("A7").GetRichText().Substring(dataThayThe.lenDau, dataThayThe.lenGiua).SetUnderline();
+                            }
+                            else if (sName == "BAO CAO TONG HOP" || sName == "BC_BANHAT")
+                            {
+                                ws.Cell("H4").Value = dataThayThe.diaDiemThangNam;
+                                ws.Cell("A7").Value = dataThayThe.textKemTheo;
+                                ws.Cell("A7").GetRichText().Substring(dataThayThe.lenDau, dataThayThe.lenGiua).SetUnderline();
+                            }
+                            else if (sName == "DS_BANHAT")
+                            {
+                                ws.Cell("F3").Value = dataThayThe.diaDiemThangNam;
+                                ws.Cell("A6").Value = dataThayThe.textKemTheo;
+                                ws.Cell("A6").GetRichText().Substring(dataThayThe.lenDau, dataThayThe.lenGiua).SetUnderline();
+                            }
+                        }
+                        catch (Exception exFormat)
+                        {
+                            // 🌟 GIA CỐ: Không để "Empty Catch". Lưu log để dễ rà soát lỗi phát sinh
+                            Debug.WriteLine($"Cảnh báo: Không thể format sheet {sName} bằng ClosedXML: {exFormat.Message}");
+                        }
+                    }
+
+                    // =========================================================================
+                    // BƯỚC 2: TÁCH TỪNG SHEET VÀ DÙNG LIBREOFFICE RENDER RA PDF
+                    // =========================================================================
+                    foreach (var item in itemsToExport)
+                    {
+                        string tempExcel = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".xlsx");
+                        string defaultLibreOutput = string.Empty;
+
+                        try
+                        {
+                            // 2.1 Tách sheet hiện tại ra một file temp độc lập
+                            using (var tempWb = new XLWorkbook())
+                            {
+                                wbGoc.Worksheet(item.OriginalSheetName).CopyTo(tempWb, item.OriginalSheetName);
+                                tempWb.SaveAs(tempExcel);
+                            }
+
+                            string finalPdfName = CleanFileName(item.TargetPdfName);
+                            string fullPdfPath = Path.Combine(destinationFolder, finalPdfName);
+
+                            // 2.2 Cấu hình thông số gọi LibreOffice chạy ngầm
+                            ProcessStartInfo psi = new ProcessStartInfo
+                            {
+                                FileName = librePath,
+                                Arguments = $"--headless --invisible --nologo --nodefault --norestore --nofirststartwizard --convert-to pdf \"{tempExcel}\" --outdir \"{destinationFolder}\"",
+                                WindowStyle = ProcessWindowStyle.Hidden,
+                                CreateNoWindow = true,
+                                UseShellExecute = false
+                            };
+
+                            // 2.3 Thực thi tiến trình
+                            using (Process p = new Process())
+                            {
+                                p.StartInfo = psi;
+                                p.Start();
+
+                                // 🌟 GIA CỐ: Tăng thời gian chờ lên 120 giây (120000 ms) cho máy cấu hình yếu
+                                bool exited = p.WaitForExit(120000);
+
+                                if (!exited)
+                                {
+                                    // 🌟 GIA CỐ: Chống sập App (Race Condition) nếu tiến trình tắt đúng vào thời điểm gọi lệnh Kill
+                                    try
+                                    {
+                                        if (!p.HasExited) p.Kill();
+                                    }
+                                    catch { /* Bỏ qua nếu tiến trình tự tắt kịp lúc */ }
+                                    throw new TimeoutException($"Tiến trình render bị treo do cấu hình phần cứng quá tải tại {item.OriginalSheetName} (Quá 120 giây). Đã buộc dừng.");
+                                }
+
+                                if (p.ExitCode != 0)
+                                {
+                                    throw new Exception($"Động cơ dự phòng LibreOffice từ chối kết xuất. Mã lỗi nội bộ: {p.ExitCode}");
+                                }
+                            }
+
+                            // 2.4 Kiểm tra tệp sinh ra và đổi tên đúng chuẩn
+                            defaultLibreOutput = Path.Combine(destinationFolder, Path.GetFileNameWithoutExtension(tempExcel) + ".pdf");
+
+                            if (File.Exists(defaultLibreOutput))
+                            {
+                                // Xóa file PDF đích nếu nó đang tồn tại trước để mở đường cho File.Move
+                                if (File.Exists(fullPdfPath))
+                                {
+                                    File.Delete(fullPdfPath);
+                                }
+
+                                File.Move(defaultLibreOutput, fullPdfPath);
+
+                                successCount++;
+                                lastFileCreated = fullPdfPath;
+
+                                // Đẩy tín hiệu tiến trình ra ngoài UI
+                                ReportProgress(successCount, itemsToExport.Count);
+                            }
+                            else
+                            {
+                                throw new FileNotFoundException($"LibreOffice báo thành công nhưng không tìm thấy file tại đích: {defaultLibreOutput}");
+                            }
+                        }
+                        catch (Exception exSheet)
+                        {
+                            // 🌟 BẮT LỖI TỪNG SHEET: Ghi log sheet lỗi, không làm sập tiến trình, tiếp tục kết xuất sheet tiếp theo
+                            Debug.WriteLine($"Lỗi xuất PDF (LibreOffice) sheet {item.OriginalSheetName}: {exSheet.Message}");
+                        }
+                        finally
+                        {
+                            // =========================================================================
+                            // BƯỚC 3: DỌN RÁC TRIỆT ĐỂ BẰNG SILENT CATCH (CHỐNG SẬP DO FILE LOCK)
+                            // =========================================================================
+                            try
+                            {
+                                if (File.Exists(tempExcel)) File.Delete(tempExcel);
+                            }
+                            catch { Debug.WriteLine("Không thể xóa file Excel tạm ngay lúc này: " + tempExcel); }
+
+                            try
+                            {
+                                // Chống tình trạng "vứt rác" file tạm mang tên Guid nếu lệnh File.Move bị sập giữa chừng
+                                if (!string.IsNullOrEmpty(defaultLibreOutput) && File.Exists(defaultLibreOutput))
+                                    File.Delete(defaultLibreOutput);
+                            }
+                            catch { Debug.WriteLine("Không thể xóa file PDF tạm ngay lúc này: " + defaultLibreOutput); }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Lỗi hệ thống nghiêm trọng tại ExportUsingLibreOffice: {ex.Message}");
+                throw; // Ném thẳng ra ngoài để khối Try/Catch lớn ở giao diện UI hiển thị MessageBox
+            }
+
+            return (successCount, lastFileCreated);
+        }
         private async void kryptonButton_XuatTepPdf_Click(object sender, EventArgs e)
         {
             string excelPath = label_DuongDanExcel.Text?.Trim();
@@ -567,7 +929,24 @@ namespace PhanMemThiDua2026
                 kryptonButton1_ChonDuongDanLuuTepPdf.PerformClick();
                 return;
             }
-
+            // 🌟 GIA CỐ 1: KIỂM TRA QUYỀN GHI VÀO THƯ MỤC ĐÍCH TRƯỚC KHI CHẠY (MỚI THÊM)
+            // =========================================================================
+            try
+            {
+                string testFile = Path.Combine(pdfFolderPath, "test_write_permission.tmp");
+                File.WriteAllText(testFile, "test");
+                File.Delete(testFile); // Viết nháp xong thì xóa luôn
+            }
+            catch (UnauthorizedAccessException)
+            {
+                MessageBox.Show("Hệ thống không có quyền ghi dữ liệu vào thư mục này (Bị từ chối truy cập).\nVui lòng chọn thư mục khác (Ví dụ: Desktop, Documents) hoặc chạy phần mềm bằng quyền Quản trị viên (Run as Admin).", "Lỗi phân quyền", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Thư mục đích đang bị lỗi hoặc không thể truy cập:\n" + ex.Message, "Lỗi thư mục", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             var itemsToExport = checkedListBox1_LietKeTenCacSheet.CheckedItems.Cast<SheetExportItem>().ToList();
             if (itemsToExport.Count == 0)
             {
@@ -627,7 +1006,15 @@ namespace PhanMemThiDua2026
                 }
 
                 CapNhatStatusStrip(checkedListBox1_LietKeTenCacSheet.Items.Count, itemsToExport.Count, soLuongXuatThanhCong);
-
+                // 🌟 1. GHI NHẬT KÝ KHI XUẤT THÀNH CÔNG 🌟
+                if (soLuongXuatThanhCong > 0)
+                {
+                    Module_NhatKy.GhiNhatKy(
+                        taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
+                        hanhDong: $"Xuất thành công {soLuongXuatThanhCong} tệp PDF",
+                        ghiChu: $"Lưu tại: {pdfFolderPath} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                    );
+                }
                 if (soLuongXuatThanhCong > 0 && !string.IsNullOrEmpty(filePdfCuoiCung) && File.Exists(filePdfCuoiCung))
                 {
                     MoThuMucVaChonTep(filePdfCuoiCung);
@@ -635,6 +1022,12 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
+                // 🌟 2. GHI NHẬT KÝ KHI CÓ LỖI XẢY RA 🌟
+                Module_NhatKy.GhiNhatKy(
+                    taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
+                    hanhDong: "Lỗi gián đoạn khi xuất tệp PDF",
+                    ghiChu: $"Chi tiết lỗi: {ex.Message} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                );
                 MessageBox.Show("Quá trình xuất bị gián đoạn:\n" + ex.Message, "Lỗi Hệ Thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -653,132 +1046,6 @@ namespace PhanMemThiDua2026
                 kryptonButton_XuatTepPdf.Text = _textGocNutXuatPdf;
             }
         }
-        // ĐỘNG CƠ 1: LATE BINDING EXCEL (CHỐNG LỖI PHIÊN BẢN & CHỐNG RÒ RỈ RAM)        
-        // ĐỘNG CƠ 1: LATE BINDING EXCEL (CHỐNG LỖI PHIÊN BẢN & CHỐNG RÒ RỈ RAM)    
-        private (int SuccessCount, string LastFileCreated) ExportUsingExcel(
-            string excelFilePath,
-            string destinationFolder,
-            List<SheetExportItem> itemsToExport,
-            Type ignoredType,
-            (string diaDiemThangNam, string textKemTheo, int lenDau, int lenGiua) dataThayThe)
-        {
-            int successCount = 0;
-            string lastFileCreated = string.Empty;
-
-            // 🌟 SỬ DỤNG DYNAMIC THAY VÌ KHAI BÁO CHẾT KIỂU EXCEL.APPLICATION
-            dynamic excelApp = null;
-            dynamic workbooks = null;
-            dynamic workbook = null;
-
-            try
-            {
-                // BƯỚC 1: TẠO TIẾN TRÌNH TÀNG HÌNH MỚI TINH (KHÔNG ĐỤNG CHẠM TIẾN TRÌNH ĐANG MỞ CỦA USER)
-                // Tìm MS Excel, nếu không có thì dự phòng tìm WPS Office
-                Type excelType = Type.GetTypeFromProgID("Excel.Application")
-                              ?? Type.GetTypeFromProgID("KWPS.Application")
-                              ?? Type.GetTypeFromProgID("Ket.Application");
-
-                if (excelType == null)
-                    throw new Exception("Không tìm thấy COM Excel hoặc WPS Office trên hệ thống.");
-
-                // Khởi tạo an toàn trên mọi phiên bản .NET
-                excelApp = Activator.CreateInstance(excelType);
-
-                // Ép Excel chạy ngầm, không hiện cảnh báo, ưu tiên tốc độ
-                excelApp.Visible = false;
-                excelApp.DisplayAlerts = false;
-                excelApp.ScreenUpdating = false;
-
-                // Mở File an toàn ở chế độ ReadOnly (Tham số thứ 3 là true) để không bị khóa file
-                workbooks = excelApp.Workbooks;
-                workbook = workbooks.Open(excelFilePath, Type.Missing, true);
-
-                // BƯỚC 2: TIẾN HÀNH DUYỆT VÀ XUẤT TỪNG SHEET RA PDF
-                foreach (var item in itemsToExport)
-                {
-                    dynamic sheet = null;
-                    try
-                    {
-                        sheet = workbook.Worksheets[item.OriginalSheetName];
-                        string sName = item.OriginalSheetName.ToUpperInvariant();
-
-                        // Cố gắng định dạng dữ liệu, dùng try-catch bọc lót để không làm sập tiến trình xuất
-                        try
-                        {
-                            if (sName == "LOAI_1" || sName == "LOAI_2" || sName == "LOAI_3" || sName == "LOAI_4" || sName == "KHONG_PL")
-                            {
-                                FormatDiaDiem(sheet.Range["E4"], dataThayThe.diaDiemThangNam);
-                                FormatKemTheo(sheet.Range["A7"], dataThayThe.textKemTheo, dataThayThe.lenDau, dataThayThe.lenGiua);
-                            }
-                            else if (sName == "BAO CAO TONG HOP" || sName == "BC_BANHAT")
-                            {
-                                FormatDiaDiem(sheet.Range["H4"], dataThayThe.diaDiemThangNam);
-                                FormatKemTheo(sheet.Range["A7"], dataThayThe.textKemTheo, dataThayThe.lenDau, dataThayThe.lenGiua);
-                            }
-                            else if (sName == "DS_BANHAT")
-                            {
-                                FormatDiaDiem(sheet.Range["F3"], dataThayThe.diaDiemThangNam);
-                                FormatKemTheo(sheet.Range["A6"], dataThayThe.textKemTheo, dataThayThe.lenDau, dataThayThe.lenGiua);
-                            }
-                        }
-                        catch (Exception exFormat)
-                        {
-                            Debug.WriteLine($"Cảnh báo: Định dạng Sheet {sName} thất bại - {exFormat.Message}");
-                        }
-
-                        // Làm sạch tên file và kết xuất
-                        string finalPdfName = CleanFileName(item.TargetPdfName);
-                        string fullPdfPath = Path.Combine(destinationFolder, finalPdfName);
-
-                        // Tham số 1 (0): Excel.XlFixedFormatType.xlTypePDF
-                        // Tham số 3 (0): Excel.XlFixedFormatQuality.xlQualityStandard
-                        sheet.ExportAsFixedFormat(0, fullPdfPath, 0, true, false, Type.Missing, Type.Missing, false);
-
-                        successCount++;
-                        lastFileCreated = fullPdfPath;
-
-                        // Báo cáo tiến trình lên UI
-                        ReportProgress(successCount, itemsToExport.Count);
-                    }
-                    catch (Exception exSheet)
-                    {
-                        Debug.WriteLine($"Lỗi xuất PDF sheet {item.OriginalSheetName}: {exSheet.Message}");
-                    }
-                    finally
-                    {
-                        // Giải phóng COM của Sheet ngay sau khi dùng xong
-                        if (sheet != null) Marshal.ReleaseComObject(sheet);
-                    }
-                }
-            }
-            finally
-            {
-                // BƯỚC 3: DỌN RÁC VÀ TIÊU DIỆT HOÀN TOÀN TIẾN TRÌNH EXCEL MA DƯỚI NỀN
-                if (workbook != null)
-                {
-                    workbook.Close(false);
-                    Marshal.ReleaseComObject(workbook);
-                }
-                if (workbooks != null)
-                {
-                    Marshal.ReleaseComObject(workbooks);
-                }
-                if (excelApp != null)
-                {
-                    excelApp.Quit();
-                    Marshal.ReleaseComObject(excelApp);
-                }
-
-                // ÉP WIN GIẢI PHÓNG TIẾN TRÌNH MA (CHẠY 2 CHU KỲ MỚI DIỆT ĐƯỢC EXCEL.EXE DƯỚI NỀN)
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-
-            return (successCount, lastFileCreated);
-        }
-        // SỬA LẠI FORMATTER THÀNH DYNAMIC ĐỂ CỞI TRÓI KHỎI INTEROP DLL
         private void FormatDiaDiem(dynamic range, string text)
         {
             range.Value = text;
@@ -793,107 +1060,6 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
-        private (int SuccessCount, string LastFileCreated) ExportUsingLibreOffice(string excelFilePath, string destinationFolder, List<SheetExportItem> itemsToExport, string librePath, (string diaDiemThangNam, string textKemTheo, int lenDau, int lenGiua) dataThayThe)
-        {
-            int successCount = 0;
-            string lastFileCreated = string.Empty;
-
-            using (var wbGoc = new XLWorkbook(excelFilePath))
-            {
-                foreach (var ws in wbGoc.Worksheets)
-                {
-                    string sName = ws.Name.ToUpperInvariant();
-                    try
-                    {
-                        if (sName == "LOAI_1" || sName == "LOAI_2" || sName == "LOAI_3" || sName == "LOAI_4" || sName == "KHONG_PL")
-                        {
-                            ws.Cell("E4").Value = dataThayThe.diaDiemThangNam;
-                            ws.Cell("A7").Value = dataThayThe.textKemTheo;
-                            ws.Cell("A7").GetRichText().Substring(dataThayThe.lenDau, dataThayThe.lenGiua).SetUnderline();
-                        }
-                        else if (sName == "BAO CAO TONG HOP" || sName == "BC_BANHAT")
-                        {
-                            ws.Cell("H4").Value = dataThayThe.diaDiemThangNam;
-                            ws.Cell("A7").Value = dataThayThe.textKemTheo;
-                            ws.Cell("A7").GetRichText().Substring(dataThayThe.lenDau, dataThayThe.lenGiua).SetUnderline();
-                        }
-                        else if (sName == "DS_BANHAT")
-                        {
-                            ws.Cell("F3").Value = dataThayThe.diaDiemThangNam;
-                            ws.Cell("A6").Value = dataThayThe.textKemTheo;
-                            ws.Cell("A6").GetRichText().Substring(dataThayThe.lenDau, dataThayThe.lenGiua).SetUnderline();
-                        }
-                    }
-                    catch { }
-                }
-
-                foreach (var item in itemsToExport)
-                {
-                    string tempExcel = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".xlsx");
-
-                    try
-                    {
-                        using (var tempWb = new XLWorkbook())
-                        {
-                            wbGoc.Worksheet(item.OriginalSheetName).CopyTo(tempWb, item.OriginalSheetName);
-                            tempWb.SaveAs(tempExcel);
-                        }
-
-                        string finalPdfName = CleanFileName(item.TargetPdfName);
-                        string fullPdfPath = Path.Combine(destinationFolder, finalPdfName);
-
-                        ProcessStartInfo psi = new ProcessStartInfo
-                        {
-                            FileName = librePath,
-                            Arguments = $"--headless --invisible --nologo --nodefault --norestore --nofirststartwizard --convert-to pdf \"{tempExcel}\" --outdir \"{destinationFolder}\"",
-                            WindowStyle = ProcessWindowStyle.Hidden,
-                            CreateNoWindow = true,
-                            UseShellExecute = false
-                        };
-
-                        using (Process p = new Process())
-                        {
-                            p.StartInfo = psi;
-                            p.Start();
-
-                            // Bảo vệ CPU máy cũ: Chờ tối đa 60 giây.
-                            bool exited = p.WaitForExit(60000);
-                            if (!exited)
-                            {
-                                p.Kill();
-                                throw new TimeoutException($"Tiến trình render bị treo vì cấu hình phần cứng không đáp ứng tại {item.OriginalSheetName}. Đã buộc dừng.");
-                            }
-                            if (p.ExitCode != 0)
-                            {
-                                throw new Exception($"Động cơ dự phòng từ chối kết xuất. Mã lỗi nội bộ: {p.ExitCode}");
-                            }
-                        }
-
-                        string defaultLibreOutput = Path.Combine(destinationFolder, Path.GetFileNameWithoutExtension(tempExcel) + ".pdf");
-                        if (File.Exists(defaultLibreOutput))
-                        {
-                            if (File.Exists(fullPdfPath)) File.Delete(fullPdfPath);
-                            File.Move(defaultLibreOutput, fullPdfPath);
-
-                            successCount++;
-                            lastFileCreated = fullPdfPath;
-                            ReportProgress(successCount, itemsToExport.Count);
-                        }
-                    }
-                    finally
-                    {
-                        // 🌟 GIA CỐ 3: Silent Catch chống sập App do File Lock
-                        try
-                        {
-                            if (File.Exists(tempExcel)) File.Delete(tempExcel);
-                        }
-                        catch { Debug.WriteLine("Không thể xóa file tạm ngay lúc này: " + tempExcel); }
-                    }
-                }
-            }
-            return (successCount, lastFileCreated);
-        }
-        // CÁC HÀM TIỆN ÍCH DÙNG CHUNG (HELPER)
         private string GetEmbeddedLibreOfficePath()
         {
             string portablePath = Path.Combine(AppContext.BaseDirectory, "LibreOffice", "program", "soffice.exe");
@@ -908,7 +1074,7 @@ namespace PhanMemThiDua2026
             string diaDiem = "      ", thang = "  ", nam = "    ", kyHieuBaoCao = "...............", tieuDoanHienThi = "      ";
             try
             {
-                using var conn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
+                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                 conn.Open();
                 using var cmd = new SqliteCommand("SELECT Thang, Nam, DiaDiem, KyHieuBaoCao, TenTieuDoan FROM ThongTin WHERE ID = 1", conn);
                 using var rd = cmd.ExecuteReader();
@@ -1049,7 +1215,7 @@ namespace PhanMemThiDua2026
             // 2. KẾT NỐI CSDL (Sự "thông minh" của nút: Tự động nhớ đường dẫn cũ)
             try
             {
-                using var conn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
+                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                 conn.Open();
                 using var cmd = new SqliteCommand("SELECT ChonDuongDanXuatTep FROM ThongTin WHERE ID = 1", conn);
                 var result = cmd.ExecuteScalar();
@@ -1078,7 +1244,6 @@ namespace PhanMemThiDua2026
                 InitialDirectory = thuMucMacDinh,
                 SelectedPath = thuMucMacDinh
             };
-
             // 4. Nếu người dùng bấm "Select Folder" (OK)
             if (fbd.ShowDialog() == DialogResult.OK)
             {

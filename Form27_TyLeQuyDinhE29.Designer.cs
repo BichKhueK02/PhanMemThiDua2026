@@ -458,10 +458,10 @@
             // kryptonButton_LuuE29
             // 
             kryptonButton_LuuE29.Anchor = AnchorStyles.None;
-            kryptonButton_LuuE29.Location = new Point(636, 6);
+            kryptonButton_LuuE29.Location = new Point(634, 5);
             kryptonButton_LuuE29.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_LuuE29.Name = "kryptonButton_LuuE29";
-            kryptonButton_LuuE29.Size = new Size(141, 28);
+            kryptonButton_LuuE29.Size = new Size(144, 30);
             kryptonButton_LuuE29.StateCommon.Border.Rounding = 4F;
             kryptonButton_LuuE29.TabIndex = 29;
             kryptonButton_LuuE29.Values.DropDownArrowColor = Color.Empty;

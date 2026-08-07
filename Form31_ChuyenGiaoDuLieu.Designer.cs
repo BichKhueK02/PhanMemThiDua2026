@@ -200,7 +200,7 @@
             // 
             kryptonButton2_MoThuMuc.Anchor = AnchorStyles.None;
             kryptonButton2_MoThuMuc.Location = new Point(1072, 52);
-            kryptonButton2_MoThuMuc.Margin = new Padding(2);
+            kryptonButton2_MoThuMuc.Margin = new Padding(2, 2, 2, 2);
             kryptonButton2_MoThuMuc.Name = "kryptonButton2_MoThuMuc";
             kryptonButton2_MoThuMuc.Size = new Size(146, 30);
             kryptonButton2_MoThuMuc.StateCommon.Border.Rounding = 4F;
@@ -213,7 +213,7 @@
             // 
             btn_NhapDuLieuJson.Anchor = AnchorStyles.None;
             btn_NhapDuLieuJson.Location = new Point(859, 98);
-            btn_NhapDuLieuJson.Margin = new Padding(2);
+            btn_NhapDuLieuJson.Margin = new Padding(2, 2, 2, 2);
             btn_NhapDuLieuJson.Name = "btn_NhapDuLieuJson";
             btn_NhapDuLieuJson.Size = new Size(146, 30);
             btn_NhapDuLieuJson.StateCommon.Border.Rounding = 4F;
@@ -226,7 +226,7 @@
             // 
             btn_XuatDuLieuJson.Anchor = AnchorStyles.None;
             btn_XuatDuLieuJson.Location = new Point(1072, 98);
-            btn_XuatDuLieuJson.Margin = new Padding(2);
+            btn_XuatDuLieuJson.Margin = new Padding(2, 2, 2, 2);
             btn_XuatDuLieuJson.Name = "btn_XuatDuLieuJson";
             btn_XuatDuLieuJson.Size = new Size(146, 30);
             btn_XuatDuLieuJson.StateCommon.Border.Rounding = 4F;
@@ -239,7 +239,7 @@
             // 
             btn_QuetTimKiem.Anchor = AnchorStyles.None;
             btn_QuetTimKiem.Location = new Point(860, 52);
-            btn_QuetTimKiem.Margin = new Padding(2);
+            btn_QuetTimKiem.Margin = new Padding(2, 2, 2, 2);
             btn_QuetTimKiem.Name = "btn_QuetTimKiem";
             btn_QuetTimKiem.Size = new Size(144, 30);
             btn_QuetTimKiem.StateCommon.Border.Rounding = 4F;
@@ -286,7 +286,7 @@
             pictureBox1.Dock = DockStyle.Fill;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 2);
-            pictureBox1.Margin = new Padding(2);
+            pictureBox1.Margin = new Padding(2, 2, 2, 2);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(78, 54);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;

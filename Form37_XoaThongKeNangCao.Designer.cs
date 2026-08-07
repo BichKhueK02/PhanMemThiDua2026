@@ -57,36 +57,34 @@
             tableLayoutPanel1.Controls.Add(groupBox1, 0, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
-            tableLayoutPanel1.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 79.18367F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 20.8163261F));
-            tableLayoutPanel1.Size = new Size(574, 255);
+            tableLayoutPanel1.Size = new Size(629, 281);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // tableLayoutPanel3
             // 
             tableLayoutPanel3.ColumnCount = 1;
             tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 18F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 21F));
             tableLayoutPanel3.Controls.Add(btn_XoaDuLieuThongKe, 0, 0);
             tableLayoutPanel3.Dock = DockStyle.Fill;
-            tableLayoutPanel3.Location = new Point(3, 203);
-            tableLayoutPanel3.Margin = new Padding(3, 2, 3, 2);
+            tableLayoutPanel3.Location = new Point(3, 225);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.Size = new Size(568, 50);
+            tableLayoutPanel3.Size = new Size(623, 53);
             tableLayoutPanel3.TabIndex = 3;
             // 
             // btn_XoaDuLieuThongKe
             // 
             btn_XoaDuLieuThongKe.Anchor = AnchorStyles.None;
-            btn_XoaDuLieuThongKe.Location = new Point(181, 11);
-            btn_XoaDuLieuThongKe.Margin = new Padding(2);
+            btn_XoaDuLieuThongKe.Location = new Point(194, 9);
+            btn_XoaDuLieuThongKe.Margin = new Padding(2, 3, 2, 3);
             btn_XoaDuLieuThongKe.Name = "btn_XoaDuLieuThongKe";
-            btn_XoaDuLieuThongKe.Size = new Size(206, 28);
+            btn_XoaDuLieuThongKe.Size = new Size(235, 35);
             btn_XoaDuLieuThongKe.StateCommon.Border.Rounding = 4F;
             btn_XoaDuLieuThongKe.TabIndex = 1;
             btn_XoaDuLieuThongKe.Values.DropDownArrowColor = Color.Empty;
@@ -100,11 +98,9 @@
             groupBox1.Dock = DockStyle.Fill;
             groupBox1.Font = new Font("Segoe UI", 10.0173912F, FontStyle.Italic, GraphicsUnit.Point, 0);
             groupBox1.ForeColor = Color.Blue;
-            groupBox1.Location = new Point(3, 2);
-            groupBox1.Margin = new Padding(3, 2, 3, 2);
+            groupBox1.Location = new Point(3, 3);
             groupBox1.Name = "groupBox1";
-            groupBox1.Padding = new Padding(3, 2, 3, 2);
-            groupBox1.Size = new Size(568, 197);
+            groupBox1.Size = new Size(623, 216);
             groupBox1.TabIndex = 1;
             groupBox1.TabStop = false;
             groupBox1.Text = "Bạn cần xóa dữ liệu Thống kê như thế nào?";
@@ -115,13 +111,12 @@
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             tableLayoutPanel2.Controls.Add(tableLayoutPanel5, 0, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(3, 20);
-            tableLayoutPanel2.Margin = new Padding(3, 2, 3, 2);
+            tableLayoutPanel2.Location = new Point(3, 25);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 132F));
-            tableLayoutPanel2.Size = new Size(562, 175);
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Absolute, 222F));
+            tableLayoutPanel2.Size = new Size(617, 188);
             tableLayoutPanel2.TabIndex = 0;
             // 
             // tableLayoutPanel5
@@ -132,22 +127,20 @@
             tableLayoutPanel5.Controls.Add(pictureBox2, 0, 0);
             tableLayoutPanel5.Controls.Add(tableLayoutPanel4, 1, 0);
             tableLayoutPanel5.Dock = DockStyle.Fill;
-            tableLayoutPanel5.Location = new Point(3, 2);
-            tableLayoutPanel5.Margin = new Padding(3, 2, 3, 2);
+            tableLayoutPanel5.Location = new Point(3, 3);
             tableLayoutPanel5.Name = "tableLayoutPanel5";
             tableLayoutPanel5.RowCount = 1;
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel5.Size = new Size(556, 171);
+            tableLayoutPanel5.Size = new Size(611, 182);
             tableLayoutPanel5.TabIndex = 2;
             // 
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.None;
             pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(6, 44);
-            pictureBox2.Margin = new Padding(3, 2, 3, 2);
+            pictureBox2.Location = new Point(5, 38);
             pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(80, 83);
+            pictureBox2.Size = new Size(91, 105);
             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox2.TabIndex = 0;
             pictureBox2.TabStop = false;
@@ -156,29 +149,27 @@
             // 
             tableLayoutPanel4.ColumnCount = 1;
             tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 18F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 21F));
             tableLayoutPanel4.Controls.Add(radioButton2_XoaCBCSDangCongTac, 0, 2);
             tableLayoutPanel4.Controls.Add(radioButton3_XoaCBCSChuyenCongTac, 0, 1);
             tableLayoutPanel4.Controls.Add(radioButton1_XoaTatCaDuLieuThongKe, 1, 0);
             tableLayoutPanel4.Dock = DockStyle.Fill;
-            tableLayoutPanel4.Location = new Point(96, 2);
-            tableLayoutPanel4.Margin = new Padding(3, 2, 3, 2);
+            tableLayoutPanel4.Location = new Point(105, 3);
             tableLayoutPanel4.Name = "tableLayoutPanel4";
             tableLayoutPanel4.RowCount = 3;
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 33.33333F));
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanel4.Size = new Size(457, 167);
+            tableLayoutPanel4.Size = new Size(503, 176);
             tableLayoutPanel4.TabIndex = 2;
             // 
             // radioButton2_XoaCBCSDangCongTac
             // 
             radioButton2_XoaCBCSDangCongTac.Anchor = AnchorStyles.Left;
             radioButton2_XoaCBCSDangCongTac.AutoSize = true;
-            radioButton2_XoaCBCSDangCongTac.Location = new Point(3, 127);
-            radioButton2_XoaCBCSDangCongTac.Margin = new Padding(3, 2, 3, 2);
+            radioButton2_XoaCBCSDangCongTac.Location = new Point(3, 133);
             radioButton2_XoaCBCSDangCongTac.Name = "radioButton2_XoaCBCSDangCongTac";
-            radioButton2_XoaCBCSDangCongTac.Size = new Size(110, 23);
+            radioButton2_XoaCBCSDangCongTac.Size = new Size(120, 25);
             radioButton2_XoaCBCSDangCongTac.TabIndex = 2;
             radioButton2_XoaCBCSDangCongTac.TabStop = true;
             radioButton2_XoaCBCSDangCongTac.Text = "radioButton3";
@@ -188,10 +179,9 @@
             // 
             radioButton3_XoaCBCSChuyenCongTac.Anchor = AnchorStyles.Left;
             radioButton3_XoaCBCSChuyenCongTac.AutoSize = true;
-            radioButton3_XoaCBCSChuyenCongTac.Location = new Point(3, 71);
-            radioButton3_XoaCBCSChuyenCongTac.Margin = new Padding(3, 2, 3, 2);
+            radioButton3_XoaCBCSChuyenCongTac.Location = new Point(3, 74);
             radioButton3_XoaCBCSChuyenCongTac.Name = "radioButton3_XoaCBCSChuyenCongTac";
-            radioButton3_XoaCBCSChuyenCongTac.Size = new Size(110, 23);
+            radioButton3_XoaCBCSChuyenCongTac.Size = new Size(120, 25);
             radioButton3_XoaCBCSChuyenCongTac.TabIndex = 1;
             radioButton3_XoaCBCSChuyenCongTac.TabStop = true;
             radioButton3_XoaCBCSChuyenCongTac.Text = "radioButton2";
@@ -202,9 +192,8 @@
             radioButton1_XoaTatCaDuLieuThongKe.Anchor = AnchorStyles.Left;
             radioButton1_XoaTatCaDuLieuThongKe.AutoSize = true;
             radioButton1_XoaTatCaDuLieuThongKe.Location = new Point(3, 16);
-            radioButton1_XoaTatCaDuLieuThongKe.Margin = new Padding(3, 2, 3, 2);
             radioButton1_XoaTatCaDuLieuThongKe.Name = "radioButton1_XoaTatCaDuLieuThongKe";
-            radioButton1_XoaTatCaDuLieuThongKe.Size = new Size(110, 23);
+            radioButton1_XoaTatCaDuLieuThongKe.Size = new Size(120, 25);
             radioButton1_XoaTatCaDuLieuThongKe.TabIndex = 0;
             radioButton1_XoaTatCaDuLieuThongKe.TabStop = true;
             radioButton1_XoaTatCaDuLieuThongKe.Text = "radioButton1";
@@ -212,12 +201,11 @@
             // 
             // Form37_XoaThongKeNangCao
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(574, 255);
+            ClientSize = new Size(629, 281);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(3, 2, 3, 2);
             Name = "Form37_XoaThongKeNangCao";
             Text = "Xóa thống kê";
             Load += Form37_XoaThongKeNangCao_Load;

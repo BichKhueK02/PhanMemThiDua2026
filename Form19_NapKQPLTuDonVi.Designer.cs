@@ -190,10 +190,10 @@
             // kryptonButton_NhapKetQua
             // 
             kryptonButton_NhapKetQua.Anchor = AnchorStyles.None;
-            kryptonButton_NhapKetQua.Location = new Point(421, 11);
+            kryptonButton_NhapKetQua.Location = new Point(421, 10);
             kryptonButton_NhapKetQua.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_NhapKetQua.Name = "kryptonButton_NhapKetQua";
-            kryptonButton_NhapKetQua.Size = new Size(158, 28);
+            kryptonButton_NhapKetQua.Size = new Size(158, 30);
             kryptonButton_NhapKetQua.StateCommon.Border.Rounding = 4F;
             kryptonButton_NhapKetQua.TabIndex = 0;
             kryptonButton_NhapKetQua.Values.DropDownArrowColor = Color.Empty;

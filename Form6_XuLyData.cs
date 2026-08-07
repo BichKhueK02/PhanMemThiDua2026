@@ -17,6 +17,8 @@ namespace PhanMemThiDua2026
         //Hệ thống production:
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
+        // Thêm biến này vào Form6_XuLyData, Form10_NhatKy, Form15_ThongKeThiDua
+        public bool DaLoadDuLieu { get; set; } = false;
         private DataTable? dtDanhSachGoc; // có thể null
         private Dictionary<string, ToolStripStatusLabel> labelsPhanLoai = new();
         private bool _dangXuLyHuongDan = false;
@@ -360,67 +362,175 @@ namespace PhanMemThiDua2026
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
+        //public async Task ReloadDuLieu()
+        //{
+        //    if (IsDisposed || !IsHandleCreated) return;
+
+        //    try
+        //    {
+        //        toolStripStatusLabel1.Text = "Đang tải và xử lý dữ liệu...";
+        //        kryptonButton_RefershCSDL.Enabled = false;
+
+        //        DataTable dtKetQua;
+
+        //        // 1. KIỂM TRA CACHE TRƯỚC
+        //        if (DataCache.IsLoaded)
+        //        {
+        //            dtKetQua = DataCache.GetDanhSach();
+        //        }
+        //        else
+        //        {
+        //            dtKetQua = await Task.Run(() => XuLyDuLieuNgam(_csdl2Path));
+        //        }
+        //        if (dtKetQua == null) dtKetQua = new DataTable();
+        //        // KHÓA VẼ GIAO DIỆN
+        //        SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null);
+        //        dtDanhSachGoc = dtKetQua;
+        //        // ⭐ BẢO KÊ DÒNG ẢO: Dù load từ đâu cũng phải lót 1 dòng đệm dưới đáy!
+        //        ThemDongTrongAnToan(dtDanhSachGoc);
+        //        if (kryptonDataGridView1.Columns.Contains("GhiChu"))
+        //            kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+        //        kryptonDataGridView1.DataSource = null; // Bỏ kết nối cứng
+        //        TaoCauTrucCotGrid(); // Tạo cột ảo
+        //        kryptonDataGridView1.RowCount = dtDanhSachGoc.DefaultView.Count; // Gán số lượng dòng để Grid tự vẽ
+        //        DoiTenCotTiengViet();
+        //        CanChinhBang();
+        //        if (kryptonDataGridView1.Columns.Contains("GhiChu"))
+        //            kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+        //        kryptonDataGridView1.CurrentCell = null;
+        //        // Đếm người thật (Bỏ qua dòng đệm)
+        //        int soLuongThucTe = dtDanhSachGoc.AsEnumerable().Count(r => !string.IsNullOrWhiteSpace(r.Field<string>("HoVaTen")));
+        //        toolStripStatusLabel1.Text = $"Tổng cộng: {soLuongThucTe} đồng chí";
+        //        HoanTatLoadGiaoDien();
+        //        ClearThongTin();
+        //        // Đảm bảo không có tác vụ UI nào cản trở bộ lọc
+        //        _isUpdatingCombo = false;
+        //        // Ép chạy lại bộ lọc ngay sau khi load xong data
+        //        ApplyFilter();
+        //        // THÊM NGAY DƯỚI
+        //        KiemTraDuLieu();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine("ReloadDuLieu lỗi: " + ex.Message);
+        //        MessageBox.Show($"Lỗi load dữ liệu:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //    finally
+        //    {
+        //        SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 1, null);
+        //        kryptonDataGridView1.Refresh();
+        //        kryptonButton_RefershCSDL.Enabled = true;
+        //    }
+        //}
+        // Tách riêng logic xử lý Data ra một hàm riêng không dính tới UI
         public async Task ReloadDuLieu()
         {
             if (IsDisposed || !IsHandleCreated) return;
 
             try
             {
-                toolStripStatusLabel1.Text = "Đang tải và xử lý dữ liệu...";
-                kryptonButton_RefershCSDL.Enabled = false;
+                // =====================================================================
+                // 1. CẬP NHẬT GIAO DIỆN TRƯỚC KHI TẢI (BẮT BUỘC PHẢI DÙNG SAFE-INVOKE)
+                // =====================================================================
+                UIHelper.SafeInvoke(this, () =>
+                {
+                    toolStripStatusLabel1.Text = "Đang tải và xử lý dữ liệu...";
+                    kryptonButton_RefershCSDL.Enabled = false;
+                });
 
                 DataTable dtKetQua;
 
-                // 1. KIỂM TRA CACHE TRƯỚC
+                // =====================================================================
+                // 2. LẤY DỮ LIỆU BẰNG LUỒNG NGẦM (BACKGROUND THREAD)
+                // =====================================================================
+                // Khối này không đụng chạm đến TextBox, Label hay Grid nên cực kỳ an toàn
                 if (DataCache.IsLoaded)
                 {
                     dtKetQua = DataCache.GetDanhSach();
                 }
                 else
                 {
+                    // Đẩy lệnh xử lý SQLite xuống luồng ngầm thực sự
                     dtKetQua = await Task.Run(() => XuLyDuLieuNgam(_csdl2Path));
                 }
+
                 if (dtKetQua == null) dtKetQua = new DataTable();
-                // KHÓA VẼ GIAO DIỆN
-                SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null);
+
+                // Tiền xử lý dữ liệu ngay trên RAM (rất nhanh, không đụng giao diện)
                 dtDanhSachGoc = dtKetQua;
+
                 // ⭐ BẢO KÊ DÒNG ẢO: Dù load từ đâu cũng phải lót 1 dòng đệm dưới đáy!
                 ThemDongTrongAnToan(dtDanhSachGoc);
-                if (kryptonDataGridView1.Columns.Contains("GhiChu"))
-                    kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                kryptonDataGridView1.DataSource = null; // Bỏ kết nối cứng
-                TaoCauTrucCotGrid(); // Tạo cột ảo
-                kryptonDataGridView1.RowCount = dtDanhSachGoc.DefaultView.Count; // Gán số lượng dòng để Grid tự vẽ
-                DoiTenCotTiengViet();
-                CanChinhBang();
-                if (kryptonDataGridView1.Columns.Contains("GhiChu"))
-                    kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                kryptonDataGridView1.CurrentCell = null;
+
                 // Đếm người thật (Bỏ qua dòng đệm)
                 int soLuongThucTe = dtDanhSachGoc.AsEnumerable().Count(r => !string.IsNullOrWhiteSpace(r.Field<string>("HoVaTen")));
-                toolStripStatusLabel1.Text = $"Tổng cộng: {soLuongThucTe} đồng chí";
-                HoanTatLoadGiaoDien();
-                ClearThongTin();
-                // Đảm bảo không có tác vụ UI nào cản trở bộ lọc
-                _isUpdatingCombo = false;
-                // Ép chạy lại bộ lọc ngay sau khi load xong data
-                ApplyFilter();
-                // THÊM NGAY DƯỚI
-                KiemTraDuLieu();
+
+                // =====================================================================
+                // 3. ĐỔ DỮ LIỆU LÊN GIAO DIỆN (BẮT BUỘC PHẢI DÙNG SAFE-INVOKE)
+                // =====================================================================
+                UIHelper.SafeInvoke(this, () =>
+                {
+                    // KHÓA VẼ GIAO DIỆN
+                    SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null);
+
+                    if (kryptonDataGridView1.Columns.Contains("GhiChu"))
+                        kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+
+                    kryptonDataGridView1.DataSource = null; // Bỏ kết nối cứng
+                    TaoCauTrucCotGrid(); // Tạo cột ảo
+
+                    kryptonDataGridView1.RowCount = dtDanhSachGoc.DefaultView.Count; // Gán số lượng dòng để Grid tự vẽ
+
+                    DoiTenCotTiengViet();
+                    CanChinhBang();
+
+                    if (kryptonDataGridView1.Columns.Contains("GhiChu"))
+                        kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                    kryptonDataGridView1.CurrentCell = null;
+
+                    toolStripStatusLabel1.Text = $"Tổng cộng: {soLuongThucTe} đồng chí";
+
+                    HoanTatLoadGiaoDien();
+                    ClearThongTin();
+
+                    // Đảm bảo không có tác vụ UI nào cản trở bộ lọc
+                    _isUpdatingCombo = false;
+
+                    // Ép chạy lại bộ lọc ngay sau khi load xong data
+                    ApplyFilter();
+
+                    // THÊM NGAY DƯỚI
+                    KiemTraDuLieu();
+                });
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("ReloadDuLieu lỗi: " + ex.Message);
-                MessageBox.Show($"Lỗi load dữ liệu:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // Báo lỗi cũng phải đẩy lên Giao diện chính
+                UIHelper.SafeInvoke(this, () =>
+                {
+                    MessageBox.Show($"Lỗi load dữ liệu:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                });
             }
             finally
             {
-                SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 1, null);
-                kryptonDataGridView1.Refresh();
-                kryptonButton_RefershCSDL.Enabled = true;
+                // =====================================================================
+                // 4. MỞ KHÓA BẢN VẼ SAU CÙNG (DÙNG SAFE-INVOKE)
+                // =====================================================================
+                UIHelper.SafeInvoke(this, () =>
+                {
+                    if (!IsDisposed && IsHandleCreated)
+                    {
+                        SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 1, null);
+                        kryptonDataGridView1.Refresh();
+                        kryptonButton_RefershCSDL.Enabled = true;
+                    }
+                });
             }
         }
-        // Tách riêng logic xử lý Data ra một hàm riêng không dính tới UI
+
         private DataTable XuLyDuLieuNgam(string csdlPath)
         {
             if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))

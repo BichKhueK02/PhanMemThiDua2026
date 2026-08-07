@@ -203,10 +203,10 @@
             // 
             pictureBox2.Anchor = AnchorStyles.None;
             pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(17, 8);
+            pictureBox2.Location = new Point(17, 9);
             pictureBox2.Margin = new Padding(2, 3, 2, 3);
             pictureBox2.Name = "pictureBox2";
-            pictureBox2.Size = new Size(41, 28);
+            pictureBox2.Size = new Size(41, 27);
             pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox2.TabIndex = 27;
             pictureBox2.TabStop = false;
@@ -241,10 +241,10 @@
             // 
             pictureBox4.Anchor = AnchorStyles.None;
             pictureBox4.Image = (Image)resources.GetObject("pictureBox4.Image");
-            pictureBox4.Location = new Point(5, 3);
+            pictureBox4.Location = new Point(6, 8);
             pictureBox4.Margin = new Padding(2, 3, 2, 3);
             pictureBox4.Name = "pictureBox4";
-            pictureBox4.Size = new Size(132, 88);
+            pictureBox4.Size = new Size(131, 78);
             pictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox4.TabIndex = 30;
             pictureBox4.TabStop = false;

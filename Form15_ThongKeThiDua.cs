@@ -8,6 +8,8 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
+        // Thêm biến này vào Form6_XuLyData, Form10_NhatKy, Form15_ThongKeThiDua
+        public bool DaLoadDuLieu { get; set; } = false;
         private DataTable dtDanhSachGoc;
         //  private bool _daCauHinhGridThongKe = false;
         private List<string> _cotPhatSinhCacheThongKe;
@@ -698,20 +700,62 @@ namespace PhanMemThiDua2026
                 else LoadThongKe_CBCS();
             }
         }
-        public async void ReloadData()
+        //public async void ReloadData()
+        //{
+        //    if ((DateTime.Now - _lastReload).TotalMilliseconds < 500) return;
+        //    _lastReload = DateTime.Now;
+
+        //    bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+
+        //    CapNhatThongKe();
+
+        //    // SỬA Ở ĐÂY: Dùng hàm điều phối thay cho gọi trực tiếp
+        //    await DieuPhoiLoadDuLieuAsync(laTanBinh);
+
+        //    LoadComboBoxDonVi();
+        //    comboBox1_TinhTrang.SelectedIndex = 0;
+        //}
+        // 🌟 SỬA 1: Đổi 'async void' thành 'async Task' để Form 2 có thể 'await' chờ nó load xong
+        public async Task ReloadData()
         {
+            // 🌟 SỬA 2: Chặn lỗi văng app nếu Form đã bị tắt trong lúc đang chuẩn bị load
+            if (IsDisposed || !IsHandleCreated) return;
+
+            // Cơ chế chống spam click liên tục (Debounce)
             if ((DateTime.Now - _lastReload).TotalMilliseconds < 500) return;
             _lastReload = DateTime.Now;
 
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            try
+            {
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
 
-            CapNhatThongKe();
+                // ====================================================================
+                // 1. CẬP NHẬT & ĐIỀU PHỐI DỮ LIỆU
+                // ====================================================================
+                CapNhatThongKe();
 
-            // SỬA Ở ĐÂY: Dùng hàm điều phối thay cho gọi trực tiếp
-            await DieuPhoiLoadDuLieuAsync(laTanBinh);
+                // Hàm này chứa các lệnh Task.Run bên trong nên nó sẽ tự động cày kéo dưới nền
+                await DieuPhoiLoadDuLieuAsync(laTanBinh);
 
-            LoadComboBoxDonVi();
-            comboBox1_TinhTrang.SelectedIndex = 0;
+                // ====================================================================
+                // 2. CẬP NHẬT GIAO DIỆN (Chạy thẳng, không cần SafeInvoke nữa)
+                // ====================================================================
+                // Double-check một lần nữa đề phòng user tắt form lúc đang chờ await ở trên
+                if (IsDisposed || !IsHandleCreated) return;
+
+                LoadComboBoxDonVi();
+
+                if (comboBox1_TinhTrang != null && comboBox1_TinhTrang.Items.Count > 0)
+                {
+                    comboBox1_TinhTrang.SelectedIndex = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi ReloadData Thống Kê: " + ex.Message);
+                MessageBox.Show($"Lỗi nạp dữ liệu thống kê:\n{ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
         public async Task LoadThongKe_CBCS_DataMax()
         {

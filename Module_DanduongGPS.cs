@@ -1,4 +1,5 @@
 ﻿
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 
@@ -258,6 +259,7 @@ namespace PhanMemThiDua2026
                 _ => string.Empty,
             };
         }
+        // Các biến toàn cục để kiểm soát luồng ngầm cho hàm KiemTraTinhTrangTepExcelNguon
     }
     internal static class Module_TaiKhoan
     {
@@ -386,8 +388,7 @@ namespace PhanMemThiDua2026
             }
             catch { return "Không xác định"; }
         }
-
-       
-
+        /// <summary>
+   
     }
 }

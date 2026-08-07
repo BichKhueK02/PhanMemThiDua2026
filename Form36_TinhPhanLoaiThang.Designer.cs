@@ -135,29 +135,28 @@
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieu_ToolStripMenuItem, troVeThongKe_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(185, 110);
-
+            contextMenuStrip1.Size = new Size(182, 88);
             // 
             // lamMoi_ToolStripMenuItem
             // 
             lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
-            lamMoi_ToolStripMenuItem.Size = new Size(184, 26);
+            lamMoi_ToolStripMenuItem.Size = new Size(181, 26);
             lamMoi_ToolStripMenuItem.Text = "Làm mới";
             lamMoi_ToolStripMenuItem.Click += lamMoi_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(181, 6);
+            toolStripMenuItem1.Size = new Size(178, 6);
             // 
             // xuatDuLieu_ToolStripMenuItem
             // 
             xuatDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieu_ToolStripMenuItem.Image");
             xuatDuLieu_ToolStripMenuItem.Name = "xuatDuLieu_ToolStripMenuItem";
             xuatDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
-            xuatDuLieu_ToolStripMenuItem.Size = new Size(184, 26);
+            xuatDuLieu_ToolStripMenuItem.Size = new Size(181, 26);
             xuatDuLieu_ToolStripMenuItem.Text = "Xuất dữ liệu";
             xuatDuLieu_ToolStripMenuItem.Click += xuatDuLieu_ToolStripMenuItem_Click;
             // 
@@ -165,7 +164,7 @@
             // 
             troVeThongKe_ToolStripMenuItem.Image = (Image)resources.GetObject("troVeThongKe_ToolStripMenuItem.Image");
             troVeThongKe_ToolStripMenuItem.Name = "troVeThongKe_ToolStripMenuItem";
-            troVeThongKe_ToolStripMenuItem.Size = new Size(184, 26);
+            troVeThongKe_ToolStripMenuItem.Size = new Size(181, 26);
             troVeThongKe_ToolStripMenuItem.Text = "Trở về Thống kê";
             troVeThongKe_ToolStripMenuItem.Click += troVeThongKe_ToolStripMenuItem_Click;
             // 
@@ -457,10 +456,10 @@
             // 
             pictureBox3.Anchor = AnchorStyles.None;
             pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
-            pictureBox3.Location = new Point(4, 7);
+            pictureBox3.Location = new Point(4, 11);
             pictureBox3.Margin = new Padding(2, 3, 2, 3);
             pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(33, 29);
+            pictureBox3.Size = new Size(33, 22);
             pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox3.TabIndex = 29;
             pictureBox3.TabStop = false;
@@ -496,9 +495,9 @@
             // kryptonButton_LamMoiCacOTimKiem
             // 
             kryptonButton_LamMoiCacOTimKiem.Anchor = AnchorStyles.None;
-            kryptonButton_LamMoiCacOTimKiem.Location = new Point(1024, 9);
+            kryptonButton_LamMoiCacOTimKiem.Location = new Point(1024, 7);
             kryptonButton_LamMoiCacOTimKiem.Name = "kryptonButton_LamMoiCacOTimKiem";
-            kryptonButton_LamMoiCacOTimKiem.Size = new Size(44, 26);
+            kryptonButton_LamMoiCacOTimKiem.Size = new Size(44, 30);
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 3;

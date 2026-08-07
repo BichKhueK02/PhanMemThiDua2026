@@ -196,7 +196,7 @@ namespace PhanMemThiDua2026
             checkBox1_TuDongAnMenu.Anchor = AnchorStyles.Bottom;
             checkBox1_TuDongAnMenu.AutoSize = true;
             checkBox1_TuDongAnMenu.Font = new Font("Segoe UI", 8.064F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            checkBox1_TuDongAnMenu.Location = new Point(22, 623);
+            checkBox1_TuDongAnMenu.Location = new Point(22, 622);
             checkBox1_TuDongAnMenu.Margin = new Padding(2, 3, 2, 3);
             checkBox1_TuDongAnMenu.Name = "checkBox1_TuDongAnMenu";
             checkBox1_TuDongAnMenu.Size = new Size(85, 17);
@@ -334,7 +334,7 @@ namespace PhanMemThiDua2026
             kryptonButton1_MoMenuPhanMem.Location = new Point(32, 4);
             kryptonButton1_MoMenuPhanMem.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_MoMenuPhanMem.Name = "kryptonButton1_MoMenuPhanMem";
-            kryptonButton1_MoMenuPhanMem.Size = new Size(97, 27);
+            kryptonButton1_MoMenuPhanMem.Size = new Size(90, 27);
             kryptonButton1_MoMenuPhanMem.StateCommon.Border.Rounding = 2F;
             kryptonButton1_MoMenuPhanMem.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 6.9119997F, FontStyle.Regular, GraphicsUnit.Point, 0);
             kryptonButton1_MoMenuPhanMem.TabIndex = 0;
@@ -387,7 +387,6 @@ namespace PhanMemThiDua2026
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(2, 3, 2, 3);
             Name = "Form2_FormCha";
-            SizeGripStyle = SizeGripStyle.Show;
             Text = "PHẦN MỀM PHÂN LOẠI THI ĐUA 'VÌ ANTQ'";
             Load += Form2_Load;
             PanelLeft.ResumeLayout(false);

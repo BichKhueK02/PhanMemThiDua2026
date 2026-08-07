@@ -7,6 +7,7 @@ namespace PhanMemThiDua2026
 {
     public partial class Form23_ThongKeThiDuaTapThe : Form
     {
+        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
         public Form23_ThongKeThiDuaTapThe()
         {
@@ -203,7 +204,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
+                using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
                 cn.Open();
 
                 using var cmd = cn.CreateCommand();

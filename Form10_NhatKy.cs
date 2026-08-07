@@ -7,7 +7,9 @@ namespace PhanMemThiDua2026
 {
     public partial class Form10_NhatKy : Form
     {
-            // Lê Trung Kiên -  Yêu mèo cam
+        // Thêm biến này vào Form6_XuLyData, Form10_NhatKy, Form15_ThongKeThiDua
+        public bool DaLoadDuLieu { get; set; } = false;
+        // Lê Trung Kiên -  Yêu mèo cam
         private readonly string _csdl3Path = Module_DanduongGPS.DuongDanCSDL3;
         private const int PAGE_SIZE_DEFAULT = 500;
         private const int PAGE_SIZE_MIN = 100;
@@ -332,39 +334,136 @@ namespace PhanMemThiDua2026
             // Ngày kết thúc luôn mặc định là hôm nay cho tiện
             kryptonDateTimePicker1_NgayThangNamKetThuc.Value = ngayHienTai;
         }
+        //public void ReloadDuLieu()
+        //{
+        //    if (IsDisposed || !IsHandleCreated) return;
+        //    try
+        //    {
+        //        this.Cursor = Cursors.WaitCursor;
+        //        toolStripStatusLabel2.Text = "Đang tải dữ liệu thô...";
+
+        //        // 1. Tác vụ DB nặng nề đẩy hết xuống Background, không await chặn UI
+        //        _ = Task.Run(async () =>
+        //        {
+        //            await TuDongXoaNhatKyNeuCanAsync();
+        //            await Module_BaoTriCSDL.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);
+        //        });
+
+        //        // 2. Nạp List thô từ SQLite (Mất chưa tới 5ms)
+        //        LoadNhatKyLenDataGridView_SieuToc();
+
+        //        if (this.IsDisposed) return;
+
+        //        // 3. Hiển thị Lưới NGAY LẬP TỨC (Dữ liệu chưa lọc)
+        //        _sortAsc = false;
+        //        radioButton1_TuZA.Checked = true;
+        //        _currentPage = 1;
+        //        CapNhatPhanTrang();
+        //        HienThiTrangHienTai();
+        //        // Gọi nạp dữ liệu từ Module ngay khi mở Form10 lên
+        //        Module_NhatKy.DocVaNapStatusLabelForm10();
+        //        // 4. Bật tiến trình ngầm giải mã 1400 chuỗi AES để chuẩn bị cho Bộ Lọc
+        //        _ = Task.Run(() => ChuanBiDuLieuBoLocNgam());
+        //    }
+        //    catch (Exception ex) { Debug.WriteLine("Reload Form10 lỗi: " + ex.Message); }
+        //    finally { this.Cursor = Cursors.Default; }
+        //}
         public void ReloadDuLieu()
         {
             if (IsDisposed || !IsHandleCreated) return;
+
             try
             {
-                this.Cursor = Cursors.WaitCursor;
-                toolStripStatusLabel2.Text = "Đang tải dữ liệu thô...";
-
-                // 1. Tác vụ DB nặng nề đẩy hết xuống Background, không await chặn UI
-                _ = Task.Run(async () =>
+                // =========================================================================
+                // 1. CẬP NHẬT GIAO DIỆN (Bắt buộc dùng SafeInvoke vì đang chạy ngầm)
+                // =========================================================================
+                UIHelper.SafeInvoke(this, () =>
                 {
-                    await TuDongXoaNhatKyNeuCanAsync();
-                    await Module_BaoTriCSDL.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);
+                    this.Cursor = Cursors.WaitCursor;
+                    toolStripStatusLabel2.Text = "Đang tải dữ liệu thô...";
                 });
 
-                // 2. Nạp List thô từ SQLite (Mất chưa tới 5ms)
+                // =========================================================================
+                // 2. CÁC TÁC VỤ CHẠY NGẦM ĐỘC LẬP (Fire & Forget)
+                // =========================================================================
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await TuDongXoaNhatKyNeuCanAsync();
+                        await Module_BaoTriCSDL.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);
+                    }
+                    catch (Exception exDb)
+                    {
+                        Debug.WriteLine("Lỗi bảo trì CSDL nền Form10: " + exDb.Message);
+                    }
+                });
+
+                // 3. Nạp List thô từ SQLite (Tiến trình cày kéo dữ liệu trên RAM)
+                // ⚠️ LƯU Ý KỸ SƯ: Nếu trong hàm "LoadNhatKyLenDataGridView_SieuToc" của bạn có dòng lệnh 
+                // gán GridView (VD: dataGridView1.DataSource = list), bạn phải bọc CÁI DÒNG ĐÓ trong SafeInvoke nhé.
                 LoadNhatKyLenDataGridView_SieuToc();
 
                 if (this.IsDisposed) return;
 
-                // 3. Hiển thị Lưới NGAY LẬP TỨC (Dữ liệu chưa lọc)
-                _sortAsc = false;
-                radioButton1_TuZA.Checked = true;
-                _currentPage = 1;
-                CapNhatPhanTrang();
-                HienThiTrangHienTai();
-                // Gọi nạp dữ liệu từ Module ngay khi mở Form10 lên
-                Module_NhatKy.DocVaNapStatusLabelForm10();
-                // 4. Bật tiến trình ngầm giải mã 1400 chuỗi AES để chuẩn bị cho Bộ Lọc
-                _ = Task.Run(() => ChuanBiDuLieuBoLocNgam());
+                // =========================================================================
+                // 4. HIỂN THỊ GIAO DIỆN LƯỚI & TRẠNG THÁI (Bắt buộc dùng SafeInvoke)
+                // =========================================================================
+                UIHelper.SafeInvoke(this, () =>
+                {
+                    // Double check phòng khi user đóng Form quá nhanh
+                    if (IsDisposed || !IsHandleCreated) return;
+
+                    _sortAsc = false;
+
+                    if (radioButton1_TuZA != null)
+                        radioButton1_TuZA.Checked = true;
+
+                    _currentPage = 1;
+
+                    // Phân trang và vẽ lưới
+                    CapNhatPhanTrang();
+                    HienThiTrangHienTai();
+
+                    // Gọi nạp dữ liệu trạng thái
+                    Module_NhatKy.DocVaNapStatusLabelForm10();
+                });
+
+                // =========================================================================
+                // 5. TIẾN TRÌNH GIẢI MÃ NỀN (Fire & Forget)
+                // =========================================================================
+                _ = Task.Run(() =>
+                {
+                    try
+                    {
+                        ChuanBiDuLieuBoLocNgam();
+                    }
+                    catch (Exception exDecode)
+                    {
+                        Debug.WriteLine("Lỗi giải mã ngầm Form10: " + exDecode.Message);
+                    }
+                });
             }
-            catch (Exception ex) { Debug.WriteLine("Reload Form10 lỗi: " + ex.Message); }
-            finally { this.Cursor = Cursors.Default; }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Reload Form10 lỗi: " + ex.Message);
+
+                // Đẩy thông báo lỗi lên luồng UI
+                UIHelper.SafeInvoke(this, () =>
+                {
+                    MessageBox.Show($"Lỗi load dữ liệu nhật ký:\n{ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                });
+            }
+            finally
+            {
+                // =========================================================================
+                // 6. PHỤC HỒI GIAO DIỆN SAU CÙNG (SafeInvoke)
+                // =========================================================================
+                UIHelper.SafeInvoke(this, () =>
+                {
+                    if (!IsDisposed) this.Cursor = Cursors.Default;
+                });
+            }
         }
         private void ChuanBiDuLieuBoLocNgam()
         {

@@ -187,10 +187,10 @@
             // kryptonButton1_TimKiemThongTinCBCSQuanLy
             // 
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Anchor = AnchorStyles.None;
-            kryptonButton1_TimKiemThongTinCBCSQuanLy.Location = new Point(320, 8);
+            kryptonButton1_TimKiemThongTinCBCSQuanLy.Location = new Point(307, 7);
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Name = "kryptonButton1_TimKiemThongTinCBCSQuanLy";
-            kryptonButton1_TimKiemThongTinCBCSQuanLy.Size = new Size(102, 30);
+            kryptonButton1_TimKiemThongTinCBCSQuanLy.Size = new Size(128, 32);
             kryptonButton1_TimKiemThongTinCBCSQuanLy.StateCommon.Border.Rounding = 4F;
             kryptonButton1_TimKiemThongTinCBCSQuanLy.TabIndex = 33;
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Values.DropDownArrowColor = Color.Empty;
@@ -202,10 +202,10 @@
             // 
             pictureBox3.Anchor = AnchorStyles.None;
             pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
-            pictureBox3.Location = new Point(4, 9);
+            pictureBox3.Location = new Point(4, 12);
             pictureBox3.Margin = new Padding(2, 3, 2, 3);
             pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(37, 28);
+            pictureBox3.Size = new Size(37, 22);
             pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox3.TabIndex = 28;
             pictureBox3.TabStop = false;
@@ -265,9 +265,9 @@
             // kryptonButton_LamMoiCacOTimKiem
             // 
             kryptonButton_LamMoiCacOTimKiem.Anchor = AnchorStyles.None;
-            kryptonButton_LamMoiCacOTimKiem.Location = new Point(621, 8);
+            kryptonButton_LamMoiCacOTimKiem.Location = new Point(621, 7);
             kryptonButton_LamMoiCacOTimKiem.Name = "kryptonButton_LamMoiCacOTimKiem";
-            kryptonButton_LamMoiCacOTimKiem.Size = new Size(48, 29);
+            kryptonButton_LamMoiCacOTimKiem.Size = new Size(48, 32);
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 9;
@@ -369,7 +369,7 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, toolStripMenuItem1, xoaTimKiem_ToolStripMenuItem, xuatDuLieu_ToolStripMenuItem, quayLaiTrangXuLyData_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(291, 144);
+            contextMenuStrip1.Size = new Size(291, 122);
             // 
             // lamMoi_ToolStripMenuItem
             // 
