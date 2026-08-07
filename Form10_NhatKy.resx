@@ -117,6 +117,36 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <metadata name="tableLayoutPanel1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="tableLayoutPanel7.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="groupBox3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="tableLayoutPanel5.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="radioButton1_TuZA.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="radioButton1_TuAZ.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="groupBox2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="tableLayoutPanel4.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="textBox_SoDongHienThi.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonButton_ApDungSoTrang.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="kryptonButton_ApDungSoTrang.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -130,6 +160,9 @@
         SUVORK5CYII=
 </value>
   </data>
+  <metadata name="kryptonButton_TiepTheo.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <data name="kryptonButton_TiepTheo.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAwhJREFUOE91
@@ -149,6 +182,12 @@
         AElFTkSuQmCC
 </value>
   </data>
+  <metadata name="label1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonButton_TroLai.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <data name="kryptonButton_TroLai.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAvdJREFUOE91
@@ -167,8 +206,14 @@
         ixsmf45PDOKX6PijGWR0/sCkrslMCExUxJC0DP+J7wFqSvgF0dtTLQAAAABJRU5ErkJggg==
 </value>
   </data>
+  <metadata name="label_Trang.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>210, 17</value>
+  </metadata>
+  <metadata name="statusStrip1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
   </metadata>
   <data name="toolStripStatusLabel1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -185,25 +230,58 @@
         lkvJloEAAAAASUVORK5CYII=
 </value>
   </data>
+  <metadata name="tableLayoutPanel3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="groupBox1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="tableLayoutPanel6.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonButton1_LocTheoNgayThangNam.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <data name="kryptonButton1_LocTheoNgayThangNam.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        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
+        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
 </value>
   </data>
+  <metadata name="kryptonDateTimePicker1_NgayThangNamKetThuc.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="label5.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonDateTimePicker1_NgayThangNamBatDau.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="label3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="label2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="comboBox_LocTaiKhoan.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="pictureBox1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <data name="pictureBox1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         R0lGODlhIANYAvYJAC2Y3/z9/kek43C56ZbL71Sr5f///zCa4N3r+en0/IXC7Pj8/pLH7tLp+Lu/wsrN
@@ -3238,6 +3316,9 @@
         Ow==
 </value>
   </data>
+  <metadata name="kryptonDataGridView1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <metadata name="contextMenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
@@ -3361,6 +3442,9 @@
   </data>
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>354, 17</value>
+  </metadata>
+  <metadata name="$this.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
   </metadata>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>65</value>

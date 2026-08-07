@@ -3703,6 +3703,9 @@ PTLoai3=@PTLoai3
                     _form48.StartPosition = FormStartPosition.CenterParent;
                 }
 
+                // 🌟 BÍ QUYẾT Ở ĐÂY: Ép Form 48 làm mới toàn bộ trước khi hiện lên
+                _form48.ReloadGiaoDienVaDuLieu();
+
                 _form48.ShowDialog(this); // vẫn modal, vẫn phải chờ đóng
             }
             catch (Exception ex)

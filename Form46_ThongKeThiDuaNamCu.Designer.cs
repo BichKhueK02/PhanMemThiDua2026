@@ -324,7 +324,7 @@
             comboBox_ChonCSDLNam.Font = new Font("Segoe UI", 9.792F);
             comboBox_ChonCSDLNam.FormattingEnabled = true;
             comboBox_ChonCSDLNam.Items.AddRange(new object[] { "CSTĐ", "CSTT", "HTNV", "KHTNV", "Không PL" });
-            comboBox_ChonCSDLNam.Location = new Point(148, 19);
+            comboBox_ChonCSDLNam.Location = new Point(148, 18);
             comboBox_ChonCSDLNam.Margin = new Padding(2, 3, 2, 3);
             comboBox_ChonCSDLNam.Name = "comboBox_ChonCSDLNam";
             comboBox_ChonCSDLNam.Size = new Size(379, 25);
@@ -408,7 +408,7 @@
             comboBox1_PhanLoaiThiDuaNamCu.Font = new Font("Segoe UI", 9.792F);
             comboBox1_PhanLoaiThiDuaNamCu.FormattingEnabled = true;
             comboBox1_PhanLoaiThiDuaNamCu.Items.AddRange(new object[] { "Tất cả", "CSTĐ", "CSTT", "HTNV", "KHTNV", "Không PL" });
-            comboBox1_PhanLoaiThiDuaNamCu.Location = new Point(1013, 11);
+            comboBox1_PhanLoaiThiDuaNamCu.Location = new Point(1013, 10);
             comboBox1_PhanLoaiThiDuaNamCu.Margin = new Padding(2, 3, 2, 3);
             comboBox1_PhanLoaiThiDuaNamCu.Name = "comboBox1_PhanLoaiThiDuaNamCu";
             comboBox1_PhanLoaiThiDuaNamCu.Size = new Size(161, 25);
@@ -459,7 +459,7 @@
             comboBox_TimKiemDonVi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_TimKiemDonVi.Font = new Font("Segoe UI", 9.792F);
             comboBox_TimKiemDonVi.FormattingEnabled = true;
-            comboBox_TimKiemDonVi.Location = new Point(473, 11);
+            comboBox_TimKiemDonVi.Location = new Point(473, 10);
             comboBox_TimKiemDonVi.Margin = new Padding(2, 3, 2, 3);
             comboBox_TimKiemDonVi.Name = "comboBox_TimKiemDonVi";
             comboBox_TimKiemDonVi.Size = new Size(144, 25);
@@ -500,7 +500,7 @@
             comboBox1_TinhTrang.Font = new Font("Segoe UI", 9.792F);
             comboBox1_TinhTrang.FormattingEnabled = true;
             comboBox1_TinhTrang.Items.AddRange(new object[] { "Tất cả", "Đang công tác", "Chuyển công tác" });
-            comboBox1_TinhTrang.Location = new Point(721, 11);
+            comboBox1_TinhTrang.Location = new Point(721, 10);
             comboBox1_TinhTrang.Margin = new Padding(2, 3, 2, 3);
             comboBox1_TinhTrang.Name = "comboBox1_TinhTrang";
             comboBox1_TinhTrang.Size = new Size(153, 25);
@@ -510,7 +510,7 @@
             // 
             textBox_TimKiemTheoTen.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             textBox_TimKiemTheoTen.Location = new Point(109, 11);
-            textBox_TimKiemTheoTen.Margin = new Padding(2, 2, 2, 2);
+            textBox_TimKiemTheoTen.Margin = new Padding(2);
             textBox_TimKiemTheoTen.Name = "textBox_TimKiemTheoTen";
             textBox_TimKiemTheoTen.Size = new Size(264, 25);
             textBox_TimKiemTheoTen.StateCommon.Border.Rounding = 3F;

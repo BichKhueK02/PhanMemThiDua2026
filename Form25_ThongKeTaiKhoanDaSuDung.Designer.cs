@@ -55,10 +55,10 @@
             statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2 });
-            statusStrip1.Location = new Point(0, 512);
+            statusStrip1.Location = new Point(0, 655);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 10, 0);
-            statusStrip1.Size = new Size(1106, 26);
+            statusStrip1.Size = new Size(1264, 26);
             statusStrip1.TabIndex = 0;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -81,9 +81,9 @@
             groupBox1.Dock = DockStyle.Fill;
             groupBox1.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             groupBox1.ForeColor = Color.Red;
-            groupBox1.Location = new Point(3, 47);
+            groupBox1.Location = new Point(3, 60);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(1100, 462);
+            groupBox1.Size = new Size(1258, 592);
             groupBox1.TabIndex = 1;
             groupBox1.TabStop = false;
             groupBox1.Text = "Các tài khoản đã đăng ký sử dụng phần mềm này";
@@ -99,7 +99,7 @@
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 445F));
-            tableLayoutPanel1.Size = new Size(1094, 439);
+            tableLayoutPanel1.Size = new Size(1252, 569);
             tableLayoutPanel1.TabIndex = 2;
             // 
             // kryptonDataGridView1
@@ -110,13 +110,13 @@
             kryptonDataGridView1.Location = new Point(3, 3);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(1088, 433);
+            kryptonDataGridView1.Size = new Size(1246, 563);
             kryptonDataGridView1.TabIndex = 0;
             // 
             // kryptonButton_Dong
             // 
             kryptonButton_Dong.Anchor = AnchorStyles.None;
-            kryptonButton_Dong.Location = new Point(851, 5);
+            kryptonButton_Dong.Location = new Point(983, 11);
             kryptonButton_Dong.Name = "kryptonButton_Dong";
             kryptonButton_Dong.Size = new Size(130, 30);
             kryptonButton_Dong.StateCommon.Border.Rounding = 4F;
@@ -139,7 +139,7 @@
             tableLayoutPanel3.RowCount = 2;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 8.7827425F));
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 91.2172546F));
-            tableLayoutPanel3.Size = new Size(1106, 512);
+            tableLayoutPanel3.Size = new Size(1264, 655);
             tableLayoutPanel3.TabIndex = 2;
             // 
             // tableLayoutPanel4
@@ -156,14 +156,14 @@
             tableLayoutPanel4.Name = "tableLayoutPanel4";
             tableLayoutPanel4.RowCount = 1;
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel4.Size = new Size(1100, 40);
+            tableLayoutPanel4.Size = new Size(1258, 53);
             tableLayoutPanel4.TabIndex = 3;
             // 
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.None;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(3, 2);
+            pictureBox1.Location = new Point(8, 8);
             pictureBox1.Margin = new Padding(3, 2, 3, 2);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(63, 36);
@@ -176,7 +176,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
-            ClientSize = new Size(1106, 538);
+            ClientSize = new Size(1264, 681);
             Controls.Add(tableLayoutPanel3);
             Controls.Add(statusStrip1);
             Icon = (Icon)resources.GetObject("$this.Icon");

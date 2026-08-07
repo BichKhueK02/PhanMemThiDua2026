@@ -52,10 +52,10 @@
             statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2 });
-            statusStrip1.Location = new Point(0, 512);
+            statusStrip1.Location = new Point(0, 655);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 10, 0);
-            statusStrip1.Size = new Size(1106, 26);
+            statusStrip1.Size = new Size(1264, 26);
             statusStrip1.TabIndex = 0;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -86,13 +86,13 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new Size(1100, 48);
+            tableLayoutPanel1.Size = new Size(1258, 63);
             tableLayoutPanel1.TabIndex = 1;
             // 
             // kryptonButton1_Dong
             // 
             kryptonButton1_Dong.Anchor = AnchorStyles.None;
-            kryptonButton1_Dong.Location = new Point(950, 9);
+            kryptonButton1_Dong.Location = new Point(1096, 16);
             kryptonButton1_Dong.Name = "kryptonButton1_Dong";
             kryptonButton1_Dong.Size = new Size(132, 30);
             kryptonButton1_Dong.StateCommon.Border.Rounding = 4F;
@@ -108,7 +108,7 @@
             label_DonVi.AutoSize = true;
             label_DonVi.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label_DonVi.ForeColor = Color.Green;
-            label_DonVi.Location = new Point(68, 14);
+            label_DonVi.Location = new Point(78, 22);
             label_DonVi.Name = "label_DonVi";
             label_DonVi.Size = new Size(50, 19);
             label_DonVi.TabIndex = 25;
@@ -118,7 +118,7 @@
             // 
             pictureBox1.Anchor = AnchorStyles.None;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(3, 5);
+            pictureBox1.Location = new Point(8, 13);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(59, 37);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -138,7 +138,7 @@
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 10.546875F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 48.2421875F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 41.1753044F));
-            tableLayoutPanel2.Size = new Size(1106, 512);
+            tableLayoutPanel2.Size = new Size(1264, 655);
             tableLayoutPanel2.TabIndex = 2;
             tableLayoutPanel2.Paint += tableLayoutPanel2_Paint;
             // 
@@ -147,17 +147,17 @@
             kryptonDataGridView1.BorderStyle = BorderStyle.None;
             kryptonDataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             kryptonDataGridView1.Dock = DockStyle.Fill;
-            kryptonDataGridView1.Location = new Point(3, 57);
+            kryptonDataGridView1.Location = new Point(3, 72);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(1100, 241);
+            kryptonDataGridView1.Size = new Size(1258, 310);
             kryptonDataGridView1.TabIndex = 2;
             // 
             // Form26_PhanTichQuanSo
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1106, 538);
+            ClientSize = new Size(1264, 681);
             Controls.Add(tableLayoutPanel2);
             Controls.Add(statusStrip1);
             Icon = (Icon)resources.GetObject("$this.Icon");

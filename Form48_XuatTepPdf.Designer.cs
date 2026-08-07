@@ -45,8 +45,8 @@
             kryptonButton1_ChonDuongDanTepExcel = new Krypton.Toolkit.KryptonButton();
             label2 = new Label();
             statusStrip1 = new StatusStrip();
-            toolStripStatusLabel1_TongCongTepPdf = new ToolStripStatusLabel();
             toolStripProgressBar1_TienTrinhXuatTep = new ToolStripProgressBar();
+            toolStripStatusLabel1_TongCongTepPdf = new ToolStripStatusLabel();
             toolStripStatusLabel1_DangLoad = new ToolStripStatusLabel();
             groupBox1 = new GroupBox();
             checkedListBox1_LietKeTenCacSheet = new CheckedListBox();
@@ -80,7 +80,7 @@
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 52.2835F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 13.1348276F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 6.8714F));
-            tableLayoutPanel1.Size = new Size(896, 438);
+            tableLayoutPanel1.Size = new Size(917, 450);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // tableLayoutPanel3
@@ -91,18 +91,18 @@
             tableLayoutPanel3.Controls.Add(kryptonButton_XuatTepPdf, 1, 0);
             tableLayoutPanel3.Controls.Add(checkBox1_ChonTatCa, 0, 0);
             tableLayoutPanel3.Dock = DockStyle.Fill;
-            tableLayoutPanel3.Location = new Point(3, 351);
+            tableLayoutPanel3.Location = new Point(3, 361);
             tableLayoutPanel3.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.Size = new Size(890, 53);
+            tableLayoutPanel3.Size = new Size(911, 55);
             tableLayoutPanel3.TabIndex = 14;
             // 
             // kryptonButton_XuatTepPdf
             // 
             kryptonButton_XuatTepPdf.Anchor = AnchorStyles.None;
-            kryptonButton_XuatTepPdf.Location = new Point(595, 9);
+            kryptonButton_XuatTepPdf.Location = new Point(612, 10);
             kryptonButton_XuatTepPdf.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_XuatTepPdf.Name = "kryptonButton_XuatTepPdf";
             kryptonButton_XuatTepPdf.Size = new Size(232, 35);
@@ -131,29 +131,28 @@
             // tableLayoutPanel2
             // 
             tableLayoutPanel2.ColumnCount = 4;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 6.24293375F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19.1011238F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 5.39325857F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 69.4382F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 6.138248F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19.17329F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 5.382953F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 69.30551F));
             tableLayoutPanel2.Controls.Add(pictureBox2, 0, 0);
             tableLayoutPanel2.Controls.Add(label_DuongDanPdf, 3, 0);
             tableLayoutPanel2.Controls.Add(kryptonButton1_ChonDuongDanLuuTepPdf, 2, 0);
             tableLayoutPanel2.Controls.Add(label3, 1, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(3, 63);
+            tableLayoutPanel2.Location = new Point(3, 65);
             tableLayoutPanel2.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.Size = new Size(890, 55);
+            tableLayoutPanel2.Size = new Size(911, 57);
             tableLayoutPanel2.TabIndex = 12;
             // 
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.None;
             pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(4, 8);
+            pictureBox2.Location = new Point(4, 9);
             pictureBox2.Margin = new Padding(3, 2, 3, 2);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(47, 39);
@@ -167,7 +166,7 @@
             label_DuongDanPdf.AutoSize = true;
             label_DuongDanPdf.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             label_DuongDanPdf.ForeColor = Color.Red;
-            label_DuongDanPdf.Location = new Point(274, 20);
+            label_DuongDanPdf.Location = new Point(281, 21);
             label_DuongDanPdf.Name = "label_DuongDanPdf";
             label_DuongDanPdf.Size = new Size(179, 15);
             label_DuongDanPdf.TabIndex = 11;
@@ -176,11 +175,11 @@
             // 
             // kryptonButton1_ChonDuongDanLuuTepPdf
             // 
-            kryptonButton1_ChonDuongDanLuuTepPdf.Anchor = AnchorStyles.None;
-            kryptonButton1_ChonDuongDanLuuTepPdf.Location = new Point(230, 12);
+            kryptonButton1_ChonDuongDanLuuTepPdf.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            kryptonButton1_ChonDuongDanLuuTepPdf.Location = new Point(232, 13);
             kryptonButton1_ChonDuongDanLuuTepPdf.Margin = new Padding(3, 2, 3, 2);
             kryptonButton1_ChonDuongDanLuuTepPdf.Name = "kryptonButton1_ChonDuongDanLuuTepPdf";
-            kryptonButton1_ChonDuongDanLuuTepPdf.Size = new Size(34, 30);
+            kryptonButton1_ChonDuongDanLuuTepPdf.Size = new Size(43, 30);
             kryptonButton1_ChonDuongDanLuuTepPdf.StateCommon.Border.Rounding = 4F;
             kryptonButton1_ChonDuongDanLuuTepPdf.TabIndex = 0;
             kryptonButton1_ChonDuongDanLuuTepPdf.Values.DropDownArrowColor = Color.Empty;
@@ -193,7 +192,7 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 10.0173912F, FontStyle.Italic);
             label3.ForeColor = Color.FromArgb(0, 0, 192);
-            label3.Location = new Point(58, 18);
+            label3.Location = new Point(58, 19);
             label3.Name = "label3";
             label3.Size = new Size(121, 19);
             label3.TabIndex = 2;
@@ -216,14 +215,14 @@
             tableLayoutPanel4.Name = "tableLayoutPanel4";
             tableLayoutPanel4.RowCount = 1;
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel4.Size = new Size(890, 57);
+            tableLayoutPanel4.Size = new Size(911, 59);
             tableLayoutPanel4.TabIndex = 11;
             // 
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.None;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(4, 9);
+            pictureBox1.Location = new Point(4, 10);
             pictureBox1.Margin = new Padding(3, 2, 3, 2);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(46, 39);
@@ -237,7 +236,7 @@
             label_DuongDanExcel.AutoSize = true;
             label_DuongDanExcel.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             label_DuongDanExcel.ForeColor = Color.Red;
-            label_DuongDanExcel.Location = new Point(274, 21);
+            label_DuongDanExcel.Location = new Point(281, 22);
             label_DuongDanExcel.Name = "label_DuongDanExcel";
             label_DuongDanExcel.Size = new Size(84, 15);
             label_DuongDanExcel.TabIndex = 11;
@@ -246,11 +245,11 @@
             // 
             // kryptonButton1_ChonDuongDanTepExcel
             // 
-            kryptonButton1_ChonDuongDanTepExcel.Anchor = AnchorStyles.None;
-            kryptonButton1_ChonDuongDanTepExcel.Location = new Point(230, 13);
+            kryptonButton1_ChonDuongDanTepExcel.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            kryptonButton1_ChonDuongDanTepExcel.Location = new Point(232, 14);
             kryptonButton1_ChonDuongDanTepExcel.Margin = new Padding(3, 2, 3, 2);
             kryptonButton1_ChonDuongDanTepExcel.Name = "kryptonButton1_ChonDuongDanTepExcel";
-            kryptonButton1_ChonDuongDanTepExcel.Size = new Size(34, 30);
+            kryptonButton1_ChonDuongDanTepExcel.Size = new Size(43, 30);
             kryptonButton1_ChonDuongDanTepExcel.StateCommon.Border.Rounding = 4F;
             kryptonButton1_ChonDuongDanTepExcel.TabIndex = 0;
             kryptonButton1_ChonDuongDanTepExcel.Values.DropDownArrowColor = Color.Empty;
@@ -262,7 +261,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 10.0173912F, FontStyle.Italic);
             label2.ForeColor = Color.FromArgb(0, 0, 192);
-            label2.Location = new Point(57, 19);
+            label2.Location = new Point(58, 20);
             label2.Name = "label2";
             label2.Size = new Size(100, 19);
             label2.TabIndex = 2;
@@ -275,14 +274,20 @@
             statusStrip1.Dock = DockStyle.None;
             statusStrip1.ImageScalingSize = new Size(19, 19);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripProgressBar1_TienTrinhXuatTep, toolStripStatusLabel1_TongCongTepPdf, toolStripStatusLabel1_DangLoad });
-            statusStrip1.Location = new Point(0, 406);
+            statusStrip1.Location = new Point(0, 418);
             statusStrip1.MaximumSize = new Size(0, 31);
             statusStrip1.MinimumSize = new Size(0, 31);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(896, 31);
+            statusStrip1.Size = new Size(917, 31);
             statusStrip1.SizingGrip = false;
             statusStrip1.TabIndex = 0;
             statusStrip1.Text = "statusStrip1";
+            // 
+            // toolStripProgressBar1_TienTrinhXuatTep
+            // 
+            toolStripProgressBar1_TienTrinhXuatTep.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            toolStripProgressBar1_TienTrinhXuatTep.Name = "toolStripProgressBar1_TienTrinhXuatTep";
+            toolStripProgressBar1_TienTrinhXuatTep.Size = new Size(100, 25);
             // 
             // toolStripStatusLabel1_TongCongTepPdf
             // 
@@ -290,12 +295,6 @@
             toolStripStatusLabel1_TongCongTepPdf.Name = "toolStripStatusLabel1_TongCongTepPdf";
             toolStripStatusLabel1_TongCongTepPdf.Size = new Size(87, 26);
             toolStripStatusLabel1_TongCongTepPdf.Text = "Tổng cộng:";
-            // 
-            // toolStripProgressBar1_TienTrinhXuatTep
-            // 
-            toolStripProgressBar1_TienTrinhXuatTep.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            toolStripProgressBar1_TienTrinhXuatTep.Name = "toolStripProgressBar1_TienTrinhXuatTep";
-            toolStripProgressBar1_TienTrinhXuatTep.Size = new Size(100, 25);
             // 
             // toolStripStatusLabel1_DangLoad
             // 
@@ -308,11 +307,11 @@
             groupBox1.Dock = DockStyle.Fill;
             groupBox1.Font = new Font("Segoe UI", 12F, FontStyle.Italic, GraphicsUnit.Point, 0);
             groupBox1.ForeColor = Color.FromArgb(0, 0, 192);
-            groupBox1.Location = new Point(3, 122);
+            groupBox1.Location = new Point(3, 126);
             groupBox1.Margin = new Padding(3, 2, 3, 2);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(3, 2, 3, 2);
-            groupBox1.Size = new Size(890, 225);
+            groupBox1.Size = new Size(911, 231);
             groupBox1.TabIndex = 13;
             groupBox1.TabStop = false;
             groupBox1.Text = "Chọn sheet để tạo tệp (*.pdf)";
@@ -326,14 +325,14 @@
             checkedListBox1_LietKeTenCacSheet.Location = new Point(3, 24);
             checkedListBox1_LietKeTenCacSheet.Margin = new Padding(3, 2, 3, 2);
             checkedListBox1_LietKeTenCacSheet.Name = "checkedListBox1_LietKeTenCacSheet";
-            checkedListBox1_LietKeTenCacSheet.Size = new Size(884, 199);
+            checkedListBox1_LietKeTenCacSheet.Size = new Size(905, 205);
             checkedListBox1_LietKeTenCacSheet.TabIndex = 4;
             // 
             // Form48_XuatTepPdf
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(896, 438);
+            ClientSize = new Size(917, 450);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(3, 2, 3, 2);

@@ -118,24 +118,62 @@ namespace PhanMemThiDua2026
         }
         private void Form48_XuatTepPdf_Load(object sender, EventArgs e)
         {
+            // Các thiết lập về UI vật lý (kích thước, tooltip) chỉ cần chạy 1 lần lúc New form
+            if (toolStripProgressBar1_TienTrinhXuatTep != null)
+            {
+                toolStripProgressBar1_TienTrinhXuatTep.AutoSize = false;
+                toolStripProgressBar1_TienTrinhXuatTep.Size = new Size(200, 12);
+                toolStripProgressBar1_TienTrinhXuatTep.Margin = new Padding(1, 5, 1, 5);
+            }
+            InitToolTips();
+            // Gọi hàm Reload để nạp dữ liệu lần đầu
+            ReloadGiaoDienVaDuLieu();
+        }
+        /// <summary>
+        /// Hàm này được gọi từ Form cha mỗi khi muốn mở lại Form 48 từ RAM.
+        /// Chức năng: Xóa sạch dữ liệu cũ, cập nhật lại cấu hình mới nhất từ CSDL.
+        /// </summary>
+        public void ReloadGiaoDienVaDuLieu()
+        {
+            // 1. Reset các nhãn đường dẫn về trạng thái ban đầu
             label_DuongDanExcel.Text = "Chưa chọn tệp excel";
             label_DuongDanExcel.ForeColor = Color.Red;
 
             label_DuongDanPdf.Text = "Chưa chọn thư mục lưu tệp *.pdf";
             label_DuongDanPdf.ForeColor = Color.Red;
 
+            // 2. Ẩn và reset thanh tiến trình
             if (toolStripProgressBar1_TienTrinhXuatTep != null)
             {
-                toolStripProgressBar1_TienTrinhXuatTep.AutoSize = false;
-                toolStripProgressBar1_TienTrinhXuatTep.Size = new Size(200, 12);
-                toolStripProgressBar1_TienTrinhXuatTep.Margin = new Padding(1, 5, 1, 5);
+                toolStripProgressBar1_TienTrinhXuatTep.Value = 0;
                 toolStripProgressBar1_TienTrinhXuatTep.Visible = false;
             }
 
+            // 3. Dọn dẹp sạch danh sách Sheet của lần xuất trước
+            // (Tạm ngắt sự kiện để tránh lỗi văng app khi Clear)
+            checkedListBox1_LietKeTenCacSheet.SelectedIndexChanged -= CheckedListBox1_SelectedIndexChanged;
+            checkedListBox1_LietKeTenCacSheet.Items.Clear();
+            checkedListBox1_LietKeTenCacSheet.SelectedIndexChanged += CheckedListBox1_SelectedIndexChanged;
+
+            // 4. Reset nút Chọn tất cả
+            if (checkBox1_ChonTatCa != null)
+            {
+                checkBox1_ChonTatCa.CheckedChanged -= CheckBox1_ChonTatCa_CheckedChanged;
+                checkBox1_ChonTatCa.Checked = false;
+                checkBox1_ChonTatCa.Visible = false;
+                checkBox1_ChonTatCa.CheckedChanged += CheckBox1_ChonTatCa_CheckedChanged;
+            }
+
+            // 5. Khóa nút Xuất (Vì chưa chọn file) và mở lại nút Chọn file
+            kryptonButton_XuatTepPdf.Enabled = false;
+            kryptonButton1_ChonDuongDanTepExcel.Enabled = true;
+
+            // 6. CẬP NHẬT LẠI TỪ CƠ SỞ DỮ LIỆU (Cốt lõi để lấy Tháng/Năm/Đơn vị mới)
             TaiThongTinDonViVaThoiGian();
             ThietLapDictonaryAnhXa();
+
+            // 7. Cập nhật thanh trạng thái
             CapNhatStatusStrip(0, 0, 0);
-            InitToolTips();
         }
         // CÁC BIẾN KIỂM SOÁT HIỆU ỨNG THANH TIẾN TRÌNH
         private bool _dangXuatFile = false;
