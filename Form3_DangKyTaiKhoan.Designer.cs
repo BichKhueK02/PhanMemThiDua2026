@@ -126,7 +126,7 @@
             ComboBox2_CauHoi2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             ComboBox2_CauHoi2.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold);
             ComboBox2_CauHoi2.FormattingEnabled = true;
-            ComboBox2_CauHoi2.Location = new Point(100, 6);
+            ComboBox2_CauHoi2.Location = new Point(100, 7);
             ComboBox2_CauHoi2.Name = "ComboBox2_CauHoi2";
             ComboBox2_CauHoi2.Size = new Size(356, 25);
             ComboBox2_CauHoi2.TabIndex = 0;
@@ -136,7 +136,7 @@
             ComboBox1_CauHoi1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             ComboBox1_CauHoi1.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold);
             ComboBox1_CauHoi1.FormattingEnabled = true;
-            ComboBox1_CauHoi1.Location = new Point(100, 6);
+            ComboBox1_CauHoi1.Location = new Point(100, 7);
             ComboBox1_CauHoi1.Name = "ComboBox1_CauHoi1";
             ComboBox1_CauHoi1.Size = new Size(356, 25);
             ComboBox1_CauHoi1.TabIndex = 0;
@@ -593,11 +593,11 @@
             // 
             label2.Anchor = AnchorStyles.Top;
             label2.AutoSize = true;
-            label2.Font = new Font("Segoe UI Semibold", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label2.Font = new Font("Segoe UI", 18.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.Green;
-            label2.Location = new Point(298, 0);
+            label2.Location = new Point(279, 0);
             label2.Name = "label2";
-            label2.Size = new Size(587, 32);
+            label2.Size = new Size(625, 35);
             label2.TabIndex = 31;
             label2.Text = "Đăng ký thông tin tài khoản mới theo mẫu dưới đây";
             // 

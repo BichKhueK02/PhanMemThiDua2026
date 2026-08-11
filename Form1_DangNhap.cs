@@ -569,6 +569,9 @@ namespace PhanMemThiDua2026
         {
             if (!LinkLabel1_DangKyTaiKhoanMoi.Enabled) return;
 
+            // 1. THÊM CỜ KIỂM TRA ĐỂ AUTO LOGIN
+            bool tuDongDangNhap = false;
+
             try
             {
                 LinkLabel1_DangKyTaiKhoanMoi.Enabled = false;
@@ -586,6 +589,9 @@ namespace PhanMemThiDua2026
 
                 if (result == DialogResult.OK)
                 {
+                    // 2. BẬT CỜ AUTO LOGIN LÊN TRUE
+                    tuDongDangNhap = true;
+
                     string csdlPath = _csdl2Path;
                     if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))
                         throw new Exception("Không tìm thấy CSDL cấu hình.");
@@ -619,12 +625,24 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                if (!this.IsDisposed && this.IsHandleCreated)
+                // 3. CHỈ HIỆN LẠI FORM 1 NẾU NGƯỜI DÙNG HỦY ĐĂNG KÝ (tuDongDangNhap == false)
+                if (!tuDongDangNhap && !this.IsDisposed && this.IsHandleCreated)
                 {
                     this.Show();
                     this.Activate();
                 }
                 LinkLabel1_DangKyTaiKhoanMoi.Enabled = true;
+            }
+
+            // 4. TIẾN HÀNH AUTO LOGIN MỞ FORM 2 SAU KHI FINALLY ĐÃ XỬ LÝ XONG
+            if (tuDongDangNhap)
+            {
+                // Khởi tạo và gọi thẳng Form trang chủ lên
+                var frmTrangChu = new Form2_FormCha();
+                frmTrangChu.Show();
+
+                // Lưu ý: Vẫn giữ trạng thái this.Hide() cho Form1 (không dùng this.Close() 
+                // vì nếu Form1 là form khởi chạy ở Program.cs, đóng nó sẽ làm tắt luôn cả phần mềm).
             }
         }
         private void LinkLabel_QuenMatKhau_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

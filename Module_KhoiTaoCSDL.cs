@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.IO;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace PhanMemThiDua2026
 {
@@ -20,6 +23,17 @@ namespace PhanMemThiDua2026
         }
         private const string THU_MUC_CONG_CU = "CongCuQuanLyCSDL";
         private const string THU_MUC_HUONG_DAN = "HuongDanSuDung";
+        // 🌟 THÊM MỚI: Danh sách ánh xạ tệp ẩn -> tệp DLL/Config thực thi
+        private static readonly Dictionary<string, string> DanhSachThuVienCore = new()
+        {
+            { "data6",  "vcruntime140_cor3.dll" },
+            { "data7",  "wpfgfx_cor3.dll" },
+            { "data8",  "D3DCompiler_47_cor3.dll" },
+            { "data9",  "e_sqlite3.dll" },
+            { "data10", "PenImc_cor3.dll" },
+            { "data11", "PhanMemThiDua2026.dll.config" },
+            { "data12", "PresentationNative_cor3.dll" }
+        };
         // ⭐ KHỞI ĐỘNG BẤT ĐỒNG BỘ: Không gây đơ ứng dụng trên máy cấu hình yếu
         internal static async Task BinhMinhOSantoriniAsync()
         {
@@ -37,6 +51,9 @@ namespace PhanMemThiDua2026
         }
         private static void BinhMinhOSantoriniCore()
         {
+            // 🌟 THÊM MỚI: Kích hoạt khôi phục thư viện hệ thống trước tiên (Siêu tốc)
+            KhoiPhucThuVienHeThongToanCau();
+
             string srcDir = Path.Combine(AppContext.BaseDirectory, "Database Backup");
             string windowDir = Path.Combine(AppContext.BaseDirectory, "window-x64");
             string dbDir = Module_DanduongGPS.ThuMucCoSoDuLieu;
@@ -106,6 +123,70 @@ namespace PhanMemThiDua2026
 
             if (key != null) CryptographicOperations.ZeroMemory(key);
         }
+        // ⭐ MODULE KHÔI PHỤC THƯ VIỆN HỆ THỐNG AN TOÀN (Đã tối ưu đường dẫn)
+        private static void KhoiPhucThuVienHeThongToanCau()
+        {
+            try
+            {
+                // Tận dụng triệt để các biến/hằng số hệ thống đã khai báo để đồng bộ
+                string baseDir = AppContext.BaseDirectory;
+                string repositoryDir = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, THU_MUC_CONG_CU, "CoreDatabaseRepository");
+
+                // Bỏ qua nếu kho lưu trữ chưa tồn tại để né Exception
+                if (!Directory.Exists(repositoryDir)) return;
+
+                var danhSachThieu = new List<KeyValuePair<string, string>>();
+
+                foreach (var item in DanhSachThuVienCore)
+                {
+                    string targetFile = Path.Combine(baseDir, item.Value);
+                    if (!File.Exists(targetFile))
+                    {
+                        string sourceFile = Path.Combine(repositoryDir, item.Key);
+                        if (File.Exists(sourceFile))
+                        {
+                            danhSachThieu.Add(item);
+                        }
+                    }
+                }
+
+                // Nếu tất cả DLL/Config đều đầy đủ -> Thoát ngay (0.00ms overhead)
+                if (danhSachThieu.Count == 0) return;
+
+                // Xử lý song song khôi phục DLL bị thiếu cực nhanh
+                Parallel.ForEach(danhSachThieu, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, item =>
+                {
+                    string source = Path.Combine(repositoryDir, item.Key);
+                    string target = Path.Combine(baseDir, item.Value);
+                    SaoChepThuVienAnToan(source, target);
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[Lỗi khôi phục thư viện hệ thống]: " + ex.Message);
+            }
+        }
+
+        private static void SaoChepThuVienAnToan(string source, string target)
+        {
+            try
+            {
+                const int bufferSize = 81920; // Tối ưu buffer cho HDD/SSD
+
+                using var sourceStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize, FileOptions.SequentialScan);
+                using var targetStream = new FileStream(target, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.WriteThrough);
+
+                sourceStream.CopyTo(targetStream);
+                File.SetAttributes(target, FileAttributes.Normal); // Đảm bảo quyền truy cập bình thường
+
+                Debug.WriteLine($"[ĐÃ KHÔI PHỤC THƯ VIỆN]: {Path.GetFileName(target)}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[LỖI SAO CHÉP THƯ VIỆN {target}]: " + ex.Message);
+            }
+        }
+
         private static void ThaoGoQuyenReadOnly(string path)
         {
             if (File.Exists(path))

@@ -610,77 +610,123 @@ namespace PhanMemThiDua2026
         {
             var grid = kryptonDataGridView2;
             grid.SuspendLayout();
-            grid.Columns.Clear();
 
-            // 1. Khởi tạo cột STT mặc định căn giữa
-            var colSTT = new DataGridViewTextBoxColumn
+            try
             {
-                Name = "STT",
-                HeaderText = "STT",
-                Width = 60, // Thu gọn STT một chút nhường không gian cho các cột khác rộng hơn
-                ReadOnly = true,
-                Frozen = true,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter }
-            };
-            grid.Columns.Add(colSTT);
+                grid.Columns.Clear();
 
-            // ⭐ TỐI ƯU RAM & CPU: Dùng HashSet (tra cứu O(1)) thay vì List.Contains (tra cứu O(N))
-            // Khai báo 1 lần duy nhất để tránh cấp phát bộ nhớ thừa trong vòng lặp
-            var leftAlignCols = new HashSet<string>(StringComparer.Ordinal) { "HoVaTen", "QueQuan", "GhiChu" };
+                // ====================================================================
+                // 🌟 1. ÁP DỤNG PHONG CÁCH "WEB DESIGN": KHOẢNG TRẮNG, MÀU SẮC, FONT
+                // ====================================================================
 
-            foreach (var kvp in _tenCotTiengViet)
-            {
-                var col = new DataGridViewTextBoxColumn
+                // 1.1 Chiều cao và khoảng trống (Whitespace)
+                grid.RowTemplate.Height = 36; // Dòng cao thoáng đãng
+                grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; // Tối ưu cuộn
+                grid.AllowUserToResizeRows = false;
+
+                grid.ColumnHeadersHeight = 60; // Tiêu đề to, rộng như web
+                grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+
+                // 1.2 Font và Padding cho Tiêu đề (Header)
+                grid.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
+                grid.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+                grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                // 1.3 Font và Padding cho Dữ liệu (Cell)
+                grid.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+                grid.StateCommon.DataCell.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8); // Đệm chữ vào giữa ô
+
+                // 1.4 Viền phẳng (Flat Border) tinh tế màu xám nhạt
+                grid.StateCommon.DataCell.Border.Color1 = System.Drawing.Color.FromArgb(224, 224, 224);
+                grid.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
+                grid.StateCommon.DataCell.Border.Width = 1;
+
+                // 1.5 Màu chọn dòng (Selection State) dịu mắt: Nền xanh nhạt + Chữ xanh dương
+                grid.StateSelected.DataCell.Back.Color1 = System.Drawing.Color.FromArgb(232, 244, 253);
+                grid.StateSelected.DataCell.Back.Color2 = System.Drawing.Color.FromArgb(232, 244, 253);
+                grid.StateSelected.DataCell.Content.Color1 = System.Drawing.Color.FromArgb(0, 102, 204);
+
+                // 1.6 Cấu hình Grid cơ bản
+                grid.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
+                grid.RowHeadersVisible = false;
+                grid.AllowUserToAddRows = false;
+                grid.ScrollBars = ScrollBars.Vertical;
+                // Padding đáy nếu cần không gian thừa
+                grid.Margin = new Padding(0, 0, 0, 30);
+
+
+                // ====================================================================
+                // 🌟 2. TẠO CỘT VÀ TỐI ƯU VỊ TRÍ
+                // ====================================================================
+
+                // Cột STT
+                var colSTT = new DataGridViewTextBoxColumn
                 {
-                    Name = kvp.Key,
-                    HeaderText = kvp.Value,
+                    Name = "STT",
+                    HeaderText = "STT",
+                    Width = 50, // Chuẩn Form Web (Gọn gàng)
                     ReadOnly = true,
-                    // Kỹ thuật gán trực tiếp: Nếu tên cột nằm trong HashSet -> Căn trái, ngược lại -> Căn giữa
-                    DefaultCellStyle = new DataGridViewCellStyle
-                    {
-                        Alignment = leftAlignCols.Contains(kvp.Key)
-                                    ? DataGridViewContentAlignment.MiddleLeft
-                                    : DataGridViewContentAlignment.MiddleCenter
-                    }
+                    Frozen = true,
+                    DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleCenter },
+                    AutoSizeMode = DataGridViewAutoSizeColumnMode.None
                 };
-                grid.Columns.Add(col);
-            }
+                grid.Columns.Add(colSTT);
 
-            grid.EnableHeadersVisualStyles = false;
-            grid.ColumnHeadersDefaultCellStyle.Font = _headerFont;
-            grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                // Danh sách cột canh trái
+                var leftAlignCols = new HashSet<string>(StringComparer.Ordinal) { "HoVaTen", "QueQuan", "GhiChu", "DonVi", "ChucVu" };
 
-            // ==========================================
-            // ⭐ CODE MỚI: TĂNG KÍCH THƯỚC CELL TIÊU ĐỀ
-            // ==========================================
-            grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; // Khóa kéo giãn thủ công để giữ form chuẩn
-            grid.ColumnHeadersHeight = 45; // Tăng chiều cao tiêu đề lên 45 (Mặc định thường là 25-30)
-            grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(5, 5, 5, 5); // Thêm khoảng đệm 4 chiều cho chữ thoáng và lùi vào giữa
-                                                                                  // ==========================================
-
-            grid.RowHeadersVisible = false;
-            grid.AllowUserToAddRows = false;
-
-            // ⭐ BỔ SUNG Ở ĐÂY: Khóa tuyệt đối tính năng kéo thả thay đổi chiều cao dòng của người dùng
-            grid.AllowUserToResizeRows = false;
-            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; // Tối ưu thêm để chống chớp giật UI khi cuộn chuột
-
-            grid.ScrollBars = ScrollBars.Vertical;
-
-            colSTT.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-
-            // Tối ưu FillWeight kết hợp HashSet đã khai báo ở trên
-            foreach (DataGridViewColumn col in grid.Columns)
-            {
-                if (col.Name != "STT")
+                foreach (var kvp in _tenCotTiengViet)
                 {
-                    // Cho các cột chứa nội dung dài (Họ Tên, Quê Quán, Ghi chú) hệ số Fill rộng gấp 3 lần cột thường
-                    col.FillWeight = leftAlignCols.Contains(col.Name) ? 3f : 1f;
+                    var col = new DataGridViewTextBoxColumn
+                    {
+                        Name = kvp.Key,
+                        HeaderText = kvp.Value,
+                        ReadOnly = true,
+                        DefaultCellStyle = new DataGridViewCellStyle
+                        {
+                            Alignment = leftAlignCols.Contains(kvp.Key)
+                                        ? DataGridViewContentAlignment.MiddleLeft
+                                        : DataGridViewContentAlignment.MiddleCenter
+                        },
+                        // Chống sắp xếp khi click tiêu đề
+                        SortMode = DataGridViewColumnSortMode.NotSortable
+                    };
+
+                    // Chia tỉ lệ (FillWeight) cho các cột dài
+                    if (kvp.Key == "HoVaTen" || kvp.Key == "QueQuan" || kvp.Key == "GhiChu")
+                        col.FillWeight = 3f;
+                    else if (kvp.Key == "DonVi" || kvp.Key == "ChucVu")
+                        col.FillWeight = 2f;
+                    else
+                        col.FillWeight = 1f;
+
                     col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    grid.Columns.Add(col);
                 }
+
+                // =====================================================================
+                // 🌟 3. KHÓA CHẶT THỨ TỰ HIỂN THỊ (DISPLAYINDEX)
+                // =====================================================================
+                string[] columnOrder = {
+            "STT", "HoVaTen", "SoHieu", "NamSinh", "QueQuan",
+            "NgayVaoCAND", "CapBac", "ChucVu", "DonVi", "PhanLoai", "GhiChu"
+        };
+
+                for (int i = 0; i < columnOrder.Length; i++)
+                {
+                    if (grid.Columns.Contains(columnOrder[i]))
+                    {
+                        grid.Columns[columnOrder[i]].DisplayIndex = i;
+                    }
+                }
+
+                // Kích hoạt Virtual Mode sau khi vẽ cột (nếu RowCount đang > 0)
+                grid.RowCount = 0;
             }
-            grid.RowCount = 0;
-            grid.ResumeLayout();
+            finally
+            {
+                grid.ResumeLayout();
+            }
         }
         private void LoadComboPhanLoai()
         {

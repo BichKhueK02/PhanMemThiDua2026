@@ -208,18 +208,21 @@
   </metadata>
   <data name="kryptonButton_LamMoi.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAI8SURBVDhPfZJLaFNBGIWP4EbFvpAudKWC7nwFLIUs
-        pJWb3iRdqNAuuom2JRAXwQcKIhVp5OZxY7AWjcbQG2raiKluRMVFRIzaGmtT22hqsVBqTHXnSuvmyCQm
-        Jib1wOVnzp3zzcw/A5IoqN2LDbKKiOQCW51gi5Kvkgs/ZBX9xYkARC6XLQDMXthF8HR4J+Opc1zM3uBi
-        1p+rYix8yYVMVUC7FwaDC/Q9buFcVmHsvYnRxGaOJbbkqhgLX/w3/IGUAYwqfp0c3cbJjJWRZA19MdAS
-        ALuu5+vlGDg6VcM3S1aeGNlKowf95QAP+GThCKMLtRyYAM1esPk4Lu0woENnwSmTCvpegiPpWj5IH6LB
-        iZ9lALMH32U3xPYo6v5enAWwCcA6AHXNNjiOauDQR/BRZi8lRcTKm7gbgK7kq//bb6CpB/qOa6CWBu98
-        quPhgUpAUbIHNKlYLvUkB2yWIKi9A4dTEEeoDmhVwNkvGo8FthfNNjesnYMNvJ80UpsAB5+BsgsrFYCD
-        Cvg8rXDsdSPP3wUPOPI9uXCviU8/dDMUX8PhF2BPENTb4S4DiMY9nLUxkqyn/xU4nb3ImeU+znzt4/hS
-        L7VJMPQWPBMF25z4BqCxAnB7ysTw/EbeTIGBFBhMg0NzoDYPXkmA3aFieJfY8b9H0ElO8Or4HoY/r6dv
-        Guy6BXb6kbsy2YkVvR2eQrgaIAcR3XXGG2hyrxVm6bXuE9suTFwNIKQzq6B4WKVmNa0GEBIriof1XxUA
-        vwFEVrn5pfiGxAAAAABJRU5ErkJggg==
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAZdEVYdFNvZnR3YXJlAEFkb2JlIEltYWdlUmVhZHlxyWU8AAADAUlEQVQ4T42T30/bVRjGnzsT
+        L/UPMMboxW6MoiZM5nTZINvYZuINGuPUaKLemZi4i4JjcyUbrHUxCttK10KFtaylBeygwHQd5ccoILCW
+        0h+D4WhhzsGCJMNl+ZhviyQaL3yTJyfnvOd5z8nnvEdOb6cutAWK7B5/n83tw3bxP+T2YeQdlzqLmrw/
+        qskbVPOmDPNZlz/IwESc2M0smdwK6ey9LRnz2FyOwV+SeDrDtPrCDW5/RB7/YF5qdLcznrjF+MwtovE5
+        RmMFRePzjMWN9QUmEovE0qscaS1jh1nsOiWV1kqldZKMK66sP+Rm7h7jiXmisQxjsXkmE1niqRVmM3+Q
+        mf+T1ftQXC3iCzZ21Yi9ddIBi6RGTzuXrw6T+nWJ5dV11jbgwUOYzaX41PE8xUfF9mrxarUwtYsLgyKS
+        NrO7RpSflmRv8xP8eYjegSjh6zeITi/QF71mnMDxK8I1I35IFEbHDWGbFPZpcTn1AfvqhAGRnvAIPw1N
+        MDiWYCpxly9d+6nqF0e6RcU5UXFevHZcmHqFIyn6l0vYUyMkFcly1t5lPddMa0eIUHiceOo++63io1bx
+        WeMrdAx00dLtoy+0SMkxEcg+wW5zwXzQYPCt3eX9fW2DkckEHT0R3B0hir4SFl8lo8PrbP9afFK/g+Ts
+        BrXB9/IADXP5aX180CJk9/jpuXadzOId7q49YOMRW/FSlcjeqaf4mFj+DdyhABbX95SeUuhzp3jrjFFg
+        C+LYFsTM3CNeNIl4zkRjRJh8yl+/ol680yCqAuJkUOw5qt48xODV4U2IM0zOLPFCpbg0dQjbtLBNCUdM
+        NCdES1JcTIvasHjzG7GtXDtlabB7m3xddF6JEB6NMTW7xO3FQtOcj76MMy0qewsv8YZZlJ4UZSeUfLpE
+        ByQ9JklPVRz+8N3vHC0jBg+7J4CzrRu3L8rrZmEdejJvdLqGIoff/+Lt/NNJ2wzzIask4zdKelzSc5vJ
+        f2hvrdhZpX5Jzxr7yowWtkqGOV/gf4RR6Jl/L/4dfwGI0U2fIv0Z4wAAAABJRU5ErkJggg==
 </value>
   </data>
   <metadata name="kryptonButton_Dong.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">

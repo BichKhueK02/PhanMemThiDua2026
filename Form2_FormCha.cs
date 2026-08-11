@@ -94,7 +94,6 @@ namespace PhanMemThiDua2026
         {
             if (_loadExecuted) return;
             _loadExecuted = true;
-
             KhoiTaoDuLieuNguoiDung();
             KhoiTaoGiaoDien();
             checkBox1_TuDongAnMenu.Checked = AppRuntime.TuDongAnMenu;
@@ -145,12 +144,9 @@ namespace PhanMemThiDua2026
         public void KhoiTaoDuLieuNguoiDung()
         {
             Module_TaiKhoan.NapTaiKhoanTuCSDL();
-
             sidebarWidth = PanelLeft.Width;
-
             string ten = SessionInfo.TenTaiKhoan;
             DateTime thoiGian = SessionInfo.ThoiGianDangNhap;
-
             if (string.IsNullOrWhiteSpace(ten))
             {
                 Label2.Text = "Xin chào!";
@@ -177,7 +173,6 @@ namespace PhanMemThiDua2026
             {
                 // 1. Đọc cấu hình từ CSDL (Chạy ngầm không block UI)
                 string cheDo = await Task.Run(() => Module_HinhAnhTrangChu.DocCauHinhThoiGian());
-
                 // 2. Nếu là Mặc định -> Tắt Timer, lấy hình cố định
                 if (cheDo == "Mặc định")
                 {

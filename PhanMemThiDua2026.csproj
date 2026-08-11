@@ -20,7 +20,7 @@
     <AssemblyTitle>Phần mềm Thi đua 2026</AssemblyTitle>
     <Title>Phần mềm Thi đua 2026</Title>
     <Company>@TrungKien</Company>
-    <Product>@TrungKien</Product>
+    <Product>PhanMemThiDua2026</Product>
     <Description>Phần mềm Thi đua 2026</Description>
     <PackageProjectUrl>https://github.com/BichKhueK02/PhanMemThiDua2026</PackageProjectUrl>
   </PropertyGroup>

@@ -601,9 +601,9 @@ namespace PhanMemThiDua2026
                 // =========================================================================
                 try
                 {
-                    workbook.BuiltinDocumentProperties("Title").Value = "Bản quyền thuộc PhanMemThiDua2026";
+                    workbook.BuiltinDocumentProperties("Title").Value = "Ban quyen thuoc PhanMemThiDua2026";
                     workbook.BuiltinDocumentProperties("Author").Value = "TrungKien_0975287973";
-                    workbook.BuiltinDocumentProperties("Comments").Value = "Tệp tin được kết xuất tự động từ hệ thống";
+                    workbook.BuiltinDocumentProperties("Comments").Value = "Tep tin duoc xuat tu he thong";
                     workbook.BuiltinDocumentProperties("Company").Value = "Admin: " + Module_TaiKhoan.TenTaiKhoan_RAM;
                 }
                 catch (Exception exProp)
@@ -859,10 +859,10 @@ namespace PhanMemThiDua2026
                                 // 🌟 CHÈN METADATA TẠI ĐÂY: Gắn thuộc tính qua ClosedXML
                                 // LibreOffice sẽ tự động đọc các thuộc tính này và áp dụng cho PDF
                                 // =========================================================================
-                                tempWb.Properties.Title = "Bản quyền thuộc PhanMemThiDua2026";
+                                tempWb.Properties.Title = "Ban quyen thuoc PhanMemThiDua2026";
                                 tempWb.Properties.Author = "TrungKien_0975287973";
-                                tempWb.Properties.Comments = "Tệp tin được trích xuất từ hệ thống";
-                                tempWb.Properties.Company = "Tác giả: TrungKien";
+                                tempWb.Properties.Comments = "Tep tin duoc xuat tu he thong";
+                                tempWb.Properties.Company = "Admin: " + Module_TaiKhoan.TenTaiKhoan_RAM;
                                 // =========================================================================
                                 tempWb.SaveAs(tempExcel);
                             }

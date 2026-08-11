@@ -30,24 +30,18 @@ namespace PhanMemThiDua2026
         {
             "Tuần 1 - Tháng 2", "Tuần 2 - Tháng 2",
             "Tuần 3 - Tháng 2", "Tuần 4 - Tháng 2", "Tháng 3",
-
             "Tuần 1 - Tháng 3", "Tuần 2 - Tháng 3",
             "Tuần 3 - Tháng 3", "Tuần 4 - Tháng 3", "Tháng 4",
-
             "Tuần 1 - Tháng 4", "Tuần 2 - Tháng 4",
             "Tuần 3 - Tháng 4", "Tuần 4 - Tháng 4", "Tháng 5",
-
             "Tuần 1 - Tháng 5", "Tuần 2 - Tháng 5",
             "Tuần 3 - Tháng 5", "Tuần 4 - Tháng 5", "Tháng 6"
         };
         private static readonly string[] ThangNamesTanBinh =
         {
             "Tuan_1_T2", "Tuan_2_T2", "Tuan_3_T2", "Tuan_4_T2", "Thang_3",
-
             "Tuan_1_T3", "Tuan_2_T3", "Tuan_3_T3", "Tuan_4_T3", "Thang_4",
-
             "Tuan_1_T4", "Tuan_2_T4", "Tuan_3_T4", "Tuan_4_T4", "Thang_5",
-
             "Tuan_1_T5", "Tuan_2_T5", "Tuan_3_T5", "Tuan_4_T5", "Thang_6"
         };
         public Form18_XoaDataThang(Form15_ThongKeThiDua frm15)

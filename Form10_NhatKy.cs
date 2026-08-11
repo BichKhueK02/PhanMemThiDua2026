@@ -19,8 +19,7 @@ namespace PhanMemThiDua2026
         private int _totalPages = 1;
         private bool _daCaiDatCot = false;
         private int _soDongDaXoaTuDong = 0;
-        private bool _sortAsc = false;
-        
+        private bool _sortAsc = false;    
         // 🔥 BIẾN CACHE HÌNH ẢNH (Load 1 lần để tối ưu RAM)
         private readonly Image _iconLogin = Properties.Resources.ic_login;
         private readonly Image _iconDb = Properties.Resources.ic_database;
@@ -334,58 +333,24 @@ namespace PhanMemThiDua2026
             // Ngày kết thúc luôn mặc định là hôm nay cho tiện
             kryptonDateTimePicker1_NgayThangNamKetThuc.Value = ngayHienTai;
         }
-        //public void ReloadDuLieu()
-        //{
-        //    if (IsDisposed || !IsHandleCreated) return;
-        //    try
-        //    {
-        //        this.Cursor = Cursors.WaitCursor;
-        //        toolStripStatusLabel2.Text = "Đang tải dữ liệu thô...";
-
-        //        // 1. Tác vụ DB nặng nề đẩy hết xuống Background, không await chặn UI
-        //        _ = Task.Run(async () =>
-        //        {
-        //            await TuDongXoaNhatKyNeuCanAsync();
-        //            await Module_BaoTriCSDL.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);
-        //        });
-
-        //        // 2. Nạp List thô từ SQLite (Mất chưa tới 5ms)
-        //        LoadNhatKyLenDataGridView_SieuToc();
-
-        //        if (this.IsDisposed) return;
-
-        //        // 3. Hiển thị Lưới NGAY LẬP TỨC (Dữ liệu chưa lọc)
-        //        _sortAsc = false;
-        //        radioButton1_TuZA.Checked = true;
-        //        _currentPage = 1;
-        //        CapNhatPhanTrang();
-        //        HienThiTrangHienTai();
-        //        // Gọi nạp dữ liệu từ Module ngay khi mở Form10 lên
-        //        Module_NhatKy.DocVaNapStatusLabelForm10();
-        //        // 4. Bật tiến trình ngầm giải mã 1400 chuỗi AES để chuẩn bị cho Bộ Lọc
-        //        _ = Task.Run(() => ChuanBiDuLieuBoLocNgam());
-        //    }
-        //    catch (Exception ex) { Debug.WriteLine("Reload Form10 lỗi: " + ex.Message); }
-        //    finally { this.Cursor = Cursors.Default; }
-        //}
         public void ReloadDuLieu()
         {
             if (IsDisposed || !IsHandleCreated) return;
 
             try
             {
-                // =========================================================================
+                
                 // 1. CẬP NHẬT GIAO DIỆN (Bắt buộc dùng SafeInvoke vì đang chạy ngầm)
-                // =========================================================================
+                
                 UIHelper.SafeInvoke(this, () =>
                 {
                     this.Cursor = Cursors.WaitCursor;
                     toolStripStatusLabel2.Text = "Đang tải dữ liệu thô...";
                 });
 
-                // =========================================================================
+                
                 // 2. CÁC TÁC VỤ CHẠY NGẦM ĐỘC LẬP (Fire & Forget)
-                // =========================================================================
+                
                 _ = Task.Run(async () =>
                 {
                     try
@@ -406,9 +371,9 @@ namespace PhanMemThiDua2026
 
                 if (this.IsDisposed) return;
 
-                // =========================================================================
+                
                 // 4. HIỂN THỊ GIAO DIỆN LƯỚI & TRẠNG THÁI (Bắt buộc dùng SafeInvoke)
-                // =========================================================================
+                
                 UIHelper.SafeInvoke(this, () =>
                 {
                     // Double check phòng khi user đóng Form quá nhanh
@@ -429,9 +394,9 @@ namespace PhanMemThiDua2026
                     Module_NhatKy.DocVaNapStatusLabelForm10();
                 });
 
-                // =========================================================================
+                
                 // 5. TIẾN TRÌNH GIẢI MÃ NỀN (Fire & Forget)
-                // =========================================================================
+                
                 _ = Task.Run(() =>
                 {
                     try
@@ -456,9 +421,9 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                // =========================================================================
+                
                 // 6. PHỤC HỒI GIAO DIỆN SAU CÙNG (SafeInvoke)
-                // =========================================================================
+                
                 UIHelper.SafeInvoke(this, () =>
                 {
                     if (!IsDisposed) this.Cursor = Cursors.Default;
@@ -583,52 +548,73 @@ namespace PhanMemThiDua2026
 
             try
             {
-                // ===================== GRID CONFIG =====================
+                // 1. Áp dụng chuẩn Web Design (Khoảng trắng, Màu sắc, Viền phẳng)
+                CauHinhStyleWeb(dgv);
+
+                // 2. Cấu hình DataGridView cơ bản (Chống nhấp nháy, Ẩn header trái...)
                 CauHinhGridCoBan(dgv);
 
-                // ===================== COLUMN =====================
+                // 3. Xóa và tạo cột (Giữ nguyên FillWeight gốc của bạn)
                 dgv.Columns.Clear();
                 TaoCot(dgv);
-
-                // ===================== STYLE =====================
-                CauHinhStyle(dgv);
 
                 _daCaiDatCot = true;
             }
             finally
             {
-                dgv.ResumeLayout(true); // true = refresh layout an toàn hơn false
+                dgv.ResumeLayout(true);
+            }
+        }
+        // 🌟 HÀM MỚI: Tách riêng phần định dạng giao diện "Web Design"
+        private void CauHinhStyleWeb(DataGridView dgv)
+        {
+            
+            // ÁP DỤNG PHONG CÁCH "WEB DESIGN": CÓ VIỀN MỜ (FLAT BORDER)
+            // 1. Chiều cao và khoảng trống
+            dgv.RowTemplate.Height = 36;
+            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+            dgv.AllowUserToResizeRows = false;
+            dgv.ColumnHeadersHeight = 45;
+            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            // 2. BẬT LẠI VIỀN CHUẨN CỦA DATAGRIDVIEW
+            dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single;
+            dgv.GridColor = Color.FromArgb(224, 224, 224); // Màu xám nhạt tinh tế
+            // Màu nền xen kẽ cực nhạt để dễ đọc
+            dgv.RowsDefaultCellStyle.BackColor = Color.White;
+            dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
+            dgv.BackgroundColor = Color.White;
+            // 3. BẬT LẠI VIỀN CỦA KRYPTON
+            if (dgv is Krypton.Toolkit.KryptonDataGridView kDgv)
+            {
+                kDgv.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
+                kDgv.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
+                kDgv.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+                kDgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                kDgv.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+                kDgv.StateCommon.DataCell.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
+                // ⭐ BẬT VẼ VIỀN (BORDER) VÀ SET MÀU XÁM NHẠT
+                kDgv.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
+                kDgv.StateCommon.DataCell.Border.Color1 = System.Drawing.Color.FromArgb(224, 224, 224);
+                kDgv.StateCommon.DataCell.Border.Width = 1;
+                // Màu chọn dòng (Selection State)
+                kDgv.StateSelected.DataCell.Back.Color1 = System.Drawing.Color.FromArgb(232, 244, 253);
+                kDgv.StateSelected.DataCell.Back.Color2 = System.Drawing.Color.FromArgb(232, 244, 253);
+                kDgv.StateSelected.DataCell.Content.Color1 = System.Drawing.Color.FromArgb(0, 102, 204);
+                kDgv.Margin = new Padding(0, 0, 0, 30);
             }
         }
         private void CauHinhGridCoBan(DataGridView dgv)
         {
             dgv.AutoGenerateColumns = false;
-
             dgv.ReadOnly = true;
             dgv.AllowUserToAddRows = false;
             dgv.AllowUserToDeleteRows = false;
             dgv.MultiSelect = false;
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgv.RowHeadersVisible = false;
-
             dgv.EnableHeadersVisualStyles = false;
-
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-
-            // ⭐ FIX LỖI CẮT DÒNG CUỐI (PIXEL CLIPPING) ⭐
-            dgv.ScrollBars = ScrollBars.Both; // Ép WinForms luôn chừa chỗ cho Scrollbar, tránh hiện tượng nhấp nháy tính toán lại
-            dgv.BorderStyle = BorderStyle.None; // Bỏ viền ngoài cùng gây sai lệch 1-2 pixel
-            dgv.RowTemplate.Height = 30; // BẮT BUỘC có chiều cao dòng cố định để VirtualMode tính toán đúng 100%
-
-            // Giảm từ 70 xuống 40 để ôm sát gọn gàng với Font chữ 10F
-            dgv.ColumnHeadersHeight = 40;
-
-            dgv.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
-            {
-                Alignment = DataGridViewContentAlignment.MiddleCenter,
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold)
-            };
+            dgv.ScrollBars = ScrollBars.Both;
+            dgv.BorderStyle = BorderStyle.None;
         }
         private void TaoCot(DataGridView dgv)
         {
@@ -638,6 +624,7 @@ namespace PhanMemThiDua2026
             AddCol(dgv, "IP", "IP Address", 10);
             AddCol(dgv, "ID_CPU", "ID My Computer", 18);
             AddCol(dgv, "TaiKhoan", "Tài khoản", 12);
+
             AddCol(dgv, "HanhDong", "Hành động", 15, DataGridViewContentAlignment.MiddleLeft);
             AddCol(dgv, "GhiChu", "Ghi chú", 24, DataGridViewContentAlignment.MiddleLeft);
 
@@ -647,37 +634,38 @@ namespace PhanMemThiDua2026
                 HeaderText = "IconType",
                 Visible = false
             };
-
             dgv.Columns.Add(colIcon);
+
+            foreach (DataGridViewColumn col in dgv.Columns)
+            {
+                if (col.Name == "ID")
+                {
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                    col.Width = 50; // Chốt độ rộng STT
+                }
+                else if (col.Visible)
+                {
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                }
+            }
         }
         private void AddCol(
-    DataGridView dgv,
-    string name,
-    string header,
-    float fillWeight,
-    DataGridViewContentAlignment align = DataGridViewContentAlignment.MiddleCenter)
+            DataGridView dgv,
+            string name,
+            string header,
+            float fillWeight,
+            DataGridViewContentAlignment align = DataGridViewContentAlignment.MiddleCenter)
         {
             var col = new DataGridViewTextBoxColumn
             {
                 Name = name,
                 HeaderText = header,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
-                DefaultCellStyle = new DataGridViewCellStyle
-                {
-                    Alignment = align
-                },
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = align },
                 FillWeight = fillWeight
             };
 
             dgv.Columns.Add(col);
-        }
-        private void CauHinhStyle(DataGridView dgv)
-        {
-            dgv.RowsDefaultCellStyle.BackColor = Color.White;
-            dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(230, 245, 255);
-            dgv.GridColor = Color.LightGray;
-
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
         public void LoadNhatKyLenDataGridView()
         {
@@ -976,21 +964,26 @@ namespace PhanMemThiDua2026
 
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && dgv.Columns[e.ColumnIndex].Name == "HanhDong")
             {
-                // ⭐ BỎ QUA DÒNG TRỐNG: Chỉ vẽ nền chuẩn, không vẽ Icon hay Text
+                // ⭐ BÍ QUYẾT: CHỈ VẼ NỀN (TỪ CHỐI VẼ BORDER ĐỂ ĐỒNG BỘ 100% TOÀN BẢNG)
+                var paintParts = DataGridViewPaintParts.Background | DataGridViewPaintParts.SelectionBackground;
+
+                // Xử lý dòng trống dưới cùng (nếu có)
                 if (_listCurrentPage != null && e.RowIndex == _listCurrentPage.Count)
                 {
-                    e.Paint(e.CellBounds, DataGridViewPaintParts.All);
+                    e.Paint(e.CellBounds, paintParts);
                     e.Handled = true;
                     return;
                 }
 
-                // 1. TÔ NỀN VÀ VIỀN THEO CHUẨN, KHÔNG VẼ TEXT
-                e.Paint(e.CellBounds, DataGridViewPaintParts.All & ~DataGridViewPaintParts.ContentForeground);
+                // 1. TÔ NỀN SẠCH SẼ
+                e.Paint(e.CellBounds, paintParts);
 
+                // KHÔNG CÒN DRAWLINE TỰ TẠO NỮA, MỌI THỨ SẼ PHẲNG TỰ NHIÊN
+
+                // 2. LOGIC VẼ ICON VÀ TEXT GỐC CỦA BẠN ĐƯỢC BẢO TOÀN
                 string hanhDongText = e.Value?.ToString() ?? "";
                 int iconType = 0;
 
-                // 2. LẤY ICONTYPE TRONG VIRTUAL MODE
                 try
                 {
                     if (dgv.Columns.Contains("IconType"))
@@ -1002,7 +995,6 @@ namespace PhanMemThiDua2026
                 }
                 catch { }
 
-                // 3. VẼ ICON
                 Image iconToDraw = iconType switch
                 {
                     1 => _iconLogin,
@@ -1269,53 +1261,7 @@ namespace PhanMemThiDua2026
                 return value;
             }
         }
-        // 1. HÀM TỰ ĐỘNG XÓA (Đã sửa lỗi tên cột và chuỗi Tiếng Việt)
-        private async Task TuDongXoaNhatKyNeuCanAsync()
-        {
-            try
-            {
-                _soDongDaXoaTuDong = 0;
-                if (string.IsNullOrWhiteSpace(_csdl3Path) || !File.Exists(_csdl3Path)) return;
-
-                string luaChon = "Không xóa"; // Sửa thành tiếng Việt có dấu
-                using (var cn = new SqliteConnection($"Data Source={_csdl3Path};Pooling=True;"))
-                {
-                    await cn.OpenAsync();
-                    DamBaoBangTuDongXoaTonTai();
-                    using var cmd = cn.CreateCommand();
-
-                    // SỬA LỖI 1: Tên cột phải khớp chính xác với lúc Create Table là Chọn_GiaiTri
-                    cmd.CommandText = "SELECT Chọn_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1 LIMIT 1;";
-                    var result = await cmd.ExecuteScalarAsync();
-                    if (result != null && result != DBNull.Value) luaChon = result.ToString();
-                }
-
-                if (luaChon == "Không xóa")
-                {
-                    await Module_BaoTriCSDL.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);
-                    return;
-                }
-
-                // SỬA LỖI 2: Chuỗi switch/case phải CÓ DẤU y hệt như giá trị trong ComboBox
-                int nguong = luaChon switch
-                {
-                    "1000 dòng xóa tự động" => 1000,
-                    "5000 dòng xóa tự động" => 5000,
-                    "10000 dòng xóa tự động" => 10000,
-                    _ => 0
-                };
-
-                int soDongCanXoa = TinhSoDongCanXoa(nguong);
-                if (soDongCanXoa > 0)
-                {
-                    int daXoa = await Task.Run(() => XoaNhatKyAnToan(soDongCanXoa));
-                    _soDongDaXoaTuDong = daXoa;
-                }
-
-                await Module_BaoTriCSDL.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);
-            }
-            catch (Exception ex) { Debug.WriteLine($"[TuDongXoa] {ex.Message}"); }
-        }
+        // 1. HÀM TỰ ĐỘNG XÓA (Đã sửa lỗi tên cột và chuỗi Tiếng Việt)  
         // 2. HÀM CẬP NHẬT TRẠNG THÁI GÓC DƯỚI (Đã sửa lỗi tên cột và chuỗi Tiếng Việt)
         // Hàm công khai giúp Module bên ngoài nạp text vào thanh trạng thái một cách an toàn
         public void CapNhatVanBanStatusLabel(string vanBan)
@@ -1326,57 +1272,90 @@ namespace PhanMemThiDua2026
             }
         }
         // 3. HÀM ĐẾM SỐ DÒNG (Đã sửa tên bảng chuẩn)
-        private static int DemSoDongNhatKy()
-        {
-            string dbPath = Module_DanduongGPS.DuongDanCSDL3;
-            using var cn = new SqliteConnection($"Data Source={dbPath}");
-            cn.Open();
-
-            using var cmd = cn.CreateCommand();
-            // SỬA LỖI 3: Tên bảng phải là NhatKyUngDung (Khớp với cấu trúc của bác ở hàm XoaToanBo)
-            cmd.CommandText = "SELECT COUNT(*) FROM NhatKyUngDung";
-            return Convert.ToInt32(cmd.ExecuteScalar());
-        }
         // 4. HÀM THỰC THI XÓA (Đã sửa tên bảng chuẩn)
-        public static int XoaNhatKyAnToan(int soDongCanXoa)
+        // 1. HÀM TỰ ĐỘNG XÓA (Đã tối ưu lại bằng 1 câu lệnh SQLite duy nhất)
+        private async Task TuDongXoaNhatKyNeuCanAsync()
         {
-            if (soDongCanXoa <= 0) return 0;
-
-            string dbPath = Module_DanduongGPS.DuongDanCSDL3;
-            using var cn = new SqliteConnection($"Data Source={dbPath}");
-            cn.Open();
-
-            using var tran = cn.BeginTransaction();
             try
             {
+                _soDongDaXoaTuDong = 0;
+                if (string.IsNullOrWhiteSpace(_csdl3Path) || !File.Exists(_csdl3Path)) return;
+
+                string luaChon = "Không xóa";
+                using (var cn = new SqliteConnection($"Data Source={_csdl3Path};Pooling=True;"))
+                {
+                    await cn.OpenAsync();
+                    DamBaoBangTuDongXoaTonTai();
+                    using var cmd = cn.CreateCommand();
+
+                    // ĐÃ SỬA TÊN CỘT THÀNH "Chon_GiaTri" CHO KHỚP VỚI HÀM TẠO BẢNG
+                    cmd.CommandText = "SELECT Chon_GiaTri FROM TuDong_XoaNhatKy WHERE ID = 1 LIMIT 1;";
+                    var result = await cmd.ExecuteScalarAsync();
+                    if (result != null && result != DBNull.Value) luaChon = result.ToString();
+                }
+
+                if (luaChon == "Không xóa")
+                {
+                    await Module_BaoTriCSDL.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);
+                    return;
+                }
+
+                int nguong = luaChon switch
+                {
+                    "1000 dòng xóa tự động" => 1000,
+                    "5000 dòng xóa tự động" => 5000,
+                    "10000 dòng xóa tự động" => 10000,
+                    _ => 0
+                };
+
+                if (nguong > 0)
+                {
+                    // Gọi hàm thực thi SQL trực tiếp, bỏ qua bước đếm dòng
+                    int daXoa = await Task.Run(() => ThucHienXoaVaGiuLai(nguong));
+                    _soDongDaXoaTuDong = daXoa;
+
+                    if (daXoa > 0)
+                    {
+                        Debug.WriteLine($"[TuDongXoa] Đã dọn dẹp {daXoa} dòng nhật ký cũ.");
+                    }
+                }
+
+                await Module_BaoTriCSDL.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);
+            }
+            catch (Exception ex) { Debug.WriteLine($"[TuDongXoa] Lỗi: {ex.Message}"); }
+        }
+        // Hàm lõi xử lý xóa gọn gàng bằng SQLite (Lấy đúng tên bảng NhatKyUngDung)
+        private int ThucHienXoaVaGiuLai(int soDongMuonGiu)
+        {
+            try
+            {
+                using var cn = new SqliteConnection($"Data Source={_csdl3Path};Pooling=True;");
+                cn.Open();
+
+                using var tran = cn.BeginTransaction();
                 using var cmd = cn.CreateCommand();
                 cmd.Transaction = tran;
 
-                // SỬA LỖI 3: Dùng đúng tên bảng NhatKyUngDung
+                // Câu lệnh "Thần thánh": Xóa tất cả, ngoại trừ [soDongMuonGiu] dòng mới nhất
                 cmd.CommandText = @"
-        DELETE FROM NhatKyUngDung
-        WHERE ID IN (
-            SELECT ID FROM NhatKyUngDung
-            ORDER BY ID ASC
-            LIMIT @limit
-        )";
-                cmd.Parameters.AddWithValue("@limit", soDongCanXoa);
+            DELETE FROM NhatKyUngDung
+            WHERE ID NOT IN (
+                SELECT ID FROM NhatKyUngDung
+                ORDER BY ID DESC
+                LIMIT @Nguong
+            );";
+                cmd.Parameters.AddWithValue("@Nguong", soDongMuonGiu);
 
                 int deleted = cmd.ExecuteNonQuery();
                 tran.Commit();
+
                 return deleted;
             }
-            catch
+            catch (Exception ex)
             {
-                tran.Rollback();
-                throw;
+                Debug.WriteLine($"[ThucHienXoaVaGiuLai] Lỗi: {ex.Message}");
+                return 0;
             }
-        }
-        private static int TinhSoDongCanXoa(int nguongToiDa)
-        {
-            int tongDong = DemSoDongNhatKy();
-            if (tongDong <= nguongToiDa) return 0;
-            return tongDong - nguongToiDa;
         }
         private void thongKeTaiKhoanDaTungSuDungToolStripMenuItem_Click(object sender, EventArgs e)
         {

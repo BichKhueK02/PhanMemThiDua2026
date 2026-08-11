@@ -56,7 +56,7 @@
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 14F));
-            tableLayoutPanel1.Size = new Size(544, 110);
+            tableLayoutPanel1.Size = new Size(539, 120);
             tableLayoutPanel1.TabIndex = 1;
             // 
             // tableLayoutPanel2
@@ -66,19 +66,19 @@
             tableLayoutPanel2.Controls.Add(kryptonButton_XoaDuLieuThangThongKe, 0, 1);
             tableLayoutPanel2.Controls.Add(tableLayoutPanel3, 0, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(103, 2);
+            tableLayoutPanel2.Location = new Point(102, 2);
             tableLayoutPanel2.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 2;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Size = new Size(438, 106);
+            tableLayoutPanel2.Size = new Size(434, 116);
             tableLayoutPanel2.TabIndex = 2;
             // 
             // kryptonButton_XoaDuLieuThangThongKe
             // 
             kryptonButton_XoaDuLieuThangThongKe.Anchor = AnchorStyles.None;
-            kryptonButton_XoaDuLieuThangThongKe.Location = new Point(154, 64);
+            kryptonButton_XoaDuLieuThangThongKe.Location = new Point(152, 72);
             kryptonButton_XoaDuLieuThangThongKe.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_XoaDuLieuThangThongKe.Name = "kryptonButton_XoaDuLieuThangThongKe";
             kryptonButton_XoaDuLieuThangThongKe.Size = new Size(130, 30);
@@ -102,7 +102,7 @@
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.Size = new Size(432, 49);
+            tableLayoutPanel3.Size = new Size(428, 54);
             tableLayoutPanel3.TabIndex = 4;
             // 
             // label1
@@ -111,7 +111,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.Red;
-            label1.Location = new Point(3, 16);
+            label1.Location = new Point(3, 18);
             label1.Name = "label1";
             label1.Size = new Size(78, 17);
             label1.TabIndex = 1;
@@ -123,20 +123,20 @@
             comboBox1_ChonThangCanXoaDuLieu.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_ChonThangCanXoaDuLieu.Font = new Font("Segoe UI", 9.792F);
             comboBox1_ChonThangCanXoaDuLieu.FormattingEnabled = true;
-            comboBox1_ChonThangCanXoaDuLieu.Location = new Point(131, 11);
+            comboBox1_ChonThangCanXoaDuLieu.Location = new Point(130, 14);
             comboBox1_ChonThangCanXoaDuLieu.Margin = new Padding(3, 2, 3, 2);
             comboBox1_ChonThangCanXoaDuLieu.Name = "comboBox1_ChonThangCanXoaDuLieu";
-            comboBox1_ChonThangCanXoaDuLieu.Size = new Size(298, 25);
+            comboBox1_ChonThangCanXoaDuLieu.Size = new Size(295, 25);
             comboBox1_ChonThangCanXoaDuLieu.TabIndex = 3;
             // 
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.None;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(11, 21);
+            pictureBox1.Location = new Point(6, 21);
             pictureBox1.Margin = new Padding(3, 2, 3, 2);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(78, 68);
+            pictureBox1.Size = new Size(86, 78);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 1;
             pictureBox1.TabStop = false;
@@ -145,7 +145,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(544, 110);
+            ClientSize = new Size(539, 120);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(3, 2, 3, 2);

@@ -1,8 +1,16 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Microsoft.VisualBasic.Devices; // 🌟 Thêm thư viện này để dùng ComputerInfo (An toàn 100% với Antivirus)
 
 namespace PhanMemThiDua2026
 {
@@ -11,31 +19,12 @@ namespace PhanMemThiDua2026
         // ================== BỘ NHỚ ĐỆM & TÀI NGUYÊN DÙNG CHUNG ==================
         private static readonly ToolTip _sharedToolTip = new ToolTip { AutoPopDelay = 10000, InitialDelay = 500, ReshowDelay = 100, ShowAlways = true };
         private static string _cachedCpuName = string.Empty;
-        // 🌟 KẾT NỐI KERNEL32: Đọc RAM siêu tốc, né hoàn toàn Antivirus / EDR
-        [StructLayout(LayoutKind.Sequential)] // ĐÃ SỬA: LayoutMode -> LayoutKind
-        private struct MEMORYSTATUSEX
+
+        // Đã xóa bỏ Struct MEMORYSTATUSEX và [DllImport("kernel32.dll")] để tránh bị EDR bắt nhầm
+
+        public static void CapNhatStatusCSDL(StatusStrip status, ToolStripStatusLabel label)
         {
-            public uint dwLength;
-            public uint dwMemoryLoad;
-            public ulong ullTotalPhys;
-            public ulong ullAvailPhys;
-            public ulong ullTotalPageFile;
-            public ulong ullAvailPageFile;
-            public ulong ullTotalVirtual;
-            public ulong ullAvailVirtual;
-            public ulong ullAvailExtendedVirtual;
-        }
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
-        public static void CapNhatStatusCSDL(
-       StatusStrip status,
-       ToolStripStatusLabel label)
-        {
-            if (status == null ||
-                label == null ||
-                status.IsDisposed ||
-                label.IsDisposed)
+            if (status == null || label == null || status.IsDisposed || label.IsDisposed)
             {
                 return;
             }
@@ -47,71 +36,46 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        status.BeginInvoke(new Action(() =>
-                            CapNhatStatusCSDL(status, label)));
+                        status.BeginInvoke(new Action(() => CapNhatStatusCSDL(status, label)));
                     }
-                    catch (ObjectDisposedException)
-                    {
-                    }
-                    catch (InvalidOperationException)
-                    {
-                    }
+                    catch (ObjectDisposedException) { }
+                    catch (InvalidOperationException) { }
 
                     return;
                 }
 
-                bool csdlSanSang =
-                    Module_DanduongGPS.KiemTraTrangThaiSanSangCuaHeThongCSDL();
+                bool csdlSanSang = Module_DanduongGPS.KiemTraTrangThaiSanSangCuaHeThongCSDL();
+                DateTime thoiGianDangNhap = SessionInfo.ThoiGianDangNhap;
 
-                DateTime thoiGianDangNhap =
-                    SessionInfo.ThoiGianDangNhap;
-
-                string thoiGianStr =
-                    thoiGianDangNhap == default
+                string thoiGianStr = thoiGianDangNhap == default
                     ? "(chưa đăng nhập)"
                     : $"Truy cập lúc {thoiGianDangNhap:hh:mm tt}, ngày {thoiGianDangNhap:dd/M/yyyy}";
 
                 string tenMay = Environment.MachineName;
                 string tenUser = Environment.UserName;
 
-                string hienThiNgan =
-                    csdlSanSang
+                string hienThiNgan = csdlSanSang
                     ? $"Đang kết nối CSDL | User: {tenUser} | {thoiGianStr}"
                     : $"Mất kết nối | User: {tenUser} | {thoiGianStr}";
 
-                string tooltipChiTiet =
-                    $"Máy tính: {tenMay}\n" +
-                    $"Tài khoản Windows: {tenUser}\n" +
-                    $"Phiên kết nối: {thoiGianStr}";
+                string tooltipChiTiet = $"Máy tính: {tenMay}\n" +
+                                        $"Tài khoản Windows: {tenUser}\n" +
+                                        $"Phiên kết nối: {thoiGianStr}";
 
-                status.BackColor =
-                    csdlSanSang
-                    ? Color.FromArgb(220, 248, 198)
-                    : Color.FromArgb(255, 224, 224);
-
+                status.BackColor = csdlSanSang ? Color.FromArgb(220, 248, 198) : Color.FromArgb(255, 224, 224);
                 label.Text = hienThiNgan;
+                label.ForeColor = csdlSanSang ? Color.DarkGreen : Color.DarkRed;
 
-                label.ForeColor =
-                    csdlSanSang
-                    ? Color.DarkGreen
-                    : Color.DarkRed;
-
-                _sharedToolTip?.SetToolTip(
-                    status,
-                    tooltipChiTiet);
+                _sharedToolTip?.SetToolTip(status, tooltipChiTiet);
             }
-            catch (ObjectDisposedException)
-            {
-            }
-            catch (InvalidOperationException)
-            {
-            }
+            catch (ObjectDisposedException) { }
+            catch (InvalidOperationException) { }
             catch (Exception ex)
             {
-                Debug.WriteLine(
-                    $"CapNhatStatusCSDL Error: {ex}");
+                Debug.WriteLine($"CapNhatStatusCSDL Error: {ex}");
             }
         }
+
         public static string LayUUIDMayTinh()
         {
             try
@@ -125,6 +89,7 @@ namespace PhanMemThiDua2026
             }
             catch { return $"SYS-{Environment.MachineName}"; }
         }
+
         public static void MoFormNhungVaoPanel(Form formHienTai)
         {
             Panel? panelContainer = formHienTai.Parent as Panel;
@@ -149,6 +114,7 @@ namespace PhanMemThiDua2026
             fTask.Show();
             fTask.BringToFront();
         }
+
         public static void NhungFormVaoTabPage(Control targetContainer)
         {
             if (targetContainer == null) return;
@@ -169,12 +135,12 @@ namespace PhanMemThiDua2026
             fTask.Show();
             fTask.BringToFront();
         }
+
         // ================== CÁC HÀM TRUY VẤN ==================
         private static string LayUngDungDocExcel()
         {
             try
             {
-                // Truy cập vào khóa định dạng đuôi .xlsx trong Registry
                 using (var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(".xlsx"))
                 {
                     if (key != null)
@@ -182,7 +148,6 @@ namespace PhanMemThiDua2026
                         string progId = key.GetValue("")?.ToString();
                         if (!string.IsNullOrEmpty(progId))
                         {
-                            // Phân tích ProgID để nhận diện các phần mềm phổ biến
                             if (progId.IndexOf("Excel", StringComparison.OrdinalIgnoreCase) >= 0)
                                 return "Microsoft Office - Microsoft Excel";
                             if (progId.IndexOf("WPS", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -190,7 +155,6 @@ namespace PhanMemThiDua2026
                             if (progId.IndexOf("opendocument.spreadsheet", StringComparison.OrdinalIgnoreCase) >= 0 || progId.IndexOf("LibreOffice", StringComparison.OrdinalIgnoreCase) >= 0)
                                 return "LibreOffice / OpenOffice";
 
-                            // Nếu là ứng dụng lạ, thử đọc tên hiển thị (Friendly Name) của nó
                             using (var progIdKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
                             {
                                 string appName = progIdKey?.GetValue("")?.ToString();
@@ -198,7 +162,7 @@ namespace PhanMemThiDua2026
                                     return appName;
                             }
 
-                            return progId; // Fallback: Trả về mã gốc nếu không xác định được tên
+                            return progId;
                         }
                     }
                 }
@@ -209,6 +173,7 @@ namespace PhanMemThiDua2026
                 return "Không thể xác định (Khóa quyền truy cập Registry)";
             }
         }
+
         private static string GetCpuName()
         {
             if (!string.IsNullOrWhiteSpace(_cachedCpuName))
@@ -225,25 +190,26 @@ namespace PhanMemThiDua2026
 
             return _cachedCpuName;
         }
+
         private static string LayDotNetRuntime()
         {
             try { return RuntimeInformation.FrameworkDescription; }
             catch { return ".NET Unknown"; }
         }
+
         private static string LayWindowsVersionChiTiet()
         {
             try
             {
-                // Dùng API an toàn thay vì đọc Registry tốn I/O
                 return RuntimeInformation.OSDescription;
             }
             catch { return Environment.OSVersion.ToString(); }
         }
+
         private static string LayTrangThaiUAC()
         {
             try
             {
-                // Kiểm tra bằng quyền hạn Thread thay vì đọc Registry Policies (Né Cảnh báo EDR)
                 using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
                 {
                     var principal = new System.Security.Principal.WindowsPrincipal(identity);
@@ -253,18 +219,20 @@ namespace PhanMemThiDua2026
             }
             catch { return "Không xác định"; }
         }
+
         // =========================================================================================
         // 🌟 CUSTOM CONTROL: Chống nháy (Flickering) An Toàn, không dùng Reflection
         // =========================================================================================
         private class SmoothPanel : Panel
         {
-           public SmoothPanel()
+            public SmoothPanel()
             {
                 this.DoubleBuffered = true;
                 this.ResizeRedraw = true;
                 this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
             }
         }
+
         private class SmoothListView : ListView
         {
             public SmoothListView()
@@ -273,13 +241,12 @@ namespace PhanMemThiDua2026
                 this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
             }
         }
+
         // =========================================================================================
         // 🚀 FORM NỘI BỘ (COMPACT WIDGET LAYOUT)
         // =========================================================================================
         private class Form_TaskManagerMini : Form
         {
-            // 🌟 CHUẨN KỸ SƯ: Sử dụng 'volatile' để đồng bộ hóa dữ liệu giữa Background Thread và UI Timer
-            // Đảm bảo không bao giờ bị hiện tượng hiển thị dữ liệu ảo (Stale Data)
             private volatile float _bgSysRamPercent = 0;
             private string _bgSysRamText = "0 / 0 GB";
             private volatile float _bgAppRamPercent = 0;
@@ -287,18 +254,14 @@ namespace PhanMemThiDua2026
 
             private CancellationTokenSource? _monitorCts;
 
-
             private SmoothPanel pnlSysRamBar, pnlAppRamBar;
             private Label lblSysRamPercent, lblAppRamPercent;
             private Label lblSysRamDetail, lblAppRamDetail;
             private SmoothListView lvInfo;
             private System.Windows.Forms.Timer updateTimer;
 
-   
-
             public Form_TaskManagerMini()
             {
-                // ĐÃ KHẮC PHỤC: Bỏ InitializeComponent();
                 this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
 
                 InitializeModernUI_SplitLayout();
@@ -327,8 +290,6 @@ namespace PhanMemThiDua2026
                 this.MinimumSize = new Size(950, 550);
                 this.StartPosition = FormStartPosition.CenterScreen;
                 this.BackColor = Color.FromArgb(245, 246, 250);
-
-                // ĐÃ KHẮC PHỤC: Explicit định danh Font để tránh xung đột SixLabors
                 this.Font = new System.Drawing.Font("Segoe UI", 10F);
                 this.ShowIcon = false;
 
@@ -381,7 +342,7 @@ namespace PhanMemThiDua2026
                 };
 
                 lvInfo.Columns.Add("Thành phần", 260);
-                lvInfo.Columns.Add("Thông tin chi tiết", 500);
+                lvInfo.Columns.Add("Thông chi chi tiết", 500);
 
                 lvInfo.Resize += (s, e) =>
                 {
@@ -439,11 +400,10 @@ namespace PhanMemThiDua2026
                 this.ResumeLayout(false);
             }
 
-              private async Task LoadListViewDataAsync()
+            private async Task LoadListViewDataAsync()
             {
                 lvInfo.Items.Clear();
 
-                // 🌟 BƯỚC 1: Xử lý các tác vụ truy vấn dữ liệu nặng trên Background Thread
                 var sysData = await Task.Run(() =>
                 {
                     string dinhDangVung = System.Globalization.CultureInfo.CurrentCulture.DisplayName;
@@ -462,10 +422,38 @@ namespace PhanMemThiDua2026
                     }
                     catch { }
 
+                    // ======================= THÊM CODE XỬ LÝ WINDOWS VERSION Ở ĐÂY =======================
+                    string rawWinVer = LayWindowsVersionChiTiet();
+
+                    if (Environment.OSVersion.Version.Build >= 22000 && rawWinVer.Contains("Windows 10"))
+                    {
+                        rawWinVer = rawWinVer.Replace("Windows 10", "Windows 11");
+                    }
+
+                    string formattedWinVer = rawWinVer;
+                    var match = System.Text.RegularExpressions.Regex.Match(rawWinVer, @"(Windows\s+(?:7|8\.1|8|10|11|Server))", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                    if (match.Success)
+                    {
+                        string mainOs = match.Groups[1].Value;
+                        string details = rawWinVer.Replace(mainOs, "").Trim();
+
+                        details = details.Replace(".0.", " Build ");
+                        details = System.Text.RegularExpressions.Regex.Replace(details, @"\s+", " ");
+
+                        if (details.StartsWith("."))
+                        {
+                            details = details.Substring(1).Trim();
+                        }
+
+                        formattedWinVer = string.IsNullOrWhiteSpace(details) ? mainOs : $"{mainOs} ({details})";
+                    }
+                    // ====================================================================================
+
                     return new
                     {
                         DinhDangVung = $"{dinhDangVung} ({dinhDangNgay})",
-                        WindowsVersion = LayWindowsVersionChiTiet(),
+                        WindowsVersion = formattedWinVer,
                         Is64BitOS = Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit",
                         Is64BitProc = Environment.Is64BitProcess ? "64-bit (Tối ưu)" : "32-bit",
                         UAC = LayTrangThaiUAC(),
@@ -475,18 +463,14 @@ namespace PhanMemThiDua2026
                         RootDrive = rootDrive,
                         ThongTinOChuaApp = thongTinOChuaApp,
                         DotNetVer = LayDotNetRuntime(),
-
-                        // ⭐ GỌI HÀM LẤY TÊN PHẦN MỀM ĐỌC EXCEL TẠI ĐÂY
                         AppDocExcel = LayUngDungDocExcel()
                     };
                 });
 
-                // 🌟 BƯỚC 2: Thao tác giao diện (Control, Font, Màu) độc quyền trên luồng UI
                 string doPhanGiai = $"{Screen.PrimaryScreen.Bounds.Width} x {Screen.PrimaryScreen.Bounds.Height}";
                 int dpiX = 96;
                 using (Graphics g = Graphics.FromHwnd(IntPtr.Zero)) { dpiX = (int)g.DpiX; }
 
-                // --- TÍNH TOÁN VÀ KIỂM TRA TỶ LỆ THU PHÓNG (SCALING) ---
                 int scalePercent = (int)Math.Round((dpiX / 96.0) * 100);
                 string scaling = $"{scalePercent}%";
                 bool isScalingHigh = scalePercent > 125;
@@ -498,11 +482,10 @@ namespace PhanMemThiDua2026
 
                 Font boldFont = new System.Drawing.Font(lvInfo.Font, System.Drawing.FontStyle.Bold);
 
-                // Tạo item Scaling riêng để tô màu đỏ khi tỷ lệ lớn hơn 125%
                 ListViewItem itemScaling = new ListViewItem(new[] { "Tỷ lệ thu phóng (Scaling)", scaling });
                 if (isScalingHigh)
                 {
-                    itemScaling.ForeColor = Color.FromArgb(214, 48, 49); // Màu đỏ cảnh báo
+                    itemScaling.ForeColor = Color.FromArgb(214, 48, 49);
                 }
 
                 var items = new[]
@@ -529,12 +512,12 @@ namespace PhanMemThiDua2026
                     new ListViewItem(new[] { "Môi trường triển khai", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
                     new ListViewItem(new[] { "Môi trường .NET", sysData.DotNetVer + " (Phát hành bởi Microsoft)" }),
                     new ListViewItem(new[] { "Phần mềm hỗ trợ", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
-                    // ⭐ HIỂN THỊ LÊN LƯỚI DANH SÁCH TẠI ĐÂY
                     new ListViewItem(new[] { "Ứng dụng xử lý Excel", sysData.AppDocExcel })
                 };
 
                 lvInfo.Items.AddRange(items);
             }
+
             private void DrawFlatProgressBar(Graphics g, Rectangle bounds, float percent, bool isAppMem)
             {
                 g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -574,37 +557,33 @@ namespace PhanMemThiDua2026
                 path.CloseFigure();
                 return path;
             }
+
             private async Task HardwareSafePollingLoop(CancellationToken token)
             {
-                // 🌟 CHUẨN KỸ SƯ: Khởi tạo đối tượng Process ĐÚNG 1 LẦN duy nhất bên ngoài vòng lặp.
-                // Việc này triệt tiêu hoàn toàn hiện tượng Rò rỉ System Handle (Handle Leak) của HĐH.
                 using (Process currentAppProcess = Process.GetCurrentProcess())
                 {
+                    // 🌟 SỬ DỤNG LỚP THUẦN .NET THAY VÌ KERNEL32 API
+                    var computerInfo = new ComputerInfo();
+
                     while (!token.IsCancellationRequested)
                     {
                         try
                         {
                             // --- Đo lường Tổng RAM Hệ thống ---
-                            MEMORYSTATUSEX memStatus = new MEMORYSTATUSEX();
-                            memStatus.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+                            double totalRamGB = computerInfo.TotalPhysicalMemory / 1073741824.0;
+                            double availableRamGB = computerInfo.AvailablePhysicalMemory / 1073741824.0;
+                            double usedRamGB = totalRamGB - availableRamGB;
 
-                            if (GlobalMemoryStatusEx(ref memStatus))
-                            {
-                                double totalRamGB = memStatus.ullTotalPhys / 1073741824.0;
-                                double availableRamGB = memStatus.ullAvailPhys / 1073741824.0;
-                                double usedRamGB = totalRamGB - availableRamGB;
+                            _bgSysRamPercent = (float)((usedRamGB / totalRamGB) * 100);
+                            _bgSysRamText = $"{usedRamGB:N1} / {totalRamGB:N1} GB";
 
-                                _bgSysRamPercent = (float)((usedRamGB / totalRamGB) * 100);
-                                _bgSysRamText = $"{usedRamGB:N1} / {totalRamGB:N1} GB";
-                            }
-
-                            // --- Đo lường RAM App (Sử dụng Refresh thay vì tạo mới) ---
+                            // --- Đo lường RAM App ---
                             currentAppProcess.Refresh();
                             double appRamMB = currentAppProcess.WorkingSet64 / 1048576.0;
                             _bgAppRamPercent = (float)Math.Min(appRamMB / 1024.0 * 100, 100);
                             _bgAppRamText = $"{appRamMB:N1} MB";
                         }
-                        catch { /* Bỏ qua lỗi truy xuất nhất thời để không sập Polling */ }
+                        catch { /* Bỏ qua lỗi truy xuất nhất thời */ }
 
                         try
                         {
@@ -614,6 +593,7 @@ namespace PhanMemThiDua2026
                     }
                 }
             }
+
             private void UpdateTimer_Tick(object sender, EventArgs e)
             {
                 lblSysRamPercent.Text = $"{(int)_bgSysRamPercent}%";
@@ -626,6 +606,7 @@ namespace PhanMemThiDua2026
                 pnlSysRamBar.Invalidate();
                 pnlAppRamBar.Invalidate();
             }
+
             private void BtnExport_Click(object sender, EventArgs e)
             {
                 try
@@ -662,11 +643,11 @@ namespace PhanMemThiDua2026
                     MessageBox.Show($"Không thể xuất báo cáo.\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+
             protected override void OnFormClosing(FormClosingEventArgs e)
             {
                 try
                 {
-                    // Hủy vòng lặp một cách an toàn
                     if (_monitorCts != null && !_monitorCts.IsCancellationRequested)
                     {
                         _monitorCts.Cancel();
@@ -686,4 +667,3 @@ namespace PhanMemThiDua2026
         }
     }
 }
-

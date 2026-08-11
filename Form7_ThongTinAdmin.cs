@@ -56,7 +56,8 @@ namespace PhanMemThiDua2026
         private void HienThiThongTinChuKySo()
         {
             string exePath = Application.ExecutablePath;
-            textBox_TenPhanMem.Text = Application.ProductName;
+            textBox_TenPhanMem.Text = Module_PhienBan.TenPhanMem;
+                //Application.ProductName;
             textBox_PhienBan.Text = Module_PhienBan.SoftwareVersion;
             SetTrangThai(
                 "Unknown",
