@@ -2,7 +2,7 @@ HƯỚNG DẪN
 Sử dụng phần mềm Thi đua năm 2026
 (Tùy phiên bản nhưng cơ bản cấu trúc giống nhau)
 GIỚI THIỆU CHUNG
-Phần mềm Thi đua năm 2026 mã nguồn đóng, được xây dựng nhằm hỗ trợ các đơn vị trong công tác quản lý, tổng hợp, phân loại và đánh giá kết quả thi đua của cán bộ, chiến sĩ theo đúng quy định.
+Phần mềm Thi đua năm 2026 mã nguồn mở, được xây dựng nhằm hỗ trợ các đơn vị trong công tác quản lý, tổng hợp, phân loại và đánh giá kết quả thi đua của cán bộ, chiến sĩ theo đúng quy định.
 
 Phần mềm cho phép:
 Quản lý dữ liệu thi đua tập trung, an toàn.
