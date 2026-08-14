@@ -63,28 +63,21 @@ namespace PhanMemThiDua2026
             {
                 textBox_TimKiemTheoTen.TextChanged += TextBox_TimKiemTheoTen_TextChanged;
             }
-
             if (comboBox_TimKiemDonVi != null)
                 comboBox_TimKiemDonVi.SelectedIndexChanged += BoLoc_ValueChanged;
-
             if (comboBox_TinhTrangCongTac != null)
                 comboBox_TinhTrangCongTac.SelectedIndexChanged += BoLoc_ValueChanged;
-
             if (comboBox1_DonViKhenThuong != null)
                 comboBox1_DonViKhenThuong.SelectedIndexChanged += BoLoc_ValueChanged;
-
             if (kryptonDataGridView1_DanhSachCBCS != null)
             {
                 kryptonDataGridView1_DanhSachCBCS.CellClick += KryptonDataGridView1_DanhSachCBCS_CellClick;
                 kryptonDataGridView1_DanhSachCBCS.RowPostPaint += KryptonDataGridView1_DanhSachCBCS_RowPostPaint;
                 kryptonDataGridView1_DanhSachCBCS.CellDoubleClick += KryptonDataGridView1_DanhSachCBCS_CellDoubleClick;
-
                 // ⭐ THÊM MỚI 1: Gán ContextMenuStrip vào DataGridView
                 kryptonDataGridView1_DanhSachCBCS.ContextMenuStrip = contextMenuStrip1;
-
                 // ⭐ THÊM MỚI 2: Đăng ký sự kiện MouseDown để tự động chọn dòng khi Click chuột phải
                 kryptonDataGridView1_DanhSachCBCS.MouseDown += KryptonDataGridView1_DanhSachCBCS_MouseDown;
-
                 // 🔥 THÊM SỰ KIỆN VẼ CELL Ở ĐÂY ĐỂ HIỂN THỊ ICON
                 kryptonDataGridView1_DanhSachCBCS.CellPainting -= KryptonDataGridView1_DanhSachCBCS_CellPainting;
                 kryptonDataGridView1_DanhSachCBCS.CellPainting += KryptonDataGridView1_DanhSachCBCS_CellPainting;
@@ -119,7 +112,94 @@ namespace PhanMemThiDua2026
             KhoaCacTextBox();
             // Gọi hàm load dữ liệu ở đây
             await ReloadDuLieu();
+            InitToolTips();
         }
+        private void InitToolTips()
+        {
+            // ============================================================
+            // KHỞI TẠO TOOLTIP - ỔN ĐỊNH CHO HỆ THỐNG NỘI BỘ
+            // ============================================================
+
+            // 1. Kiểm tra ToolTip
+            if (toolTip1 == null)
+                return;
+
+            try
+            {
+                // 2. Cấu hình chung
+                toolTip1.IsBalloon = true;
+                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipIcon = ToolTipIcon.Info;
+
+                // Thời gian chờ trước khi hiển thị
+                toolTip1.InitialDelay = 300;
+
+                // Thời gian Tooltip hiển thị
+                toolTip1.AutoPopDelay = 2500;
+
+                // Thời gian chờ khi chuyển sang Control khác
+                toolTip1.ReshowDelay = 100;
+
+                // Cho phép hiển thị ngay cả khi Form chưa active
+                toolTip1.ShowAlways = true;
+
+                // 3. Gán Tooltip cho từng Control
+                GanToolTipAnToan(
+                    kryptonButton1_QuanLyKhenThuongTapThe,
+                    "Mở quản lý danh sách khen thưởng tập thể");
+
+                GanToolTipAnToan(
+                    kryptonButton_LamMoiCacOTimKiem,
+                    "Làm mới (xóa) bộ lọc tìm kiếm hiện tại");
+
+                GanToolTipAnToan(
+                    kryptonButton_GoiFromChiTietKhenThuong,
+                    "Xem chi tiết thông tin khen thưởng");
+            }
+            catch (ObjectDisposedException)
+            {
+                // ToolTip hoặc Control đã được giải phóng trong lúc thao tác.
+                // Không để chức năng Tooltip ảnh hưởng đến hoạt động chính.
+            }
+            catch (InvalidOperationException)
+            {
+                // Trạng thái WinForms không phù hợp để cấu hình Tooltip.
+                // Không để chức năng Tooltip làm Form dừng hoạt động.
+            }
+        }
+        private void GanToolTipAnToan(Control control, string noiDung)
+        {
+            // 1. Control không tồn tại
+            if (control == null)
+                return;
+
+            // 2. Control đã được giải phóng hoặc đang giải phóng
+            if (control.IsDisposed || control.Disposing)
+                return;
+
+            // 3. Nội dung Tooltip không hợp lệ
+            if (string.IsNullOrWhiteSpace(noiDung))
+                return;
+
+            // 4. ToolTip chưa được khởi tạo
+            if (toolTip1 == null)
+                return;
+
+            try
+            {
+                // 5. Gán Tooltip
+                toolTip1.SetToolTip(control, noiDung);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Control đã bị giải phóng đúng thời điểm thao tác.
+            }
+            catch (InvalidOperationException)
+            {
+                // Control đang ở trạng thái không phù hợp.
+            }
+        }
+
         // Thiết lập chế độ Chỉ Đọc (Không cho phép sửa chữa)
         private void KhoaCacTextBox()
         {
@@ -159,7 +239,6 @@ namespace PhanMemThiDua2026
                 {
                     return true;
                 }
-
                 // 2. PHÍM TẮT ĐẶC THÙ RIÊNG CỦA FORM NÀY
                 Keys key = keyData & Keys.KeyCode;
                 Keys modifier = keyData & Keys.Modifiers;
@@ -554,6 +633,7 @@ namespace PhanMemThiDua2026
             }
         }
         private Font _fontBold;
+
         private void DinhDangDataGridHienDai()
         {
             var grid = kryptonDataGridView1_DanhSachCBCS;
@@ -571,7 +651,6 @@ namespace PhanMemThiDua2026
 
 
                 // ⭐ BỘ MÀU SẮC PHẲNG HIỆN ĐẠI (OCEAN BLUE THEME)
-
                 grid.EnableHeadersVisualStyles = false;
 
                 // Nền tổng thể lưới và nền từng ô: Trắng tinh khôi
@@ -597,7 +676,6 @@ namespace PhanMemThiDua2026
 
 
                 // ⭐ ĐỊNH DẠNG TRẠNG THÁI KHI NGƯỜI DÙNG CLICK CHỌN DÒNG (SELECTED)
-
                 // Nền khi chọn: Xanh lam chuyển sang Alice Blue dịu mát
                 grid.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
                 grid.StateSelected.DataCell.Back.Color2 = Color.FromArgb(232, 244, 253);
@@ -631,16 +709,18 @@ namespace PhanMemThiDua2026
                 if (grid.Columns.Count > 0) grid.Columns.Clear();
 
                 // 5. TẠO CỘT THỦ CÔNG VÀ PHÂN BỔ THAM SỐ
-                // ⭐ ĐẠ THAY ĐỔI: Chuyển CanLe của cột 'DonVi' sang MiddleCenter để căn giữa
                 var cauHinhCot = new[]
                 {
-            (Ten: "HoVaTen", TieuDe: "Họ và tên", Rong: 220, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleLeft, InDam: false, MauChu: Color.Empty),
-            (Ten: "SoHieu", TieuDe: "Số hiệu", Rong: 100, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: false, MauChu: Color.Empty),
-            (Ten: "DonVi", TieuDe: "Đơn vị", Rong: 150, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: false, MauChu: Color.Empty),
-            (Ten: "TinhTrang", TieuDe: "Tình trạng", Rong: 140, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: false, MauChu: Color.Empty),
-            (Ten: "SoLuong_Khen", TieuDe: "Tổng số khen thưởng", Rong: 150, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: true, MauChu: Color.FromArgb(0, 102, 204)), // Đồng bộ chữ số màu xanh nước biển
-            (Ten: "GhiChu_DanhSach", TieuDe: "Ghi chú", Rong: 200, Fill: DataGridViewAutoSizeColumnMode.Fill, CanLe: DataGridViewContentAlignment.MiddleLeft, InDam: false, MauChu: Color.DarkSlateGray)
-        };
+                    // Đã nới rộng các cột ra thêm một tí theo yêu cầu
+                    (Ten: "HoVaTen", TieuDe: "Họ và tên", Rong: 350, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleLeft, InDam: false, MauChu: Color.Empty),
+                    (Ten: "SoHieu", TieuDe: "Số hiệu", Rong: 120, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: false, MauChu: Color.Empty),
+                    (Ten: "DonVi", TieuDe: "Đơn vị", Rong: 180, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: false, MauChu: Color.Empty),
+                    (Ten: "TinhTrang", TieuDe: "Tình trạng", Rong: 160, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: false, MauChu: Color.Empty),
+                    (Ten: "SoLuong_Khen", TieuDe: "Tổng số khen thưởng", Rong: 180, Fill: DataGridViewAutoSizeColumnMode.None, CanLe: DataGridViewContentAlignment.MiddleCenter, InDam: true, MauChu: Color.FromArgb(0, 102, 204)), 
+                    
+                    // Ghi chú bị bóp bé lại ở mức 120px (nhưng vẫn có chế độ Fill để chiếm trọn phần viền lề thừa)
+                    (Ten: "GhiChu_DanhSach", TieuDe: "Ghi chú", Rong: 120, Fill: DataGridViewAutoSizeColumnMode.Fill, CanLe: DataGridViewContentAlignment.MiddleLeft, InDam: false, MauChu: Color.DarkSlateGray)
+                };
 
                 foreach (var cot in cauHinhCot)
                 {
@@ -651,6 +731,12 @@ namespace PhanMemThiDua2026
                         Width = cot.Rong,
                         AutoSizeMode = cot.Fill
                     };
+
+                    // THÊM CHỐT CHẶN AN TOÀN CHỐNG ÉP BẸP CỘT
+                    if (cot.Fill == DataGridViewAutoSizeColumnMode.Fill)
+                    {
+                        col.MinimumWidth = cot.Rong;
+                    }
 
                     col.DefaultCellStyle.Alignment = cot.CanLe;
 
@@ -824,7 +910,20 @@ namespace PhanMemThiDua2026
                 if (toolStripStatusLabel1 != null) toolStripStatusLabel1.Text = $"Tổng cộng: {tongCong} đồng chí";
                 if (toolStripStatusLabel2 != null) toolStripStatusLabel2.Text = $"Đang công tác: {dangCongTac} đồng chí";
                 if (toolStripStatusLabel3 != null) toolStripStatusLabel3.Text = $"Chuyển công tác: {chuyenCongTac} đồng chí";
-                if (toolStripStatusLabel4 != null) toolStripStatusLabel4.Text = $"Tổng số CBCS đã được khen thưởng: {soNguoiDuocKhen} đồng chí";
+
+                // KIỂM TRA VÀ ẨN/HIỆN LABEL KHEN THƯỞNG
+                if (toolStripStatusLabel4 != null)
+                {
+                    if (soNguoiDuocKhen > 0)
+                    {
+                        toolStripStatusLabel4.Text = $"Tổng số CBCS đã được khen thưởng: {soNguoiDuocKhen} đồng chí";
+                        toolStripStatusLabel4.Visible = true; // Hiện lên nếu có người được khen
+                    }
+                    else
+                    {
+                        toolStripStatusLabel4.Visible = false; // Ẩn đi nếu bằng 0
+                    }
+                }
             }
         }
         private void CauHinhStatusStrip()
@@ -1254,7 +1353,7 @@ namespace PhanMemThiDua2026
                 {
                     Title = "Lưu báo cáo thống kê",
                     Filter = "Excel Workbook (*.xlsx)|*.xlsx|Text File (*.txt)|*.txt",
-                    FileName = $"ThongKe_DonVi_Khen_{DateTime.Now:ddMMyyyy_HHmm}"
+                    FileName = $"ThongKe_DonViKhenThuong_{DateTime.Now:ddMMyyyy_HHmm}"
                 };
 
                 if (sfd.ShowDialog() != DialogResult.OK) return;
@@ -1581,15 +1680,12 @@ namespace PhanMemThiDua2026
                 try
                 {
                     Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin",
-                        "XÓA SẠCH DỮ LIỆU KHEN THƯỞNG",
+                        "Xóa sạch dữ liệu khen thưởng",
                         $"Xóa {soDongXoa_ThongKe} dòng Thống kê & {soDongXoa_ChiTiet} dòng Chi tiết lúc {DateTime.Now:HH:mm:ss}");
                 }
                 catch { }
 
-                // 6. LÀM MỚI GIAO DIỆN
-                // Tìm đoạn: 
-                // if (dtDanhSachHienThi != null) dtDanhSachHienThi.Clear();
-                // THAY THẾ BẰNG:
+                // 6. LÀM MỚI GIAO DIỆN (YÊU MÈO CAM)
 
                 if (_danhSachGoc != null) _danhSachGoc.Clear();
                 if (_danhSachHienThi != null) _danhSachHienThi.Clear();
@@ -2066,58 +2162,254 @@ namespace PhanMemThiDua2026
             wb.SaveAs(filePath);
         }
 
-        private void kryptonButton1_QuanLyKhenThuongTapThe_Click(object sender, EventArgs e)
+        private async void kryptonButton1_QuanLyKhenThuongTapThe_Click(object sender, EventArgs e)
         {
-            // 1. Tìm Form cha (Form2_FormCha) đang hoạt động trên RAM
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null)
+            // 1. Tìm Form cha đang hoạt động
+            var formCha = Application.OpenForms
+                .OfType<Form2_FormCha>()
+                .FirstOrDefault();
+
+            if (formCha == null || formCha.IsDisposed)
             {
-                MessageBox.Show("Lỗi: Không tìm thấy giao diện chính (Form2_FormCha).", "Hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Không tìm thấy giao diện chính (Form2_FormCha).\n\nVui lòng kiểm tra lại trạng thái của phần mềm.",
+                    "Hệ thống",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return;
             }
 
-            // 2. Tìm bộ khung chứa các giao diện con (PanelContainer)
-            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-            if (panel == null)
+            // 2. Tìm PanelContainer
+            var panel = formCha.Controls
+                .Find("PanelContainer", true)
+                .FirstOrDefault() as Panel;
+
+            if (panel == null || panel.IsDisposed)
             {
-                MessageBox.Show("Lỗi: Không tìm thấy vùng hiển thị (PanelContainer).", "Hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Không tìm thấy vùng hiển thị (PanelContainer).\n\nVui lòng kiểm tra lại giao diện chính.",
+                    "Hệ thống",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
                 return;
             }
 
-            // 3. Ẩn tất cả các Form hiện đang nằm trong Panel để nhường chỗ cho Form 49
-            foreach (Control ctl in panel.Controls)
+            try
             {
-                if (ctl is Form frm)
+                // 3. Tìm Form49 đã tồn tại trong PanelContainer
+                var form49 = panel.Controls
+                    .OfType<Form49_QuanLyKhenThuongTapThe>()
+                    .FirstOrDefault();
+
+                // 4. Nếu Form49 chưa tồn tại -> tạo mới đúng một lần
+                if (form49 == null || form49.IsDisposed)
                 {
-                    frm.Hide();
+                    form49 = new Form49_QuanLyKhenThuongTapThe
+                    {
+                        TopLevel = false,
+                        FormBorderStyle = FormBorderStyle.None,
+                        Dock = DockStyle.Fill
+                    };
+
+                    // 5. Đưa Form49 vào PanelContainer
+                    panel.Controls.Add(form49);
+
+                    // Đưa Form49 lên trước khi hiển thị
+                    form49.BringToFront();
+
+                    // Hiển thị Form lần đầu
+                    form49.Show();
                 }
-            }
-
-            // 4. Tìm Form 49 trong RAM (trong PanelContainer)
-            var form49 = panel.Controls.OfType<Form49_QuanLyThiDuaTapThe>().FirstOrDefault();
-
-            if (form49 == null)
-            {
-                // 4a. Nếu chưa có -> Khởi tạo mới, cấu hình ẩn viền và nhúng thẳng vào Panel
-                form49 = new Form49_QuanLyThiDuaTapThe
+                else
                 {
-                    TopLevel = false,                       // Bắt buộc: Biến Form thành một Control
-                    FormBorderStyle = FormBorderStyle.None, // Xóa bỏ thanh tiêu đề có nút X của Form
-                    Dock = DockStyle.Fill                   // Phủ kín toàn bộ không gian của Panel
+                    // 6. Nếu Form49 đã tồn tại -> tái sử dụng
+                    form49.BringToFront();
+
+                    if (!form49.Visible)
+                    {
+                        form49.Show();
+                    }
+
+                    // 7. Làm mới dữ liệu sau khi tái sử dụng Form
+                    form49.ReloadForm49();
+                }
+
+                // 8. Ẩn các Form con khác trong PanelContainer
+                foreach (Control control in panel.Controls)
+                {
+                    if (control is Form childForm &&
+                        childForm != form49 &&
+                        !childForm.IsDisposed)
+                    {
+                        childForm.Hide();
+                    }
+                }
+                // 9. Đảm bảo Form49 luôn ở lớp trên cùng
+                form49.Show();
+                form49.BringToFront();
+                string tieuDeForm = "Trang Quản lý khen thưởng tập thể năm " +
+                            Module_NamHeThong.LayNamHeThong();
+                // 10. Cập nhật tiêu đề Form cha
+                formCha.CapNhatTieuDe(tieuDeForm);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Form hoặc Control đã bị giải phóng trong lúc chuyển giao diện.
+                // Không để lỗi này làm sập toàn bộ phần mềm.
+                return;
+            }
+            catch (InvalidOperationException ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[Lỗi chuyển Form49 - InvalidOperationException]: {ex}");
+
+                MessageBox.Show(
+                    "Không thể mở trang quản lý khen thưởng tập thể.\n\n" +
+                    "Vui lòng thử lại.",
+                    "Lỗi giao diện",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[Lỗi chuyển Form49]: {ex}");
+
+                MessageBox.Show(
+                    "Đã xảy ra lỗi khi mở trang quản lý khen thưởng tập thể.\n\n" +
+                    $"Chi tiết: {ex.Message}",
+                    "Lỗi hệ thống",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private void toolStripMenuItem_QuanLyKhenThuongNamCu_Click(object sender, EventArgs e)
+        {
+            // 1. Tìm Form cha (Form2_FormCha) đang chạy để tương tác với PanelContainer
+            var formCha = Application.OpenForms
+                .OfType<Form2_FormCha>()
+                .FirstOrDefault();
+            if (formCha == null) return;
+
+            // 2. Kiểm tra xem Form46 đã được khởi tạo và tồn tại trong bộ nhớ RAM chưa
+            var f50 = Application.OpenForms
+                .OfType<Form50_QuanLyKhenThuongNamCu>()
+                .FirstOrDefault();
+
+            if (f50 == null)
+            {
+                // 👉 TRƯỜNG HỢP 1: CHƯA TỒN TẠI -> Khởi tạo mới hoàn toàn
+                f50 = new Form50_QuanLyKhenThuongNamCu
+                {
+                    Text = "Thống kê khen thưởng năm cũ",
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
                 };
 
-                // Gắn Form 49 vào Panel
-                panel.Controls.Add(form49);
+                // Tìm vùng chứa PanelContainer trên Form cha
+                var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
+                if (panel == null) return;
+
+                // Nạp Form50 vào panel và đẩy lên bề mặt hiển thị
+                panel.Controls.Add(f50);
+                f50.Show();
+                f50.BringToFront();
+
+                var form15 = this;
+                f50.FormClosed += (s, ev) =>
+                {
+                    if (form15 != null && !form15.IsDisposed)
+                    {
+                        form15.Dock = DockStyle.Fill;
+                        form15.Show();
+                        form15.BringToFront();
+                        var fChaCheck = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+                        if (fChaCheck != null)
+                        {
+                            int namHienTai = Module_NamHeThong.LayNamHeThong();
+                            fChaCheck.CapNhatTieuDe($"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {namHienTai}");
+                        }
+                    }
+                };
+
+                // ⭐ SỬA Ở ĐÂY: Truyền động tên Text của f50 thay vì fix cứng
+                formCha.CapNhatTieuDe(f50.Text);
             }
             else
             {
-                // 4b. Nếu Form 49 đã tồn tại trong RAM -> Tái sử dụng và làm mới dữ liệu
-                form49.ReloadForm49();
+                // 👉 TRƯỜNG HỢP 2: ĐÃ TỒN TẠI TRONG RAM
+
+                f50.BringToFront();
+
+                // ⭐ SỬA Ở ĐÂY: Truyền động tên Text của f50 thay vì fix cứng
+                formCha.CapNhatTieuDe(f50.Text);
+            }
+        }
+
+        private async void toolStripMenuItem_LuuKetQuaThiDuaTheoNam_Click(object sender, EventArgs e)
+        {
+            // 1. XÁC MINH QUYỀN ADMIN
+            DialogResult kq;
+            using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
+            {
+                frm.TopMost = true;
+                frm.StartPosition = FormStartPosition.CenterScreen;
+                kq = frm.ShowDialog(this);
             }
 
-            // 5. Kích hoạt hiển thị và đưa Form 49 lên lớp trên cùng
-            form49.Show();
-            form49.BringToFront();
+            if (kq != DialogResult.OK) return;
+
+            // 2. KHÓA MENU CHỐNG SPAM CLICK
+            var menu = toolStripMenuItem_LuuKetQuaThiDuaTheoNam;
+            string textGoc = menu.Text;
+
+            try
+            {
+                menu.Enabled = false;
+                menu.Text = "Đang lưu trữ...";
+                Cursor.Current = Cursors.WaitCursor;
+
+                // 3. THỰC HIỆN LƯU TRỮ TRÊN LUỒNG NGẦM
+                string duongDan = await Task.Run(Module_HoTroLuuDataTheoNamCu.LuuTruDuLieuKhenThuongToanDienNam);
+
+                // [QUAN TRỌNG]: Kiểm tra ngay lập tức nếu người dùng bấm No hoặc đang ở bản Tân binh
+                if (string.IsNullOrEmpty(duongDan))
+                {
+                    return; // Thoát luồng ngay lập tức, không báo thành công, nhường chỗ cho khối finally chạy
+                }
+
+                // 4. CẬP NHẬT GIAO DIỆN KHI THÀNH CÔNG
+                var f50Check = Application.OpenForms.OfType<Form50_QuanLyKhenThuongNamCu>().FirstOrDefault();
+                if (f50Check != null && !f50Check.IsDisposed)
+                {
+                    f50Check.LoadDanhSachFileLichSu();
+                }
+
+                MessageBox.Show(
+                    $"Đã sao lưu toàn bộ dữ liệu Khen thưởng (Cá nhân & Tập thể) thành công sang tệp lịch sử.\n\n{duongDan}",
+                    "Hoàn tất sao lưu",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Không thể lưu trữ dữ liệu",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Nhả khóa UI an toàn trong mọi trường hợp (Thành công, Lỗi, hay Bấm No từ chối)
+                menu.Enabled = true;
+                menu.Text = textGoc;
+                Cursor.Current = Cursors.Default;
+            }
         }
     }
 }

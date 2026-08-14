@@ -49,7 +49,7 @@ namespace PhanMemThiDua2026
             // 
             PictureBox1.Anchor = AnchorStyles.None;
             PictureBox1.Image = (Image)resources.GetObject("PictureBox1.Image");
-            PictureBox1.Location = new Point(9, 33);
+            PictureBox1.Location = new Point(9, 47);
             PictureBox1.Name = "PictureBox1";
             PictureBox1.Size = new Size(137, 124);
             PictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -62,7 +62,7 @@ namespace PhanMemThiDua2026
             check_HienMatKhau.AutoSize = true;
             check_HienMatKhau.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             check_HienMatKhau.ForeColor = Color.Red;
-            check_HienMatKhau.Location = new Point(170, 111);
+            check_HienMatKhau.Location = new Point(170, 130);
             check_HienMatKhau.Margin = new Padding(2);
             check_HienMatKhau.Name = "check_HienMatKhau";
             check_HienMatKhau.Size = new Size(121, 23);
@@ -73,7 +73,7 @@ namespace PhanMemThiDua2026
             // text_MatKhau
             // 
             text_MatKhau.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            text_MatKhau.Location = new Point(154, 61);
+            text_MatKhau.Location = new Point(154, 73);
             text_MatKhau.Margin = new Padding(2);
             text_MatKhau.Name = "text_MatKhau";
             text_MatKhau.Size = new Size(282, 29);
@@ -87,7 +87,7 @@ namespace PhanMemThiDua2026
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label2.ForeColor = Color.Blue;
-            label2.Location = new Point(81, 65);
+            label2.Location = new Point(81, 77);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(69, 20);
@@ -117,12 +117,12 @@ namespace PhanMemThiDua2026
             TableLayoutPanel3.Controls.Add(btn_XacThuc, 1, 0);
             TableLayoutPanel3.Controls.Add(btn_Thoat, 0, 0);
             TableLayoutPanel3.Dock = DockStyle.Fill;
-            TableLayoutPanel3.Location = new Point(2, 143);
+            TableLayoutPanel3.Location = new Point(2, 164);
             TableLayoutPanel3.Margin = new Padding(2);
             TableLayoutPanel3.Name = "TableLayoutPanel3";
             TableLayoutPanel3.RowCount = 1;
             TableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            TableLayoutPanel3.Size = new Size(458, 41);
+            TableLayoutPanel3.Size = new Size(458, 48);
             TableLayoutPanel3.TabIndex = 10;
             // 
             // btn_Thoat
@@ -154,7 +154,7 @@ namespace PhanMemThiDua2026
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 56.9037666F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 19.6652718F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 23.8493729F));
-            TableLayoutPanel1.Size = new Size(462, 186);
+            TableLayoutPanel1.Size = new Size(462, 214);
             TableLayoutPanel1.TabIndex = 9;
             // 
             // TableLayoutPanel2
@@ -174,13 +174,13 @@ namespace PhanMemThiDua2026
             TableLayoutPanel2.RowCount = 2;
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            TableLayoutPanel2.Size = new Size(458, 101);
+            TableLayoutPanel2.Size = new Size(458, 117);
             TableLayoutPanel2.TabIndex = 1;
             // 
             // text_TenDangNhap
             // 
             text_TenDangNhap.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            text_TenDangNhap.Location = new Point(154, 10);
+            text_TenDangNhap.Location = new Point(154, 14);
             text_TenDangNhap.Margin = new Padding(2);
             text_TenDangNhap.Name = "text_TenDangNhap";
             text_TenDangNhap.Size = new Size(282, 29);
@@ -194,7 +194,7 @@ namespace PhanMemThiDua2026
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label1.ForeColor = Color.Blue;
-            label1.Location = new Point(46, 15);
+            label1.Location = new Point(46, 19);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new Size(104, 20);
@@ -215,14 +215,14 @@ namespace PhanMemThiDua2026
             TableLayoutPanel5.Name = "TableLayoutPanel5";
             TableLayoutPanel5.RowCount = 1;
             TableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            TableLayoutPanel5.Size = new Size(622, 190);
+            TableLayoutPanel5.Size = new Size(622, 218);
             TableLayoutPanel5.TabIndex = 13;
             // 
             // Form24_XacMinhAdmin
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(622, 190);
+            ClientSize = new Size(622, 218);
             Controls.Add(TableLayoutPanel5);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(2);

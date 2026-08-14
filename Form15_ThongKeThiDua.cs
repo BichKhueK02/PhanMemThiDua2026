@@ -700,7 +700,7 @@ namespace PhanMemThiDua2026
                 else LoadThongKe_CBCS();
             }
         }
-      
+
         // 🌟 SỬA 1: Đổi 'async void' thành 'async Task' để Form 2 có thể 'await' chờ nó load xong
         public async Task ReloadData()
         {
@@ -3792,7 +3792,7 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _dangXuLyLuongNen, 0);
             }
         }
-  
+
         private void toolStripMenuItem_LuuTruDataThiDuaTheoNam_Click(object sender, EventArgs e)
         {
             // 1. Tìm Form cha (Form2_FormCha) đang chạy để tương tác với PanelContainer
@@ -3856,5 +3856,56 @@ namespace PhanMemThiDua2026
                 formCha.CapNhatTieuDe(f46.Text);
             }
         }
+
+        private async void taoBanSaoLuuTruTheoNamToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // 1. XÁC MINH QUYỀN ADMIN
+            DialogResult kq;
+            using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
+            {
+                frm.TopMost = true;
+                frm.StartPosition = FormStartPosition.CenterScreen;
+                kq = frm.ShowDialog();
+            }
+            if (kq != DialogResult.OK)
+                return;
+            // 3. KHÓA MENU
+            var menu = taoBanSaoLuuTruTheoNamToolStripMenuItem;
+            string textGoc = menu.Text;
+            try
+            {
+                menu.Enabled = false;
+                menu.Text = "Đang lưu trữ...";
+
+                // 4. THỰC HIỆN LƯU TRỮ
+                string duongDan = await Task.Run(Module_HoTroLuuDataTheoNamCu.LuuTruDuLieuThiDuaNam);
+                // Nếu Form46 đang mở ngầm hoặc chạy dưới nền, ra lệnh nạp tệp mới lập tức
+                var f46Check = Application.OpenForms.OfType<Form46_ThongKeThiDuaNamCu>().FirstOrDefault();
+                if (f46Check != null && !f46Check.IsDisposed)
+                {
+                    f46Check.LoadDanhSachFileLichSu();
+                }
+                MessageBox.Show(
+                    $"Đã lưu trữ dữ liệu thành công sang Hệ thống lưu trữ dữ liệu thi đua năm cũ.\n\n{duongDan}",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.Message,
+                    "Không thể lưu trữ dữ liệu",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                menu.Enabled = true;
+                menu.Text = textGoc;
+            }
+        }
+
+
     }
 } /// Ngoài luồng

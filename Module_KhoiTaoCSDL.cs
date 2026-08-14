@@ -51,8 +51,10 @@ namespace PhanMemThiDua2026
         }
         private static void BinhMinhOSantoriniCore()
         {
+            // THÊM DÒNG NÀY VÀO ĐÂY: Tuần tra và khôi phục chéo tệp data1 -> data15 trước
+            TuanTraVaPhucHoiCoreRepository();
             // 🌟 THÊM MỚI: Kích hoạt khôi phục thư viện hệ thống trước tiên (Siêu tốc)
-            KhoiPhucThuVienHeThongToanCau();
+            KhoiPhucThuVienHeThong();
 
             string srcDir = Path.Combine(AppContext.BaseDirectory, "Database Backup");
             string windowDir = Path.Combine(AppContext.BaseDirectory, "window-x64");
@@ -124,7 +126,7 @@ namespace PhanMemThiDua2026
             if (key != null) CryptographicOperations.ZeroMemory(key);
         }
         // ⭐ MODULE KHÔI PHỤC THƯ VIỆN HỆ THỐNG AN TOÀN (Đã tối ưu đường dẫn)
-        private static void KhoiPhucThuVienHeThongToanCau()
+        private static void KhoiPhucThuVienHeThong()
         {
             try
             {
@@ -977,6 +979,129 @@ namespace PhanMemThiDua2026
 
                 cb.Tag = new Tuple<string[], ComboBox[]>(danhSachCauHoi, comboBoxes);
                 cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
+            }
+        }
+        // =========================================================================
+        // 🛡️ CHÍNH SÁCH TUẦN TRA VÀ KHÔI PHỤC CHÉO (SELF-HEALING) CHO CORE REPOSITORY
+        // =========================================================================
+
+        // Danh sách các tệp ĐƯỢC PHÉP tồn tại (data1 -> data15)
+        private static readonly HashSet<string> DanhSachDataHopLe = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "data1", "data2", "data3", "data4", "data5",
+            "data6", "data7", "data8", "data9", "data10",
+            "data11", "data12", "data13", "data14", "data15"
+        };
+
+        public static void TuanTraVaPhucHoiCoreRepository()
+        {
+            try
+            {
+                string baseDir = AppContext.BaseDirectory;
+
+                // Xác định 2 vùng chứa Repository
+                string dirDatabase = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, THU_MUC_CONG_CU, "CoreDatabaseRepository");
+                string dirBackup = Path.Combine(baseDir, "Database Backup", THU_MUC_CONG_CU, "CoreDatabaseRepository");
+
+                // Tạo thư mục nếu nó lỡ bị xóa mất
+                Directory.CreateDirectory(dirDatabase);
+                Directory.CreateDirectory(dirBackup);
+
+                int soTepBiXoa = 0;
+                int soTepDuocCuu = 0;
+                List<string> chiTietHanhDong = new List<string>();
+
+                // -------------------------------------------------------------
+                // BƯỚC 1: TUẦN TRA & TIÊU DIỆT TỆP LẠ (CHỈ DUY TRÌ TỆP TRONG DANH SÁCH)
+                // -------------------------------------------------------------
+                void TieuDietTepLa(string thuMucPath, string tenVung)
+                {
+                    foreach (string filePath in Directory.GetFiles(thuMucPath))
+                    {
+                        string fileName = Path.GetFileName(filePath);
+
+                        // Nếu tên file không nằm trong danh sách cho phép -> Bắn bỏ
+                        if (!DanhSachDataHopLe.Contains(fileName))
+                        {
+                            try
+                            {
+                                ThaoGoQuyenReadOnly(filePath); // Gỡ ReadOnly trước khi xóa
+                                File.Delete(filePath);
+                                soTepBiXoa++;
+                                chiTietHanhDong.Add($"[TIÊU DIỆT] Đã xóa tệp lạ '{fileName}' tại vùng {tenVung}.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.WriteLine($"Lỗi xóa tệp lạ {fileName}: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+
+                TieuDietTepLa(dirDatabase, "Database Gốc");
+                TieuDietTepLa(dirBackup, "Database Backup");
+
+                // -------------------------------------------------------------
+                // BƯỚC 2: KHÔI PHỤC CHÉO (SELF-HEALING) - NẾU KHUYẾT THÌ COPY BÙ VÀO
+                // -------------------------------------------------------------
+                foreach (string fileName in DanhSachDataHopLe)
+                {
+                    string fileInDB = Path.Combine(dirDatabase, fileName);
+                    string fileInBackup = Path.Combine(dirBackup, fileName);
+
+                    bool existsInDB = File.Exists(fileInDB);
+                    bool existsInBackup = File.Exists(fileInBackup);
+
+                    // TH1: Có ở Backup nhưng mất ở DB -> Copy từ Backup sang DB
+                    if (!existsInDB && existsInBackup)
+                    {
+                        try
+                        {
+                            File.Copy(fileInBackup, fileInDB, true);
+                            File.SetAttributes(fileInDB, FileAttributes.ReadOnly); // Khóa lại ngay lập tức
+                            soTepDuocCuu++;
+                            chiTietHanhDong.Add($"[KHÔI PHỤC] Đã chép bù '{fileName}' từ Backup sang Database Gốc.");
+                        }
+                        catch { }
+                    }
+                    // TH2: Có ở DB nhưng mất ở Backup -> Copy từ DB sang Backup
+                    else if (existsInDB && !existsInBackup)
+                    {
+                        try
+                        {
+                            File.Copy(fileInDB, fileInBackup, true);
+                            File.SetAttributes(fileInBackup, FileAttributes.ReadOnly); // Khóa lại
+                            soTepDuocCuu++;
+                            chiTietHanhDong.Add($"[KHÔI PHỤC] Đã chép bù '{fileName}' từ Database Gốc sang Backup.");
+                        }
+                        catch { }
+                    }
+                    // TH3: Mất ở cả 2 nơi (Có thể log cảnh báo nghiêm trọng nếu cần thiết)
+                    else if (!existsInDB && !existsInBackup)
+                    {
+                        chiTietHanhDong.Add($"[CẢNH BÁO ĐỎ] Tệp cốt lõi '{fileName}' đã bị xóa vĩnh viễn ở cả 2 vùng!");
+                    }
+                }
+
+                // -------------------------------------------------------------
+                // BƯỚC 3: GHI NHẬT KÝ NẾU CÓ BIẾN ĐỘNG
+                // -------------------------------------------------------------
+                if (soTepBiXoa > 0 || soTepDuocCuu > 0)
+                {
+                    string taiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System" : Module_TaiKhoan.TenTaiKhoan_RAM;
+                    string hanhDong = "Bảo vệ Core Repository (Tự động)";
+                    string ghiChu = $"Hệ thống đã tiêu diệt {soTepBiXoa} tệp lạ và khôi phục chéo {soTepDuocCuu} tệp bị khuyết.\r\nChi tiết:\r\n" + string.Join("\r\n", chiTietHanhDong);
+
+                    try
+                    {
+                        Module_NhatKy.GhiNhatKy(taiKhoan, hanhDong, ghiChu);
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[Lỗi Tuần tra Core Repository]: " + ex.Message);
             }
         }
     }

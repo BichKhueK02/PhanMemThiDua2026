@@ -354,7 +354,7 @@
             label1_PhienBanPhanMem.Image = (Image)resources.GetObject("label1_PhienBanPhanMem.Image");
             label1_PhienBanPhanMem.Name = "label1_PhienBanPhanMem";
             label1_PhienBanPhanMem.Size = new Size(143, 21);
-            label1_PhienBanPhanMem.Text = "Written by Trung Kien";
+            label1_PhienBanPhanMem.Text = "Viết bởi " + Module_PhienBan.NguoiPhatTrienPhanMem.ToString();
             // 
             // toolStripStatusLabel1
             // 

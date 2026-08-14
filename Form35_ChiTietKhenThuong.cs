@@ -16,9 +16,211 @@ namespace PhanMemThiDua2026
             InitializeComponent();
             kryptonDataGridView1_DanhSachCBCS.CellClick += KryptonDataGridView1_DanhSachCBCS_CellClick;
             kryptonDataGridView1_DanhSachCBCS.RowPostPaint += KryptonDataGridView1_DanhSachCBCS_RowPostPaint;
+
+            // GẮN SỰ KIỆN ĐỊNH DẠNG TIỀN THƯỞNG
+            if (kryptonTextBox_TienThuong != null)
+            {
+                kryptonTextBox_TienThuong.TextChanged += kryptonTextBox_TienThuong_TextChanged;
+            }
         }
         private void Form37_ChiTietKhenThuong_Load(object sender, EventArgs e)
         {
+            InitToolTips();
+        }
+        private void InitToolTips()
+        {
+            // ============================================================
+            // KHỞI TẠO TOOLTIP - ỔN ĐỊNH CHO HỆ THỐNG NỘI BỘ
+            // ============================================================
+
+            // 1. Kiểm tra ToolTip
+            if (toolTip1 == null)
+                return;
+
+            try
+            {
+                // 2. Cấu hình chung
+                toolTip1.IsBalloon = true;
+                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipIcon = ToolTipIcon.Info;
+
+                // Thời gian chờ trước khi hiển thị
+                toolTip1.InitialDelay = 300;
+
+                // Thời gian Tooltip hiển thị
+                toolTip1.AutoPopDelay = 2500;
+
+                // Thời gian chờ khi chuyển sang Control khác
+                toolTip1.ReshowDelay = 100;
+
+                // Cho phép hiển thị ngay cả khi Form chưa active
+                toolTip1.ShowAlways = true;
+                // ================= BỔ SUNG CÁC NÚT MỚI TẠI ĐÂY =================
+                GanToolTipAnToan(
+                    kryptonButton_Them,
+                    "Thêm thông tin khen thưởng mới vào hệ thống");
+
+                GanToolTipAnToan(
+                    kryptonButton_Sua,
+                    "Cập nhật, chỉnh sửa thông tin đang được chọn");
+
+                GanToolTipAnToan(
+                    kryptonButton_Xoa,
+                    "Xóa vĩnh viễn dữ liệu khen thưởng đang chọn");
+
+                GanToolTipAnToan(
+                    kryptonButton3_DongForm,
+                    "Đóng cửa sổ này và quay lại màn hình chính");
+            }
+            catch (ObjectDisposedException)
+            {
+                // ToolTip hoặc Control đã được giải phóng trong lúc thao tác.
+                // Không để chức năng Tooltip ảnh hưởng đến hoạt động chính.
+            }
+            catch (InvalidOperationException)
+            {
+                // Trạng thái WinForms không phù hợp để cấu hình Tooltip.
+                // Không để chức năng Tooltip làm Form dừng hoạt động.
+            }
+        }
+        private void GanToolTipAnToan(Control control, string noiDung)
+        {
+            // 1. Control không tồn tại
+            if (control == null)
+                return;
+
+            // 2. Control đã được giải phóng hoặc đang giải phóng
+            if (control.IsDisposed || control.Disposing)
+                return;
+
+            // 3. Nội dung Tooltip không hợp lệ
+            if (string.IsNullOrWhiteSpace(noiDung))
+                return;
+
+            // 4. ToolTip chưa được khởi tạo
+            if (toolTip1 == null)
+                return;
+
+            try
+            {
+                // 5. Gán Tooltip
+                toolTip1.SetToolTip(control, noiDung);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Control đã bị giải phóng đúng thời điểm thao tác.
+            }
+            catch (InvalidOperationException)
+            {
+                // Control đang ở trạng thái không phù hợp.
+            }
+        }
+        // HÀM ĐỊNH DẠNG TIỀN THƯỞNG (TỐI ƯU KHÔNG REGEX)
+        private void kryptonTextBox_TienThuong_TextChanged(object sender, EventArgs e)
+        {
+            // ============================================================
+            // 1. KIỂM TRA AN TOÀN
+            // ============================================================
+
+            if (kryptonTextBox_TienThuong == null ||
+                kryptonTextBox_TienThuong.IsDisposed ||
+                kryptonTextBox_TienThuong.Disposing)
+            {
+                return;
+            }
+
+            // Người dùng chưa nhập gì -> giữ ô trống.
+            // Không tự động hiển thị "0".
+            if (string.IsNullOrWhiteSpace(kryptonTextBox_TienThuong.Text))
+                return;
+
+            kryptonTextBox_TienThuong.TextChanged -=
+                kryptonTextBox_TienThuong_TextChanged;
+
+            try
+            {
+                string textHienTai = kryptonTextBox_TienThuong.Text.Trim();
+
+                // ========================================================
+                // 2. LƯU VỊ TRÍ CON TRỎ
+                // ========================================================
+
+                int cursorFromEnd =
+                    textHienTai.Length -
+                    kryptonTextBox_TienThuong.SelectionStart;
+
+                // ========================================================
+                // 3. LOẠI BỎ DẤU PHÂN CÁCH
+                // ========================================================
+
+                string rawText = textHienTai
+                    .Replace(".", string.Empty)
+                    .Replace(",", string.Empty)
+                    .Trim();
+
+                // ========================================================
+                // 4. CHỈ GIỮ LẠI KÝ TỰ SỐ
+                // ========================================================
+
+                string cleanText = new string(
+                    rawText.Where(char.IsDigit).ToArray());
+
+                // Nếu sau khi lọc không còn số:
+                // giữ TextBox trống thay vì ép thành "0".
+                if (string.IsNullOrEmpty(cleanText))
+                {
+                    kryptonTextBox_TienThuong.Clear();
+                    return;
+                }
+
+                // ========================================================
+                // 5. GIỚI HẠN GIÁ TRỊ LONG
+                // ========================================================
+
+                if (!long.TryParse(cleanText, out long tienThuong))
+                {
+                    // Không thể chuyển đổi -> giữ nguyên nội dung hợp lệ
+                    // gần nhất thay vì tự động đưa về "0".
+                    return;
+                }
+
+                // ========================================================
+                // 6. ĐẢM BẢO GIÁ TRỊ KHÔNG ÂM
+                // ========================================================
+
+                if (tienThuong < 0)
+                    tienThuong = 0;
+
+                // ========================================================
+                // 7. ĐỊNH DẠNG TIỀN
+                // ========================================================
+
+                string textDaDinhDang =
+                    string.Format("{0:#,##0}", tienThuong)
+                        .Replace(",", ".");
+
+                kryptonTextBox_TienThuong.Text = textDaDinhDang;
+
+                // ========================================================
+                // 8. KHÔI PHỤC VỊ TRÍ CON TRỎ
+                // ========================================================
+
+                int newCursorPosition =
+                    kryptonTextBox_TienThuong.Text.Length - cursorFromEnd;
+
+                kryptonTextBox_TienThuong.SelectionStart =
+                    Math.Max(
+                        0,
+                        Math.Min(
+                            newCursorPosition,
+                            kryptonTextBox_TienThuong.Text.Length));
+            }
+            finally
+            {
+                // Luôn đăng ký lại sự kiện kể cả khi có lỗi.
+                kryptonTextBox_TienThuong.TextChanged +=
+                    kryptonTextBox_TienThuong_TextChanged;
+            }
         }
         // HÀM BẢO VỆ GIAO DIỆN (LỘT VỎ MÃ HÓA AN TOÀN)
         private string SafeDecrypt(object value)
@@ -37,7 +239,7 @@ namespace PhanMemThiDua2026
             _currentSoHieu = soHieu;
             _currentDonVi = donVi;
             _currentTinhTrang = tinhTrang;
-            if (label1_HoVaTen != null) label1_HoVaTen.Text = hoTen;
+            if (label1_HoVaTen != null) label1_HoVaTen.Text = "Đồng chí: " + hoTen;
             if (label1_SoHieu != null) label1_SoHieu.Text = "Số hiệu: " + soHieu;
             if (label1_DonVi != null) label1_DonVi.Text = "Đơn vị: " + donVi;
             XoaTrangGiaoDien();
@@ -56,9 +258,17 @@ namespace PhanMemThiDua2026
                 using var reader = cmd.ExecuteReader();
 
                 DataTable dt = new DataTable();
+
+                // KIẾN TẠO CỘT: Ép kiểu 'long' cho cột Tiền thưởng để Grid format được chữ số
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
-                    dt.Columns.Add(reader.GetName(i));
+                    string colName = reader.GetName(i);
+                    if (colName == "ID")
+                        dt.Columns.Add(colName, typeof(int));
+                    else if (colName == "TienThuong")
+                        dt.Columns.Add(colName, typeof(long));
+                    else
+                        dt.Columns.Add(colName, typeof(string));
                 }
 
                 while (reader.Read())
@@ -72,15 +282,31 @@ namespace PhanMemThiDua2026
                         DataRow row = dt.NewRow();
                         for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            // 🔥 CHUẨN KỸ SƯ: Lột vỏ toàn bộ dữ liệu trước khi nạp vào DataTable
-                            // Việc này đảm bảo Grid luôn cầm Data sạch, click vào đổ ra TextBox không bị dính mã V2
-                            row[i] = SafeDecrypt(reader[i]);
+                            string colName = reader.GetName(i);
+                            if (colName == "ID")
+                            {
+                                row[i] = Convert.ToInt32(reader[i]);
+                            }
+                            else if (colName == "TienThuong")
+                            {
+                                string tienStr = SafeDecrypt(reader[i]);
+                                long.TryParse(tienStr.Replace(".", "").Replace(",", ""), out long tien);
+                                row[i] = tien; // Nạp kiểu số thực sự vào DataTable
+                            }
+                            else
+                            {
+                                // Lột vỏ dữ liệu
+                                row[i] = SafeDecrypt(reader[i]);
+                            }
                         }
                         dt.Rows.Add(row);
                     }
                 }
 
+                // 🔥 FIX LỖI KHÔNG LOAD GRID: Bật AutoGenerateColumns = true vì hàm XóaTrắng đã xóa sạch cột
+                kryptonDataGridView1_DanhSachCBCS.AutoGenerateColumns = true;
                 kryptonDataGridView1_DanhSachCBCS.DataSource = dt.DefaultView;
+
                 DinhDangLuoi();
                 CapNhatSoLuongKhenThuong();
 
@@ -95,49 +321,117 @@ namespace PhanMemThiDua2026
         {
             var grid = kryptonDataGridView1_DanhSachCBCS;
             if (grid == null || grid.Columns.Count == 0) return;
-            string[] cotCanAn = { "ID", "HoVaTen", "SoHieu", "DonVi", "TinhTrang" };
-            foreach (var cot in cotCanAn)
-            {
-                if (grid.Columns.Contains(cot)) grid.Columns[cot].Visible = false;
-            }
-            grid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            grid.DefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Regular);
-            grid.DefaultCellStyle.Padding = new Padding(4, 6, 4, 6);
-            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-            var cauHinhCot = new[]
-            {
-                (Ten: "HinhThuc_Khen", TieuDe: "Hình thức khen", Rong: 220, CanLe: DataGridViewContentAlignment.MiddleLeft, Fill: DataGridViewAutoSizeColumnMode.NotSet),
-                (Ten: "QuyetDinh_Khen", TieuDe: "Quyết định số", Rong: 220, CanLe: DataGridViewContentAlignment.MiddleCenter, Fill: DataGridViewAutoSizeColumnMode.NotSet),
-                (Ten: "NgayCapQD_Khen", TieuDe: "Ngày cấp", Rong: 170, CanLe: DataGridViewContentAlignment.MiddleCenter, Fill: DataGridViewAutoSizeColumnMode.NotSet),
-                (Ten: "DonVi_Khen", TieuDe: "Đơn vị tặng", Rong: 240, CanLe: DataGridViewContentAlignment.MiddleLeft, Fill: DataGridViewAutoSizeColumnMode.NotSet),
-                (Ten: "VeViec_Khen", TieuDe: "Về việc", Rong: 0, CanLe: DataGridViewContentAlignment.MiddleLeft, Fill: DataGridViewAutoSizeColumnMode.Fill),
-                (Ten: "GhiChu_Khen", TieuDe: "Ghi chú", Rong: 250, CanLe: DataGridViewContentAlignment.MiddleLeft, Fill: DataGridViewAutoSizeColumnMode.NotSet)
-            };
 
-            foreach (var cot in cauHinhCot)
+            grid.SuspendLayout();
+            try
             {
-                if (grid.Columns.Contains(cot.Ten))
+                // 1. ẨN CÁC CỘT KHÔNG CẦN THIẾT
+                string[] cotCanAn = { "ID", "HoVaTen", "SoHieu", "DonVi", "TinhTrang" };
+                foreach (var cot in cotCanAn)
                 {
-                    var col = grid.Columns[cot.Ten];
-                    col.HeaderText = cot.TieuDe;
-                    col.DefaultCellStyle.Alignment = cot.CanLe;
-                    col.AutoSizeMode = cot.Fill;
-                    if (cot.Rong > 0) col.Width = cot.Rong;
+                    if (grid.Columns.Contains(cot)) grid.Columns[cot].Visible = false;
+                }
+
+                // 2. CẤU HÌNH CƠ BẢN
+                grid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+                grid.DefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Regular);
+                grid.DefaultCellStyle.Padding = new Padding(4, 6, 4, 6);
+                grid.ReadOnly = true;
+                grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                grid.AllowUserToAddRows = false;
+                grid.RowHeadersVisible = true;
+                grid.RowHeadersWidth = 55;
+                grid.EnableHeadersVisualStyles = false;
+
+                // ⭐ THAY ĐỔI QUAN TRỌNG NHẤT Ở ĐÂY:
+                // Ép toàn bộ lưới tự động co giãn vừa khít 100% chiều ngang màn hình
+                grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+                // Chỉ giữ lại thanh cuộn dọc (bỏ qua thanh cuộn ngang vì đã vừa khít)
+                grid.ScrollBars = ScrollBars.Vertical;
+
+                // 3. TÙY CHỈNH CHIỀU CAO ĐỘNG (Dynamic Scaling)
+                int fontHeight = grid.Font.Height;
+                grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+                grid.ColumnHeadersHeight = (int)(fontHeight * 2.5);
+                grid.RowTemplate.Height = (int)(fontHeight * 1.8);
+
+                // 4. CĂN GIỮA VÀ IN ĐẬM TIÊU ĐỀ
+                var style = grid.ColumnHeadersDefaultCellStyle;
+                style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                style.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+                style.WrapMode = DataGridViewTriState.True;
+
+                // 5. CẤU HÌNH CHI TIẾT TỪNG CỘT (Dùng "TyLe" thay vì chiều rộng cứng)
+                // Hệ số TyLe đóng vai trò như phần trăm chia đất cho từng cột
+                var cauHinhCot = new[]
+                {
+            (Ten: "HinhThuc_Khen", TieuDe: "Hình thức khen", TyLe: 12f, CanLe: DataGridViewContentAlignment.MiddleLeft),
+            (Ten: "QuyetDinh_Khen", TieuDe: "Quyết định số", TyLe: 10f, CanLe: DataGridViewContentAlignment.MiddleCenter),
+            (Ten: "NgayCapQD_Khen", TieuDe: "Ngày cấp", TyLe: 9f, CanLe: DataGridViewContentAlignment.MiddleCenter),
+            (Ten: "DonVi_Khen", TieuDe: "Đơn vị tặng", TyLe: 15f, CanLe: DataGridViewContentAlignment.MiddleLeft),
+            
+            // Cột Về Việc được cấp tỷ lệ cao nhất để ưu tiên chiếm nhiều diện tích
+            (Ten: "VeViec_Khen", TieuDe: "Về việc", TyLe: 20f, CanLe: DataGridViewContentAlignment.MiddleLeft),
+
+            (Ten: "TienThuong", TieuDe: "Tiền thưởng", TyLe: 10f, CanLe: DataGridViewContentAlignment.MiddleRight),
+            (Ten: "NgayCapPhat", TieuDe: "Ngày cấp phát", TyLe: 9f, CanLe: DataGridViewContentAlignment.MiddleCenter),
+            (Ten: "CanBoCapPhat", TieuDe: "Cán bộ cấp", TyLe: 11f, CanLe: DataGridViewContentAlignment.MiddleLeft),
+            (Ten: "GhiChu_Khen", TieuDe: "Ghi chú", TyLe: 14f, CanLe: DataGridViewContentAlignment.MiddleLeft)
+        };
+
+                foreach (var cot in cauHinhCot)
+                {
+                    if (grid.Columns.Contains(cot.Ten))
+                    {
+                        var col = grid.Columns[cot.Ten];
+                        col.HeaderText = cot.TieuDe;
+                        col.DefaultCellStyle.Alignment = cot.CanLe;
+
+                        // Gán tỷ lệ phần trăm giãn cột
+                        col.FillWeight = cot.TyLe;
+
+                        // Thêm format hiển thị cho cột tiền thưởng trên Grid
+                        if (cot.Ten == "TienThuong")
+                        {
+                            col.DefaultCellStyle.Format = "N0";
+                        }
+                    }
+                }
+
+                // ⭐ 6. BỘ GIAO DIỆN HIỆN ĐẠI (OCEAN BLUE THEME)
+
+                // Nền lưới trắng tinh khôi
+                grid.StateCommon.Background.Color1 = Color.White;
+                grid.StateCommon.DataCell.Back.Color1 = Color.White;
+
+                // Viền lưới thanh mảnh, xám nhạt
+                grid.StateCommon.DataCell.Border.Color1 = Color.FromArgb(235, 235, 235);
+                grid.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
+                grid.StateCommon.DataCell.Border.Width = 1;
+
+                // Tiêu đề cột (Header) - Màu Xanh Nước Biển (Đậm và rõ nét hơn)
+                grid.StateCommon.HeaderColumn.Back.Color1 = Color.FromArgb(180, 210, 240);
+                grid.StateCommon.HeaderColumn.Back.Color2 = Color.FromArgb(180, 210, 240);
+                grid.StateCommon.HeaderColumn.Content.Color1 = Color.FromArgb(30, 30, 30);
+                grid.StateCommon.HeaderColumn.Border.Color1 = Color.FromArgb(150, 180, 210);
+
+                // Nền khi chọn: Xanh dương siêu nhạt (Alice Blue) - Rất dịu mắt
+                grid.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
+                grid.StateSelected.DataCell.Back.Color2 = Color.FromArgb(232, 244, 253);
+                grid.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
+
+                // Cập nhật lại chiều cao cho các dòng ĐÃ CÓ SẴN (nếu có)
+                foreach (DataGridViewRow row in grid.Rows)
+                {
+                    row.Height = grid.RowTemplate.Height;
                 }
             }
-            grid.ReadOnly = true;
-            grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            grid.AllowUserToAddRows = false;
-            grid.RowHeadersVisible = true;
-            grid.RowHeadersWidth = 55;
-            grid.EnableHeadersVisualStyles = false;
-            grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(220, 230, 240);
-            grid.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
-            grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            grid.ColumnHeadersHeight = 60;
+            finally
+            {
+                grid.ResumeLayout();
+            }
         }
         private void XoaTrangGiaoDien()
         {
@@ -156,12 +450,21 @@ namespace PhanMemThiDua2026
                 richTextBox1_VeViec?.Clear();
                 richTextBox1_GhiChu?.Clear();
 
+                // XÓA 03 TRƯỜNG MỚI THÊM
+                if (kryptonTextBox_TienThuong != null)
+                {
+                    kryptonTextBox_TienThuong.TextChanged -= kryptonTextBox_TienThuong_TextChanged;
+                    kryptonTextBox_TienThuong.Text = "0";
+                    kryptonTextBox_TienThuong.TextChanged += kryptonTextBox_TienThuong_TextChanged;
+                }
+                kryptonTextBox_NgayCapPhat?.Clear();
+                kryptonTextBox_CanBoCapPhat?.Clear();
+
                 // 4. Ngắt kết nối dữ liệu lưới an toàn
                 if (kryptonDataGridView1_DanhSachCBCS != null)
                 {
                     kryptonDataGridView1_DanhSachCBCS.DataSource = null;
-                    // Xóa sạch Row rác còn đọng lại nếu grid không ràng buộc dữ liệu trực tiếp
-                    kryptonDataGridView1_DanhSachCBCS.Rows.Clear();
+                    kryptonDataGridView1_DanhSachCBCS.Columns.Clear();
                 }
 
                 // 5. Reset nhãn đếm
@@ -175,7 +478,6 @@ namespace PhanMemThiDua2026
                 if (kryptonButton_Sua != null)
                 {
                     kryptonButton_Sua.Values.Text = "Sửa"; // Chuẩn của KryptonButton
-                                                           // kryptonButton_Sua.Text = "Sửa";
                 }
             }
             catch (Exception ex)
@@ -246,14 +548,16 @@ namespace PhanMemThiDua2026
                 if (richTextBox1_VeViec != null) richTextBox1_VeViec.Text = row.Cells["VeViec_Khen"].Value?.ToString() ?? "";
                 if (richTextBox1_GhiChu != null) richTextBox1_GhiChu.Text = row.Cells["GhiChu_Khen"].Value?.ToString() ?? "";
 
+                // GÁN 03 TRƯỜNG MỚI (CHÚ Ý CỘT TIỀN THƯỞNG SẼ TỰ KÍCH HOẠT EVENT FORMAT)
+                if (kryptonTextBox_TienThuong != null) kryptonTextBox_TienThuong.Text = row.Cells["TienThuong"].Value?.ToString() ?? "0";
+                if (kryptonTextBox_NgayCapPhat != null) kryptonTextBox_NgayCapPhat.Text = row.Cells["NgayCapPhat"].Value?.ToString() ?? "";
+                if (kryptonTextBox_CanBoCapPhat != null) kryptonTextBox_CanBoCapPhat.Text = row.Cells["CanBoCapPhat"].Value?.ToString() ?? "";
+
                 // 4. TRẢI NGHIỆM NGƯỜI DÙNG (UX): Đổi tên nút thành "Lưu"
                 if (kryptonButton_Sua != null)
                 {
                     // Với thư viện Krypton, việc đổi chữ thường nằm ở thuộc tính Values.Text
                     kryptonButton_Sua.Values.Text = "Lưu";
-
-                    // Nếu đồng chí cấu hình đặc biệt, có thể mở khóa thêm dòng dưới:
-                    // kryptonButton_Sua.Text = "Lưu";
                 }
             }
             catch (Exception ex)
@@ -268,13 +572,21 @@ namespace PhanMemThiDua2026
             if (!KiemTraDuLieuDauVao()) return;
             try
             {
+                // XỬ LÝ LỌC TIỀN THƯỞNG: Lấy số nguyên chất không chứa dấu . hay ,
+                string tienThuongStr = kryptonTextBox_TienThuong?.Text.Replace(".", "").Replace(",", "").Trim() ?? "0";
+                if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
+
                 using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
                 conn.Open();
                 using var tran = conn.BeginTransaction();
                 try
                 {
-                    string sqlInsert = @"INSERT INTO ThongKe_GiayKhen (HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, GhiChu_Khen) 
-                                         VALUES (@HT, @SH, @DV, @TT, @HinhThuc, @SoQD, @Ngay, @DVKhen, @VeViec, @GhiChu)";
+                    // THÊM 3 TRƯỜNG MỚI VÀO CÂU LỆNH SQL
+                    string sqlInsert = @"INSERT INTO ThongKe_GiayKhen 
+                                         (HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen) 
+                                         VALUES 
+                                         (@HT, @SH, @DV, @TT, @HinhThuc, @SoQD, @Ngay, @DVKhen, @VeViec, @TienThuong, @NgayCapPhat, @CanBoCapPhat, @GhiChu)";
+
                     using (var cmd = new SqliteCommand(sqlInsert, conn, tran))
                     {
                         // 🔥 CHUẨN KỸ SƯ: Mã hóa toàn bộ các thông tin chi tiết trước khi cất xuống CSDL
@@ -288,6 +600,12 @@ namespace PhanMemThiDua2026
                         cmd.Parameters.AddWithValue("@Ngay", BaoMatAES.MaHoa(kryptonTextBox_NgayQuyDinh.Text));
                         cmd.Parameters.AddWithValue("@DVKhen", BaoMatAES.MaHoa(comboBox_DonViKhenThuong.Text));
                         cmd.Parameters.AddWithValue("@VeViec", BaoMatAES.MaHoa(richTextBox1_VeViec.Text));
+
+                        // MÃ HÓA 03 TRƯỜNG MỚI
+                        cmd.Parameters.AddWithValue("@TienThuong", BaoMatAES.MaHoa(tienThuongStr));
+                        cmd.Parameters.AddWithValue("@NgayCapPhat", BaoMatAES.MaHoa(kryptonTextBox_NgayCapPhat?.Text ?? ""));
+                        cmd.Parameters.AddWithValue("@CanBoCapPhat", BaoMatAES.MaHoa(kryptonTextBox_CanBoCapPhat?.Text ?? ""));
+
                         cmd.Parameters.AddWithValue("@GhiChu", BaoMatAES.MaHoa(richTextBox1_GhiChu.Text));
 
                         cmd.ExecuteNonQuery();
@@ -329,12 +647,19 @@ namespace PhanMemThiDua2026
 
             try
             {
+                // XỬ LÝ LỌC TIỀN THƯỞNG SẠCH
+                string tienThuongStr = kryptonTextBox_TienThuong?.Text.Replace(".", "").Replace(",", "").Trim() ?? "0";
+                if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
+
                 using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
                 conn.Open();
 
+                // CẬP NHẬT 3 TRƯỜNG MỚI VÀO CÂU LỆNH SQL
                 string sqlUpdate = @"UPDATE ThongKe_GiayKhen 
                                      SET HinhThuc_Khen = @HinhThuc, QuyetDinh_Khen = @SoQD, NgayCapQD_Khen = @Ngay, 
-                                         DonVi_Khen = @DVKhen, VeViec_Khen = @VeViec, GhiChu_Khen = @GhiChu 
+                                         DonVi_Khen = @DVKhen, VeViec_Khen = @VeViec, 
+                                         TienThuong = @TienThuong, NgayCapPhat = @NgayCapPhat, CanBoCapPhat = @CanBoCapPhat, 
+                                         GhiChu_Khen = @GhiChu 
                                      WHERE ID = @ID";
 
                 using (var cmd = new SqliteCommand(sqlUpdate, conn))
@@ -345,6 +670,12 @@ namespace PhanMemThiDua2026
                     cmd.Parameters.AddWithValue("@Ngay", BaoMatAES.MaHoa(kryptonTextBox_NgayQuyDinh.Text));
                     cmd.Parameters.AddWithValue("@DVKhen", BaoMatAES.MaHoa(comboBox_DonViKhenThuong.Text));
                     cmd.Parameters.AddWithValue("@VeViec", BaoMatAES.MaHoa(richTextBox1_VeViec.Text));
+
+                    // TRƯỜNG MỚI MÃ HÓA
+                    cmd.Parameters.AddWithValue("@TienThuong", BaoMatAES.MaHoa(tienThuongStr));
+                    cmd.Parameters.AddWithValue("@NgayCapPhat", BaoMatAES.MaHoa(kryptonTextBox_NgayCapPhat?.Text ?? ""));
+                    cmd.Parameters.AddWithValue("@CanBoCapPhat", BaoMatAES.MaHoa(kryptonTextBox_CanBoCapPhat?.Text ?? ""));
+
                     cmd.Parameters.AddWithValue("@GhiChu", BaoMatAES.MaHoa(richTextBox1_GhiChu.Text));
                     cmd.Parameters.AddWithValue("@ID", _currentEditingID);
                     cmd.ExecuteNonQuery();
@@ -430,7 +761,6 @@ namespace PhanMemThiDua2026
         }
         private void CapNhatSoLuongB2(SqliteConnection conn, SqliteTransaction tran, string soHieu, int valueChange)
         {
-            // Cột 0: rowid | Cột 1: SoHieu | Cột 2: SoLuong_Khen
             string sqlSelect = "SELECT rowid, SoHieu, SoLuong_Khen FROM ThongKeCBCS_DuocKhenThuong";
             long targetRowId = -1;
             int slHienTai = 0;
@@ -440,15 +770,12 @@ namespace PhanMemThiDua2026
             {
                 while (reader.Read())
                 {
-                    // Chuẩn kỹ sư: Kiểm tra NULL trước khi đọc chuỗi ở cột 1 (SoHieu)
                     string shMaHoa = reader.IsDBNull(1) ? "" : reader.GetString(1);
 
                     if (string.Equals(SafeDecrypt(shMaHoa), soHieu, StringComparison.OrdinalIgnoreCase))
                     {
-                        // ✅ Đọc rowid bằng GetInt64(0) triệt để lỗi ArgumentOutOfRangeException
                         targetRowId = reader.GetInt64(0);
 
-                        // Chuẩn kỹ sư: Đọc số lượng bằng cột 2 an toàn
                         string slStr = reader.IsDBNull(2) ? "0" : reader.GetString(2);
                         int.TryParse(slStr, out slHienTai);
 
@@ -491,12 +818,12 @@ namespace PhanMemThiDua2026
             var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
             if (panel == null) return;
 
-            var form36 = panel.Controls.OfType<Form34_ThongKeKhenThuong>().FirstOrDefault();
-            if (form36 != null && !form36.IsDisposed)
+            var form34 = panel.Controls.OfType<Form34_ThongKeKhenThuong>().FirstOrDefault();
+            if (form34 != null && !form34.IsDisposed)
             {
-                form36.Show();
-                form36.BringToFront();
-                form36.ReloadDuLieu();
+                form34.Show();
+                form34.BringToFront();
+                form34.ReloadDuLieu();
             }
         }
         private bool KiemTraDuLieuDauVao()
@@ -540,7 +867,6 @@ namespace PhanMemThiDua2026
                 conn.Open();
 
                 int soLuongThucTe = 0;
-                // Cột 0: SoHieu
                 using (var cmdCount = new SqliteCommand("SELECT SoHieu FROM ThongKe_GiayKhen", conn))
                 using (var reader = cmdCount.ExecuteReader())
                 {
@@ -555,7 +881,6 @@ namespace PhanMemThiDua2026
                 }
 
                 long targetRowId = -1;
-                // Cột 0: rowid | Cột 1: SoHieu
                 using (var cmdSelect = new SqliteCommand("SELECT rowid, SoHieu FROM ThongKeCBCS_DuocKhenThuong", conn))
                 using (var reader = cmdSelect.ExecuteReader())
                 {
@@ -564,7 +889,6 @@ namespace PhanMemThiDua2026
                         string shGiaiMa2 = reader.IsDBNull(1) ? "" : SafeDecrypt(reader.GetString(1));
                         if (string.Equals(shGiaiMa2, soHieu, StringComparison.OrdinalIgnoreCase))
                         {
-                            // ✅ Fix lỗi lấy rowid
                             targetRowId = reader.GetInt64(0);
                             break;
                         }

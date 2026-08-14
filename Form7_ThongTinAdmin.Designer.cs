@@ -288,9 +288,9 @@
             Label2.Location = new Point(2, 11);
             Label2.Margin = new Padding(2, 0, 2, 0);
             Label2.Name = "Label2";
-            Label2.Size = new Size(61, 19);
+            Label2.Size = new Size(90, 19);
             Label2.TabIndex = 2;
-            Label2.Text = "Viết bởi:";
+            Label2.Text = "Admin dự án";
             // 
             // Label5
             // 

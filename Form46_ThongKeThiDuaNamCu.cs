@@ -93,7 +93,6 @@ namespace PhanMemThiDua2026
             _isInitialized = true;
         }
         private bool _daKhoiTaoToolTip = false;
-
         private void InitToolTips()
         {
             // Chống gọi lại nhiều lần không cần thiết
@@ -175,17 +174,10 @@ namespace PhanMemThiDua2026
             if (this.Visible && _isInitialized)
             {
                 // ⭐ BƯỚC 1: Bắt buộc nạp lại danh sách File lịch sử.
-                // Hàm này sẽ tự kiểm tra xem phần mềm đang ở chế độ Tân binh hay CBCS
-                // để đưa đúng danh sách tệp .db vào ComboBox.
+                // Hàm LoadDanhSachFileLichSu (đã sửa ở trên) sẽ tự động làm ALL:
+                // Lọc trùng -> Nạp ComboBox -> Tự động Load dữ liệu lên lưới (nếu có tệp).
+                // Không cần dùng PerformClick() nữa để tránh dội luồng (Thread Clash).
                 LoadDanhSachFileLichSu();
-
-                // ⭐ BƯỚC 2: Nếu có tệp dữ liệu, tự động chạy cập nhật để load lưới
-                if (comboBox_ChonCSDLNam.Items.Count > 0)
-                {
-                    // Tự động mô phỏng thao tác bấm nút "Cập nhật" của người dùng
-                    // (Quá trình đồng bộ Tình trạng và load lưới sẽ diễn ra mượt mà qua Form Loading)
-                    kryptonButton_CapNhat.PerformClick();
-                }
             }
         }
         private void ComboBoxFilter_SelectedIndexChanged(object sender, EventArgs e) => ApplyFilter();
@@ -243,19 +235,51 @@ namespace PhanMemThiDua2026
         }
         public void LoadDanhSachFileLichSu()
         {
-            // Ngắt sự kiện tạm thời để tránh lặp luồng dồn dập
+            // 1. Ngắt sự kiện tạm thời để tránh lặp luồng dồn dập khi gán DataSource
             comboBox_ChonCSDLNam.SelectedIndexChanged -= comboBox_ChonCSDLNam_SelectedIndexChanged;
 
-            var danhSach = Module_HoTroLuuDataTheoNamCu.LayDanhSachFileLichSu();
-            comboBox_ChonCSDLNam.DataSource = danhSach;
+            // ⭐ CHUẨN KỸ SƯ: Không dùng hàm quét chung (*.db) nữa vì nó sẽ hốt luôn cả file Khen Thưởng, 
+            // gây ra hiện tượng trùng tên và văng lỗi ngầm (vì file Khen thưởng không có bảng Thi Đua).
+            string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
+            var danhSachSach = new List<FileLichSuDTO>();
+
+            if (Directory.Exists(dir))
+            {
+                // Tự động nhận diện phiên bản phần mềm để quét đúng tệp
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+                bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+
+                // ⭐ CHỈ QUÉT ĐÚNG CÁC TỆP THI ĐUA (Loại trừ triệt để tệp Khen thưởng)
+                string pattern = laTanBinh ? "ThiDua_TanBinh_Nam*.db" : "ThiDua_CBCS_Nam*.db";
+                var files = Directory.GetFiles(dir, pattern);
+
+                foreach (var file in files)
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(file);
+                    string nam = fileName.Split(new string[] { "Nam" }, StringSplitOptions.None).LastOrDefault() ?? "???";
+
+                    danhSachSach.Add(new FileLichSuDTO
+                    {
+                        TenHienThi = $"Năm {nam} - {(laTanBinh ? "Tân binh" : "CBCS")}",
+                        DuongDan = file,
+                        LaTanBinh = laTanBinh
+                    });
+                }
+
+                // Sắp xếp năm mới nhất lên đầu
+                danhSachSach = danhSachSach.OrderByDescending(x => x.TenHienThi).ToList();
+            }
+
+            // 3. Gán dữ liệu vào ComboBox
+            comboBox_ChonCSDLNam.DataSource = danhSachSach;
             comboBox_ChonCSDLNam.DisplayMember = "TenHienThi";
             comboBox_ChonCSDLNam.ValueMember = "DuongDan";
 
-            // Khôi phục lại sự kiện
+            // 4. Khôi phục lại sự kiện
             comboBox_ChonCSDLNam.SelectedIndexChanged += comboBox_ChonCSDLNam_SelectedIndexChanged;
 
-            // ⭐ CHỐT HẠ: Cập nhật ngay trạng thái nếu không tìm thấy tệp CSDL nào
-            if (danhSach == null || danhSach.Count == 0)
+            // 5. XỬ LÝ GIAO DIỆN & ÉP NẠP DỮ LIỆU
+            if (danhSachSach.Count == 0)
             {
                 kryptonDataGridView1.RowCount = 0;
                 kryptonDataGridView1.DataSource = null;
@@ -264,7 +288,14 @@ namespace PhanMemThiDua2026
                 _dtHienTai = null;
                 CapNhatTrangThaiHienThi();
             }
-            // ⭐ BỔ SUNG VÀO ĐÂY: Cập nhật tiêu đề khi vừa load xong danh sách ComboBox lúc mở Form
+            else
+            {
+                // ⭐ TỰ ĐỘNG LOAD: Khi gán DataSource, WinForms đã tự chọn Index = 0.
+                // Vì ta quét đúng file ThiDua nên không bao giờ lỗi nữa. Kích hoạt nạp dữ liệu lưới ngay lập tức!
+                ThucHienTaiDuLieuLichSu();
+            }
+
+            // Cập nhật lại tiêu đề Form cho đồng bộ
             CapNhatTieuDeTheoNamDuocChon();
         }
         private void KhoiTaoBoLocComboBox(bool laTanBinh)

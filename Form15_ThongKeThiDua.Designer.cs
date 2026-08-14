@@ -370,7 +370,7 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, dongBoDuLieu_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieu_ToolStripMenuItem, nhapDuLieuTuTepExcel_ExcelToolStripMenuItem, xemThongKeThiDuaTapThe, tinhPhanLoaiThang_ToolStripMenuItem, toolStripMenuItem2, toolStripMenuItem_LuuTruDataThiDuaTheoNam, taoBanSaoLuuTruTheoNamToolStripMenuItem, toolStripMenuItem3, xoaTatCaDuLieu_ToolStripMenuItem, xoaDuLieu_ToolStripMenuItem, xoaDuLieuThiDuaThang_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(290, 330);
+            contextMenuStrip1.Size = new Size(290, 352);
             // 
             // lamMoi_ToolStripMenuItem
             // 
@@ -450,6 +450,7 @@
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Name = "taoBanSaoLuuTruTheoNamToolStripMenuItem";
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Size = new Size(289, 28);
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Text = "Lưu kết quả thi đua năm";
+            taoBanSaoLuuTruTheoNamToolStripMenuItem.Click += taoBanSaoLuuTruTheoNamToolStripMenuItem_Click;
             // 
             // toolStripMenuItem3
             // 

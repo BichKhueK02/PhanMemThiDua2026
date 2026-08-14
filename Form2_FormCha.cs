@@ -1174,7 +1174,11 @@ namespace PhanMemThiDua2026
             // =================================================================
             // BẮT ĐẦU CODE GỐC
             // =================================================================
-            OpenChildForm<Form34_ThongKeKhenThuong>("Trang thống kê khen thưởng");
+
+            // Tên Form: Quản lý khen thưởng tập thể + năm hệ thống
+            string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
+                                Module_NamHeThong.LayNamHeThong();
+            OpenChildForm<Form34_ThongKeKhenThuong>(tieuDeForm);
 
             if (_currentChild is Form34_ThongKeKhenThuong frm)
             {

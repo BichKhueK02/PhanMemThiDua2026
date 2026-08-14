@@ -41,8 +41,9 @@ namespace PhanMemThiDua2026
         public Dictionary<string, string> DuLieuThang = new Dictionary<string, string>(); // Lưu tuần và kết quả tháng
         public Dictionary<string, string> CotPhatSinh = new Dictionary<string, string>();
     }
+
     internal static class Module_HoTroLuuDataTheoNamCu
-    {      
+    {
         public static List<FileLichSuDTO> LayDanhSachFileLichSu()
         {
             var danhSach = new List<FileLichSuDTO>();
@@ -71,6 +72,38 @@ namespace PhanMemThiDua2026
             }
             return danhSach.OrderByDescending(x => x.TenHienThi).ToList();
         }
+
+        // ⭐ HÀM MỚI CHUYÊN DỤNG CHO FORM KHEN THƯỞNG CÁ NHÂN
+        // ⭐ HÀM MỚI CHUYÊN DỤNG CHO FORM KHEN THƯỞNG CÁ NHÂN
+        public static List<FileLichSuDTO> LayDanhSachFileLichSu_KhenThuongCaNhan()
+        {
+            var danhSach = new List<FileLichSuDTO>();
+
+            // [CHẶN CỬA]: Tân binh không có khen thưởng -> Trả về danh sách trống luôn
+            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
+                return danhSach;
+
+            string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
+            if (!Directory.Exists(dir)) return danhSach;
+
+            // Vì đã chặn Tân binh ở trên, xuống đến đây chắc chắn là CBCS -> Trở lại logic gốc
+            var files = Directory.GetFiles(dir, "KhenThuong_CBCS_Nam*.db");
+            foreach (var file in files)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(file);
+                string nam = fileName.Replace("KhenThuong_CBCS_Nam", "");
+
+                danhSach.Add(new FileLichSuDTO
+                {
+                    TenHienThi = $"Năm {nam}",
+                    DuongDan = file,
+                    LaTanBinh = false
+                });
+            }
+
+            return danhSach.OrderByDescending(x => x.TenHienThi).ToList();
+        }
         public static DataTable LoadDataFromHistoryDB(string dbPath, string tableName)
         {
             DataTable dt = new DataTable();
@@ -87,7 +120,6 @@ namespace PhanMemThiDua2026
                     dt.Load(rd);
                 }
 
-                // ⭐ KHỐI VÁ CHUẨN: Chỉ giải mã chính xác 3 cột bảo mật hệ thống
                 string[] secureCols = { "HoVaTen", "SoHieu", "DonVi" };
 
                 foreach (DataRow row in dt.Rows)
@@ -106,7 +138,7 @@ namespace PhanMemThiDua2026
                                 }
                                 catch
                                 {
-                                    // Giữ nguyên giá trị gốc nếu không phải định dạng mã hóa hoặc lỗi khóa
+                                    // Giữ nguyên giá trị gốc
                                 }
                             }
                         }
@@ -120,7 +152,7 @@ namespace PhanMemThiDua2026
             }
             return dt;
         }
-        // ⭐ HÀM GIẢI MÃ AN TOÀN TRÁNH BỎ LỖI DỰ ÁN
+
         private static string SafeDecrypt(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return string.Empty;
@@ -131,6 +163,7 @@ namespace PhanMemThiDua2026
             }
             catch { return input; }
         }
+
         public static string LuuTruDuLieuThiDuaNam()
         {
             int nam = Module_NamHeThong.LayNamHeThong();
@@ -204,6 +237,7 @@ namespace PhanMemThiDua2026
             }
             return targetPath;
         }
+
         public static void XuatExcelLichSuCore(
         string targetExcelPath,
         bool laTanBinh,
@@ -221,7 +255,7 @@ namespace PhanMemThiDua2026
             for (int r = 0; r < rowCount; r++)
             {
                 int cIndex = 0;
-                dataArray[r, cIndex++] = r + 1; // STT tự động sinh
+                dataArray[r, cIndex++] = r + 1;
 
                 int actualIndex = filteredIndexes[r];
 
@@ -242,7 +276,6 @@ namespace PhanMemThiDua2026
                             else if (col.Name == "TS_Loai2") cellValue = data.TS_Loai2;
                             else if (col.Name == "TS_Loai3") cellValue = data.TS_Loai3;
                             else if (col.Name == "TS_Loai4") cellValue = data.TS_Loai4;
-                            // ⭐ ĐỒNG BỘ CHÍNH XÁC TÊN BIẾN RA: dThang và dynVal
                             else if (data.DuLieuThang.TryGetValue(col.Name, out string dThang)) cellValue = dThang;
                             else if (data.CotPhatSinh.TryGetValue(col.Name, out string dynVal)) cellValue = dynVal;
                         }
@@ -265,7 +298,6 @@ namespace PhanMemThiDua2026
                             else if (col.Name == "TS_Loai3") cellValue = data.TS_Loai3;
                             else if (col.Name == "TS_Loai4") cellValue = data.TS_Loai4;
                             else if (col.Name.StartsWith("Thang_") && int.TryParse(col.Name.Replace("Thang_", ""), out int tIdx)) cellValue = data.Thang[tIdx - 1];
-                            // ⭐ ĐỒNG BỘ CHÍNH XÁC TÊN BIẾN RA: dynVal
                             else if (data.CotPhatSinh.TryGetValue(col.Name, out string dynVal)) cellValue = dynVal;
                         }
                     }
@@ -278,7 +310,6 @@ namespace PhanMemThiDua2026
                 }
             }
 
-            // [Toàn bộ khối tạo File XLWorkbook và định dạng giữ nguyên như đã cấu hình xịn mịn ở phiên trước]
             using (var wb = new ClosedXML.Excel.XLWorkbook())
             {
                 var ws = wb.Worksheets.Add("ThongKeThiDua");
@@ -287,7 +318,6 @@ namespace PhanMemThiDua2026
                 ws.Cell("A2").Value = laTanBinh ? $"THỐNG KÊ PHÂN LOẠI THI ĐUA CỦA TÂN BINH {tenTieuDoan}" : $"THỐNG KÊ PHÂN LOẠI THI ĐUA CỦA CBCS {tenTieuDoan}";
                 ws.Range(2, 1, 2, colCount).Merge().Style.Font.SetBold().Font.SetFontSize(12).Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center).Alignment.SetVertical(ClosedXML.Excel.XLAlignmentVerticalValues.Center);
 
-                // 1. Vẽ tiêu đề STT
                 int excelStartRow = 4;
                 var cellStt = ws.Cell(excelStartRow, 1);
                 cellStt.Value = "STT";
@@ -296,8 +326,7 @@ namespace PhanMemThiDua2026
                 cellStt.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
                 cellStt.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
 
-                // ⭐ BỔ SUNG MỚI: Căn giữa toàn bộ cột A (từ dòng 4 đến dòng cuối)
-                ws.Column(1).Width = 5; // Độ rộng nhỏ lại tí
+                ws.Column(1).Width = 5;
                 var rangeColA = ws.Range(excelStartRow, 1, rowCount + excelStartRow, 1);
                 rangeColA.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
                 rangeColA.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
@@ -307,9 +336,8 @@ namespace PhanMemThiDua2026
                 {
                     var cell = ws.Cell(excelStartRow, excelCol);
                     cell.Value = string.IsNullOrWhiteSpace(col.HeaderText) ? col.Name.Replace("_", " ") : col.HeaderText;
-                    // ⭐ ĐỊNH DẠNG ĐỘ RỘNG CỘT THEO YÊU CẦU
                     if (col.HeaderText.Contains("Họ và tên")) ws.Column(excelCol).Width = 30;
-                    else if (excelCol == 5) ws.Column(excelCol).Width = 20; // Cột thứ 5 là cột E
+                    else if (excelCol == 5) ws.Column(excelCol).Width = 20;
                     else ws.Column(excelCol).Width = 15;
                     cell.Style.Font.Bold = true; cell.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center; cell.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center; cell.Style.Alignment.WrapText = true; cell.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
                     if (laTanBinh && (col.Name == "Tuan_1_T2" || col.Name == "Tuan_2_T2" || col.Name == "Tuan_3_T2" || col.Name == "Tuan_4_T2" || col.Name == "Thang_3" || col.Name == "Tuan_1_T4" || col.Name == "Tuan_2_T4" || col.Name == "Tuan_3_T4" || col.Name == "Tuan_4_T4" || col.Name == "Thang_5")) cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromArgb(220, 235, 255);
@@ -334,6 +362,7 @@ namespace PhanMemThiDua2026
                 wb.SaveAs(targetExcelPath);
             }
         }
+
         public static void CapNhatTinhTrangThiDuaNamCu(string pathCsdl2, string pathCsdlNamCu, bool laTanBinh)
         {
             if (string.IsNullOrEmpty(pathCsdlNamCu) || !File.Exists(pathCsdlNamCu)) return;
@@ -343,9 +372,6 @@ namespace PhanMemThiDua2026
 
             try
             {
-                // -----------------------------------------------------------------
-                // BƯỚC 1: Đọc toàn bộ danh sách SoHieu hiện tại từ CSDL2 (Giải mã AES ra Plaintext)
-                // -----------------------------------------------------------------
                 var hashSoHieuCsdl2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
                 using (var cn2 = new SqliteConnection($"Data Source={pathCsdl2};Mode=ReadOnly"))
@@ -366,9 +392,6 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                // -----------------------------------------------------------------
-                // BƯỚC 2: Đọc tệp CSDL Năm Cũ (Đang chọn trên Form46) & Phân loại ID
-                // -----------------------------------------------------------------
                 var idDangCongTac = new List<int>();
                 var idChuyenCongTac = new List<int>();
 
@@ -385,7 +408,6 @@ namespace PhanMemThiDua2026
                         string plainSh = SafeDecrypt(encSh)?.Trim();
                         string ttHienTai = rd["TinhTrang"]?.ToString()?.Trim() ?? "";
 
-                        // Kiểm tra SoHieu năm cũ có nằm trong CSDL2 hiện tại không
                         bool tonTaiInCsdl2 = !string.IsNullOrEmpty(plainSh) && hashSoHieuCsdl2.Contains(plainSh);
 
                         if (tonTaiInCsdl2)
@@ -399,9 +421,6 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                // -----------------------------------------------------------------
-                // BƯỚC 3: Cập nhật trực tiếp chuỗi Text thuần vào cột TinhTrang
-                // -----------------------------------------------------------------
                 if (idDangCongTac.Count == 0 && idChuyenCongTac.Count == 0) return;
 
                 using (var cnNamCu = new SqliteConnection($"Data Source={pathCsdlNamCu}"))
@@ -410,7 +429,6 @@ namespace PhanMemThiDua2026
                     using var tran = cnNamCu.BeginTransaction();
                     try
                     {
-                        // A. Cập nhật "Đang công tác"
                         if (idDangCongTac.Count > 0)
                         {
                             using var cmdUpd = new SqliteCommand($"UPDATE [{tableDich}] SET TinhTrang = 'Đang công tác' WHERE ID = @id", cnNamCu, tran);
@@ -422,7 +440,6 @@ namespace PhanMemThiDua2026
                             }
                         }
 
-                        // B. Cập nhật "Chuyển công tác"
                         if (idChuyenCongTac.Count > 0)
                         {
                             using var cmdUpd = new SqliteCommand($"UPDATE [{tableDich}] SET TinhTrang = 'Chuyển công tác' WHERE ID = @id", cnNamCu, tran);
@@ -448,33 +465,24 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Lỗi cập nhật TinhTrang CSDL năm cũ: " + ex.Message);
             }
         }
-        // Thêm vào trong class Module_HoTroLuuDataTheoNamCu
+
         public static void CapNhatTinhTrangLichSuTuDanhSachGoc(string pathCsdl2, string pathCsdlNamCu, bool laTanBinh)
         {
-            // 1. CHỐT CHẶN AN TOÀN I/O
             if (string.IsNullOrEmpty(pathCsdlNamCu) || !File.Exists(pathCsdlNamCu)) return;
             if (string.IsNullOrEmpty(pathCsdl2) || !File.Exists(pathCsdl2)) return;
             string tableDich = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
             try
             {
-                // =========================================================================
-                // BƯỚC 1: RÚT TRÍCH SỐ HIỆU GỐC (TỐI ƯU BỘ NHỚ RAM)
-                // =========================================================================
-                // Kỹ thuật 1: Khởi tạo sẵn dung lượng (Capacity) cho HashSet là 10.000 
-                // -> Chống phân mảnh RAM (Garbage Collection Spikes) khi danh sách lớn.
                 var hashSoHieuCsdl2 = new HashSet<string>(10000, StringComparer.OrdinalIgnoreCase);
 
-                // Kỹ thuật 2: Thêm Cache=Shared để tăng tốc độ đọc từ đĩa
                 using (var cn2 = new SqliteConnection($"Data Source={pathCsdl2};Mode=ReadOnly;Cache=Shared"))
                 {
                     cn2.Open();
-                    // Kỹ thuật 3: Lọc Null ngay từ câu lệnh SQL để giảm tải cho C#
                     using var cmd = new SqliteCommand("SELECT SoHieu FROM DanhSach WHERE SoHieu IS NOT NULL AND SoHieu <> ''", cn2);
                     using var rd = cmd.ExecuteReader();
 
                     while (rd.Read())
                     {
-                        // Kỹ thuật 4: Dùng GetString(0) nhanh và tốn ít chu kỳ CPU hơn rd["SoHieu"].ToString()
                         string rawSh = rd.GetString(0);
                         string plainSh = SafeDecrypt(rawSh);
 
@@ -485,30 +493,23 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                if (hashSoHieuCsdl2.Count == 0) return; // Không có dữ liệu gốc -> Không có căn cứ đối chiếu -> Thoát.
+                if (hashSoHieuCsdl2.Count == 0) return;
 
-                // =========================================================================
-                // BƯỚC 2 & 3: ĐỐI CHIẾU VÀ CẬP NHẬT 1 LUỒNG (CHỐNG DEADLOCK)
-                // =========================================================================
                 using (var cnCu = new SqliteConnection($"Data Source={pathCsdlNamCu}"))
                 {
                     cnCu.Open();
 
-                    // Kỹ thuật 5: Ép SQLite sử dụng WAL (Write-Ahead Logging) và Normal Sync
-                    // -> Chống cháy nổ CSDL khi cúp điện đột ngột và tăng tốc độ Ghi (Write) gấp 5 lần.
                     using (var cmdPragma = new SqliteCommand("PRAGMA synchronous = NORMAL; PRAGMA journal_mode = WAL;", cnCu))
                     {
                         cmdPragma.ExecuteNonQuery();
                     }
 
-                    // Kiểm tra an toàn xem bảng có tồn tại không
                     using (var cmdCheck = new SqliteCommand("SELECT 1 FROM sqlite_master WHERE type='table' AND name=@tableName LIMIT 1;", cnCu))
                     {
                         cmdCheck.Parameters.AddWithValue("@tableName", tableDich);
                         if (cmdCheck.ExecuteScalar() == null) return;
                     }
 
-                    // Khởi tạo trước dung lượng cho danh sách cần sửa
                     var updateQueue = new List<(int id, string ttMoi)>(10000);
 
                     using (var cmdSelect = new SqliteCommand($"SELECT ID, SoHieu, TinhTrang FROM [{tableDich}]", cnCu))
@@ -522,20 +523,17 @@ namespace PhanMemThiDua2026
 
                             string plainSh = SafeDecrypt(rawSh).Trim();
 
-                            // Thuật toán đối chiếu lõi
                             string ttMoi = (!string.IsNullOrEmpty(plainSh) && hashSoHieuCsdl2.Contains(plainSh))
                                 ? "Đang công tác"
                                 : "Chuyển công tác";
 
-                            // Kỹ thuật 6: Chỉ đưa vào hàng đợi nếu thực sự có sự thay đổi
                             if (!string.Equals(ttCu, ttMoi, StringComparison.OrdinalIgnoreCase))
                             {
                                 updateQueue.Add((id, ttMoi));
                             }
                         }
-                    } // Phải đóng Reader trước khi nhảy vào Transaction ghi
+                    }
 
-                    // THỰC THI GHI Ổ CỨNG BẰNG GIAO DỊCH (TRANSACTION)
                     if (updateQueue.Count > 0)
                     {
                         using var tran = cnCu.BeginTransaction();
@@ -543,12 +541,9 @@ namespace PhanMemThiDua2026
                         {
                             using var cmdUpd = new SqliteCommand($"UPDATE [{tableDich}] SET TinhTrang = @tt WHERE ID = @id", cnCu, tran);
 
-                            // Kỹ thuật 7: Tạo Parameter 1 lần duy nhất bên ngoài vòng lặp
                             var pTt = cmdUpd.Parameters.Add("@tt", SqliteType.Text);
                             var pId = cmdUpd.Parameters.Add("@id", SqliteType.Integer);
 
-                            // Kỹ thuật 8: PREPARE STATEMENT (Tuyệt kỹ cho dữ liệu lớn)
-                            // Báo cho SQLite biên dịch sẵn câu lệnh SQL, vòng lặp bên dưới chỉ việc nạp biến.
                             cmdUpd.Prepare();
 
                             foreach (var item in updateQueue)
@@ -572,5 +567,245 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"Lỗi Cốt lõi Đồng Bộ Tình Trạng Lịch Sử: {ex.Message}");
             }
         }
-    } ///Ngoài luồng  
+
+        public static string LuuTruDuLieuKhenThuongTapTheNam()
+        {
+            // [CHẶN CỬA]: Tân binh không có khen thưởng -> Bỏ qua, không lưu gì cả
+            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+            int nam = Module_NamHeThong.LayNamHeThong();
+            string tableName = "ThongKe_KhenThuongTapThe";
+            string fileName = $"KhenThuongTapThe_Nam{nam}.db";
+
+            string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
+            string targetPath = Path.Combine(thuMucLuu, fileName);
+
+            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
+                throw new FileNotFoundException("Không tìm thấy cơ sở dữ liệu nguồn khen thưởng (CSDL4).");
+
+            Directory.CreateDirectory(thuMucLuu);
+
+            if (File.Exists(targetPath))
+                throw new InvalidOperationException($"Dữ liệu khen thưởng tập thể năm {nam} đã tồn tại trong lịch sử lưu trữ.");
+
+            bool attachThanhCong = false;
+            try
+            {
+                using var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL4}");
+                cn.Open();
+
+                using (var cmd = cn.CreateCommand())
+                {
+                    cmd.CommandText = "PRAGMA busy_timeout=5000;";
+                    cmd.ExecuteNonQuery();
+                }
+
+                using (var cmd = cn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@TenBang;";
+                    cmd.Parameters.AddWithValue("@TenBang", tableName);
+                    if ((long)cmd.ExecuteScalar() == 0)
+                        throw new Exception($"Không tìm thấy bảng [{tableName}] trong CSDL gốc.");
+                }
+
+                using (var cmd = cn.CreateCommand())
+                {
+                    cmd.CommandText = $"ATTACH DATABASE '{targetPath.Replace("'", "''")}' AS NamCu;";
+                    cmd.ExecuteNonQuery();
+                }
+                attachThanhCong = true;
+
+                using var tran = cn.BeginTransaction();
+                using (var cmd = cn.CreateCommand())
+                {
+                    cmd.Transaction = tran;
+                    cmd.CommandText = $"CREATE TABLE NamCu.{tableName} AS SELECT * FROM main.{tableName};";
+                    cmd.ExecuteNonQuery();
+                }
+                tran.Commit();
+            }
+            catch
+            {
+                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
+                throw;
+            }
+            finally
+            {
+                if (attachThanhCong)
+                {
+                    try
+                    {
+                        using var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL4}");
+                        cn.Open();
+                        using var cmd = cn.CreateCommand();
+                        cmd.CommandText = "DETACH DATABASE NamCu;";
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch { }
+                }
+            }
+
+            return targetPath;
+        }
+
+        public class HistoryKhenThuongCBCSDTO
+        {
+            public int STT { get; set; }
+            public string HoVaTen { get; set; }
+            public string SoHieu { get; set; }
+            public string DonVi { get; set; }
+            public string TinhTrang { get; set; }
+            public int SoLuong_Khen { get; set; }
+            public string GhiChu_Khen { get; set; }
+
+            public string DanhSachDVKhen_An { get; set; }
+        }
+
+        public static string LuuTruDuLieuKhenThuongToanDienNam()
+        {
+            // [CHẶN CỬA]: Tân binh không có khen thưởng -> Bỏ qua, không lưu gì cả
+            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
+                return string.Empty;
+
+            int nam = Module_NamHeThong.LayNamHeThong();
+
+            // Vì đã chặn Tân binh ở dòng trên, ta yên tâm fix cứng lại tên file cho CBCS
+            string fileName = $"KhenThuong_CBCS_Nam{nam}.db";
+            string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
+            string targetPath = Path.Combine(thuMucLuu, fileName);
+
+            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
+                throw new FileNotFoundException("Không tìm thấy cơ sở dữ liệu nguồn khen thưởng (CSDL số 4).");
+
+            Directory.CreateDirectory(thuMucLuu);
+
+            // KHỐI XỬ LÝ GHI ĐÈ AN TOÀN KHI TỆP ĐÃ TỒN TẠI
+            if (File.Exists(targetPath))
+            {
+                // Hiển thị MessageBox an toàn từ luồng ngầm (Background Thread)
+                // Bỏ việc gọi Form.ActiveForm hay Application.OpenForms để tránh lỗi Cross-thread
+                DialogResult result = MessageBox.Show(
+                    $"Dữ liệu khen thưởng tổng hợp năm {nam} đã tồn tại trong thư mục lưu trữ.\n\nBạn có muốn xóa phiên bản cũ và cập nhật lại bằng dữ liệu mới nhất không?",
+                    "Xác nhận ghi đè dữ liệu",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button1,
+                    MessageBoxOptions.DefaultDesktopOnly); // Ép hiển thị trên cùng không cần Owner
+
+                if (result == DialogResult.Yes)
+                {
+                    try
+                    {
+                        // Tuyệt kỹ an toàn: Ép SQLite nhả toàn bộ file đang bị khóa ngầm
+                        SqliteConnection.ClearAllPools();
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+
+                        // Xóa tệp cũ
+                        File.Delete(targetPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Không thể xóa tệp dữ liệu cũ. Có thể tệp đang được mở bởi ứng dụng khác hoặc bị khóa bởi hệ thống.\nChi tiết lỗi: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    // Người dùng từ chối ghi đè -> Thoát luồng êm đẹp
+                    return string.Empty;
+                }
+            }
+
+            // THÊM Pooling=False để kết nối tự hủy hoàn toàn sau khi chạy xong, nhả file 100%
+            using (var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL4};Pooling=False"))
+            {
+                cn.Open();
+
+                using (var cmd = cn.CreateCommand())
+                {
+                    cmd.CommandText = "PRAGMA busy_timeout=5000;";
+                    cmd.ExecuteNonQuery();
+                }
+
+                string[] cacBangCanSaoLuu = { "ThongKeCBCS_DuocKhenThuong", "ThongKe_GiayKhen", "ThongKe_KhenThuongTapThe" };
+                var cacBangThucTeCo = new List<string>();
+
+                foreach (var tbl in cacBangCanSaoLuu)
+                {
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@TenBang;";
+                        cmd.Parameters.AddWithValue("@TenBang", tbl);
+                        if ((long)cmd.ExecuteScalar() > 0)
+                        {
+                            cacBangThucTeCo.Add(tbl);
+                        }
+                    }
+                }
+
+                if (cacBangThucTeCo.Count == 0)
+                    throw new Exception("Không có dữ liệu khen thưởng nào để sao lưu (Các bảng đều trống hoặc chưa khởi tạo).");
+
+                bool attachThanhCong = false;
+                try
+                {
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText = $"ATTACH DATABASE '{targetPath.Replace("'", "''")}' AS NamCu;";
+                        cmd.ExecuteNonQuery();
+                    }
+                    attachThanhCong = true;
+
+                    using (var tran = cn.BeginTransaction())
+                    {
+                        foreach (var tbl in cacBangThucTeCo)
+                        {
+                            using (var cmd = cn.CreateCommand())
+                            {
+                                cmd.Transaction = tran;
+                                cmd.CommandText = $"CREATE TABLE NamCu.{tbl} AS SELECT * FROM main.{tbl};";
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        tran.Commit();
+                    }
+
+                    // GỠ CSDL RA NGAY TRÊN CÙNG 1 CONNECTION (Rất quan trọng để không bị Lock)
+                    using (var cmd = cn.CreateCommand())
+                    {
+                        cmd.CommandText = "DETACH DATABASE NamCu;";
+                        cmd.ExecuteNonQuery();
+                    }
+                    attachThanhCong = false;
+                }
+                catch
+                {
+                    // Bắt lỗi: Buộc đóng kết nối ngay lập tức trước khi xóa tệp rác
+                    cn.Close();
+                    SqliteConnection.ClearAllPools(); // <-- Dùng hàm dùng chung (Fix lỗi gạch đỏ)
+                    try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
+                    throw;
+                }
+                finally
+                {
+                    // Dự phòng: Nếu có lỗi đột ngột mà chưa kịp DETACH, ta detach lại trên chính kết nối đó
+                    if (attachThanhCong && cn.State == ConnectionState.Open)
+                    {
+                        try
+                        {
+                            using var cmd = cn.CreateCommand();
+                            cmd.CommandText = "DETACH DATABASE NamCu;";
+                            cmd.ExecuteNonQuery();
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            return targetPath;
+        }
+
+    }
 }

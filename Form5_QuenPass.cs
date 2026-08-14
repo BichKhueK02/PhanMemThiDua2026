@@ -45,7 +45,7 @@ namespace PhanMemThiDua2026
             StartProgressBar();
             label1_PhienBanPhanMem.Text = "Phiên bản: " + Module_PhienBan.SoftwareVersion;
             // ===== THIẾT LẬP CĂN PHẢI CHO NHÃN TÁC GIẢ =====
-            toolStripStatusLabel1.Text = "Written by Trung Kien";
+            toolStripStatusLabel1.Text = "Viết bởi " + Module_PhienBan.NguoiPhatTrienPhanMem.ToString();
             toolStripStatusLabel1.Spring = true; // Chiếm toàn bộ khoảng trống còn lại trên thanh StatusStrip
             toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleRight; // Đẩy chữ sang mép bên phải
         }

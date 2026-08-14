@@ -10,7 +10,7 @@ namespace PhanMemThiDua2026
         // ================= DATE (GIỮ NGUYÊN CHUỖI GỐC) =================
         public const string NgayThangNamHeThong = "10/8/2026";
         public const string NgayThangNamCapNhat = "Cập nhật lần cuối ngày " + NgayThangNamHeThong;
-        public const string NguoiPhatTrienPhanMem = "LeTrungKien & Nhóm phát triển";
+        public const string NguoiPhatTrienPhanMem = "LeTrungKien và Nhóm phát triển";
         public const string TenPhanMem = "PhanMemThiDua2026";
 
         public const string NgayThangNam = NgayThangNamHeThong;
