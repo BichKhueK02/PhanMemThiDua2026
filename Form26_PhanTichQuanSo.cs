@@ -7,7 +7,6 @@ namespace PhanMemThiDua2026
     public partial class Form26_PhanTichQuanSo : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-
         private int _tongQuanSo;
         private DataTable _dtBieuDo;
         private int _syQuan;
@@ -97,7 +96,15 @@ namespace PhanMemThiDua2026
                     _haSyQuan += kq.haSyQuan;
                     _chienSi += kq.chienSi;
 
-                    dtKetQua.Rows.Add(stt++, donVi, kq.tong, kq.syQuan, kq.haSyQuan, kq.chienSi);
+                    // ⭐ CHUẨN UX: Nếu bằng 0 thì gán DBNull.Value để DataGrid tự động để trống ô đó
+                    dtKetQua.Rows.Add(
+                        stt++,
+                        donVi,
+                        kq.tong == 0 ? DBNull.Value : (object)kq.tong,
+                        kq.syQuan == 0 ? DBNull.Value : (object)kq.syQuan,
+                        kq.haSyQuan == 0 ? DBNull.Value : (object)kq.haSyQuan,
+                        kq.chienSi == 0 ? DBNull.Value : (object)kq.chienSi
+                    );
                 }
             }
 
@@ -107,8 +114,10 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1.DataSource = null;
             kryptonDataGridView1.DataSource = dtKetQua;
             ChuanHoaDataGridView();
+
             // Cập nhật nhãn
             toolStripStatusLabel1.Text = $"Tổng quân số: {_tongQuanSo} đồng chí.";
+
             // TRUYỀN DỮ LIỆU VÀ YÊU CẦU VẼ LẠI BẢNG GÓC DƯỚI
             _dtBieuDo = dtKetQua;
             tableLayoutPanel2.Invalidate();

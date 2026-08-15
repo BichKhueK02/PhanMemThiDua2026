@@ -194,7 +194,7 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, toolStripMenuItem_ToTrinhBaNhat, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5_XuatDanhSachGoc, toolStripMenuItem_NhapDuLieu, toolStripMenuItem5, toolStripMenuItem_ThiDuaTapThe, toolStripMenuItem4, toolStripMenuItem_luuVaoSoVang, toolStripMenuItem_MoSoVang, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(208, 342);
+            contextMenuStrip1.Size = new Size(208, 364);
             // 
             // toolStripMenuItem_ToTrinhBaNhat
             // 

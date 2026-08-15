@@ -1824,17 +1824,16 @@
   </data>
   <data name="toolStripMenuItem_ThoatTrang.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIOSURBVDhPnZBPaxNRFMXvzqZgEbH6BfIFpAsTwSJC
-        FcSVUFz4GVy0xoWdmH9WNxYXQZC0TVsUaxERKXGmiJtCF4JEpDJJ00wyxSR2RtMJOg2YQHvkvskMMbUI
-        Xji8uef9ziEv5JMyy6cSKxiMKzgRlzH4DzmMAs5wlk4mVjD3qYFUti40na1j5iNrR5y8d8vlOMNZOhaV
-        IZeaOJMuIpAuIjhXxPCChgtPyuLkPch+R8wwyxnOUn/4Df42h/ndwwz1SQ6YU1WouTwKG3mxu76+WUO5
-        aELbrKKQ1wSjqqrHeAWaVkJJ38Lkvck/Ck6HCeMLhFtPR7BdtaHrNcF2FWTEUqlUUK19hWEYnUvHD8QI
-        61vjCD0j3F68DMtsY7tmHiwwDQPfvtfxcOqBVzCcIASiBLUaxWphFKElgrR0Bc3GflfBhFNgWRasxg/Y
-        tu1cTmTwZSeMz+YlbBhJPF4jrOnXceM5l4wIxifJoCOdgl37J3abTTxKJsXO/nsjiPQ6IfXB0UyWMPXO
-        j8iLiwcLWq1faLXbwP6eV3A+QTgXJ8znCLMq4eYyIfbyqrjnEU9wCwDnXbPTKa+A52yMMF8mhGTC3VfX
-        vLDLkK/zJ/aO6w9JhLG3hPuvR3sRwdBARO71xRzmdw8z1De2uMof3MY/ic+jd2QcjykYiCjoDyvwsSRZ
-        vNllOMNZIiI/EQ39p/y/AZ993aB1XkuiAAAAAElFTkSuQmCC
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAH+SURBVDhPpdLfS1NhGAfwL4SQN11UVhdmzVmxUlerbP7ApGwXsmqUMK3YytaKpcfp5g5iyhgW
+        Rt4EIQyiFkSFN2ENlFhuOpC5MAeiIIHUXVf1J3zj3bFsZ2cg+MBzLp7zfD+8nPcAW60vsombbXU2W+LF
+        4qiVidCFtaJtsIgGYAZQDaACwD4AxQWBdOAEE/6T/PlBZvJFT7wQYB3dSYSRjzwJuDntNXJ15Cx/xR9z
+        rMMYzwOe4XU2rAWk/McZk6q5EjLzR+QW79bsFksbwDC6RfBRZlgB1D3Xa+SnziouBc/we8SVCwxAFkuh
+        xSD96R56U518sCAzlBmiNH+P8IFIeqs46TnGzOApfgvfyAXCYPDrEC1T51gfrWHzVCOtMQvtMzZKabcC
+        zHRVMuo2cKHfxOWnrZonuJ6w83KshY5kG91zzmx4MNOnANOeo3x/+whTfiPHAtcoOy9pfgPv/H0loO4R
+        n4vjjgrOdlfyrdTEjpbaXOD/W/CBJMXjX2PSdYhv2nX87DFwVq7nndO78gGguPnhDm3g4009I61lFFBM
+        MtFjVl3jOiD2xLXnAaJeXildmnDoGHUZ2FVbIqYibACgB1C2jhQVBJ7bSsvftR34PeHUs7dhj5ieB9AI
+        oA7AYQDb//54moCoV1f328bbD7K/aa+Y2gFcBKDb2FBKDfwBjK1jEwr9NRQAAAAASUVORK5CYII=
 </value>
   </data>
   <metadata name="tableLayoutPanel1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">

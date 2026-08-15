@@ -14,7 +14,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 namespace PhanMemThiDua2026
 {
     public partial class Form50_QuanLyKhenThuongNamCu : Form
-    {        
+    {
         // KHAI BÁO DTO VÀ BIẾN TOÀN CỤC CHO KHEN THƯỞNG CÁ NHÂN
         private class HistoryGiayKhenDTO
         {
@@ -33,6 +33,8 @@ namespace PhanMemThiDua2026
             public string GhiChu_Khen { get; set; }
             public int SortPriority { get; set; }
         }
+        //Hệ thống production:
+        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private List<HistoryGiayKhenDTO> _dataCacheGiayKhen = new List<HistoryGiayKhenDTO>();
         private List<int> _filteredIndexes = new List<int>();
         private const string PLACEHOLDER_TIMKIEM = "Nhập họ và tên để tìm kiếm...";
@@ -241,8 +243,14 @@ namespace PhanMemThiDua2026
             if (comboBox_ChonCSDLNam == null) return;
             comboBox_ChonCSDLNam.SelectedIndexChanged -= comboBox_ChonCSDLNam_SelectedIndexChanged;
 
-            // ⭐ GỌI HÀM MỚI: CHỈ LẤY FILE KHEN THƯỞNG CÁ NHÂN ⭐
+            // Lấy danh sách thô
             var danhSach = Module_HoTroLuuDataTheoNamCu.LayDanhSachFileLichSu_KhenThuongCaNhan();
+
+            // ⭐ CHUẨN KỸ SƯ: Lọc bỏ ngay các tệp không có bảng ThongKe_GiayKhen hoặc đã bị xóa sạch (0 dòng)
+            if (danhSach != null && danhSach.Count > 0)
+            {
+                danhSach = danhSach.Where(f => KiemTraTonTaiDuLieuKhenThuong(f.DuongDan)).ToList();
+            }
 
             if (danhSach != null && danhSach.Count > 0)
             {
@@ -276,6 +284,169 @@ namespace PhanMemThiDua2026
             }
             CapNhatTieuDeTheoNamDuocChon();
         }
+        private async void toolStripMenuItem_XoaDuLieuNam_Click(object sender, EventArgs e)
+        {
+            // 1. KIỂM TRA XEM ĐÃ CHỌN TỆP NĂM CŨ CHƯA
+            if (comboBox_ChonCSDLNam.SelectedItem == null)
+            {
+                MessageBox.Show("Vui lòng chọn tệp CSDL năm cũ trên danh sách trước khi thao tác!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selectedFile = (FileLichSuDTO)comboBox_ChonCSDLNam.SelectedItem;
+            string dbPathLichSu = selectedFile.DuongDan;
+
+            if (!File.Exists(dbPathLichSu))
+            {
+                MessageBox.Show("Tệp CSDL không tồn tại trên ổ đĩa!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                int tongSoDong = 0;
+                using (var conn = new SqliteConnection($"Data Source={dbPathLichSu}"))
+                {
+                    await conn.OpenAsync();
+                    using (var cmdCheck = new SqliteCommand("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'", conn))
+                    {
+                        if (Convert.ToInt32(await cmdCheck.ExecuteScalarAsync()) == 0)
+                        {
+                            MessageBox.Show("Tệp CSDL này không chứa cấu trúc bảng Giấy khen!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return;
+                        }
+                    }
+
+                    using (var cmd = new SqliteCommand("SELECT COUNT(*) FROM ThongKe_GiayKhen", conn))
+                    {
+                        tongSoDong = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+                    }
+                }
+
+                if (tongSoDong == 0)
+                {
+                    MessageBox.Show($"Hiện tại không có dữ liệu giấy khen nào trong tệp {selectedFile.TenHienThi} để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi truy xuất kiểm tra dữ liệu: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
+            {
+                frmXacMinh.TopMost = true;
+                frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
+                if (frmXacMinh.ShowDialog(this) != DialogResult.OK) return;
+            }
+
+            DialogResult result = MessageBox.Show(
+            $"Xóa toàn bộ dữ liệu giấy khen của: {selectedFile.TenHienThi}?\nLưu ý: Hành động này không thể khôi phục!",
+            "Cảnh báo xóa (Quyền Admin)",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning,
+            MessageBoxDefaultButton.Button2);
+
+            if (result != DialogResult.Yes) return;
+
+            try
+            {
+                using (var conn = new SqliteConnection($"Data Source={dbPathLichSu}"))
+                {
+                    await conn.OpenAsync();
+                    using (var tran = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            using (var cmdDelete = new SqliteCommand("DELETE FROM ThongKe_GiayKhen", conn, tran))
+                            {
+                                await cmdDelete.ExecuteNonQueryAsync();
+                            }
+
+                            using (var cmdCheckSeq = new SqliteCommand("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='sqlite_sequence'", conn, tran))
+                            {
+                                int hasSequenceTable = Convert.ToInt32(await cmdCheckSeq.ExecuteScalarAsync());
+                                if (hasSequenceTable > 0)
+                                {
+                                    using (var cmdResetSeq = new SqliteCommand("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'ThongKe_GiayKhen'", conn, tran))
+                                    {
+                                        await cmdResetSeq.ExecuteNonQueryAsync();
+                                    }
+                                }
+                            }
+
+                            using (var cmdSync = new SqliteCommand("UPDATE ThongKeCBCS_DuocKhenThuong SET SoLuong_Khen = '0'", conn, tran))
+                            {
+                                await cmdSync.ExecuteNonQueryAsync();
+                            }
+
+                            tran.Commit();
+                        }
+                        catch
+                        {
+                            tran.Rollback();
+                            throw;
+                        }
+                    }
+                }
+
+                try
+                {
+                    Module_NhatKy.GhiNhatKy(
+                        string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                        $"Xóa TOÀN BỘ dữ liệu chi tiết giấy khen ({selectedFile.TenHienThi})",
+                        $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                    );
+                }
+                catch (Exception logEx) { System.Diagnostics.Debug.WriteLine("Lỗi ghi nhật ký: " + logEx.Message); }
+
+                MessageBox.Show($"✔ Đã xóa sạch toàn bộ dữ liệu giấy khen của {selectedFile.TenHienThi} thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // ⭐ THAY ĐỔI QUAN TRỌNG: Gọi lại hàm LoadDanhSachFileLichSu để ComboBox quét và vứt bỏ tệp vừa xóa sạch (0 dòng)
+                LoadDanhSachFileLichSu();
+
+                // Nếu ComboBox còn dữ liệu khác, tự động load Grid lên
+                if (comboBox_ChonCSDLNam.Items.Count > 0)
+                {
+                    comboBox_ChonCSDLNam.SelectedIndex = 0;
+                    _ = ThucHienTaiDuLieuLichSuAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi trong quá trình xóa dữ liệu:\n\n" + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        // ⭐ HÀM MỚI: KIỂM TRA XEM TỆP CSDL CÓ BẢNG VÀ CÓ DỮ LIỆU HAY KHÔNG
+        private bool KiemTraTonTaiDuLieuKhenThuong(string dbPath)
+        {
+            if (string.IsNullOrEmpty(dbPath) || !File.Exists(dbPath)) return false;
+            try
+            {
+                using (var conn = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly"))
+                {
+                    conn.Open();
+                    // 1. Kiểm tra xem bảng có tồn tại không
+                    using (var cmdCheck = new SqliteCommand("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'", conn))
+                    {
+                        if (Convert.ToInt32(cmdCheck.ExecuteScalar()) == 0) return false;
+                    }
+
+                    // 2. Kiểm tra xem bảng có dữ liệu (lớn hơn 0 dòng) không
+                    using (var cmdCount = new SqliteCommand("SELECT COUNT(*) FROM ThongKe_GiayKhen", conn))
+                    {
+                        if (Convert.ToInt32(cmdCount.ExecuteScalar()) == 0) return false;
+                    }
+                }
+                return true; // Bảng tồn tại và có dữ liệu
+            }
+            catch
+            {
+                return false; // File lỗi, khóa, hoặc bị hỏng
+            }
+        }
         private async Task ThucHienTaiDuLieuLichSuAsync()
         {
             if (comboBox_ChonCSDLNam.SelectedItem == null)
@@ -288,24 +459,31 @@ namespace PhanMemThiDua2026
 
             if (comboBox_ChonCSDLNam.SelectedItem is FileLichSuDTO selectedFile)
             {
-                Form_Loading frmLoad = new Form_Loading("Đang giải mã và nạp dữ liệu năm cũ...");
+                Form_Loading frmLoad = new Form_Loading("Đang đồng bộ và nạp dữ liệu năm cũ...");
                 frmLoad.Icon = this.Icon;
                 frmLoad.Show(this);
                 this.Enabled = false;
 
                 try
                 {
+                    // ⭐ CHUẨN KỸ SƯ: GỌI ĐỒNG BỘ TRẠNG THÁI TRƯỚC KHI ĐỌC VÀO RAM
+                    // Hệ thống sẽ so khớp với CSDL hiện tại và lưu chữ "Đang công tác / Chuyển công tác" 
+                    // xuống file SQLite năm cũ trước khi ta quét nó lên lưới.
+                    await DongBoTinhTrangGiayKhenNamCuAsync(selectedFile.DuongDan);
+
                     _dataCacheGiayKhen.Clear();
                     string[] donViUuTien = Module_DonVi.LayDanhSachDonViUuTienArray();
                     var dicDonViUuTien = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                     for (int i = 0; i < donViUuTien.Length; i++) dicDonViUuTien.TryAdd(donViUuTien[i], i);
 
+                    // Đẩy quá trình đọc DB và giải mã AES xuống luồng nền (Background Thread) để không đơ UI
                     await Task.Run(async () =>
                     {
                         using (var cn = new SqliteConnection($"Data Source={selectedFile.DuongDan};Mode=ReadOnly"))
                         {
                             await cn.OpenAsync();
 
+                            // Kiểm tra an toàn xem bảng có tồn tại không trước khi Query
                             string checkTableSql = "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'";
                             using (var cmdCheck = new SqliteCommand(checkTableSql, cn))
                             {
@@ -321,6 +499,7 @@ namespace PhanMemThiDua2026
                                 for (int i = 0; i < rd.FieldCount; i++)
                                     availableColumns.Add(rd.GetName(i));
 
+                                // Lambda giải mã an toàn
                                 Func<string, string> GetStringVal = (colName) =>
                                 {
                                     if (!availableColumns.Contains(colName)) return "";
@@ -328,6 +507,7 @@ namespace PhanMemThiDua2026
                                     return rd.IsDBNull(idx) ? "" : SafeDecrypt(rd.GetValue(idx));
                                 };
 
+                                // Lambda lấy chuỗi thuần (Dành cho Tình trạng)
                                 Func<string, string> GetRawStringVal = (colName) =>
                                 {
                                     if (!availableColumns.Contains(colName)) return "";
@@ -335,6 +515,7 @@ namespace PhanMemThiDua2026
                                     return rd.IsDBNull(idx) ? "" : rd.GetValue(idx).ToString();
                                 };
 
+                                // Lambda lấy số nguyên
                                 Func<string, int> GetIntVal = (colName) =>
                                 {
                                     if (!availableColumns.Contains(colName)) return 0;
@@ -352,7 +533,7 @@ namespace PhanMemThiDua2026
                                         HoVaTen = GetStringVal("HoVaTen"),
                                         SoHieu = GetStringVal("SoHieu"),
                                         DonVi = GetStringVal("DonVi"),
-                                        TinhTrang = GetRawStringVal("TinhTrang"), // Dữ liệu thuần
+                                        TinhTrang = GetRawStringVal("TinhTrang"), // Đọc Tình trạng thuần (đã đồng bộ ở trên)
                                         HinhThuc_Khen = GetStringVal("HinhThuc_Khen"),
                                         QuyetDinh_Khen = GetStringVal("QuyetDinh_Khen"),
                                         NgayCapQD_Khen = GetStringVal("NgayCapQD_Khen"),
@@ -360,13 +541,16 @@ namespace PhanMemThiDua2026
                                         VeViec_Khen = GetStringVal("VeViec_Khen"),
                                         GhiChu_Khen = GetStringVal("GhiChu_Khen")
                                     };
+
                                     item.HoVaTen_Search = item.HoVaTen.ToLowerInvariant();
                                     item.SortPriority = dicDonViUuTien.TryGetValue(item.DonVi, out int p) ? p : int.MaxValue;
+
                                     _dataCacheGiayKhen.Add(item);
                                 }
                             }
                         }
 
+                        // Sắp xếp lại dữ liệu trên RAM
                         _dataCacheGiayKhen = _dataCacheGiayKhen.OrderBy(x => x.SortPriority).ThenBy(x => x.ID).ToList();
                         for (int i = 0; i < _dataCacheGiayKhen.Count; i++) _dataCacheGiayKhen[i].STT = i + 1;
                     });
@@ -387,26 +571,57 @@ namespace PhanMemThiDua2026
                 }
             }
         }
+        // ⭐ SỬA TẠI ĐÂY: Thêm thuật toán sắp xếp ưu tiên cho ComboBox Đơn Vị
         private void KhoiTaoBoLocComboBoxTuRAM()
         {
             if (comboBox_TimKiemDonVi != null) comboBox_TimKiemDonVi.SelectedIndexChanged -= ComboBoxFilter_SelectedIndexChanged;
             if (comboBox1_HinhThucKT != null) comboBox1_HinhThucKT.SelectedIndexChanged -= ComboBoxFilter_SelectedIndexChanged;
 
-            var dsDonVi = _dataCacheGiayKhen
+            // 1. Trích xuất toàn bộ Đơn vị hiện có trong dữ liệu (Đã giải mã trên RAM)
+            var dsDonViTrongCSDL = _dataCacheGiayKhen
                 .Where(x => !string.IsNullOrWhiteSpace(x.DonVi) && x.DonVi != "[Lỗi giải mã]")
                 .Select(x => x.DonVi)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(x => x)
                 .ToList();
-            dsDonVi.Insert(0, "Tất cả");
 
+            // 2. Lấy danh sách thứ tự ưu tiên từ hệ thống
+            string[] thuTuUuTien = Module_DonVi.LayDanhSachDonViUuTienArray()
+                                               .Where(s => !string.IsNullOrWhiteSpace(s))
+                                               .ToArray();
+
+            // 3. THUẬT TOÁN SẮP XẾP CHUẨN KỸ SƯ
+            // - Lọc ra những đơn vị CÓ TRONG CSDL và nằm trong chuỗi ưu tiên (Giữ nguyên thứ tự ưu tiên)
+            var dsDonViFinal = thuTuUuTien.Where(x => dsDonViTrongCSDL.Contains(x)).ToList();
+
+            // - Lọc ra những đơn vị CÓ TRONG CSDL nhưng KHÔNG nằm trong chuỗi ưu tiên (Sắp xếp A-Z)
+            var dsConLai = dsDonViTrongCSDL.Except(dsDonViFinal).OrderBy(x => x);
+
+            // - Gộp 2 mảng lại
+            dsDonViFinal.AddRange(dsConLai);
+            dsDonViFinal.Insert(0, "Tất cả"); // Luôn để Tất cả ở vị trí số 0
+
+            // 4. Gán lên ComboBox
             if (comboBox_TimKiemDonVi != null)
             {
+                // Lưu lại giá trị cũ để giữ trạng thái cho người dùng
+                string giaTriCu = comboBox_TimKiemDonVi.Text;
+
                 comboBox_TimKiemDonVi.Items.Clear();
-                comboBox_TimKiemDonVi.Items.AddRange(dsDonVi.ToArray());
-                if (comboBox_TimKiemDonVi.Items.Count > 0) comboBox_TimKiemDonVi.SelectedIndex = 0;
+                comboBox_TimKiemDonVi.Items.AddRange(dsDonViFinal.ToArray());
+
+                // Khôi phục giá trị hoặc gán về 0
+                if (!string.IsNullOrEmpty(giaTriCu) && comboBox_TimKiemDonVi.Items.Contains(giaTriCu))
+                {
+                    comboBox_TimKiemDonVi.SelectedItem = giaTriCu;
+                    comboBox_TimKiemDonVi.Text = giaTriCu;
+                }
+                else if (comboBox_TimKiemDonVi.Items.Count > 0)
+                {
+                    comboBox_TimKiemDonVi.SelectedIndex = 0;
+                }
             }
 
+            // 5. Xử lý ComboBox Hình thức Khen thưởng (Vẫn giữ A-Z mặc định)
             var dsHinhThuc = _dataCacheGiayKhen
                 .Where(x => !string.IsNullOrWhiteSpace(x.HinhThuc_Khen) && x.HinhThuc_Khen != "[Lỗi giải mã]")
                 .Select(x => x.HinhThuc_Khen)
@@ -417,9 +632,14 @@ namespace PhanMemThiDua2026
 
             if (comboBox1_HinhThucKT != null)
             {
+                string htCu = comboBox1_HinhThucKT.Text;
                 comboBox1_HinhThucKT.Items.Clear();
                 comboBox1_HinhThucKT.Items.AddRange(dsHinhThuc.ToArray());
-                if (comboBox1_HinhThucKT.Items.Count > 0) comboBox1_HinhThucKT.SelectedIndex = 0;
+
+                if (!string.IsNullOrEmpty(htCu) && comboBox1_HinhThucKT.Items.Contains(htCu))
+                    comboBox1_HinhThucKT.SelectedItem = htCu;
+                else if (comboBox1_HinhThucKT.Items.Count > 0)
+                    comboBox1_HinhThucKT.SelectedIndex = 0;
             }
 
             if (comboBox_TimKiemDonVi != null) comboBox_TimKiemDonVi.SelectedIndexChanged += ComboBoxFilter_SelectedIndexChanged;
@@ -611,7 +831,7 @@ namespace PhanMemThiDua2026
 
             string[] parts = selectedFile.TenHienThi.Split(' ');
             string nam = (parts.Length > 1) ? parts[1] : DateTime.Now.Year.ToString();
-            string fileName = $"LichSu_KhenThuongCaNhan_Nam{nam}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            string fileName = $"ThongKe_KhenThuongCBCS_Nam{nam}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
 
             using var sfd = new SaveFileDialog
             {
@@ -740,12 +960,14 @@ namespace PhanMemThiDua2026
                     ws.PageSetup.Margins.Bottom = 0.5;
                     ws.PageSetup.Margins.Left = 0.4;
                     ws.PageSetup.Margins.Right = 0.4;
-
+                    // ⭐ SỬA TẠI ĐÂY: Truyền 'wb' (XLWorkbook) thay vì 'ws'
+                    Module_BanQuyen.DongDauExcel(wb);
                     wb.SaveAs(filePath);
                 });
 
                 try { Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath); } catch { }
                 Module_ThongBao.ThanhCong("Xuất Excel thành công!");
+        
             }
             catch (Exception ex)
             {
@@ -988,146 +1210,106 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Error);
             }
         }
-        private async void toolStripMenuItem_XoaDuLieuNam_Click(object sender, EventArgs e)
+        // ⭐ HÀM MỚI: ĐỒNG BỘ TRẠNG THÁI THEO SỐ HIỆU (LƯU TEXT THUẦN)
+        private async Task DongBoTinhTrangGiayKhenNamCuAsync(string dbPathLichSu)
         {
-            // 1. KIỂM TRA XEM ĐÃ CHỌN TỆP NĂM CŨ CHƯA
-            if (comboBox_ChonCSDLNam.SelectedItem == null)
-            {
-                MessageBox.Show("Vui lòng chọn tệp CSDL năm cũ trên danh sách trước khi thao tác!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Lấy đường dẫn chính xác của tệp lịch sử đang chọn
-            var selectedFile = (FileLichSuDTO)comboBox_ChonCSDLNam.SelectedItem;
-            string dbPathLichSu = selectedFile.DuongDan;
-
-            if (!File.Exists(dbPathLichSu))
-            {
-                MessageBox.Show("Tệp CSDL không tồn tại trên ổ đĩa!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+            if (string.IsNullOrEmpty(dbPathLichSu) || !File.Exists(dbPathLichSu)) return;
+            if (!File.Exists(_csdl2Path)) return;
 
             try
             {
-                // 2. KIỂM TRA NHANH XEM CÓ DỮ LIỆU ĐỂ XÓA KHÔNG
-                int tongSoDong = 0;
-                using (var conn = new SqliteConnection($"Data Source={dbPathLichSu}")) // Trỏ đúng vào DB lịch sử
-                {
-                    await conn.OpenAsync();
+                // 1. Quét CSDL hiện tại (csdl2.db) để lấy toàn bộ Số Hiệu đang công tác
+                // Dùng HashSet để tốc độ tìm kiếm đạt O(1) siêu tốc
+                var hashSoHieuHienTai = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                    // Kiểm tra xem bảng có tồn tại không trước khi đếm (chống lỗi văng khi DB bị hỏng)
-                    using (var cmdCheck = new SqliteCommand("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'", conn))
+                using (var cn2 = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadOnly"))
+                {
+                    await cn2.OpenAsync();
+                    using var cmd = new SqliteCommand("SELECT SoHieu FROM DanhSach WHERE SoHieu IS NOT NULL AND SoHieu <> ''", cn2);
+                    using var rd = await cmd.ExecuteReaderAsync();
+                    while (await rd.ReadAsync())
                     {
-                        if (Convert.ToInt32(await cmdCheck.ExecuteScalarAsync()) == 0)
+                        string rawSh = rd.GetString(0);
+                        string plainSh = SafeDecrypt(rawSh).Trim(); // Giải mã số hiệu hiện tại
+                        if (!string.IsNullOrEmpty(plainSh))
                         {
-                            MessageBox.Show("Tệp CSDL này không chứa cấu trúc bảng Giấy khen!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            return;
+                            hashSoHieuHienTai.Add(plainSh);
+                        }
+                    }
+                }
+
+                if (hashSoHieuHienTai.Count == 0) return;
+
+                // 2. Quét CSDL Lịch sử và đối chiếu để cập nhật
+                var updateQueue = new List<(int id, string ttMoi)>();
+
+                using (var cnCu = new SqliteConnection($"Data Source={dbPathLichSu}"))
+                {
+                    await cnCu.OpenAsync();
+
+                    // Kiểm tra xem bảng ThongKe_GiayKhen có tồn tại không
+                    using (var cmdCheck = new SqliteCommand("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'", cnCu))
+                    {
+                        if (await cmdCheck.ExecuteScalarAsync() == null) return;
+                    }
+
+                    // Đọc ID, SoHieu (Mã hóa), TinhTrang (Thuần) từ năm cũ
+                    using (var cmdSelect = new SqliteCommand("SELECT ID, SoHieu, TinhTrang FROM ThongKe_GiayKhen", cnCu))
+                    using (var rd = await cmdSelect.ExecuteReaderAsync())
+                    {
+                        while (await rd.ReadAsync())
+                        {
+                            int id = rd.GetInt32(0);
+                            string rawSh = rd.IsDBNull(1) ? "" : rd.GetString(1);
+                            string ttCu = rd.IsDBNull(2) ? "" : rd.GetString(2).Trim(); // Text thuần
+
+                            string plainSh = SafeDecrypt(rawSh).Trim(); // Giải mã số hiệu năm cũ
+
+                            // Logic: Nếu số hiệu năm cũ có nằm trong CSDL hiện tại -> Đang công tác. Ngược lại -> Chuyển công tác
+                            string ttMoi = (!string.IsNullOrEmpty(plainSh) && hashSoHieuHienTai.Contains(plainSh))
+                                ? "Đang công tác"
+                                : "Chuyển công tác";
+
+                            // Chỉ đưa vào danh sách cập nhật nếu có sự sai lệch trạng thái
+                            if (!string.Equals(ttCu, ttMoi, StringComparison.OrdinalIgnoreCase))
+                            {
+                                updateQueue.Add((id, ttMoi));
+                            }
                         }
                     }
 
-                    using (var cmd = new SqliteCommand("SELECT COUNT(*) FROM ThongKe_GiayKhen", conn))
+                    // 3. Tiến hành cập nhật bằng Transaction (Cực nhanh và an toàn)
+                    if (updateQueue.Count > 0)
                     {
-                        tongSoDong = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-                    }
-                }
-
-                if (tongSoDong == 0)
-                {
-                    MessageBox.Show($"Hiện tại không có dữ liệu giấy khen nào trong tệp {selectedFile.TenHienThi} để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Lỗi truy xuất kiểm tra dữ liệu: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            // 3. XÁC MINH QUYỀN ADMIN (Bảo vệ tính mạng CSDL)
-            using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
-            {
-                frmXacMinh.TopMost = true;
-                frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
-                if (frmXacMinh.ShowDialog(this) != DialogResult.OK) return;
-            }
-
-            // 4. CẢNH BÁO NGUY HIỂM LẦN CUỐI (UX Chống click nhầm)
-            DialogResult result = MessageBox.Show(
-                $"CẢNH BÁO NGUY HIỂM:\n\nBạn đang yêu cầu XÓA TOÀN BỘ dữ liệu chi tiết giấy khen của: {selectedFile.TenHienThi}.\nHành động này KHÔNG THỂ KHÔI PHỤC!\n\nBạn có chắc chắn muốn XÓA SẠCH?",
-                "Xác nhận xóa toàn bộ",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning,
-                MessageBoxDefaultButton.Button2); // Đặt mặc định focus ở nút NO cho an toàn
-
-            if (result != DialogResult.Yes) return;
-
-            // 5. THỰC THI XÓA VÀ ĐỒNG BỘ TRÊN LUỒNG BẢO VỆ TRANSACTION
-            try
-            {
-                using (var conn = new SqliteConnection($"Data Source={dbPathLichSu}")) // Trỏ đúng vào DB lịch sử
-                {
-                    await conn.OpenAsync();
-                    using (var tran = conn.BeginTransaction())
-                    {
+                        using var tran = cnCu.BeginTransaction();
                         try
                         {
-                            // A. Xóa sạch mọi dòng trong bảng ThongKe_GiayKhen
-                            using (var cmdDelete = new SqliteCommand("DELETE FROM ThongKe_GiayKhen", conn, tran))
-                            {
-                                await cmdDelete.ExecuteNonQueryAsync();
-                            }
+                            // LƯU Ý: TinhTrang được truyền thẳng (Text thuần), KHÔNG MÃ HÓA
+                            using var cmdUpd = new SqliteCommand("UPDATE ThongKe_GiayKhen SET TinhTrang = @tt WHERE ID = @id", cnCu, tran);
+                            var pTt = cmdUpd.Parameters.Add("@tt", SqliteType.Text);
+                            var pId = cmdUpd.Parameters.Add("@id", SqliteType.Integer);
 
-                            // B. ⭐ GIẢI QUYẾT LỖI "no such table": Kiểm tra bảng sqlite_sequence trước khi Reset
-                            using (var cmdCheckSeq = new SqliteCommand("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='sqlite_sequence'", conn, tran))
-                            {
-                                int hasSequenceTable = Convert.ToInt32(await cmdCheckSeq.ExecuteScalarAsync());
-                                if (hasSequenceTable > 0)
-                                {
-                                    using (var cmdResetSeq = new SqliteCommand("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'ThongKe_GiayKhen'", conn, tran))
-                                    {
-                                        await cmdResetSeq.ExecuteNonQueryAsync();
-                                    }
-                                }
-                            }
+                            cmdUpd.Prepare();
 
-                            // C. ⭐ CHUẨN KỸ SƯ: Đồng bộ hóa trả toàn bộ số lượng khen thưởng ở bảng TỔNG về số 0
-                            using (var cmdSync = new SqliteCommand("UPDATE ThongKeCBCS_DuocKhenThuong SET SoLuong_Khen = '0'", conn, tran))
+                            foreach (var item in updateQueue)
                             {
-                                await cmdSync.ExecuteNonQueryAsync();
+                                pTt.Value = item.ttMoi;
+                                pId.Value = item.id;
+                                await cmdUpd.ExecuteNonQueryAsync();
                             }
-
-                            // Chốt lệnh lưu xuống ổ cứng
                             tran.Commit();
                         }
                         catch
                         {
-                            // Có bất kỳ lỗi gì thì hoàn tác toàn bộ thao tác, không cho hư hỏng CSDL
                             tran.Rollback();
                             throw;
                         }
                     }
                 }
-
-                // 6. GHI LOG NHẬT KÝ HỆ THỐNG
-                try
-                {
-                    Module_NhatKy.GhiNhatKy(
-                        string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
-                        $"Xóa TOÀN BỘ dữ liệu chi tiết giấy khen ({selectedFile.TenHienThi})",
-                        $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
-                    );
-                }
-                catch (Exception logEx) { System.Diagnostics.Debug.WriteLine("Lỗi ghi nhật ký: " + logEx.Message); }
-
-                // 7. CẬP NHẬT LẠI GIAO DIỆN
-                MessageBox.Show($"✔ Đã xóa sạch toàn bộ dữ liệu giấy khen của {selectedFile.TenHienThi} thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                // Gọi hàm làm mới dữ liệu lưới nội bộ (Thay vì tải lại toàn bộ ComboBox)
-                _ = ThucHienTaiDuLieuLichSuAsync();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi trong quá trình xóa dữ liệu:\n\n" + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.WriteLine($"Lỗi đồng bộ Tình trạng Form50: {ex.Message}");
             }
         }
     }

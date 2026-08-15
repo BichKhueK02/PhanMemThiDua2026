@@ -31,24 +31,26 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form50_QuanLyKhenThuongNamCu));
             tableLayoutPanel1 = new TableLayoutPanel();
+            groupBox5 = new GroupBox();
+            tableLayoutPanel8 = new TableLayoutPanel();
+            kryptonDataGridView1 = new Krypton.Toolkit.KryptonDataGridView();
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
-            kryptonDataGridView1 = new Krypton.Toolkit.KryptonDataGridView();
             tableLayoutPanel2 = new TableLayoutPanel();
             tableLayoutPanel4 = new TableLayoutPanel();
             groupBox4 = new GroupBox();
             tableLayoutPanel7 = new TableLayoutPanel();
             kryptonButton1_TraCuuKetQuaKhenThuongNamCu = new Krypton.Toolkit.KryptonButton();
-            groupBox2 = new GroupBox();
-            tableLayoutPanel3 = new TableLayoutPanel();
-            kryptonButton_Dong = new Krypton.Toolkit.KryptonButton();
-            kryptonButton_XuatData = new Krypton.Toolkit.KryptonButton();
-            kryptonButton_CapNhat = new Krypton.Toolkit.KryptonButton();
             groupBox3 = new GroupBox();
             tableLayoutPanel6 = new TableLayoutPanel();
             comboBox_ChonCSDLNam = new ComboBox();
             label5 = new Label();
             pictureBox1 = new PictureBox();
+            groupBox2 = new GroupBox();
+            tableLayoutPanel3 = new TableLayoutPanel();
+            kryptonButton_Dong = new Krypton.Toolkit.KryptonButton();
+            kryptonButton_XuatData = new Krypton.Toolkit.KryptonButton();
+            kryptonButton_CapNhat = new Krypton.Toolkit.KryptonButton();
             groupBox1 = new GroupBox();
             tableLayoutPanel5 = new TableLayoutPanel();
             label3 = new Label();
@@ -69,17 +71,19 @@
             toolStripMenuItem3 = new ToolStripSeparator();
             toolStripMenuItem_Dong = new ToolStripMenuItem();
             tableLayoutPanel1.SuspendLayout();
-            statusStrip1.SuspendLayout();
+            groupBox5.SuspendLayout();
+            tableLayoutPanel8.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)kryptonDataGridView1).BeginInit();
+            statusStrip1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             tableLayoutPanel4.SuspendLayout();
             groupBox4.SuspendLayout();
             tableLayoutPanel7.SuspendLayout();
-            groupBox2.SuspendLayout();
-            tableLayoutPanel3.SuspendLayout();
             groupBox3.SuspendLayout();
             tableLayoutPanel6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            groupBox2.SuspendLayout();
+            tableLayoutPanel3.SuspendLayout();
             groupBox1.SuspendLayout();
             tableLayoutPanel5.SuspendLayout();
             contextMenuStrip1.SuspendLayout();
@@ -89,8 +93,8 @@
             // 
             tableLayoutPanel1.ColumnCount = 1;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel1.Controls.Add(groupBox5, 0, 1);
             tableLayoutPanel1.Controls.Add(statusStrip1, 0, 2);
-            tableLayoutPanel1.Controls.Add(kryptonDataGridView1, 0, 1);
             tableLayoutPanel1.Controls.Add(tableLayoutPanel2, 0, 0);
             tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(0, 0);
@@ -102,6 +106,49 @@
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 4.64783859F));
             tableLayoutPanel1.Size = new Size(1264, 681);
             tableLayoutPanel1.TabIndex = 3;
+            // 
+            // groupBox5
+            // 
+            groupBox5.Controls.Add(tableLayoutPanel8);
+            groupBox5.Dock = DockStyle.Fill;
+            groupBox5.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            groupBox5.ForeColor = Color.Red;
+            groupBox5.Location = new Point(2, 166);
+            groupBox5.Margin = new Padding(2, 3, 2, 3);
+            groupBox5.Name = "groupBox5";
+            groupBox5.Padding = new Padding(2, 3, 2, 3);
+            groupBox5.Size = new Size(1260, 480);
+            groupBox5.TabIndex = 8;
+            groupBox5.TabStop = false;
+            groupBox5.Text = "5. Thông tin khen thưởng năm cũ của CBCS";
+            // 
+            // tableLayoutPanel8
+            // 
+            tableLayoutPanel8.ColumnCount = 1;
+            tableLayoutPanel8.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tableLayoutPanel8.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel8.Controls.Add(kryptonDataGridView1, 0, 0);
+            tableLayoutPanel8.Dock = DockStyle.Fill;
+            tableLayoutPanel8.Location = new Point(2, 20);
+            tableLayoutPanel8.Margin = new Padding(2, 3, 2, 3);
+            tableLayoutPanel8.Name = "tableLayoutPanel8";
+            tableLayoutPanel8.RowCount = 1;
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel8.Size = new Size(1256, 457);
+            tableLayoutPanel8.TabIndex = 0;
+            // 
+            // kryptonDataGridView1
+            // 
+            kryptonDataGridView1.BorderStyle = BorderStyle.None;
+            kryptonDataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            kryptonDataGridView1.Dock = DockStyle.Fill;
+            kryptonDataGridView1.Location = new Point(2, 3);
+            kryptonDataGridView1.Margin = new Padding(2, 3, 2, 3);
+            kryptonDataGridView1.Name = "kryptonDataGridView1";
+            kryptonDataGridView1.ReadOnly = true;
+            kryptonDataGridView1.RowHeadersWidth = 53;
+            kryptonDataGridView1.Size = new Size(1252, 451);
+            kryptonDataGridView1.TabIndex = 5;
             // 
             // statusStrip1
             // 
@@ -121,19 +168,6 @@
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(33, 21);
             toolStripStatusLabel1.Text = "*";
-            // 
-            // kryptonDataGridView1
-            // 
-            kryptonDataGridView1.BorderStyle = BorderStyle.None;
-            kryptonDataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            kryptonDataGridView1.Dock = DockStyle.Fill;
-            kryptonDataGridView1.Location = new Point(2, 166);
-            kryptonDataGridView1.Margin = new Padding(2, 3, 2, 3);
-            kryptonDataGridView1.Name = "kryptonDataGridView1";
-            kryptonDataGridView1.ReadOnly = true;
-            kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(1260, 480);
-            kryptonDataGridView1.TabIndex = 4;
             // 
             // tableLayoutPanel2
             // 
@@ -155,12 +189,13 @@
             // tableLayoutPanel4
             // 
             tableLayoutPanel4.ColumnCount = 3;
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.99043F));
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45.21531F));
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26.7145138F));
-            tableLayoutPanel4.Controls.Add(groupBox4, 2, 0);
-            tableLayoutPanel4.Controls.Add(groupBox2, 1, 0);
-            tableLayoutPanel4.Controls.Add(groupBox3, 0, 0);
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25.99681F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.0143547F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40.9090919F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel4.Controls.Add(groupBox4, 0, 0);
+            tableLayoutPanel4.Controls.Add(groupBox3, 1, 0);
+            tableLayoutPanel4.Controls.Add(groupBox2, 2, 0);
             tableLayoutPanel4.Dock = DockStyle.Fill;
             tableLayoutPanel4.Location = new Point(3, 3);
             tableLayoutPanel4.Name = "tableLayoutPanel4";
@@ -175,14 +210,14 @@
             groupBox4.Dock = DockStyle.Fill;
             groupBox4.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             groupBox4.ForeColor = Color.Red;
-            groupBox4.Location = new Point(920, 3);
+            groupBox4.Location = new Point(2, 3);
             groupBox4.Margin = new Padding(2, 3, 2, 3);
             groupBox4.Name = "groupBox4";
             groupBox4.Padding = new Padding(2, 3, 2, 3);
-            groupBox4.Size = new Size(332, 73);
-            groupBox4.TabIndex = 5;
+            groupBox4.Size = new Size(322, 73);
+            groupBox4.TabIndex = 7;
             groupBox4.TabStop = false;
-            groupBox4.Text = "3. Quản lý khen thưởng tập thể năm cũ";
+            groupBox4.Text = "1. Quản lý khen thưởng tập thể năm cũ";
             // 
             // tableLayoutPanel7
             // 
@@ -198,13 +233,13 @@
             tableLayoutPanel7.Name = "tableLayoutPanel7";
             tableLayoutPanel7.RowCount = 1;
             tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel7.Size = new Size(328, 50);
+            tableLayoutPanel7.Size = new Size(318, 50);
             tableLayoutPanel7.TabIndex = 0;
             // 
             // kryptonButton1_TraCuuKetQuaKhenThuongNamCu
             // 
             kryptonButton1_TraCuuKetQuaKhenThuongNamCu.Anchor = AnchorStyles.None;
-            kryptonButton1_TraCuuKetQuaKhenThuongNamCu.Location = new Point(44, 9);
+            kryptonButton1_TraCuuKetQuaKhenThuongNamCu.Location = new Point(39, 9);
             kryptonButton1_TraCuuKetQuaKhenThuongNamCu.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_TraCuuKetQuaKhenThuongNamCu.Name = "kryptonButton1_TraCuuKetQuaKhenThuongNamCu";
             kryptonButton1_TraCuuKetQuaKhenThuongNamCu.Size = new Size(240, 32);
@@ -216,20 +251,89 @@
             kryptonButton1_TraCuuKetQuaKhenThuongNamCu.Values.Text = "Khen thưởng tập thể năm cũ";
             kryptonButton1_TraCuuKetQuaKhenThuongNamCu.Click += kryptonButton1_TraCuuKetQuaKhenThuongNamCu_Click;
             // 
+            // groupBox3
+            // 
+            groupBox3.Controls.Add(tableLayoutPanel6);
+            groupBox3.Dock = DockStyle.Fill;
+            groupBox3.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
+            groupBox3.ForeColor = Color.Red;
+            groupBox3.Location = new Point(328, 3);
+            groupBox3.Margin = new Padding(2, 3, 2, 3);
+            groupBox3.Name = "groupBox3";
+            groupBox3.Padding = new Padding(2, 3, 2, 3);
+            groupBox3.Size = new Size(410, 73);
+            groupBox3.TabIndex = 8;
+            groupBox3.TabStop = false;
+            groupBox3.Text = "2. Chọn CSDL khen thưởng CBCS đã lưu theo năm";
+            // 
+            // tableLayoutPanel6
+            // 
+            tableLayoutPanel6.ColumnCount = 3;
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15.7635469F));
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37.9310341F));
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 46.06414F));
+            tableLayoutPanel6.Controls.Add(comboBox_ChonCSDLNam, 2, 0);
+            tableLayoutPanel6.Controls.Add(label5, 1, 0);
+            tableLayoutPanel6.Controls.Add(pictureBox1, 0, 0);
+            tableLayoutPanel6.Dock = DockStyle.Fill;
+            tableLayoutPanel6.Location = new Point(2, 20);
+            tableLayoutPanel6.Name = "tableLayoutPanel6";
+            tableLayoutPanel6.RowCount = 1;
+            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel6.Size = new Size(406, 50);
+            tableLayoutPanel6.TabIndex = 0;
+            // 
+            // comboBox_ChonCSDLNam
+            // 
+            comboBox_ChonCSDLNam.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            comboBox_ChonCSDLNam.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox_ChonCSDLNam.Font = new Font("Segoe UI", 9.792F);
+            comboBox_ChonCSDLNam.FormattingEnabled = true;
+            comboBox_ChonCSDLNam.Location = new Point(220, 11);
+            comboBox_ChonCSDLNam.Margin = new Padding(2, 3, 2, 3);
+            comboBox_ChonCSDLNam.Name = "comboBox_ChonCSDLNam";
+            comboBox_ChonCSDLNam.Size = new Size(184, 25);
+            comboBox_ChonCSDLNam.TabIndex = 15;
+            // 
+            // label5
+            // 
+            label5.Anchor = AnchorStyles.Right;
+            label5.AutoSize = true;
+            label5.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
+            label5.ForeColor = Color.FromArgb(0, 0, 192);
+            label5.Location = new Point(146, 16);
+            label5.Margin = new Padding(2, 0, 2, 0);
+            label5.Name = "label5";
+            label5.Size = new Size(70, 17);
+            label5.TabIndex = 14;
+            label5.Text = "Chọn CSDL";
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pictureBox1.Image = Properties.Resources.Internet_Search;
+            pictureBox1.Location = new Point(2, 3);
+            pictureBox1.Margin = new Padding(2, 3, 2, 3);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(60, 44);
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox1.TabIndex = 10;
+            pictureBox1.TabStop = false;
+            // 
             // groupBox2
             // 
             groupBox2.Controls.Add(tableLayoutPanel3);
             groupBox2.Dock = DockStyle.Fill;
             groupBox2.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             groupBox2.ForeColor = Color.Red;
-            groupBox2.Location = new Point(353, 3);
+            groupBox2.Location = new Point(742, 3);
             groupBox2.Margin = new Padding(2, 3, 2, 3);
             groupBox2.Name = "groupBox2";
             groupBox2.Padding = new Padding(2, 3, 2, 3);
-            groupBox2.Size = new Size(563, 73);
+            groupBox2.Size = new Size(510, 73);
             groupBox2.TabIndex = 4;
             groupBox2.TabStop = false;
-            groupBox2.Text = "2. Khối điều khiển";
+            groupBox2.Text = "3. Khối điều khiển";
             // 
             // tableLayoutPanel3
             // 
@@ -247,14 +351,14 @@
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.Size = new Size(559, 50);
+            tableLayoutPanel3.Size = new Size(506, 50);
             tableLayoutPanel3.TabIndex = 0;
             // 
             // kryptonButton_Dong
             // 
             kryptonButton_Dong.Anchor = AnchorStyles.None;
             kryptonButton_Dong.DialogResult = DialogResult.TryAgain;
-            kryptonButton_Dong.Location = new Point(395, 9);
+            kryptonButton_Dong.Location = new Point(351, 9);
             kryptonButton_Dong.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Dong.Name = "kryptonButton_Dong";
             kryptonButton_Dong.Size = new Size(136, 32);
@@ -270,7 +374,7 @@
             // kryptonButton_XuatData
             // 
             kryptonButton_XuatData.Anchor = AnchorStyles.None;
-            kryptonButton_XuatData.Location = new Point(206, 9);
+            kryptonButton_XuatData.Location = new Point(180, 9);
             kryptonButton_XuatData.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatData.Name = "kryptonButton_XuatData";
             kryptonButton_XuatData.Size = new Size(136, 32);
@@ -285,7 +389,7 @@
             // kryptonButton_CapNhat
             // 
             kryptonButton_CapNhat.Anchor = AnchorStyles.None;
-            kryptonButton_CapNhat.Location = new Point(23, 9);
+            kryptonButton_CapNhat.Location = new Point(14, 9);
             kryptonButton_CapNhat.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_CapNhat.Name = "kryptonButton_CapNhat";
             kryptonButton_CapNhat.Size = new Size(136, 32);
@@ -296,75 +400,6 @@
             kryptonButton_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton_CapNhat.Values.Image");
             kryptonButton_CapNhat.Values.Text = "Làm mới";
             kryptonButton_CapNhat.Click += kryptonButton_CapNhat_Click;
-            // 
-            // groupBox3
-            // 
-            groupBox3.Controls.Add(tableLayoutPanel6);
-            groupBox3.Dock = DockStyle.Fill;
-            groupBox3.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            groupBox3.ForeColor = Color.Red;
-            groupBox3.Location = new Point(2, 3);
-            groupBox3.Margin = new Padding(2, 3, 2, 3);
-            groupBox3.Name = "groupBox3";
-            groupBox3.Padding = new Padding(2, 3, 2, 3);
-            groupBox3.Size = new Size(347, 73);
-            groupBox3.TabIndex = 2;
-            groupBox3.TabStop = false;
-            groupBox3.Text = "1. Chọn CSDL đã lưu theo năm";
-            // 
-            // tableLayoutPanel6
-            // 
-            tableLayoutPanel6.ColumnCount = 3;
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.1538467F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32.9446068F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 46.06414F));
-            tableLayoutPanel6.Controls.Add(comboBox_ChonCSDLNam, 2, 0);
-            tableLayoutPanel6.Controls.Add(label5, 1, 0);
-            tableLayoutPanel6.Controls.Add(pictureBox1, 0, 0);
-            tableLayoutPanel6.Dock = DockStyle.Fill;
-            tableLayoutPanel6.Location = new Point(2, 20);
-            tableLayoutPanel6.Name = "tableLayoutPanel6";
-            tableLayoutPanel6.RowCount = 1;
-            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel6.Size = new Size(343, 50);
-            tableLayoutPanel6.TabIndex = 0;
-            // 
-            // comboBox_ChonCSDLNam
-            // 
-            comboBox_ChonCSDLNam.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            comboBox_ChonCSDLNam.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox_ChonCSDLNam.Font = new Font("Segoe UI", 9.792F);
-            comboBox_ChonCSDLNam.FormattingEnabled = true;
-            comboBox_ChonCSDLNam.Location = new Point(186, 11);
-            comboBox_ChonCSDLNam.Margin = new Padding(2, 3, 2, 3);
-            comboBox_ChonCSDLNam.Name = "comboBox_ChonCSDLNam";
-            comboBox_ChonCSDLNam.Size = new Size(155, 25);
-            comboBox_ChonCSDLNam.TabIndex = 15;
-            // 
-            // label5
-            // 
-            label5.Anchor = AnchorStyles.Right;
-            label5.AutoSize = true;
-            label5.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
-            label5.ForeColor = Color.FromArgb(0, 0, 192);
-            label5.Location = new Point(112, 16);
-            label5.Margin = new Padding(2, 0, 2, 0);
-            label5.Name = "label5";
-            label5.Size = new Size(70, 17);
-            label5.TabIndex = 14;
-            label5.Text = "Chọn CSDL";
-            // 
-            // pictureBox1
-            // 
-            pictureBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox1.Image = Properties.Resources.Internet_Search;
-            pictureBox1.Location = new Point(2, 3);
-            pictureBox1.Margin = new Padding(2, 3, 2, 3);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(68, 44);
-            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox1.TabIndex = 10;
-            pictureBox1.TabStop = false;
             // 
             // groupBox1
             // 
@@ -383,21 +418,20 @@
             // 
             // tableLayoutPanel5
             // 
-            tableLayoutPanel5.ColumnCount = 9;
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 8.55614948F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.3903751F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 7.700535F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 11.8210859F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 7.98722029F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.5081291F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10.7636967F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.2073879F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 5.755965F));
+            tableLayoutPanel5.ColumnCount = 7;
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 11.2998018F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28.24951F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10.1698227F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15.6116886F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10.5484381F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.5190411F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 7.6016984F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
             tableLayoutPanel5.Controls.Add(label3, 0, 0);
             tableLayoutPanel5.Controls.Add(label4, 2, 0);
             tableLayoutPanel5.Controls.Add(comboBox_TimKiemDonVi, 3, 0);
-            tableLayoutPanel5.Controls.Add(kryptonButton_LamMoiCacOTimKiem, 8, 0);
+            tableLayoutPanel5.Controls.Add(kryptonButton_LamMoiCacOTimKiem, 6, 0);
             tableLayoutPanel5.Controls.Add(label1, 4, 0);
             tableLayoutPanel5.Controls.Add(comboBox1_HinhThucKT, 5, 0);
             tableLayoutPanel5.Controls.Add(textBox_TimKiemTheoTen, 1, 0);
@@ -416,7 +450,7 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(0, 0, 192);
-            label3.Location = new Point(43, 13);
+            label3.Location = new Point(77, 13);
             label3.Margin = new Padding(2, 0, 2, 0);
             label3.Name = "label3";
             label3.Size = new Size(62, 17);
@@ -429,7 +463,7 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label4.ForeColor = Color.FromArgb(0, 0, 192);
-            label4.Location = new Point(425, 13);
+            label4.Location = new Point(575, 13);
             label4.Margin = new Padding(2, 0, 2, 0);
             label4.Name = "label4";
             label4.Size = new Size(44, 17);
@@ -442,16 +476,16 @@
             comboBox_TimKiemDonVi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_TimKiemDonVi.Font = new Font("Segoe UI", 9.792F);
             comboBox_TimKiemDonVi.FormattingEnabled = true;
-            comboBox_TimKiemDonVi.Location = new Point(473, 8);
+            comboBox_TimKiemDonVi.Location = new Point(623, 9);
             comboBox_TimKiemDonVi.Margin = new Padding(2, 3, 2, 3);
             comboBox_TimKiemDonVi.Name = "comboBox_TimKiemDonVi";
-            comboBox_TimKiemDonVi.Size = new Size(144, 25);
+            comboBox_TimKiemDonVi.Size = new Size(191, 25);
             comboBox_TimKiemDonVi.TabIndex = 1;
             // 
             // kryptonButton_LamMoiCacOTimKiem
             // 
             kryptonButton_LamMoiCacOTimKiem.Anchor = AnchorStyles.None;
-            kryptonButton_LamMoiCacOTimKiem.Location = new Point(1189, 5);
+            kryptonButton_LamMoiCacOTimKiem.Location = new Point(1178, 5);
             kryptonButton_LamMoiCacOTimKiem.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_LamMoiCacOTimKiem.Name = "kryptonButton_LamMoiCacOTimKiem";
             kryptonButton_LamMoiCacOTimKiem.Size = new Size(50, 32);
@@ -469,7 +503,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.FromArgb(0, 0, 192);
-            label1.Location = new Point(654, 13);
+            label1.Location = new Point(883, 13);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new Size(63, 17);
@@ -482,19 +516,19 @@
             comboBox1_HinhThucKT.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_HinhThucKT.Font = new Font("Segoe UI", 9.792F);
             comboBox1_HinhThucKT.FormattingEnabled = true;
-            comboBox1_HinhThucKT.Location = new Point(721, 8);
+            comboBox1_HinhThucKT.Location = new Point(950, 9);
             comboBox1_HinhThucKT.Margin = new Padding(2, 3, 2, 3);
             comboBox1_HinhThucKT.Name = "comboBox1_HinhThucKT";
-            comboBox1_HinhThucKT.Size = new Size(153, 25);
+            comboBox1_HinhThucKT.Size = new Size(202, 25);
             comboBox1_HinhThucKT.TabIndex = 2;
             // 
             // textBox_TimKiemTheoTen
             // 
             textBox_TimKiemTheoTen.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_TimKiemTheoTen.Location = new Point(109, 9);
+            textBox_TimKiemTheoTen.Location = new Point(143, 9);
             textBox_TimKiemTheoTen.Margin = new Padding(2);
             textBox_TimKiemTheoTen.Name = "textBox_TimKiemTheoTen";
-            textBox_TimKiemTheoTen.Size = new Size(264, 25);
+            textBox_TimKiemTheoTen.Size = new Size(349, 25);
             textBox_TimKiemTheoTen.StateCommon.Border.Rounding = 3F;
             textBox_TimKiemTheoTen.StateCommon.Border.Width = 1;
             textBox_TimKiemTheoTen.TabIndex = 11;
@@ -511,7 +545,7 @@
             toolStripMenuItem_LamMoi.Image = (Image)resources.GetObject("toolStripMenuItem_LamMoi.Image");
             toolStripMenuItem_LamMoi.Name = "toolStripMenuItem_LamMoi";
             toolStripMenuItem_LamMoi.Size = new Size(292, 22);
-            toolStripMenuItem_LamMoi.Text = "Làm mới";
+            toolStripMenuItem_LamMoi.Text = "Làm mới trang";
             toolStripMenuItem_LamMoi.Click += toolStripMenuItem_LamMoi_Click;
             // 
             // toolStripMenuItem1
@@ -558,7 +592,7 @@
             toolStripMenuItem_Dong.Image = (Image)resources.GetObject("toolStripMenuItem_Dong.Image");
             toolStripMenuItem_Dong.Name = "toolStripMenuItem_Dong";
             toolStripMenuItem_Dong.Size = new Size(292, 22);
-            toolStripMenuItem_Dong.Text = "Đóng";
+            toolStripMenuItem_Dong.Text = "Đóng trang";
             toolStripMenuItem_Dong.Click += toolStripMenuItem_Dong_Click;
             // 
             // Form50_QuanLyKhenThuongNamCu
@@ -572,19 +606,21 @@
             Load += Form50_ThongKeKhenThuongNamCu_Load;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
+            groupBox5.ResumeLayout(false);
+            tableLayoutPanel8.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)kryptonDataGridView1).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)kryptonDataGridView1).EndInit();
             tableLayoutPanel2.ResumeLayout(false);
             tableLayoutPanel4.ResumeLayout(false);
             groupBox4.ResumeLayout(false);
             tableLayoutPanel7.ResumeLayout(false);
-            groupBox2.ResumeLayout(false);
-            tableLayoutPanel3.ResumeLayout(false);
             groupBox3.ResumeLayout(false);
             tableLayoutPanel6.ResumeLayout(false);
             tableLayoutPanel6.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            groupBox2.ResumeLayout(false);
+            tableLayoutPanel3.ResumeLayout(false);
             groupBox1.ResumeLayout(false);
             tableLayoutPanel5.ResumeLayout(false);
             tableLayoutPanel5.PerformLayout();
@@ -595,7 +631,6 @@
         #endregion
 
         private TableLayoutPanel tableLayoutPanel1;
-        private Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1;
         private TableLayoutPanel tableLayoutPanel2;
         private TableLayoutPanel tableLayoutPanel4;
         private GroupBox groupBox2;
@@ -603,11 +638,6 @@
         private Krypton.Toolkit.KryptonButton kryptonButton_Dong;
         private Krypton.Toolkit.KryptonButton kryptonButton_XuatData;
         private Krypton.Toolkit.KryptonButton kryptonButton_CapNhat;
-        private GroupBox groupBox3;
-        private TableLayoutPanel tableLayoutPanel6;
-        private ComboBox comboBox_ChonCSDLNam;
-        private Label label5;
-        private PictureBox pictureBox1;
         private GroupBox groupBox1;
         private TableLayoutPanel tableLayoutPanel5;
         private Label label3;
@@ -621,7 +651,6 @@
         private ToolStripStatusLabel toolStripStatusLabel1;
         private ToolTip toolTip1;
         private ContextMenuStrip contextMenuStrip1;
-        private Krypton.Toolkit.KryptonButton kryptonButton1_TraCuuKetQuaKhenThuongNamCu;
         private ToolStripMenuItem toolStripMenuItem_LamMoi;
         private ToolStripMenuItem toolStripMenuItem_XuatDuLieu;
         private ToolStripMenuItem toolStripMenuItem_QuanLyKhenThuongTapTheNamCu;
@@ -632,5 +661,14 @@
         private ToolStripSeparator toolStripMenuItem3;
         private GroupBox groupBox4;
         private TableLayoutPanel tableLayoutPanel7;
+        private Krypton.Toolkit.KryptonButton kryptonButton1_TraCuuKetQuaKhenThuongNamCu;
+        private GroupBox groupBox3;
+        private TableLayoutPanel tableLayoutPanel6;
+        private ComboBox comboBox_ChonCSDLNam;
+        private Label label5;
+        private PictureBox pictureBox1;
+        private GroupBox groupBox5;
+        private TableLayoutPanel tableLayoutPanel8;
+        private Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1;
     }
 }

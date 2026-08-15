@@ -2285,21 +2285,30 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Error);
             }
         }
-
         private void toolStripMenuItem_QuanLyKhenThuongNamCu_Click(object sender, EventArgs e)
         {
             // 1. Tìm Form cha (Form2_FormCha) đang chạy để tương tác với PanelContainer
-            var formCha = Application.OpenForms
-                .OfType<Form2_FormCha>()
-                .FirstOrDefault();
+            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
             if (formCha == null) return;
 
-            // 2. Kiểm tra xem Form46 đã được khởi tạo và tồn tại trong bộ nhớ RAM chưa
-            var f50 = Application.OpenForms
-                .OfType<Form50_QuanLyKhenThuongNamCu>()
-                .FirstOrDefault();
+            // 2. Tìm vùng chứa PanelContainer trên Form cha
+            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
+            if (panel == null) return;
 
-            if (f50 == null)
+            // ⭐ QUAN TRỌNG 1: Ẩn tất cả các Form con khác ĐANG HIỂN THỊ trong PanelContainer
+            // Việc này giúp dọn dẹp không gian, tránh các Form đè lấn lên nhau gây lỗi đồ họa
+            foreach (Control control in panel.Controls)
+            {
+                if (control is Form childForm && !childForm.IsDisposed && childForm.Visible)
+                {
+                    childForm.Hide();
+                }
+            }
+
+            // 3. Kiểm tra xem Form50 đã được khởi tạo và tồn tại trong bộ nhớ RAM chưa
+            var f50 = Application.OpenForms.OfType<Form50_QuanLyKhenThuongNamCu>().FirstOrDefault();
+
+            if (f50 == null || f50.IsDisposed)
             {
                 // 👉 TRƯỜNG HỢP 1: CHƯA TỒN TẠI -> Khởi tạo mới hoàn toàn
                 f50 = new Form50_QuanLyKhenThuongNamCu
@@ -2310,46 +2319,38 @@ namespace PhanMemThiDua2026
                     Dock = DockStyle.Fill
                 };
 
-                // Tìm vùng chứa PanelContainer trên Form cha
-                var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-                if (panel == null) return;
-
-                // Nạp Form50 vào panel và đẩy lên bề mặt hiển thị
+                // Nạp Form50 vào panel
                 panel.Controls.Add(f50);
-                f50.Show();
-                f50.BringToFront();
 
-                var form15 = this;
+                // Quản lý sự kiện khi Form 50 đóng lại thì hiện lại Form 34 (this)
+                var form34 = this;
                 f50.FormClosed += (s, ev) =>
                 {
-                    if (form15 != null && !form15.IsDisposed)
+                    if (form34 != null && !form34.IsDisposed)
                     {
-                        form15.Dock = DockStyle.Fill;
-                        form15.Show();
-                        form15.BringToFront();
+                        form34.Dock = DockStyle.Fill;
+                        form34.Show();
+                        form34.BringToFront();
+
                         var fChaCheck = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                         if (fChaCheck != null)
                         {
                             int namHienTai = Module_NamHeThong.LayNamHeThong();
-                            fChaCheck.CapNhatTieuDe($"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {namHienTai}");
+                            fChaCheck.CapNhatTieuDe($"Trang Quản lý khen thưởng CBCS năm {namHienTai}");
                         }
                     }
                 };
-
-                // ⭐ SỬA Ở ĐÂY: Truyền động tên Text của f50 thay vì fix cứng
-                formCha.CapNhatTieuDe(f50.Text);
             }
-            else
-            {
-                // 👉 TRƯỜNG HỢP 2: ĐÃ TỒN TẠI TRONG RAM
 
-                f50.BringToFront();
+            // 👉 DÙ LÀ TRƯỜNG HỢP 1 HAY 2 THÌ ĐỀU PHẢI GỌI KHỐI LỆNH NÀY:
+            // ⭐ QUAN TRỌNG 2: Bắt buộc phải có Show() để Form hiện hình từ trạng thái Hide
+            f50.BringToFront();
+            f50.Show();
+            f50.Focus(); // Ép hệ thống chuyển sự chú ý vào Form 50 ngay lập tức, chống đơ phím
 
-                // ⭐ SỬA Ở ĐÂY: Truyền động tên Text của f50 thay vì fix cứng
-                formCha.CapNhatTieuDe(f50.Text);
-            }
+            // 4. Truyền động tên Text của f50 lên thanh tiêu đề của Form Cha
+            formCha.CapNhatTieuDe(f50.Text);
         }
-
         private async void toolStripMenuItem_LuuKetQuaThiDuaTheoNam_Click(object sender, EventArgs e)
         {
             // 1. XÁC MINH QUYỀN ADMIN
@@ -2388,9 +2389,13 @@ namespace PhanMemThiDua2026
                 {
                     f50Check.LoadDanhSachFileLichSu();
                 }
-
+                Module_NhatKy.GhiNhatKy(
+                    Module_TaiKhoan.TenTaiKhoan_RAM,
+                    "Đã sao lưu toàn bộ dữ liệu Khen thưởng (Tập thể và CBCS) sang tệp lịch sử.",
+                    $"Lưu trữ thành công tại {duongDan}" // ⭐ Đặt chữ $ ở đây để biến {duongDan} có tác dụng
+                );
                 MessageBox.Show(
-                    $"Đã sao lưu toàn bộ dữ liệu Khen thưởng (Cá nhân & Tập thể) thành công sang tệp lịch sử.\n\n{duongDan}",
+                    $"Đã sao lưu toàn bộ dữ liệu Khen thưởng (Cá nhân & Tập thể) thành công",
                     "Hoàn tất sao lưu",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);

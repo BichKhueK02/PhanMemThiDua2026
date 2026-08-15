@@ -687,7 +687,7 @@ namespace PhanMemThiDua2026
                 // Hiển thị MessageBox an toàn từ luồng ngầm (Background Thread)
                 // Bỏ việc gọi Form.ActiveForm hay Application.OpenForms để tránh lỗi Cross-thread
                 DialogResult result = MessageBox.Show(
-                    $"Dữ liệu khen thưởng tổng hợp năm {nam} đã tồn tại trong thư mục lưu trữ.\n\nBạn có muốn xóa phiên bản cũ và cập nhật lại bằng dữ liệu mới nhất không?",
+                    $"Dữ liệu khen thưởng tổng hợp năm {nam} đã tồn tại trong thư mục lưu trữ.\nBạn có muốn xóa phiên bản cũ và cập nhật lại bằng dữ liệu mới nhất không?",
                     "Xác nhận ghi đè dữ liệu",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,

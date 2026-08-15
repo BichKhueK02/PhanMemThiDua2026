@@ -163,6 +163,7 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form26_PhanTichQuanSo";
             Text = "Phân tích thành phần quân số";
+            Load += Form26_PhanTichQuanSo_Load;
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);

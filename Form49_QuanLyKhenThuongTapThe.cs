@@ -1214,9 +1214,7 @@ namespace PhanMemThiDua2026
                     ws.PageSetup.Margins.Bottom = 0.5;
                     ws.PageSetup.Margins.Left = 0.4;
                     ws.PageSetup.Margins.Right = 0.4;
-
-                    // Module_BanQuyen.DongDauExcel(wb); 
-
+                    Module_BanQuyen.DongDauExcel(wb); 
                     wb.SaveAs(filePath);
                 });
 

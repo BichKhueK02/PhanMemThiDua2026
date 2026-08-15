@@ -121,7 +121,7 @@
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieuRaTepExcel_ToolStripMenuItem, xoaToanBoDuLieu_ToolStripMenuItem, toolStripMenuItem2, toolStripMenuItem_QuayLaiTrangTruoc });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(210, 120);
+            contextMenuStrip1.Size = new Size(210, 142);
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 

@@ -49,7 +49,6 @@
             label10 = new Label();
             comboBox1_HinhThucKT = new ComboBox();
             label8 = new Label();
-            textBox_TimKiemTheoTen = new Krypton.Toolkit.KryptonTextBox();
             label3 = new Label();
             comboBox_TimKiemDonViKhenThuong = new ComboBox();
             label2 = new Label();
@@ -97,6 +96,7 @@
             toolStripMenuItem2 = new ToolStripSeparator();
             toolStripMenuItem_QuayLaiTrangTruoc = new ToolStripMenuItem();
             toolTip1 = new ToolTip(components);
+            combobox1_TimKiemTheoTen = new ComboBox();
             tableLayoutPanel6.SuspendLayout();
             groupBox3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -322,10 +322,10 @@
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 8.930311F));
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 8.1557045F));
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 7.26345968F));
+            tableLayoutPanel5.Controls.Add(combobox1_TimKiemTheoTen, 3, 0);
             tableLayoutPanel5.Controls.Add(label10, 0, 0);
             tableLayoutPanel5.Controls.Add(comboBox1_HinhThucKT, 7, 0);
             tableLayoutPanel5.Controls.Add(label8, 6, 0);
-            tableLayoutPanel5.Controls.Add(textBox_TimKiemTheoTen, 3, 0);
             tableLayoutPanel5.Controls.Add(label3, 2, 0);
             tableLayoutPanel5.Controls.Add(comboBox_TimKiemDonViKhenThuong, 5, 0);
             tableLayoutPanel5.Controls.Add(label2, 4, 0);
@@ -377,17 +377,6 @@
             label8.Size = new Size(63, 17);
             label8.TabIndex = 20;
             label8.Text = "Hình thức";
-            // 
-            // textBox_TimKiemTheoTen
-            // 
-            textBox_TimKiemTheoTen.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_TimKiemTheoTen.Location = new Point(303, 7);
-            textBox_TimKiemTheoTen.Margin = new Padding(2, 3, 2, 3);
-            textBox_TimKiemTheoTen.Name = "textBox_TimKiemTheoTen";
-            textBox_TimKiemTheoTen.Size = new Size(127, 29);
-            textBox_TimKiemTheoTen.StateCommon.Border.Rounding = 8F;
-            textBox_TimKiemTheoTen.StateCommon.Border.Width = 1;
-            textBox_TimKiemTheoTen.TabIndex = 19;
             // 
             // label3
             // 
@@ -973,6 +962,18 @@
             toolStripMenuItem_QuayLaiTrangTruoc.Name = "toolStripMenuItem_QuayLaiTrangTruoc";
             toolStripMenuItem_QuayLaiTrangTruoc.Size = new Size(209, 26);
             toolStripMenuItem_QuayLaiTrangTruoc.Text = "Quay lại trang trước";
+            toolStripMenuItem_QuayLaiTrangTruoc.Click += toolStripMenuItem_QuayLaiTrangTruoc_Click;
+            // 
+            // combobox1_TimKiemTheoTen
+            // 
+            combobox1_TimKiemTheoTen.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            combobox1_TimKiemTheoTen.DropDownStyle = ComboBoxStyle.DropDownList;
+            combobox1_TimKiemTheoTen.FormattingEnabled = true;
+            combobox1_TimKiemTheoTen.Location = new Point(303, 10);
+            combobox1_TimKiemTheoTen.Margin = new Padding(2, 3, 2, 3);
+            combobox1_TimKiemTheoTen.Name = "combobox1_TimKiemTheoTen";
+            combobox1_TimKiemTheoTen.Size = new Size(127, 23);
+            combobox1_TimKiemTheoTen.TabIndex = 24;
             // 
             // Form51_QuanLyKhenThuongTapTheNamCu
             // 
@@ -1030,7 +1031,6 @@
         private TableLayoutPanel tableLayoutPanel5;
         private ComboBox comboBox1_HinhThucKT;
         private Label label8;
-        private Krypton.Toolkit.KryptonTextBox textBox_TimKiemTheoTen;
         private Label label3;
         private ComboBox comboBox_TimKiemDonViKhenThuong;
         private Label label2;
@@ -1079,5 +1079,6 @@
         private ToolTip toolTip1;
         private Label label10;
         private ComboBox comboBox1_ChonCscdKhenThuongTapTheNamCu;
+        private ComboBox combobox1_TimKiemTheoTen;
     }
 }
