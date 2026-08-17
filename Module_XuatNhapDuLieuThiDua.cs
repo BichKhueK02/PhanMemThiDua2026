@@ -28,14 +28,12 @@ namespace PhanMemThiDua2026
     internal class Module_XuatNhapDuLieuThiDua
     {
         private static string Csdl2Path => Module_DanduongGPS.DuongDanCSDL2;
-
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
         private static extern IntPtr ILCreateFromPathW(string pszPath);
         [DllImport("shell32.dll", ExactSpelling = true)]
         private static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, uint cidl, IntPtr apidl, uint dwFlags);
         [DllImport("shell32.dll", ExactSpelling = true)]
         private static extern void ILFree(IntPtr pidlList);
-
         public static void MoVaChonTepTrongExplorer(string filePath)
         {
             if (!File.Exists(filePath)) return;
@@ -45,6 +43,178 @@ namespace PhanMemThiDua2026
                 try { SHOpenFolderAndSelectItems(pidl, 0, IntPtr.Zero, 0); }
                 finally { ILFree(pidl); }
             }
+        }
+        // DÁN ĐOẠN NÀY VÀO TRONG CLASS Module_XuatNhapDuLieuThiDua
+        public static void ThucThiXuatExcel(Form ownerForm, bool epXuatFileMau, DataTable? dtDanhSachGoc)
+        {
+            string csdl2 = Csdl2Path;
+            string phienBan = "";
+            int soLuong = 0;
+
+            try
+            {
+                bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                phienBan = laTanBinh ? "Phiên bản dành cho tân binh" : "";
+
+                // Lấy số lượng trực tiếp từ RAM (dtDanhSachGoc)
+                if (!epXuatFileMau && dtDanhSachGoc != null)
+                {
+                    soLuong = dtDanhSachGoc.AsEnumerable().Count(r => !string.IsNullOrWhiteSpace(r.Field<string>("HoVaTen")));
+                }
+            }
+            catch { phienBan = ""; soLuong = 0; }
+
+            string thoiGian = DateTime.Now.ToString("ddMMyyyy_HHmmss");
+            string fileName = "";
+
+            if (epXuatFileMau || soLuong == 0)
+            {
+                fileName = (phienBan == "Phiên bản dành cho tân binh")
+                    ? $"Mau_DanhSach_TongHop (Tan Binh)_{thoiGian}.xlsx"
+                    : $"Mau_DanhSach_TongHop (CBCS)_{thoiGian}.xlsx";
+            }
+            else
+            {
+                fileName = (phienBan == "Phiên bản dành cho tân binh")
+                    ? $"DanhSach_TongHop ({soLuong} tân binh)_{thoiGian}.xlsx"
+                    : $"DanhSach_TongHop ({soLuong} CBCS)_{thoiGian}.xlsx";
+            }
+
+            using SaveFileDialog sfd = new SaveFileDialog { Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm", FileName = fileName };
+            if (sfd.ShowDialog(ownerForm) != DialogResult.OK) return;
+
+            string filePath = sfd.FileName;
+            Exception? backgroundException = null;
+
+            using (Form_Loading fLoad = new Form_Loading("Đang giải mã và tạo tệp Excel..."))
+            {
+                fLoad.Shown += async (s, args) =>
+                {
+                    try
+                    {
+                        await Task.Run(() =>
+                        {
+                            if (epXuatFileMau || soLuong == 0)
+                            {
+                                XuatTepExcelMau(filePath, phienBan);
+                            }
+                            else
+                            {
+                                if (phienBan == "Phiên bản dành cho tân binh")
+                                    XuatDanhSachRaExcelTanBinh(filePath);
+                                else
+                                    XuatDanhSachRaExcelCBCS(filePath);
+                            }
+
+                            try
+                            {
+                                using var conn2 = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={csdl2}");
+                                conn2.Open();
+
+                                using var cmd = conn2.CreateCommand();
+                                cmd.CommandText = "SELECT TomTatGhiChu FROM ThongTin";
+
+                                using var reader = cmd.ExecuteReader();
+                                using var package = new ClosedXML.Excel.XLWorkbook(filePath);
+
+                                try
+                                {
+                                    var mainSheet = package.Worksheet(1);
+                                    if (mainSheet != null)
+                                    {
+                                        int lastRow = mainSheet.LastRowUsed()?.RowNumber() ?? 1;
+                                        if (lastRow >= 2)
+                                        {
+                                            string[] centerCols = { "A", "C", "D", "F", "G", "H", "I", "J" };
+                                            foreach (string col in centerCols)
+                                            {
+                                                var rng = mainSheet.Range($"{col}2:{col}{lastRow}");
+                                                rng.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+                                                rng.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine("Lỗi định dạng căn giữa sheet chính: " + ex.Message);
+                                }
+
+                                var ws = package.Worksheets.Add("BAO_CAO_TONG_HOP");
+                                ws.Visibility = ClosedXML.Excel.XLWorksheetVisibility.Hidden;
+                                ws.TabColor = ClosedXML.Excel.XLColor.FromArgb(220, 255, 220);
+                                ws.Column("A").Width = 14;
+                                ws.Column("B").Width = 160;
+                                ws.Cell("A1").Value = "Chuỗi mã hóa";
+                                ws.Cell("A1").Style.Font.Bold = true;
+
+                                int row = 1;
+                                while (reader.Read())
+                                {
+                                    string encodedFromDB = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                                    string stealthData = BaoMatAES.MaHoaGiaCo(encodedFromDB);
+                                    ws.Cell(row, 2).Value = stealthData;
+                                    ws.Row(row).Height = 190;
+                                    row++;
+                                }
+
+                                if (row > 1)
+                                {
+                                    var dataRange = ws.Range(1, 1, row - 1, 2);
+                                    dataRange.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromArgb(220, 255, 220);
+                                    dataRange.Style.Alignment.WrapText = true;
+                                    dataRange.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+                                    dataRange.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
+                                }
+
+                                try
+                                {
+                                    if (!package.Worksheets.Contains("DS_BaNhat"))
+                                    {
+                                        var wsBaNhat = package.Worksheets.Add("DS_BaNhat");
+                                        wsBaNhat.TabColor = ClosedXML.Excel.XLColor.Gold;
+                                    }
+                                }
+                                catch (Exception exBN)
+                                {
+                                    System.Diagnostics.Debug.WriteLine("Lỗi tạo sheet DS_BaNhat: " + exBN.Message);
+                                }
+
+                                Module_BaNhat.XuatDuLieuVaoBangQuanLyBaNhat(package, csdl2, epXuatFileMau);
+                                Module_BanQuyen.DongDauExcel(package);
+                                package.Save();
+
+                                string nhomDoiTuong = (phienBan == "Phiên bản dành cho tân binh") ? "Tân binh" : "CBCS";
+                                Module_NhatKy.GhiNhatKy(
+                                    Module_TaiKhoan.TenTaiKhoan_RAM,
+                                    $"Xuất danh sách tổng hợp thi đua {nhomDoiTuong} ({soLuong} dòng) ra tệp Excel",
+                                    DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
+                                );
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new Exception("Lỗi khi xử lý file Excel (Định dạng & Thêm Sheet): " + ex.Message, ex);
+                            }
+                        });
+                    }
+                    catch (Exception ex) { backgroundException = ex; }
+                    finally
+                    {
+                        if (!fLoad.IsDisposed)
+                        {
+                            if (fLoad.InvokeRequired) fLoad.Invoke(new Action(() => fLoad.DialogResult = DialogResult.OK));
+                            else fLoad.DialogResult = DialogResult.OK;
+                        }
+                    }
+                };
+
+                fLoad.ShowDialog(ownerForm);
+            }
+
+            if (backgroundException != null)
+                MessageBox.Show(ownerForm, "Lỗi: " + backgroundException.Message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            else
+                MoVaChonTepTrongExplorer(filePath);
         }
         public static void XuatDanhSachRaExcelCBCS(string filePath)
         {
@@ -104,9 +274,8 @@ namespace PhanMemThiDua2026
                     return; // Thoát ngay lập tức
                 }
 
-                
+
                 // 🟢 FULL EXPORT MODE (Khi có dữ liệu)
-                
                 using var wb = new XLWorkbook();
                 var ws = wb.Worksheets.Add("DSCBCS_PhanMemThiDua2026");
 
@@ -130,14 +299,21 @@ namespace PhanMemThiDua2026
                     ws.Cell(row, 11).Value = item.GhiChu;
                 }
 
+                // 1. Định dạng toàn bộ bảng
                 var fullRange = ws.Range(1, 1, danhSach.Count + 1, 11);
                 fullRange.Style.Font.FontName = "Times New Roman";
                 fullRange.Style.Font.FontSize = 13;
                 fullRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 fullRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
-                ws.Row(1).Style.Font.Bold = true;
-                ws.Row(1).Style.Fill.BackgroundColor = XLColor.LightBlue;
+                // 2. Định dạng riêng vùng Tiêu đề (Từ A1 đến K1)
+                var headerRange = ws.Range(1, 1, 1, 11);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                // 3. Tự động căn chỉnh kích thước cột 1 lần duy nhất
                 ws.Columns().AdjustToContents();
 
                 wb.SaveAs(filePath);
@@ -213,30 +389,23 @@ namespace PhanMemThiDua2026
                     wbEmpty.SaveAs(filePath);
                     return; // Thoát ngay lập tức
                 }
-
-                
                 // 🟢 FULL EXPORT MODE (Khi có dữ liệu)
-                
                 using var wb = new XLWorkbook();
                 var ws = wb.Worksheets.Add("DSTanBinh_PhanMemThiDua2026");
                 ws.TabColor = XLColor.DarkGreen;
+
+                // Gán font mặc định cho toàn bộ Sheet
                 ws.Style.Font.FontName = "Times New Roman";
                 ws.Style.Font.FontSize = 14;
 
+                // 1. GHI TIÊU ĐỀ
                 string[] headers = { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú" };
-
                 for (int c = 0; c < headers.Length; c++)
                 {
-                    var cell = ws.Cell(1, c + 1);
-                    cell.Value = headers[c];
-                    cell.Style.Font.Bold = true;
-                    cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                    cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                    cell.Style.Fill.BackgroundColor = XLColor.LightBlue;
-                    cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                    cell.Style.Border.OutsideBorderColor = XLColor.Black;
+                    ws.Cell(1, c + 1).Value = headers[c];
                 }
 
+                // 2. GHI DỮ LIỆU
                 for (int r = 0; r < danhSach.Count; r++)
                 {
                     var item = danhSach[r];
@@ -253,21 +422,35 @@ namespace PhanMemThiDua2026
                     ws.Cell(rowIdx, 9).Value = item.DonVi;
                     ws.Cell(rowIdx, 10).Value = item.PhanLoai;
                     ws.Cell(rowIdx, 11).Value = item.GhiChu;
-
-                    for (int c = 1; c <= 11; c++)
-                    {
-                        var cell = ws.Cell(rowIdx, c);
-                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                    }
                 }
 
+                // 3. ĐỊNH DẠNG VÙNG DỮ LIỆU (1 lần chạm)
+                if (danhSach.Count > 0)
+                {
+                    var dataRange = ws.Range(2, 1, danhSach.Count + 1, 11);
+                    dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                    dataRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    dataRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                }
+
+                // 4. ĐỊNH DẠNG VÙNG TIÊU ĐỀ (A1:K1)
+                var headerRange = ws.Range(1, 1, 1, 11);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                headerRange.Style.Border.OutsideBorderColor = XLColor.Black;
+
+                // 5. CĂN CHỈNH KÍCH THƯỚC
                 ws.Columns().AdjustToContents();
                 ws.Rows().AdjustToContents();
+
                 wb.SaveAs(filePath);
 
-                // Chỗ này giả định đồng chí có hàm GhiNhatKyVaMoThuMuc riêng biệt
+                // Ghi nhật ký
                 GhiNhatKyVaMoThuMuc(danhSach.Count, filePath, "Tân binh", isExport: true);
             }
             catch (Exception ex)
@@ -275,10 +458,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Lỗi khi xuất dữ liệu Tân binh:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-       
-        // 🛠️ HELPER: CHỈ ĐỊNH DẠNG VÀ ĐỔ DỮ LIỆU MẪU TRONG VÙNG A2:K5
-       
+        // 🛠️ HELPER: CHỈ ĐỊNH DẠNG VÀ ĐỔ DỮ LIỆU MẪU TRONG VÙNG A2:K5     
         private static void TaoDuLieuMauVungData(IXLWorksheet ws, int fontSize = 13)
         {
             // 1. Tự động nhận dạng chế độ dựa trên tên Sheet hoặc cấu hình hiện tại
@@ -330,9 +510,7 @@ namespace PhanMemThiDua2026
             ws.Column(2).Width += 4;
             ws.Column(5).Width += 4;
         }
-       
-        // 🚀 HÀM MỚI: CHUYÊN BIỆT ĐỂ XUẤT FILE MẪU (KHÔNG CHẠM VÀO DB, KHÔNG ẢNH HƯỞNG HÀM GỐC)
-       
+        // 🚀 HÀM MỚI: CHUYÊN BIỆT ĐỂ XUẤT FILE MẪU (KHÔNG CHẠM VÀO DB, KHÔNG ẢNH HƯỞNG HÀM GỐC)    
         public static void XuatTepExcelMau(string filePath, string phienBan)
         {
             using var wbEmpty = new XLWorkbook();
@@ -368,7 +546,6 @@ namespace PhanMemThiDua2026
 
             wbEmpty.SaveAs(filePath);
         }
-
         public static List<string> NhapDanhSachExcelCBCS(string excelPath, bool xoaDuLieuCu)
         {
             if (string.IsNullOrWhiteSpace(excelPath) || !File.Exists(excelPath))

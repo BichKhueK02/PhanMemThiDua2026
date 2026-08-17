@@ -1,4 +1,5 @@
-﻿using Krypton.Toolkit;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -46,6 +47,7 @@ namespace PhanMemThiDua2026
         public Form50_QuanLyKhenThuongNamCu()
         {
             InitializeComponent();
+
             this.KeyPreview = true;
             this.VisibleChanged += Form50_VisibleChanged;
 
@@ -79,13 +81,13 @@ namespace PhanMemThiDua2026
         private void Form50_ThongKeKhenThuongNamCu_Load(object sender, EventArgs e)
         {
             if (_isInitialized) return;
-
+            CauHinhStatusStrip(); // ⭐ GỌI CẤU HÌNH STATUSSTRIP TẠI ĐÂY
             Module_DonVi.KhoiTao();
             CauHinhGridCoBan(kryptonDataGridView1);
             CauHinhCotGrid(kryptonDataGridView1);
 
             kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
 
             if (comboBox_ChonCSDLNam != null)
             {
@@ -148,13 +150,6 @@ namespace PhanMemThiDua2026
 
                 // Cho phép hiển thị ngay cả khi Form chưa active
                 toolTip1.ShowAlways = true;
-
-                // 3. Gán Tooltip cho từng Control
-
-                GanToolTipAnToan(
-                    kryptonButton1_TraCuuKetQuaKhenThuongNamCu,
-                    "Tra cứu kết quả khen thưởng năm cũ");
-
                 GanToolTipAnToan(
                     kryptonButton_LamMoiCacOTimKiem,
                     "Xóa bộ lọc tìm kiếm hiện tại");
@@ -166,10 +161,6 @@ namespace PhanMemThiDua2026
                 GanToolTipAnToan(
                     kryptonButton_XuatData,
                     "Xuất dữ liệu ra tệp Excel");
-
-                GanToolTipAnToan(
-                    kryptonButton_Dong,
-                    "Đóng màn hình hiện tại");
             }
             catch (ObjectDisposedException)
             {
@@ -728,14 +719,94 @@ namespace PhanMemThiDua2026
             Rectangle headerBounds = new Rectangle(e.RowBounds.Left, e.RowBounds.Top, grid.RowHeadersWidth, e.RowBounds.Height);
             e.Graphics.DrawString(stt, grid.Font, _rowHeaderBrush, headerBounds, _rowHeaderFormat);
         }
+        // ============================================================
+        // CẤU HÌNH GIAO DIỆN THANH TRẠNG THÁI (CHUẨN HỆ THỐNG)
+        // ============================================================
+        private void CauHinhStatusStrip()
+        {
+            // 1. Nhãn số lượng mục khen thưởng (Bên trái, có Icon)
+            if (toolStripStatusLabel1 != null && !toolStripStatusLabel1.IsDisposed)
+            {
+                toolStripStatusLabel1.Alignment = ToolStripItemAlignment.Left;
+                toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleLeft;
+                toolStripStatusLabel1.ImageAlign = ContentAlignment.MiddleLeft;
+                toolStripStatusLabel1.TextImageRelation = TextImageRelation.ImageBeforeText;
+                toolStripStatusLabel1.Spring = false; // Tắt Spring để nhãn chỉ chiếm đúng diện tích chữ
+                toolStripStatusLabel1.Padding = new Padding(5, 0, 10, 0);
+            }
+
+            // 2. Nhãn tổng số CBCS được khen thưởng (Neo cứng mép phải)
+            if (toolStripStatusLabel2_TongSoCBCSDuocKhenThuong != null && !toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.IsDisposed)
+            {
+                toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Alignment = ToolStripItemAlignment.Right;
+                toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.TextAlign = ContentAlignment.MiddleRight;
+                toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Spring = false;
+                toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Padding = new Padding(0, 0, 15, 0);
+                toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Visible = true;
+            }
+        }
         private void CapNhatTrangThaiHienThi()
         {
+            if (this.IsDisposed || !this.IsHandleCreated) return;
+
+            // Kiểm tra tính hợp lệ của tệp được chọn
             if (comboBox_ChonCSDLNam.Items.Count == 0 || comboBox_ChonCSDLNam.SelectedItem == null)
             {
-                if (toolStripStatusLabel1 != null) toolStripStatusLabel1.Text = "Không có tệp lịch sử khen thưởng nào.";
+                if (toolStripStatusLabel1 != null)
+                    toolStripStatusLabel1.Text = "Không có tệp lịch sử khen thưởng nào.";
+
+                if (toolStripStatusLabel2_TongSoCBCSDuocKhenThuong != null)
+                    toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Visible = false;
+
                 return;
             }
-            if (toolStripStatusLabel1 != null) toolStripStatusLabel1.Text = $"Tổng cộng: {_filteredIndexes.Count} mục khen thưởng";
+
+            // 1. Cập nhật nhãn bên trái: Tổng số mục giấy khen
+            int tongSoMuc = _filteredIndexes?.Count ?? 0;
+            if (toolStripStatusLabel1 != null)
+            {
+                toolStripStatusLabel1.Text = $"Tổng cộng: {tongSoMuc:N0} mục khen thưởng";
+            }
+
+            // 2. Cập nhật nhãn bên phải: Lọc trùng lặp CBCS qua HashSet
+            if (toolStripStatusLabel2_TongSoCBCSDuocKhenThuong != null)
+            {
+                if (tongSoMuc > 0 && _dataCacheGiayKhen != null && _dataCacheGiayKhen.Count > 0)
+                {
+                    var tapHopSoHieu = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                    for (int i = 0; i < tongSoMuc; i++)
+                    {
+                        int actualIdx = _filteredIndexes[i];
+                        if (actualIdx >= 0 && actualIdx < _dataCacheGiayKhen.Count)
+                        {
+                            string sh = _dataCacheGiayKhen[actualIdx].SoHieu;
+                            if (!string.IsNullOrWhiteSpace(sh))
+                            {
+                                tapHopSoHieu.Add(sh.Trim());
+                            }
+                        }
+                    }
+
+                    int tongSoCBCS = tapHopSoHieu.Count;
+                    toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Text = $"Tổng số: {tongSoCBCS:N0} đồng chí";
+                    toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Visible = true;
+                }
+                else
+                {
+                    toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Text = "Tổng số: 0 đồng chí";
+                    toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.Visible = true;
+                }
+
+                // Ép toàn bộ StatusStrip vẽ lại ngay lập tức
+                var parentStrip = toolStripStatusLabel2_TongSoCBCSDuocKhenThuong.GetCurrentParent();
+                if (parentStrip != null && !parentStrip.IsDisposed)
+                {
+                    parentStrip.PerformLayout();
+                    parentStrip.Invalidate();
+                    parentStrip.Update();
+                }
+            }
         }
         private void comboBox_ChonCSDLNam_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -1078,13 +1149,9 @@ namespace PhanMemThiDua2026
         {
             kryptonButton_CapNhat.PerformClick();
         }
-        private void toolStripMenuItem_QuanLyKhenThuong_Click(object sender, EventArgs e)
-        {
-            kryptonButton1_TraCuuKetQuaKhenThuongNamCu.PerformClick();
-        }
         private void toolStripMenuItem_Dong_Click(object sender, EventArgs e)
         {
-            kryptonButton_Dong.PerformClick();
+           // kryptonButton_Dong.PerformClick();
         }
         private void kryptonButton1_TraCuuKetQuaKhenThuongNamCu_Click(object sender, EventArgs e)
         {

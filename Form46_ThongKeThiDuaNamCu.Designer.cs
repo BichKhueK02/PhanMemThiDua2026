@@ -69,8 +69,6 @@
             xuatDuLieuTepExcel_ToolStripMenuItem = new ToolStripMenuItem();
             xoaCSDL_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripSeparator();
-            dong_ToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem3 = new ToolStripSeparator();
             huongDan_ToolStripMenuItem = new ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -324,7 +322,7 @@
             comboBox_ChonCSDLNam.Font = new Font("Segoe UI", 9.792F);
             comboBox_ChonCSDLNam.FormattingEnabled = true;
             comboBox_ChonCSDLNam.Items.AddRange(new object[] { "CSTĐ", "CSTT", "HTNV", "KHTNV", "Không PL" });
-            comboBox_ChonCSDLNam.Location = new Point(173, 11);
+            comboBox_ChonCSDLNam.Location = new Point(173, 12);
             comboBox_ChonCSDLNam.Margin = new Padding(2, 3, 2, 3);
             comboBox_ChonCSDLNam.Name = "comboBox_ChonCSDLNam";
             comboBox_ChonCSDLNam.Size = new Size(354, 25);
@@ -408,7 +406,7 @@
             comboBox1_PhanLoaiThiDuaNamCu.Font = new Font("Segoe UI", 9.792F);
             comboBox1_PhanLoaiThiDuaNamCu.FormattingEnabled = true;
             comboBox1_PhanLoaiThiDuaNamCu.Items.AddRange(new object[] { "Tất cả", "CSTĐ", "CSTT", "HTNV", "KHTNV", "Không PL" });
-            comboBox1_PhanLoaiThiDuaNamCu.Location = new Point(1013, 8);
+            comboBox1_PhanLoaiThiDuaNamCu.Location = new Point(1013, 9);
             comboBox1_PhanLoaiThiDuaNamCu.Margin = new Padding(2, 3, 2, 3);
             comboBox1_PhanLoaiThiDuaNamCu.Name = "comboBox1_PhanLoaiThiDuaNamCu";
             comboBox1_PhanLoaiThiDuaNamCu.Size = new Size(161, 25);
@@ -459,7 +457,7 @@
             comboBox_TimKiemDonVi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_TimKiemDonVi.Font = new Font("Segoe UI", 9.792F);
             comboBox_TimKiemDonVi.FormattingEnabled = true;
-            comboBox_TimKiemDonVi.Location = new Point(473, 8);
+            comboBox_TimKiemDonVi.Location = new Point(473, 9);
             comboBox_TimKiemDonVi.Margin = new Padding(2, 3, 2, 3);
             comboBox_TimKiemDonVi.Name = "comboBox_TimKiemDonVi";
             comboBox_TimKiemDonVi.Size = new Size(144, 25);
@@ -500,7 +498,7 @@
             comboBox1_TinhTrang.Font = new Font("Segoe UI", 9.792F);
             comboBox1_TinhTrang.FormattingEnabled = true;
             comboBox1_TinhTrang.Items.AddRange(new object[] { "Tất cả", "Đang công tác", "Chuyển công tác" });
-            comboBox1_TinhTrang.Location = new Point(721, 8);
+            comboBox1_TinhTrang.Location = new Point(721, 9);
             comboBox1_TinhTrang.Margin = new Padding(2, 3, 2, 3);
             comboBox1_TinhTrang.Name = "comboBox1_TinhTrang";
             comboBox1_TinhTrang.Size = new Size(153, 25);
@@ -521,9 +519,9 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(19, 19);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieuTepExcel_ToolStripMenuItem, xoaCSDL_ToolStripMenuItem, toolStripMenuItem2, dong_ToolStripMenuItem, toolStripMenuItem3, huongDan_ToolStripMenuItem });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieuTepExcel_ToolStripMenuItem, xoaCSDL_ToolStripMenuItem, toolStripMenuItem2, huongDan_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(201, 174);
+            contextMenuStrip1.Size = new Size(201, 142);
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
@@ -558,19 +556,6 @@
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
             toolStripMenuItem2.Size = new Size(197, 6);
-            // 
-            // dong_ToolStripMenuItem
-            // 
-            dong_ToolStripMenuItem.Image = (Image)resources.GetObject("dong_ToolStripMenuItem.Image");
-            dong_ToolStripMenuItem.Name = "dong_ToolStripMenuItem";
-            dong_ToolStripMenuItem.Size = new Size(200, 26);
-            dong_ToolStripMenuItem.Text = "Trở về Thống kê";
-            dong_ToolStripMenuItem.Click += dong_ToolStripMenuItem_Click;
-            // 
-            // toolStripMenuItem3
-            // 
-            toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new Size(197, 6);
             // 
             // huongDan_ToolStripMenuItem
             // 
@@ -650,11 +635,9 @@
         private ToolStripMenuItem xoaTimKiem_ToolStripMenuItem;
         private ToolStripMenuItem xuatDuLieuTepExcel_ToolStripMenuItem;
         private ToolStripMenuItem xoaCSDL_ToolStripMenuItem;
-        private ToolStripMenuItem dong_ToolStripMenuItem;
         private ToolStripSeparator toolStripMenuItem1;
         private ToolStripSeparator toolStripMenuItem2;
         private ToolStripMenuItem huongDanSuDung_ToolStripMenuItem;
-        private ToolStripSeparator toolStripMenuItem3;
         private ToolStripMenuItem huongDan_ToolStripMenuItem;
     }
 }

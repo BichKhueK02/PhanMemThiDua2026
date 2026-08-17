@@ -338,7 +338,7 @@ namespace PhanMemThiDua2026
                 // Truyền token vào hàm Save
                 await SaveQuyDinhTyLeAsync(token);
 
-                Module_QuyDinhTyLe.Reload();
+                Module_QuyDinhTyLe.ReloadData();
                 OnQuyDinhChanged?.Invoke();
 
                 HienThiThongBao("✔ Đã lưu quy định tỷ lệ thành công!", Color.DarkGreen);

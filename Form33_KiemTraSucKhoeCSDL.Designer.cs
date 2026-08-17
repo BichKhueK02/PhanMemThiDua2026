@@ -50,8 +50,8 @@
             lamMoi_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripSeparator();
             chayVacuum_ToolStripMenuItem = new ToolStripMenuItem();
-            thoat_ToolStripMenuItem = new ToolStripMenuItem();
             ToolStripMenuItem_ChiTietCSDL = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripSeparator();
             groupBox2 = new GroupBox();
             kryptonDataGridView2 = new Krypton.Toolkit.KryptonDataGridView();
             statusStrip1.SuspendLayout();
@@ -281,45 +281,43 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, toolStripMenuItem1, chayVacuum_ToolStripMenuItem, thoat_ToolStripMenuItem, ToolStripMenuItem_ChiTietCSDL });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, toolStripMenuItem1, chayVacuum_ToolStripMenuItem, toolStripMenuItem2, ToolStripMenuItem_ChiTietCSDL });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(152, 114);
+            contextMenuStrip1.Size = new Size(216, 116);
             // 
             // lamMoi_ToolStripMenuItem
             // 
             lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
-            lamMoi_ToolStripMenuItem.Size = new Size(151, 26);
-            lamMoi_ToolStripMenuItem.Text = "Làm mới";
+            lamMoi_ToolStripMenuItem.Size = new Size(215, 26);
+            lamMoi_ToolStripMenuItem.Text = "Làm mới trang";
             lamMoi_ToolStripMenuItem.Click += lamMoi_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(148, 6);
+            toolStripMenuItem1.Size = new Size(212, 6);
             // 
             // chayVacuum_ToolStripMenuItem
             // 
             chayVacuum_ToolStripMenuItem.Image = Properties.Resources.ic_database;
             chayVacuum_ToolStripMenuItem.Name = "chayVacuum_ToolStripMenuItem";
-            chayVacuum_ToolStripMenuItem.Size = new Size(151, 26);
+            chayVacuum_ToolStripMenuItem.Size = new Size(215, 26);
             chayVacuum_ToolStripMenuItem.Text = "Chạy Vacuum";
             chayVacuum_ToolStripMenuItem.Click += chayVacuum_ToolStripMenuItem_Click;
-            // 
-            // thoat_ToolStripMenuItem
-            // 
-            thoat_ToolStripMenuItem.Image = (Image)resources.GetObject("thoat_ToolStripMenuItem.Image");
-            thoat_ToolStripMenuItem.Name = "thoat_ToolStripMenuItem";
-            thoat_ToolStripMenuItem.Size = new Size(151, 26);
-            thoat_ToolStripMenuItem.Text = "Thoát";
             // 
             // ToolStripMenuItem_ChiTietCSDL
             // 
             ToolStripMenuItem_ChiTietCSDL.Image = Properties.Resources.ic_help;
             ToolStripMenuItem_ChiTietCSDL.Name = "ToolStripMenuItem_ChiTietCSDL";
-            ToolStripMenuItem_ChiTietCSDL.Size = new Size(151, 26);
-            ToolStripMenuItem_ChiTietCSDL.Text = "Chi tiết";
+            ToolStripMenuItem_ChiTietCSDL.Size = new Size(215, 26);
+            ToolStripMenuItem_ChiTietCSDL.Text = "Thông tin chi tiết về CSDL";
             ToolStripMenuItem_ChiTietCSDL.Click += ToolStripMenuItem_ChiTietCSDL_Click;
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(212, 6);
             // 
             // groupBox2
             // 
@@ -400,10 +398,10 @@
         private ContextMenuStrip contextMenuStrip1;
         private ToolStripMenuItem lamMoi_ToolStripMenuItem;
         private ToolStripMenuItem chayVacuum_ToolStripMenuItem;
-        private ToolStripMenuItem thoat_ToolStripMenuItem;
         private ToolStripSeparator toolStripMenuItem1;
         private Krypton.Toolkit.KryptonButton kryptonButton1_CauhinhCSDL;
         private ToolStripMenuItem ToolStripMenuItem_ChiTietCSDL;
         private PictureBox pictureBox4;
+        private ToolStripSeparator toolStripMenuItem2;
     }
 }

@@ -85,7 +85,7 @@ namespace PhanMemThiDua2026
         private async void Form36_TinhPhanLoaiThang_Load(object sender, EventArgs e)
         {
             _isUpdatingCombos = true;
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             // Nếu không có dữ liệu từ Form15 → tự load từ DB
             // KichHoatLoadDuLieuTuDbAsync() tạo DataTable mới trên background
             // rồi gán vào _dtXuLy/_dvHienThi trên UI thread → KHÔNG race condition
@@ -107,7 +107,7 @@ namespace PhanMemThiDua2026
             CapNhatThongKeStatus();
             await KichHoatLoadGhiChuAnToanAsync();
             // 1. Tích hợp giao diện xanh lá phẳng Classic từ module dùng chung (Đã tối ưu)
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
         }
         private void Form36_TinhPhanLoaiThang_FormClosing(object sender, FormClosingEventArgs e)
         {

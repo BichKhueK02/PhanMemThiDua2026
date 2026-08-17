@@ -109,7 +109,7 @@ namespace PhanMemThiDua2026
                 }
             }));
             // 1. Tích hợp giao diện xanh lá phẳng Classic từ module dùng chung (Đã tối ưu)
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
         }
         private void Form15_ThongKeThiDua_FormClosed(object sender, FormClosedEventArgs e)
         {

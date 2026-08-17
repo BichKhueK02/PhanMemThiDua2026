@@ -170,7 +170,7 @@ public static class BaoMatAES
             for (int i = 0, j = str.Length - 1; i < str.Length; i++, j--) span[i] = str[j];
         });
     }
-    public static void DonDepTaiNguyen()
+    public static void DonDeprRacTraLaiTaiNguyenHeThong()
     {
         // Nhớ xóa _maHoaCache.Clear() ở đây vì mình đã bỏ nó ở trên
         _giaiMaCache.Clear();
@@ -236,10 +236,6 @@ public static class BaoMatAES
             if (reader.Read())
             {
                 // ĐỌC DỮ LIỆU TỪ CSDL BẰNG CÁCH LẬT NGƯỢC TÊN CỘT ĐỂ CHE GIẤU
-                //string k1 = reader[BaoMatAES.TraLaiTenChoMeoCam("1_yeK")]?.ToString() ?? "";
-                //string k2 = reader[BaoMatAES.TraLaiTenChoMeoCam("2_yeK")]?.ToString() ?? "";
-                //string k3 = reader[BaoMatAES.TraLaiTenChoMeoCam("3_yeK")]?.ToString() ?? "";
-                //string k4 = reader[BaoMatAES.TraLaiTenChoMeoCam("4_yeK")]?.ToString() ?? "";
                 string k1 = reader["Key_1"]?.ToString() ?? "";
                 string k2 = reader["Key_2"]?.ToString() ?? "";
                 string k3 = reader["Key_3"]?.ToString() ?? "";
@@ -334,8 +330,6 @@ public static class BaoMatAES
         catch { _cachedSig = "SIG_MAC_DINH_2026_MEO_CAM"; }
         return _cachedSig;
     }
-
-
     //Phần này dành cho việc xuất tệp EXCEL BAO_CA0_TONG_HOP có chứa dữ liệu nhạy cảm, nên tôi tạo cơ chế mã hóa gia cố thêm 1 lớp nữa (V3)
     //để bảo vệ dữ liệu tốt hơn, tránh bị lộ khi người dùng mở tệp bằng Excel mà không qua phần mềm.
     //Cơ chế này sẽ tạo ra một payload gồm Salt + IV + Ciphertext và kèm theo HMAC để đảm bảo tính toàn vẹn dữ liệu.
@@ -883,9 +877,8 @@ public static class BaoMatAES
             outNonce[GCM_NONCE_SIZE - 1 - i] ^= indexBytes[i];
         }
     }
-
     //Hỗ trợ form12 về 2 phần mềm sao lưu và khôi phục
-    public static string XuyenKhongVeThoiMinh(byte[] data)
+    public static string XuyenKhongVeThoiMinhThanhToThanhTo(byte[] data)
     {
         try
         {

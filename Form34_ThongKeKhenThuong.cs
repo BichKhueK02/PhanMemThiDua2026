@@ -53,6 +53,21 @@ namespace PhanMemThiDua2026
         }
         private List<ThongTinKhenThuongCBCS> _danhSachGoc = new List<ThongTinKhenThuongCBCS>();
         private List<ThongTinKhenThuongCBCS> _danhSachHienThi = new List<ThongTinKhenThuongCBCS>();
+        // ⭐ KỸ THUẬT GIAO TIẾP CROSS-FORM AN TOÀN VÀ HIỆU SUẤT CAO
+        // =====================================================================
+        // ⭐ KỸ THUẬT GIAO TIẾP CROSS-FORM AN TOÀN VÀ HIỆU SUẤT CAO O(1)
+        // =====================================================================
+        public string LayTinhTrangCongTacAnToan(int rowIndex)
+        {
+            // Kiểm tra tính toàn vẹn của danh sách RAM và Index
+            if (_danhSachHienThi == null || rowIndex < 0 || rowIndex >= _danhSachHienThi.Count)
+            {
+                return "Không xác định";
+            }
+
+            // O(1) Access - Trích xuất siêu tốc thẳng từ RAM mà không cần vòng lặp
+            return _danhSachHienThi[rowIndex].TinhTrang ?? "Không xác định";
+        }
         public Form34_ThongKeKhenThuong()
         {
             InitializeComponent();
@@ -106,7 +121,7 @@ namespace PhanMemThiDua2026
         }
         private async void Form34_ThongKeKhenThuong_Load(object sender, EventArgs e)
         {
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             CauHinhStatusStrip();
             LoadComboBoxTinhTrang();
             KhoaCacTextBox();
@@ -167,6 +182,28 @@ namespace PhanMemThiDua2026
                 // Không để chức năng Tooltip làm Form dừng hoạt động.
             }
         }
+        // Thiết lập chế độ Chỉ Đọc và đổ màu xanh nhạt nhận diện bị khóa
+        private void KhoaCacTextBox()
+        {
+            var mauXanhNhat = Color.FromArgb(230, 255, 230); // Xanh pastel nhạt dịu mắt
+
+            Krypton.Toolkit.KryptonTextBox[] danhSachKhoa =
+            {
+                kryptonTextBox1_STT,
+                kryptonTextBox1_HoVaTen,
+                kryptonTextBox1_SoHieu,
+                kryptonTextBox1_DonVi,
+                kryptonTextBox1_TinhTrang,
+                kryptonTextBox1_SoLuong
+            };
+
+            foreach (var ktb in danhSachKhoa)
+            {
+                if (ktb == null) continue;
+                ktb.ReadOnly = true;
+                ktb.StateCommon.Back.Color1 = mauXanhNhat;
+            }
+        }
         private void GanToolTipAnToan(Control control, string noiDung)
         {
             // 1. Control không tồn tại
@@ -199,17 +236,8 @@ namespace PhanMemThiDua2026
                 // Control đang ở trạng thái không phù hợp.
             }
         }
-
         // Thiết lập chế độ Chỉ Đọc (Không cho phép sửa chữa)
-        private void KhoaCacTextBox()
-        {
-            if (kryptonTextBox1_STT != null) kryptonTextBox1_STT.ReadOnly = true;
-            if (kryptonTextBox1_HoVaTen != null) kryptonTextBox1_HoVaTen.ReadOnly = true;
-            if (kryptonTextBox1_SoHieu != null) kryptonTextBox1_SoHieu.ReadOnly = true;
-            if (kryptonTextBox1_DonVi != null) kryptonTextBox1_DonVi.ReadOnly = true;
-            if (kryptonTextBox1_TinhTrang != null) kryptonTextBox1_TinhTrang.ReadOnly = true;
-            if (kryptonTextBox1_SoLuong != null) kryptonTextBox1_SoLuong.ReadOnly = true;
-        }
+
         // HÀM BẢO VỆ DELEGATE (CHỐNG CRASH) 
         private Action SafeAction(Action action)
         {
@@ -633,7 +661,6 @@ namespace PhanMemThiDua2026
             }
         }
         private Font _fontBold;
-
         private void DinhDangDataGridHienDai()
         {
             var grid = kryptonDataGridView1_DanhSachCBCS;
@@ -648,22 +675,17 @@ namespace PhanMemThiDua2026
                 // Bật DoubleBuffered qua Reflection để Grid cuộn mượt, chống xé hình
                 typeof(DataGridView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
                                     ?.SetValue(grid, true, null);
-
-
                 // ⭐ BỘ MÀU SẮC PHẲNG HIỆN ĐẠI (OCEAN BLUE THEME)
                 grid.EnableHeadersVisualStyles = false;
-
                 // Nền tổng thể lưới và nền từng ô: Trắng tinh khôi
                 grid.BackgroundColor = Color.White;
                 grid.StateCommon.Background.Color1 = Color.White;
                 grid.StateCommon.DataCell.Back.Color1 = Color.White;
                 grid.BorderStyle = BorderStyle.None;
-
                 // Viền lưới thanh mảnh, xám nhạt hiện đại
                 grid.StateCommon.DataCell.Border.Color1 = Color.FromArgb(235, 235, 235);
                 grid.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
                 grid.StateCommon.DataCell.Border.Width = 1;
-
                 // Tiêu đề cột (Header) - Đậm màu Xanh Biển nổi bật, chữ đen than rõ ràng
                 grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
                 grid.ColumnHeadersHeight = grid.Font.Height + 36;
@@ -673,26 +695,20 @@ namespace PhanMemThiDua2026
                 grid.StateCommon.HeaderColumn.Content.Font = _fontBold;
                 grid.StateCommon.HeaderColumn.Border.Color1 = Color.FromArgb(150, 180, 210);
                 grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
-
                 // ⭐ ĐỊNH DẠNG TRẠNG THÁI KHI NGƯỜI DÙNG CLICK CHỌN DÒNG (SELECTED)
                 // Nền khi chọn: Xanh lam chuyển sang Alice Blue dịu mát
                 grid.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
                 grid.StateSelected.DataCell.Back.Color2 = Color.FromArgb(232, 244, 253);
-
                 // Chữ chuyển sang màu XANH NƯỚC BIỂN ĐẬM (Microsoft Fluent Blue) cực kỳ hiện đại
                 grid.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
-
-
                 // 3. TỐI ƯU HIỆU SUẤT TỐI ĐA (CHỐNG RENDER THỪA BÃI)
                 grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
                 grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
                 grid.AllowUserToResizeRows = false;
-
+                grid.AllowUserToOrderColumns = false;
                 grid.RowTemplate.Height = grid.Font.Height + 14; // Tăng nhẹ chiều cao dòng cho thoáng đãng
                 grid.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
                 grid.DefaultCellStyle.Padding = new Padding(4, 0, 4, 0);
-
                 grid.ReadOnly = true;
                 grid.MultiSelect = false;
                 grid.StandardTab = true;
@@ -702,7 +718,6 @@ namespace PhanMemThiDua2026
                 grid.AllowUserToDeleteRows = false;
                 grid.RowHeadersVisible = true;
                 grid.RowHeadersWidth = 50;
-
                 // 4. KÍCH HOẠT VIRTUAL MODE VÀ DỌN DẸP AN TOÀN
                 grid.VirtualMode = true;
                 if (grid.DataSource != null) grid.DataSource = null;
@@ -955,79 +970,50 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel4.TextAlign = ContentAlignment.MiddleLeft;
         }
         // Sự kiện Click đúp vào lưới để mở thẳng Form 37
+        // 1. Khai báo 1 sự kiện (Event) để ném một Form bất kỳ kèm Tiêu đề lên cho Form Cha (Form 52)
+        public event Action<Form, string> YeuCauLongFormVaoPanel;
+        // 1. SỰ KIỆN DOUBLE CLICK: Chỉ cần gọi hàm của nút bấm (không cần viết lại logic)
         private void KryptonDataGridView1_DanhSachCBCS_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            // Đảm bảo người dùng click vào một dòng hợp lệ (không phải click vào Header)
             if (e.RowIndex >= 0)
             {
-                // 1. Vì khi click đúp, sự kiện CellClick đã chạy trước đó rồi (đổ dữ liệu xuống TextBox)
-                // Nên lúc này trên TextBox đã có đầy đủ dữ liệu. Ta chỉ việc gọi hàm của Nút bấm chạy là xong!
-
                 kryptonButton_GoiFromChiTietKhenThuong_Click(sender, e);
             }
         }
+
+        // 2. SỰ KIỆN BẤM NÚT MỞ CHI TIẾT
         private void kryptonButton_GoiFromChiTietKhenThuong_Click(object sender, EventArgs e)
         {
-            // 1. Lấy dữ liệu từ TextBox trên Form 36
+            // Lấy dữ liệu cơ bản từ TextBox trên Form 34
             string hoTen = kryptonTextBox1_HoVaTen?.Text ?? "";
             string soHieu = kryptonTextBox1_SoHieu?.Text ?? "";
             string donVi = kryptonTextBox1_DonVi?.Text ?? "";
             string tinhTrang = kryptonTextBox1_TinhTrang?.Text ?? "";
+
             // Kiểm tra xem người dùng đã chọn ai trên lưới chưa
             if (string.IsNullOrWhiteSpace(soHieu))
             {
                 MessageBox.Show("Vui lòng chọn một Cán bộ chiến sĩ từ danh sách trước khi xem chi tiết!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            // 2. Tìm PanelContainer và quản lý Form 37 trên RAM
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null) return;
 
-            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-            if (panel == null) return;
-
-            var form36 = this; // Chính là Form 36 hiện tại
-
-            // Ẩn tất cả Form đang có
-            foreach (Control ctl in panel.Controls)
+            // Lấy vị trí dòng (Index) cực chuẩn xác từ DataGridView
+            int currentRowIndex = -1;
+            if (kryptonDataGridView1_DanhSachCBCS.CurrentRow != null)
             {
-                if (ctl is Form frm) frm.Hide();
+                currentRowIndex = kryptonDataGridView1_DanhSachCBCS.CurrentRow.Index;
             }
 
-            // Tìm Form 37 trong RAM
-            var form37 = panel.Controls.OfType<Form35_ChiTietKhenThuong>().FirstOrDefault();
+            // ⭐ CHUẨN KỸ SƯ: FORM 34 KHÔNG ĐI TÌM FORM 2 NỮA
+            // Thay vào đó, nó khởi tạo Form 35, truyền dữ liệu, rồi "NÉM" lên trên cho Form 52 hứng.
 
-            if (form37 == null)
-            {
-                // Nếu chưa có -> Tạo mới
-                form37 = new Form35_ChiTietKhenThuong
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
+            Form35_ChiTietKhenThuong form35 = new Form35_ChiTietKhenThuong();
 
-                // Khi Form 37 đóng, gọi lại Form 36 và làm mới dữ liệu
-                form37.FormClosed += (s, ev) =>
-                {
-                    if (panel.IsDisposed) return;
-                    if (!form36.IsDisposed)
-                    {
-                        form36.Show();
-                        form36.BringToFront();
-                        form36.ReloadDuLieu(); // Load lại để cập nhật số lượng giấy khen
-                    }
-                };
+            // Truyền dữ liệu sang Form 35
+            form35.NhanDuLieuTuForm34(hoTen, soHieu, donVi, tinhTrang, this, currentRowIndex);
 
-                panel.Controls.Add(form37);
-            }
-
-            // 3. 🚀 ĐIỂM MẤU CHỐT: Truyền tín hiệu sang Form 37
-            // Gọi hàm NhanDuLieuTuForm36 (chúng ta sẽ tạo nó ở Phần 2)
-            form37.NhanDuLieuTuForm36(hoTen, soHieu, donVi, tinhTrang);
-            // 4. Hiển thị Form 37
-            form37.Show();
-            form37.BringToFront();
+            // HÉT LÊN (Kích hoạt Event) để Form 52 bắt lấy và lồng Form 35 vào giao diện
+            YeuCauLongFormVaoPanel?.Invoke(form35, "Chi tiết khen thưởng cá nhân");
         }
         private void kryptonButton_LamMoiCacOTimKiem_Click(object sender, EventArgs e)
         {
@@ -1176,75 +1162,59 @@ namespace PhanMemThiDua2026
         private void capNhatThongTinKhenThuong_ToolStripMenuItem_Click(object sender, EventArgs e) => kryptonButton_GoiFromChiTietKhenThuong.PerformClick();
         private void DangKyHieuUngVienTextBox()
         {
-            // Danh sách các TextBox cần tạo hiệu ứng
+            // Chỉ đăng ký hiệu ứng cho ô tìm kiếm (ô cho phép nhập liệu)
             var danhSachTextBox = new List<Control>
             {
-                textBox_TimKiemTheoTen, // Có thể là TextBox chuẩn của Windows
-                kryptonTextBox1_STT,
-                kryptonTextBox1_HoVaTen,
-                kryptonTextBox1_SoHieu,
-                kryptonTextBox1_DonVi,
-                kryptonTextBox1_TinhTrang,
-                kryptonTextBox1_SoLuong
+                textBox_TimKiemTheoTen
             };
 
-            // Màu sắc quy định (Xanh dương đậm cho Focus, Xanh dương nhạt cho Hover)
-            Color mauFocus = Color.FromArgb(0, 120, 215); // Xanh Windows 10
+            Color mauFocus = Color.FromArgb(0, 120, 215);
             Color mauHover = Color.FromArgb(100, 180, 255);
-            Color mauMacDinh = Color.FromArgb(180, 180, 180); // Xám viền mặc định
+            Color mauMacDinh = Color.FromArgb(180, 180, 180);
 
             foreach (var control in danhSachTextBox)
             {
                 if (control == null) continue;
 
-                // XỬ LÝ CHO KRYPTON TEXTBOX
                 if (control is Krypton.Toolkit.KryptonTextBox kTextbox)
                 {
-                    // Thiết lập viền mặc định bo góc nhẹ cho đẹp
                     kTextbox.StateCommon.Border.Rounding = 3;
                     kTextbox.StateCommon.Border.Width = 1;
                     kTextbox.StateCommon.Border.Color1 = mauMacDinh;
 
-                    // 1. Khi chuột lướt qua (Hover)
                     kTextbox.MouseEnter += (s, e) =>
                     {
-                        if (!kTextbox.Focused) // Chỉ đổi màu hover nếu chưa được focus
+                        if (!kTextbox.Focused)
                         {
                             kTextbox.StateCommon.Border.Color1 = mauHover;
                             kTextbox.StateCommon.Border.Width = 1;
                         }
                     };
 
-                    // 2. Khi chuột đi ra khỏi
                     kTextbox.MouseLeave += (s, e) =>
                     {
-                        if (!kTextbox.Focused) // Trả về mặc định nếu không giữ focus
+                        if (!kTextbox.Focused)
                         {
                             kTextbox.StateCommon.Border.Color1 = mauMacDinh;
                             kTextbox.StateCommon.Border.Width = 1;
                         }
                     };
 
-                    // 3. Khi nháy trỏ chuột vào trong (Focus)
                     kTextbox.Enter += (s, e) =>
                     {
                         kTextbox.StateCommon.Border.Color1 = mauFocus;
-                        kTextbox.StateCommon.Border.Width = 2; // Viền dày hơn một chút khi gõ
+                        kTextbox.StateCommon.Border.Width = 2;
                     };
 
-                    // 4. Khi bấm ra chỗ khác (Mất Focus)
                     kTextbox.Leave += (s, e) =>
                     {
                         kTextbox.StateCommon.Border.Color1 = mauMacDinh;
                         kTextbox.StateCommon.Border.Width = 1;
                     };
                 }
-                // XỬ LÝ CHO TEXTBOX MẶC ĐỊNH CỦA WINDOWS (Nếu textBox_TimKiemTheoTen không phải Krypton)
                 else if (control is System.Windows.Forms.TextBox stdTextbox)
                 {
-                    // TextBox chuẩn của Windows không hỗ trợ đổi màu viền trực tiếp.
-                    // Cách mượt và không giật lag nhất là đổi màu nền (BackColor) khi Focus.
-                    Color nenFocus = Color.FromArgb(240, 248, 255); // Xanh nhạt
+                    Color nenFocus = Color.FromArgb(240, 248, 255);
                     Color nenMacDinh = Color.White;
 
                     stdTextbox.Enter += (s, e) => stdTextbox.BackColor = nenFocus;
@@ -2161,7 +2131,6 @@ namespace PhanMemThiDua2026
 
             wb.SaveAs(filePath);
         }
-
         private async void kryptonButton1_QuanLyKhenThuongTapThe_Click(object sender, EventArgs e)
         {
             // 1. Tìm Form cha đang hoạt động

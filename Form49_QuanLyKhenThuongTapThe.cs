@@ -78,24 +78,84 @@ namespace PhanMemThiDua2026
                 comboBox1_HinhThucKT.TextChanged -= comboBox1_HinhThucKT_TextChanged;
                 comboBox1_HinhThucKT.TextChanged += comboBox1_HinhThucKT_TextChanged;
             }
-
+            if (richTextBox1_NoiDungKhenThuong != null)
+            {
+                richTextBox1_NoiDungKhenThuong.TextChanged -= richTextBox1_NoiDungKhenThuong_TextChanged;
+                richTextBox1_NoiDungKhenThuong.TextChanged += richTextBox1_NoiDungKhenThuong_TextChanged;
+            }
+            // Gọi kiểm tra ngay lúc đầu để ẩn nút nếu ô text đang trống
+            KiemTraHienThiNutCoChu();
             // 7. KHỞI TẠO TRẠNG THÁI FORM
             ResetInput();
-
             // 8. TẢI DỮ LIỆU BAN ĐẦU
             await LoadComboBoxDonViAsync();
             await LoadComboBoxHinhThucKTAsync(); // <--- THÊM DÒNG NÀY ĐỂ TẢI BỘ LỌC HÌNH THỨC
             await LoadDataToGridAsync();
+            CapNhatTrangThaiNutThaoTac();
             InitToolTips();
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
         }
+        private void richTextBox1_NoiDungKhenThuong_TextChanged(object sender, EventArgs e)
+        {
+            KiemTraHienThiNutCoChu();
+        }
+        private void KiemTraHienThiNutCoChu()
+        {
+            var richTextBox = richTextBox1_NoiDungKhenThuong;
 
+            if (richTextBox == null ||
+                richTextBox.IsDisposed ||
+                richTextBox.Disposing)
+            {
+                return;
+            }
+
+            bool coNoiDung = !string.IsNullOrWhiteSpace(richTextBox.Text);
+
+            if (kryptonButton2_TangCoChuRichText != null &&
+                !kryptonButton2_TangCoChuRichText.IsDisposed &&
+                !kryptonButton2_TangCoChuRichText.Disposing)
+            {
+                kryptonButton2_TangCoChuRichText.Visible = coNoiDung;
+            }
+
+            if (kryptonButton2_GiamCoChuRichText != null &&
+                !kryptonButton2_GiamCoChuRichText.IsDisposed &&
+                !kryptonButton2_GiamCoChuRichText.Disposing)
+            {
+                kryptonButton2_GiamCoChuRichText.Visible = coNoiDung;
+            }
+        }
+        private void CapNhatTrangThaiNutThaoTac()
+        {
+            if (kryptonDataGridView1 == null ||
+                kryptonDataGridView1.IsDisposed ||
+                kryptonDataGridView1.Disposing)
+            {
+                return;
+            }
+
+            bool coDuLieu = kryptonDataGridView1.Rows.Count > 0;
+
+            if (kryptonButton_SuaVaLuuKhenThuong != null &&
+                !kryptonButton_SuaVaLuuKhenThuong.IsDisposed &&
+                !kryptonButton_SuaVaLuuKhenThuong.Disposing)
+            {
+                kryptonButton_SuaVaLuuKhenThuong.Visible = coDuLieu;
+            }
+
+            if (kryptonButton_XoaKhenThuong != null &&
+                !kryptonButton_XoaKhenThuong.IsDisposed &&
+                !kryptonButton_XoaKhenThuong.Disposing)
+            {
+                kryptonButton_XoaKhenThuong.Visible = coDuLieu;
+            }
+        }
         private void InitToolTips()
         {
             // ============================================================
             // KHỞI TẠO TOOLTIP - ỔN ĐỊNH CHO HỆ THỐNG NỘI BỘ
             // ============================================================
-
             // 1. Kiểm tra ToolTip
             if (toolTip1 == null)
                 return;
@@ -124,10 +184,6 @@ namespace PhanMemThiDua2026
                 GanToolTipAnToan(
                     kryptonButton_LamMoiCacOTimKiem,
                     "Làm mới (xóa) bộ lọc tìm kiếm hiện tại");
-
-                GanToolTipAnToan(
-                    kryptonButton1_Thoat,
-                    "Đóng cửa sổ hiện tại");
 
                 GanToolTipAnToan(
                     kryptonButton2_GiamCoChuRichText,
@@ -160,7 +216,6 @@ namespace PhanMemThiDua2026
                 // Không để chức năng Tooltip làm Form dừng hoạt động.
             }
         }
-
         private void GanToolTipAnToan(Control control, string noiDung)
         {
             // 1. Control không tồn tại
@@ -436,6 +491,7 @@ namespace PhanMemThiDua2026
                 {
                     kryptonDataGridView1.DataSource = dtThuTu;
                     CapNhatNhanTongSo();
+                    CapNhatTrangThaiNutThaoTac();
                 }
             }
             catch (OperationCanceledException) { }
@@ -1025,10 +1081,10 @@ namespace PhanMemThiDua2026
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
                 if (frmXacMinh.ShowDialog() != DialogResult.OK) return;
             }
-
             DialogResult result = MessageBox.Show(
-                "CẢNH BÁO NGUY HIỂM:\n\nBạn đang yêu cầu XÓA TOÀN BỘ dữ liệu khen thưởng tập thể.\nHành động này KHÔNG THỂ KHÔI PHỤC!\n\nBạn có chắc chắn muốn XÓA SẠCH?",
-                "Xác nhận xóa toàn bộ",
+                "Bạn có chắc chắn muốn xóa toàn bộ dữ liệu khen thưởng tập thể không?\n\n" +
+                "Dữ liệu đã xóa không thể khôi phục.",
+                "Xác nhận xóa",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning,
                 MessageBoxDefaultButton.Button2);
@@ -1242,13 +1298,9 @@ namespace PhanMemThiDua2026
                 xuatDuLieuRaTepExcel_ToolStripMenuItem.Text = textBanDau;
             }
         }
-
         private void toolStripMenuItem_QuayLaiTrangTruoc_Click(object sender, EventArgs e)
         {
-            kryptonButton1_Thoat.PerformClick();
-        }
-
-
-        
+           // kryptonButton1_Thoat.PerformClick();
+        } 
     }
 }

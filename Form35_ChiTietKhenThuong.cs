@@ -6,12 +6,15 @@ namespace PhanMemThiDua2026
 {
     public partial class Form35_ChiTietKhenThuong : Form
     {
+        private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
+        // Biến cục bộ để lưu trữ con trỏ Form 34 và vị trí dòng, phục vụ truy xuất O(1)
+        private Form34_ThongKeKhenThuong _form34Nguon;
+        private int _currentRowIndexForm34 = -1;
         private string _currentSoHieu = "";
         private string _currentHoTen = "";
         private string _currentDonVi = "";
         private string _currentTinhTrang = "";
         private int _currentEditingID = -1;
-        private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
         public Form35_ChiTietKhenThuong()
         {
             InitializeComponent();
@@ -24,20 +27,18 @@ namespace PhanMemThiDua2026
                 kryptonTextBox_TienThuong.TextChanged += kryptonTextBox_TienThuong_TextChanged;
             }
         }
-        private void Form37_ChiTietKhenThuong_Load(object sender, EventArgs e)
+        private void Form35_ChiTietKhenThuong_Load(object sender, EventArgs e)
         {
+            // Cấu hình thanh trạng thái trước
+            CauHinhStatusStrip();
             InitToolTips();
         }
         private void InitToolTips()
-        {
-            // ============================================================
+        {  
             // KHỞI TẠO TOOLTIP - ỔN ĐỊNH CHO HỆ THỐNG NỘI BỘ
-            // ============================================================
-
             // 1. Kiểm tra ToolTip
             if (toolTip1 == null)
                 return;
-
             try
             {
                 // 2. Cấu hình chung
@@ -56,7 +57,7 @@ namespace PhanMemThiDua2026
 
                 // Cho phép hiển thị ngay cả khi Form chưa active
                 toolTip1.ShowAlways = true;
-                // ================= BỔ SUNG CÁC NÚT MỚI TẠI ĐÂY =================
+                // ==== BỔ SUNG CÁC NÚT MỚI TẠI ĐÂY ====
                 GanToolTipAnToan(
                     kryptonButton_Them,
                     "Thêm thông tin khen thưởng mới vào hệ thống");
@@ -82,6 +83,51 @@ namespace PhanMemThiDua2026
             {
                 // Trạng thái WinForms không phù hợp để cấu hình Tooltip.
                 // Không để chức năng Tooltip làm Form dừng hoạt động.
+            }
+        }        
+        // CẤU HÌNH GIAO DIỆN THANH TRẠNG THÁI (CHUẨN KỸ SƯ UI/UX)
+       
+        private void CauHinhStatusStrip()
+        {
+            // --------------------------------------------------------
+            // 1. Label Số lượng - Nằm sát mép trái (Có hiển thị Icon)
+            // --------------------------------------------------------
+            if (toolStripStatusLabel1 != null && !toolStripStatusLabel1.IsDisposed)
+            {
+                // Neo vị trí về mép trái
+                toolStripStatusLabel1.Alignment = ToolStripItemAlignment.Left;
+
+                // Căn lề cho cả Chữ và Hình ảnh đều bắt đầu từ bên trái
+                toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleLeft;
+                toolStripStatusLabel1.ImageAlign = ContentAlignment.MiddleLeft;
+
+                // Đảm bảo Hình ảnh (Icon) luôn nằm trước rồi mới đến Chữ
+                toolStripStatusLabel1.TextImageRelation = TextImageRelation.ImageBeforeText;
+
+                // Bật Spring (Lò xo) đẩy nhãn này giãn dài ra chiếm toàn bộ không gian ở giữa, 
+                // tự động "ép" nhãn số 2 dạt hoàn toàn về góc phải.
+                toolStripStatusLabel1.Spring = true;
+
+                // Khoảng đệm (Padding) để Icon không bị dính sát vào mép viền cửa sổ
+                toolStripStatusLabel1.Padding = new Padding(5, 0, 0, 0);
+            }
+
+            // --------------------------------------------------------
+            // 2. Label Tình trạng công tác - Luôn neo cứng ở mép phải
+            // --------------------------------------------------------
+            if (toolStripStatusLabel2_TinhTrangCongTac != null && !toolStripStatusLabel2_TinhTrangCongTac.IsDisposed)
+            {
+                // Neo vị trí về mép phải
+                toolStripStatusLabel2_TinhTrangCongTac.Alignment = ToolStripItemAlignment.Right;
+
+                // Nội dung chữ bên trong cũng căn phải để thẳng nếp
+                toolStripStatusLabel2_TinhTrangCongTac.TextAlign = ContentAlignment.MiddleRight;
+
+                // Tắt lò xo ở nhãn phải để nó chỉ chiếm đúng diện tích chữ của nó
+                toolStripStatusLabel2_TinhTrangCongTac.Spring = false;
+
+                // Tạo khoảng thở 10 pixel bên tay phải, giúp chữ không bị lẹm vào viền hay Scrollbar
+                toolStripStatusLabel2_TinhTrangCongTac.Padding = new Padding(0, 0, 10, 0);
             }
         }
         private void GanToolTipAnToan(Control control, string noiDung)
@@ -119,9 +165,9 @@ namespace PhanMemThiDua2026
         // HÀM ĐỊNH DẠNG TIỀN THƯỞNG (TỐI ƯU KHÔNG REGEX)
         private void kryptonTextBox_TienThuong_TextChanged(object sender, EventArgs e)
         {
-            // ============================================================
+            
             // 1. KIỂM TRA AN TOÀN
-            // ============================================================
+            
 
             if (kryptonTextBox_TienThuong == null ||
                 kryptonTextBox_TienThuong.IsDisposed ||
@@ -142,26 +188,26 @@ namespace PhanMemThiDua2026
             {
                 string textHienTai = kryptonTextBox_TienThuong.Text.Trim();
 
-                // ========================================================
+                // ====
                 // 2. LƯU VỊ TRÍ CON TRỎ
-                // ========================================================
+                // ====
 
                 int cursorFromEnd =
                     textHienTai.Length -
                     kryptonTextBox_TienThuong.SelectionStart;
 
-                // ========================================================
+                // ====
                 // 3. LOẠI BỎ DẤU PHÂN CÁCH
-                // ========================================================
+                // ====
 
                 string rawText = textHienTai
                     .Replace(".", string.Empty)
                     .Replace(",", string.Empty)
                     .Trim();
 
-                // ========================================================
+                // ====
                 // 4. CHỈ GIỮ LẠI KÝ TỰ SỐ
-                // ========================================================
+                // ====
 
                 string cleanText = new string(
                     rawText.Where(char.IsDigit).ToArray());
@@ -174,9 +220,9 @@ namespace PhanMemThiDua2026
                     return;
                 }
 
-                // ========================================================
+                // ====
                 // 5. GIỚI HẠN GIÁ TRỊ LONG
-                // ========================================================
+                // ====
 
                 if (!long.TryParse(cleanText, out long tienThuong))
                 {
@@ -185,16 +231,16 @@ namespace PhanMemThiDua2026
                     return;
                 }
 
-                // ========================================================
+                // ====
                 // 6. ĐẢM BẢO GIÁ TRỊ KHÔNG ÂM
-                // ========================================================
+                // ====
 
                 if (tienThuong < 0)
                     tienThuong = 0;
 
-                // ========================================================
+                // ====
                 // 7. ĐỊNH DẠNG TIỀN
-                // ========================================================
+                // ====
 
                 string textDaDinhDang =
                     string.Format("{0:#,##0}", tienThuong)
@@ -202,9 +248,9 @@ namespace PhanMemThiDua2026
 
                 kryptonTextBox_TienThuong.Text = textDaDinhDang;
 
-                // ========================================================
+                // ====
                 // 8. KHÔI PHỤC VỊ TRÍ CON TRỎ
-                // ========================================================
+                // ====
 
                 int newCursorPosition =
                     kryptonTextBox_TienThuong.Text.Length - cursorFromEnd;
@@ -235,21 +281,50 @@ namespace PhanMemThiDua2026
             return string.IsNullOrEmpty(decrypted) ? s : decrypted;
         }
         // ⭐ CHUẨN KỸ SƯ: Bổ sung async void để có thể chờ (await) hàm tải dữ liệu
-        public async void NhanDuLieuTuForm36(string hoTen, string soHieu, string donVi, string tinhTrang)
+        // ⭐ CHUẨN KỸ SƯ: Bổ sung formNguon và rowIndex để truy xuất ngược
+        public async void NhanDuLieuTuForm34(string hoTen, string soHieu, string donVi, string tinhTrangCu, Form34_ThongKeKhenThuong formNguon, int rowIndex)
         {
+            // 1. Lưu thông tin cơ bản
             _currentHoTen = hoTen;
             _currentSoHieu = soHieu;
             _currentDonVi = donVi;
-            _currentTinhTrang = tinhTrang;
-
+            _currentTinhTrang = tinhTrangCu; // Tạm gán tình trạng cũ
+            // 2. Lưu tham chiếu bộ nhớ để chọc ngược về Form 34
+            _form34Nguon = formNguon;
+            _currentRowIndexForm34 = rowIndex;
+            // 3. Đổ dữ liệu nhân thân lên Nhãn
             if (label1_HoVaTen != null) label1_HoVaTen.Text = "Đồng chí: " + hoTen;
             if (label1_SoHieu != null) label1_SoHieu.Text = "Số hiệu: " + soHieu;
-            if (label1_DonVi != null) label1_DonVi.Text = "Đơn vị: " + donVi;
+            if (label1_DonVi != null) label1_DonVi.Text = "Đơn vị: " + donVi;           
+            // 4. 🚀 TÍNH NĂNG ĐỘC QUYỀN: LẤY TÌNH TRẠNG CHÍNH XÁC 100% TỪ RAM FORM 34        
+            string tinhTrangChinhXac = tinhTrangCu; // Fallback an toàn
+            if (_form34Nguon != null && !_form34Nguon.IsDisposed && _currentRowIndexForm34 >= 0)
+            {
+                // Truy xuất O(1) ngay lập tức
+                tinhTrangChinhXac = _form34Nguon.LayTinhTrangCongTacAnToan(_currentRowIndexForm34);
+                _currentTinhTrang = tinhTrangChinhXac; // Cập nhật lại biến môi trường bên trong Form 35
+            }
+           // 5. Đổ lên thanh Status (có trang trí màu sắc - UX)
+            if (toolStripStatusLabel2_TinhTrangCongTac != null)
+            {
+                toolStripStatusLabel2_TinhTrangCongTac.Text = $"Tình trạng: {tinhTrangChinhXac}";
 
+                // Hiệu ứng màu sắc trực quan
+                if (string.Equals(tinhTrangChinhXac, "Đang công tác", StringComparison.OrdinalIgnoreCase))
+                {
+                    toolStripStatusLabel2_TinhTrangCongTac.ForeColor = Color.SeaGreen; // Xanh an tâm
+                }
+                else
+                {
+                    toolStripStatusLabel2_TinhTrangCongTac.ForeColor = Color.IndianRed; // Đỏ cảnh báo
+                }
+
+                toolStripStatusLabel2_TinhTrangCongTac.Visible = true;
+            }
+            // 6. Hoàn thiện quá trình load dữ liệu chi tiết
             XoaTrangGiaoDien();
-            await ReloadDuLieuGiayKhen_CuaMotNguoiAsync(); // Gọi phiên bản Async
+            await ReloadDuLieuGiayKhen_CuaMotNguoiAsync();
         }
-        // ⭐ NÂNG CẤP THÀNH ASYNC TASK CHỐNG ĐƠ GIAO DIỆN
         private async Task ReloadDuLieuGiayKhen_CuaMotNguoiAsync()
         {
             try
@@ -406,7 +481,7 @@ namespace PhanMemThiDua2026
                 // 2. CẤU HÌNH CƠ BẢN
                 grid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-                grid.DefaultCellStyle.Font = new Font("Segoe UI", 11F, FontStyle.Regular);
+                grid.DefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
                 grid.DefaultCellStyle.Padding = new Padding(4, 6, 4, 6);
                 grid.ReadOnly = true;
                 grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -414,6 +489,11 @@ namespace PhanMemThiDua2026
                 grid.RowHeadersVisible = true;
                 grid.RowHeadersWidth = 55;
                 grid.EnableHeadersVisualStyles = false;
+
+                // ⭐ KHÓA DI CHUYỂN VÀ THAY ĐỔI KÍCH THƯỚC CỘT
+                grid.AllowUserToOrderColumns = false;   // Không cho kéo thả đổi vị trí cột
+                grid.AllowUserToResizeColumns = false;  // Không cho kéo chuột thay đổi độ rộng cột
+                grid.AllowUserToResizeRows = false;     // Khóa luôn thay đổi chiều cao dòng bằng chuột
 
                 // ⭐ THAY ĐỔI QUAN TRỌNG NHẤT Ở ĐÂY:
                 // Ép toàn bộ lưới tự động co giãn vừa khít 100% chiều ngang màn hình
@@ -431,21 +511,17 @@ namespace PhanMemThiDua2026
                 // 4. CĂN GIỮA VÀ IN ĐẬM TIÊU ĐỀ
                 var style = grid.ColumnHeadersDefaultCellStyle;
                 style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                style.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+                style.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
                 style.WrapMode = DataGridViewTriState.True;
 
                 // 5. CẤU HÌNH CHI TIẾT TỪNG CỘT (Dùng "TyLe" thay vì chiều rộng cứng)
-                // Hệ số TyLe đóng vai trò như phần trăm chia đất cho từng cột
                 var cauHinhCot = new[]
                 {
             (Ten: "HinhThuc_Khen", TieuDe: "Hình thức khen", TyLe: 12f, CanLe: DataGridViewContentAlignment.MiddleLeft),
             (Ten: "QuyetDinh_Khen", TieuDe: "Quyết định số", TyLe: 10f, CanLe: DataGridViewContentAlignment.MiddleCenter),
             (Ten: "NgayCapQD_Khen", TieuDe: "Ngày cấp", TyLe: 9f, CanLe: DataGridViewContentAlignment.MiddleCenter),
             (Ten: "DonVi_Khen", TieuDe: "Đơn vị tặng", TyLe: 15f, CanLe: DataGridViewContentAlignment.MiddleLeft),
-            
-            // Cột Về Việc được cấp tỷ lệ cao nhất để ưu tiên chiếm nhiều diện tích
             (Ten: "VeViec_Khen", TieuDe: "Về việc", TyLe: 20f, CanLe: DataGridViewContentAlignment.MiddleLeft),
-
             (Ten: "TienThuong", TieuDe: "Tiền thưởng", TyLe: 10f, CanLe: DataGridViewContentAlignment.MiddleRight),
             (Ten: "NgayCapPhat", TieuDe: "Ngày cấp phát", TyLe: 9f, CanLe: DataGridViewContentAlignment.MiddleCenter),
             (Ten: "CanBoCapPhat", TieuDe: "Cán bộ cấp", TyLe: 11f, CanLe: DataGridViewContentAlignment.MiddleLeft),
@@ -459,11 +535,9 @@ namespace PhanMemThiDua2026
                         var col = grid.Columns[cot.Ten];
                         col.HeaderText = cot.TieuDe;
                         col.DefaultCellStyle.Alignment = cot.CanLe;
-
-                        // Gán tỷ lệ phần trăm giãn cột
                         col.FillWeight = cot.TyLe;
 
-                        // Thêm format hiển thị cho cột tiền thưởng trên Grid
+                        // Format hiển thị cho cột tiền thưởng
                         if (cot.Ten == "TienThuong")
                         {
                             col.DefaultCellStyle.Format = "N0";
@@ -472,23 +546,18 @@ namespace PhanMemThiDua2026
                 }
 
                 // ⭐ 6. BỘ GIAO DIỆN HIỆN ĐẠI (OCEAN BLUE THEME)
-
-                // Nền lưới trắng tinh khôi
                 grid.StateCommon.Background.Color1 = Color.White;
                 grid.StateCommon.DataCell.Back.Color1 = Color.White;
 
-                // Viền lưới thanh mảnh, xám nhạt
                 grid.StateCommon.DataCell.Border.Color1 = Color.FromArgb(235, 235, 235);
                 grid.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
                 grid.StateCommon.DataCell.Border.Width = 1;
 
-                // Tiêu đề cột (Header) - Màu Xanh Nước Biển (Đậm và rõ nét hơn)
                 grid.StateCommon.HeaderColumn.Back.Color1 = Color.FromArgb(180, 210, 240);
                 grid.StateCommon.HeaderColumn.Back.Color2 = Color.FromArgb(180, 210, 240);
                 grid.StateCommon.HeaderColumn.Content.Color1 = Color.FromArgb(30, 30, 30);
                 grid.StateCommon.HeaderColumn.Border.Color1 = Color.FromArgb(150, 180, 210);
 
-                // Nền khi chọn: Xanh dương siêu nhạt (Alice Blue) - Rất dịu mắt
                 grid.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
                 grid.StateSelected.DataCell.Back.Color2 = Color.FromArgb(232, 244, 253);
                 grid.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
@@ -558,30 +627,31 @@ namespace PhanMemThiDua2026
         }
         public void CapNhatSoLuongKhenThuong()
         {
-            if (toolStripStatusLabel1 != null)
+            // 1. Kiểm tra ToolStripStatusLabel
+            if (toolStripStatusLabel1 == null ||
+                toolStripStatusLabel1.IsDisposed)
             {
-                if (kryptonDataGridView1_DanhSachCBCS != null)
-                {
-                    int soLuong = kryptonDataGridView1_DanhSachCBCS.Rows.Count;
-                    toolStripStatusLabel1.Text = $"Số lượng khen thưởng: {soLuong}";
-
-                    // Logic ẩn/hiện nhãn theo số lượng
-                    if (soLuong == 0)
-                    {
-                        toolStripStatusLabel1.Visible = false; // Ẩn luôn khi bằng 0
-                    }
-                    else
-                    {
-                        toolStripStatusLabel1.Visible = true;  // Lớn hơn 0 thì mở lại
-                    }
-                }
-                else
-                {
-                    // Trường hợp GridView bị null hoặc chưa nạp, mặc định ẩn để an toàn giao diện
-                    toolStripStatusLabel1.Text = "Số lượng khen thưởng: 0";
-                    toolStripStatusLabel1.Visible = false;
-                }
+                return;
             }
+
+            // 2. Kiểm tra DataGridView
+            if (kryptonDataGridView1_DanhSachCBCS == null ||
+                kryptonDataGridView1_DanhSachCBCS.IsDisposed)
+            {
+                toolStripStatusLabel1.Text = "Số lượng khen thưởng: 0 mục";
+                toolStripStatusLabel1.Visible = false;
+                return;
+            }
+
+            // 3. Lấy số lượng dữ liệu
+            int soLuong = kryptonDataGridView1_DanhSachCBCS.Rows.Count;
+
+            // 4. Cập nhật trạng thái
+            toolStripStatusLabel1.Text =
+                $"Số lượng khen thưởng: {soLuong:N0} mục";
+
+            // 5. Chỉ hiển thị khi có dữ liệu
+            toolStripStatusLabel1.Visible = soLuong > 0;
         }
         private void KryptonDataGridView1_DanhSachCBCS_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
         {
@@ -788,23 +858,9 @@ namespace PhanMemThiDua2026
         }
         private void kryptonButton3_DongForm_Click(object sender, EventArgs e)
         {
-            // ⭐ Bỏ gọi hàm đồng bộ ở đây vì ta đã tự động đồng bộ ngay lúc Thêm/Xóa cực chuẩn rồi
             XoaTrangGiaoDien();
-            this.Hide();
-
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null) return;
-
-            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-            if (panel == null) return;
-
-            var form34 = panel.Controls.OfType<Form34_ThongKeKhenThuong>().FirstOrDefault();
-            if (form34 != null && !form34.IsDisposed)
-            {
-                form34.Show();
-                form34.BringToFront();
-                form34.ReloadDuLieu(); // Nạp lại lưới danh sách cha
-            }
+            // Rất chuẩn: Form 35 tự sát, không cần biết ai gọi nó ra.
+            this.Close();
         }
         // HÀM TIỆN ÍCH TỐI ƯU CỦA RIÊNG FORM 35 (Gọi Log)
         private void GhiLogHeThong(string hanhDong)

@@ -63,7 +63,7 @@ namespace PhanMemThiDua2026
             // ⭐ BỔ SUNG DÒNG NÀY: Lắng nghe sự kiện khi gõ vào ô Tóm tắt thành tích
             richTextBox1_ThanhTich.TextChanged += richTextBox1_ThanhTich_TextChanged;
             // ⭐ TUYỆT CHIÊU TRỊ KRYPTON: Ép bảng màu ngay trước tích tắc Menu mở lên
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             // THÊM DÒNG NÀY VÀO CUỐI HÀM LOAD:
             await Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(toolStripStatusLabel2_TyLeBaNhat);
             // ⭐ GỌI HÀM Ở ĐÂY ĐỂ TÍNH TOÁN TÌNH TRẠNG TRƯỚC KHI LOAD LÊN LƯỚI
@@ -94,7 +94,6 @@ namespace PhanMemThiDua2026
         // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
         // ========================================================================
         private bool _daKhoiTaoToolTip = false;
-
         private void InitToolTips()
         {
             // Chống gọi lại nhiều lần không cần thiết
@@ -782,6 +781,7 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1.AllowUserToAddRows = false;
             kryptonDataGridView1.AllowUserToDeleteRows = false;
             kryptonDataGridView1.AllowUserToResizeRows = false;
+            kryptonDataGridView1.AllowUserToOrderColumns = false;
             kryptonDataGridView1.RowHeadersVisible = false;
             kryptonDataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             kryptonDataGridView1.MultiSelect = false;

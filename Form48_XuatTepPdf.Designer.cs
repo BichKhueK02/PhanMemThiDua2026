@@ -109,7 +109,7 @@
             kryptonButton_XuatTepPdf.StateCommon.Border.Rounding = 16F;
             kryptonButton_XuatTepPdf.StateTracking.Back.Color1 = Color.FromArgb(128, 255, 128);
             kryptonButton_XuatTepPdf.StateTracking.Back.Color2 = Color.FromArgb(128, 255, 128);
-            kryptonButton_XuatTepPdf.TabIndex = 2;
+            kryptonButton_XuatTepPdf.TabIndex = 0;
             kryptonButton_XuatTepPdf.Values.DropDownArrowColor = Color.Empty;
             kryptonButton_XuatTepPdf.Values.Image = (Image)resources.GetObject("kryptonButton_XuatTepPdf.Values.Image");
             kryptonButton_XuatTepPdf.Values.Text = "Tạo tệp (*.pdf)";
@@ -326,7 +326,7 @@
             checkedListBox1_LietKeTenCacSheet.Margin = new Padding(3, 2, 3, 2);
             checkedListBox1_LietKeTenCacSheet.Name = "checkedListBox1_LietKeTenCacSheet";
             checkedListBox1_LietKeTenCacSheet.Size = new Size(905, 205);
-            checkedListBox1_LietKeTenCacSheet.TabIndex = 4;
+            checkedListBox1_LietKeTenCacSheet.TabIndex = 0;
             // 
             // Form48_XuatTepPdf
             // 

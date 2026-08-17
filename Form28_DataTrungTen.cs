@@ -54,7 +54,7 @@ namespace PhanMemThiDua2026
         {
             
             kryptonDataGridView_TrungTen.ContextMenuStrip = contextMenuStrip1;
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             XacDinhPhienBan();
 
             if (splitContainer != null)

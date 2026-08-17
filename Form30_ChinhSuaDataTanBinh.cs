@@ -231,7 +231,7 @@ namespace PhanMemThiDua2026
         private void HienThiDuLieuLenForm(SqliteDataReader reader)
         {
             string dbHoTen = GiaiMaSafe(reader["HoVaTen"]?.ToString());
-            label1_HoVaTen.Text = string.IsNullOrEmpty(dbHoTen) ? _hoTenTimKiem : dbHoTen;
+            label1_HoVaTen.Text = "Đồng chí: " + (string.IsNullOrEmpty(dbHoTen) ? _hoTenTimKiem : dbHoTen);
             label1_ID_Tanbinh.Text = "Số hiệu: " + GiaiMaSafe(reader["SoHieu"]?.ToString());
 
             foreach (var item in _cboMapping)

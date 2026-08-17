@@ -185,7 +185,7 @@
             combobox_tuan_4_Thang5.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             combobox_tuan_4_Thang5.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_4_Thang5.FormattingEnabled = true;
-            combobox_tuan_4_Thang5.Location = new Point(911, 146);
+            combobox_tuan_4_Thang5.Location = new Point(911, 145);
             combobox_tuan_4_Thang5.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_4_Thang5.Name = "combobox_tuan_4_Thang5";
             combobox_tuan_4_Thang5.Size = new Size(87, 25);
@@ -196,7 +196,7 @@
             combobox_tuan_4_Thang4.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             combobox_tuan_4_Thang4.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_4_Thang4.FormattingEnabled = true;
-            combobox_tuan_4_Thang4.Location = new Point(662, 146);
+            combobox_tuan_4_Thang4.Location = new Point(662, 145);
             combobox_tuan_4_Thang4.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_4_Thang4.Name = "combobox_tuan_4_Thang4";
             combobox_tuan_4_Thang4.Size = new Size(83, 25);
@@ -338,7 +338,7 @@
             combobox_tuan_3_Thang5.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_3_Thang5.FormattingEnabled = true;
             combobox_tuan_3_Thang5.Items.AddRange(new object[] { "", "Đang đề nghị", "X" });
-            combobox_tuan_3_Thang5.Location = new Point(911, 101);
+            combobox_tuan_3_Thang5.Location = new Point(911, 100);
             combobox_tuan_3_Thang5.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_3_Thang5.Name = "combobox_tuan_3_Thang5";
             combobox_tuan_3_Thang5.Size = new Size(87, 25);
@@ -350,7 +350,7 @@
             combobox_tuan_2_Thang5.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_2_Thang5.FormattingEnabled = true;
             combobox_tuan_2_Thang5.Items.AddRange(new object[] { "", "Đang đề nghị", "X" });
-            combobox_tuan_2_Thang5.Location = new Point(911, 56);
+            combobox_tuan_2_Thang5.Location = new Point(911, 55);
             combobox_tuan_2_Thang5.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_2_Thang5.Name = "combobox_tuan_2_Thang5";
             combobox_tuan_2_Thang5.Size = new Size(87, 25);
@@ -375,7 +375,7 @@
             combobox_tuan_4_Thang3.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_4_Thang3.FormattingEnabled = true;
             combobox_tuan_4_Thang3.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_4_Thang3.Location = new Point(413, 146);
+            combobox_tuan_4_Thang3.Location = new Point(413, 145);
             combobox_tuan_4_Thang3.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_4_Thang3.Name = "combobox_tuan_4_Thang3";
             combobox_tuan_4_Thang3.Size = new Size(83, 25);
@@ -387,7 +387,7 @@
             combobox_tuan_1_Thang2.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_1_Thang2.FormattingEnabled = true;
             combobox_tuan_1_Thang2.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_1_Thang2.Location = new Point(164, 11);
+            combobox_tuan_1_Thang2.Location = new Point(164, 10);
             combobox_tuan_1_Thang2.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_1_Thang2.Name = "combobox_tuan_1_Thang2";
             combobox_tuan_1_Thang2.Size = new Size(83, 25);
@@ -399,7 +399,7 @@
             combobox_tuan_2_Thang2.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_2_Thang2.FormattingEnabled = true;
             combobox_tuan_2_Thang2.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_2_Thang2.Location = new Point(164, 56);
+            combobox_tuan_2_Thang2.Location = new Point(164, 55);
             combobox_tuan_2_Thang2.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_2_Thang2.Name = "combobox_tuan_2_Thang2";
             combobox_tuan_2_Thang2.Size = new Size(83, 25);
@@ -411,7 +411,7 @@
             combobox_tuan_3_Thang2.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_3_Thang2.FormattingEnabled = true;
             combobox_tuan_3_Thang2.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_3_Thang2.Location = new Point(164, 101);
+            combobox_tuan_3_Thang2.Location = new Point(164, 100);
             combobox_tuan_3_Thang2.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_3_Thang2.Name = "combobox_tuan_3_Thang2";
             combobox_tuan_3_Thang2.Size = new Size(83, 25);
@@ -423,7 +423,7 @@
             combobox_tuan_1_Thang3.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_1_Thang3.FormattingEnabled = true;
             combobox_tuan_1_Thang3.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_1_Thang3.Location = new Point(413, 11);
+            combobox_tuan_1_Thang3.Location = new Point(413, 10);
             combobox_tuan_1_Thang3.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_1_Thang3.Name = "combobox_tuan_1_Thang3";
             combobox_tuan_1_Thang3.Size = new Size(83, 25);
@@ -435,7 +435,7 @@
             combobox_tuan_3_Thang3.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_3_Thang3.FormattingEnabled = true;
             combobox_tuan_3_Thang3.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_3_Thang3.Location = new Point(413, 101);
+            combobox_tuan_3_Thang3.Location = new Point(413, 100);
             combobox_tuan_3_Thang3.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_3_Thang3.Name = "combobox_tuan_3_Thang3";
             combobox_tuan_3_Thang3.Size = new Size(83, 25);
@@ -447,7 +447,7 @@
             combobox_tuan_2_Thang3.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_2_Thang3.FormattingEnabled = true;
             combobox_tuan_2_Thang3.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_2_Thang3.Location = new Point(413, 56);
+            combobox_tuan_2_Thang3.Location = new Point(413, 55);
             combobox_tuan_2_Thang3.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_2_Thang3.Name = "combobox_tuan_2_Thang3";
             combobox_tuan_2_Thang3.Size = new Size(83, 25);
@@ -459,7 +459,7 @@
             combobox_tuan_4_Thang2.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_4_Thang2.FormattingEnabled = true;
             combobox_tuan_4_Thang2.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_4_Thang2.Location = new Point(164, 146);
+            combobox_tuan_4_Thang2.Location = new Point(164, 145);
             combobox_tuan_4_Thang2.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_4_Thang2.Name = "combobox_tuan_4_Thang2";
             combobox_tuan_4_Thang2.Size = new Size(83, 25);
@@ -510,7 +510,7 @@
             combobox_tuan_1_Thang4.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_1_Thang4.FormattingEnabled = true;
             combobox_tuan_1_Thang4.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_1_Thang4.Location = new Point(662, 11);
+            combobox_tuan_1_Thang4.Location = new Point(662, 10);
             combobox_tuan_1_Thang4.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_1_Thang4.Name = "combobox_tuan_1_Thang4";
             combobox_tuan_1_Thang4.Size = new Size(83, 25);
@@ -522,7 +522,7 @@
             combobox_tuan_2_Thang4.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_2_Thang4.FormattingEnabled = true;
             combobox_tuan_2_Thang4.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            combobox_tuan_2_Thang4.Location = new Point(662, 56);
+            combobox_tuan_2_Thang4.Location = new Point(662, 55);
             combobox_tuan_2_Thang4.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_2_Thang4.Name = "combobox_tuan_2_Thang4";
             combobox_tuan_2_Thang4.Size = new Size(83, 25);
@@ -533,7 +533,7 @@
             combobox_tuan_3_Thang4.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             combobox_tuan_3_Thang4.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_3_Thang4.FormattingEnabled = true;
-            combobox_tuan_3_Thang4.Location = new Point(662, 101);
+            combobox_tuan_3_Thang4.Location = new Point(662, 100);
             combobox_tuan_3_Thang4.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_3_Thang4.Name = "combobox_tuan_3_Thang4";
             combobox_tuan_3_Thang4.Size = new Size(83, 25);
@@ -545,7 +545,7 @@
             combobox_tuan_1_Thang5.DropDownStyle = ComboBoxStyle.DropDownList;
             combobox_tuan_1_Thang5.FormattingEnabled = true;
             combobox_tuan_1_Thang5.Items.AddRange(new object[] { "", "Đang đề nghị", "X" });
-            combobox_tuan_1_Thang5.Location = new Point(911, 11);
+            combobox_tuan_1_Thang5.Location = new Point(911, 10);
             combobox_tuan_1_Thang5.Margin = new Padding(2, 3, 2, 3);
             combobox_tuan_1_Thang5.Name = "combobox_tuan_1_Thang5";
             combobox_tuan_1_Thang5.Size = new Size(87, 25);
@@ -596,7 +596,7 @@
             tk_Thang3.DropDownStyle = ComboBoxStyle.DropDownList;
             tk_Thang3.FormattingEnabled = true;
             tk_Thang3.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            tk_Thang3.Location = new Point(164, 192);
+            tk_Thang3.Location = new Point(164, 191);
             tk_Thang3.Margin = new Padding(2, 3, 2, 3);
             tk_Thang3.Name = "tk_Thang3";
             tk_Thang3.Size = new Size(83, 25);
@@ -621,7 +621,7 @@
             tk_Thang4.DropDownStyle = ComboBoxStyle.DropDownList;
             tk_Thang4.FormattingEnabled = true;
             tk_Thang4.Items.AddRange(new object[] { "", "CSTĐ", "CSTT", "HTNV", "KHTNV" });
-            tk_Thang4.Location = new Point(413, 192);
+            tk_Thang4.Location = new Point(413, 191);
             tk_Thang4.Margin = new Padding(2, 3, 2, 3);
             tk_Thang4.Name = "tk_Thang4";
             tk_Thang4.Size = new Size(83, 25);
@@ -646,7 +646,7 @@
             tk_Thang5.DropDownStyle = ComboBoxStyle.DropDownList;
             tk_Thang5.FormattingEnabled = true;
             tk_Thang5.Items.AddRange(new object[] { "", "Đang đề nghị", "X" });
-            tk_Thang5.Location = new Point(662, 192);
+            tk_Thang5.Location = new Point(662, 191);
             tk_Thang5.Margin = new Padding(2, 3, 2, 3);
             tk_Thang5.Name = "tk_Thang5";
             tk_Thang5.Size = new Size(83, 25);
@@ -671,7 +671,7 @@
             tk_Thang6.DropDownStyle = ComboBoxStyle.DropDownList;
             tk_Thang6.FormattingEnabled = true;
             tk_Thang6.Items.AddRange(new object[] { "", "Đang đề nghị", "X" });
-            tk_Thang6.Location = new Point(911, 192);
+            tk_Thang6.Location = new Point(911, 191);
             tk_Thang6.Margin = new Padding(2, 3, 2, 3);
             tk_Thang6.Name = "tk_Thang6";
             tk_Thang6.Size = new Size(87, 25);
@@ -706,9 +706,9 @@
             // 
             tableLayoutPanel2.ColumnCount = 4;
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10.9221125F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 41.8461533F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.1538467F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20.23077F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55.9760971F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.74502F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19.32271F));
             tableLayoutPanel2.Controls.Add(label_DonVi, 3, 0);
             tableLayoutPanel2.Controls.Add(label1_ID_Tanbinh, 2, 0);
             tableLayoutPanel2.Controls.Add(pictureBox1, 0, 0);
@@ -728,7 +728,7 @@
             label_DonVi.AutoSize = true;
             label_DonVi.Font = new Font("Segoe UI Semibold", 16.128F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label_DonVi.ForeColor = Color.Green;
-            label_DonVi.Location = new Point(802, 13);
+            label_DonVi.Location = new Point(811, 13);
             label_DonVi.Margin = new Padding(2, 0, 2, 0);
             label_DonVi.Name = "label_DonVi";
             label_DonVi.Size = new Size(75, 30);
@@ -741,7 +741,7 @@
             label1_ID_Tanbinh.AutoSize = true;
             label1_ID_Tanbinh.Font = new Font("Segoe UI Semibold", 17.855999F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1_ID_Tanbinh.ForeColor = Color.Green;
-            label1_ID_Tanbinh.Location = new Point(530, 12);
+            label1_ID_Tanbinh.Location = new Point(673, 12);
             label1_ID_Tanbinh.Margin = new Padding(2, 0, 2, 0);
             label1_ID_Tanbinh.Name = "label1_ID_Tanbinh";
             label1_ID_Tanbinh.Size = new Size(38, 32);

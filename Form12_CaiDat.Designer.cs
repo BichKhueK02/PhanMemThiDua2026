@@ -83,6 +83,8 @@
             tableLayoutPanel14 = new TableLayoutPanel();
             groupBox2 = new GroupBox();
             tableLayoutPanel8 = new TableLayoutPanel();
+            comboBox_MauSacMenu = new ComboBox();
+            label1 = new Label();
             label16 = new Label();
             comboBox_SoLuongDongChoPhepHienThi = new ComboBox();
             label4 = new Label();
@@ -900,12 +902,14 @@
             tableLayoutPanel8.ColumnCount = 2;
             tableLayoutPanel8.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62.66447F));
             tableLayoutPanel8.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37.3355255F));
+            tableLayoutPanel8.Controls.Add(comboBox_MauSacMenu, 1, 8);
+            tableLayoutPanel8.Controls.Add(label1, 0, 8);
             tableLayoutPanel8.Controls.Add(label16, 0, 7);
             tableLayoutPanel8.Controls.Add(comboBox_SoLuongDongChoPhepHienThi, 1, 5);
             tableLayoutPanel8.Controls.Add(label4, 0, 3);
             tableLayoutPanel8.Controls.Add(label8, 0, 5);
             tableLayoutPanel8.Controls.Add(comboBox1_ChonSuKienThoat, 1, 3);
-            tableLayoutPanel8.Controls.Add(kryptonButton_LuuCauHinh, 1, 8);
+            tableLayoutPanel8.Controls.Add(kryptonButton_LuuCauHinh, 1, 9);
             tableLayoutPanel8.Controls.Add(label22, 0, 4);
             tableLayoutPanel8.Controls.Add(comboBox1_TuDongXoaNhatKy, 1, 4);
             tableLayoutPanel8.Controls.Add(checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP, 1, 1);
@@ -921,19 +925,45 @@
             tableLayoutPanel8.Location = new Point(2, 22);
             tableLayoutPanel8.Margin = new Padding(2, 4, 2, 4);
             tableLayoutPanel8.Name = "tableLayoutPanel8";
-            tableLayoutPanel8.RowCount = 9;
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1141548F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.110775F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1107769F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1107769F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1096678F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1104965F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1105051F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1101208F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 11.1127214F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel8.RowCount = 10;
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 10.0028362F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999799F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.9998F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.9998F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.998802F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999549F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999557F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.99921F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999102F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 10.0015488F));
             tableLayoutPanel8.Size = new Size(648, 404);
             tableLayoutPanel8.TabIndex = 0;
+            // 
+            // comboBox_MauSacMenu
+            // 
+            comboBox_MauSacMenu.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            comboBox_MauSacMenu.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox_MauSacMenu.Font = new Font("Segoe UI", 10.2F);
+            comboBox_MauSacMenu.FormattingEnabled = true;
+            comboBox_MauSacMenu.Items.AddRange(new object[] { "Mặc định", "Xanh lá", "Xanh dương", "Xám trắng" });
+            comboBox_MauSacMenu.Location = new Point(408, 326);
+            comboBox_MauSacMenu.Margin = new Padding(2, 4, 2, 4);
+            comboBox_MauSacMenu.Name = "comboBox_MauSacMenu";
+            comboBox_MauSacMenu.Size = new Size(238, 27);
+            comboBox_MauSacMenu.TabIndex = 36;
+            // 
+            // label1
+            // 
+            label1.Anchor = AnchorStyles.Right;
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
+            label1.ForeColor = Color.Green;
+            label1.Location = new Point(188, 330);
+            label1.Margin = new Padding(2, 0, 2, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(216, 20);
+            label1.TabIndex = 35;
+            label1.Text = "9. Chọn màu sắc menu hệ thống";
             // 
             // label16
             // 
@@ -941,7 +971,7 @@
             label16.AutoSize = true;
             label16.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label16.ForeColor = Color.Green;
-            label16.Location = new Point(132, 320);
+            label16.Location = new Point(132, 290);
             label16.Margin = new Padding(2, 0, 2, 0);
             label16.Name = "label16";
             label16.Size = new Size(272, 20);
@@ -954,7 +984,7 @@
             comboBox_SoLuongDongChoPhepHienThi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_SoLuongDongChoPhepHienThi.Font = new Font("Segoe UI", 10.2F);
             comboBox_SoLuongDongChoPhepHienThi.FormattingEnabled = true;
-            comboBox_SoLuongDongChoPhepHienThi.Location = new Point(408, 228);
+            comboBox_SoLuongDongChoPhepHienThi.Location = new Point(408, 206);
             comboBox_SoLuongDongChoPhepHienThi.Margin = new Padding(2, 4, 2, 4);
             comboBox_SoLuongDongChoPhepHienThi.Name = "comboBox_SoLuongDongChoPhepHienThi";
             comboBox_SoLuongDongChoPhepHienThi.Size = new Size(238, 27);
@@ -966,7 +996,7 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label4.ForeColor = Color.Green;
-            label4.Location = new Point(173, 144);
+            label4.Location = new Point(173, 130);
             label4.Margin = new Padding(2, 0, 2, 0);
             label4.Name = "label4";
             label4.Size = new Size(231, 20);
@@ -979,7 +1009,7 @@
             label8.AutoSize = true;
             label8.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label8.ForeColor = Color.Green;
-            label8.Location = new Point(182, 232);
+            label8.Location = new Point(182, 210);
             label8.Margin = new Padding(2, 0, 2, 0);
             label8.Name = "label8";
             label8.Size = new Size(222, 20);
@@ -994,7 +1024,7 @@
             comboBox1_ChonSuKienThoat.ForeColor = Color.FromArgb(0, 0, 192);
             comboBox1_ChonSuKienThoat.FormattingEnabled = true;
             comboBox1_ChonSuKienThoat.Items.AddRange(new object[] { "Thoát ngay", "Trở về form đăng nhập" });
-            comboBox1_ChonSuKienThoat.Location = new Point(408, 140);
+            comboBox1_ChonSuKienThoat.Location = new Point(408, 126);
             comboBox1_ChonSuKienThoat.Margin = new Padding(2, 4, 2, 4);
             comboBox1_ChonSuKienThoat.Name = "comboBox1_ChonSuKienThoat";
             comboBox1_ChonSuKienThoat.Size = new Size(238, 27);
@@ -1003,7 +1033,7 @@
             // kryptonButton_LuuCauHinh
             // 
             kryptonButton_LuuCauHinh.Anchor = AnchorStyles.None;
-            kryptonButton_LuuCauHinh.Location = new Point(453, 362);
+            kryptonButton_LuuCauHinh.Location = new Point(453, 366);
             kryptonButton_LuuCauHinh.Margin = new Padding(2, 4, 2, 4);
             kryptonButton_LuuCauHinh.Name = "kryptonButton_LuuCauHinh";
             kryptonButton_LuuCauHinh.Size = new Size(148, 32);
@@ -1020,7 +1050,7 @@
             label22.AutoSize = true;
             label22.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label22.ForeColor = Color.Green;
-            label22.Location = new Point(176, 188);
+            label22.Location = new Point(176, 170);
             label22.Margin = new Padding(2, 0, 2, 0);
             label22.Name = "label22";
             label22.Size = new Size(228, 20);
@@ -1035,7 +1065,7 @@
             comboBox1_TuDongXoaNhatKy.ForeColor = Color.FromArgb(0, 0, 192);
             comboBox1_TuDongXoaNhatKy.FormattingEnabled = true;
             comboBox1_TuDongXoaNhatKy.Items.AddRange(new object[] { "Không xóa", "1000 dòng xóa tự động", "5000 dòng xóa tự động", "10000 dòng xóa tự động" });
-            comboBox1_TuDongXoaNhatKy.Location = new Point(408, 184);
+            comboBox1_TuDongXoaNhatKy.Location = new Point(408, 166);
             comboBox1_TuDongXoaNhatKy.Margin = new Padding(2, 4, 2, 4);
             comboBox1_TuDongXoaNhatKy.Name = "comboBox1_TuDongXoaNhatKy";
             comboBox1_TuDongXoaNhatKy.Size = new Size(238, 27);
@@ -1047,7 +1077,7 @@
             checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.AutoSize = true;
             checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.ForeColor = Color.Black;
-            checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.Location = new Point(408, 54);
+            checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.Location = new Point(408, 48);
             checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.Margin = new Padding(2, 4, 2, 4);
             checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.Name = "checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP";
             checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.Size = new Size(90, 23);
@@ -1061,7 +1091,7 @@
             label33_ChoPhepNhapChuotVaoAnhGoissaP.AutoSize = true;
             label33_ChoPhepNhapChuotVaoAnhGoissaP.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label33_ChoPhepNhapChuotVaoAnhGoissaP.ForeColor = Color.Green;
-            label33_ChoPhepNhapChuotVaoAnhGoissaP.Location = new Point(199, 56);
+            label33_ChoPhepNhapChuotVaoAnhGoissaP.Location = new Point(199, 50);
             label33_ChoPhepNhapChuotVaoAnhGoissaP.Margin = new Padding(2, 0, 2, 0);
             label33_ChoPhepNhapChuotVaoAnhGoissaP.Name = "label33_ChoPhepNhapChuotVaoAnhGoissaP";
             label33_ChoPhepNhapChuotVaoAnhGoissaP.Size = new Size(205, 20);
@@ -1074,7 +1104,7 @@
             label14.AutoSize = true;
             label14.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label14.ForeColor = Color.Green;
-            label14.Location = new Point(227, 276);
+            label14.Location = new Point(227, 250);
             label14.Margin = new Padding(2, 0, 2, 0);
             label14.Name = "label14";
             label14.Size = new Size(177, 19);
@@ -1089,7 +1119,7 @@
             comboBox1_XemHuongDanSuDung.ForeColor = Color.FromArgb(0, 0, 192);
             comboBox1_XemHuongDanSuDung.FormattingEnabled = true;
             comboBox1_XemHuongDanSuDung.Items.AddRange(new object[] { "Chế độ web", "Chế độ pdf" });
-            comboBox1_XemHuongDanSuDung.Location = new Point(408, 272);
+            comboBox1_XemHuongDanSuDung.Location = new Point(408, 246);
             comboBox1_XemHuongDanSuDung.Margin = new Padding(2, 4, 2, 4);
             comboBox1_XemHuongDanSuDung.Name = "comboBox1_XemHuongDanSuDung";
             comboBox1_XemHuongDanSuDung.Size = new Size(238, 27);
@@ -1101,7 +1131,7 @@
             label10.AutoSize = true;
             label10.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label10.ForeColor = Color.Green;
-            label10.Location = new Point(282, 100);
+            label10.Location = new Point(282, 90);
             label10.Margin = new Padding(2, 0, 2, 0);
             label10.Name = "label10";
             label10.Size = new Size(122, 19);
@@ -1116,7 +1146,7 @@
             comboBox_DoiTuongPhanMem.ForeColor = Color.FromArgb(0, 0, 192);
             comboBox_DoiTuongPhanMem.FormattingEnabled = true;
             comboBox_DoiTuongPhanMem.Items.AddRange(new object[] { "Phiên bản dành cho CBCS", "Phiên bản dành cho tân binh" });
-            comboBox_DoiTuongPhanMem.Location = new Point(408, 96);
+            comboBox_DoiTuongPhanMem.Location = new Point(408, 86);
             comboBox_DoiTuongPhanMem.Margin = new Padding(2, 4, 2, 4);
             comboBox_DoiTuongPhanMem.Name = "comboBox_DoiTuongPhanMem";
             comboBox_DoiTuongPhanMem.Size = new Size(238, 27);
@@ -1128,7 +1158,7 @@
             checkBox1_ChoPhepGoiYTenTaiKhoan.AutoSize = true;
             checkBox1_ChoPhepGoiYTenTaiKhoan.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             checkBox1_ChoPhepGoiYTenTaiKhoan.ForeColor = Color.Black;
-            checkBox1_ChoPhepGoiYTenTaiKhoan.Location = new Point(408, 10);
+            checkBox1_ChoPhepGoiYTenTaiKhoan.Location = new Point(408, 8);
             checkBox1_ChoPhepGoiYTenTaiKhoan.Margin = new Padding(2, 4, 2, 4);
             checkBox1_ChoPhepGoiYTenTaiKhoan.Name = "checkBox1_ChoPhepGoiYTenTaiKhoan";
             checkBox1_ChoPhepGoiYTenTaiKhoan.Size = new Size(90, 23);
@@ -1142,7 +1172,7 @@
             label9.AutoSize = true;
             label9.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label9.ForeColor = Color.Green;
-            label9.Location = new Point(164, 12);
+            label9.Location = new Point(164, 10);
             label9.Margin = new Padding(2, 0, 2, 0);
             label9.Name = "label9";
             label9.Size = new Size(240, 20);
@@ -1156,7 +1186,7 @@
             comboBox1_ThoiGianThayDoiAnh.Font = new Font("Segoe UI", 10.2F);
             comboBox1_ThoiGianThayDoiAnh.FormattingEnabled = true;
             comboBox1_ThoiGianThayDoiAnh.Items.AddRange(new object[] { "Mặc định", "15 giây", "30 giây", "1 phút" });
-            comboBox1_ThoiGianThayDoiAnh.Location = new Point(408, 316);
+            comboBox1_ThoiGianThayDoiAnh.Location = new Point(408, 286);
             comboBox1_ThoiGianThayDoiAnh.Margin = new Padding(2, 4, 2, 4);
             comboBox1_ThoiGianThayDoiAnh.Name = "comboBox1_ThoiGianThayDoiAnh";
             comboBox1_ThoiGianThayDoiAnh.Size = new Size(238, 27);
@@ -1621,5 +1651,7 @@
         private ToolStripStatusLabel toolStripStatusLabel1;
         internal Krypton.Toolkit.KryptonButton kryptonButton_TyLePhanTramBaNhat;
         internal Krypton.Toolkit.KryptonButton kryptonButton_CapNhat;
+        private ComboBox comboBox_MauSacMenu;
+        private Label label1;
     }
 }

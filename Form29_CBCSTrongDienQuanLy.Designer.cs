@@ -153,8 +153,8 @@
             // tableLayoutPanel4
             // 
             tableLayoutPanel4.ColumnCount = 4;
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10.7221F));
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.5697937F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 11.8993139F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.5102978F));
             tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36.1556053F));
             tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29.9771175F));
             tableLayoutPanel4.Controls.Add(label2, 1, 0);
@@ -176,7 +176,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.FromArgb(0, 0, 192);
-            label2.Location = new Point(85, 14);
+            label2.Location = new Point(83, 14);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(61, 17);
@@ -187,10 +187,10 @@
             // kryptonButton1_TimKiemThongTinCBCSQuanLy
             // 
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Anchor = AnchorStyles.None;
-            kryptonButton1_TimKiemThongTinCBCSQuanLy.Location = new Point(307, 7);
+            kryptonButton1_TimKiemThongTinCBCSQuanLy.Location = new Point(310, 7);
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Name = "kryptonButton1_TimKiemThongTinCBCSQuanLy";
-            kryptonButton1_TimKiemThongTinCBCSQuanLy.Size = new Size(128, 32);
+            kryptonButton1_TimKiemThongTinCBCSQuanLy.Size = new Size(120, 32);
             kryptonButton1_TimKiemThongTinCBCSQuanLy.StateCommon.Border.Rounding = 4F;
             kryptonButton1_TimKiemThongTinCBCSQuanLy.TabIndex = 33;
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Values.DropDownArrowColor = Color.Empty;
@@ -205,7 +205,7 @@
             pictureBox3.Location = new Point(2, 6);
             pictureBox3.Margin = new Padding(2, 3, 2, 3);
             pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(42, 34);
+            pictureBox3.Size = new Size(48, 34);
             pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox3.TabIndex = 28;
             pictureBox3.TabStop = false;
@@ -213,10 +213,10 @@
             // textBoxKyToon_TimTen
             // 
             textBoxKyToon_TimTen.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBoxKyToon_TimTen.Location = new Point(150, 8);
+            textBoxKyToon_TimTen.Location = new Point(148, 8);
             textBoxKyToon_TimTen.Margin = new Padding(2, 3, 2, 3);
             textBoxKyToon_TimTen.Name = "textBoxKyToon_TimTen";
-            textBoxKyToon_TimTen.Size = new Size(153, 29);
+            textBoxKyToon_TimTen.Size = new Size(154, 29);
             textBoxKyToon_TimTen.StateCommon.Border.Rounding = 8F;
             textBoxKyToon_TimTen.StateCommon.Border.Width = 1;
             textBoxKyToon_TimTen.TabIndex = 29;

@@ -60,7 +60,7 @@ namespace PhanMemThiDua2026
             CapNhatThongKeSoLuong();
             // ⭐ 2. Gọi kiểm tra lúc ban đầu khi load form
             CapNhatTrangThaiNut();
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             InitToolTips();
         }
         private void kryptonDataGridView1_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -301,6 +301,7 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1.AllowUserToAddRows = false;
             kryptonDataGridView1.AllowUserToDeleteRows = false;
             kryptonDataGridView1.AllowUserToResizeRows = false;
+            kryptonDataGridView1.AllowUserToOrderColumns = false;
             kryptonDataGridView1.RowHeadersVisible = false;
             kryptonDataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             kryptonDataGridView1.MultiSelect = false;

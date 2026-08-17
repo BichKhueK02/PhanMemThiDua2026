@@ -16748,12 +16748,6 @@
   <metadata name="contextMenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>154, 17</value>
   </metadata>
-  <metadata name="groupBox2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="kryptonDataGridView2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
   <data name="lamMoi_ToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
@@ -16770,19 +16764,12 @@
         ULpMwB/HXjT6+AhrewAAAABJRU5ErkJggg==
 </value>
   </data>
-  <data name="thoat_ToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAGLSURBVDhPpdLLK0RRHAfw39reH6DGnsbWjDvcOzZk
-        oZAMC82KhZXnYuaOuZMUIyIrU1LjERbMfQ3jMTMWijxKw0hZkDJNCWWhr+4dSo6Fm1OfTudbv++p0yEA
-        9B9MYBUTWMUEVpE7pJsESSc+qBW5htWoU1Tg8MsFvsLu9MsvnKhEa4KqnZc0Ej7nCsMhnWqC6nTtSBz+
-        9TOsn9xjJ5tD4urLI+TzB4yrGdSPbqFKVOZcw+o8H9RgFvCSttQ2k0Lk4BY9C0don0nBY5hOon02jY7I
-        MQY3spg/vEP8MofGqTQmdm7AiYpZ4BYkHU2Te+ACyqvdGw7Z3J0tpbXeVmOv8IYlzhd7do8l0RC5QNdq
-        Fkomj0zuDQ5fzCyAwdm/qBJROREVE1HRN8a5rLJvMVE3eQDP8g2ao9fYvHouFAiS9sYNrewSUcnXgzIk
-        nRwDS2vR0zx6t/Po1h6xf/eOKlEGfd5qY4Z+MB6sOqDAJcpwiTFwoozqgPxkFPx12X9RxnwMq5jAKiaw
-        igms+gD3ZHG9P92bBgAAAABJRU5ErkJggg==
-</value>
-  </data>
+  <metadata name="groupBox2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonDataGridView2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <metadata name="$this.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>

@@ -366,7 +366,7 @@ namespace PhanMemThiDua2026
                     }
 
                     // ====================================================================
-                    // 🌟 THÊM CODE: Tải danh sách đơn vị cấu hình bỏ qua cảnh báo lên RAM
+                    // 🌟 Tải danh sách đơn vị cấu hình bỏ qua cảnh báo lên RAM
                     // ====================================================================
                     _dsDonViBoQuaCanhBao.Clear();
                     using (var cmdBoQua = new SqliteCommand("SELECT Ten_DonViBoQuaCanhBaoTyLe FROM ChonDonVi_DeBoQuaCanhBao", conn))
@@ -381,7 +381,6 @@ namespace PhanMemThiDua2026
                             }
                         }
                     }
-                    // ====================================================================
 
                     // 1. Chuẩn bị danh sách ưu tiên hiển thị trước
                     string[] donViArr = Module_DonVi.LayDanhSachDonViUuTienArray().Select(d => (d ?? string.Empty).Trim()).ToArray();
@@ -393,9 +392,12 @@ namespace PhanMemThiDua2026
                         if (!string.IsNullOrWhiteSpace(dv)) dictThongKe[dv] = new ThongKeDonVi();
                     }
 
+                    // ⭐ BIẾN ĐẾM CHO PIE CHART (Khởi tạo trước khi quét CSDL)
+                    int l1_pie = 0, l2_pie = 0, l3_pie = 0, l4_pie = 0, kpl_pie = 0;
+
                     // 2. Đọc trực tiếp từ Ổ cứng -> RAM bằng Stream, kết hợp Trạm gác L1
                     using (var cmd = new SqliteCommand("SELECT DonVi, PhanLoai FROM DanhSach", conn))
-                    using (var reader = await cmd.ExecuteReaderAsync())
+                    using (var reader = await cmd.ExecuteReaderAsync()) // TẠO READER Ở ĐÂY
                     {
                         while (await reader.ReadAsync())
                         {
@@ -404,7 +406,7 @@ namespace PhanMemThiDua2026
 
                             string phanloai = SafeDecrypt(reader["PhanLoai"]);
 
-                            // TỰ ĐỘNG MỞ RỘNG: Nếu đơn vị lạ (C1, Ban TM...) xuất hiện, lập tức thêm vào danh sách
+                            // TỰ ĐỘNG MỞ RỘNG: Nếu đơn vị lạ xuất hiện, lập tức thêm vào danh sách
                             if (!dictThongKe.TryGetValue(donvi, out ThongKeDonVi tk))
                             {
                                 tk = new ThongKeDonVi();
@@ -415,13 +417,24 @@ namespace PhanMemThiDua2026
                             tk.TongQS++;
                             switch (phanloai)
                             {
-                                case "Loại 1": tk.Loai1++; break;
-                                case "Loại 2": tk.Loai2++; break;
-                                case "Loại 3": tk.Loai3++; break;
-                                case "Loại 4": tk.Loai4++; break;
-                                default: tk.KhongPL++; break;
+                                case "Loại 1": tk.Loai1++; l1_pie++; break; // ⭐ CỘNG DỒN CHO PIE CHART
+                                case "Loại 2": tk.Loai2++; l2_pie++; break;
+                                case "Loại 3": tk.Loai3++; l3_pie++; break;
+                                case "Loại 4": tk.Loai4++; l4_pie++; break;
+                                default: tk.KhongPL++; kpl_pie++; break;
                             }
                         }
+                    }
+
+                    // ⭐ NGAY SAU KHI QUÉT XONG, CẬP NHẬT BIỂU ĐỒ TRÒN MÀ KHÔNG CẦN CHỌC CSDL LẦN NỮA
+                    pieData = new Dictionary<string, int>
+                    {
+                        { "Loại 1", l1_pie }, { "Loại 2", l2_pie }, { "Loại 3", l3_pie }, { "Loại 4", l4_pie }, { "Không PL", kpl_pie }
+                    };
+
+                    if (piePanel != null && !piePanel.IsDisposed)
+                    {
+                        piePanel.Invalidate(); // Vẽ lại biểu đồ
                     }
 
                     // 3. Đổ dữ liệu ra DataTable
@@ -462,7 +475,7 @@ namespace PhanMemThiDua2026
                         dtGrid.Rows.Add("Tổng cộng", tong_tongQS, tong_l1, tong_l2, tong_l3, tong_l4, tong_kpl, pt1_tot, pt2_tot, pt3_tot, pt4_tot, ptKPL_tot);
                     }
 
-                    // 4. Ghi SQLite (Cấu trúc của bạn giữ nguyên vì đã ổn định)
+                    // 4. Ghi SQLite xuống DB phụ QuanSoThiDuaD2
                     using (var tran = (SqliteTransaction)await conn.BeginTransactionAsync())
                     {
                         try
@@ -491,7 +504,7 @@ namespace PhanMemThiDua2026
                         catch { await tran.RollbackAsync(); throw; }
                     }
 
-                    // 5. HIỂN THỊ GIAO DIỆN (CHỖ NÀY ĐÃ FIX LỖI DẤU X ĐỎ)
+                    // 5. HIỂN THỊ GIAO DIỆN LƯỚI
                     kryptonDataGridView1.SuspendLayout();
                     try
                     {
@@ -504,8 +517,7 @@ namespace PhanMemThiDua2026
                         kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                         kryptonDataGridView1.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
-                        // 🚀🚀 TỐI ƯU 2: TẮT AUTOSIZE ROWS ĐỂ TRÁNH LAG UI TỚI CHẾT 🚀🚀
-                        kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; // Tăng tốc render lưới lên 10 lần
+                        kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
 
                         var columnHeaderMap = new Dictionary<string, string>
                         {
@@ -515,13 +527,11 @@ namespace PhanMemThiDua2026
                             { "PhanTramLoai_3", "% Loại 3" }, { "PhanTramLoai_4", "% Loại 4" }, { "PhanTramKhong_PL", "% Không PL" }
                         };
 
-                        // 🚀🚀 TỐI ƯU 3: DỜI QUÉT CỘT RỖNG XUỐNG TẦNG DATATABLE dtGrid (RAM) 🚀🚀
                         foreach (DataGridViewColumn col in kryptonDataGridView1.Columns)
                         {
                             col.SortMode = DataGridViewColumnSortMode.NotSortable;
                             if (columnHeaderMap.TryGetValue(col.Name, out string headerText)) col.HeaderText = headerText;
 
-                            // Quét trên DataTable dtGrid (RAM) cực kỳ nhanh thay vì quét trên UI DataGridViewRows
                             bool hasValue = false;
                             foreach (DataRow r in dtGrid.Rows)
                             {
@@ -538,20 +548,15 @@ namespace PhanMemThiDua2026
                         kryptonDataGridView1.RowPostPaint -= KryptonDataGridView1_RowPostPaint;
                         kryptonDataGridView1.RowPostPaint += KryptonDataGridView1_RowPostPaint;
 
-                        // 🌟 TÍCH HỢP HÀM RÀ SOÁT TỶ LỆ Ở ĐÂY
                         kryptonDataGridView1.CellFormatting -= KhaoSatTyLePhanTramCacDonVi;
                         kryptonDataGridView1.CellFormatting += KhaoSatTyLePhanTramCacDonVi;
 
-                        // 👇 DÁN THÊM 2 DÒNG NÀY VÀO ĐÂY:
                         kryptonDataGridView1.CellClick -= KryptonDataGridView1_CellClick_HienThiThongBao;
                         kryptonDataGridView1.CellClick += KryptonDataGridView1_CellClick_HienThiThongBao;
 
-                        // 👉 BƯỚC 1: Gọi hàm cấu hình kích thước và ép chữ lưới thành chữ Mỏng (Regular)
                         AutoFitFont_DataGridView(kryptonDataGridView1);
                         UocLuongDoRongCacCot(kryptonDataGridView1);
 
-                        // 👉 BƯỚC 2: Gọi lệnh in đậm Header TẠI ĐÂY (Sau khi mọi thứ đã Regular)
-                        // Bằng cách này, chỉ duy nhất khu vực Header (Tiêu đề cột) bị ghi đè lại thành in đậm
                         if (_cachedGridFontBold != null)
                         {
                             kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Font = _cachedGridFontBold;
@@ -1217,16 +1222,10 @@ namespace PhanMemThiDua2026
                 comboBox1_ChonLoaiBaoCao.SelectedIndexChanged -= comboBox1_ChonLoaiBaoCao_SelectedIndexChanged;
                 CapNhatThongBaoPhanMem();
                 // Ném tất cả truy vấn cấu hình vào chạy cùng 1 lúc trên nhiều Core CPU
-                await Task.WhenAll(
-                    LoadChiHuyDDictionaryAsync(),
-                    LoadDiaDiemAsync(),
-                    LoadThongTinAsync(),
-                    LoadComboBoxLoaiXuat_CheckBoxAsync(),
-                    LoadComboBox_ChiHuyDAsync()
-                );
                 LoadComboBoxDeNghi();
+                // Chỉ gọi 1 hàm duy nhất nạp tất cả cấu hình
+                await LoadDuLieuCauHinhTongHopAsync();
                 SetDeNghiVaTinhTyLe();
-                HienThiDuongDanXuatDaChon();
                 // CHỐT CHẶN AN TOÀN
                 if (KiemTraCoDuLieuDanhSach())
                 {
@@ -3771,6 +3770,99 @@ PTLoai3=@PTLoai3
                 kryptonButton1_XuatTepPdf.Values.Text = _textGocNutXuatPdf;
                 kryptonButton1_XuatTepPdf.Values.Image = _anhGocNutXuatPdf;
                 kryptonButton1_XuatTepPdf.Enabled = true;
+            }
+        }
+        private async Task LoadDuLieuCauHinhTongHopAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
+
+            var chiHuyItems = new List<ComboItem>();
+            _dictChiHuyD.Clear();
+
+            // Dùng 1 kết nối duy nhất cho TẤT CẢ cấu hình
+            using var conn = TaoKetNoiCSDL2(true);
+            await conn.OpenAsync();
+
+            // 1. Đọc Chỉ Huy
+            using (var cmdCH = new SqliteCommand($"SELECT ID, HoVaTen, ChucVu FROM [{tableChiHuy}] WHERE HoVaTen IS NOT NULL ORDER BY ID ASC", conn))
+            using (var rdCH = await cmdCH.ExecuteReaderAsync())
+            {
+                while (await rdCH.ReadAsync())
+                {
+                    int id = rdCH.GetInt32(0);
+                    string hoTen = SafeDecrypt(rdCH["HoVaTen"]);
+                    string chucVu = SafeDecrypt(rdCH["ChucVu"]);
+
+                    if (string.IsNullOrWhiteSpace(hoTen)) continue;
+                    chiHuyItems.Add(new ComboItem { ID = id, Text = hoTen.Trim() });
+                    _dictChiHuyD[hoTen.ToLowerInvariant()] = chucVu;
+                }
+            }
+
+            // 2. Đọc toàn bộ bảng ThongTin + ChonLoaiBaoCao + ThangHeThong trong 1 lệnh
+            const string sqlThongTin = @"
+        SELECT T.*, B.ChonLoaiBaoCao, B.ChonTuan, H.Thang AS ThangHeThong
+        FROM ThongTin T 
+        LEFT JOIN ChonLoaiBaoCao B ON B.ID = 1 
+        LEFT JOIN ThangHeThong H ON H.ID = 1 
+        WHERE T.ID = 1 LIMIT 1";
+
+            using (var cmdTT = new SqliteCommand(sqlThongTin, conn))
+            using (var rdTT = await cmdTT.ExecuteReaderAsync())
+            {
+                if (await rdTT.ReadAsync())
+                {
+                    // --- Cập nhật ComboBox Chỉ huy ---
+                    comboBox_ChiHuyD.BeginUpdate();
+                    comboBox_ChiHuyD.DataSource = chiHuyItems;
+                    comboBox_ChiHuyD.DisplayMember = "Text";
+                    comboBox_ChiHuyD.ValueMember = "ID";
+
+                    string savedChiHuy = SafeDecrypt(rdTT["ChiHuyD"]).Trim();
+                    var match = chiHuyItems.FirstOrDefault(x => string.Equals(x.Text, savedChiHuy, StringComparison.OrdinalIgnoreCase));
+                    if (match != null) comboBox_ChiHuyD.SelectedValue = match.ID;
+                    else if (chiHuyItems.Count > 0) comboBox_ChiHuyD.SelectedIndex = 0;
+                    comboBox_ChiHuyD.EndUpdate();
+
+                    // --- Cập nhật các trường cấu hình UI ---
+                    com_DeNghi.Text = SafeDecrypt(rdTT["LoaiDeNghi"]);
+                    comboBox1_ChonLoaiDeXuat.Text = SafeDecrypt(rdTT["ChonDanhSachXuat"]);
+
+                    string chex = SafeDecrypt(rdTT["Chex_MoiThuMucXuat"]).ToUpper();
+                    Check_MoThuMuc.Checked = (chex == "TRUE");
+                    Check_MoThuMuc.ForeColor = Check_MoThuMuc.Checked ? Color.Green : Color.Red;
+
+                    if (!checkBox1_TuDongChonNgayThang.Checked)
+                    {
+                        comboBox_Ngay.Text = SafeDecrypt(rdTT["Ngay"]);
+                        comboBox_Thang.Text = SafeDecrypt(rdTT["Thang"]);
+                        comboBox_Nam.Text = SafeDecrypt(rdTT["Nam"]);
+                    }
+
+                    // --- Cập nhật Địa điểm (Tránh quét CSDL lại lần 2 ở LoadDiaDiemAsync) ---
+                    string diaDiemDaLuu = SafeDecrypt(rdTT["DiaDiem"]).Trim();
+                    if (!string.IsNullOrWhiteSpace(diaDiemDaLuu))
+                    {
+                        if (!comboBox_DiaDiem.Items.Contains(diaDiemDaLuu)) comboBox_DiaDiem.Items.Add(diaDiemDaLuu);
+                        comboBox_DiaDiem.Text = diaDiemDaLuu;
+                    }
+
+                    // --- Đường dẫn lưu ---
+                    string duongDanLuu = SafeDecrypt(rdTT["ChonDuongDanXuatTep"]);
+                    if (!string.IsNullOrWhiteSpace(duongDanLuu) && Directory.Exists(duongDanLuu))
+                    {
+                        label11.Text = duongDanLuu;
+                        label11.ForeColor = Color.DarkGreen;
+                    }
+                    else
+                    {
+                        label11.Text = "Chưa chọn đường dẫn xuất tệp";
+                        label11.ForeColor = Color.Gray;
+                    }
+                }
             }
         }
     }

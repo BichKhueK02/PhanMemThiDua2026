@@ -1165,22 +1165,22 @@ namespace PhanMemThiDua2026
         }
         private async void kryptonButton1_KhenThuong_Click(object sender, EventArgs e)
         {
-            DongToanBoHuongDanSuDung(); //
+            DongToanBoHuongDanSuDung();
             if (!AllowSwitch()) return;
-            //ClosePdfIfOpen();
+
             // Gọi hàm đổi màu và truyền nút hiện tại vào
             HighlightNavButton((KryptonButton)sender);
 
             // =================================================================
-            // BẮT ĐẦU CODE GỐC
+            // BẮT ĐẦU CODE ĐÃ ĐỔI SANG Form52_QuanLyKhenThuong
             // =================================================================
 
-            // Tên Form: Quản lý khen thưởng tập thể + năm hệ thống
+            // Tên Form: Quản lý khen thưởng CBCS + năm hệ thống
             string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
                                 Module_NamHeThong.LayNamHeThong();
-            OpenChildForm<Form34_ThongKeKhenThuong>(tieuDeForm);
+            OpenChildForm<Form52_QuanLyKhenThuong>(tieuDeForm);
 
-            if (_currentChild is Form34_ThongKeKhenThuong frm)
+            if (_currentChild is Form52_QuanLyKhenThuong frm)
             {
                 // Nếu trước đó tải ngầm chưa xong hoặc chưa tải thì mới await
                 if (!frm.DaLoadDuLieu)

@@ -1,6 +1,5 @@
 ﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using PhanMemThiDua2026;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,12 +9,16 @@ using System.Linq;
 
 namespace PhanMemThiDua2026
 {
+    // =======================================================================
+    // KHU VỰC CÁC CLASS DTO (DATA TRANSFER OBJECT)
+    // =======================================================================
     public class FileLichSuDTO
     {
         public string TenHienThi { get; set; }
         public string DuongDan { get; set; }
         public bool LaTanBinh { get; set; }
     }
+
     public class HistoryCBCSDTO
     {
         public string ID, HoVaTen, SoHieu, DonVi, TinhTrang;
@@ -29,6 +32,7 @@ namespace PhanMemThiDua2026
         public int SortPriority;
         public Dictionary<string, string> CotPhatSinh = new Dictionary<string, string>();
     }
+
     public class HistoryTanBinhDTO
     {
         public string ID, HoVaTen, SoHieu, DonVi, TinhTrang;
@@ -42,6 +46,22 @@ namespace PhanMemThiDua2026
         public Dictionary<string, string> CotPhatSinh = new Dictionary<string, string>();
     }
 
+    public class HistoryKhenThuongCBCSDTO
+    {
+        public int STT { get; set; }
+        public string HoVaTen { get; set; }
+        public string SoHieu { get; set; }
+        public string DonVi { get; set; }
+        public string TinhTrang { get; set; }
+        public int SoLuong_Khen { get; set; }
+        public string GhiChu_Khen { get; set; }
+        public string DanhSachDVKhen_An { get; set; }
+    }
+
+
+    // =======================================================================
+    // CLASS CHÍNH: XỬ LÝ LƯU TRỮ VÀ LỊCH SỬ
+    // =======================================================================
     internal static class Module_HoTroLuuDataTheoNamCu
     {
         public static List<FileLichSuDTO> LayDanhSachFileLichSu()
@@ -73,8 +93,6 @@ namespace PhanMemThiDua2026
             return danhSach.OrderByDescending(x => x.TenHienThi).ToList();
         }
 
-        // ⭐ HÀM MỚI CHUYÊN DỤNG CHO FORM KHEN THƯỞNG CÁ NHÂN
-        // ⭐ HÀM MỚI CHUYÊN DỤNG CHO FORM KHEN THƯỞNG CÁ NHÂN
         public static List<FileLichSuDTO> LayDanhSachFileLichSu_KhenThuongCaNhan()
         {
             var danhSach = new List<FileLichSuDTO>();
@@ -87,7 +105,6 @@ namespace PhanMemThiDua2026
             string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
             if (!Directory.Exists(dir)) return danhSach;
 
-            // Vì đã chặn Tân binh ở trên, xuống đến đây chắc chắn là CBCS -> Trở lại logic gốc
             var files = Directory.GetFiles(dir, "KhenThuong_CBCS_Nam*.db");
             foreach (var file in files)
             {
@@ -104,6 +121,7 @@ namespace PhanMemThiDua2026
 
             return danhSach.OrderByDescending(x => x.TenHienThi).ToList();
         }
+
         public static DataTable LoadDataFromHistoryDB(string dbPath, string tableName)
         {
             DataTable dt = new DataTable();
@@ -164,12 +182,126 @@ namespace PhanMemThiDua2026
             catch { return input; }
         }
 
+        // =======================================================================
+        // LÕI HỆ THỐNG: HÀM REVERSE ATTACH & CLONE DDL
+        // GIÚP COPY 100% CẤU TRÚC (PRIMARY KEY, AUTOINCREMENT, INDEX) TỪ DB GỐC
+        // =======================================================================
+        private static void SaoChepBangVaDuLieuChuanXac(string sourceDbPath, string targetDbPath, string[] tableNames)
+        {
+            var schemaStatements = new List<string>();
+            var cacBangThucTeCo = new List<string>();
+
+            // BƯỚC 1: Lấy schema gốc (Nguyên văn câu lệnh Create Table, Index, Primary Key, AutoIncrement...)
+            using (var cnSource = new SqliteConnection($"Data Source={sourceDbPath};Pooling=False"))
+            {
+                cnSource.Open();
+                foreach (string tbl in tableNames)
+                {
+                    using (var cmd = cnSource.CreateCommand())
+                    {
+                        // Sắp xếp ưu tiên: Tạo Table trước, sau đó mới tạo Index/Trigger
+                        cmd.CommandText = @"
+                            SELECT sql FROM sqlite_master 
+                            WHERE tbl_name = @TenBang AND sql IS NOT NULL 
+                            ORDER BY CASE type WHEN 'table' THEN 1 WHEN 'index' THEN 2 WHEN 'trigger' THEN 3 ELSE 4 END ASC;";
+                        cmd.Parameters.AddWithValue("@TenBang", tbl);
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            bool hasTable = false;
+                            while (reader.Read())
+                            {
+                                schemaStatements.Add(reader.GetString(0));
+                                hasTable = true;
+                            }
+                            if (hasTable) cacBangThucTeCo.Add(tbl);
+                        }
+                    }
+                }
+            }
+
+            if (cacBangThucTeCo.Count == 0)
+                throw new Exception("Không tìm thấy bảng dữ liệu nào trong CSDL nguồn để sao lưu.");
+
+            // BƯỚC 2: Khởi tạo CSDL Đích (Năm Cũ) và tái tạo cấu trúc
+            using (var cnTarget = new SqliteConnection($"Data Source={targetDbPath};Pooling=False"))
+            {
+                cnTarget.Open();
+                using (var cmd = cnTarget.CreateCommand())
+                {
+                    cmd.CommandText = "PRAGMA busy_timeout=5000;";
+                    cmd.ExecuteNonQuery();
+                }
+
+                // Chạy DDL gốc để tái tạo hoàn hảo bảng, ràng buộc và index
+                using (var tran = cnTarget.BeginTransaction())
+                {
+                    foreach (string sqlCreate in schemaStatements)
+                    {
+                        using (var cmd = cnTarget.CreateCommand())
+                        {
+                            cmd.Transaction = tran;
+                            cmd.CommandText = sqlCreate;
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    tran.Commit();
+                }
+
+                // BƯỚC 3: Đính kèm ngược CSDL Gốc vào CSDL Năm cũ để bơm data
+                using (var cmd = cnTarget.CreateCommand())
+                {
+                    cmd.CommandText = $"ATTACH DATABASE '{sourceDbPath.Replace("'", "''")}' AS DBNguon;";
+                    cmd.ExecuteNonQuery();
+                }
+
+                bool attachThanhCong = true;
+                try
+                {
+                    // Bơm toàn bộ dữ liệu an toàn
+                    using (var tran = cnTarget.BeginTransaction())
+                    {
+                        foreach (string tbl in cacBangThucTeCo)
+                        {
+                            using (var cmd = cnTarget.CreateCommand())
+                            {
+                                cmd.Transaction = tran;
+                                cmd.CommandText = $"INSERT INTO main.{tbl} SELECT * FROM DBNguon.{tbl};";
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        tran.Commit();
+                    }
+                }
+                finally
+                {
+                    // Luôn luôn tháo CSDL gốc ra dù có lỗi hay không (Defensive)
+                    if (attachThanhCong && cnTarget.State == ConnectionState.Open)
+                    {
+                        try
+                        {
+                            using (var cmd = cnTarget.CreateCommand())
+                            {
+                                cmd.CommandText = "DETACH DATABASE DBNguon;";
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+
+        // =======================================================================
+        // 3 HÀM LƯU TRỮ ĐƯỢC CẬP NHẬT GỌN GÀNG VÀ CHUẨN XÁC
+        // =======================================================================
         public static string LuuTruDuLieuThiDuaNam()
         {
             int nam = Module_NamHeThong.LayNamHeThong();
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             string tableName = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
             string fileName = $"ThiDua_{(laTanBinh ? "TanBinh" : "CBCS")}_Nam{nam}.db";
+
             string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
             string targetPath = Path.Combine(thuMucLuu, fileName);
 
@@ -180,64 +312,107 @@ namespace PhanMemThiDua2026
             if (File.Exists(targetPath))
                 throw new InvalidOperationException($"Dữ liệu lưu trữ năm {nam} đã tồn tại.");
 
-            bool attachThanhCong = false;
             try
             {
-                using var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL4}");
-                cn.Open();
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.CommandText = "PRAGMA busy_timeout=5000;";
-                    cmd.ExecuteNonQuery();
-                }
-
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@TenBang;";
-                    cmd.Parameters.AddWithValue("@TenBang", tableName);
-                    if ((long)cmd.ExecuteScalar() == 0)
-                        throw new Exception($"Không tìm thấy bảng [{tableName}] trong CSDL.");
-                }
-
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.CommandText = $"ATTACH DATABASE '{targetPath.Replace("'", "''")}' AS NamCu;";
-                    cmd.ExecuteNonQuery();
-                }
-                attachThanhCong = true;
-
-                using var tran = cn.BeginTransaction();
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.Transaction = tran;
-                    cmd.CommandText = $"CREATE TABLE NamCu.{tableName} AS SELECT * FROM main.{tableName};";
-                    cmd.ExecuteNonQuery();
-                }
-                tran.Commit();
+                SaoChepBangVaDuLieuChuanXac(Module_DanduongGPS.DuongDanCSDL4, targetPath, new[] { tableName });
             }
             catch
             {
                 try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
                 throw;
             }
-            finally
-            {
-                if (attachThanhCong)
-                {
-                    try
-                    {
-                        using var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL4}");
-                        cn.Open();
-                        using var cmd = cn.CreateCommand();
-                        cmd.CommandText = "DETACH DATABASE NamCu;";
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch { }
-                }
-            }
+
             return targetPath;
         }
 
+        public static string LuuTruDuLieuKhenThuongTapTheNam()
+        {
+            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)) return string.Empty;
+
+            int nam = Module_NamHeThong.LayNamHeThong();
+            string tableName = "ThongKe_KhenThuongTapThe";
+            string fileName = $"KhenThuongTapThe_Nam{nam}.db";
+
+            string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
+            string targetPath = Path.Combine(thuMucLuu, fileName);
+
+            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
+                throw new FileNotFoundException("Không tìm thấy cơ sở dữ liệu nguồn khen thưởng (CSDL4).");
+
+            Directory.CreateDirectory(thuMucLuu);
+            if (File.Exists(targetPath))
+                throw new InvalidOperationException($"Dữ liệu khen thưởng tập thể năm {nam} đã tồn tại trong lịch sử lưu trữ.");
+
+            try
+            {
+                SaoChepBangVaDuLieuChuanXac(Module_DanduongGPS.DuongDanCSDL4, targetPath, new[] { tableName });
+            }
+            catch
+            {
+                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
+                throw;
+            }
+
+            return targetPath;
+        }
+
+        public static string LuuTruDuLieuKhenThuongToanDienNam()
+        {
+            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)) return string.Empty;
+
+            int nam = Module_NamHeThong.LayNamHeThong();
+            string fileName = $"KhenThuong_CBCS_Nam{nam}.db";
+            string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
+            string targetPath = Path.Combine(thuMucLuu, fileName);
+
+            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
+                throw new FileNotFoundException("Không tìm thấy cơ sở dữ liệu nguồn khen thưởng (CSDL số 4).");
+
+            Directory.CreateDirectory(thuMucLuu);
+
+            if (File.Exists(targetPath))
+            {
+                System.Windows.Forms.DialogResult result = System.Windows.Forms.MessageBox.Show(
+                    $"Dữ liệu khen thưởng tổng hợp năm {nam} đã tồn tại trong thư mục lưu trữ.\nBạn có muốn xóa phiên bản cũ và cập nhật lại bằng dữ liệu mới nhất không?",
+                    "Xác nhận ghi đè dữ liệu", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question, System.Windows.Forms.MessageBoxDefaultButton.Button1, System.Windows.Forms.MessageBoxOptions.DefaultDesktopOnly);
+
+                if (result == System.Windows.Forms.DialogResult.Yes)
+                {
+                    try
+                    {
+                        SqliteConnection.ClearAllPools();
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+                        File.Delete(targetPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception($"Không thể xóa tệp dữ liệu cũ. Chi tiết lỗi: {ex.Message}");
+                    }
+                }
+                else return string.Empty;
+            }
+
+            try
+            {
+                string[] cacBangCanSaoLuu = { "ThongKeCBCS_DuocKhenThuong", "ThongKe_GiayKhen", "ThongKe_KhenThuongTapThe" };
+                SaoChepBangVaDuLieuChuanXac(Module_DanduongGPS.DuongDanCSDL4, targetPath, cacBangCanSaoLuu);
+            }
+            catch
+            {
+                SqliteConnection.ClearAllPools();
+                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
+                throw;
+            }
+
+            return targetPath;
+        }
+
+        // =======================================================================
+        // XUẤT EXCEL VÀ CẬP NHẬT TÌNH TRẠNG LỊCH SỬ
+        // =======================================================================
         public static void XuatExcelLichSuCore(
         string targetExcelPath,
         bool laTanBinh,
@@ -567,245 +742,5 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"Lỗi Cốt lõi Đồng Bộ Tình Trạng Lịch Sử: {ex.Message}");
             }
         }
-
-        public static string LuuTruDuLieuKhenThuongTapTheNam()
-        {
-            // [CHẶN CỬA]: Tân binh không có khen thưởng -> Bỏ qua, không lưu gì cả
-            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
-                return string.Empty;
-            int nam = Module_NamHeThong.LayNamHeThong();
-            string tableName = "ThongKe_KhenThuongTapThe";
-            string fileName = $"KhenThuongTapThe_Nam{nam}.db";
-
-            string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
-            string targetPath = Path.Combine(thuMucLuu, fileName);
-
-            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
-                throw new FileNotFoundException("Không tìm thấy cơ sở dữ liệu nguồn khen thưởng (CSDL4).");
-
-            Directory.CreateDirectory(thuMucLuu);
-
-            if (File.Exists(targetPath))
-                throw new InvalidOperationException($"Dữ liệu khen thưởng tập thể năm {nam} đã tồn tại trong lịch sử lưu trữ.");
-
-            bool attachThanhCong = false;
-            try
-            {
-                using var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL4}");
-                cn.Open();
-
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.CommandText = "PRAGMA busy_timeout=5000;";
-                    cmd.ExecuteNonQuery();
-                }
-
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@TenBang;";
-                    cmd.Parameters.AddWithValue("@TenBang", tableName);
-                    if ((long)cmd.ExecuteScalar() == 0)
-                        throw new Exception($"Không tìm thấy bảng [{tableName}] trong CSDL gốc.");
-                }
-
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.CommandText = $"ATTACH DATABASE '{targetPath.Replace("'", "''")}' AS NamCu;";
-                    cmd.ExecuteNonQuery();
-                }
-                attachThanhCong = true;
-
-                using var tran = cn.BeginTransaction();
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.Transaction = tran;
-                    cmd.CommandText = $"CREATE TABLE NamCu.{tableName} AS SELECT * FROM main.{tableName};";
-                    cmd.ExecuteNonQuery();
-                }
-                tran.Commit();
-            }
-            catch
-            {
-                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
-                throw;
-            }
-            finally
-            {
-                if (attachThanhCong)
-                {
-                    try
-                    {
-                        using var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL4}");
-                        cn.Open();
-                        using var cmd = cn.CreateCommand();
-                        cmd.CommandText = "DETACH DATABASE NamCu;";
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch { }
-                }
-            }
-
-            return targetPath;
-        }
-
-        public class HistoryKhenThuongCBCSDTO
-        {
-            public int STT { get; set; }
-            public string HoVaTen { get; set; }
-            public string SoHieu { get; set; }
-            public string DonVi { get; set; }
-            public string TinhTrang { get; set; }
-            public int SoLuong_Khen { get; set; }
-            public string GhiChu_Khen { get; set; }
-
-            public string DanhSachDVKhen_An { get; set; }
-        }
-
-        public static string LuuTruDuLieuKhenThuongToanDienNam()
-        {
-            // [CHẶN CỬA]: Tân binh không có khen thưởng -> Bỏ qua, không lưu gì cả
-            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
-                return string.Empty;
-
-            int nam = Module_NamHeThong.LayNamHeThong();
-
-            // Vì đã chặn Tân binh ở dòng trên, ta yên tâm fix cứng lại tên file cho CBCS
-            string fileName = $"KhenThuong_CBCS_Nam{nam}.db";
-            string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
-            string targetPath = Path.Combine(thuMucLuu, fileName);
-
-            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
-                throw new FileNotFoundException("Không tìm thấy cơ sở dữ liệu nguồn khen thưởng (CSDL số 4).");
-
-            Directory.CreateDirectory(thuMucLuu);
-
-            // KHỐI XỬ LÝ GHI ĐÈ AN TOÀN KHI TỆP ĐÃ TỒN TẠI
-            if (File.Exists(targetPath))
-            {
-                // Hiển thị MessageBox an toàn từ luồng ngầm (Background Thread)
-                // Bỏ việc gọi Form.ActiveForm hay Application.OpenForms để tránh lỗi Cross-thread
-                DialogResult result = MessageBox.Show(
-                    $"Dữ liệu khen thưởng tổng hợp năm {nam} đã tồn tại trong thư mục lưu trữ.\nBạn có muốn xóa phiên bản cũ và cập nhật lại bằng dữ liệu mới nhất không?",
-                    "Xác nhận ghi đè dữ liệu",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question,
-                    MessageBoxDefaultButton.Button1,
-                    MessageBoxOptions.DefaultDesktopOnly); // Ép hiển thị trên cùng không cần Owner
-
-                if (result == DialogResult.Yes)
-                {
-                    try
-                    {
-                        // Tuyệt kỹ an toàn: Ép SQLite nhả toàn bộ file đang bị khóa ngầm
-                        SqliteConnection.ClearAllPools();
-                        GC.Collect();
-                        GC.WaitForPendingFinalizers();
-
-                        // Xóa tệp cũ
-                        File.Delete(targetPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception($"Không thể xóa tệp dữ liệu cũ. Có thể tệp đang được mở bởi ứng dụng khác hoặc bị khóa bởi hệ thống.\nChi tiết lỗi: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    // Người dùng từ chối ghi đè -> Thoát luồng êm đẹp
-                    return string.Empty;
-                }
-            }
-
-            // THÊM Pooling=False để kết nối tự hủy hoàn toàn sau khi chạy xong, nhả file 100%
-            using (var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL4};Pooling=False"))
-            {
-                cn.Open();
-
-                using (var cmd = cn.CreateCommand())
-                {
-                    cmd.CommandText = "PRAGMA busy_timeout=5000;";
-                    cmd.ExecuteNonQuery();
-                }
-
-                string[] cacBangCanSaoLuu = { "ThongKeCBCS_DuocKhenThuong", "ThongKe_GiayKhen", "ThongKe_KhenThuongTapThe" };
-                var cacBangThucTeCo = new List<string>();
-
-                foreach (var tbl in cacBangCanSaoLuu)
-                {
-                    using (var cmd = cn.CreateCommand())
-                    {
-                        cmd.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@TenBang;";
-                        cmd.Parameters.AddWithValue("@TenBang", tbl);
-                        if ((long)cmd.ExecuteScalar() > 0)
-                        {
-                            cacBangThucTeCo.Add(tbl);
-                        }
-                    }
-                }
-
-                if (cacBangThucTeCo.Count == 0)
-                    throw new Exception("Không có dữ liệu khen thưởng nào để sao lưu (Các bảng đều trống hoặc chưa khởi tạo).");
-
-                bool attachThanhCong = false;
-                try
-                {
-                    using (var cmd = cn.CreateCommand())
-                    {
-                        cmd.CommandText = $"ATTACH DATABASE '{targetPath.Replace("'", "''")}' AS NamCu;";
-                        cmd.ExecuteNonQuery();
-                    }
-                    attachThanhCong = true;
-
-                    using (var tran = cn.BeginTransaction())
-                    {
-                        foreach (var tbl in cacBangThucTeCo)
-                        {
-                            using (var cmd = cn.CreateCommand())
-                            {
-                                cmd.Transaction = tran;
-                                cmd.CommandText = $"CREATE TABLE NamCu.{tbl} AS SELECT * FROM main.{tbl};";
-                                cmd.ExecuteNonQuery();
-                            }
-                        }
-                        tran.Commit();
-                    }
-
-                    // GỠ CSDL RA NGAY TRÊN CÙNG 1 CONNECTION (Rất quan trọng để không bị Lock)
-                    using (var cmd = cn.CreateCommand())
-                    {
-                        cmd.CommandText = "DETACH DATABASE NamCu;";
-                        cmd.ExecuteNonQuery();
-                    }
-                    attachThanhCong = false;
-                }
-                catch
-                {
-                    // Bắt lỗi: Buộc đóng kết nối ngay lập tức trước khi xóa tệp rác
-                    cn.Close();
-                    SqliteConnection.ClearAllPools(); // <-- Dùng hàm dùng chung (Fix lỗi gạch đỏ)
-                    try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
-                    throw;
-                }
-                finally
-                {
-                    // Dự phòng: Nếu có lỗi đột ngột mà chưa kịp DETACH, ta detach lại trên chính kết nối đó
-                    if (attachThanhCong && cn.State == ConnectionState.Open)
-                    {
-                        try
-                        {
-                            using var cmd = cn.CreateCommand();
-                            cmd.CommandText = "DETACH DATABASE NamCu;";
-                            cmd.ExecuteNonQuery();
-                        }
-                        catch { }
-                    }
-                }
-            }
-
-            return targetPath;
-        }
-
     }
 }

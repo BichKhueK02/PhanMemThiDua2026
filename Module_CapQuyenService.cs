@@ -33,8 +33,8 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                string aesReversed = BaoMatAES.XuyenKhongVeThoiMinh(Cache_RAM_SYS_CFG_MOD_A) + BaoMatAES.XuyenKhongVeThoiMinh(Cache_RAM_SYS_CFG_MOD_B) + BaoMatAES.XuyenKhongVeThoiMinh(Cache_RAM_SYS_CFG_MOD_C);
-                string hmacReversed = BaoMatAES.XuyenKhongVeThoiMinh(Cache_GPU_SEC_KEY_BLOCK_X) + BaoMatAES.XuyenKhongVeThoiMinh(Cache_GPU_SEC_KEY_BLOCK_Y) + BaoMatAES.XuyenKhongVeThoiMinh(Cache_GPU_SEC_KEY_BLOCK_Z);
+                string aesReversed = BaoMatAES.XuyenKhongVeThoiMinhThanhToThanhTo(Cache_RAM_SYS_CFG_MOD_A) + BaoMatAES.XuyenKhongVeThoiMinhThanhToThanhTo(Cache_RAM_SYS_CFG_MOD_B) + BaoMatAES.XuyenKhongVeThoiMinhThanhToThanhTo(Cache_RAM_SYS_CFG_MOD_C);
+                string hmacReversed = BaoMatAES.XuyenKhongVeThoiMinhThanhToThanhTo(Cache_GPU_SEC_KEY_BLOCK_X) + BaoMatAES.XuyenKhongVeThoiMinhThanhToThanhTo(Cache_GPU_SEC_KEY_BLOCK_Y) + BaoMatAES.XuyenKhongVeThoiMinhThanhToThanhTo(Cache_GPU_SEC_KEY_BLOCK_Z);
                 string aesKeyOriginal = BaoMatAES.XinTraLaiThoiGian(aesReversed);
                 string hmacKeyOriginal = BaoMatAES.XinTraLaiThoiGian(hmacReversed);
                 SHARED_KEY = SHA256.HashData(Encoding.UTF8.GetBytes(aesKeyOriginal));

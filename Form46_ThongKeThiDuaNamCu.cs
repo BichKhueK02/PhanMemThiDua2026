@@ -63,7 +63,7 @@ namespace PhanMemThiDua2026
             LoadDanhSachFileLichSu();
             DinhDangGridBanDau();
             kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
-            Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             // 1. Đồng bộ sự kiện phản hồi lập tức cho các ComboBox bộ lọc
             // ⭐ CHÈN BỔ SUNG 2 DÒNG NÀY VÀO ĐÂY: Ép gán cứng sự kiện chọn tệp CSDL năm cũ
             comboBox_ChonCSDLNam.SelectedIndexChanged -= comboBox_ChonCSDLNam_SelectedIndexChanged;

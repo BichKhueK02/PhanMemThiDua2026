@@ -93,7 +93,7 @@ namespace PhanMemThiDua2026
 
             try
             {
-                Module_MenuChuotPhai.TichHopGiaoDienXanhLa(contextMenuStrip1);
+                Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
                 toolStripStatusLabel4.Text = "Đang tải dữ liệu...";
 
                 if (_dataGoc.Count == 0)

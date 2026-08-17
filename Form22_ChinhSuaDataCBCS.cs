@@ -82,7 +82,7 @@ namespace PhanMemThiDua2026
         /// </summary>
         private void BindHeaderInformation()
         {
-            label1_ID_HoVaTen.Text = this.HoVaTen;
+            label1_ID_HoVaTen.Text = $"Đồng chí: {this.HoVaTen}";
             //label_ID_SoHieu.Text = $"Số hiệu CAND: {this.SoHieu}";
             label_ID_SoHieu.Text = this.SoHieu;
         }

@@ -105,7 +105,7 @@ namespace PhanMemThiDua2026
             DeNghiMapping["KhongPL_TapThe"] = khongPL;
         }
 
-        public static void Reload()
+        public static void ReloadData()
         {
             string csdlPath = Module_DanduongGPS.DuongDanCSDL2;
             if (string.IsNullOrWhiteSpace(csdlPath)) return;
@@ -212,7 +212,7 @@ namespace PhanMemThiDua2026
         public static int[] GetLoaiTapThe(string key)
         {
             if (DeNghiMapping.Count == 0)
-                Reload();
+                ReloadData();
 
             return DeNghiMapping.TryGetValue(key, out var v)
                 ? v

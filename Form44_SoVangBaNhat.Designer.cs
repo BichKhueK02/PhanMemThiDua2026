@@ -693,7 +693,7 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5, toolStripMenuItem_XuatSoVangGoc, toolStripMenuItem4_NhapDataVaoCSDL, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(231, 246);
+            contextMenuStrip1.Size = new Size(231, 224);
             // 
             // toolStripMenuItem5
             // 
@@ -916,9 +916,9 @@
             // kryptonButton1_Thoat
             // 
             kryptonButton1_Thoat.Anchor = AnchorStyles.None;
-            kryptonButton1_Thoat.Location = new Point(287, 5);
+            kryptonButton1_Thoat.Location = new Point(275, 5);
             kryptonButton1_Thoat.Name = "kryptonButton1_Thoat";
-            kryptonButton1_Thoat.Size = new Size(110, 32);
+            kryptonButton1_Thoat.Size = new Size(134, 32);
             kryptonButton1_Thoat.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Thoat.StateCommon.Content.LongText.Font = new Font("Segoe UI", 8.064F, FontStyle.Regular, GraphicsUnit.Point, 0);
             kryptonButton1_Thoat.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
@@ -932,9 +932,9 @@
             // kryptonButton_RefershCSDL
             // 
             kryptonButton_RefershCSDL.Anchor = AnchorStyles.None;
-            kryptonButton_RefershCSDL.Location = new Point(60, 5);
+            kryptonButton_RefershCSDL.Location = new Point(48, 5);
             kryptonButton_RefershCSDL.Name = "kryptonButton_RefershCSDL";
-            kryptonButton_RefershCSDL.Size = new Size(110, 32);
+            kryptonButton_RefershCSDL.Size = new Size(134, 32);
             kryptonButton_RefershCSDL.StateCommon.Border.Rounding = 4F;
             kryptonButton_RefershCSDL.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
             kryptonButton_RefershCSDL.StateTracking.Border.Rounding = 4F;
