@@ -3856,10 +3856,11 @@ namespace PhanMemThiDua2026
                 formCha.CapNhatTieuDe(f46.Text);
             }
         }
-
         private async void taoBanSaoLuuTruTheoNamToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            // ============================================================
             // 1. XÁC MINH QUYỀN ADMIN
+            // ============================================================
             DialogResult kq;
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
@@ -3867,26 +3868,113 @@ namespace PhanMemThiDua2026
                 frm.StartPosition = FormStartPosition.CenterScreen;
                 kq = frm.ShowDialog();
             }
+
             if (kq != DialogResult.OK)
                 return;
+
+            // 2. KIỂM TRA TỆP LƯU TRỮ CŨ
+            var banGhiCu = Module_HoTroLuuDataTheoNamCu.LayDanhSachFileLichSu().FirstOrDefault();
+            string tepCu = banGhiCu?.DuongDan;
+            bool xoaTepCu = false;
+
+            if (!string.IsNullOrWhiteSpace(tepCu) && System.IO.File.Exists(tepCu))
+            {
+                // Hỏi có muốn cập nhật không
+                DialogResult hoiCapNhat = MessageBox.Show(
+                    $"Hệ thống đã tồn tại tệp lưu trữ dữ liệu thi đua năm cũ.\n\n" +
+                    $"Tệp hiện tại:\n{tepCu}\n\n" +
+                    "Bạn có muốn cập nhật (ghi đè) tệp lưu trữ này không?",
+                    "Tệp lưu trữ đã tồn tại",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (hoiCapNhat != DialogResult.Yes)
+                    return;
+
+                // Hỏi quyền xóa tệp cũ
+                DialogResult hoiXoa = MessageBox.Show(
+                    "Bạn có muốn xóa tệp lưu trữ cũ trước khi tạo bản mới không?\n\n" +
+                    "Có    : Xóa tệp cũ rồi tạo bản mới.\n" +
+                    "Không : Giữ tệp cũ và để hệ thống cập nhật lại tệp.",
+                    "Xử lý tệp cũ",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                xoaTepCu = (hoiXoa == DialogResult.Yes);
+            }
+
+            // ============================================================
             // 3. KHÓA MENU
+            // ============================================================
             var menu = taoBanSaoLuuTruTheoNamToolStripMenuItem;
             string textGoc = menu.Text;
+
             try
             {
                 menu.Enabled = false;
                 menu.Text = "Đang lưu trữ...";
 
-                // 4. THỰC HIỆN LƯU TRỮ
-                string duongDan = await Task.Run(Module_HoTroLuuDataTheoNamCu.LuuTruDuLieuThiDuaNam);
-                // Nếu Form46 đang mở ngầm hoặc chạy dưới nền, ra lệnh nạp tệp mới lập tức
-                var f46Check = Application.OpenForms.OfType<Form46_ThongKeThiDuaNamCu>().FirstOrDefault();
+                // ========================================================
+                // 4. XÓA TỆP CŨ (XỬ LÝ LỖI TRUY CẬP FILE AN TOÀN)
+                // ========================================================
+                if (xoaTepCu && !string.IsNullOrWhiteSpace(tepCu) && System.IO.File.Exists(tepCu))
+                {
+                    try
+                    {
+                        // [QUAN TRỌNG NHẤT]: Xóa mọi kết nối SQLite đang được lưu trong Pool
+                        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+
+                        // Ép hệ thống dọn dẹp bộ nhớ các object COM/Unmanaged chưa giải phóng
+                        GC.Collect();
+                        GC.WaitForPendingFinalizers();
+
+                        // Đợi thêm 200ms để Hệ điều hành Windows thực sự giải phóng hoàn toàn tiến trình giữ file
+                        await Task.Delay(200);
+
+                        System.IO.File.Delete(tepCu);
+                    }
+                    catch (System.IO.IOException)
+                    {
+                        MessageBox.Show("Không thể xóa tệp vì tệp đang được mở hoặc sử dụng bởi một tiến trình khác.\n\nVui lòng đóng mọi kết nối hoặc tắt các tab thống kê đang mở trước khi thao tác.",
+                            "Lỗi xóa tệp", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return; // Dừng lại, không tiếp tục sao lưu
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        MessageBox.Show("Không có quyền xóa tệp này. Vui lòng chạy phần mềm bằng quyền Quản trị viên (Run as Administrator) hoặc kiểm tra lại thư mục.",
+                            "Lỗi quyền truy cập", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return; // Dừng lại, không tiếp tục sao lưu
+                    }
+                    catch (Exception exXoa)
+                    {
+                        MessageBox.Show($"Lỗi không xác định khi xóa tệp cũ: {exXoa.Message}",
+                            "Lỗi xóa tệp", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return; // Dừng lại, không tiếp tục sao lưu
+                    }
+                }
+
+                // ========================================================
+                // 5. THỰC HIỆN LƯU TRỮ
+                // ========================================================
+                string duongDan = await Task.Run(() => Module_HoTroLuuDataTheoNamCu.LuuTruDuLieuThiDuaNam());
+
+                // ========================================================
+                // 6. NẾU FORM46 ĐANG MỞ -> NẠP LẠI DANH SÁCH FILE
+                // ========================================================
+                var f46Check = Application.OpenForms
+                    .OfType<Form46_ThongKeThiDuaNamCu>()
+                    .FirstOrDefault();
+
                 if (f46Check != null && !f46Check.IsDisposed)
                 {
                     f46Check.LoadDanhSachFileLichSu();
                 }
+
+                // ========================================================
+                // 7. THÔNG BÁO THÀNH CÔNG
+                // ========================================================
                 MessageBox.Show(
-                    $"Đã lưu trữ dữ liệu thành công sang Hệ thống lưu trữ dữ liệu thi đua năm cũ.\n\n{duongDan}",
+                    $"Đã lưu trữ dữ liệu thành công sang Hệ thống lưu trữ dữ liệu thi đua năm cũ.\n",
                     "Thông báo",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -3901,11 +3989,13 @@ namespace PhanMemThiDua2026
             }
             finally
             {
+                // ========================================================
+                // 8. KHÔI PHỤC MENU
+                // ========================================================
                 menu.Enabled = true;
                 menu.Text = textGoc;
             }
         }
-
 
     }
 } /// Ngoài luồng

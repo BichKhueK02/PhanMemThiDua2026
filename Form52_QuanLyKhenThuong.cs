@@ -20,9 +20,9 @@ namespace PhanMemThiDua2026
             InitializeComponent();
         }
 
-        
+
         // KHỞI TẠO VÀ TẢI DỮ LIỆU
-        
+
         private void Form52_QuanLyKhenThuong_Load(object sender, EventArgs e)
         {
             // Cập nhật tên menu động bằng biến cache
@@ -55,9 +55,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        
+
         // HÀM 1: MỞ FORM BẰNG MENU CLICK (CÓ XÓA FORM CŨ ĐỂ GIẢI PHÓNG RAM)
-        
+
         private void OpenSubForm<T>(string tieuDeForm) where T : Form, new()
         {
             if (_activeSubForm != null && _activeSubForm.GetType() == typeof(T))
@@ -96,9 +96,9 @@ namespace PhanMemThiDua2026
             CapNhatTieuDeFormChinh(tieuDeForm);
         }
 
-        
+
         // HÀM 2: CHUYÊN NHẬN FORM CHI TIẾT TỪ BÊN TRONG (TẠM ẨN FORM CŨ)
-        
+
         public void NhanFormConTuBenNgoai(Form frmDuocNemLen, string tieuDeMoi)
         {
             Form form34Cu = _activeSubForm;
@@ -154,18 +154,18 @@ namespace PhanMemThiDua2026
             }
         }
 
-        
+
         // HÀM GIAO TIẾP VỚI FORM CHA (FORM 2)
-        
+
         private void CapNhatTieuDeFormChinh(string tieuDe)
         {
             var frmChinh = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
             frmChinh?.CapNhatTieuDe(tieuDe);
         }
 
-        
+
         // CÁC SỰ KIỆN CLICK MENU
-        
+
         private void toolStripMenuItem_KhenThuongCBCSNamHienTai_Click(object sender, EventArgs e)
         {
             OpenSubForm<Form34_ThongKeKhenThuong>($"Quản lý khen thưởng CBCS năm {_namHeThong}");
@@ -185,5 +185,7 @@ namespace PhanMemThiDua2026
         {
             OpenSubForm<Form51_QuanLyKhenThuongTapTheNamCu>("Quản lý khen thưởng tập thể năm cũ");
         }
+
+     
     }
 }

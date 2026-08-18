@@ -3611,7 +3611,7 @@ namespace PhanMemThiDua2026
             string dbPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
             {
-                MessageBox.Show("Không tìm thấy csdl2.db!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy csdl2.bin!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 

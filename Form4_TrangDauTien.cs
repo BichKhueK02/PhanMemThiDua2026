@@ -2543,7 +2543,7 @@ WHERE ID = 1", conn);
                 // =========================================================
                 string databaseFolder = Path.Combine(AppContext.BaseDirectory, "Database");
                 Directory.CreateDirectory(databaseFolder);
-                string[] csdlFiles = { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx" };
+                string[] csdlFiles = { "csdl1.bin", "csdl2.bin", "csdl3.bin", "csdl4.bin", "csdlex.xlsx" };
 
                 // Ném toàn bộ tác vụ ổ cứng vào Background Thread để Progress Bar không bị giật
                 await Task.Run(() =>
@@ -2594,7 +2594,7 @@ WHERE ID = 1", conn);
                 await Progress_StepAsync(15);
 
                 // 5. CẬP NHẬT LẠI ĐƯỜNG DẪN HỆ THỐNG
-                string[] fileNames = { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx" };
+                string[] fileNames = { "csdl1.bin", "csdl2.bin", "csdl3.bin", "csdl4.bin", "csdlex.xlsx" };
                 for (int i = 0; i < propNames.Length; i++)
                 {
                     try

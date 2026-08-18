@@ -1539,7 +1539,7 @@ namespace PhanMemThiDua2026
             string dbPath = _csdl4Path;
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
             {
-                MessageBox.Show("Không tìm thấy CSDL khen thưởng (csdl4.db)!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy CSDL khen thưởng (csdl4.bin)!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -1872,7 +1872,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrWhiteSpace(_csdl4Path) || !File.Exists(_csdl4Path))
             {
-                MessageBox.Show("Không tìm thấy CSDL khen thưởng (csdl4.db)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Không tìm thấy CSDL khen thưởng (csdl4.bin)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

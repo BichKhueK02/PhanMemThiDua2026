@@ -1307,10 +1307,10 @@ PRAGMA busy_timeout=15000;
 
             string[] tepBatBuoc =
             {
-        "csdl1.db",
-        "csdl2.db",
-        "csdl3.db",
-        "csdl4.db"
+        "csdl1.bin",
+        "csdl2.bin",
+        "csdl3.bin",
+        "csdl4.bin"
     };
 
             if (!Directory.Exists(thuMucDatabase))
@@ -2703,10 +2703,10 @@ PRAGMA busy_timeout=15000;
 
                 string[] dsBatBuoc =
                 {
-            "csdl1.db",
-            "csdl2.db",
-            "csdl3.db",
-            "csdl4.db",
+            "csdl1.bin",
+            "csdl2.bin",
+            "csdl3.bin",
+            "csdl4.bin",
             "csdlex.xlsx"
         };
 

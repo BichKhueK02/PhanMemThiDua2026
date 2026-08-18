@@ -604,77 +604,28 @@ namespace PhanMemThiDua2026
         {
             DongToanBoHuongDanSuDung();
             if (!AllowSwitch()) return;
-            HighlightNavButton(kryptonButton1_ThongKe);
+            HighlightNavButton(kryptonButton1_ThongKe); // Đảm bảo tên biến nút này đúng với tên nút của bạn
 
             if (_namHienTaiCache == -1) _namHienTaiCache = Module_NamHeThong.LayNamHeThong();
-            string tieuDeForm = $"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {_namHienTaiCache}";
 
-            // Kiểm tra cache RAM
-            bool daCoTrongRAM = _forms.ContainsKey(typeof(Form15_ThongKeThiDua)) && !_forms[typeof(Form15_ThongKeThiDua)].IsDisposed;
-
-            Form_Loading frmLoad = null;
+            // Tiêu đề này chỉ là hiển thị tạm trong tíc tắc, ngay sau đó Form 53 sẽ tự "hét" lên tiêu đề chính thức của Form 15
+            string tieuDeForm = $"Trang Quản lý kết quả thi đua năm {_namHienTaiCache}";
 
             try
             {
-                // 🌟 CHUẨN KỸ SƯ: Nếu chưa có trong RAM mới phải đi đếm Data để hiện Loading và Load Data
-                if (!daCoTrongRAM)
+                // 🌟 CHUẨN KỸ SƯ: Mở Form Container 53, bỏ hoàn toàn Form_Loading và logic đếm DB
+                // Hàm OpenChildForm của bạn (với ConcurrentDictionary) đã tự lo việc lấy từ RAM hay tạo mới!
+                OpenChildForm<Form53_QuanLyKetQuaThiDua>(tieuDeForm);
+
+                // Kích hoạt load dữ liệu ngầm nếu Form 53 mới tinh và chưa nạp data
+                if (_currentChild is Form53_QuanLyKetQuaThiDua frm && !frm.DaLoadDuLieu)
                 {
-                    int soDong = 0;
-                    await Task.Run(() =>
-                    {
-                        try
-                        {
-                            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                            bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-                            string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
-
-                            if (System.IO.File.Exists(_csdl4Path))
-                            {
-                                using var cn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_csdl4Path}");
-                                cn.Open();
-                                using var cmd = new Microsoft.Data.Sqlite.SqliteCommand($"SELECT COUNT(*) FROM {tenBang}", cn);
-                                soDong = Convert.ToInt32(cmd.ExecuteScalar());
-                            }
-                        }
-                        catch { }
-                    });
-
-                    if (soDong > 1000)
-                    {
-                        this.Enabled = false;
-                        frmLoad = new Form_Loading("Đang khởi tạo giao diện Thống kê...");
-                        frmLoad.Show(this);
-                        await Task.Delay(100);
-                    }
-
-                    // Khởi tạo và đưa Form vào Panel
-                    OpenChildForm<Form15_ThongKeThiDua>(tieuDeForm);
-
-                    if (_currentChild is Form15_ThongKeThiDua frm && !frm.DaLoadDuLieu)
-                    {
-                        // 🌟 ĐÃ XÓA TASK.RUN ĐỂ TRẢ LẠI LUỒNG GIAO DIỆN CHO FORM 15
-                        await frm.ReloadData();
-                        frm.DaLoadDuLieu = true;
-                    }
-                }
-                else
-                {
-                    // 🌟 NẾU ĐÃ CÓ TRONG RAM -> Chuyển form thần tốc, KHÔNG query CSDL nữa!
-                    OpenChildForm<Form15_ThongKeThiDua>(tieuDeForm);
+                    await frm.ReloadDuLieu();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khởi tạo trang Thống kê: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                if (frmLoad != null && !frmLoad.IsDisposed) frmLoad.Close();
-                if (!this.Enabled)
-                {
-                    this.Enabled = true;
-                    this.Focus();
-                }
+                MessageBox.Show("Lỗi khởi tạo trang Quản lý Thi đua: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private async void Btn_XuLyData_Click(object sender, EventArgs e)

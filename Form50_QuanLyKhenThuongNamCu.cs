@@ -1285,7 +1285,7 @@ namespace PhanMemThiDua2026
 
             try
             {
-                // 1. Quét CSDL hiện tại (csdl2.db) để lấy toàn bộ Số Hiệu đang công tác
+                // 1. Quét CSDL hiện tại (csdl2.bin) để lấy toàn bộ Số Hiệu đang công tác
                 // Dùng HashSet để tốc độ tìm kiếm đạt O(1) siêu tốc
                 var hashSoHieuHienTai = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 

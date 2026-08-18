@@ -121,7 +121,6 @@ namespace PhanMemThiDua2026
                 (System.Windows.Forms.Control? control, string noiDung)[] danhSachToolTip = new (System.Windows.Forms.Control?, string)[]
                 {
                     (kryptonButton_LamMoiCacOTimKiem, "Xóa nội dung tìm kiếm và đặt lại các bộ lọc về trạng thái mặc định"),
-                    (kryptonButton_Dong, "Thoát trang"),
                     (kryptonButton_XuatData, "Xuất dữ liệu ra tệp excel (*.xlsx)"),
                     (kryptonButton_CapNhat, "Cập nhật dữ liệu từ CSDL")
                 };
@@ -1179,9 +1178,9 @@ namespace PhanMemThiDua2026
         private void xuatDuLieuTepExcel_ToolStripMenuItem_Click(object sender, EventArgs e) => kryptonButton_XuatData.PerformClick();
         private void xoaCSDL_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            
+
             // 1. KIỂM TRA TỆP CSDL LỊCH SỬ ĐANG ĐƯỢC CHỌN
-            
+
             if (comboBox_ChonCSDLNam.SelectedItem == null)
             {
                 MessageBox.Show("Vui lòng chọn tệp CSDL năm cũ cần xóa trên danh sách!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1197,9 +1196,9 @@ namespace PhanMemThiDua2026
                 return;
             }
 
-            
+
             // 2. BẢO VỆ MẤT DỮ LIỆU: HỎI XÁC NHẬN CẢNH BÁO NGUY HIỂM
-            
+
             var confirm = MessageBox.Show(
                 $"Bạn có chắc chắn muốn Xóa vĩnh viễn tệp CSDL lưu trữ lịch sử:\n👉 {selectedFile.TenHienThi}\n⚠️ Cảnh báo: Tệp này sẽ bị xóa khỏi ổ cứng và không thể khôi phục!",
                 "Xác nhận xóa tệp CSDL năm cũ",
@@ -1210,9 +1209,9 @@ namespace PhanMemThiDua2026
             if (confirm != DialogResult.Yes)
                 return;
 
-            
+
             // 3. XÁC MINH QUYỀN ADMIN (FORM 24)
-            
+
             DialogResult kq;
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
@@ -1224,9 +1223,9 @@ namespace PhanMemThiDua2026
             if (kq != DialogResult.OK)
                 return;
 
-            
+
             // 4. ⭐ QUY TRÌNH BẢO AN: CẮT LIÊN KẾT GRID VÀ DỌN SẠCH RAM TRƯỚC
-            
+
             try
             {
                 // 4.1. Ngắt tạm thời sự kiện ComboBox để tránh tự động gọi ThucHienTaiDuLieuLichSu() dồn dập
@@ -1257,9 +1256,9 @@ namespace PhanMemThiDua2026
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
-                
+
                 // 5. THỰC HIỆN XÓA TỆP TRÊN Ổ ĐĨA
-                
+
                 File.Delete(fileToDelete);
 
                 // Ghi nhật ký thao tác hệ thống
@@ -1305,7 +1304,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"Không thể xóa tệp CSDL do tệp đang bị ứng dụng khác chiếm dụng hoặc lỗi hệ thống:\n\n{ex.Message}", "Lỗi xóa tệp", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void dong_ToolStripMenuItem_Click(object sender, EventArgs e) => kryptonButton_Dong.PerformClick();
         private void CapNhatTieuDeTheoNamDuocChon()
         {
             // Kiểm tra xem người dùng có đang chọn một file lịch sử hợp lệ không

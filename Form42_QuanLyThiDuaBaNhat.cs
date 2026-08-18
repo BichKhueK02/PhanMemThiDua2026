@@ -16,7 +16,7 @@ namespace PhanMemThiDua2026
 {
     public partial class Form42_QuanLyThiDuaBaNhat : Form
     {
-        // Đường dẫn cơ sở dữ liệu csdl2.db của hệ thống
+        // Đường dẫn cơ sở dữ liệu csdl2.bin của hệ thống
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private int _tongQuanSoGoc = 0; // Biến lưu trữ tổng số quân để đối chiếu khi tìm kiếm
         private string TenBangSoVangHienTai

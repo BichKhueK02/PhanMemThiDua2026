@@ -68,10 +68,10 @@ namespace PhanMemThiDua2026
 
             var resourceMap = new List<ResourceInfo>
             {
-                new ResourceInfo("cs1.mdf", "cs1", "csdl1.db"),
-                new ResourceInfo("cs2.mdf", "cs2", "csdl2.db"),
-                new ResourceInfo("cs3.mdf", "cs3", "csdl3.db"),
-                new ResourceInfo("cs4.mdf", "cs4", "csdl4.db"),
+                new ResourceInfo("cs1.mdf", "cs1", "csdl1.bin"),
+                new ResourceInfo("cs2.mdf", "cs2", "csdl2.bin"),
+                new ResourceInfo("cs3.mdf", "cs3", "csdl3.bin"),
+                new ResourceInfo("cs4.mdf", "cs4", "csdl4.bin"),
                 new ResourceInfo("csex.mdf", "csex", "csdlex.xlsx")
             };
 
@@ -402,7 +402,7 @@ namespace PhanMemThiDua2026
 
             // 2. Cấu hình Database
             string dir2 = Path.GetFullPath(string.IsNullOrWhiteSpace(Module_DanduongGPS.ThuMucCoSoDuLieu) ? Path.Combine(baseDir, "Database") : Module_DanduongGPS.ThuMucCoSoDuLieu);
-            var allowFiles2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx", "NhatKy_LamSach.txt" };
+            var allowFiles2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "csdl1.bin", "csdl2.bin", "csdl3.bin", "csdl4.bin", "csdlex.xlsx", "NhatKy_LamSach.txt" };
             var allowDirs2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Bansaoluu", "CongCuQuanLyCSDL", "HuongDanSuDung", "LuuTruThiDua_LichSu"};
             DonDepVungQuanLy(dir2, allowFiles2, allowDirs2, false, true);
 
