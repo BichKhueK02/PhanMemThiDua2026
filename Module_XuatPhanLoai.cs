@@ -189,16 +189,6 @@ namespace PhanMemThiDua2026
                     Module_ThongBao.Loi($"Không có CBCS phân loại: {phanLoai}!");
                     return;
                 }
-
-                // Chuẩn bị thư mục và tên file xuất
-                //string thuMucGoc = Module_XuatPhanLoai.GetLinkLuuDuongDanTepXuat();
-                //if (string.IsNullOrWhiteSpace(thuMucGoc))
-                //    throw new Exception("Bạn chưa chọn thư mục lưu!");
-                //string thangHT = LayThangHeThong();
-                //string namHT = LayNamHeThong();
-                //string tenThuMuc = $"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {thangHT} NĂM {namHT}";
-
-
                 string thuMucGoc = Module_XuatPhanLoai.GetLinkLuuDuongDanTepXuat();
                 if (string.IsNullOrWhiteSpace(thuMucGoc))
                     throw new Exception("Bạn chưa chọn thư mục lưu!");
@@ -214,7 +204,8 @@ namespace PhanMemThiDua2026
 
                 string thuMucDich = Path.Combine(thuMucGoc, tenThuMuc);
                 Directory.CreateDirectory(thuMucDich);
-
+                // ⭐ GẮN ICON CHO THƯ MỤC THÁNG VỪA SINH RA
+                Module_HeThong.GanIconThuMuc(thuMucDich);
                 // Lấy tên Tiểu đoàn từ CSDL
                 string tenTieuDoan = "";
                 using (var conn = GetOpenConnection())
@@ -1530,7 +1521,8 @@ namespace PhanMemThiDua2026
                 );
                 // TỰ TẠO THƯ MỤC NẾU CHƯA CÓ
                 Directory.CreateDirectory(thuMucGoc);
-
+                // ⭐ GẮN ICON CHO THƯ MỤC THÁNG VỪA SINH RA
+                Module_HeThong.GanIconThuMuc(thuMucGoc);
                 int soThuTu = Directory.GetFiles(thuMucGoc, "*.xlsx").Length + 1;
                 string fileName = $"{soThuTu}. DANH SÁCH TỜ TRÌNH - {DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                 string fileDich = Path.Combine(thuMucGoc, fileName);
@@ -1877,6 +1869,8 @@ namespace PhanMemThiDua2026
                     $"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {thangHT} NĂM {DateTime.Now:yyyy}"
                 );
                 Directory.CreateDirectory(thuMucGoc);
+                // ⭐ GẮN ICON CHO THƯ MỤC THÁNG VỪA SINH RA
+                Module_HeThong.GanIconThuMuc(thuMucGoc);
                 int soFileExcel = Directory.GetFiles(thuMucGoc, "*.xlsx").Length;
                 int soThuTu = soFileExcel + 1;
                 // Ghép tên file với số thứ tự và thời gian
@@ -2333,7 +2327,8 @@ namespace PhanMemThiDua2026
                 string tenThuMuc = $"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {thangHT} NĂM {DateTime.Now:yyyy}";
                 string thuMucDich = Path.Combine(thuMucGoc, tenThuMuc);
                 Directory.CreateDirectory(thuMucDich);
-
+                // ⭐ GẮN ICON CHO THƯ MỤC THÁNG VỪA SINH RA
+                Module_HeThong.GanIconThuMuc(thuMucDich);
                 int sttFile = Directory.GetFiles(thuMucDich, "*.xlsx").Length + 1;
                 string fileName = $"{sttFile}. DANH SÁCH TẤT CẢ PHÂN LOẠI - {DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
                 string fileDich = Path.Combine(thuMucDich, fileName);

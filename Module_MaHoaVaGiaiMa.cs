@@ -686,7 +686,7 @@ public static class BaoMatAES
     }
     ////Gọi tắt là Module V2 (Đây là phần code bổ sung cơ chế bảo vệ tái tạo csdl mã hóa và giải mã
     //public static class BaoMatAES
-    //Mã hóa và giải mã các tệp cơ sở dữ liệu csd1.db, csdl2.bin, csdl3.bin, csdl4.bin, csdlex.xlsx ở thư mục dữ liệu của phần mềm (Đảm bảo tính toàn vẹn và bảo mật dữ liệu người dùng)
+    //Mã hóa và giải mã các tệp cơ sở dữ liệu csd1.db, csdl2.db, csdl3.db, csdl4.db, csdlex.xlsx ở thư mục dữ liệu của phần mềm (Đảm bảo tính toàn vẹn và bảo mật dữ liệu người dùng)
 
     // Định danh cấu trúc file nhị phân phân đoạn thế hệ mới (v2026 GCM-Stream)
     private static readonly byte[] MAGIC_BYTES = Encoding.ASCII.GetBytes("PMTD");

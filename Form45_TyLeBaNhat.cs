@@ -133,6 +133,10 @@ VALUES(1, '');
 
                 // 2. Dừng lại chờ theo đúng yêu cầu
                 await Task.Delay(200);
+
+                // ⭐ THÊM 2 DÒNG NÀY ĐỂ FORM TỰ ĐÓNG:
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
             catch (Exception ex)
             {

@@ -56,7 +56,7 @@ namespace PhanMemThiDua2026
             // Thay 'btnTrangChu' bằng (Name) thực tế của nút trang chủ của bạn
             HighlightNavButton(kryptonButton1_Trangchu);
             this.WindowState = FormWindowState.Maximized;
-            this.Text = "Phần mềm phân loại thi đua năm " + Module_NamHeThong.LayNamHeThong();
+            this.Text = "Phần mềm phân loại thi đua năm " + Module_HeThong.LayNamHeThong();
             this.KeyPreview = true; // bắt phím
             checkBox1_TuDongAnMenu.CheckedChanged -= checkBox1_TuDongAnMenu_CheckedChanged;
             checkBox1_TuDongAnMenu.CheckedChanged += checkBox1_TuDongAnMenu_CheckedChanged;
@@ -125,7 +125,7 @@ namespace PhanMemThiDua2026
             // TỐI ƯU HIỆU NĂNG: Chỉ lấy năm từ CSDL 1 lần duy nhất khi biến đệm chưa có dữ liệu (-1)
             if (_namHienTaiCache == -1)
             {
-                _namHienTaiCache = Module_NamHeThong.LayNamHeThong();
+                _namHienTaiCache = Module_HeThong.LayNamHeThong();
             }
             // Khởi tạo chuỗi gốc làm mốc so sánh sử dụng biến đệm siêu tốc
             string chuoiTrangChu = $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {_namHienTaiCache}";
@@ -251,7 +251,7 @@ namespace PhanMemThiDua2026
         }
         private void KhoiTaoGiaoDien()
         {
-            int namHienTai = Module_NamHeThong.LayNamHeThong();
+            int namHienTai = Module_HeThong.LayNamHeThong();
             OpenChildForm<Form4_TrangDauTien>(
                 $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
 
@@ -476,7 +476,7 @@ namespace PhanMemThiDua2026
             //    _currentChild = null;   // clear current child
             //}
 
-            int namHienTai = Module_NamHeThong.LayNamHeThong();
+            int namHienTai = Module_HeThong.LayNamHeThong();
 
             OpenChildForm<Form4_TrangDauTien>(
                 $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
@@ -606,7 +606,7 @@ namespace PhanMemThiDua2026
             if (!AllowSwitch()) return;
             HighlightNavButton(kryptonButton1_ThongKe); // Đảm bảo tên biến nút này đúng với tên nút của bạn
 
-            if (_namHienTaiCache == -1) _namHienTaiCache = Module_NamHeThong.LayNamHeThong();
+            if (_namHienTaiCache == -1) _namHienTaiCache = Module_HeThong.LayNamHeThong();
 
             // Tiêu đề này chỉ là hiển thị tạm trong tíc tắc, ngay sau đó Form 53 sẽ tự "hét" lên tiêu đề chính thức của Form 15
             string tieuDeForm = $"Trang Quản lý kết quả thi đua năm {_namHienTaiCache}";
@@ -1128,7 +1128,7 @@ namespace PhanMemThiDua2026
 
             // Tên Form: Quản lý khen thưởng CBCS + năm hệ thống
             string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
-                                Module_NamHeThong.LayNamHeThong();
+                                Module_HeThong.LayNamHeThong();
             OpenChildForm<Form52_QuanLyKhenThuong>(tieuDeForm);
 
             if (_currentChild is Form52_QuanLyKhenThuong frm)

@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace PhanMemThiDua2026
 {
@@ -69,14 +70,83 @@ namespace PhanMemThiDua2026
             toolStripStatusLabel1_KetLuan.Spring = true;
             toolStripStatusLabel1_KetLuan.TextAlign = ContentAlignment.MiddleRight;
             toolStripStatusLabel1_KetLuan.Text = "Kết luận: Đang kiểm tra...";
-
             EnableDoubleBuffer(kryptonDataGridView1);
             EnableDoubleBuffer(kryptonDataGridView2);
-
             kryptonDataGridView1.CellDoubleClick += KryptonDataGridView1_CellDoubleClick;
             kryptonDataGridView1.CellMouseDown += KryptonDataGridView1_CellMouseDown;
-
             lable_phienban.Text = "Phiên bản: " + Module_PhienBan.SoftwareVersion + "; Cập nhật: " + Module_PhienBan.NgayThangNam;
+            InitToolTips();
+        }
+        private void GanToolTipAnToan(Control control, string noiDung)
+        {
+            // 1. Control không tồn tại
+            if (control == null)
+                return;
+
+            // 2. Control đã được giải phóng hoặc đang giải phóng
+            if (control.IsDisposed || control.Disposing)
+                return;
+
+            // 3. Nội dung Tooltip không hợp lệ
+            if (string.IsNullOrWhiteSpace(noiDung))
+                return;
+
+            // 4. ToolTip chưa được khởi tạo
+            if (toolTip1 == null)
+                return;
+
+            try
+            {
+                // 5. Gán Tooltip
+                toolTip1.SetToolTip(control, noiDung);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Control đã bị giải phóng đúng thời điểm thao tác.
+            }
+            catch (InvalidOperationException)
+            {
+                // Control đang ở trạng thái không phù hợp.
+            }
+        }
+
+        private void InitToolTips()
+        {
+            // ============================================================
+            // KHỞI TẠO TOOLTIP - ỔN ĐỊNH CHO HỆ THỐNG NỘI BỘ
+            // ============================================================
+            // 1. Kiểm tra ToolTip
+            if (toolTip1 == null)
+                return;
+            try
+            {
+                // 2. Cấu hình chung
+                toolTip1.IsBalloon = true;
+                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipIcon = ToolTipIcon.Info;
+                // Thời gian chờ trước khi hiển thị
+                toolTip1.InitialDelay = 300;
+                // Thời gian Tooltip hiển thị
+                toolTip1.AutoPopDelay = 2500;
+                // Thời gian chờ khi chuyển sang Control khác
+                toolTip1.ReshowDelay = 100;
+                // Cho phép hiển thị ngay cả khi Form chưa active
+                toolTip1.ShowAlways = true;
+                // 3. Gán Tooltip cho từng Control
+                GanToolTipAnToan(kryptonButton1_KiemTraTaiNguyenLoi, "Kiểm tra tài nguyên lõi của hệ thống");
+                GanToolTipAnToan(kryptonButton1_CapNhat,"Làm mới các hàm kiểm tra tài nguyên");
+                GanToolTipAnToan(kryptonButton1_CauhinhCSDL,"Phần mềm xem và chỉnh sửa cơ sở dữ liệu");
+            }
+            catch (ObjectDisposedException)
+            {
+                // ToolTip hoặc Control đã được giải phóng trong lúc thao tác.
+                // Không để chức năng Tooltip ảnh hưởng đến hoạt động chính.
+            }
+            catch (InvalidOperationException)
+            {
+                // Trạng thái WinForms không phù hợp để cấu hình Tooltip.
+                // Không để chức năng Tooltip làm Form dừng hoạt động.
+            }
         }
         // --- CÁC HẰNG SỐ CẤU HÌNH ---
         private static class GridConfig
@@ -1090,6 +1160,81 @@ namespace PhanMemThiDua2026
             KryptonDataGridView1_CellDoubleClick(sender, new DataGridViewCellEventArgs(0, 0));
         }
 
+        private void kryptonButton1_KiemTraTaiNguyenLoi_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("STT - Tên tài nguyên - Dung lượng - Trạng thái");
+                sb.AppendLine("--------------------------------------------------");
+
+                int stt = 1;
+
+                // 1. Kiểm tra nhóm data1 -> data15 (Tại thư mục CoreDatabaseRepository)
+                string thuMucCore = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, "CongCuQuanLyCSDL", "CoreDatabaseRepository");
+
+                for (int i = 1; i <= 15; i++)
+                {
+                    string tenFile = $"data{i}";
+                    string duongDanFile = Path.Combine(thuMucCore, tenFile);
+                    GhiNhanTrangThaiFile(sb, ref stt, duongDanFile, tenFile);
+                }
+
+                // 2. Kiểm tra nhóm phần mềm bổ trợ (Tại thư mục gốc chứa file .exe)
+                string thuMucGoc = AppDomain.CurrentDomain.BaseDirectory;
+                string[] danhSachExe =
+                {
+            "ServiceBackup.exe",
+            "ServiceRestore.exe",
+            "Uninstall_PhanMemThiDua2026.exe"
+        };
+
+                foreach (string tenExe in danhSachExe)
+                {
+                    string duongDanExe = Path.Combine(thuMucGoc, tenExe);
+                    GhiNhanTrangThaiFile(sb, ref stt, duongDanExe, tenExe);
+                }
+
+                // Hiển thị kết quả bằng MessageBox
+                MessageBox.Show(
+                    sb.ToString(),
+                    "Báo cáo tài nguyên hệ thống",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Có lỗi xảy ra: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // ==========================================
+        // HÀM PHỤ TRỢ: KIỂM TRA VÀ ĐỊNH DẠNG TEXT
+        // ==========================================
+        private void GhiNhanTrangThaiFile(StringBuilder sb, ref int stt, string duongDan, string tenHienThi)
+        {
+            if (File.Exists(duongDan))
+            {
+                long dungLuong = new FileInfo(duongDan).Length;
+                sb.AppendLine($"{stt}. {tenHienThi} - {DinhDangDungLuong(dungLuong)} - Tồn tại");
+            }
+            else
+            {
+                // Nhấn mạnh nếu file bị mất
+                sb.AppendLine($"{stt}. {tenHienThi} - 0 KB - ❌ Không tồn tại");
+            }
+            stt++;
+        }
+
+        private string DinhDangDungLuong(long soByte)
+        {
+            if (soByte < 1024)
+                return $"{soByte} B";
+            if (soByte < 1048576) // 1024 * 1024
+                return $"{(soByte / 1024.0):F0} KB";
+
+            return $"{(soByte / 1048576.0):F0} MB";
+        }
     }
     class KetQuaFile
     {

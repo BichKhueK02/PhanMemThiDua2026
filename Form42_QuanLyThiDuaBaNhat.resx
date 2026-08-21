@@ -9682,27 +9682,6 @@
         Kn7ZL1r0F4BIovXYD+36DfPtSQnNLFMTAAAAAElFTkSuQmCC
 </value>
   </data>
-  <metadata name="kryptonButton1_MoSoVang.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <data name="kryptonButton1_MoSoVang.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKfSURBVDhPjdHdT1JhHAfw3211122t1kUzauGWf0Fd
-        1NZ9a6s211WtrXSZiSb9CaZlqettEGorNRA5R14PL4qgaCCikkAiyosMUtKEBL7t8BK22eazfbez8/y+
-        n3POc0gg0tLstIlWXSwZFFLyWBXYSa5E/E7djfWAnTillCxMH5mZfjKPyMiolFI8ME2GiUk626wmKgMh
-        J0N6ueTo3NgXADvgV2TJatUpJHajshecUpbmFJJ7Bvm7mpjPUQHOiLRyp8OE4IwKi9ZBzFqGgNx2AcCv
-        GBb0zxFbYJEMObG+uoTv3q8IeyegHbdDINLIqUqkxbpbhXzUhi2/Fi7zIJDdApAHMgl4dW0Iz6mQiniQ
-        +12C8xuIu9WoEmlQACLOYWQjNqR8GjhNe4B0Aou6Nqy5R7Cx5sZuOgUgB+wmEXWpUNVUAHQIO4awe1Ag
-        XwTC0wrwDy8AoamBg79BCVh1DFaAFdvHf4HyIf4PyCYRmvxcBvQIWmXIRuxI+bRwmoeAfLoIZJJY1D3b
-        B/iBoLW/BDTrsWyRIBstAv6pAYQ8HLY340D2J7z6doT3AZbHZBUgYHqPXHQSKb8eiflhRGZ6sWTpQSIw
-        AZ+xE9F5FqnIPLIZ/mz4H7GBgFkC/vNJ0GJAyCoBkjPIhEzY8rEI2qRwMR0IjL/FN+4FPJwUcb8NQLYI
-        II01Wx8ELXqQUGzA2Jt6qLsbwHY9wmh3I9Q9j8H0NIGRdYD50A6muxFs10OwL+vAdD7A6Kt6WF7X4bzY
-        AKoRazaFYg7nWo04+zcmnH5iwbiktRD+urJnLMzyHb5LRFR98ur92hNX7t4q5PKdm8cu1l67IFbHqp9y
-        4CNs+MQev3T7Or9XnuM7fJcH+HWEiA7vySEiEhJRTSmnSvf2zvAd+gOu9N9dvaPc7gAAAABJRU5ErkJg
-        gg==
-</value>
-  </data>
   <metadata name="kryptonDataGridView1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>

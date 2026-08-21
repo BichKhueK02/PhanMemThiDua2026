@@ -150,7 +150,7 @@
   <metadata name="tableLayoutPanel2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="tableLayoutPanel3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="tableLayoutPanel4.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <metadata name="pictureBox3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -11589,6 +11589,36 @@
         YYIAADs=
 </value>
   </data>
+  <metadata name="lable_phienban.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonButton1_KiemTraTaiNguyenLoi.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="kryptonButton1_KiemTraTaiNguyenLoi.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
+        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAANvSURBVDhPdZFdTJt1GMWfK+PVMBsiuC1mNC5Rwpi6
+        Xah3akwMJiaKmhk/Eq80JgrM2nZl/X7ftm8LyDalkQqW0u+WMqC0pS1tkYmlDGmBRQbMUgylfBQ2F29M
+        dsxbndmNT/K7+ed/zpPnHOKMncTqDGWUapYkbXKNf2gYI6Nj0Oo4nBeKrg44XHU/WG2/u7yDCIyFYXN5
+        0G9zZK12p4B4A0bLkYbVU5tM5RweCeDePUDNsJvPv/DiW599/sWbHp8fyzdXsF86wPbOLnK5PKLROHot
+        VpQN1IyOFCrGzW+4ffsOPL5BEFE9ET3c/Z357sLiElZW1uC/OooBuwumnu9hMveiu8cM0nHtZLHaydD+
+        NbaL27g+N49sdhEiibSPP6mj6zLW8xsIhSMYH4+i89IV3vy5/9DqjUPmvn7kNzYQn5xCJrtY/iwUSSBT
+        qLu0egNy6+uY/nkGqZlZ6I0d4JcyrI5YHUek1XO4dSuHQDCMePJH9Jj70HL+SxQKBTjdPsiVavy6vILZ
+        2Tmk0tcxk0pDw+qhYrRgdRxIelEe67PYEInF4Rv04+yZs69/9N65IbfNikI+B4VChfn5DH6aTiGTWcDu
+        zg4OSvtYXV1Fm0xxQERUe0Eqi2k0LKRiUYyIHiKiJwRC827DBQv2NvNIp1IYsDnQ3NKKTgMHZZsUrc3N
+        aSJqIKOxo2zybyi1h5gEHVKG+pu8a5g+ANSx3xANjEAuk+Gr1hbHAwGe1CkuEn3bzpGJY6mCnaQjzAQ9
+        ogjaPw3kkC4B749u4xXfDk5LzCiur2HYZf+rafBmT4Ui7KlkJuhRbYKokk1QFTtB1UyUjiiDjne8K2Xx
+        B6NbaPQVUG+6gTqReS/ktBTlwWWk7wJve1dRqRxzHmUiRMfYCB1lxukxVdD7Uu8vmN0HRFMlNHo30WBa
+        QpXIESCiUxVCh+9ldxHvDhcx9wfQZF8Cr6Fnr1yjZy5P0dMdSWTvAB8Gimj0FnDKdAOHRe4wEZ14XBuj
+        Gpk/VG9awKuuTZwb2cLCnwCvodOXrlFDF28wiU8iJbzh30J9dwaHxf+IOXELVesSfNCCGrE9XPfNPF7z
+        FPBxaA9PdUyCjrPjZWokrsRJQxICLo5qiZOv8wQjERJPlS5Jx7XRcls1Ykes1pDAk8YkeA3/eH8ED1TE
+        1/p/c79yHsHfymoyqE6fslgAAAAASUVORK5CYII=
+</value>
+  </data>
+  <metadata name="tableLayoutPanel3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <metadata name="pictureBox2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
@@ -14503,9 +14533,6 @@
   <metadata name="label_TenAdminDangNhap.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="lable_phienban.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
   <metadata name="kryptonButton1_CapNhat.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
@@ -14573,6 +14600,9 @@
   </metadata>
   <metadata name="kryptonDataGridView2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
+  </metadata>
+  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>308, 17</value>
   </metadata>
   <metadata name="$this.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>

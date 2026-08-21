@@ -17,7 +17,6 @@ namespace PhanMemThiDua2026
         private DataTable _dtHienTai;
         private List<int> _filteredIndexes = new List<int>(); // Lưu trữ chỉ số dòng đã qua bộ lọc (Virtual Mode Core)
         private Dictionary<int, int> _colIndexMap = new Dictionary<int, int>(); // Bản đồ tọa độ cột siêu tốc
-
         private List<HistoryCBCSDTO> _dataCacheCBCS = new List<HistoryCBCSDTO>();
         private List<HistoryTanBinhDTO> _dataCacheTanBinh = new List<HistoryTanBinhDTO>();
         private List<string> _cotPhatSinhCacheThongKe;
@@ -29,6 +28,8 @@ namespace PhanMemThiDua2026
         private SolidBrush _rowHeaderBrush = null;
         private StringFormat _rowHeaderFormat = null;
         private System.Windows.Forms.Timer _timKiemTimer;
+        // 🔥 CACHE INSTANCE FORM 54 TRÊN RAM (Tránh new/dispose lặp lại)
+  
         public Form46_ThongKeThiDuaNamCu()
         {
             InitializeComponent();
@@ -553,7 +554,7 @@ namespace PhanMemThiDua2026
         public void ApDungDinhDangGridThongKe(bool laTanBinh)
         {
             var grid = kryptonDataGridView1;
-            int namHeThong = Module_NamHeThong.LayNamHeThong();
+            int namHeThong = Module_HeThong.LayNamHeThong();
             int namCu = namHeThong - 1;
 
             var headerMap = new Dictionary<string, string>
@@ -723,7 +724,7 @@ namespace PhanMemThiDua2026
         }
         private void kryptonButton_Dong_Click(object sender, EventArgs e)
         {
-            int namHienTai = Module_NamHeThong.LayNamHeThong();
+            int namHienTai = Module_HeThong.LayNamHeThong();
             string tieuDeForm = $"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {namHienTai}";
 
             var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
@@ -756,6 +757,14 @@ namespace PhanMemThiDua2026
                 _timKiemTimer.Stop();
                 _timKiemTimer.Dispose();
             }
+
+            // ⭐ Dọn dẹp Form54 cache khi Form mẹ đóng hoàn toàn
+            if (_cachedForm54 != null && !_cachedForm54.IsDisposed)
+            {
+                _cachedForm54.Dispose();
+                _cachedForm54 = null;
+            }
+
             _rowHeaderBrush?.Dispose();
             _rowHeaderFormat?.Dispose();
             _dtHienTai?.Dispose();
@@ -766,9 +775,9 @@ namespace PhanMemThiDua2026
             // ⭐ ĐỌC DỮ LIỆU TỪ GIAO DIỆN (UI THREAD) TRƯỚC KHI VÀO TASK.RUN
             var selectedFile = comboBox_ChonCSDLNam.SelectedItem as FileLichSuDTO;
 
-            
+
             // 1. LỚP VỎ UX: LƯU TRẠNG THÁI GỐC ĐỂ PHỤC HỒI SAU KHI XONG
-            
+
             string textBanDau = kryptonButton_CapNhat.Values.Text;
             Image anhBanDau = kryptonButton_CapNhat.Values.Image;
 
@@ -830,9 +839,9 @@ namespace PhanMemThiDua2026
         }
         private async void kryptonButton_XuatData_Click(object sender, EventArgs e)
         {
-            
+
             // 1. LỚP VỎ UX: LƯU TRẠNG THÁI GỐC CHỐNG CLICK TRÙNG LUỒNG
-            
+
             string textBanDau = kryptonButton_XuatData.Values.Text;
             Image anhBanDau = kryptonButton_XuatData.Values.Image;
 
@@ -846,18 +855,18 @@ namespace PhanMemThiDua2026
             if (comboBox_ChonCSDLNam.SelectedItem == null) return;
             var selectedFile = (FileLichSuDTO)comboBox_ChonCSDLNam.SelectedItem;
 
-            
+
             // ⭐ XỬ LÝ TÊN TỆP ĐỘNG THEO YÊU CẦU
-            
+
             string loai = selectedFile.LaTanBinh ? "TanBinh" : "CBCS";
             // Trích xuất năm từ chuỗi "Năm 2026 - CBCS" -> lấy số 2026
             string[] parts = selectedFile.TenHienThi.Split(' ');
             string nam = (parts.Length > 1) ? parts[1] : DateTime.Now.Year.ToString();
             string fileName = $"ThongKeThiDua_{loai}_Nam{nam}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
 
-            
+
             // 2. KHỞI TẠO HỘP THOẠI LƯU TỆP EXCEL
-            
+
             using var sfd = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu file Excel thống kê",
@@ -881,9 +890,9 @@ namespace PhanMemThiDua2026
                 kryptonButton_XuatData.Values.Image = null;
                 await Task.Delay(100);
 
-                
+
                 // 3. ĐỌC TIÊN QUYẾT TIÊU CHÍ CỘT THỰC TẾ TRONG FILE SQLITE
-                
+
                 var cotTrongBang = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 string tenBang = selectedFile.LaTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
 
@@ -900,9 +909,9 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                
+
                 // 4. TRÍCH XUẤT SIÊU DỮ LIỆU CỘT
-                
+
                 var columnsMeta = kryptonDataGridView1.Columns
                     .Cast<DataGridViewColumn>()
                     .Where(c => cotTrongBang.Contains(c.Name))
@@ -930,9 +939,9 @@ namespace PhanMemThiDua2026
 
                 string tenTieuDoan = XacDinhTenTieuDoan();
 
-                
+
                 // 5. KÍCH HOẠT TIẾN TRÌNH LUỒNG NỀN
-                
+
                 await Task.Run(() =>
                 {
                     Module_HoTroLuuDataTheoNamCu.XuatExcelLichSuCore(
@@ -1319,15 +1328,34 @@ namespace PhanMemThiDua2026
                 {
                     formCha.CapNhatTieuDe(tieuDeMoi);
                 }
+
+                // ⭐ CẬP NHẬT TÊN VÀ TRẠNG THÁI NÚT "XEM KẾT QUẢ TẬP THỂ"
+                if (kryptonButton1_XemKetQuaThiDuaTapThe != null)
+                {
+                    // Tách lấy chữ "Năm 2025" từ "Năm 2025 - CBCS" và chuyển thành chữ thường
+                    string namHienThi = selectedFile.TenHienThi.Split('-')[0].Trim().ToLowerInvariant();
+
+                    // Đổi tên nút tự động -> "Kết quả thi đua tập thể năm 2025"
+                    kryptonButton1_XemKetQuaThiDuaTapThe.Values.Text = $"Kết quả thi đua tập thể {namHienThi}";
+
+                    // Ẩn nút nếu là Tân binh (vì Tân binh không có thi đua tập thể), hiện nếu là CBCS
+                    kryptonButton1_XemKetQuaThiDuaTapThe.Visible = !selectedFile.LaTanBinh;
+                }
             }
             else
             {
-                // Nếu không có file nào được chọn
+                // Nếu không có file nào được chọn (ComboBox rỗng)
                 this.Text = "Thống kê thi đua năm cũ";
                 var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                 if (formCha != null)
                 {
                     formCha.CapNhatTieuDe("Thống kê thi đua năm cũ");
+                }
+
+                // ⭐ ẨN HOÀN TOÀN NÚT NẾU KHÔNG CÓ CSDL NÀO
+                if (kryptonButton1_XemKetQuaThiDuaTapThe != null)
+                {
+                    kryptonButton1_XemKetQuaThiDuaTapThe.Visible = false;
                 }
             }
         }
@@ -1352,6 +1380,58 @@ LƯU Ý QUAN TRỌNG:
                             "Hướng Dẫn Sử Dụng - Thống Kê Năm Cũ",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
+        }
+
+        // 🔥 BIẾN CACHE INSTANCE FORM 54 TRÊN RAM (Tránh new/dispose lặp lại)
+        private Form54_ThongKeThiDuaTapTheNamCu _cachedForm54 = null;
+
+        private void kryptonButton1_XemKetQuaThiDuaTapThe_Click(object sender, EventArgs e)
+        {
+            // 1. Kiểm tra đã chọn tệp CSDL năm cũ chưa
+            if (comboBox_ChonCSDLNam.SelectedItem is not FileLichSuDTO selectedFile)
+            {
+                MessageBox.Show("Vui lòng chọn một tệp CSDL năm cũ trên danh sách trước khi xem!",
+                                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. Chặn nếu là phiên bản Tân binh (tập thể chỉ áp dụng cho CBCS)
+            if (selectedFile.LaTanBinh)
+            {
+                MessageBox.Show("Dữ liệu thi đua tập thể chỉ áp dụng cho đối tượng Cán bộ chiến sĩ (CBCS), không áp dụng cho đối tượng Tân binh.",
+                                "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string namHienThi = selectedFile.TenHienThi;
+            string dbPath = selectedFile.DuongDan;
+
+            // 3. ⭐ KIỂM TRA RAM: Quét xem Form54 đã tồn tại chưa
+            if (_cachedForm54 == null || _cachedForm54.IsDisposed)
+            {
+                _cachedForm54 = new Form54_ThongKeThiDuaTapTheNamCu
+                {
+                    StartPosition = FormStartPosition.CenterParent,
+                    ShowInTaskbar = false
+                };
+            }
+
+            // 4. Bơm dữ liệu năm tương ứng vào Form
+            _cachedForm54.CapNhatDuLieuNamCu(namHienThi, dbPath);
+
+            // 5. Hiển thị Form mượt mà
+            if (_cachedForm54.Visible)
+            {
+                if (_cachedForm54.WindowState == FormWindowState.Minimized)
+                    _cachedForm54.WindowState = FormWindowState.Normal;
+
+                _cachedForm54.BringToFront();
+                _cachedForm54.Focus();
+            }
+            else
+            {
+                _cachedForm54.ShowDialog(this);
+            }
         }
     }
     public class ColumnExportMeta

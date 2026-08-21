@@ -120,6 +120,9 @@
   <metadata name="toolStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+  <metadata name="toolStrip1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="toolStripLabel1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
@@ -139,6 +142,18 @@
         rAAAAABJRU5ErkJggg==
 </value>
   </data>
+  <metadata name="tableLayoutPanel1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonDataGridView1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="tableLayoutPanel2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonButton_XuatTepExcel.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <data name="kryptonButton_XuatTepExcel.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
@@ -154,6 +169,9 @@
         Vm1oCJW9Ud8BfvKq16kkvpsAAAAASUVORK5CYII=
 </value>
   </data>
+  <metadata name="kryptonButton1_CapNhat.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <data name="kryptonButton1_CapNhat.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
@@ -168,24 +186,38 @@
         lrEQyH+8gJHiic/1r8zlMGkjFgMmahN///H9Ab4YaZZjZpWVAAAAAElFTkSuQmCC
 </value>
   </data>
+  <metadata name="label_DuongDan.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="comboBox1_ChonLoai.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="comboBox1_ChonThangCanXuat.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="kryptonButton_Dong.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <data name="kryptonButton_Dong.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAZdEVYdFNvZnR3YXJlAEFkb2JlIEltYWdlUmVhZHlxyWU8AAACG0lEQVQ4T52TT2gTQRTGn6hX
-        9aBUaU1JK1KQhsagWP9dPHvzkIvagngRBLHWi1AET+pZD71p0oDZyW6yCbUHralV1N49Nq1JbXaTmqQJ
-        aTb/PnnTumnaQMEPfrx5O2++ebs7Q2FdzwlNgxIKIdiGkFGoKkKaZoZ1nfRYbBfEBXvJMAzeYKqTCfHO
-        rMXEEhYTy0gsLcvIOeut3y9jOp2GoqqBnSbEbbJ+JZNIplJIraRk5JzlCwRgZjJ2JyFNUyLR6HYDISdT
-        K6v4vZq24Zz1Y2FBmvzrhF85wounpyUUFJsGacOAYZo2nK+XinJuu4Js8H6G9Nk46XPzLQMzk0Umu9YG
-        PzO2MLNrsk6JxhCZ/0p63yHSB462DP7kcp3J55ErFlGwqpsGc18QPnWE9KEe0j3OlkG+sN6BIgrlDZQA
-        fJ8Yw9Txg3jnPAxx5gQ0d++ryLn+lkGxVNpFqVxGmT/kxCN8vnQaeHYPeDkGPH+Ab9cvQDvrfG0blLl4
-        BxuWhRr/ymP70Bz3AuNeNB/eAB57gSe3IVwnYRtUKlVUKlYbVq2OJht0HQBmArLO1gcFymA37IPUaDTQ
-        qNfb2ar1d+1HbfQKaiOXYd26KMeNu9cghhwgvkh76eeLp5h1d6N68zyao8OojgwjfnUAky6HQm98vk98
-        uuQNFKIdvo0RHerHONT7dyAGeyDcTghPHyZdvQoROYiI+onI8x/IxX8BI637w148ozQAAAAASUVORK5C
-        YII=
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
+        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIbSURBVDhPnZNPaBNBFMafqFf1oFRpTUkrUpCGxqBY
+        /108e/OQi9qCeBEEsdaLUARP6lkPvWnSgNnJbrIJtQetqVXU3j02rUltdpOapAlpNv8+edO6adpAwQ9+
+        vHk7b755uztDYV3PCU2DEgoh2IaQUagqQppmhnWd9FhsF8QFe8kwDN5gqpMJ8c6sxcQSFhPLSCwty8g5
+        663fL2M6nYaiqoGdJsRtsn4lk0imUkitpGTknOULBGBmMnYnIU1TItHodgMhJ1Mrq/i9mrbhnPVjYUGa
+        /OuEXznCi6enJRQUmwZpw4Bhmjacr5eKcm67gmzwfob02Tjpc/MtAzOTRSa71gY/M7Yws2uyTonGEJn/
+        SnrfIdIHjrYM/uRyncnnkSsWUbCqmwZzXxA+dYT0oR7SPc6WQb6w3oEiCuUNlAB8nxjD1PGDeOc8DHHm
+        BDR376vIuf6WQbFU2kWpXEaZP+TEI3y+dBp4dg94OQY8f4Bv1y9AO+t8bRuUuXgHG5aFGv/KY/vQHPcC
+        4140H94AHnuBJ7chXCdhG1QqVVQqVhtWrY4mG3QdAGYCss7WBwXKYDfsg9RoNNCo19vZqvV37Udt9Apq
+        I5dh3boox4271yCGHCC+SHvp54unmHV3o3rzPJqjw6iODCN+dQCTLodCb3y+T3y65A0Uoh2+jREd6sc4
+        1Pt3IAZ7INxOCE8fJl29ChE5iIj6icjzH8jFfwEjrfvDXjyjNAAAAABJRU5ErkJggg==
 </value>
   </data>
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>147, 17</value>
+  </metadata>
+  <metadata name="$this.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
   </metadata>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

@@ -8,7 +8,7 @@ namespace PhanMemThiDua2026
     public partial class Form52_QuanLyKhenThuong : Form // hoặc KryptonForm
     {
         // 1. CHUẨN KỸ SƯ: Cache năm hệ thống để giảm thiểu I/O Database nhiều lần
-        private readonly int _namHeThong = Module_NamHeThong.LayNamHeThong();
+        private readonly int _namHeThong = Module_HeThong.LayNamHeThong();
 
         private Form _activeSubForm = null;
 

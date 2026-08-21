@@ -4,7 +4,6 @@
     {
         private static DateTime _lastKeyTime = DateTime.MinValue;
         private const int KEY_DELAY_MS = 200; // Tăng nhẹ lên 200ms để chống spam click nút an toàn hơn
-
         public static bool XuLy(
             Keys keyData,
             Action? actionLamMoi = null,
@@ -23,10 +22,8 @@
             )
         {
             // ĐÃ XÓA CHẶN KEY Ở ĐÂY ĐỂ TRẢ LẠI TỐC ĐỘ GÕ CHỮ 100% CHO NGƯỜI DÙNG
-
             Keys key = keyData & Keys.KeyCode;
             Keys modifier = keyData & Keys.Modifiers;
-
             try
             {
                 if (modifier == Keys.None)
@@ -73,11 +70,8 @@
 
             // Nếu không trúng phím tắt nào -> lập tức trả về false để hệ điều hành lo việc gõ chữ
             return false;
-        }
-
-        
-        // HÀM GỌI (INVOKE) AN TOÀN VÀ CHỐNG SPAM
-        
+        }    
+        // HÀM GỌI (INVOKE) AN TOÀN VÀ CHỐNG SPAM        
         private static bool Invoke(Action? action)
         {
             if (action == null) return false;

@@ -880,7 +880,7 @@ namespace PhanMemThiDua2026
             if (fCha != null)
             {
                 // Tạo chuỗi tiêu đề theo năm hệ thống như bạn yêu cầu
-                string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " + Module_NamHeThong.LayNamHeThong();
+                string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " + Module_HeThong.LayNamHeThong();
 
                 // Gọi hàm cập nhật tiêu đề trên Form cha
                 fCha.CapNhatTieuDe(tieuDeForm);
@@ -1242,7 +1242,7 @@ namespace PhanMemThiDua2026
                 // 9. Cập nhật tiêu đề Form cha
                 string tieuDeForm =
                     "Trang tra cứu kết quả khen thưởng tập thể năm cũ " +
-                    Module_NamHeThong.LayNamHeThong();
+                    Module_HeThong.LayNamHeThong();
 
                 formCha.CapNhatTieuDe(tieuDeForm);
             }
@@ -1285,7 +1285,7 @@ namespace PhanMemThiDua2026
 
             try
             {
-                // 1. Quét CSDL hiện tại (csdl2.bin) để lấy toàn bộ Số Hiệu đang công tác
+                // 1. Quét CSDL hiện tại (csdl2.db) để lấy toàn bộ Số Hiệu đang công tác
                 // Dùng HashSet để tốc độ tìm kiếm đạt O(1) siêu tốc
                 var hashSoHieuHienTai = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 

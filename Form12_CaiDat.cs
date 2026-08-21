@@ -24,6 +24,14 @@ namespace PhanMemThiDua2026
         private int _isChangingFont = 0;
         private bool _isDoiTuongChanged = false;       // cờ đánh dấu thay đổi đối tượng phần mềm
         private string _doiTuongBanDau = string.Empty; // lưu giá trị ban đầu của combobox
+        // 🔥 BIẾN CACHE FONT TĨNH (Tối ưu RAM & GDI+ handle cho toàn bộ Form ảo và thông báo)
+        private static readonly Font _fontTitle125Bold = new Font(Module_HeThong.TenFontHeThong, 12.5F, FontStyle.Bold);
+        private static readonly Font _fontTitle12Bold = new Font(Module_HeThong.TenFontHeThong, 12F, FontStyle.Bold);
+        private static readonly Font _fontTitle10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
+        private static readonly Font _fontContent115 = new Font(Module_HeThong.TenFontHeThong, 11.5F, FontStyle.Regular);
+        private static readonly Font _fontContent115B = new Font(Module_HeThong.TenFontHeThong, 11.5F, FontStyle.Bold);
+        private static readonly Font _fontContent105 = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular);
+        private static readonly Font _fontBtnBold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
         private Dictionary<KryptonButton, System.Windows.Forms.Label> _menuMap;
         private Color _defaultLabelColor;
         // Biến dùng để chống lỗi ẩn nhầm thông báo nếu người dùng bấm Lưu liên tục
@@ -32,7 +40,6 @@ namespace PhanMemThiDua2026
         // ⭐ KHO TỪ ĐIỂN ĐỒNG BỘ 2 CHIỀU (Tên <--> Ký hiệu)
         private Dictionary<string, string> _dictTenToKyHieu = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private Dictionary<string, string> _dictKyHieuToTen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
         // ⭐ CỜ CHỐNG LẶP VÔ TẬN (StackOverflow) KHI 2 COMBOBOX TỰ KÍCH HOẠT LẪN NHAU
         private bool _isSyncingComboBoxes = false;
         private sealed class CauHinhData
@@ -585,7 +592,6 @@ namespace PhanMemThiDua2026
 
             cmd.ExecuteNonQuery();
         }
-
         private static bool _pragmaInitialized = false;
         private static void ApplySQLitePragma(SqliteConnection cn)
         {
@@ -772,7 +778,7 @@ PRAGMA busy_timeout=15000;
                 panelTop.StateCommon.Color1 = System.Drawing.Color.White;
 
                 var lblTitle = new Krypton.Toolkit.KryptonLabel { Text = tieuDe.ToUpper(), Dock = DockStyle.Fill, AutoSize = false };
-                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font("Segoe UI", 12.5F, System.Drawing.FontStyle.Bold);
+                lblTitle.StateCommon.ShortText.Font = _fontTitle125Bold;
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(198, 40, 40); // Tiêu đề Đỏ cảnh báo
                 panelTop.Controls.Add(lblTitle);
 
@@ -800,8 +806,8 @@ PRAGMA busy_timeout=15000;
                 rtbContent.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.None;
 
                 // Font gốc
-                Font defaultFont = new System.Drawing.Font("Segoe UI", 11.5F, System.Drawing.FontStyle.Regular);
-                Font boldFont = new System.Drawing.Font("Segoe UI", 11.5F, System.Drawing.FontStyle.Bold);
+                Font defaultFont = _fontContent115;
+                Font boldFont = _fontContent115B;
                 rtbContent.Font = defaultFont;
                 rtbContent.ForeColor = System.Drawing.Color.FromArgb(40, 40, 40);
 
@@ -838,12 +844,12 @@ PRAGMA busy_timeout=15000;
                 var panelBottom = new Panel { Dock = DockStyle.Bottom, Height = 75, BackColor = System.Drawing.Color.WhiteSmoke };
 
                 var btnYes = new Krypton.Toolkit.KryptonButton { Text = "Vẫn bật", Width = 140, Height = 42, DialogResult = DialogResult.Yes };
-                btnYes.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Bold);
+                btnYes.StateCommon.Content.ShortText.Font = _fontBtnBold;
                 btnYes.StateCommon.Border.Rounding = 6;
                 btnYes.Click += (s, ev) => dongY = true;
 
                 var btnNo = new Krypton.Toolkit.KryptonButton { Text = "Hủy bỏ", Width = 140, Height = 42, DialogResult = DialogResult.No };
-                btnNo.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Bold);
+                btnNo.StateCommon.Content.ShortText.Font = _fontBtnBold;
                 btnNo.StateCommon.Border.Rounding = 6;
                 btnNo.Click += (s, ev) => dongY = false;
 
@@ -997,7 +1003,6 @@ PRAGMA busy_timeout=15000;
         {
             string textBanDau = kryptonButton_LuuThongTin.Values.Text;
             Image anhBanDau = kryptonButton_LuuThongTin.Values.Image;
-
             try
             {
                 kryptonButton_LuuThongTin.Enabled = false;
@@ -1037,7 +1042,7 @@ PRAGMA busy_timeout=15000;
                     }
                     MessageBox.Show(thongBao, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-
+                Module_HeThong.LayNamHeThong();
                 AnThongBaoSauDelay(20000);
             }
             catch (Exception ex)
@@ -1307,10 +1312,10 @@ PRAGMA busy_timeout=15000;
 
             string[] tepBatBuoc =
             {
-        "csdl1.bin",
-        "csdl2.bin",
-        "csdl3.bin",
-        "csdl4.bin"
+        "csdl1.db",
+        "csdl2.db",
+        "csdl3.db",
+        "csdl4.db"
     };
 
             if (!Directory.Exists(thuMucDatabase))
@@ -1402,7 +1407,7 @@ PRAGMA busy_timeout=15000;
                 panelTop.StateCommon.Color1 = System.Drawing.Color.White;
 
                 var lblTitle = new Krypton.Toolkit.KryptonLabel { Text = tieuDe.ToUpper(), Dock = DockStyle.Fill, AutoSize = false };
-                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+                lblTitle.StateCommon.ShortText.Font = _fontTitle12Bold;
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(0, 82, 155); // Xanh đại dương
                 panelTop.Controls.Add(lblTitle);
 
@@ -1444,7 +1449,6 @@ PRAGMA busy_timeout=15000;
                 // Tự động Wrap text cho cột Giá trị (Vì Token thường rất dài)
                 grid.Columns[1].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-
                 // --- 5. ĐỔ DỮ LIỆU & TÔ MÀU ---
                 string[] lines = noiDungChuan.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var line in lines)
@@ -1488,13 +1492,11 @@ PRAGMA busy_timeout=15000;
                         grid.Rows[rIdx].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(0, 82, 155);
                     }
                 }
-
                 // --- 6. PANEL CHỨA NÚT ---
                 var panelBottom = new Panel { Dock = DockStyle.Bottom, Height = 65, BackColor = System.Drawing.Color.WhiteSmoke };
-
                 // Nút Copy Token
                 var btnCopy = new Krypton.Toolkit.KryptonButton { Text = "Sao chép Token", Width = 150, Height = 38 };
-                btnCopy.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+                btnCopy.StateCommon.Content.ShortText.Font = _fontBtnBold;
                 btnCopy.StateCommon.Border.Rounding = 5;
                 btnCopy.Click += (s, ev) =>
                 {
@@ -1521,37 +1523,27 @@ PRAGMA busy_timeout=15000;
                     }
                     catch { }
                 };
-
                 var btnClose = new Krypton.Toolkit.KryptonButton { Text = "Đóng", Width = 110, Height = 38, DialogResult = DialogResult.OK };
-                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+                btnClose.StateCommon.Content.ShortText.Font = _fontBtnBold;
                 btnClose.StateCommon.Border.Rounding = 5;
-
                 // Căn giữa 2 nút bấm
                 int totalWidth = btnCopy.Width + 15 + btnClose.Width;
                 int startX = (formAo.Width - totalWidth) / 2;
-
                 btnCopy.Location = new System.Drawing.Point(startX, 13);
                 btnClose.Location = new System.Drawing.Point(startX + btnCopy.Width + 15, 13);
-
                 panelBottom.Controls.Add(btnCopy);
                 panelBottom.Controls.Add(btnClose);
-
                 // --- 7. RÁP LAYER LÊN FORM ---
                 panelContent.Controls.Add(grid);
-
                 formAo.Controls.Add(panelContent);
                 formAo.Controls.Add(separator);
                 formAo.Controls.Add(panelTop);
                 formAo.Controls.Add(panelBottom);
-
                 separator.BringToFront();
                 panelContent.BringToFront();
-
                 formAo.AcceptButton = btnClose;
                 formAo.CancelButton = btnClose;
-
                 formAo.Shown += (s, ev) => grid.ClearSelection();
-
                 formAo.ShowDialog(this);
             }
         }
@@ -2074,7 +2066,7 @@ PRAGMA busy_timeout=15000;
             };
 
             lblTitle.StateCommon.ShortText.Font =
-                new Font("Segoe UI", 10F, FontStyle.Bold);
+                new Font(_fontTitle10Bold.Name, 10F, FontStyle.Bold);
 
             lblTitle.StateCommon.ShortText.Color1 = mauChu;
 
@@ -2120,7 +2112,7 @@ PRAGMA busy_timeout=15000;
                 PaletteDrawBorders.None;
 
             txtContent.StateCommon.Content.Font =
-                new Font("Segoe UI", 10.5F, FontStyle.Regular);
+                new Font(_fontContent105.Name, 10.5F, FontStyle.Regular);
 
             txtContent.StateCommon.Content.Color1 =
                 Color.FromArgb(40, 40, 40);
@@ -2164,7 +2156,7 @@ PRAGMA busy_timeout=15000;
             };
 
             btn.StateCommon.Content.ShortText.Font =
-                new Font("Segoe UI", 9.5F, FontStyle.Bold);
+                new Font(_fontBtnBold.Name, 9.5F, FontStyle.Bold);
 
             btn.StateCommon.Border.Rounding = 6;
 
@@ -2703,10 +2695,10 @@ PRAGMA busy_timeout=15000;
 
                 string[] dsBatBuoc =
                 {
-            "csdl1.bin",
-            "csdl2.bin",
-            "csdl3.bin",
-            "csdl4.bin",
+            "csdl1.db",
+            "csdl2.db",
+            "csdl3.db",
+            "csdl4.db",
             "csdlex.xlsx"
         };
 

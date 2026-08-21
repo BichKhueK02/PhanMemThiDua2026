@@ -1332,7 +1332,7 @@ namespace PhanMemThiDua2026
                 string ext = Path.GetExtension(filePath).ToLower();
                 if (_namHienTaiCache == -1)
                 {
-                    _namHienTaiCache = Module_NamHeThong.LayNamHeThong();
+                    _namHienTaiCache = Module_HeThong.LayNamHeThong();
                 }
 
                 if (ext == ".xlsx")
@@ -1539,7 +1539,7 @@ namespace PhanMemThiDua2026
             string dbPath = _csdl4Path;
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
             {
-                MessageBox.Show("Không tìm thấy CSDL khen thưởng (csdl4.bin)!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy CSDL khen thưởng (csdl4.db)!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -1872,7 +1872,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrWhiteSpace(_csdl4Path) || !File.Exists(_csdl4Path))
             {
-                MessageBox.Show("Không tìm thấy CSDL khen thưởng (csdl4.bin)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Không tìm thấy CSDL khen thưởng (csdl4.db)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -2219,7 +2219,7 @@ namespace PhanMemThiDua2026
                 form49.Show();
                 form49.BringToFront();
                 string tieuDeForm = "Trang Quản lý khen thưởng tập thể năm " +
-                            Module_NamHeThong.LayNamHeThong();
+                            Module_HeThong.LayNamHeThong();
                 // 10. Cập nhật tiêu đề Form cha
                 formCha.CapNhatTieuDe(tieuDeForm);
             }
@@ -2304,7 +2304,7 @@ namespace PhanMemThiDua2026
                         var fChaCheck = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                         if (fChaCheck != null)
                         {
-                            int namHienTai = Module_NamHeThong.LayNamHeThong();
+                            int namHienTai = Module_HeThong.LayNamHeThong();
                             fChaCheck.CapNhatTieuDe($"Trang Quản lý khen thưởng CBCS năm {namHienTai}");
                         }
                     }

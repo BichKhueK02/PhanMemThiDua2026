@@ -293,6 +293,16 @@ namespace PhanMemThiDua2026.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap IconThuMuc {
+            get {
+                object obj = ResourceManager.GetObject("IconThuMuc", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Internet_Search {
             get {
                 object obj = ResourceManager.GetObject("Internet_Search", resourceCulture);

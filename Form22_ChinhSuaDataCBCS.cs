@@ -192,7 +192,7 @@ namespace PhanMemThiDua2026
                 // Dừng toàn bộ việc vẽ lại các thành phần con để nạp dữ liệu 1 lượt
                 SendMessage(this.Handle, WM_SETREDRAW, false, 0);
 
-                var namHienTai = Module_NamHeThong.LayNamHeThong();
+                var namHienTai = Module_HeThong.LayNamHeThong();
                 var namThiDuaTruoc = namHienTai - 1;
                 groupBox1_ThongTinNamCu.Text = $"1. Thông tin thi đua năm cũ (Năm {namThiDuaTruoc})";
                 groupBox2_ThongTinThiDuaKhenThuongNamHienTai.Text = $"2. Thông tin thi đua - khen thưởng năm {namHienTai}";

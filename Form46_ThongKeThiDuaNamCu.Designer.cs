@@ -44,8 +44,9 @@
             tableLayoutPanel4 = new TableLayoutPanel();
             groupBox2 = new GroupBox();
             tableLayoutPanel3 = new TableLayoutPanel();
-            kryptonButton_XuatData = new Krypton.Toolkit.KryptonButton();
+            kryptonButton1_XemKetQuaThiDuaTapThe = new Krypton.Toolkit.KryptonButton();
             kryptonButton_CapNhat = new Krypton.Toolkit.KryptonButton();
+            kryptonButton_XuatData = new Krypton.Toolkit.KryptonButton();
             groupBox3 = new GroupBox();
             tableLayoutPanel6 = new TableLayoutPanel();
             comboBox_ChonCSDLNam = new ComboBox();
@@ -220,12 +221,13 @@
             // 
             // tableLayoutPanel3
             // 
-            tableLayoutPanel3.ColumnCount = 2;
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel3.ColumnCount = 3;
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 41.9254646F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.53416F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
+            tableLayoutPanel3.Controls.Add(kryptonButton1_XemKetQuaThiDuaTapThe, 0, 0);
+            tableLayoutPanel3.Controls.Add(kryptonButton_CapNhat, 2, 0);
             tableLayoutPanel3.Controls.Add(kryptonButton_XuatData, 1, 0);
-            tableLayoutPanel3.Controls.Add(kryptonButton_CapNhat, 0, 0);
             tableLayoutPanel3.Dock = DockStyle.Fill;
             tableLayoutPanel3.Location = new Point(2, 20);
             tableLayoutPanel3.Margin = new Padding(2, 3, 2, 3);
@@ -235,25 +237,25 @@
             tableLayoutPanel3.Size = new Size(644, 50);
             tableLayoutPanel3.TabIndex = 0;
             // 
-            // kryptonButton_XuatData
+            // kryptonButton1_XemKetQuaThiDuaTapThe
             // 
-            kryptonButton_XuatData.Anchor = AnchorStyles.None;
-            kryptonButton_XuatData.Location = new Point(418, 9);
-            kryptonButton_XuatData.Margin = new Padding(2, 3, 2, 3);
-            kryptonButton_XuatData.Name = "kryptonButton_XuatData";
-            kryptonButton_XuatData.Size = new Size(130, 32);
-            kryptonButton_XuatData.StateCommon.Border.Rounding = 4F;
-            kryptonButton_XuatData.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
-            kryptonButton_XuatData.TabIndex = 1;
-            kryptonButton_XuatData.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatData.Values.Image = (Image)resources.GetObject("kryptonButton_XuatData.Values.Image");
-            kryptonButton_XuatData.Values.Text = "Xuất dữ liệu";
-            kryptonButton_XuatData.Click += kryptonButton_XuatData_Click;
+            kryptonButton1_XemKetQuaThiDuaTapThe.Anchor = AnchorStyles.None;
+            kryptonButton1_XemKetQuaThiDuaTapThe.Location = new Point(15, 9);
+            kryptonButton1_XemKetQuaThiDuaTapThe.Margin = new Padding(2, 3, 2, 3);
+            kryptonButton1_XemKetQuaThiDuaTapThe.Name = "kryptonButton1_XemKetQuaThiDuaTapThe";
+            kryptonButton1_XemKetQuaThiDuaTapThe.Size = new Size(239, 32);
+            kryptonButton1_XemKetQuaThiDuaTapThe.StateCommon.Border.Rounding = 4F;
+            kryptonButton1_XemKetQuaThiDuaTapThe.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
+            kryptonButton1_XemKetQuaThiDuaTapThe.TabIndex = 2;
+            kryptonButton1_XemKetQuaThiDuaTapThe.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton1_XemKetQuaThiDuaTapThe.Values.Image = (Image)resources.GetObject("kryptonButton1_XemKetQuaThiDuaTapThe.Values.Image");
+            kryptonButton1_XemKetQuaThiDuaTapThe.Values.Text = "Xem kết quả thi đua tập thể";
+            kryptonButton1_XemKetQuaThiDuaTapThe.Click += kryptonButton1_XemKetQuaThiDuaTapThe_Click;
             // 
             // kryptonButton_CapNhat
             // 
             kryptonButton_CapNhat.Anchor = AnchorStyles.None;
-            kryptonButton_CapNhat.Location = new Point(96, 9);
+            kryptonButton_CapNhat.Location = new Point(471, 9);
             kryptonButton_CapNhat.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_CapNhat.Name = "kryptonButton_CapNhat";
             kryptonButton_CapNhat.Size = new Size(130, 32);
@@ -264,6 +266,21 @@
             kryptonButton_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton_CapNhat.Values.Image");
             kryptonButton_CapNhat.Values.Text = "Làm mới";
             kryptonButton_CapNhat.Click += kryptonButton_CapNhat_Click;
+            // 
+            // kryptonButton_XuatData
+            // 
+            kryptonButton_XuatData.Anchor = AnchorStyles.None;
+            kryptonButton_XuatData.Location = new Point(284, 9);
+            kryptonButton_XuatData.Margin = new Padding(2, 3, 2, 3);
+            kryptonButton_XuatData.Name = "kryptonButton_XuatData";
+            kryptonButton_XuatData.Size = new Size(130, 32);
+            kryptonButton_XuatData.StateCommon.Border.Rounding = 4F;
+            kryptonButton_XuatData.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
+            kryptonButton_XuatData.TabIndex = 1;
+            kryptonButton_XuatData.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton_XuatData.Values.Image = (Image)resources.GetObject("kryptonButton_XuatData.Values.Image");
+            kryptonButton_XuatData.Values.Text = "Xuất dữ liệu";
+            kryptonButton_XuatData.Click += kryptonButton_XuatData_Click;
             // 
             // groupBox3
             // 
@@ -619,5 +636,6 @@
         private ToolStripSeparator toolStripMenuItem2;
         private ToolStripMenuItem huongDanSuDung_ToolStripMenuItem;
         private ToolStripMenuItem huongDan_ToolStripMenuItem;
+        private Krypton.Toolkit.KryptonButton kryptonButton1_XemKetQuaThiDuaTapThe;
     }
 }

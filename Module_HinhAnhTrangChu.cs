@@ -1,5 +1,4 @@
 ﻿using Microsoft.Data.Sqlite;
-
 namespace PhanMemThiDua2026
 {
     public static class Module_HinhAnhTrangChu
@@ -13,7 +12,6 @@ namespace PhanMemThiDua2026
             if (_indexHienTai > 5) _indexHienTai = 1; // Vòng lặp liên tục từ 1 -> 5
             return TrichXuatHinhAnToan(_indexHienTai);
         }
-
         public static Image LayHinhMacDinh()
         {
             return TrichXuatHinhAnToan(1); // Mặc định luôn lấy hình gốc số 1

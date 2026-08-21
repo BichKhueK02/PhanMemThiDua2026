@@ -197,7 +197,7 @@ namespace PhanMemThiDua2026
             string ten = LayTenTieuDoan();
             if (string.IsNullOrWhiteSpace(ten))
                 ten = "ĐƠN VỊ";
-            int nam = Module_NamHeThong.LayNamHeThong();
+            int nam = Module_HeThong.LayNamHeThong();
             this.Text = $"Thống kê phân loại thi đua tập thể - {ten} - Năm {nam}";
         }
         private string LayTenTieuDoan()
@@ -343,7 +343,7 @@ VALUES (1);";
                 char.ToUpperInvariant(tenDonVi[0]) +
                 tenDonVi.Substring(1).ToLowerInvariant();
 
-            int nam = Module_NamHeThong.LayNamHeThong();
+            int nam = Module_HeThong.LayNamHeThong();
 
             string tenFile =
                 $"BẢNG THỐNG KÊ PHÂN LOẠI THI ĐUA TẬP THỂ {tenDonVi} NĂM {nam}_{DateTime.Now:HHmmss}.xlsx";

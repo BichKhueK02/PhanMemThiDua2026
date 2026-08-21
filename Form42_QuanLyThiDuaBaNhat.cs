@@ -16,8 +16,17 @@ namespace PhanMemThiDua2026
 {
     public partial class Form42_QuanLyThiDuaBaNhat : Form
     {
-        // Đường dẫn cơ sở dữ liệu csdl2.bin của hệ thống
+        // Đường dẫn cơ sở dữ liệu csdl2.db của hệ thống
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+        private readonly int _namHeThong = Module_HeThong.LayNamHeThong();
+        // 2 Instance con được gắn cố định vào panelContent của Form55
+        private Form42_QuanLyThiDuaBaNhat? _frm42;
+        private Form44_SoVangBaNhat? _frm44;
+        // Đặt hàm này trong Form55_QuanLyHeThongThiDuaBaNhat.cs
+        private const float RichText_MinFontSize = 7f;
+        private const float RichText_MaxFontSize = 30f;
+        private const float RichText_FontStep = 1f;
+        public bool DaLoadDuLieu { get; private set; }
         private int _tongQuanSoGoc = 0; // Biến lưu trữ tổng số quân để đối chiếu khi tìm kiếm
         private string TenBangSoVangHienTai
         {
@@ -127,14 +136,11 @@ namespace PhanMemThiDua2026
 
                     // ===== THÀNH TÍCH / KHEN THƯỞNG =====
                     (kryptonButton1_ThanhTichTapThe,   "Xem và quản lý bảng thành tích của tập thể đơn vị"),
+                    (kryptonButton1_Thoat,   "Trở về Trang quản lý thi đua"),
 
                     // ===== ĐIỀU CHỈNH GIAO DIỆN =====
                     (kryptonButton2_TangCoChuRichText, "Tăng cỡ chữ"),
-                    (kryptonButton2_GiamCoChuRichText, "Giảm cỡ chữ"),
-
-                    // ===== HỆ THỐNG =====
-                    (kryptonButton1_MoSoVang,          "Mở trang quản lý Sổ vàng"),
-                    (kryptonButton1_Thoat,             "Thoát trang này, trở về trang dữ liệu")
+                    (kryptonButton2_GiamCoChuRichText, "Giảm cỡ chữ")
                 };
 
                 // ========================================================================
@@ -1149,32 +1155,6 @@ namespace PhanMemThiDua2026
                 kryptonButton_LuuDataDeNghi.Refresh();
             }
         }
-        private void kryptonButton1_Thoat_Click(object sender, EventArgs e)
-        {
-            // 1. Tìm Form6 (để hiển thị lên)
-            Form6_XuLyData form6 = Application.OpenForms.OfType<Form6_XuLyData>().FirstOrDefault();
-
-            if (form6 != null)
-            {
-                form6.Show();
-                form6.BringToFront();
-            }
-            else
-            {
-                form6 = new Form6_XuLyData();
-                form6.Show();
-            }
-
-            // 2. Tìm Form2 đang chạy và cập nhật tiêu đề
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha != null)
-            {
-                formCha.CapNhatTieuDe("Trang phân loại thi đua");
-            }
-
-            // 3. Đóng form hiện tại
-            this.Close();
-        }
         // Cờ kiểm soát tiến trình làm mới dữ liệu
         private bool _dangLamMoiCSDL = false;
         private async void kryptonButton_RefershCSDL_Click(object sender, EventArgs e)
@@ -1361,7 +1341,7 @@ namespace PhanMemThiDua2026
         }
         private void toolStripMenuItem_ThoatTrang_Click(object sender, EventArgs e)
         {
-            kryptonButton1_Thoat.PerformClick();
+            //kryptonButton1_Thoat.PerformClick();
         }
         private async void toolStripMenuItem_XoaChonTatCa_Click(object sender, EventArgs e)
         {
@@ -1564,82 +1544,14 @@ namespace PhanMemThiDua2026
         }
         private async void toolStripMenuItem_MoSoVang_Click(object sender, EventArgs e)
         {
-            kryptonButton1_MoSoVang.PerformClick();
-        }
-        private async void kryptonButton1_MoSoVang_Click(object sender, EventArgs e)
-        {
-            // Tùy chọn: Chặn nếu dữ liệu chưa sẵn sàng (giống Form42)
-            // if (!KiemTraDuLieuSanSang("quản lý Sổ vàng Ba Nhất")) return;
-            // 1. Tìm Form cha (Form2_FormCha) đang mở trong bộ nhớ ứng dụng
-            var formCha = Application.OpenForms
-                .OfType<Form2_FormCha>()
-                .FirstOrDefault();
-
-            if (formCha == null) return;
-
-            // 2. Tìm Panel trung gian chứa các Form con (PanelContainer) trên Form cha
-            var panel = formCha.Controls
-                .Find("PanelContainer", true)
-                .FirstOrDefault() as Panel;
-
-            if (panel == null) return;
-
-            // 3. Ẩn tất cả các Form con hiện tại đang hiển thị trong panel để giải phóng vùng nhìn
-            foreach (System.Windows.Forms.Control ctl in panel.Controls)
+            // Tìm Form55 đang bao bọc bên ngoài
+            var form55 = Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
+            if (form55 != null && !form55.IsDisposed)
             {
-                if (ctl is Form frm)
-                    frm.Hide();
+                // Ra lệnh cho Form55 chuyển sang hiển thị Form44 trong panelContent
+                await form55.MoForm44Async();
             }
-
-            // 4. KIỂM TRA: Xem Form44_SoVangBaNhat đã từng được nhúng vào Panel này chưa
-            var form44 = panel.Controls
-                .OfType<Form44_SoVangBaNhat>()
-                .FirstOrDefault();
-
-            // 5. Nếu chưa từng tồn tại -> Khởi tạo và "ép" nó thành Control con
-            if (form44 == null)
-            {
-                form44 = new Form44_SoVangBaNhat
-                {
-                    TopLevel = false, // RẤT QUAN TRỌNG: Loại bỏ tính chất cửa sổ độc lập
-                    FormBorderStyle = FormBorderStyle.None, // Bỏ viền Form
-                    Dock = DockStyle.Fill, // Phóng to lấp đầy Panel
-                    Text = "Quản lý Sổ vàng Ba Nhất"
-                };
-
-                // XỬ LÝ SỰ KIỆN ĐÓNG: Trả lại giao diện làm việc mặc định (Form6)
-                form44.FormClosed += (s, ev) =>
-                {
-                    if (panel.IsDisposed) return;
-
-                    var f6 = panel.Controls
-                        .OfType<Form6_XuLyData>()
-                        .FirstOrDefault();
-
-                    if (f6 != null && !f6.IsDisposed)
-                    {
-                        f6.Dock = DockStyle.Fill;
-                        f6.Show();
-                        f6.BringToFront();
-                    }
-                };
-
-                // Gắn Form44 vào Panel
-                panel.Controls.Add(form44);
-            }
-            // 6. CẬP NHẬT TÊN TRANG TRÊN LABEL1 (Code mới thêm)
-            formCha.Label1.Text = "Sổ vàng thi đua phong trào Ba Nhất";
-            // 6. Hiển thị Form44 lên mặt trên cùng của Panel
-            form44.Show();
-            form44.BringToFront();
-
-            // 7. Gọi hàm tải dữ liệu (Sử dụng hàm đã viết ở phần trước)
-            // Lưu ý: Phải khai báo 'async' ở tên sự kiện Click thì mới dùng được 'await'
-            await form44.LoadDuLieuSoVangBaNhatAsync();
         }
-        private const float RichText_MinFontSize = 7f;
-        private const float RichText_MaxFontSize = 30f;
-        private const float RichText_FontStep = 1f;
         private void ThayDoiCoChuRichText(float delta)
         {
             if (richTextBox1_ThanhTich == null)
@@ -1786,9 +1698,9 @@ namespace PhanMemThiDua2026
                 isLoadShown = true;
                 await Task.Delay(50); // Nhường luồng cho UI vẽ form loading mượt
 
-                
+
                 // TỐI ƯU: ĐỌC VÀ GIẢI MÃ MỘT LẦN VÀO LIST DTO TRÊN LUỒNG BẤT ĐỒNG BỘ
-                
+
                 List<DanhSachGocBaNhatDTO> danhSachGoc = new List<DanhSachGocBaNhatDTO>();
 
                 using (var conn = new SqliteConnection($"Data Source={_csdl2Path}"))
@@ -1974,7 +1886,7 @@ namespace PhanMemThiDua2026
                 return;
             }
 
-            
+
             // 🌟 UX: LUÔN LUÔN MỞ MẶC ĐỊNH LÀ MÀN HÌNH DESKTOP (Cho người dùng tiện)          
             string thuMucMacDinh = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             using var fbd = new FolderBrowserDialog
@@ -1987,7 +1899,7 @@ namespace PhanMemThiDua2026
             };
 
             if (fbd.ShowDialog() != DialogResult.OK) return;
-            string directoryPath = fbd.SelectedPath;          
+            string directoryPath = fbd.SelectedPath;
             // 🌟 THUẬT TOÁN ĐẾM VÀ TỰ ĐỘNG ĐẶT TÊN TỆP THEO ĐÚNG Ý TƯỞNG CỦA BẠN          
             string keyword = "TỜ TRÌNH ĐỀ NGHỊ BIỂU DƯƠNG BA NHẤT THÁNG";
             string[] existingSpecificFiles = Directory.GetFiles(directoryPath, $"*{keyword}*");
@@ -2026,7 +1938,7 @@ namespace PhanMemThiDua2026
                 await Task.Delay(50); // Nhường nhịp cho UI vẽ Form Loading
 
                 await Task.Run(() =>
-                {                
+                {
                     // 1. LẤY DỮ LIỆU TỪ CƠ SỞ DỮ LIỆU (Chạy ngầm)
                     string tenTrungDoan = "", tenTieuDoan = "", diaDiem = "", ngay = "", thang = "", nam = "";
                     int tongSoLoai1 = 0;
@@ -2099,7 +2011,7 @@ namespace PhanMemThiDua2026
                                 }
                             }
                         }
-                    }                
+                    }
                     // 2. XỬ LÝ ĐỔ DỮ LIỆU RA EXCEL (Tôn trọng tuyệt đối Template có sẵn)                    
                     using (var wb = new XLWorkbook(templatePath))
                     {
@@ -2213,6 +2125,41 @@ namespace PhanMemThiDua2026
                 if (isLoadShown) frmLoad.Close();
                 this.Enabled = true;
                 this.Focus();
+            }
+        }
+        private void kryptonButton1_Thoat_Click(object sender, EventArgs e)
+        {
+            // 1. Tìm Form cha (Form2_FormCha)
+            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+            if (formCha == null || formCha.IsDisposed) return;
+
+            // 2. Tìm PanelContainer trên Form cha
+            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
+            if (panel == null || panel.IsDisposed) return;
+
+            // 3. Đóng và dọn sạch cái vỏ Form55 khỏi PanelContainer
+            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
+            if (form55 != null)
+            {
+                panel.Controls.Remove(form55);
+                form55.Close();
+                form55.Dispose();
+            }
+
+            // 4. Tìm Form6_XuLyData và hiển thị lại trên mặt trước
+            var form6 = panel.Controls.OfType<Form6_XuLyData>().FirstOrDefault();
+            if (form6 != null && !form6.IsDisposed)
+            {
+                form6.Dock = DockStyle.Fill;
+                form6.Show();
+                form6.BringToFront();
+            }
+
+            // 5. Cập nhật lại tiêu đề hệ thống
+            formCha.CapNhatTieuDe("Trang phân loại thi đua");
+            if (formCha.Label1 != null)
+            {
+                formCha.Label1.Text = "Trang phân loại thi đua";
             }
         }
     }

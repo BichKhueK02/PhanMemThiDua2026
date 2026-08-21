@@ -92,7 +92,7 @@
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Font = new Font("Segoe UI", 12F);
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Image = (Image)resources.GetObject("toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Image");
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Name = "toolStripMenuItem_QuanLyKhenThuongCBCSNamCu";
-            toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Size = new Size(347, 26);
+            toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Size = new Size(350, 26);
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Text = "1. Quản lý khen thưởng CBCS năm cũ";
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Click += toolStripMenuItem_QuanLyKhenThuongCBCSNamCu_Click;
             // 
@@ -101,7 +101,7 @@
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Font = new Font("Segoe UI", 12F);
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Image = (Image)resources.GetObject("toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Image");
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Name = "toolStripMenuItem_QuanLyKhenThuongTapTheNamCu";
-            toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Size = new Size(347, 26);
+            toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Size = new Size(350, 26);
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Text = "2. Quản lý khen thưởng tập thể năm cũ";
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Click += toolStripMenuItem_QuanLyKhenThuongTapTheNamCu_Click;
             // 

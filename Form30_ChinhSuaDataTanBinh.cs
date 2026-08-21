@@ -4,7 +4,6 @@ namespace PhanMemThiDua2026
 {
     public partial class Form30_ChinhSuaDataTanBinh : Form
     {
-
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4; // Giữ lại vì đường dẫn DB không đổi
         private int _id = -1;               // 👈 Đã xóa readonly
         private string _donVi = "";         // 👈 Đã xóa readonly
@@ -42,7 +41,6 @@ namespace PhanMemThiDua2026
             _donVi = donVi;
             _isViewOnly = isViewOnly;
         }
-
         private void Form30_ChinhSuaDataTanBinh_Load(object sender, EventArgs e)
         {
             TaoDanhSachCombo();

@@ -123,7 +123,7 @@
             comboBox1_ChonThangCanXoaDuLieu.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_ChonThangCanXoaDuLieu.Font = new Font("Segoe UI", 9.792F);
             comboBox1_ChonThangCanXoaDuLieu.FormattingEnabled = true;
-            comboBox1_ChonThangCanXoaDuLieu.Location = new Point(130, 14);
+            comboBox1_ChonThangCanXoaDuLieu.Location = new Point(130, 13);
             comboBox1_ChonThangCanXoaDuLieu.Margin = new Padding(3, 2, 3, 2);
             comboBox1_ChonThangCanXoaDuLieu.Name = "comboBox1_ChonThangCanXoaDuLieu";
             comboBox1_ChonThangCanXoaDuLieu.Size = new Size(295, 25);

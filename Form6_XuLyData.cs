@@ -3611,7 +3611,7 @@ namespace PhanMemThiDua2026
             string dbPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
             {
-                MessageBox.Show("Không tìm thấy csdl2.bin!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy csdl2.db!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -4073,77 +4073,49 @@ namespace PhanMemThiDua2026
         }
         private async void ToolStripMenuItem_QuanLyThiDuaBaNhat_Click(object sender, EventArgs e)
         {
-            // Chỉ cần chặn lại, không cần ép kiểu ẩn nút nữa (vì nút đã tự ẩn từ trước rồi)
+            // 1. Kiểm tra an toàn
             if (!KiemTraDuLieuSanSang("quản lý thi đua Ba Nhất"))
             {
                 return;
             }
 
-            // 1. Tìm Form cha (Form2_FormCha) đang mở trong bộ nhớ ứng dụng
-            var formCha = Application.OpenForms
-                .OfType<Form2_FormCha>()
-                .FirstOrDefault();
-
+            // 2. Tìm Form cha (Form2) và Panel trung gian
+            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
             if (formCha == null) return;
 
-            // 2. Tìm Panel trung gian chứa các Form con (PanelContainer) trên Form cha
-            var panel = formCha.Controls
-                .Find("PanelContainer", true)
-                .FirstOrDefault() as Panel;
-
+            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
             if (panel == null) return;
 
-            // 3. Ẩn tất cả các Form con hiện tại đang hiển thị trong panel để giải phóng vùng nhìn
+            // 3. Ẩn tất cả các Form khác (Ví dụ ẩn Form 6 đi)
             foreach (System.Windows.Forms.Control ctl in panel.Controls)
             {
-                if (ctl is Form frm)
-                    frm.Hide();
+                if (ctl is Form frm) frm.Hide();
             }
 
-            // 4. KIỂM TRA: Xem Form42 đã từng được khởi tạo trong Panel này chưa
-            var form42 = panel.Controls
-                .OfType<Form42_QuanLyThiDuaBaNhat>()
-                .FirstOrDefault();
+            // 4. KIỂM TRA: Xem cái vỏ Form55 đã có trong PanelContainer chưa?
+            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
 
-            // 5. Nếu chưa từng tồn tại -> Khởi tạo mới
-            if (form42 == null)
+            // 5. Nếu chưa có -> Tạo mới Form55 và thả vào PanelContainer
+            if (form55 == null)
             {
-                form42 = new Form42_QuanLyThiDuaBaNhat
+                form55 = new Form55_QuanLyHeThongThiDuaBaNhat
                 {
                     TopLevel = false,
                     FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill,
-                    Text = "Quản lý phong trào thi đua Ba Nhất"
+                    Dock = DockStyle.Fill
                 };
-
-                // XỬ LÝ SỰ KIỆN ĐÓNG
-                form42.FormClosed += (s, ev) =>
-                {
-                    if (panel.IsDisposed) return;
-
-                    var f6 = panel.Controls
-                        .OfType<Form6_XuLyData>()
-                        .FirstOrDefault();
-
-                    if (f6 != null && !f6.IsDisposed)
-                    {
-                        f6.Dock = DockStyle.Fill;
-                        f6.Show();
-                        f6.BringToFront();
-                    }
-                };
-
-                panel.Controls.Add(form42);
+                panel.Controls.Add(form55);
             }
-            // 6. CẬP NHẬT TÊN TRANG TRÊN LABEL1 (Code mới thêm)
-            formCha.Label1.Text = "Quản lý thi đua phong trào Ba Nhất";
-            // 6. Hiển thị Form42 lên màn hình làm việc
-            form42.Show();
-            form42.BringToFront();
 
-            // 7. Đồng bộ và nạp dữ liệu
-            await form42.DongBoDuLieuLoai1SangBaNhatAsync();
-            await form42.LoadDuLieuToanBoDanhSachBaNhatAsync();
+            // 6. Đổi tên tiêu đề lớn của phần mềm
+            formCha.Label1.Text = "Hệ thống quản lý phong trào thi đua Ba Nhất";
+
+            // 7. Kéo cái vỏ Form55 lên trên cùng và hiển thị
+            form55.Show();
+            form55.BringToFront();
+
+            // 8. ⭐ RA LỆNH: Yêu cầu Form55 mở tab Form42 bên trong nó ra và đồng bộ dữ liệu
+            //await form55.MoVaDongBoForm42Async();
         }
         /// <summary>
         /// 

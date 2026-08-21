@@ -68,10 +68,10 @@ namespace PhanMemThiDua2026
 
             var resourceMap = new List<ResourceInfo>
             {
-                new ResourceInfo("cs1.mdf", "cs1", "csdl1.bin"),
-                new ResourceInfo("cs2.mdf", "cs2", "csdl2.bin"),
-                new ResourceInfo("cs3.mdf", "cs3", "csdl3.bin"),
-                new ResourceInfo("cs4.mdf", "cs4", "csdl4.bin"),
+                new ResourceInfo("cs1.mdf", "cs1", "csdl1.db"),
+                new ResourceInfo("cs2.mdf", "cs2", "csdl2.db"),
+                new ResourceInfo("cs3.mdf", "cs3", "csdl3.db"),
+                new ResourceInfo("cs4.mdf", "cs4", "csdl4.db"),
                 new ResourceInfo("csex.mdf", "csex", "csdlex.xlsx")
             };
 
@@ -362,19 +362,24 @@ namespace PhanMemThiDua2026
                 if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
                     return;
 
-                // Quét toàn bộ tệp trong thư mục mục tiêu
                 string[] files = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly);
 
                 foreach (string filePath in files)
                 {
                     FileInfo fi = new FileInfo(filePath);
 
-                    // Kiểm tra: Nếu KHÔNG PHẢI đuôi .db thì tiến hành xóa
-                    if (!fi.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase))
+                    // ⭐ FIX BẢO VỆ SQLITE WAL/SHM:
+                    bool isDbFile = fi.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase) ||
+                                    fi.Extension.Equals(".sqlite", StringComparison.OrdinalIgnoreCase) ||
+                                    fi.Extension.Equals(".db-wal", StringComparison.OrdinalIgnoreCase) ||
+                                    fi.Extension.Equals(".db-shm", StringComparison.OrdinalIgnoreCase);
+
+                    // Nếu KHÔNG PHẢI họ file Database thì mới xóa
+                    if (!isDbFile)
                     {
                         try
                         {
-                            fi.Attributes = FileAttributes.Normal; // Tháo bỏ thuộc tính ReadOnly nếu có
+                            fi.Attributes = FileAttributes.Normal;
                             fi.Delete();
                             Debug.WriteLine($"[ĐÃ XÓA TỆP RÁC]: {fi.Name}");
                         }
@@ -402,7 +407,7 @@ namespace PhanMemThiDua2026
 
             // 2. Cấu hình Database
             string dir2 = Path.GetFullPath(string.IsNullOrWhiteSpace(Module_DanduongGPS.ThuMucCoSoDuLieu) ? Path.Combine(baseDir, "Database") : Module_DanduongGPS.ThuMucCoSoDuLieu);
-            var allowFiles2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "csdl1.bin", "csdl2.bin", "csdl3.bin", "csdl4.bin", "csdlex.xlsx", "NhatKy_LamSach.txt" };
+            var allowFiles2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx", "NhatKy_LamSach.txt" };
             var allowDirs2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Bansaoluu", "CongCuQuanLyCSDL", "HuongDanSuDung", "LuuTruThiDua_LichSu"};
             DonDepVungQuanLy(dir2, allowFiles2, allowDirs2, false, true);
 
@@ -497,12 +502,12 @@ namespace PhanMemThiDua2026
                         // Tối ưu allocation: Gom chuỗi tường minh bằng Interpolation nội bộ
                         Module_NhatKy.GhiNhatKy(
                             taiKhoan: tenTaiKhoan,
-                            hanhDong: "XÓA FILE HỆ THỐNG (AUTO CLEAN)",
-                            ghiChu: $"=== THÔNG TIN XÓA ==={Environment.NewLine}" +
-                                   $"Thư mục xử lý : {currentDir}{Environment.NewLine}" +
+                            hanhDong: "Xóa file hệ thống (Auto Clean)",
+                            ghiChu: $"=== Thông tin xóa file ==={Environment.NewLine}" +
+                                   $"Thư mục xử lý  : {currentDir}{Environment.NewLine}" +
                                    $"Tên tệp        : {fi.Name}{Environment.NewLine}" +
                                    $"Dung lượng     : {FormatSize(kichThuoc)}{Environment.NewLine}" +
-                                   $"Loại thao tác  : Xóa tự động do hệ thống phát hiện file không hợp lệ{Environment.NewLine}" +
+                                   $"Loại hành động : Xóa tự động do hệ thống phát hiện file không hợp lệ{Environment.NewLine}" +
                                    $"Thời gian      : {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
                         );
                     }

@@ -1839,7 +1839,7 @@ namespace PhanMemThiDua2026
             {
                 string phienBan = Module_TaiKhoan.LayPhienBanPhanMem();
                 bool laTanBinh = !string.IsNullOrWhiteSpace(phienBan) && phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-                int namHeThong = Module_NamHeThong.LayNamHeThong();
+                int namHeThong = Module_HeThong.LayNamHeThong();
                 int namCu = namHeThong - 1;
 
                 var headerMap = new Dictionary<string, string>
@@ -3281,7 +3281,7 @@ namespace PhanMemThiDua2026
                 ? new string[] { "ID", "HoVaTen", "SoHieu", "DonVi", "TinhTrang", "Tuan_1_T2", "Tuan_2_T2", "Tuan_3_T2", "Tuan_4_T2", "Thang_2", "Tuan_1_T3", "Tuan_2_T3", "Tuan_3_T3", "Tuan_4_T3", "Thang_3", "Tuan_1_T4", "Tuan_2_T4", "Tuan_3_T4", "Tuan_4_T4", "Thang_4", "Tuan_1_T5", "Tuan_2_T5", "Tuan_3_T5", "Tuan_4_T5", "Thang_5", "Tuan_1_T6", "Tuan_2_T6", "Tuan_3_T6", "Tuan_4_T6", "Thang_6", "TS_Loai1", "TS_Loai2", "TS_Loai3", "TS_Loai4" }
                 : new string[] { "ID", "HoVaTen", "SoHieu", "DonVi", "TinhTrang", "KQ_ThiDua_Nam_Cu", "KQ_XepLoaiCB_Nam_Cu", "KQ_XepLoaiDangVien_Nam_Cu", "Thang_12_Nam_Cu", "Thang_1", "Thang_2", "Thang_3", "Thang_4", "Thang_5", "Sau_Thang_Dau_Nam", "Thang_6", "Thang_7", "Thang_8", "Thang_9", "Thang_10", "Thang_11", "TongKet_Nam", "TS_Loai1", "TS_Loai2", "TS_Loai3", "TS_Loai4" };
 
-            int namCu = Module_NamHeThong.LayNamHeThong() - 1;
+            int namCu = Module_HeThong.LayNamHeThong() - 1;
             var headerMap = new Dictionary<string, string>
             {
                 ["HoVaTen"] = "Họ và tên",
@@ -3837,7 +3837,7 @@ namespace PhanMemThiDua2026
                         var fChaCheck = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                         if (fChaCheck != null)
                         {
-                            int namHienTai = Module_NamHeThong.LayNamHeThong();
+                            int namHienTai = Module_HeThong.LayNamHeThong();
                             fChaCheck.CapNhatTieuDe($"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {namHienTai}");
                         }
                     }

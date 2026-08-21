@@ -126,7 +126,7 @@
             ComboBox2_CauHoi2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             ComboBox2_CauHoi2.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold);
             ComboBox2_CauHoi2.FormattingEnabled = true;
-            ComboBox2_CauHoi2.Location = new Point(100, 8);
+            ComboBox2_CauHoi2.Location = new Point(100, 9);
             ComboBox2_CauHoi2.Name = "ComboBox2_CauHoi2";
             ComboBox2_CauHoi2.Size = new Size(353, 25);
             ComboBox2_CauHoi2.TabIndex = 0;
@@ -136,7 +136,7 @@
             ComboBox1_CauHoi1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             ComboBox1_CauHoi1.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold);
             ComboBox1_CauHoi1.FormattingEnabled = true;
-            ComboBox1_CauHoi1.Location = new Point(100, 8);
+            ComboBox1_CauHoi1.Location = new Point(100, 9);
             ComboBox1_CauHoi1.Name = "ComboBox1_CauHoi1";
             ComboBox1_CauHoi1.Size = new Size(353, 25);
             ComboBox1_CauHoi1.TabIndex = 0;
@@ -620,9 +620,9 @@
             // 
             pictureBox2_AnhDaiDienAdmin.Anchor = AnchorStyles.None;
             pictureBox2_AnhDaiDienAdmin.Image = (Image)resources.GetObject("pictureBox2_AnhDaiDienAdmin.Image");
-            pictureBox2_AnhDaiDienAdmin.Location = new Point(4, 11);
+            pictureBox2_AnhDaiDienAdmin.Location = new Point(4, 3);
             pictureBox2_AnhDaiDienAdmin.Name = "pictureBox2_AnhDaiDienAdmin";
-            pictureBox2_AnhDaiDienAdmin.Size = new Size(113, 74);
+            pictureBox2_AnhDaiDienAdmin.Size = new Size(113, 91);
             pictureBox2_AnhDaiDienAdmin.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox2_AnhDaiDienAdmin.TabIndex = 1;
             pictureBox2_AnhDaiDienAdmin.TabStop = false;

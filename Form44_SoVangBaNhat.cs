@@ -53,7 +53,7 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1.CellMouseClick += kryptonDataGridView1_CellMouseClick;
             // ⭐ THÊM DÒNG NÀY: Đăng ký sự kiện Click vào lưới
             kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
-            this.FormClosed += Form44_SoVangBaNhat_FormClosed; // ⭐ Thêm dòng này
+          //  this.FormClosed += Form44_SoVangBaNhat_FormClosed; // ⭐ Thêm dòng này
             await LoadDuLieuSoVangBaNhatAsync();
             // GỌI Ở ĐÂY: Dữ liệu đã có trong lưới, giờ ta mới trích xuất đơn vị
             CapNhatDanhSachDonVi();
@@ -154,7 +154,7 @@ namespace PhanMemThiDua2026
                     (kryptonButton_RefershCSDL,       "Tải lại toàn bộ dữ liệu mới nhất từ cơ sở dữ liệu và làm mới trang"),
                     (kryptonButton1_XoaCBCS,          "Xóa thông tin cán bộ chiến sĩ đang chọn khỏi danh sách Sổ vàng Ba Nhất"),
                     (kryptonButton_LuuDataSoVang,     "Lưu hoặc cập nhật thông tin dữ liệu Sổ vàng của cán bộ vào cơ sở dữ liệu"),
-                    (kryptonButton1_Thoat,            "Thoát khỏi trang quản lý Sổ vàng và quay trở về giao diện trước đó")
+                    (kryptonButton1_Thoat,            "Trở về Trang quản lý thi đua")
                 };
 
                 // ========================================================================
@@ -456,13 +456,37 @@ namespace PhanMemThiDua2026
         }
         private void kryptonButton1_Thoat_Click(object sender, EventArgs e)
         {
-            // 6. Đóng form hiện tại
-            this.Close();
-            // 2. Tìm Form2 đang chạy và cập nhật tiêu đề
+            // 1. Tìm Form cha (Form2_FormCha)
             var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha != null)
+            if (formCha == null || formCha.IsDisposed) return;
+
+            // 2. Tìm PanelContainer trên Form cha
+            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
+            if (panel == null || panel.IsDisposed) return;
+
+            // 3. Đóng và dọn sạch cái vỏ Form55 khỏi PanelContainer
+            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
+            if (form55 != null)
             {
-                formCha.CapNhatTieuDe("Quản lý phong trào thi đua Ba Nhất");
+                panel.Controls.Remove(form55);
+                form55.Close();
+                form55.Dispose();
+            }
+
+            // 4. Tìm Form6_XuLyData và hiển thị lại trên mặt trước
+            var form6 = panel.Controls.OfType<Form6_XuLyData>().FirstOrDefault();
+            if (form6 != null && !form6.IsDisposed)
+            {
+                form6.Dock = DockStyle.Fill;
+                form6.Show();
+                form6.BringToFront();
+            }
+
+            // 5. Cập nhật lại tiêu đề hệ thống
+            formCha.CapNhatTieuDe("Trang phân loại thi đua");
+            if (formCha.Label1 != null)
+            {
+                formCha.Label1.Text = "Trang phân loại thi đua";
             }
         }
         private async void kryptonButton_LuuDataSoVang_Click(object sender, EventArgs e)
@@ -675,40 +699,40 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1_ThongBao.ForeColor = Color.Red; // Màu đỏ cho nổi bật
             }
         }
-        private async void Form44_SoVangBaNhat_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null) return;
+        //private async void Form44_SoVangBaNhat_FormClosed(object sender, FormClosedEventArgs e)
+        //{
+        //    var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+        //    if (formCha == null) return;
 
-            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-            if (panel == null) return;
+        //    var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
+        //    if (panel == null) return;
 
-            // 1. Ẩn tất cả các Form khác (để tránh chồng lấn)
-            foreach (Control ctl in panel.Controls)
-            {
-                if (ctl is Form frm) frm.Hide();
-            }
+        //    // 1. Ẩn tất cả các Form khác (để tránh chồng lấn)
+        //    foreach (Control ctl in panel.Controls)
+        //    {
+        //        if (ctl is Form frm) frm.Hide();
+        //    }
 
-            // 2. Tìm Form42 (Nếu chưa có thì tạo mới)
-            var form42 = panel.Controls.OfType<Form42_QuanLyThiDuaBaNhat>().FirstOrDefault();
+        //    // 2. Tìm Form42 (Nếu chưa có thì tạo mới)
+        //    var form42 = panel.Controls.OfType<Form42_QuanLyThiDuaBaNhat>().FirstOrDefault();
 
-            if (form42 == null)
-            {
-                form42 = new Form42_QuanLyThiDuaBaNhat
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-                panel.Controls.Add(form42);
-            }
+        //    if (form42 == null)
+        //    {
+        //        form42 = new Form42_QuanLyThiDuaBaNhat
+        //        {
+        //            TopLevel = false,
+        //            FormBorderStyle = FormBorderStyle.None,
+        //            Dock = DockStyle.Fill
+        //        };
+        //        panel.Controls.Add(form42);
+        //    }
 
-            // 3. Hiển thị lại Form42
-            form42.Show();
-            form42.BringToFront();
-            // ⭐ BỔ SUNG DÒNG NÀY: Ra lệnh cho Form42 tải lại lưới dữ liệu để phản ánh ngay lập tức chữ "Đã đề nghị / Chưa đề nghị"
-            await form42.LoadDuLieuToanBoDanhSachBaNhatAsync();
-        }
+        //    // 3. Hiển thị lại Form42
+        //    form42.Show();
+        //    form42.BringToFront();
+        //    // ⭐ BỔ SUNG DÒNG NÀY: Ra lệnh cho Form42 tải lại lưới dữ liệu để phản ánh ngay lập tức chữ "Đã đề nghị / Chưa đề nghị"
+        //    await form42.LoadDuLieuToanBoDanhSachBaNhatAsync();
+        //}
         private void kryptonDataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)

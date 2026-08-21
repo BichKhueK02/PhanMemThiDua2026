@@ -1818,7 +1818,7 @@ namespace PhanMemThiDua2026
                 return;
 
             DateTime now = DateTime.Now;
-            int namHeThong = Module_NamHeThong.LayNamHeThong();
+            int namHeThong = Module_HeThong.LayNamHeThong();
 
             // Khởi tạo 1 lần duy nhất
             if (!isComboBoxInitDone)
@@ -2543,7 +2543,7 @@ WHERE ID = 1", conn);
                 // =========================================================
                 string databaseFolder = Path.Combine(AppContext.BaseDirectory, "Database");
                 Directory.CreateDirectory(databaseFolder);
-                string[] csdlFiles = { "csdl1.bin", "csdl2.bin", "csdl3.bin", "csdl4.bin", "csdlex.xlsx" };
+                string[] csdlFiles = { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx" };
 
                 // Ném toàn bộ tác vụ ổ cứng vào Background Thread để Progress Bar không bị giật
                 await Task.Run(() =>
@@ -2594,7 +2594,7 @@ WHERE ID = 1", conn);
                 await Progress_StepAsync(15);
 
                 // 5. CẬP NHẬT LẠI ĐƯỜNG DẪN HỆ THỐNG
-                string[] fileNames = { "csdl1.bin", "csdl2.bin", "csdl3.bin", "csdl4.bin", "csdlex.xlsx" };
+                string[] fileNames = { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx" };
                 for (int i = 0; i < propNames.Length; i++)
                 {
                     try
@@ -3035,7 +3035,8 @@ PTLoai3=@PTLoai3
                     string tenThuMuc = $"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {thangHT} NĂM {DateTime.Now:yyyy}";
                     string fullThuMuc = Path.Combine(duongDanGoc, tenThuMuc);
                     Directory.CreateDirectory(fullThuMuc);
-
+                    // ⭐ GỌI GÁN ICON CHO THƯ MỤC THÁNG VỪA SINH RA
+                    Module_HeThong.GanIconThuMuc(fullThuMuc);
                     int sttFile = Directory.GetFiles(fullThuMuc, "*.xlsx").Length + 1;
                     string fileName = $"{sttFile}. DANH SÁCH TẤT CẢ PHÂN LOẠI - {DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
                     string fileXuat = Path.Combine(fullThuMuc, fileName);
@@ -3453,7 +3454,7 @@ PTLoai3=@PTLoai3
                 };
 
                 if (fbd.ShowDialog() != DialogResult.OK)
-                    return;   // Cancel → thoát luôn
+                    return;
 
                 string duongDanMoi = fbd.SelectedPath;
 
@@ -3462,6 +3463,8 @@ PTLoai3=@PTLoai3
                     Module_ThongBao.DangXuLy("Thư mục không hợp lệ.");
                     return;
                 }
+
+                // KHÔNG GÁN ICON Ở ĐÂY để giữ nguyên thư mục gốc của người dùng
 
                 using var conn = new SqliteConnection($"Data Source={csdl2Path}");
                 conn.Open();

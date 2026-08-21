@@ -173,10 +173,10 @@ namespace PhanMemThiDua2026
 
             await Module_KhoiTaoCSDL.BinhMinhOSantoriniAsync();
 
-            DuongDanCSDL1 = ConDuongToLua("csdl1.bin");
-            DuongDanCSDL2 = ConDuongToLua("csdl2.bin");
-            DuongDanCSDL3 = ConDuongToLua("csdl3.bin");
-            DuongDanCSDL4 = ConDuongToLua("csdl4.bin");
+            DuongDanCSDL1 = ConDuongToLua("csdl1.db");
+            DuongDanCSDL2 = ConDuongToLua("csdl2.db");
+            DuongDanCSDL3 = ConDuongToLua("csdl3.db");
+            DuongDanCSDL4 = ConDuongToLua("csdl4.db");
             DuongDanCSDL4ex = ConDuongToLua("csdlex.xlsx");
 
             DamBaoThuMucHuongDan();

@@ -294,43 +294,69 @@ namespace PhanMemThiDua2026
 
         // =======================================================================
         // 3 HÀM LƯU TRỮ ĐƯỢC CẬP NHẬT GỌN GÀNG VÀ CHUẨN XÁC
-        // =======================================================================
         public static string LuuTruDuLieuThiDuaNam()
         {
-            int nam = Module_NamHeThong.LayNamHeThong();
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-            string tableName = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
-            string fileName = $"ThiDua_{(laTanBinh ? "TanBinh" : "CBCS")}_Nam{nam}.db";
+            int nam = Module_HeThong.LayNamHeThong();
 
+            bool laTanBinh = Module_TaiKhoan
+                .LayPhienBanPhanMem()
+                .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+
+            string sourcePath = Module_DanduongGPS.DuongDanCSDL4;
             string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
+
+            string fileName = $"ThiDua_{(laTanBinh ? "TanBinh" : "CBCS")}_Nam{nam}.db";
             string targetPath = Path.Combine(thuMucLuu, fileName);
 
-            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
-                throw new FileNotFoundException("Không tìm thấy cơ sở dữ liệu nguồn.");
+            // Kiểm tra CSDL nguồn
+            if (!File.Exists(sourcePath))
+                throw new FileNotFoundException(
+                    "Không tìm thấy cơ sở dữ liệu nguồn (CSDL4).",
+                    sourcePath);
 
+            // Đảm bảo thư mục lưu trữ tồn tại
             Directory.CreateDirectory(thuMucLuu);
+
+            // Không ghi đè dữ liệu lưu trữ cũ
             if (File.Exists(targetPath))
-                throw new InvalidOperationException($"Dữ liệu lưu trữ năm {nam} đã tồn tại.");
+                throw new InvalidOperationException(
+                    $"Dữ liệu lưu trữ năm {nam} đã tồn tại.");
+
+            string[] tablesToBackup = laTanBinh
+                ? new[] { "ThiDuaThang_TanBinh" }
+                : new[] { "ThiDuaThang", "ThongKe_PhanLoaiTapThe" };
 
             try
             {
-                SaoChepBangVaDuLieuChuanXac(Module_DanduongGPS.DuongDanCSDL4, targetPath, new[] { tableName });
+                SaoChepBangVaDuLieuChuanXac(
+                    sourcePath,
+                    targetPath,
+                    tablesToBackup);
+
+                return targetPath;
             }
             catch
             {
-                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
+                // Xóa file dở dang nếu quá trình sao lưu thất bại
+                try
+                {
+                    if (File.Exists(targetPath))
+                        File.Delete(targetPath);
+                }
+                catch
+                {
+                    // Không che mất exception gốc.
+                }
+
                 throw;
             }
-
-            return targetPath;
         }
-
         public static string LuuTruDuLieuKhenThuongTapTheNam()
         {
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)) return string.Empty;
 
-            int nam = Module_NamHeThong.LayNamHeThong();
+            int nam = Module_HeThong.LayNamHeThong();
             string tableName = "ThongKe_KhenThuongTapThe";
             string fileName = $"KhenThuongTapThe_Nam{nam}.db";
 
@@ -362,7 +388,7 @@ namespace PhanMemThiDua2026
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)) return string.Empty;
 
-            int nam = Module_NamHeThong.LayNamHeThong();
+            int nam = Module_HeThong.LayNamHeThong();
             string fileName = $"KhenThuong_CBCS_Nam{nam}.db";
             string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
             string targetPath = Path.Combine(thuMucLuu, fileName);

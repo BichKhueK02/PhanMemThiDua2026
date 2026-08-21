@@ -1,5 +1,4 @@
 ﻿using Microsoft.Data.Sqlite;
-
 namespace PhanMemThiDua2026
 {
     // =========================================================
@@ -19,7 +18,6 @@ namespace PhanMemThiDua2026
         }
         public override string ToString() => Text;
     }
-
     // MODULE THÔNG BÁO (STATIC – DÙNG TOÀN HỆ THỐNG)
     internal static class Module_ThongBao
     {

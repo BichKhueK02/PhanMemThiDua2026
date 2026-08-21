@@ -1,7 +1,6 @@
 ﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form1 : Form
@@ -48,7 +47,7 @@ namespace PhanMemThiDua2026
             try
             {
                 // 1. Tối ưu UI thuần túy: Gán text nhanh
-                label3_HienThiTenPhanMem.Text = "Phần mềm phân loại thi đua năm " + Module_NamHeThong.LayNamHeThong();
+                label3_HienThiTenPhanMem.Text = "Phần mềm phân loại thi đua năm " + Module_HeThong.LayNamHeThong();
                 text_MatKhau.UseSystemPasswordChar = true;
 
                 // Căn giữa màn hình (Nên set StartPosition = CenterScreen ở file Designer, nếu chưa set thì dùng code này)

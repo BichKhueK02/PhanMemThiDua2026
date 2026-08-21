@@ -10,7 +10,7 @@ namespace PhanMemThiDua2026
     {
         // CACHE CẤU HÌNH TĨNH CỦA FORM
         private readonly int _namHeThong =
-            Module_NamHeThong.LayNamHeThong();
+            Module_HeThong.LayNamHeThong();
         // Khóa chuyển Form:
         // - chống click nhanh tạo nhiều luồng chuyển Form
         // - tránh Dispose Form đang được ReloadData()

@@ -29,6 +29,12 @@ namespace PhanMemThiDua2026
         private readonly Image _iconDelete = Properties.Resources.ic_delete;
         private readonly Image _iconWarning = Properties.Resources.ic_warning;
         private readonly Image _iconDefault = Properties.Resources.ic_default;
+
+        // 🔥 BIẾN CACHE FONT TĨNH (Tối ưu RAM & Handle GDI+, dùng chung biến tên Font từ Module_HeThong)
+        private static readonly Font _fontGridHeader = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
+        private static readonly Font _fontGridCell = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
+        private static readonly Font _fontStatus = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
+
         // Đổi các biến toàn cục DataTable thành List
         private List<NhatKyModel> _listFull = new List<NhatKyModel>();
         private List<NhatKyModel> _listFiltered = new List<NhatKyModel>();
@@ -588,9 +594,9 @@ namespace PhanMemThiDua2026
             {
                 kDgv.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
                 kDgv.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
-                kDgv.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+                kDgv.StateCommon.HeaderColumn.Content.Font = _fontGridHeader;
                 kDgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                kDgv.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+                kDgv.StateCommon.DataCell.Content.Font = _fontGridCell;
                 kDgv.StateCommon.DataCell.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
                 // ⭐ BẬT VẼ VIỀN (BORDER) VÀ SET MÀU XÁM NHẠT
                 kDgv.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
@@ -618,36 +624,121 @@ namespace PhanMemThiDua2026
         }
         private void TaoCot(DataGridView dgv)
         {
-            AddCol(dgv, "ID", "STT", 5);
-            AddCol(dgv, "ThoiGian", "Thời gian", 14);
-            AddCol(dgv, "TenMay", "Tên máy", 12);
-            AddCol(dgv, "IP", "IP Address", 10);
-            AddCol(dgv, "ID_CPU", "ID My Computer", 18);
-            AddCol(dgv, "TaiKhoan", "Tài khoản", 12);
+            if (dgv == null || dgv.IsDisposed)
+                return;
 
-            AddCol(dgv, "HanhDong", "Hành động", 15, DataGridViewContentAlignment.MiddleLeft);
-            AddCol(dgv, "GhiChu", "Ghi chú", 24, DataGridViewContentAlignment.MiddleLeft);
+            // ============================================================
+            // 1. TẠO CÁC CỘT
+            // ============================================================
+            AddCol(dgv, "ID", "STT", 65);
 
+            AddCol(
+                dgv,
+                "ThoiGian",
+                "Thời gian",
+                12);
+
+            AddCol(
+                dgv,
+                "TenMay",
+                "Tên máy",
+                12);
+
+            AddCol(
+                dgv,
+                "IP",
+                "IP Address",
+                10);
+
+            AddCol(
+                dgv,
+                "ID_CPU",
+                "ID My Computer",
+                18);
+
+            AddCol(
+                dgv,
+                "TaiKhoan",
+                "Tài khoản",
+                12);
+
+            AddCol(
+                dgv,
+                "HanhDong",
+                "Hành động",
+                17,
+                DataGridViewContentAlignment.MiddleLeft);
+
+            AddCol(
+                dgv,
+                "GhiChu",
+                "Ghi chú",
+                24,
+                DataGridViewContentAlignment.MiddleLeft);
+
+            // ============================================================
+            // 2. CỘT PHỤ DÙNG CHO LOGIC / ICON
+            // ============================================================
             var colIcon = new DataGridViewTextBoxColumn
             {
                 Name = "IconType",
                 HeaderText = "IconType",
-                Visible = false
+                Visible = false,
+                ReadOnly = true,
+                SortMode = DataGridViewColumnSortMode.NotSortable
             };
+
             dgv.Columns.Add(colIcon);
 
+            // ============================================================
+            // 3. CẤU HÌNH KÍCH THƯỚC
+            // ============================================================
             foreach (DataGridViewColumn col in dgv.Columns)
             {
-                if (col.Name == "ID")
-                {
-                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                    col.Width = 50; // Chốt độ rộng STT
-                }
-                else if (col.Visible)
-                {
-                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                }
+                if (!col.Visible)
+                    continue;
+
+                // Không cho DataGridView tự đo nội dung.
+                // Tránh AutoSize gây tốn CPU khi có nhiều dòng.
+                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             }
+
+            // ============================================================
+            // 4. CỘT STT: KÍCH THƯỚC CỐ ĐỊNH
+            // ============================================================
+            if (dgv.Columns["ID"] is DataGridViewColumn colID)
+            {
+                colID.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                colID.Width = 65;
+                colID.MinimumWidth = 65;
+                colID.Resizable = DataGridViewTriState.False;
+            }
+
+            // ============================================================
+            // 5. GIỚI HẠN ĐỘ RỘNG MỘT SỐ CỘT
+            // ============================================================
+            DatagridSetWidth(dgv, "ThoiGian", 120, 180);
+            DatagridSetWidth(dgv, "TenMay", 100, 180);
+            DatagridSetWidth(dgv, "IP", 100, 160);
+            DatagridSetWidth(dgv, "ID_CPU", 140, 260);
+            DatagridSetWidth(dgv, "TaiKhoan", 100, 180);
+            DatagridSetWidth(dgv, "HanhDong", 140, 280);
+            DatagridSetWidth(dgv, "GhiChu", 180, 400);
+        }
+        private static void DatagridSetWidth(
+    DataGridView dgv,
+    string columnName,
+    int minimumWidth,
+    int maximumWidth)
+        {
+            if (dgv.Columns[columnName] is not DataGridViewColumn col)
+                return;
+
+            col.MinimumWidth = minimumWidth;
+            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            // FillWeight kiểm soát tỷ lệ chiếm không gian.
+            col.FillWeight = Math.Max(1, maximumWidth);
         }
         private void AddCol(
             DataGridView dgv,
@@ -1407,7 +1498,7 @@ namespace PhanMemThiDua2026
 
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
             {
-                MessageBox.Show("Không tìm thấy csdl3.bin!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy csdl3.db!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -1605,7 +1696,7 @@ namespace PhanMemThiDua2026
             }
 
             // 3. FONT CHUẨN (Gán lại font an toàn, tránh lỗi Dispose ngầm)
-            toolStripStatusLabel3.Font = new Font("Segoe UI", 9F);
+            toolStripStatusLabel3.Font = _fontStatus;
             toolStripStatusLabel3.TextAlign = ContentAlignment.MiddleRight;
 
             // 4. ÉP UI TÍNH TOÁN VÀ VẼ LẠI NGAY LẬP TỨC

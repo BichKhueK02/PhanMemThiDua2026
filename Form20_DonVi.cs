@@ -16,7 +16,6 @@ namespace PhanMemThiDua2026
             InitializeComponent();
             Load += Form20_DonVi_Load;
             kryptonDataGridView1_DanhSach_DonVi.CellClick += kryptonDataGridView1_DanhSach_DonVi_CellClick;
-
             // Đăng ký sự kiện tự vẽ giao diện cho ô
             kryptonDataGridView1_DanhSach_DonVi.CellPainting += kryptonDataGridView1_DanhSach_DonVi_CellPainting;
             InitToolTips();
@@ -30,7 +29,6 @@ namespace PhanMemThiDua2026
             // ⭐ BỔ SUNG UX: Đổi tên Form để Admin khỏi bị nhầm lẫn
             bool laTanBinh = Module_DonVi.LayTenBangDonVi().Contains("TanBinh");
             this.Text = laTanBinh ? "Quản lý Danh sách Đơn vị (Dành cho Tân Binh)" : "Quản lý Danh sách Đơn vị";
-
             TaoBangNeuChuaCo();
             LoadDanhSachDonVi();
             ResetInput();
@@ -42,7 +40,6 @@ namespace PhanMemThiDua2026
             toolTip1.IsBalloon = true;
             toolTip1.ToolTipTitle = "Gợi ý thao tác";
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
-
             var tips = new Dictionary<Control, string>
             {
                 { kryptonButton1_Them, "Thêm đơn vị mới" },

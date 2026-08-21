@@ -965,7 +965,8 @@ namespace PhanMemThiDua2026
             dgv.EnableHeadersVisualStyles = false;
             dgv.ScrollBars = ScrollBars.Both;
             dgv.BorderStyle = BorderStyle.None;
-
+            // ⭐ THÊM DÒNG NÀY ĐỂ CÁC CỘT TỰ ĐỘNG DÃN ĐẦY BỀ NGANG
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             // --- THÊM CÁC THUỘC TÍNH KHÓA CỘT TẠI ĐÂY ---
             dgv.AllowUserToOrderColumns = false;  // Khóa: Không cho kéo thả đổi vị trí cột
             dgv.AllowUserToResizeColumns = false; // Khóa: Không cho kéo giãn thay đổi độ rộng cột
@@ -1002,7 +1003,7 @@ namespace PhanMemThiDua2026
 
             var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
             string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
-                            Module_NamHeThong.LayNamHeThong();
+                            Module_HeThong.LayNamHeThong();
             if (formCha != null) { formCha.CapNhatTieuDe(tieuDeForm); }
             this.Close();
         }
