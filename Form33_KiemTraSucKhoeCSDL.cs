@@ -22,10 +22,7 @@ namespace PhanMemThiDua2026
         private readonly string[] _tenFilePhu = { "Thư mục Công Cụ", "Tệp nhúng (EX)", "Thư mục (Hướng dẫn SD)" };
         private readonly string[] _pathCSDL;
         private readonly string[] _pathsFilePhu;
-
-
-        public static readonly string ThuMucCoSoDuLieu =
-        Path.Combine(
+        public static readonly string ThuMucCoSoDuLieu = Path.Combine(
             AppContext.BaseDirectory,
             "Database",
             "HuongDanSuDung");
@@ -33,6 +30,15 @@ namespace PhanMemThiDua2026
         private readonly ConcurrentDictionary<string, string> _cacheDungLuongOTrang = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Image _iconSafe = Properties.Resources._true;
         private readonly Image _iconWarning = Properties.Resources._false;
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontGridHeader9Bold = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
+        private static readonly Font _fontGridCell9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
+        private static readonly Font _fontFormAoTitle12Bold = new Font(Module_HeThong.TenFontHeThong, 12F, FontStyle.Bold);
+        private static readonly Font _fontFormAoMoTa105 = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular);
+        private static readonly Font _fontFormAoGrid10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
+        private static readonly Font _fontFormAoGrid10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
+        private static readonly Font _fontBtn95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
+        private static readonly Font _fontErrorContent10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         public Form33_KiemTraSucKhoeCSDL()
         {
             InitializeComponent();
@@ -109,7 +115,6 @@ namespace PhanMemThiDua2026
                 // Control đang ở trạng thái không phù hợp.
             }
         }
-
         private void InitToolTips()
         {
             // ============================================================
@@ -201,6 +206,108 @@ namespace PhanMemThiDua2026
             }
             e.Handled = true;
         }
+     
+        private void UpdateStatusKetLuan(int mucDoLoi)
+        {
+            if (mucDoLoi == 2) { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Lỗi nghiêm trọng CSDL!"; toolStripStatusLabel1_KetLuan.ForeColor = Color.Red; }
+            else if (mucDoLoi == 1) { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Có tệp phụ cần kiểm tra"; toolStripStatusLabel1_KetLuan.ForeColor = Color.OrangeRed; }
+            else { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Hệ thống Sẵn sàng (Tốt)"; toolStripStatusLabel1_KetLuan.ForeColor = Color.Green; }
+        }
+        private async void Form33_KiemTraSucKhoeCSDL_Shown(object sender, EventArgs e) => await RunCheckAsync();
+        private int _dangCapNhat = 0; // Cờ khóa re-entry
+        private CancellationTokenSource? _capNhatCts; // Quản lý hủy tác vụ
+
+        private async void kryptonButton1_CapNhat_Click(object sender, EventArgs e)
+        {
+            // 1. CHỐNG DOUBLE CLICK / RE-ENTRY BẰNG ATOMIC OPERATION
+            if (Interlocked.Exchange(ref _dangCapNhat, 1) == 1)
+                return;
+
+            // 2. KHỞI TẠO TOKEN MỚI
+            _capNhatCts = new CancellationTokenSource();
+            CancellationToken token = _capNhatCts.Token;
+
+            Form_Loading? frmLoad = null;
+
+            // 3. LƯU GIAO DIỆN GỐC ĐỂ KHÔI PHỤC
+            string textGoc = kryptonButton1_CapNhat.Values.Text;
+            Image? imageGoc = kryptonButton1_CapNhat.Values.Image;
+
+            try
+            {
+                // 4. KIỂM TRA FORM AN TOÀN
+                if (IsDisposed || !IsHandleCreated)
+                    return;
+
+                // 5. THIẾT LẬP TRẠNG THÁI UI
+                kryptonButton1_CapNhat.Enabled = false;
+                kryptonButton1_CapNhat.Values.Text = "Đang cập nhật...";
+                kryptonButton1_CapNhat.Values.Image = null;
+                // Xóa lưới an toàn
+                kryptonDataGridView1.DataSource = null;
+                kryptonDataGridView2.DataSource = null;
+                // 6. HIỂN THỊ LOADING VÀ NHƯỜNG NHỊP RENDER (YIELD)
+                frmLoad = new Form_Loading("Đang cập nhật hệ thống, vui lòng đợi...");
+                frmLoad.Show(this);
+                await Task.Yield();
+                token.ThrowIfCancellationRequested();
+                // 7. THỰC THI TÁC VỤ CHÍNH (Nhớ sửa hàm RunCheckAsync để nhận token)
+                await RunCheckAsync(); // <--- Bắt buộc truyền token vào đây để có thể hủy ngầm
+                // 8. KIỂM TRA FORM LẠI SAU KHI TIẾN TRÌNH AWAIT TRẢ VỀ
+                if (IsDisposed || !IsHandleCreated)
+                    return;
+
+                token.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
+                // Xử lý im lặng khi tác vụ bị hủy
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Đã xảy ra lỗi trong quá trình cập nhật:\n\n{ex.Message}",
+                    "Lỗi Cập Nhật",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // 9. DỌN DẸP FORM LOADING
+                try
+                {
+                    if (frmLoad != null && !frmLoad.IsDisposed)
+                    {
+                        frmLoad.Close();
+                        frmLoad.Dispose();
+                    }
+                }
+                catch { }
+
+                // 10. KHÔI PHỤC UI
+                try
+                {
+                    if (!IsDisposed && IsHandleCreated)
+                    {
+                        kryptonButton1_CapNhat.Values.Text = textGoc;
+                        kryptonButton1_CapNhat.Values.Image = imageGoc;
+                        kryptonButton1_CapNhat.Enabled = true;
+                    }
+                }
+                catch { }
+
+                // 11. DỌN DẸP TOKEN SẠCH SẼ TẠI ĐÂY (CHUẨN KỸ SƯ)
+                try
+                {
+                    _capNhatCts?.Dispose();
+                    _capNhatCts = null;
+                }
+                catch { }
+
+                // 12. MỞ KHÓA LUỒNG CHO LẦN SAU
+                Interlocked.Exchange(ref _dangCapNhat, 0);
+            }
+        }
         private async Task RunCheckAsync()
         {
             if (this.IsDisposed) return;
@@ -269,21 +376,6 @@ namespace PhanMemThiDua2026
             }
             finally { if (!this.IsDisposed) StopProgressBar(); }
         }
-        private void UpdateStatusKetLuan(int mucDoLoi)
-        {
-            if (mucDoLoi == 2) { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Lỗi nghiêm trọng CSDL!"; toolStripStatusLabel1_KetLuan.ForeColor = Color.Red; }
-            else if (mucDoLoi == 1) { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Có tệp phụ cần kiểm tra"; toolStripStatusLabel1_KetLuan.ForeColor = Color.OrangeRed; }
-            else { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Hệ thống Sẵn sàng (Tốt)"; toolStripStatusLabel1_KetLuan.ForeColor = Color.Green; }
-        }
-        private async void Form33_KiemTraSucKhoeCSDL_Shown(object sender, EventArgs e) => await RunCheckAsync();
-        private async void kryptonButton1_CapNhat_Click(object sender, EventArgs e)
-        {
-            kryptonButton1_CapNhat.Enabled = false;
-            kryptonDataGridView1.DataSource = null;
-            kryptonDataGridView2.DataSource = null;
-            await RunCheckAsync();
-            kryptonButton1_CapNhat.Enabled = true;
-        }
         private void StartProgressBar()
         {
             if (toolStripProgressBar1 == null) return;
@@ -349,7 +441,7 @@ namespace PhanMemThiDua2026
             headerStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             headerStyle.BackColor = Color.White;
             headerStyle.ForeColor = Color.Black;
-            headerStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+            headerStyle.Font = _fontGridHeader9Bold;
             headerStyle.WrapMode = DataGridViewTriState.True;
             headerStyle.Padding = new Padding(4, 6, 4, 6);
 
@@ -357,7 +449,7 @@ namespace PhanMemThiDua2026
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
 
-            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+            dgv.DefaultCellStyle.Font = _fontGridCell9;
             dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(210, 230, 250);
             dgv.DefaultCellStyle.SelectionForeColor = Color.FromArgb(44, 62, 80);
             dgv.DefaultCellStyle.Padding = new Padding(3, 0, 3, 0);
@@ -692,7 +784,7 @@ namespace PhanMemThiDua2026
                 panelTop.StateCommon.Color1 = System.Drawing.Color.White;
 
                 var lblTitle = new Krypton.Toolkit.KryptonLabel { Text = tieuDe.ToUpper(), Dock = DockStyle.Fill, AutoSize = false };
-                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+                lblTitle.StateCommon.ShortText.Font = _fontFormAoTitle12Bold;
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(0, 82, 155);
                 panelTop.Controls.Add(lblTitle);
 
@@ -708,7 +800,7 @@ namespace PhanMemThiDua2026
                     AutoSize = true,
                     Margin = new Padding(0, 0, 0, 10)
                 };
-                lblMoTa.StateCommon.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Regular);
+                lblMoTa.StateCommon.Font = _fontFormAoMoTa105;
                 lblMoTa.StateCommon.TextColor = System.Drawing.Color.FromArgb(50, 50, 50);
 
                 // Tạo Grid siêu mượt
@@ -729,14 +821,14 @@ namespace PhanMemThiDua2026
                 };
 
                 grid.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
-                grid.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular);
-                grid.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+                grid.StateCommon.DataCell.Content.Font = _fontFormAoGrid10;
+                grid.StateCommon.HeaderColumn.Content.Font = _fontFormAoGrid10Bold;
 
                 grid.Columns.Add("Cot1", "Hạng mục kiểm tra");
                 grid.Columns.Add("Cot2", "Giá trị / Trạng thái");
                 grid.Columns[0].FillWeight = 50;
                 grid.Columns[1].FillWeight = 50;
-                grid.Columns[0].DefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+                grid.Columns[0].DefaultCellStyle.Font = _fontFormAoGrid10Bold;
 
                 // --- BỘ NÃO PHÂN TÍCH CHUỖI VÀ TÔ MÀU ---
                 string[] lines = duLieuRaw.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
@@ -759,12 +851,12 @@ namespace PhanMemThiDua2026
                         if (valLow.Contains("tối ưu") || valLow.Contains("bật (an toàn") || valLow.Contains("full - đảm bảo"))
                         {
                             cellVal.Style.ForeColor = System.Drawing.Color.FromArgb(34, 139, 34); // Xanh lá đậm
-                            cellVal.Style.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+                            cellVal.Style.Font = _fontFormAoGrid10Bold;
                         }
                         else if (valLow.Contains("khuyến nghị") || valLow.Contains("nguy cơ") || valLow.Contains("thủ công"))
                         {
                             cellVal.Style.ForeColor = System.Drawing.Color.FromArgb(211, 47, 47); // Đỏ đô
-                            cellVal.Style.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+                            cellVal.Style.Font = _fontFormAoGrid10Bold;
                         }
                         else
                         {
@@ -1062,12 +1154,23 @@ namespace PhanMemThiDua2026
 
             base.OnFormClosing(e);
         }
-        private void kryptonButton1_CauhinhCSDL_Click(
-       object sender,
-       EventArgs e)
+        private async void kryptonButton1_CauhinhCSDL_Click(object sender, EventArgs e)
         {
+            // 1. LƯU LẠI GIAO DIỆN GỐC CỦA NÚT
+            string textGoc = kryptonButton1_CauhinhCSDL.Values.Text;
+            Image? imageGoc = kryptonButton1_CauhinhCSDL.Values.Image;
+
             try
             {
+                // 2. KHÓA NÚT VÀ CẬP NHẬT TRẠNG THÁI "ĐANG XỬ LÝ"
+                kryptonButton1_CauhinhCSDL.Enabled = false;
+                kryptonButton1_CauhinhCSDL.Values.Text = "Đang xử lý...";
+                kryptonButton1_CauhinhCSDL.Values.Image = null;
+
+                // Nhường nhịp luồng UI một chút để Windows kịp vẽ lại tên nút
+                await Task.Delay(50);
+
+                // 3. THỰC THI TÁC VỤ MỞ FORM
                 FormManager.OpenOrBringToFront<Form8_CauHinhCSDL>(this);
             }
             catch (Exception ex)
@@ -1076,6 +1179,16 @@ namespace PhanMemThiDua2026
                     this,
                     "KHÔNG THỂ MỞ CẤU HÌNH CSDL",
                     ex.Message);
+            }
+            finally
+            {
+                // 4. KHÔI PHỤC LẠI NÚT NHƯ CŨ KHI MỞ FORM XONG HOẶC GẶP LỖI
+                if (!IsDisposed && IsHandleCreated)
+                {
+                    kryptonButton1_CauhinhCSDL.Values.Text = textGoc;
+                    kryptonButton1_CauhinhCSDL.Values.Image = imageGoc;
+                    kryptonButton1_CauhinhCSDL.Enabled = true;
+                }
             }
         }
         public static void HienThiFormAo_Loi(
@@ -1106,25 +1219,17 @@ namespace PhanMemThiDua2026
                     Text = tieuDe
                 };
 
-                lblTitle.StateCommon.ShortText.Font =
-                    new Font("Segoe UI", 12F, FontStyle.Bold);
+                lblTitle.StateCommon.ShortText.Font = _fontFormAoTitle12Bold;
 
-                lblTitle.StateCommon.ShortText.Color1 =
-                    Color.FromArgb(198, 40, 40);
-
+                lblTitle.StateCommon.ShortText.Color1 = Color.FromArgb(198, 40, 40);
                 KryptonRichTextBox txt = new()
                 {
                     Dock = DockStyle.Fill,
                     ReadOnly = true,
                     Text = noiDung
                 };
-
-                txt.StateCommon.Border.Draw =
-                    InheritBool.False;
-
-                txt.StateCommon.Content.Font =
-                    new Font("Segoe UI", 10F);
-
+                txt.StateCommon.Border.Draw = InheritBool.False;
+                txt.StateCommon.Content.Font = _fontFormAoGrid10;
                 KryptonButton btn = new()
                 {
                     Text = "Đóng",
@@ -1135,9 +1240,7 @@ namespace PhanMemThiDua2026
                 btn.Location = new Point(
                     (frm.ClientSize.Width - btn.Width) / 2,
                     240);
-
                 btn.Click += (_, _) => frm.Close();
-
                 panel.Controls.Add(txt);
                 panel.Controls.Add(lblTitle);
                 panel.Controls.Add(btn);
@@ -1159,73 +1262,270 @@ namespace PhanMemThiDua2026
             // Thêm sự kiện để có thể thay hành động đúp chuột vào DataGridView
             KryptonDataGridView1_CellDoubleClick(sender, new DataGridViewCellEventArgs(0, 0));
         }
-
-        private void kryptonButton1_KiemTraTaiNguyenLoi_Click(object sender, EventArgs e)
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontTitle115Bold = new Font(Module_HeThong.TenFontHeThong, 11.5F, FontStyle.Bold);
+        private static readonly Font _fontGrid10Regular = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
+        private static readonly Font _fontGrid10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
+        private async void kryptonButton1_KiemTraTaiNguyenLoi_Click(object sender, EventArgs e)
         {
+            string textGoc = kryptonButton1_KiemTraTaiNguyenLoi.Values.Text;
+            Image? imageGoc = kryptonButton1_KiemTraTaiNguyenLoi.Values.Image;
+
             try
             {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("STT - Tên tài nguyên - Dung lượng - Trạng thái");
-                sb.AppendLine("--------------------------------------------------");
+                kryptonButton1_KiemTraTaiNguyenLoi.Enabled = false;
+                kryptonButton1_KiemTraTaiNguyenLoi.Values.Text = "Đang kiểm tra...";
+                kryptonButton1_KiemTraTaiNguyenLoi.Values.Image = null;
 
-                int stt = 1;
+                await Task.Delay(50);
 
-                // 1. Kiểm tra nhóm data1 -> data15 (Tại thư mục CoreDatabaseRepository)
-                string thuMucCore = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, "CongCuQuanLyCSDL", "CoreDatabaseRepository");
-
-                for (int i = 1; i <= 15; i++)
+                string ketQuaKiemTra = await Task.Run(() =>
                 {
-                    string tenFile = $"data{i}";
-                    string duongDanFile = Path.Combine(thuMucCore, tenFile);
-                    GhiNhanTrangThaiFile(sb, ref stt, duongDanFile, tenFile);
-                }
+                    StringBuilder sb = new StringBuilder();
 
-                // 2. Kiểm tra nhóm phần mềm bổ trợ (Tại thư mục gốc chứa file .exe)
-                string thuMucGoc = AppDomain.CurrentDomain.BaseDirectory;
-                string[] danhSachExe =
-                {
-            "ServiceBackup.exe",
-            "ServiceRestore.exe",
-            "Uninstall_PhanMemThiDua2026.exe"
-        };
+                    // Nhóm 1
+                    sb.AppendLine("▶ I. Tài nguyên hệ thống (System)");
+                    int stt = 1;
+                    string thuMucCore = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, "CongCuQuanLyCSDL", "CoreDatabaseRepository");
 
-                foreach (string tenExe in danhSachExe)
-                {
-                    string duongDanExe = Path.Combine(thuMucGoc, tenExe);
-                    GhiNhanTrangThaiFile(sb, ref stt, duongDanExe, tenExe);
-                }
+                    for (int i = 1; i <= 15; i++)
+                    {
+                        string tenFile = $"data{i}";
+                        string duongDanFile = Path.Combine(thuMucCore, tenFile);
+                        GhiNhanTrangThaiFile(sb, ref stt, duongDanFile, tenFile);
+                    }
 
-                // Hiển thị kết quả bằng MessageBox
-                MessageBox.Show(
-                    sb.ToString(),
-                    "Báo cáo tài nguyên hệ thống",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                    // Nhóm 2
+                    sb.AppendLine("▶ II. Phần mềm dịch vụ (Services)");
+                    stt = 1;
+                    string thuMucGoc = AppDomain.CurrentDomain.BaseDirectory;
+                    string[] danhSachExe = { "ServiceBackup.exe", "ServiceRestore.exe", "Uninstall_PhanMemThiDua2026.exe" };
+
+                    foreach (string tenExe in danhSachExe)
+                    {
+                        string duongDanExe = Path.Combine(thuMucGoc, tenExe);
+                        GhiNhanTrangThaiFile(sb, ref stt, duongDanExe, tenExe);
+                    }
+
+                    return sb.ToString();
+                });
+
+                kryptonButton1_KiemTraTaiNguyenLoi.Values.Text = "Kết quả kiểm tra";
+                HienThiFormAo_KiemTraCSDL("BÁO CÁO TÀI NGUYÊN HỆ THỐNG", ketQuaKiemTra);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Có lỗi xảy ra: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                HienThiFormAo_KiemTraCSDL("LỖI KIỂM TRA", $"Có lỗi xảy ra:\n{ex.Message}");
+            }
+            finally
+            {
+                if (!IsDisposed && IsHandleCreated)
+                {
+                    kryptonButton1_KiemTraTaiNguyenLoi.Values.Text = textGoc;
+                    kryptonButton1_KiemTraTaiNguyenLoi.Values.Image = imageGoc;
+                    kryptonButton1_KiemTraTaiNguyenLoi.Enabled = true;
+                }
             }
         }
-
-        // ==========================================
-        // HÀM PHỤ TRỢ: KIỂM TRA VÀ ĐỊNH DẠNG TEXT
-        // ==========================================
         private void GhiNhanTrangThaiFile(StringBuilder sb, ref int stt, string duongDan, string tenHienThi)
         {
             if (File.Exists(duongDan))
             {
                 long dungLuong = new FileInfo(duongDan).Length;
-                sb.AppendLine($"{stt}. {tenHienThi} - {DinhDangDungLuong(dungLuong)} - Tồn tại");
+                // Phân tách 4 giá trị bằng dấu "|" (STT | Tên tài nguyên | Dung lượng | Trạng thái)
+                sb.AppendLine($"{stt}|{tenHienThi}|{DinhDangDungLuong(dungLuong)}|Bình thường");
             }
             else
             {
-                // Nhấn mạnh nếu file bị mất
-                sb.AppendLine($"{stt}. {tenHienThi} - 0 KB - ❌ Không tồn tại");
+                sb.AppendLine($"{stt}|{tenHienThi}|0 KB|Không tồn tại");
             }
             stt++;
         }
+        private void HienThiFormAo_KiemTraCSDL(string tieuDe, string rawData)
+        {
+            // ⭐ SỬ DỤNG LỚP CƠ SỞ FORMAOBASE ĐỂ TẠO GIAO DIỆN NỔI AN TOÀN VÀ TỰ ĐỘNG DISPOSE
+            using (var formAo = new FormAoBase())
+            {
+                formAo.Text = "Trạng thái Hệ thống";
+                formAo.Size = new System.Drawing.Size(950, 620); // Nới rộng Form đảm bảo không bao giờ bị cắt chữ
+                formAo.FormBorderStyle = FormBorderStyle.FixedDialog;
+                formAo.MaximizeBox = false;
+                formAo.MinimizeBox = false;
+                formAo.ShowIcon = false;
+                formAo.ShowInTaskbar = false;
+                formAo.StartPosition = FormStartPosition.CenterParent;
 
+                // --- 1. PANEL TIÊU ĐỀ (HEADER PANEL) ---
+                var panelTop = new Krypton.Toolkit.KryptonPanel { Dock = DockStyle.Top, Height = 65, Padding = new Padding(25, 20, 20, 5) };
+                panelTop.StateCommon.Color1 = System.Drawing.Color.White;
+
+                var lblTitle = new Krypton.Toolkit.KryptonLabel { Text = tieuDe.ToUpper(), Dock = DockStyle.Fill, AutoSize = false };
+                lblTitle.StateCommon.ShortText.Font = _fontTitle115Bold;
+                lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(0, 82, 155); // Xanh Navy chuẩn doanh nghiệp
+                panelTop.Controls.Add(lblTitle);
+
+                // --- 2. ĐƯỜNG KẺ NGANG (SEPARATOR) ---
+                var separator = new Label { Height = 1, Dock = DockStyle.Top, BackColor = System.Drawing.Color.FromArgb(220, 220, 220), Margin = new Padding(0, 0, 0, 10) };
+
+                // --- 3. PANEL CHỨA LƯỚI (BODY PANEL) ---
+                var panelContent = new Krypton.Toolkit.KryptonPanel { Dock = DockStyle.Fill, Padding = new Padding(25, 10, 25, 15) };
+                panelContent.StateCommon.Color1 = System.Drawing.Color.White;
+
+                // --- 4. KHỞI TẠO LƯỚI GRID HIỆN ĐẠI (KRYPTON DATAGRIDVIEW) ---
+                var grid = new Krypton.Toolkit.KryptonDataGridView
+                {
+                    Dock = DockStyle.Fill,
+                    ReadOnly = true,
+                    AllowUserToAddRows = false,
+                    AllowUserToDeleteRows = false,
+                    AllowUserToResizeRows = false,
+                    RowHeadersVisible = false,
+                    SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                    MultiSelect = false,
+                    BackgroundColor = System.Drawing.Color.White,
+                    BorderStyle = BorderStyle.None,
+                    Cursor = Cursors.Hand
+                };
+
+                // Tinh chỉnh phong cách lưới
+                grid.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
+                grid.StateCommon.Background.Color1 = System.Drawing.Color.White;
+                grid.StateCommon.DataCell.Content.Font = _fontGrid10Regular;
+                grid.StateCommon.HeaderColumn.Content.Font = _fontGrid10Bold;
+
+                // =========================================================
+                // ⭐ TỐI ƯU CHIỀU CAO: DÒNG TIÊU ĐỀ & DÒNG DỮ LIỆU
+                // =========================================================
+                // 1. Tăng chiều cao dòng TIÊU ĐỀ (Header) lên 45px để rộng rãi, rõ nét
+                grid.ColumnHeadersHeight = 45;
+                grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; // Khóa cứng, không cho user kéo làm hỏng UI
+
+                // 2. Thêm Padding cho Header để chữ không sát lề trên/dưới
+                grid.StateCommon.HeaderColumn.Content.Padding = new Padding(3, 5, 3, 5);
+
+                // 3. Tăng chiều cao dòng DỮ LIỆU (Row) lên 36px cho thoáng mắt
+                grid.RowTemplate.Height = 36;
+
+                // =========================================================
+                // ⭐ CẤU HÌNH TỶ LỆ 04 CỘT (CHỐNG CẮT CHỮ TUYỆT ĐỐI)
+                // =========================================================
+                grid.Columns.Add("STT", "STT");
+                grid.Columns.Add("TenTaiNguyen", "Tên tài nguyên");
+                grid.Columns.Add("DungLuong", "Dung lượng");
+                grid.Columns.Add("TrangThai", "Trạng thái");
+
+                // Cột 0: STT (Khóa cứng 70px)
+                grid.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                grid.Columns[0].Width = 70;
+                grid.Columns[0].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                grid.Columns[0].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                // Cột 1: Tên tài nguyên (Bật chế độ Fill lấp đầy khoảng trống)
+                grid.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                grid.Columns[1].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                grid.Columns[1].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
+
+                // Cột 2: Dung lượng (Khóa cứng 150px)
+                grid.Columns[2].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                grid.Columns[2].Width = 150;
+                grid.Columns[2].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                grid.Columns[2].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                // Cột 3: Trạng thái (Khóa cứng 160px để hiển thị dư dả chữ "Không tồn tại")
+                grid.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                grid.Columns[3].Width = 160;
+                grid.Columns[3].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                grid.Columns[3].HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+
+                // --- 5. LỌC CHUỖI VÀ ĐỔ DỮ LIỆU VÀO LƯỚI ---
+                string[] lines = rawData.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var line in lines)
+                {
+                    string cleanLine = line.Trim();
+                    if (string.IsNullOrEmpty(cleanLine)) continue;
+
+                    // Xử lý dòng tiêu đề phân nhóm ("▶ ...")
+                    if (cleanLine.StartsWith("▶"))
+                    {
+                        int rHeader = grid.Rows.Add("", cleanLine.Replace("▶", "").Trim(), "", "");
+                        grid.Rows[rHeader].DefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(232, 244, 253); // Nền xanh nhạt
+                        grid.Rows[rHeader].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(0, 82, 155); // Chữ xanh Navy
+                        grid.Rows[rHeader].Cells[1].Style.Font = _fontGrid10Bold; // In đậm tên Nhóm
+                        continue;
+                    }
+
+                    // Cắt chuỗi theo dấu "|" 
+                    string[] parts = cleanLine.Split('|');
+                    if (parts.Length == 4)
+                    {
+                        string stt = parts[0].Trim();
+                        string ten = parts[1].Trim();
+                        string dungLuong = parts[2].Trim();
+                        string trangThai = parts[3].Trim();
+
+                        int rIdx = grid.Rows.Add(stt, ten, dungLuong, trangThai);
+
+                        var cellSTT = grid.Rows[rIdx].Cells[0];
+                        var cellDungLuong = grid.Rows[rIdx].Cells[2];
+                        var cellTrangThai = grid.Rows[rIdx].Cells[3];
+
+                        // ⭐ CONDITIONAL FORMATTING (TÔ MÀU NHẬN DIỆN THÔNG MINH)
+                        string valLower = trangThai.ToLower();
+                        if (valLower.Contains("bình thường") || valLower.Contains("ok") || valLower.Contains("có"))
+                        {
+                            cellTrangThai.Style.ForeColor = System.Drawing.Color.FromArgb(34, 139, 34); // Forest Green (Xanh lá)
+                            cellTrangThai.Style.Font = _fontGrid10Bold;
+                        }
+                        else if (valLower.Contains("không tồn tại") || valLower.Contains("lỗi"))
+                        {
+                            // In Đậm Đỏ cả dòng (STT, Dung lượng, Trạng thái) khi có lỗi
+                            Color redAlert = System.Drawing.Color.FromArgb(211, 47, 47);
+
+                            cellTrangThai.Style.ForeColor = redAlert;
+                            cellTrangThai.Style.Font = _fontGrid10Bold;
+
+                            cellDungLuong.Style.ForeColor = redAlert;
+                            cellSTT.Style.ForeColor = redAlert;
+                        }
+                    }
+                    else
+                    {
+                        // Nếu dòng text tự do không chuẩn 4 cột, ép vào cột Tên
+                        grid.Rows.Add("", cleanLine, "", "");
+                    }
+                }
+
+                // --- 6. PANEL CHỨA NÚT ĐÓNG (FOOTER PANEL) ---
+                var panelBottom = new Panel { Dock = DockStyle.Bottom, Height = 65, BackColor = System.Drawing.Color.WhiteSmoke };
+
+                var btnClose = new Krypton.Toolkit.KryptonButton { Text = "Đóng", Width = 120, Height = 38, DialogResult = DialogResult.OK };
+                btnClose.StateCommon.Content.ShortText.Font = _fontBtn95Bold;
+                btnClose.StateCommon.Border.Rounding = 5;
+                btnClose.Location = new System.Drawing.Point((formAo.Width - btnClose.Width) / 2, 13);
+
+                panelBottom.Controls.Add(btnClose);
+
+                // --- 7. RÁP LAYER VÀO FORM VÀ HIỂN THỊ ---
+                panelContent.Controls.Add(grid);
+
+                formAo.Controls.Add(panelContent);
+                formAo.Controls.Add(separator);
+                formAo.Controls.Add(panelTop);
+                formAo.Controls.Add(panelBottom);
+
+                separator.BringToFront();
+                panelContent.BringToFront();
+
+                formAo.AcceptButton = btnClose;
+                formAo.CancelButton = btnClose;
+
+                // Bỏ chọn dòng đầu tiên để UI gọn gàng
+                formAo.Shown += (s, ev) => grid.ClearSelection();
+
+                formAo.ShowDialog(this);
+            }
+        }
         private string DinhDangDungLuong(long soByte)
         {
             if (soByte < 1024)

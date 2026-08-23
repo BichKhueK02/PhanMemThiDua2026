@@ -54,7 +54,7 @@ namespace PhanMemThiDua2026
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
         }
-        private void Form18_Load(object sender, EventArgs e)
+        private void Form18_XoaDataThang_Load(object sender, EventArgs e)
         {
             try
             {

@@ -253,7 +253,7 @@
             kryptonButton1_ChonDuongDanTepExcel.StateCommon.Border.Rounding = 4F;
             kryptonButton1_ChonDuongDanTepExcel.TabIndex = 0;
             kryptonButton1_ChonDuongDanTepExcel.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_ChonDuongDanTepExcel.Values.Text = "...";
+            kryptonButton1_ChonDuongDanTepExcel.Values.Text = "";
             // 
             // label2
             // 

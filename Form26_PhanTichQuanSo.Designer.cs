@@ -86,13 +86,13 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 1;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new Size(1258, 63);
+            tableLayoutPanel1.Size = new Size(1258, 47);
             tableLayoutPanel1.TabIndex = 1;
             // 
             // kryptonButton1_Dong
             // 
             kryptonButton1_Dong.Anchor = AnchorStyles.None;
-            kryptonButton1_Dong.Location = new Point(1096, 16);
+            kryptonButton1_Dong.Location = new Point(1096, 8);
             kryptonButton1_Dong.Name = "kryptonButton1_Dong";
             kryptonButton1_Dong.Size = new Size(132, 30);
             kryptonButton1_Dong.StateCommon.Border.Rounding = 4F;
@@ -108,7 +108,7 @@
             label_DonVi.AutoSize = true;
             label_DonVi.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label_DonVi.ForeColor = Color.Green;
-            label_DonVi.Location = new Point(78, 22);
+            label_DonVi.Location = new Point(78, 14);
             label_DonVi.Name = "label_DonVi";
             label_DonVi.Size = new Size(50, 19);
             label_DonVi.TabIndex = 25;
@@ -118,9 +118,9 @@
             // 
             pictureBox1.Anchor = AnchorStyles.None;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(3, 6);
+            pictureBox1.Location = new Point(3, 3);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(69, 50);
+            pictureBox1.Size = new Size(69, 41);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
@@ -135,8 +135,8 @@
             tableLayoutPanel2.Location = new Point(0, 0);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 3;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 10.546875F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 48.2421875F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 8.091603F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50.6870232F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 41.1753044F));
             tableLayoutPanel2.Size = new Size(1264, 655);
             tableLayoutPanel2.TabIndex = 2;
@@ -147,10 +147,10 @@
             kryptonDataGridView1.BorderStyle = BorderStyle.None;
             kryptonDataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             kryptonDataGridView1.Dock = DockStyle.Fill;
-            kryptonDataGridView1.Location = new Point(3, 72);
+            kryptonDataGridView1.Location = new Point(3, 56);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(1258, 310);
+            kryptonDataGridView1.Size = new Size(1258, 326);
             kryptonDataGridView1.TabIndex = 2;
             // 
             // Form26_PhanTichQuanSo

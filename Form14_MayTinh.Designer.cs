@@ -81,7 +81,7 @@
             Btn_phimdauxoa.BackColor = Color.FromArgb(192, 192, 255);
             Btn_phimdauxoa.Font = new Font("Segoe UI", 9.75F, FontStyle.Italic);
             Btn_phimdauxoa.ForeColor = Color.Red;
-            Btn_phimdauxoa.Location = new Point(179, 159);
+            Btn_phimdauxoa.Location = new Point(179, 157);
             Btn_phimdauxoa.Margin = new Padding(2);
             Btn_phimdauxoa.Name = "Btn_phimdauxoa";
             Btn_phimdauxoa.Size = new Size(78, 33);
@@ -94,7 +94,7 @@
             Btn_phimdauxoaall.BackColor = Color.FromArgb(192, 192, 255);
             Btn_phimdauxoaall.Font = new Font("Segoe UI", 9.75F, FontStyle.Italic);
             Btn_phimdauxoaall.ForeColor = Color.Blue;
-            Btn_phimdauxoaall.Location = new Point(271, 157);
+            Btn_phimdauxoaall.Location = new Point(271, 156);
             Btn_phimdauxoaall.Margin = new Padding(2);
             Btn_phimdauxoaall.Name = "Btn_phimdauxoaall";
             Btn_phimdauxoaall.Size = new Size(82, 33);
@@ -146,7 +146,7 @@
             Btn_phimdauchia.BackColor = Color.FromArgb(192, 192, 255);
             Btn_phimdauchia.Font = new Font("Times New Roman", 13.8239994F, FontStyle.Bold | FontStyle.Italic);
             Btn_phimdauchia.ForeColor = Color.Blue;
-            Btn_phimdauchia.Location = new Point(271, 364);
+            Btn_phimdauchia.Location = new Point(271, 365);
             Btn_phimdauchia.Margin = new Padding(2);
             Btn_phimdauchia.Name = "Btn_phimdauchia";
             Btn_phimdauchia.Size = new Size(82, 31);
@@ -159,7 +159,7 @@
             Btn_phimdaunhan.BackColor = Color.FromArgb(192, 192, 255);
             Btn_phimdaunhan.Font = new Font("Times New Roman", 13.8239994F, FontStyle.Bold | FontStyle.Italic);
             Btn_phimdaunhan.ForeColor = Color.Blue;
-            Btn_phimdaunhan.Location = new Point(271, 315);
+            Btn_phimdaunhan.Location = new Point(271, 316);
             Btn_phimdaunhan.Margin = new Padding(2);
             Btn_phimdaunhan.Name = "Btn_phimdaunhan";
             Btn_phimdaunhan.Size = new Size(82, 31);
@@ -172,7 +172,7 @@
             Btn_phimdautru.BackColor = Color.FromArgb(192, 192, 255);
             Btn_phimdautru.Font = new Font("Times New Roman", 13.8239994F, FontStyle.Bold | FontStyle.Italic);
             Btn_phimdautru.ForeColor = Color.Blue;
-            Btn_phimdautru.Location = new Point(273, 267);
+            Btn_phimdautru.Location = new Point(273, 266);
             Btn_phimdautru.Margin = new Padding(2);
             Btn_phimdautru.Name = "Btn_phimdautru";
             Btn_phimdautru.Size = new Size(82, 31);
@@ -185,7 +185,7 @@
             Btn_phimdaucong.BackColor = Color.FromArgb(192, 192, 255);
             Btn_phimdaucong.Font = new Font("Times New Roman", 13.8239994F, FontStyle.Bold | FontStyle.Italic);
             Btn_phimdaucong.ForeColor = Color.Blue;
-            Btn_phimdaucong.Location = new Point(271, 211);
+            Btn_phimdaucong.Location = new Point(271, 210);
             Btn_phimdaucong.Margin = new Padding(2);
             Btn_phimdaucong.Name = "Btn_phimdaucong";
             Btn_phimdaucong.Size = new Size(82, 31);

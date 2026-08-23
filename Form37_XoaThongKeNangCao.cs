@@ -19,7 +19,7 @@ namespace PhanMemThiDua2026
         {
             ThietLapGiaoDienTheoPhienBan();
         }
-
+        // Lê Trung Kiên -  Yêu mèo cam
         private void ThietLapGiaoDienTheoPhienBan()
         {
             // 1. Xác định phiên bản

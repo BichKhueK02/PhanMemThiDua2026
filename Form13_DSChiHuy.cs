@@ -15,6 +15,8 @@ namespace PhanMemThiDua2026
         private KryptonTextBox[] tatCaTextBoxes = Array.Empty<KryptonTextBox>();
         private bool dangKiemTra;
         private bool daBaoLoi;
+        private static readonly Font _fontGridHeader = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Bold);
+        private static readonly Font _fontGridCell = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         public Form13_DSChiHuy()
         {
             InitializeComponent();
@@ -383,9 +385,10 @@ namespace PhanMemThiDua2026
                 grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
                 grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
 
+                // Thay dòng: Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
                 grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
+                    Font = _fontGridHeader,
                     Alignment = DataGridViewContentAlignment.MiddleCenter,
                     BackColor = Color.FromArgb(240, 244, 248),
                     ForeColor = Color.FromArgb(40, 40, 40),
@@ -404,7 +407,7 @@ namespace PhanMemThiDua2026
 
                 grid.DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Font = new Font("Segoe UI", 10F, FontStyle.Regular),
+                    Font = _fontGridCell,
                     ForeColor = Color.FromArgb(45, 45, 45),
                     Padding = new Padding(5, 0, 5, 0),
                     SelectionBackColor = Color.FromArgb(232, 244, 253),

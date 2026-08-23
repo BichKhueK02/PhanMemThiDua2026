@@ -103,9 +103,9 @@ namespace PhanMemThiDua2026
             if (_hasLoaded) return;
             _isLoading = true;
 
-            // ==========================================
+            
             // 1. TỐI ƯU UX VÀ CHUẨN BỊ GIAO DIỆN
-            // ==========================================
+            
             await Task.Delay(30); // Nhường luồng cho UI
 
             if (label1_ThongBaoThanhCong != null) label1_ThongBaoThanhCong.Visible = false;
@@ -118,9 +118,9 @@ namespace PhanMemThiDua2026
             Module_DonVi.KhoiTao();
             InitToolTips();
 
-            // ==========================================
+            
             // 2. NẠP CÁC DANH SÁCH (Items) CHO COMBOBOX TRƯỚC
-            // ==========================================
+            
             // (Phải có danh sách trước thì lúc load cấu hình mới có cái để SelectedItem)
             LoadComboBoxCauHinh();
             LoadComboBoxTuDongXoa();
@@ -128,15 +128,15 @@ namespace PhanMemThiDua2026
             NapDanhSachKyHieuChung();
             LoadDanhSachDonViVaKyHieu();
 
-            // ==========================================
+            
             // ⭐ 3. NẠP CẤU HÌNH TỔNG LỰC (SIÊU TỐC)
-            // ==========================================
+            
             // Hàm này ĐÃ BAO GỒM việc load: Năm, Chế độ hướng dẫn, Màu Menu, Sự kiện thoát, Ký hiệu đơn vị
             LoadTatCaCauHinhTuCSDL2();
 
-            // ==========================================
+            
             // 4. NẠP DỮ LIỆU BẢNG THÔNG TIN CHÍNH
-            // ==========================================
+            
             LoadFromSQLite();
 
             // Nạp cấu hình thời gian chuyển ảnh (Thuộc module riêng)
@@ -149,9 +149,9 @@ namespace PhanMemThiDua2026
                 comboBox1_ThoiGianThayDoiAnh.Text = Module_HinhAnhTrangChu.DocCauHinhThoiGian();
             }
 
-            // ==========================================
+            
             // 5. GẮN SỰ KIỆN VÀ TÙY CHỈNH UI CUỐI CÙNG
-            // ==========================================
+            
             GanSuKien();
             _currentFontSize = richTextBox1_TomTatGhiChu.Font.Size;
 

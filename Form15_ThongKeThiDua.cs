@@ -8,7 +8,10 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
-        // Thêm biến này vào Form6_XuLyData, Form10_NhatKy, Form15_ThongKeThiDua
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontGridHeader = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
+        private static readonly Font _fontGridCell = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular);
+        private static readonly Font _fontGridHighlight = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
         public bool DaLoadDuLieu { get; set; } = false;
         private DataTable dtDanhSachGoc;
         //  private bool _daCauHinhGridThongKe = false;
@@ -1087,7 +1090,6 @@ namespace PhanMemThiDua2026
         // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
         // ========================================================================
         private bool _daKhoiTaoToolTip = false;
-
         private void InitToolTips()
         {
             // Chống gọi lại nhiều lần không cần thiết
@@ -1904,7 +1906,7 @@ namespace PhanMemThiDua2026
                 grid.ColumnHeadersHeight = 85; // Đủ cao để chứa tiêu đề 2 dòng
                 grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                    Font = _fontGridHeader,
                     Alignment = DataGridViewContentAlignment.MiddleCenter,
                     BackColor = Color.FromArgb(240, 244, 248),
                     ForeColor = Color.FromArgb(40, 40, 40),
@@ -1917,7 +1919,7 @@ namespace PhanMemThiDua2026
                 grid.RowTemplate.Height = 32; // Dòng rộng rãi, dễ đọc
                 grid.DefaultCellStyle = new DataGridViewCellStyle
                 {
-                    Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                    Font = _fontGridCell,
                     ForeColor = Color.FromArgb(45, 45, 45),
                     SelectionBackColor = Color.FromArgb(232, 244, 253),
                     SelectionForeColor = Color.FromArgb(0, 102, 204),
@@ -1970,9 +1972,9 @@ namespace PhanMemThiDua2026
                 if (laTanBinh)
                 {
                     string[] nhomToMauXanhDuong = {
-                        "Tuan_1_T2", "Tuan_2_T2", "Tuan_3_T2", "Tuan_4_T2", "Thang_3",
-                        "Tuan_1_T4", "Tuan_2_T4", "Tuan_3_T4", "Tuan_4_T4", "Thang_5"
-                    };
+                "Tuan_1_T2", "Tuan_2_T2", "Tuan_3_T2", "Tuan_4_T2", "Thang_3",
+                "Tuan_1_T4", "Tuan_2_T4", "Tuan_3_T4", "Tuan_4_T4", "Thang_5"
+            };
                     Color mauXanhDuongNhat = Color.FromArgb(235, 245, 255); // Làm màu dịu lại theo Fluent Design
 
                     foreach (var name in nhomToMauXanhDuong)
@@ -1983,7 +1985,7 @@ namespace PhanMemThiDua2026
                     {
                         if (grid.Columns.Contains(name))
                         {
-                            grid.Columns[name].DefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+                            grid.Columns[name].DefaultCellStyle.Font = _fontGridHighlight;
                             grid.Columns[name].DefaultCellStyle.ForeColor = Color.FromArgb(0, 80, 160);
                         }
                     }
@@ -1996,7 +1998,7 @@ namespace PhanMemThiDua2026
                     if (grid.Columns.Contains(name))
                     {
                         grid.Columns[name].DefaultCellStyle.BackColor = mauXanhLaNhat;
-                        grid.Columns[name].DefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+                        grid.Columns[name].DefaultCellStyle.Font = _fontGridHighlight;
                     }
                 }
 
@@ -3792,7 +3794,6 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _dangXuLyLuongNen, 0);
             }
         }
-
         private void toolStripMenuItem_LuuTruDataThiDuaTheoNam_Click(object sender, EventArgs e)
         {
             // 1. Tìm Form cha (Form2_FormCha) đang chạy để tương tác với PanelContainer

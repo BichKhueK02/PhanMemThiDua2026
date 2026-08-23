@@ -9,11 +9,8 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
         private string ConnectionString => $"Data Source={_csdl1Path}";
-        private int _soLanSai = 0;
-
-        // =========================================================================
-        // 🌟 KHAI BÁO CẤU HÌNH VIỀN UI/UX (CHUẨN WINDOWS 11)
-        // =========================================================================
+        private int _soLanSai = 0;       
+        // 🌟 KHAI BÁO CẤU HÌNH VIỀN UI/UX (CHUẨN WINDOWS 11)       
         private static readonly Color FocusBorderColor = Color.FromArgb(0, 120, 215);
         private static readonly Color NormalBorderColor = Color.Silver;
         private const int FocusBorderWidth = 2;
@@ -23,7 +20,6 @@ namespace PhanMemThiDua2026
             InitializeComponent();
             this.Load += Form9_Load;
         }
-
         // ĐỔI THÀNH async void ĐỂ TẢI DỮ LIỆU NGẦM, CHỐNG GIẬT FORM
         private async void Form9_Load(object sender, EventArgs e)
         {
@@ -32,22 +28,17 @@ namespace PhanMemThiDua2026
             FormBorderStyle = FormBorderStyle.FixedDialog;
             DoubleBuffered = true; // Chống nháy hình
             AcceptButton = Btn_GoCaiDat;
-
             Chex_HienMatKhau.Checked = false;
             CapNhatTrangThaiHienMatKhau();
-
             Btn_GoCaiDat.Height = Text_Admin.Height + 12;
             Btn_Thoat.Height = Text_Admin.Height + 12;
-
             // 🌟 KÍCH HOẠT TÍNH NĂNG TÔ MÀU VIỀN TỰ ĐỘNG
             InitFocusEffects();
-
             Text_Password.Focus();
-
             // 🌟 CHẠY NGẦM HÀM LẤY TÊN ADMIN ĐỂ KHÔNG BLOCK UI
             await ToQuoc_GoiTenAnhGiuaTroiThuongNhoAsync();
         }
-
+        // Lê Trung Kiên -  Yêu mèo cam
         // 🌟 HÀM TÔ MÀU VIỀN CHUẨN KỸ SƯ (CHỐNG MEMORY LEAK)
         private void InitFocusEffects()
         {
@@ -59,10 +50,8 @@ namespace PhanMemThiDua2026
                 ktb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
                 ktb.StateCommon.Border.Color1 = NormalBorderColor;
                 ktb.StateCommon.Border.Width = NormalBorderWidth;
-
                 ktb.Enter -= Ktb_EnterFocus;
                 ktb.Leave -= Ktb_LeaveFocus;
-
                 ktb.Enter += Ktb_EnterFocus;
                 ktb.Leave += Ktb_LeaveFocus;
             }
@@ -164,9 +153,9 @@ namespace PhanMemThiDua2026
 
             return diff == 0;
         }
-        // =======================================================
+        
         // ⭐ BƯỚC ĐỌC DB, GỠ BẪY VÀ GIẢI MÃ V2 (CÓ CHỐNG SPAM)
-        // =======================================================
+        
         private async void Btn_GoCaiDat_Click(object sender, EventArgs e)
         {
             // 🌟 KHÓA NÚT BẤM CHỐNG SPAM CLICK

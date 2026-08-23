@@ -15,6 +15,10 @@ namespace PhanMemThiDua2026
         private string _currentDonVi = "";
         private string _currentTinhTrang = "";
         private int _currentEditingID = -1;
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontGridCell10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
+        private static readonly Font _fontGridHeader10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
+        private static readonly Font _fontRowHeader12Bold = new Font(Module_HeThong.TenFontHeThong, 12F, FontStyle.Bold);
         public Form35_ChiTietKhenThuong()
         {
             InitializeComponent();
@@ -481,7 +485,7 @@ namespace PhanMemThiDua2026
                 // 2. CẤU HÌNH CƠ BẢN
                 grid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-                grid.DefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+                grid.DefaultCellStyle.Font = _fontGridCell10;
                 grid.DefaultCellStyle.Padding = new Padding(4, 6, 4, 6);
                 grid.ReadOnly = true;
                 grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
@@ -511,7 +515,7 @@ namespace PhanMemThiDua2026
                 // 4. CĂN GIỮA VÀ IN ĐẬM TIÊU ĐỀ
                 var style = grid.ColumnHeadersDefaultCellStyle;
                 style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                style.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                style.Font = _fontGridHeader10Bold;
                 style.WrapMode = DataGridViewTriState.True;
 
                 // 5. CẤU HÌNH CHI TIẾT TỪNG CỘT (Dùng "TyLe" thay vì chiều rộng cứng)
@@ -660,7 +664,7 @@ namespace PhanMemThiDua2026
             string rowIdx = (e.RowIndex + 1).ToString();
             var centerFormat = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
             var headerBounds = new Rectangle(e.RowBounds.Left, e.RowBounds.Top, grid.RowHeadersWidth, e.RowBounds.Height);
-            e.Graphics.DrawString(rowIdx, new Font("Segoe UI", 12F, FontStyle.Bold), SystemBrushes.ControlText, headerBounds, centerFormat);
+            e.Graphics.DrawString(rowIdx, _fontRowHeader12Bold, SystemBrushes.ControlText, headerBounds, centerFormat);
         }
         private void KryptonDataGridView1_DanhSachCBCS_CellClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -1004,8 +1008,6 @@ namespace PhanMemThiDua2026
             {
                 System.Diagnostics.Debug.WriteLine("Lỗi đồng bộ: " + ex.Message);
             }
-        }
-
-    
+        }   
     }
 }

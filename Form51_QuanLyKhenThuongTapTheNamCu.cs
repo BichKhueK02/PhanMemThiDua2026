@@ -24,6 +24,9 @@
         private int _msgCounter = 0;
         // ⭐ KHAI BÁO CÁC BIẾN BỊ THIẾU TẠI ĐÂY (PHẢI NẰM NGOÀI HÀM)
         private bool _isInitialized = false;
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontGridHeader9Bold = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
+        private static readonly Font _fontGridCell9Regular = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
         // LỚP CACHE TOÀN CỤC CHỐNG QUÉT DB
         private class DuLieuCache
         {
@@ -391,7 +394,6 @@
 
             combobox1_TimKiemTheoTen.TextChanged += combobox1_TimKiemTheoTen_TextChanged;
         }
-
         // SỰ KIỆN TÌM KIẾM
         // SỰ KIỆN TÌM KIẾM (Đã đổi sang Combobox)
         private async void combobox1_TimKiemTheoTen_TextChanged(object sender, EventArgs e) => await DebouncedSearchAsync();
@@ -1296,6 +1298,7 @@
             dgv.AllowUserToOrderColumns = false;
             dgv.AllowUserToResizeColumns = false;
         }
+
         private void CauHinhStyleWeb(DataGridView dgv)
         {
             if (dgv == null) return;
@@ -1313,9 +1316,9 @@
             {
                 kDgv.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
                 kDgv.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
-                kDgv.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+                kDgv.StateCommon.HeaderColumn.Content.Font = _fontGridHeader9Bold;
                 kDgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                kDgv.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+                kDgv.StateCommon.DataCell.Content.Font = _fontGridCell9Regular;
                 kDgv.StateCommon.DataCell.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
                 kDgv.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
                 kDgv.StateCommon.DataCell.Border.Color1 = System.Drawing.Color.FromArgb(224, 224, 224);
@@ -1409,17 +1412,6 @@
                 }
             }
             this.Close();
-        }
-        private void toolStripMenuItem_QuayLaiTrangTruoc_Click(object sender, EventArgs e)
-        {
-            //if (kryptonButton1_Thoat == null ||
-            //    kryptonButton1_Thoat.IsDisposed ||
-            //    kryptonButton1_Thoat.Disposing)
-            //{
-            //    return;
-            //}
-
-            //kryptonButton1_Thoat.PerformClick();
         }
         private void xoaTimKiem_ToolStripMenuItem_Click(object sender, EventArgs e)
         {

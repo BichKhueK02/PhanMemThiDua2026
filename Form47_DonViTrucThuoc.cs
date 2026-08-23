@@ -17,6 +17,9 @@ namespace PhanMemThiDua2026
     public partial class Form47_DonViTrucThuoc : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontGrid10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
+        private static readonly Font _fontGrid10Regular = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private int _selectedId = -1; // Lưu ID dòng đang chọn trên DataGridView
         // ⭐ KHO CHỨA DỮ LIỆU CHO VIRTUAL MODE
         private List<DonViDTO> _danhSachDonVi = new List<DonViDTO>();
@@ -75,7 +78,7 @@ namespace PhanMemThiDua2026
                 case "ThoiGian": e.Value = item.ThoiGian; break;
             }
         }
-        #region KHOI TAO DATABASE & DU LIEU MAU
+        //region KHOI TAO DATABASE & DU LIEU MAU
         private async Task LoadDuLieuLenGridAsync()
         {
             if (!File.Exists(_csdl2Path)) return;
@@ -144,9 +147,9 @@ namespace PhanMemThiDua2026
             XoaTrangOInput();
             CapNhatTongCongDonViLabel();
         }
-        #endregion
+        //endregion
 
-        #region LOAD DỮ LIỆU LÊN LƯỚI
+        //region LOAD DỮ LIỆU LÊN LƯỚI
         private async Task KhoiTaoBangAndDuLieuMauAsync()
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path))
@@ -195,14 +198,14 @@ namespace PhanMemThiDua2026
 
             // In đậm Header
             col.HeaderCell.Style.Font =
-                new Font("Segoe UI", 10F, FontStyle.Bold);
+                _fontGrid10Bold;
 
             // Căn dữ liệu
             col.DefaultCellStyle.Alignment = align;
 
             // Font dữ liệu
             col.DefaultCellStyle.Font =
-                new Font("Segoe UI", 10F);
+                _fontGrid10Regular;
 
             // Không cho Resize nếu muốn giao diện ổn định
             col.Resizable = DataGridViewTriState.False;
@@ -231,15 +234,12 @@ namespace PhanMemThiDua2026
 
             dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
             dgv.RowTemplate.Height = 34;
-
-
             // Header
-
             dgv.ColumnHeadersHeight = 58;
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
             dgv.ColumnHeadersDefaultCellStyle.Font =
-                new Font("Segoe UI", 10F, FontStyle.Bold);
+                _fontGrid10Bold;
             // 🟢 Thay bằng màu xám/xanh nhạt rất sạch sẽ giống các website hiện đại
             dgv.ColumnHeadersDefaultCellStyle.BackColor =
                 Color.FromArgb(240, 244, 248);
@@ -254,7 +254,7 @@ namespace PhanMemThiDua2026
             // Cell
 
             dgv.DefaultCellStyle.Font =
-                new Font("Segoe UI", 10F, FontStyle.Regular);
+                _fontGrid10Regular;
 
             dgv.DefaultCellStyle.BackColor = Color.White;
 
@@ -285,8 +285,8 @@ namespace PhanMemThiDua2026
 
             dgv.ResumeLayout();
         }
-        #endregion
-        #region SỰ KIỆN CHỌN DÒNG TRÊN LƯỚI & ĐỔ DỮ LIỆU RA 2 TEXTBOX
+        //endregion
+        //region SỰ KIỆN CHỌN DÒNG TRÊN LƯỚI & ĐỔ DỮ LIỆU RA 2 TEXTBOX
   
         private void textBox_TenDonVi_TextChanged(object sender, EventArgs e)
         {
@@ -303,9 +303,9 @@ namespace PhanMemThiDua2026
         }
 
 
-        #endregion
+        //endregion
 
-        #region THAO TÁC C.R.U.D (THÊM - SỬA/LƯU - XÓA)
+        //region THAO TÁC C.R.U.D (THÊM - SỬA/LƯU - XÓA)
         // 🟢 THÊM MỚI ĐƠN VỊ
         // 🟢 THÊM MỚI ĐƠN VỊ
         private async void kryptonButton1_Them_Click(object sender, EventArgs e)
@@ -528,9 +528,9 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Lỗi khi xóa đơn vị: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        #endregion
+        //endregion
 
-        #region HÀM TIỆN ÍCH
+        //region HÀM TIỆN ÍCH
         private void XoaTrangOInput()
         {
             _selectedId = -1;
@@ -549,7 +549,7 @@ namespace PhanMemThiDua2026
             catch { return val; }
         }
 
-        #endregion
+        //endregion
     }
 
     // ⭐ 1. TẠO LỚP DTO LƯU TRỮ DỮ LIỆU

@@ -16,7 +16,6 @@ namespace PhanMemThiDua2026
         {
             return TrichXuatHinhAnToan(1); // Mặc định luôn lấy hình gốc số 1
         }
-
         private static Image TrichXuatHinhAnToan(int index)
         {
             string name = $"desktop_{index}";

@@ -5,34 +5,82 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace PhanMemThiDua2026
 {
     internal static class Module_HeThong
     {
-        // Tên Font chuẩn dùng chung cho toàn hệ thống
+        // 1. Dùng chung Font cho toàn hệ thống
         public const string TenFontHeThong = "Segoe UI";
 
-        // Lấy đường dẫn chung toàn hệ thống
+        // 2. Constants cấu hình CSDL
+        private const int ID_NAM_HE_THONG = 1;
+
+        // 3. Đường dẫn DB
         private static string DbPath => Module_DanduongGPS.DuongDanCSDL2;
 
-        // =========================================================================
-        // ⭐ WINDOWS SHELL API: BẮN TÍN HIỆU CẬP NHẬT CACHE ICON EXPLORER
-        // =========================================================================
+        // ==========================================
+        // ⭐ 4. KHAI BÁO BIẾN DÙNG CHUNG: PHÂN LOẠI THI ĐUA
+        // ==========================================
+        public const string PL_CSTD = "CSTĐ";
+        public const string PL_CSTT = "CSTT";
+        public const string PL_HTNV = "HTNV";
+        public const string PL_KHTNV = "KHTNV";
+        public const string PL_KHONG_PL = "Không PL";
+
+        // Mảng chuẩn 5 loại (Dành cho Form46_ThongKeThiDuaNamCu - CSDL Năm)
+        public static readonly object[] DanhSach_PhanLoai_Chuan =
+        {
+            PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV, PL_KHONG_PL
+        };
+
+        // Mảng có thêm chuỗi rỗng ở đầu (Dành cho Form22, Form30)
+        public static readonly object[] DanhSach_PhanLoai_CoRong =
+        {
+            "", PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV
+        };
+
+        // Mảng có thêm "Tất cả" (Dành cho Form46 - Bộ lọc tìm kiếm)
+        public static readonly object[] DanhSach_PhanLoai_TatCa =
+        {
+            "Tất cả", PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV, PL_KHONG_PL
+        };
+        // ==========================================
+
+        // ⭐ WINDOWS SHELL API VÀ QUẢN LÝ GDI HANDLE
         [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool DestroyIcon(IntPtr hIcon);
+
+        // Lê Trung Kiên -  Yêu mèo cam 🐈
         private const int SHCNE_ASSOCCHANGED = 0x08000000;
         private const uint SHCNF_IDLIST = 0x0000;
 
-        // =========================================================================
-        // ⭐ GÁN ICON TÙY BIẾN TỪ RESOURCES VÀO THƯ MỤC XUẤT FILE
-        // =========================================================================
+        /// <summary>
+        /// Wrapper đóng gói lời gọi API Windows Explorer để dễ quản lý và bắt lỗi
+        /// </summary>
+        private static void LamMoiExplorer()
+        {
+            try
+            {
+                SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, IntPtr.Zero, IntPtr.Zero);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Lỗi Shell API]: {ex.Message}");
+            }
+        }
+
+        // ⭐ GÁN ICON TÙY BIẾN TỪ RESOURCES VÀO THƯ MỤC XUẤT FILE       
         public static void GanIconThuMuc(string folderPath)
         {
             if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
                 return;
 
+            IntPtr hIcon = IntPtr.Zero;
             try
             {
                 string iconPath = Path.Combine(folderPath, "IconThuMuc.ico");
@@ -45,7 +93,7 @@ namespace PhanMemThiDua2026
 
                     if (resObj is Icon ico)
                     {
-                        using var fs = new FileStream(iconPath, FileMode.Create, FileAccess.Write);
+                        using var fs = new FileStream(iconPath, FileMode.Create, FileAccess.Write, FileShare.None);
                         ico.Save(fs);
                     }
                     else if (resObj is byte[] bytes)
@@ -54,27 +102,20 @@ namespace PhanMemThiDua2026
                     }
                     else if (resObj is Bitmap bmp)
                     {
-                        // Nếu Visual Studio nhận diện nhầm file ảnh là Bitmap -> Chuyển đổi an toàn thành Icon
-                        IntPtr hIcon = bmp.GetHicon();
-                        using (Icon tempIcon = Icon.FromHandle(hIcon))
-                        {
-                            using var fs = new FileStream(iconPath, FileMode.Create, FileAccess.Write);
-                            tempIcon.Save(fs);
-                        }
+                        // Kiểm soát vòng đời HICON chuẩn kỹ sư, tránh rò rỉ GDI
+                        hIcon = bmp.GetHicon();
+                        using var tempIcon = Icon.FromHandle(hIcon);
+                        using var fs = new FileStream(iconPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                        tempIcon.Save(fs);
                     }
 
-                    // Ẩn tệp icon
                     if (File.Exists(iconPath))
-                    {
                         File.SetAttributes(iconPath, FileAttributes.Hidden | FileAttributes.System);
-                    }
                 }
 
-                // 2. Tạo/ghi đè desktop.ini
+                // 2. Tạo/ghi đè desktop.ini an toàn (Dùng ASCII để tránh xung đột Encoding Locale)
                 if (File.Exists(iniPath))
-                {
                     File.SetAttributes(iniPath, FileAttributes.Normal);
-                }
 
                 string iniContent = "[.ShellClassInfo]\r\n" +
                                     "IconResource=IconThuMuc.ico,0\r\n" +
@@ -83,36 +124,64 @@ namespace PhanMemThiDua2026
                                     "Vid=\r\n" +
                                     "FolderType=Generic\r\n";
 
-                File.WriteAllText(iniPath, iniContent, System.Text.Encoding.Default);
+                File.WriteAllText(iniPath, iniContent, Encoding.ASCII);
                 File.SetAttributes(iniPath, FileAttributes.Hidden | FileAttributes.System);
 
-                // 3. Gán cờ ReadOnly cho thư mục
+                // 3. Gán cờ ReadOnly cho thư mục để Windows tiến hành đọc desktop.ini
                 var folderInfo = new DirectoryInfo(folderPath);
                 folderInfo.Attributes |= FileAttributes.ReadOnly;
 
-                // 4. Cập nhật icon Windows Explorer
-                SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, IntPtr.Zero, IntPtr.Zero);
+                // 4. Báo hiệu Explorer cập nhật giao diện
+                LamMoiExplorer();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[Lỗi gán icon thư mục]: {ex.Message}");
             }
+            finally
+            {
+                // Giải phóng dứt điểm handle native nếu có sử dụng
+                if (hIcon != IntPtr.Zero)
+                    DestroyIcon(hIcon);
+            }
         }
+
         // ==========================================
         // 1. Lấy năm hệ thống
         // ==========================================
         public static int LayNamHeThong()
         {
-            using var conn = new SqliteConnection($"Data Source={DbPath}");
-            conn.Open();
+            try
+            {
+                if (!File.Exists(DbPath))
+                    return DateTime.Now.Year;
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT NAM FROM NamHeThong WHERE ID = 1";
+                using var conn = new SqliteConnection($"Data Source={DbPath}");
+                conn.Open();
 
-            object result = cmd.ExecuteScalar();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT NAM 
+                    FROM NamHeThong 
+                    WHERE ID = @id 
+                    LIMIT 1;";
+                cmd.Parameters.AddWithValue("@id", ID_NAM_HE_THONG);
 
-            if (result != null && result != DBNull.Value)
-                return Convert.ToInt32(result);
+                object result = cmd.ExecuteScalar();
+
+                if (result != null && result != DBNull.Value)
+                {
+                    int nam = Convert.ToInt32(result);
+                    // Đảm bảo dữ liệu trong CSDL luôn hợp lý trước khi nạp vào hệ thống
+                    if (nam >= 2000 && nam <= 2100)
+                        return nam;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Fallback mượt mà khi CSDL khóa hoặc hỏng
+                Debug.WriteLine($"[Lỗi CSDL - LayNamHeThong]: {ex.Message}");
+            }
 
             return DateTime.Now.Year;
         }
@@ -120,36 +189,47 @@ namespace PhanMemThiDua2026
         // ==========================================
         // 2. Lưu năm hệ thống
         /// <summary>
-        /// yêu Mèo Cam
+        /// Yêu Mèo Cam 🐈
         /// </summary>
-        /// <param name="nam"></param>
         // ==========================================
         public static void LuuNamHeThong(int nam)
         {
-            using var conn = new SqliteConnection($"Data Source={DbPath}");
-            conn.Open();
+            // Chặn dữ liệu rác/lỗi từ đầu vào
+            if (nam < 2000 || nam > 2100)
+                throw new ArgumentOutOfRangeException(nameof(nam), "Năm hệ thống không hợp lệ (Giới hạn: 2000 - 2100).");
 
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = @"
-                INSERT OR REPLACE INTO NamHeThong (ID, NAM)
-                VALUES (1, @nam);
-            ";
+            try
+            {
+                using var conn = new SqliteConnection($"Data Source={DbPath}");
+                conn.Open();
 
-            cmd.Parameters.AddWithValue("@nam", nam);
-            cmd.ExecuteNonQuery();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    INSERT OR REPLACE INTO NamHeThong (ID, NAM)
+                    VALUES (@id, @nam);";
+
+                cmd.Parameters.AddWithValue("@id", ID_NAM_HE_THONG);
+                cmd.Parameters.AddWithValue("@nam", nam);
+
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Lỗi CSDL - LuuNamHeThong]: {ex.Message}");
+                throw new Exception($"Lỗi gián đoạn khi lưu năm hệ thống: {ex.Message}", ex);
+            }
         }
 
         // ==========================================
-        // 3. Lấy danh sách năm ±5
+        // 3. Lấy danh sách biên độ năm
         // ==========================================
-        public static List<int> LayDanhSachNam()
+        public static List<int> LayDanhSachNam(int bienDo = 5)
         {
             int namTrungTam = LayNamHeThong();
+            var ds = new List<int>(bienDo * 2 + 1); // Cấp phát tĩnh trước để tối ưu phân bổ vùng nhớ
 
-            List<int> ds = new List<int>();
-
-            int min = namTrungTam - 5;
-            int max = namTrungTam + 5;
+            int min = namTrungTam - bienDo;
+            int max = namTrungTam + bienDo;
 
             for (int i = min; i <= max; i++)
             {

@@ -19,6 +19,9 @@ namespace PhanMemThiDua2026
     {
         // Sử dụng chung đường dẫn CSDL2 từ module dẫn đường
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontRegular9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
+        private static readonly Font _fontBold9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
         public Form44_SoVangBaNhat()
         {
             InitializeComponent();
@@ -47,7 +50,7 @@ namespace PhanMemThiDua2026
             kryptonTextBox1_SoHieu.StateCommon.Back.Color1 = Color.LightGreen;
             kryptonTextBox1_SoHieu.StateCommon.Content.Color1 = Color.DarkGreen;
             // Đảm bảo không bị ghi đè bởi Theme mặc định
-            kryptonTextBox1_SoHieu.StateCommon.Content.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            kryptonTextBox1_SoHieu.StateCommon.Content.Font = _fontRegular9;
             kryptonDataGridView1.CellFormatting += kryptonDataGridView1_CellFormatting;
             kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
             kryptonDataGridView1.CellMouseClick += kryptonDataGridView1_CellMouseClick;
@@ -79,6 +82,7 @@ namespace PhanMemThiDua2026
                 FillDataToControls(kryptonDataGridView1.Rows[e.RowIndex]);
             }
         }
+        // Lê Trung Kiên -  Yêu mèo cam
         private void FillDataToControls(DataGridViewRow row)
         {
             // ⭐ THEO Ý TƯỞNG CỦA BẠN: Ép RichTextBox về null ngay lập tức để diệt tận gốc chữ cũ
@@ -316,10 +320,9 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1.ColumnHeadersHeight = 50;
             kryptonDataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
 
-            kryptonDataGridView1.StateCommon.HeaderColumn.Content.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            kryptonDataGridView1.StateCommon.DataCell.Content.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            kryptonDataGridView1.StateCommon.HeaderColumn.Content.Font = _fontBold9;
+            kryptonDataGridView1.StateCommon.DataCell.Content.Font = _fontRegular9;
             kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
             // Màu sắc và Border
             kryptonDataGridView1.StateCommon.DataCell.Border.Color1 = Color.FromArgb(224, 224, 224);
             kryptonDataGridView1.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;

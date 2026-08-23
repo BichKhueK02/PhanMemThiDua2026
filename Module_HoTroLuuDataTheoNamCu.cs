@@ -14,11 +14,11 @@ namespace PhanMemThiDua2026
     // =======================================================================
     public class FileLichSuDTO
     {
+        public int STT { get; set; }
         public string TenHienThi { get; set; }
         public string DuongDan { get; set; }
         public bool LaTanBinh { get; set; }
     }
-
     public class HistoryCBCSDTO
     {
         public string ID, HoVaTen, SoHieu, DonVi, TinhTrang;
@@ -32,7 +32,6 @@ namespace PhanMemThiDua2026
         public int SortPriority;
         public Dictionary<string, string> CotPhatSinh = new Dictionary<string, string>();
     }
-
     public class HistoryTanBinhDTO
     {
         public string ID, HoVaTen, SoHieu, DonVi, TinhTrang;
@@ -45,7 +44,6 @@ namespace PhanMemThiDua2026
         public Dictionary<string, string> DuLieuThang = new Dictionary<string, string>(); // Lưu tuần và kết quả tháng
         public Dictionary<string, string> CotPhatSinh = new Dictionary<string, string>();
     }
-
     public class HistoryKhenThuongCBCSDTO
     {
         public int STT { get; set; }
@@ -57,8 +55,6 @@ namespace PhanMemThiDua2026
         public string GhiChu_Khen { get; set; }
         public string DanhSachDVKhen_An { get; set; }
     }
-
-
     // =======================================================================
     // CLASS CHÍNH: XỬ LÝ LƯU TRỮ VÀ LỊCH SỬ
     // =======================================================================
@@ -90,7 +86,19 @@ namespace PhanMemThiDua2026
                     LaTanBinh = isFileTanBinh
                 });
             }
-            return danhSach.OrderByDescending(x => x.TenHienThi).ToList();
+            // Thay dòng này:
+            // return danhSach.OrderByDescending(x => x.TenHienThi).ToList();
+
+            // BẰNG ĐOẠN CODE NÀY:
+            var ketQua = danhSach.OrderByDescending(x => x.TenHienThi).ToList();
+
+            // Đánh số thứ tự sau khi đã sắp xếp năm giảm dần
+            for (int i = 0; i < ketQua.Count; i++)
+            {
+                ketQua[i].STT = i + 1;
+            }
+
+            return ketQua;
         }
 
         public static List<FileLichSuDTO> LayDanhSachFileLichSu_KhenThuongCaNhan()
@@ -119,7 +127,19 @@ namespace PhanMemThiDua2026
                 });
             }
 
-            return danhSach.OrderByDescending(x => x.TenHienThi).ToList();
+            // Thay dòng này:
+            // return danhSach.OrderByDescending(x => x.TenHienThi).ToList();
+
+            // BẰNG ĐOẠN CODE NÀY:
+            var ketQua = danhSach.OrderByDescending(x => x.TenHienThi).ToList();
+
+            // Đánh số thứ tự sau khi đã sắp xếp năm giảm dần
+            for (int i = 0; i < ketQua.Count; i++)
+            {
+                ketQua[i].STT = i + 1;
+            }
+
+            return ketQua;
         }
 
         public static DataTable LoadDataFromHistoryDB(string dbPath, string tableName)

@@ -251,6 +251,7 @@
             Margin = new Padding(2);
             Name = "Form21_ChucVu";
             Text = "Cập nhật danh sách chức vụ";
+            Load += Form21_ChucVu_Load;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)kryptonDataGridView1_DanhSach_ChucVu).EndInit();

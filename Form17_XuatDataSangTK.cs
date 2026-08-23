@@ -110,9 +110,9 @@ namespace PhanMemThiDua2026
 
             int indexMacDinh = 0;
 
-            // =====================================================
+            
             // Chỉ CBCS mới gợi ý tháng hiện tại
-            // =====================================================
+            
             if (!laTanBinh)
             {
                 int thangHienTai = DateTime.Now.Month;
@@ -137,7 +137,6 @@ namespace PhanMemThiDua2026
 
             comboBox1_ChonThangCanXuat.SelectedIndex = indexMacDinh;
         }
-
         // ⭐ Hàm đếm ngược thời gian độc lập không làm đơ Form
         private async void AnThongBaoSauDelay(int delayMs)
         {
@@ -151,7 +150,6 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1_ThongBaoThanhCong.Text = "";
             }
         }
-
         private async void kryptonButton_XuatDuLieuSangThongKe_Click(object sender, EventArgs e)
         {
             // 1. LƯU TRẠNG THÁI GỐC CỦA NÚT
@@ -288,8 +286,6 @@ namespace PhanMemThiDua2026
                 AnThongBaoSauDelay(400);
             }
         }
-
-
         private List<RecordCBCS> LayDanhSachCBCS(SqliteConnection cn)
         {
             List<RecordCBCS> list = new();
@@ -320,8 +316,7 @@ namespace PhanMemThiDua2026
 
             return list;
         }
-        // Map ID để lookup nhanh (Phải giải mã để map chuẩn)
-        // =====================================================
+        // Map ID để lookup nhanh (Phải giải mã để map chuẩn)       
         private Dictionary<(string, string), int> LayMapID(SqliteConnection cn, string table)
         {
             var map = new Dictionary<(string, string), int>();
@@ -339,10 +334,8 @@ namespace PhanMemThiDua2026
             }
 
             return map;
-        }
-        // =====================================================
-        // Update record
-        // =====================================================
+        }       
+        // Update record       
         private void UpdateRecord(SqliteConnection cn, SqliteTransaction tr,
             string table, string column, int id, string value)
         {
@@ -354,9 +347,8 @@ namespace PhanMemThiDua2026
 
             cmd.ExecuteNonQuery();
         }
-        // =====================================================
-        // Insert record (Dùng dữ liệu mã hóa nguyên gốc)
-        // =====================================================
+        
+        // Insert record (Dùng dữ liệu mã hóa nguyên gốc)       
         private void InsertRecord(SqliteConnection cn, SqliteTransaction tr,
             string table, string column, RecordCBCS r, string value)
         {
@@ -373,9 +365,9 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
 
             cmd.ExecuteNonQuery();
         }
-        // =====================================================
+        
         // Chuyển loại
-        // =====================================================
+        
         private string ChuyenLoaiSangSo(string v) => v switch
         {
             "Loại 1" => "1",
@@ -386,10 +378,10 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
         };
         private string ChuyenTongKetNam(string v) => v switch
         {
-            "Loại 1" => "CSTĐ",
-            "Loại 2" => "CSTT",
-            "Loại 3" => "HTNV",
-            "Loại 4" => "KHTNV",
+            "Loại 1" => Module_HeThong.PL_CSTD,
+            "Loại 2" => Module_HeThong.PL_CSTT,
+            "Loại 3" => Module_HeThong.PL_HTNV,
+            "Loại 4" => Module_HeThong.PL_KHTNV,
             _ => ""
         };
         private string GetTenCotThang(bool laTanBinh)
@@ -412,17 +404,13 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
         {
             string pb = Module_TaiKhoan.LayPhienBanPhanMem();
             return pb.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-        }
-        // =====================================================
-        // Thống kê tập thể
-        // =====================================================
+        }     
+        // Thống kê tập thể 
         private void NapThongKePhanLoaiTapThe()
         {
             // giữ nguyên logic cũ của bạn
         }
-        // =====================================================
         // Tổng loại tân binh (giữ nguyên SQL gốc)
-        // =====================================================
         private void CapNhatTongLoaiTanBinh(SqliteConnection cn, SqliteTransaction tr)
         {
             string sql = @"YOUR_REAL_SQL_HERE";
@@ -433,9 +421,7 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
             using var cmd = new SqliteCommand(sql, cn, tr);
             cmd.ExecuteNonQuery();
         }
-        // =====================================================
         // Cấu hình ToolTip (Gợi ý giao diện) chuẩn UX
-        // =====================================================
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;

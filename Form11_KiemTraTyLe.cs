@@ -69,7 +69,6 @@ namespace PhanMemThiDua2026
             if (com_Textphanloai != null) toolTip1.SetToolTip(com_Textphanloai, "Chọn phân loại tập thể");
         }
         // KHỐI 1: XỬ LÝ DATABASE & CACHE (HIỆU SUẤT) - HỖ TRỢ ĐA PHIÊN BẢN (CBCS / TÂN BINH)
-        // KHỐI 1: XỬ LÝ DATABASE & CACHE (HIỆU SUẤT) - HỖ TRỢ ĐA PHIÊN BẢN (CBCS / TÂN BINH)
         private void TaiDuLieuTuSQLiteVaoCache()
         {
             _cacheTyLe.Clear();

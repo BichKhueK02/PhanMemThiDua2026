@@ -181,8 +181,8 @@
             // tableLayoutPanel10
             // 
             tableLayoutPanel10.ColumnCount = 4;
-            tableLayoutPanel10.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.666666F));
-            tableLayoutPanel10.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28.61111F));
+            tableLayoutPanel10.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22.36111F));
+            tableLayoutPanel10.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.5F));
             tableLayoutPanel10.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.61111F));
             tableLayoutPanel10.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26.38889F));
             tableLayoutPanel10.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
@@ -231,7 +231,7 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.FromArgb(0, 0, 192);
-            label6.Location = new Point(122, 11);
+            label6.Location = new Point(128, 11);
             label6.Name = "label6";
             label6.Size = new Size(30, 19);
             label6.TabIndex = 2;
@@ -240,10 +240,10 @@
             // kryptonTextBox_STT
             // 
             kryptonTextBox_STT.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox_STT.Location = new Point(158, 6);
+            kryptonTextBox_STT.Location = new Point(164, 6);
             kryptonTextBox_STT.Margin = new Padding(3, 0, 3, 0);
             kryptonTextBox_STT.Name = "kryptonTextBox_STT";
-            kryptonTextBox_STT.Size = new Size(199, 29);
+            kryptonTextBox_STT.Size = new Size(192, 29);
             kryptonTextBox_STT.StateCommon.Border.Rounding = 8F;
             kryptonTextBox_STT.StateCommon.Border.Width = 1;
             kryptonTextBox_STT.TabIndex = 0;
@@ -254,7 +254,7 @@
             label7.AutoSize = true;
             label7.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label7.ForeColor = Color.FromArgb(0, 0, 192);
-            label7.Location = new Point(72, 52);
+            label7.Location = new Point(78, 52);
             label7.Name = "label7";
             label7.Size = new Size(80, 19);
             label7.TabIndex = 3;
@@ -263,10 +263,10 @@
             // kryptonTextBox_TenTapThe
             // 
             kryptonTextBox_TenTapThe.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox_TenTapThe.Location = new Point(158, 47);
+            kryptonTextBox_TenTapThe.Location = new Point(164, 47);
             kryptonTextBox_TenTapThe.Margin = new Padding(3, 0, 3, 0);
             kryptonTextBox_TenTapThe.Name = "kryptonTextBox_TenTapThe";
-            kryptonTextBox_TenTapThe.Size = new Size(199, 29);
+            kryptonTextBox_TenTapThe.Size = new Size(192, 29);
             kryptonTextBox_TenTapThe.StateCommon.Border.Rounding = 8F;
             kryptonTextBox_TenTapThe.StateCommon.Border.Width = 1;
             kryptonTextBox_TenTapThe.TabIndex = 27;
@@ -277,7 +277,7 @@
             label9.AutoSize = true;
             label9.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label9.ForeColor = Color.FromArgb(0, 0, 192);
-            label9.Location = new Point(82, 93);
+            label9.Location = new Point(88, 93);
             label9.Name = "label9";
             label9.Size = new Size(70, 19);
             label9.TabIndex = 10;
@@ -288,9 +288,9 @@
             comboBox_HinhThucKhenThuong.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox_HinhThucKhenThuong.FormattingEnabled = true;
             comboBox_HinhThucKhenThuong.Items.AddRange(new object[] { "", "Giấy khen", "Bằng khen", "Huy chương", "Huân chương", "Kỷ niệm chương" });
-            comboBox_HinhThucKhenThuong.Location = new Point(158, 91);
+            comboBox_HinhThucKhenThuong.Location = new Point(164, 91);
             comboBox_HinhThucKhenThuong.Name = "comboBox_HinhThucKhenThuong";
-            comboBox_HinhThucKhenThuong.Size = new Size(199, 23);
+            comboBox_HinhThucKhenThuong.Size = new Size(192, 23);
             comboBox_HinhThucKhenThuong.TabIndex = 1;
             // 
             // label12
@@ -299,7 +299,7 @@
             label12.AutoSize = true;
             label12.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label12.ForeColor = Color.FromArgb(0, 0, 192);
-            label12.Location = new Point(19, 134);
+            label12.Location = new Point(25, 134);
             label12.Name = "label12";
             label12.Size = new Size(133, 19);
             label12.TabIndex = 2;
@@ -310,9 +310,9 @@
             comboBox_DonViKhenThuong.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox_DonViKhenThuong.FormattingEnabled = true;
             comboBox_DonViKhenThuong.Items.AddRange(new object[] { "", "Bộ Công an", "Bộ Tư lênh CSCĐ", "Công an tỉnh ", "UBND Tỉnh ", "UBND Tp. ", "UBND Xã ", "Đoàn Thanh niên BCA", "Đoàn Thanh niên K02", "Đoàn Thanh niên " });
-            comboBox_DonViKhenThuong.Location = new Point(158, 132);
+            comboBox_DonViKhenThuong.Location = new Point(164, 132);
             comboBox_DonViKhenThuong.Name = "comboBox_DonViKhenThuong";
-            comboBox_DonViKhenThuong.Size = new Size(199, 23);
+            comboBox_DonViKhenThuong.Size = new Size(192, 23);
             comboBox_DonViKhenThuong.TabIndex = 2;
             // 
             // label13
@@ -321,7 +321,7 @@
             label13.AutoSize = true;
             label13.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label13.ForeColor = Color.FromArgb(0, 0, 192);
-            label13.Location = new Point(54, 175);
+            label13.Location = new Point(60, 175);
             label13.Name = "label13";
             label13.Size = new Size(98, 19);
             label13.TabIndex = 3;
@@ -330,10 +330,10 @@
             // kryptonTextBox_SoQuyetDinh
             // 
             kryptonTextBox_SoQuyetDinh.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox_SoQuyetDinh.Location = new Point(158, 170);
+            kryptonTextBox_SoQuyetDinh.Location = new Point(164, 170);
             kryptonTextBox_SoQuyetDinh.Margin = new Padding(3, 0, 3, 0);
             kryptonTextBox_SoQuyetDinh.Name = "kryptonTextBox_SoQuyetDinh";
-            kryptonTextBox_SoQuyetDinh.Size = new Size(199, 29);
+            kryptonTextBox_SoQuyetDinh.Size = new Size(192, 29);
             kryptonTextBox_SoQuyetDinh.StateCommon.Border.Rounding = 8F;
             kryptonTextBox_SoQuyetDinh.StateCommon.Border.Width = 1;
             kryptonTextBox_SoQuyetDinh.TabIndex = 3;
@@ -344,7 +344,7 @@
             label14.AutoSize = true;
             label14.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic);
             label14.ForeColor = Color.FromArgb(0, 0, 192);
-            label14.Location = new Point(38, 216);
+            label14.Location = new Point(44, 216);
             label14.Name = "label14";
             label14.Size = new Size(114, 19);
             label14.TabIndex = 4;
@@ -353,10 +353,10 @@
             // kryptonTextBox_NgayQuyetDinh
             // 
             kryptonTextBox_NgayQuyetDinh.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox_NgayQuyetDinh.Location = new Point(158, 211);
+            kryptonTextBox_NgayQuyetDinh.Location = new Point(164, 211);
             kryptonTextBox_NgayQuyetDinh.Margin = new Padding(3, 0, 3, 0);
             kryptonTextBox_NgayQuyetDinh.Name = "kryptonTextBox_NgayQuyetDinh";
-            kryptonTextBox_NgayQuyetDinh.Size = new Size(199, 29);
+            kryptonTextBox_NgayQuyetDinh.Size = new Size(192, 29);
             kryptonTextBox_NgayQuyetDinh.StateCommon.Border.Rounding = 8F;
             kryptonTextBox_NgayQuyetDinh.StateCommon.Border.Width = 1;
             kryptonTextBox_NgayQuyetDinh.TabIndex = 4;

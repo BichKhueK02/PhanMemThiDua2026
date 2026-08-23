@@ -22,6 +22,8 @@ namespace PhanMemThiDua2026
         private DataTable? dtDanhSachGoc; // có thể null
         private Dictionary<string, ToolStripStatusLabel> labelsPhanLoai = new();
         private bool _dangXuLyHuongDan = false;
+        private int _dangRefresh = 0;
+        private CancellationTokenSource? _refreshCts;
         private static readonly Dictionary<string, string> _tenCotTiengViet = new(StringComparer.Ordinal)
         {
             ["STT"] = "STT",
@@ -295,8 +297,8 @@ namespace PhanMemThiDua2026
 
                         case Keys.F9:
                             return SafeExecute(
-                                kryptonButton1_PhanTich,
-                                () => kryptonButton1_PhanTich.PerformClick());
+                                kryptonButton1_ThiDuaBaNhat,
+                                () => kryptonButton1_ThiDuaBaNhat.PerformClick());
 
                         case Keys.F10:
                             return SafeExecute(
@@ -961,7 +963,7 @@ namespace PhanMemThiDua2026
                     (comboBox_TimKiemDonVi,              "Lọc danh sách theo đơn vị công tác"),
                     (comboBox_XepLoaiThiDua,             "Lọc theo kết quả xếp loại thi đua"),
                     (kryptonButton_LamMoiCacOTimKiem,    "Xóa toàn bộ điều kiện tìm kiếm (Ctrl + D)"),
-                    (kryptonButton1_PhanTich,            "Phân tích cơ cấu quân số (F9)"),
+                    (kryptonButton1_ThiDuaBaNhat,        "Quản lý phong trào thi đua Ba nhất và Sổ vàng Ba nhất (F9)"),
                     (kryptonButton_RefershCSDL,          "Nạp lại dữ liệu từ CSDL gốc (F5)"),
                     (kryptonButton_XoaKetQuaPhanLoai,    "Xóa kết quả phân loại (F8)"),
                     (kryptonButton_XoaDataCBCS,          "Xóa dữ liệu CBCS (cần xác nhận)"),
@@ -1387,13 +1389,13 @@ namespace PhanMemThiDua2026
 
                 // Chữ khi chọn: Xanh nước biển đậm, sắc nét (Microsoft Fluent Blue)
                 dgv.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
-               
+
                 // Cập nhật lại chiều cao cho các dòng ĐÃ CÓ SẴN
                 foreach (DataGridViewRow row in dgv.Rows)
                 {
                     row.Height = dgv.RowTemplate.Height;
                 }
-              
+
             }
             finally
             {
@@ -1633,13 +1635,10 @@ namespace PhanMemThiDua2026
         // ⭐ [THAY THẾ] Hàm CellClick cũ bằng hàm này để đọc an toàn từ DataView
         private void KryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
-
             // 1. Chặn click vào Header (RowIndex = -1) hoặc lỗi ngớ ngẩn
             if (e.RowIndex < 0 || sender is not DataGridView grid || dtDanhSachGoc == null) return;
-
             // 2. Chặn lỗi lệch pha khi DataView đang được sort/filter ngầm
             if (e.RowIndex >= dtDanhSachGoc.DefaultView.Count) return;
-
             // 3. Tách việc lấy dữ liệu khỏi luồng vẽ UI để tránh giật lag cục bộ
             this.BeginInvoke(new Action(() =>
             {
@@ -2107,8 +2106,6 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
-        private int _dangRefresh = 0;
-        private CancellationTokenSource? _refreshCts;
         private async void kryptonButton_RefershCSDL_Click(object sender, EventArgs e)
         {
             // 1. CHỐNG DOUBLE CLICK / RE-ENTRY
@@ -2220,7 +2217,7 @@ namespace PhanMemThiDua2026
                 // 17. THÔNG BÁO THÀNH CÔNG
                 toolStripStatusLabel1.Text = "Đã làm mới dữ liệu";
 
-               // SystemSounds.Asterisk.Play();
+                // SystemSounds.Asterisk.Play();
             }
             catch (OperationCanceledException)
             {
@@ -2605,7 +2602,7 @@ namespace PhanMemThiDua2026
                 }
                 transaction.Commit();
                 DataCache.Clear();
-                await ReloadDuLieu();      
+                await ReloadDuLieu();
                 ApplyFilter();
                 CapNhatThongKeToanBoQuanSo();
                 ThongBaoForm4CapNhatLoaiDeXuat();
@@ -2832,7 +2829,7 @@ namespace PhanMemThiDua2026
         {
             // Nội dung mà kryptonButton_RefershCSDL_Click thực hiện/ nhận tín hiệu truyền từ form16
             kryptonButton_RefershCSDL.PerformClick();
-        } 
+        }
         private void xuatDuLieuSangThongKe_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (!KiemTraDuLieuSanSang("xuất dữ liệu sang thống kê")) return;
@@ -3186,72 +3183,13 @@ namespace PhanMemThiDua2026
 
             Instance = null;
             base.OnFormClosed(e);
-        }
-        private void kryptonButton1_PhanTich_Click(object sender, EventArgs e)
-        {
-            if (!KiemTraDuLieuSanSang("phân tích quân số")) return;
-
-            try
-            {
-                var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-                if (formCha == null) return;
-
-                var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-                if (panel == null) return;
-
-                var form6 = panel.Controls.OfType<Form6_XuLyData>().FirstOrDefault();
-
-                // Ẩn tất cả form đang mở trong Panel để nhường chỗ
-                foreach (Form frm in panel.Controls.OfType<Form>())
-                {
-                    frm.Hide();
-                }
-
-                // Tìm xem Form 26 đã tồn tại chưa
-                var form26 = panel.Controls.OfType<Form26_PhanTichQuanSo>().FirstOrDefault();
-
-                if (form26 == null)
-                {
-                    // Nếu chưa có -> Tạo mới (Không cần truyền dữ liệu gì qua nữa)
-                    form26 = new Form26_PhanTichQuanSo()
-                    {
-                        TopLevel = false,
-                        FormBorderStyle = FormBorderStyle.None,
-                        Dock = DockStyle.Fill,
-                        Text = "Phân tích quân số"
-                    };
-
-                    form26.FormClosed += (s, ev) =>
-                    {
-                        if (form6 != null && !form6.IsDisposed)
-                        {
-                            form6.Dock = DockStyle.Fill;
-                            form6.Show();
-                            form6.BringToFront();
-                        }
-                    };
-                    panel.Controls.Add(form26);
-                }
-
-                // ĐIỂM MẤU CHỐT: Bắt Form 26 tự chọc vào DB để lấy dữ liệu tươi nhất
-                form26.LoadDataTuDatabase();
-
-                // Hiển thị
-                form26.Show();
-                form26.BringToFront();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Có lỗi xảy ra khi mở tính năng Phân tích: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+        } 
         // NÚT MENU GỐC: Gọi luồng xuất bình thường
         private void xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // Thay thế bằng dòng này
             Module_XuatNhapDuLieuThiDua.ThucThiXuatExcel(this, false, dtDanhSachGoc);
         }
-
         private void kryptonButton1_HuongDanThemDuLieu_Click(object sender, EventArgs e)
         {
             if (_dangXuLyHuongDan) return;
@@ -3513,7 +3451,7 @@ namespace PhanMemThiDua2026
                     }
                 };
                 // 2. Tìm Form2 đang chạy và cập nhật tiêu đề
-               // var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+                // var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                 if (formCha != null)
                 {
                     formCha.CapNhatTieuDe("Trang CBCS trong diện quản lý");
@@ -3930,7 +3868,7 @@ namespace PhanMemThiDua2026
         comboBox_TimKiemDonVi,
         comboBox_XepLoaiThiDua,
         kryptonButton_LamMoiCacOTimKiem,
-        kryptonButton1_PhanTich,
+        kryptonButton1_ThiDuaBaNhat,
         kryptonButton_RefershCSDL
     };
 
@@ -4071,7 +4009,75 @@ namespace PhanMemThiDua2026
             public TimeSpan Duration { get; set; }
             public string EngineUsed { get; set; } = string.Empty;
         }
+        private void toolStripMenuItem_PhanTichQuanSo_Click(object sender, EventArgs e)
+        {
+
+            if (!KiemTraDuLieuSanSang("phân tích quân số")) return;
+
+            try
+            {
+                var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+                if (formCha == null) return;
+
+                var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
+                if (panel == null) return;
+
+                var form6 = panel.Controls.OfType<Form6_XuLyData>().FirstOrDefault();
+
+                // Ẩn tất cả form đang mở trong Panel để nhường chỗ
+                foreach (Form frm in panel.Controls.OfType<Form>())
+                {
+                    frm.Hide();
+                }
+
+                // Tìm xem Form 26 đã tồn tại chưa
+                var form26 = panel.Controls.OfType<Form26_PhanTichQuanSo>().FirstOrDefault();
+
+                if (form26 == null)
+                {
+                    // Nếu chưa có -> Tạo mới (Không cần truyền dữ liệu gì qua nữa)
+                    form26 = new Form26_PhanTichQuanSo()
+                    {
+                        TopLevel = false,
+                        FormBorderStyle = FormBorderStyle.None,
+                        Dock = DockStyle.Fill,
+                        Text = "Phân tích quân số"
+                    };
+
+                    form26.FormClosed += (s, ev) =>
+                    {
+                        if (form6 != null && !form6.IsDisposed)
+                        {
+                            form6.Dock = DockStyle.Fill;
+                            form6.Show();
+                            form6.BringToFront();
+                        }
+                    };
+                    panel.Controls.Add(form26);
+                }
+
+                // ĐIỂM MẤU CHỐT: Bắt Form 26 tự chọc vào DB để lấy dữ liệu tươi nhất
+                form26.LoadDataTuDatabase();
+
+                // Hiển thị
+                form26.Show();
+                form26.BringToFront();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Có lỗi xảy ra khi mở tính năng Phân tích: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         private async void ToolStripMenuItem_QuanLyThiDuaBaNhat_Click(object sender, EventArgs e)
+        {
+            kryptonButton1_ThiDuaBaNhat.PerformClick();
+        }
+        /// <summary>
+        /// 
+        /// Kiểm tra bảng DanhSach có dữ liệu thực tế hay không
+        /// để tự động ẩn/hiện các chức năng phân tích.
+        /// </summary>
+        private async void kryptonButton1_ThiDuaBaNhat_Click(object sender, EventArgs e)
         {
             // 1. Kiểm tra an toàn
             if (!KiemTraDuLieuSanSang("quản lý thi đua Ba Nhất"))
@@ -4081,23 +4087,23 @@ namespace PhanMemThiDua2026
 
             // 2. Tìm Form cha (Form2) và Panel trung gian
             var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null) return;
+            if (formCha == null || formCha.IsDisposed) return;
 
             var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-            if (panel == null) return;
+            if (panel == null || panel.IsDisposed) return;
 
-            // 3. Ẩn tất cả các Form khác (Ví dụ ẩn Form 6 đi)
-            foreach (System.Windows.Forms.Control ctl in panel.Controls)
+            // 3. Ẩn tất cả các Form hiện tại trong PanelContainer
+            foreach (Control ctl in panel.Controls)
             {
                 if (ctl is Form frm) frm.Hide();
             }
 
-            // 4. KIỂM TRA: Xem cái vỏ Form55 đã có trong PanelContainer chưa?
+            // 4. KIỂM TRA TRONG RAM: Tìm Form55 đã tồn tại chưa
             var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
 
-            // 5. Nếu chưa có -> Tạo mới Form55 và thả vào PanelContainer
-            if (form55 == null)
+            if (form55 == null || form55.IsDisposed)
             {
+                // Chưa có -> Khởi tạo lần đầu
                 form55 = new Form55_QuanLyHeThongThiDuaBaNhat
                 {
                     TopLevel = false,
@@ -4105,23 +4111,23 @@ namespace PhanMemThiDua2026
                     Dock = DockStyle.Fill
                 };
                 panel.Controls.Add(form55);
+                form55.Show();
+            }
+            else
+            {
+                // Đã có sẵn trong RAM -> Chỉ việc hiện lại và đồng bộ nhẹ
+                form55.Dock = DockStyle.Fill;
+                form55.Show();
+                form55.BringToFront();
+                await form55.MoForm42Async(); // Kích hoạt nạp lại Tab Form 42 mượt mà
             }
 
-            // 6. Đổi tên tiêu đề lớn của phần mềm
-            formCha.Label1.Text = "Hệ thống quản lý phong trào thi đua Ba Nhất";
-
-            // 7. Kéo cái vỏ Form55 lên trên cùng và hiển thị
-            form55.Show();
-            form55.BringToFront();
-
-            // 8. ⭐ RA LỆNH: Yêu cầu Form55 mở tab Form42 bên trong nó ra và đồng bộ dữ liệu
-            //await form55.MoVaDongBoForm42Async();
+            // 5. Cập nhật tiêu đề lớn của phần mềm
+            if (formCha.Label1 != null)
+            {
+                formCha.Label1.Text = "Hệ thống quản lý phong trào thi đua Ba Nhất";
+            }
         }
-        /// <summary>
-        /// 
-        /// Kiểm tra bảng DanhSach có dữ liệu thực tế hay không
-        /// để tự động ẩn/hiện các chức năng phân tích.
-        /// </summary>
     } // Ngoai luong
 }
 public static class DataGridViewExtensions  

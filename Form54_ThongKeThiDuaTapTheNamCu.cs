@@ -442,10 +442,10 @@ WHERE ID = 1;";
 
                 var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    ["Loại 1"] = "CSTĐ",
-                    ["Loại 2"] = "CSTT",
-                    ["Loại 3"] = "HTNV",
-                    ["Loại 4"] = "KHTNV",
+                    ["Loại 1"] = Module_HeThong.PL_CSTD,
+                    ["Loại 2"] = Module_HeThong.PL_CSTT,
+                    ["Loại 3"] = Module_HeThong.PL_HTNV,
+                    ["Loại 4"] = Module_HeThong.PL_KHTNV,
                     ["Không PL"] = string.Empty
                 };
 
@@ -499,12 +499,12 @@ WHERE ID = 1;";
                     cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     cell.Style.Alignment.WrapText = true;
 
-                    if (giaTriXuat is "CSTĐ" or "CSTT")
-                    {
+                    if (giaTriXuat is Module_HeThong.PL_CSTD or Module_HeThong.PL_CSTT)
+                        {
                         cell.Style.Font.Bold = true;
                         cell.Style.Font.FontColor = XLColor.DarkGreen;
                     }
-                    else if (giaTriXuat == "KHTNV")
+                    else if (giaTriXuat == Module_HeThong.PL_KHTNV)
                     {
                         cell.Style.Font.Bold = true;
                         cell.Style.Font.FontColor = XLColor.DarkRed;

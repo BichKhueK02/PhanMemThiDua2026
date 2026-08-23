@@ -123,8 +123,8 @@
             // tableLayoutPanel2
             // 
             tableLayoutPanel2.ColumnCount = 5;
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25.3968258F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30.47619F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25.8730164F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19.36508F));
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 11.5079365F));
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.0628834F));
@@ -146,27 +146,27 @@
             // tableLayoutPanel4
             // 
             tableLayoutPanel4.ColumnCount = 2;
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.4804478F));
-            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 83.5195541F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.9032259F));
+            tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 87.09677F));
             tableLayoutPanel4.Controls.Add(pictureBox3, 0, 0);
             tableLayoutPanel4.Controls.Add(lable_phienban, 1, 0);
             tableLayoutPanel4.Dock = DockStyle.Fill;
-            tableLayoutPanel4.Location = new Point(323, 2);
+            tableLayoutPanel4.Location = new Point(329, 2);
             tableLayoutPanel4.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel4.Name = "tableLayoutPanel4";
             tableLayoutPanel4.RowCount = 1;
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel4.Size = new Size(378, 53);
+            tableLayoutPanel4.Size = new Size(372, 53);
             tableLayoutPanel4.TabIndex = 31;
             // 
             // pictureBox3
             // 
             pictureBox3.Anchor = AnchorStyles.None;
             pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
-            pictureBox3.Location = new Point(8, 7);
+            pictureBox3.Location = new Point(2, 7);
             pictureBox3.Margin = new Padding(2, 3, 2, 3);
             pictureBox3.Name = "pictureBox3";
-            pictureBox3.Size = new Size(46, 39);
+            pictureBox3.Size = new Size(44, 39);
             pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox3.TabIndex = 28;
             pictureBox3.TabStop = false;
@@ -177,7 +177,7 @@
             lable_phienban.AutoSize = true;
             lable_phienban.Font = new Font("Segoe UI", 9.792F, FontStyle.Italic, GraphicsUnit.Point, 0);
             lable_phienban.ForeColor = Color.Blue;
-            lable_phienban.Location = new Point(64, 17);
+            lable_phienban.Location = new Point(50, 17);
             lable_phienban.Margin = new Padding(2, 0, 2, 0);
             lable_phienban.Name = "lable_phienban";
             lable_phienban.Size = new Size(72, 19);
@@ -212,7 +212,7 @@
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.Size = new Size(314, 53);
+            tableLayoutPanel3.Size = new Size(320, 53);
             tableLayoutPanel3.TabIndex = 28;
             // 
             // pictureBox2

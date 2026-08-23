@@ -151,7 +151,7 @@
             Margin = new Padding(3, 2, 3, 2);
             Name = "Form18_XoaDataThang";
             Text = "Xóa dữ liệu thi đua tháng";
-            Load += Form18_Load;
+            Load += Form18_XoaDataThang_Load;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel2.ResumeLayout(false);
             tableLayoutPanel3.ResumeLayout(false);

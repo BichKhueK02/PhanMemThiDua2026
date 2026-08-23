@@ -9,6 +9,11 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
+        // 🌟 4 biến hằng số danh hiệu thi đua dùng chung toàn Form
+        public const string DanhHieu_Loai1 = Module_HeThong.PL_CSTD; // "TĐ"
+        public const string DanhHieu_Loai2 = Module_HeThong.PL_CSTT;
+        public const string DanhHieu_Loai3 = Module_HeThong.PL_HTNV;
+        public const string DanhHieu_Loai4 = Module_HeThong.PL_KHTNV;
         public Form23_ThongKeThiDuaTapThe()
         {
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -100,13 +105,14 @@ namespace PhanMemThiDua2026
             toolStripLabel2.Text =
                 $"Phiên bản {Module_PhienBan.SoftwareVersion} {Module_PhienBan.NgayThangNamCapNhat}";
         }
+        private static readonly Font _fontHeaderBangThongKe = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private void ChinhTieuDeBangThongKe()
         {
             var dgv = kryptonDataGridView1;
 
             dgv.EnableHeadersVisualStyles = false;
             dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10);
+            dgv.ColumnHeadersDefaultCellStyle.Font = _fontHeaderBangThongKe;
 
             var map = new Dictionary<string, string>
             {
@@ -368,10 +374,10 @@ VALUES (1);";
                 // ================== 3. MAP NGHIỆP VỤ (DUY NHẤT 1 CHỖ) ==================
                 var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    ["Loại 1"] = "CSTĐ",
-                    ["Loại 2"] = "CSTT",
-                    ["Loại 3"] = "HTNV",
-                    ["Loại 4"] = "KHTNV",
+                    ["Loại 1"] = DanhHieu_Loai1,
+                    ["Loại 2"] = DanhHieu_Loai2,
+                    ["Loại 3"] = DanhHieu_Loai3,
+                    ["Loại 4"] = DanhHieu_Loai4,
                     ["Không PL"] = string.Empty
                 };
 
@@ -437,12 +443,12 @@ VALUES (1);";
                     cell.Style.Alignment.WrapText = true;
 
                     // Tô màu theo danh hiệu
-                    if (giaTriXuat is "CSTĐ" or "CSTT")
+                    if (giaTriXuat is DanhHieu_Loai1 or DanhHieu_Loai2)
                     {
                         cell.Style.Font.Bold = true;
                         cell.Style.Font.FontColor = XLColor.DarkGreen;
                     }
-                    else if (giaTriXuat == "KHTNV")
+                    else if (giaTriXuat == DanhHieu_Loai4)
                     {
                         cell.Style.Font.Bold = true;
                         cell.Style.Font.FontColor = XLColor.DarkRed;
@@ -535,7 +541,6 @@ WHERE ID = 1";
                 tran.Rollback();
                 throw;
             }
-
             LoadBangThongKe();
             ChinhTieuDeBangThongKe();
             CapNhatTrangThaiKetNoi();

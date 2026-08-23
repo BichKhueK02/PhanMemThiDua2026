@@ -627,9 +627,9 @@ namespace PhanMemThiDua2026
             if (dgv == null || dgv.IsDisposed)
                 return;
 
-            // ============================================================
+            
             // 1. TẠO CÁC CỘT
-            // ============================================================
+            
             AddCol(dgv, "ID", "STT", 65);
 
             AddCol(
@@ -676,9 +676,9 @@ namespace PhanMemThiDua2026
                 24,
                 DataGridViewContentAlignment.MiddleLeft);
 
-            // ============================================================
+            
             // 2. CỘT PHỤ DÙNG CHO LOGIC / ICON
-            // ============================================================
+            
             var colIcon = new DataGridViewTextBoxColumn
             {
                 Name = "IconType",
@@ -690,9 +690,9 @@ namespace PhanMemThiDua2026
 
             dgv.Columns.Add(colIcon);
 
-            // ============================================================
+            
             // 3. CẤU HÌNH KÍCH THƯỚC
-            // ============================================================
+            
             foreach (DataGridViewColumn col in dgv.Columns)
             {
                 if (!col.Visible)
@@ -703,9 +703,9 @@ namespace PhanMemThiDua2026
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             }
 
-            // ============================================================
+            
             // 4. CỘT STT: KÍCH THƯỚC CỐ ĐỊNH
-            // ============================================================
+            
             if (dgv.Columns["ID"] is DataGridViewColumn colID)
             {
                 colID.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
@@ -714,9 +714,9 @@ namespace PhanMemThiDua2026
                 colID.Resizable = DataGridViewTriState.False;
             }
 
-            // ============================================================
+            
             // 5. GIỚI HẠN ĐỘ RỘNG MỘT SỐ CỘT
-            // ============================================================
+            
             DatagridSetWidth(dgv, "ThoiGian", 120, 180);
             DatagridSetWidth(dgv, "TenMay", 100, 180);
             DatagridSetWidth(dgv, "IP", 100, 160);

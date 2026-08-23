@@ -138,7 +138,7 @@ namespace PhanMemThiDua2026
             // 1. Reset các nhãn đường dẫn về trạng thái ban đầu
             label_DuongDanExcel.Text = "Chưa chọn tệp excel";
             label_DuongDanExcel.ForeColor = Color.Red;
-
+            CapNhatIconNutChonExcel();
             label_DuongDanPdf.Text = "Chưa chọn thư mục lưu tệp *.pdf";
             label_DuongDanPdf.ForeColor = Color.Red;
 
@@ -289,13 +289,18 @@ namespace PhanMemThiDua2026
                 { "LOAI_3", $"Danh sách đề nghị loại 3 phong trào thi đua \"Vì ANTQ\" {baseString}" },
                 { "LOAI_4", $"Danh sách đề nghị loại 4 phong trào thi đua \"Vì ANTQ\" {baseString}" },
                 { "KHONG_PL", $"Danh sách đề nghị không phân loại phong trào thi đua \"Vì ANTQ\" {baseString}" },
-                { "BAO CAO TONG HOP", $"Báo cáo tổng hợp phong trào thi đua \"Vì ANTQ\" {baseString}" },
+                { "BAO CAO TONG HOP", $"Danh sách tổng hợp phong trào thi đua \"Vì ANTQ\" {baseString}" },
                 { "BC_BANHAT", $"Báo cáo tổng hợp đề nghị biểu dương gương tiêu biểu phong trào thi đua \"Ba nhất\" {baseString}" },
                 { "DS_BANHAT", $"Danh sách đề nghị biểu dương gương tiêu biểu phong trào thi đua \"Ba nhất\" {baseString}" }
             };
         }
         private async void KryptonButton1_ChonDuongDanTepExcel_Click(object sender, EventArgs e)
-        {
+        {// 🌟 THÊM ĐOẠN NÀY VÀO ĐẦU HÀM:
+            if (!label_DuongDanExcel.Text.Equals("Chưa chọn tệp excel", StringComparison.OrdinalIgnoreCase))
+            {
+                ReloadGiaoDienVaDuLieu();
+                return;
+            }
             using var ofd = new OpenFileDialog
             {
                 Title = "Chọn tệp Excel nguồn",
@@ -322,6 +327,7 @@ namespace PhanMemThiDua2026
                 }
                 // =========================================================================
 
+                CapNhatIconNutChonExcel();
                 // Khóa nút trong lúc chờ load để tránh user bấm spam liên tục
                 kryptonButton1_ChonDuongDanTepExcel.Enabled = false;
                 kryptonButton_XuatTepPdf.Enabled = false;
@@ -414,6 +420,7 @@ namespace PhanMemThiDua2026
                 // Khôi phục nhãn về trạng thái lỗi
                 label_DuongDanExcel.Text = "Chưa chọn tệp excel";
                 label_DuongDanExcel.ForeColor = Color.Red;
+                CapNhatIconNutChonExcel();
             }
             finally
             {
@@ -1268,6 +1275,26 @@ namespace PhanMemThiDua2026
             else
             {
                 MessageBox.Show("Thư mục lưu tệp PDF không tồn tại hoặc chưa được chọn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật icon dauCong.png / dauTru.png và ToolTip cho nút chọn tệp Excel
+        /// </summary>
+        private void CapNhatIconNutChonExcel()
+        {
+            bool chuaChon = string.IsNullOrWhiteSpace(label_DuongDanExcel.Text) ||
+                            label_DuongDanExcel.Text.Equals("Chưa chọn tệp excel", StringComparison.OrdinalIgnoreCase);
+
+            if (chuaChon)
+            {
+                kryptonButton1_ChonDuongDanTepExcel.Values.Image = Properties.Resources.dauCong;
+                if (toolTip1 != null) toolTip1.SetToolTip(kryptonButton1_ChonDuongDanTepExcel, "Chọn đường dẫn tệp excel");
+            }
+            else
+            {
+                kryptonButton1_ChonDuongDanTepExcel.Values.Image = Properties.Resources.dauTru;
+                if (toolTip1 != null) toolTip1.SetToolTip(kryptonButton1_ChonDuongDanTepExcel, "Hủy chọn tệp excel hiện tại");
             }
         }
         private void kryptonButton1_ChonDuongDanLuuTepPdf_Click(object sender, EventArgs e)

@@ -7,12 +7,10 @@ namespace PhanMemThiDua2026
     {
         private readonly StringBuilder _expression = new();
         private bool _justCalculated;
-
         // [FIX 5]: Chống spam phím
         private DateTime _lastInputTime = DateTime.MinValue;
         private const int INPUT_DELAY = 40;
         private const int MAX_LENGTH = 100;
-
         // [PRO 2]: Lặp phép tính
         private char _lastOp = '\0';
         private double _lastRightOperand = 0;
@@ -21,14 +19,12 @@ namespace PhanMemThiDua2026
         {
             { '+', 1 }, { '-', 1 }, { '*', 2 }, { '/', 2 }, { '%', 2 }, { '^', 3 }, { '√', 4 }
         };
-
         public Form14()
         {
             InitializeComponent();
             InitializeForm();
         }
-
-        #region ===== INITIALIZE =====
+        //region ===== INITIALIZE =====
         private void InitializeForm()
         {
             ShowInTaskbar = false;
@@ -50,11 +46,8 @@ namespace PhanMemThiDua2026
                 if (ctrl.HasChildren) AttachButtons(ctrl);
             }
         }
-
-        #endregion
-
-        #region ===== INPUT HANDLING =====
-
+        //endregion
+        //region ===== INPUT HANDLING =====
         private void Button_Click(object sender, EventArgs e)
         {
             if (sender is not Button btn) return;
@@ -67,7 +60,6 @@ namespace PhanMemThiDua2026
                 default: ProcessInput(btn.Text.Trim()); break;
             }
         }
-
         private void Form_KeyPress(object sender, KeyPressEventArgs e)
         {
             char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
@@ -83,7 +75,6 @@ namespace PhanMemThiDua2026
                 e.Handled = true;
             }
         }
-
         private void Form_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -107,7 +98,6 @@ namespace PhanMemThiDua2026
                 e.SuppressKeyPress = true;
             }
         }
-
         private void ProcessInput(string value)
         {
             // [FIX 5]: Chống spam & Giới hạn độ dài
@@ -158,11 +148,8 @@ namespace PhanMemThiDua2026
             _expression.Append(value);
             RefreshDisplay();
         }
-
-        #endregion
-
-        #region ===== CALCULATE =====
-
+        //endregion
+        //region ===== CALCULATE =====
         private void Calculate()
         {
             if (_expression.Length == 0) return;
@@ -195,19 +182,14 @@ namespace PhanMemThiDua2026
             catch (ArithmeticException ex) { ShowError(ex.Message); }
             catch (Exception) { ShowError("Lỗi: Biểu thức không hợp lệ"); }
         }
-
         private double Evaluate(string expression)
         {
             var tokens = Tokenize(expression);
             var postfix = ToPostfix(tokens);
             return EvaluatePostfix(postfix);
         }
-
-        #endregion
-
-        #region ===== TOKENIZE =====
-
-
+        //endregion
+        //region ===== TOKENIZE =====
         private List<string> Tokenize(string expression)
         {
             var tokens = new List<string>();
@@ -241,10 +223,8 @@ namespace PhanMemThiDua2026
             if (number.Length > 0) tokens.Add(number.ToString());
             return tokens;
         }
-        #endregion
-
-        #region ===== INFIX → POSTFIX =====
-
+        //endregion
+        //region ===== INFIX → POSTFIX =====
         private List<string> ToPostfix(List<string> tokens)
         {
             var output = new List<string>();
@@ -293,8 +273,8 @@ namespace PhanMemThiDua2026
             return output;
         }
 
-        #endregion
-        #region ===== POSTFIX EVALUATE =====
+        //endregion
+        //region ===== POSTFIX EVALUATE =====
 
         private double EvaluatePostfix(List<string> postfix)
         {
@@ -322,7 +302,6 @@ namespace PhanMemThiDua2026
 
                     double b = values.Pop();
                     double a = values.Pop();
-
                     // [PRO 2]: Lưu vết toán tử cuối cùng để lặp phép tính
                     _lastOp = token[0];
                     _lastRightOperand = b;
@@ -344,9 +323,8 @@ namespace PhanMemThiDua2026
             return values.Pop();
         }
 
-        #endregion
-        #region ===== UTIL =====
-
+        //endregion
+        //region ===== UTIL =====
         private string GetCurrentNumber()
         {
             if (_expression.Length == 0) return string.Empty;
@@ -373,7 +351,6 @@ namespace PhanMemThiDua2026
             _justCalculated = false;
             RefreshDisplay();
         }
-
         private void ClearAllFull()
         {
             _expression.Clear();
@@ -381,7 +358,6 @@ namespace PhanMemThiDua2026
             _lastOp = '\0';
             ListBox1.Items.Clear();
         }
-
         // [FIX 4]: RefreshDisplay cực chuẩn
         private void RefreshDisplay()
         {
@@ -426,7 +402,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
-        #endregion
+        //endregion
     }
 }

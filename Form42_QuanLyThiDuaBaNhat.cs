@@ -20,8 +20,8 @@ namespace PhanMemThiDua2026
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly int _namHeThong = Module_HeThong.LayNamHeThong();
         // 2 Instance con được gắn cố định vào panelContent của Form55
-        private Form42_QuanLyThiDuaBaNhat? _frm42;
-        private Form44_SoVangBaNhat? _frm44;
+        //private Form42_QuanLyThiDuaBaNhat? _frm42;
+        //private Form44_SoVangBaNhat? _frm44;
         // Đặt hàm này trong Form55_QuanLyHeThongThiDuaBaNhat.cs
         private const float RichText_MinFontSize = 7f;
         private const float RichText_MaxFontSize = 30f;
@@ -2137,16 +2137,14 @@ namespace PhanMemThiDua2026
             var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
             if (panel == null || panel.IsDisposed) return;
 
-            // 3. Đóng và dọn sạch cái vỏ Form55 khỏi PanelContainer
+            // 3. Ẩn Form55 đi thay vì Close/Dispose để GIỮ LẠI TRONG RAM
             var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
-            if (form55 != null)
+            if (form55 != null && !form55.IsDisposed)
             {
-                panel.Controls.Remove(form55);
-                form55.Close();
-                form55.Dispose();
+                form55.Hide();
             }
 
-            // 4. Tìm Form6_XuLyData và hiển thị lại trên mặt trước
+            // 4. Tìm Form6_XuLyData và hiển thị lại lên trước
             var form6 = panel.Controls.OfType<Form6_XuLyData>().FirstOrDefault();
             if (form6 != null && !form6.IsDisposed)
             {

@@ -20,7 +20,6 @@ namespace PhanMemThiDua2026
         {
             textBox_PhienBanPhanMem.Text += Module_PhienBan.SoftwareVersion;
             textBox_ThongTinNgayCapNhat.Text += Module_PhienBan.NgayThangNamCapNhat;
-
             InitToolTips(); // Đã thêm gọi hàm khởi tạo ToolTips
             HienThiThongTinChuKySo();
             InitFocusHighlight(tabPage1);
@@ -174,7 +173,6 @@ namespace PhanMemThiDua2026
             textBox_KetLuan.Text = ketLuan;
             textBox_KetLuan.ForeColor = mau;
         }
-
         private static string LayTenNhaPhatHanh(X509Certificate2 cert)
         {
             if (cert == null || string.IsNullOrWhiteSpace(cert.Subject))

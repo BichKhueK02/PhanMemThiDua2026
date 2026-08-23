@@ -20,13 +20,10 @@ namespace PhanMemThiDua2026
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-
             _id = id;
             _donVi = donVi;
-        }
-        // ======================================================
-        // CONSTRUCTOR 2: BẢN MỚI (Form 6 gọi để XEM THEO SỐ HIỆU)
-        // ======================================================
+        }     
+        // CONSTRUCTOR 2: BẢN MỚI (Form 6 gọi để XEM THEO SỐ HIỆU)      
         public Form30_ChinhSuaDataTanBinh(string soHieu, string hoTen, string donVi, bool isViewOnly)
         {
             InitializeComponent();
@@ -45,11 +42,8 @@ namespace PhanMemThiDua2026
         {
             TaoDanhSachCombo();
             KhoiTaoGiaTriCombo();
-
             LoadData(); // Chạy hàm truy xuất dữ liệu
-
             label_DonVi.Text = "Đơn vị: " + _donVi;
-
             // XỬ LÝ CHẾ ĐỘ CHỈ XEM (KHI ĐƯỢC GỌI TỪ FORM 6)
             if (_isViewOnly)
             {
@@ -65,9 +59,7 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        // ======================================================
         // HÀM NHẬN DỮ LIỆU MỚI TỪ FORM 6 ĐỂ VẼ LẠI GIAO DIỆN (SINGLETON)
-        // ======================================================
         public void CapNhatDuLieuMoi(string soHieu, string hoTen, string donVi)
         {
             // 1. Cập nhật lại các biến tìm kiếm
@@ -252,10 +244,8 @@ namespace PhanMemThiDua2026
                 return string.IsNullOrWhiteSpace(result) ? input : result;
             }
             catch { return input; }
-        }
-        // ==============================================================
-        // HÀM LƯU DỮ LIỆU (KHÔNG BỊ TÁC ĐỘNG KHI CHẠY Ở CHẾ ĐỘ XEM)
-        // ==============================================================
+        } 
+        // HÀM LƯU DỮ LIỆU (KHÔNG BỊ TÁC ĐỘNG KHI CHẠY Ở CHẾ ĐỘ XEM) 
         private void kryptonButton1_CapNhat_Click(object sender, EventArgs e)
         {
             if (LuuDanhGiaThiDua())

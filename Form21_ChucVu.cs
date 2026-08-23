@@ -15,7 +15,7 @@ namespace PhanMemThiDua2026
             InitializeComponent();
             // Ẩn icon trên Taskbar
             this.ShowInTaskbar = false;
-            Load += Form19_ChucVu_Load; // Vẫn giữ nguyên tên hàm Load của đồng chí
+            Load += Form21_ChucVu_Load; // Vẫn giữ nguyên tên hàm Load của đồng chí
             kryptonDataGridView1_DanhSach_ChucVu.CellClick += kryptonDataGridView1_DanhSach_ChucVu_CellClick;
 
             // ===== 2. BỔ SUNG SỰ KIỆN VẼ GIAO DIỆN =====
@@ -23,7 +23,7 @@ namespace PhanMemThiDua2026
 
             InitToolTips();
         }
-        private void Form19_ChucVu_Load(object? sender, EventArgs e)
+        private void Form21_ChucVu_Load(object? sender, EventArgs e)
         {
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -399,6 +399,5 @@ CREATE TABLE IF NOT EXISTS DanhSach_ChucVu (
                 // Để trống, Grid sẽ vẽ giao diện của nó TRƯỚC, rồi ta in Icon TRÙNG LÊN TRÊN. Hai bên hòa thuận!
             }
         }
-
     }
 }

@@ -14,6 +14,9 @@ namespace PhanMemThiDua2026
     public partial class Form46_ThongKeThiDuaNamCu : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontGridHeader95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
+        private static readonly Font _fontGridCell95 = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular);
         private DataTable _dtHienTai;
         private List<int> _filteredIndexes = new List<int>(); // Lưu trữ chỉ số dòng đã qua bộ lọc (Virtual Mode Core)
         private Dictionary<int, int> _colIndexMap = new Dictionary<int, int>(); // Bản đồ tọa độ cột siêu tốc
@@ -333,7 +336,7 @@ namespace PhanMemThiDua2026
 
                     // Nạp cứng tập giá trị danh mục phân loại thi đua chuẩn của cán bộ chiến sĩ
                     comboBox1_PhanLoaiThiDuaNamCu.Items.Clear();
-                    comboBox1_PhanLoaiThiDuaNamCu.Items.AddRange(new object[] { "Tất cả", "CSTĐ", "CSTT", "HTNV", "KHTNV", "Không PL" });
+                    comboBox1_PhanLoaiThiDuaNamCu.Items.AddRange(Module_HeThong.DanhSach_PhanLoai_TatCa);
                     if (comboBox1_PhanLoaiThiDuaNamCu.Items.Count > 0) comboBox1_PhanLoaiThiDuaNamCu.SelectedIndex = 0;
                 }
             }
@@ -615,7 +618,7 @@ namespace PhanMemThiDua2026
             grid.ColumnHeadersHeight = 85;
             grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Font = _fontGridHeader95Bold,
                 Alignment = DataGridViewContentAlignment.MiddleCenter,
                 BackColor = Color.FromArgb(240, 244, 248),
                 ForeColor = Color.FromArgb(40, 40, 40),
@@ -626,7 +629,7 @@ namespace PhanMemThiDua2026
             grid.RowTemplate.Height = 32;
             grid.DefaultCellStyle = new DataGridViewCellStyle
             {
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                Font = _fontGridCell95,
                 ForeColor = Color.FromArgb(45, 45, 45),
                 SelectionBackColor = Color.FromArgb(232, 244, 253),
                 SelectionForeColor = Color.FromArgb(0, 102, 204),
@@ -682,7 +685,7 @@ namespace PhanMemThiDua2026
                 {
                     if (grid.Columns.Contains(name))
                     {
-                        grid.Columns[name].DefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+                        grid.Columns[name].DefaultCellStyle.Font = _fontGridHeader95Bold;
                         grid.Columns[name].DefaultCellStyle.ForeColor = Color.FromArgb(0, 80, 160);
                     }
                 }
@@ -694,7 +697,7 @@ namespace PhanMemThiDua2026
                 if (grid.Columns.Contains(name))
                 {
                     grid.Columns[name].DefaultCellStyle.BackColor = Color.FromArgb(240, 252, 240);
-                    grid.Columns[name].DefaultCellStyle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+                    grid.Columns[name].DefaultCellStyle.Font = _fontGridHeader95Bold;
                 }
             }
 
@@ -1187,9 +1190,7 @@ namespace PhanMemThiDua2026
         private void xuatDuLieuTepExcel_ToolStripMenuItem_Click(object sender, EventArgs e) => kryptonButton_XuatData.PerformClick();
         private void xoaCSDL_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
             // 1. KIỂM TRA TỆP CSDL LỊCH SỬ ĐANG ĐƯỢC CHỌN
-
             if (comboBox_ChonCSDLNam.SelectedItem == null)
             {
                 MessageBox.Show("Vui lòng chọn tệp CSDL năm cũ cần xóa trên danh sách!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1197,30 +1198,22 @@ namespace PhanMemThiDua2026
             }
             var selectedFile = (FileLichSuDTO)comboBox_ChonCSDLNam.SelectedItem;
             string fileToDelete = selectedFile.DuongDan;
-
             if (string.IsNullOrEmpty(fileToDelete) || !File.Exists(fileToDelete))
             {
                 MessageBox.Show("Tệp CSDL không tồn tại trên ổ đĩa hoặc đã bị xóa trước đó!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LoadDanhSachFileLichSu(); // Rà soát lại danh sách tệp
                 return;
             }
-
-
             // 2. BẢO VỆ MẤT DỮ LIỆU: HỎI XÁC NHẬN CẢNH BÁO NGUY HIỂM
-
             var confirm = MessageBox.Show(
                 $"Bạn có chắc chắn muốn Xóa vĩnh viễn tệp CSDL lưu trữ lịch sử:\n👉 {selectedFile.TenHienThi}\n⚠️ Cảnh báo: Tệp này sẽ bị xóa khỏi ổ cứng và không thể khôi phục!",
                 "Xác nhận xóa tệp CSDL năm cũ",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning,
                 MessageBoxDefaultButton.Button2);
-
             if (confirm != DialogResult.Yes)
                 return;
-
-
             // 3. XÁC MINH QUYỀN ADMIN (FORM 24)
-
             DialogResult kq;
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
@@ -1231,45 +1224,33 @@ namespace PhanMemThiDua2026
 
             if (kq != DialogResult.OK)
                 return;
-
-
             // 4. ⭐ QUY TRÌNH BẢO AN: CẮT LIÊN KẾT GRID VÀ DỌN SẠCH RAM TRƯỚC
-
             try
             {
                 // 4.1. Ngắt tạm thời sự kiện ComboBox để tránh tự động gọi ThucHienTaiDuLieuLichSu() dồn dập
                 comboBox_ChonCSDLNam.SelectedIndexChanged -= comboBox_ChonCSDLNam_SelectedIndexChanged;
-
                 // 4.2. Khóa vẽ giao diện & Đưa RowCount của Virtual Mode về 0 lập tức (Tránh CellValueNeeded đòi dữ liệu)
                 kryptonDataGridView1.SuspendLayout();
                 kryptonDataGridView1.RowCount = 0;
                 kryptonDataGridView1.DataSource = null;
                 kryptonDataGridView1.Columns.Clear();
-
                 // 4.3. Giải phóng hoàn toàn các mảng đệm RAM & Hủy DataTable đang kết nối CSDL
                 _filteredIndexes.Clear();
                 _dataCacheCBCS.Clear();
                 _dataCacheTanBinh.Clear();
                 _colIndexMap.Clear();
-
                 if (_dtHienTai != null)
                 {
                     _dtHienTai.Dispose();
                     _dtHienTai = null;
                 }
-
                 kryptonDataGridView1.ResumeLayout();
-
                 // 4.4. ⭐ THÁO KHÓA SQLITE: Xóa toàn bộ Pool kết nối và ép Garbage Collector thu hồi bộ nhớ ngầm
                 SqliteConnection.ClearAllPools();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
-
-
                 // 5. THỰC HIỆN XÓA TỆP TRÊN Ổ ĐĨA
-
                 File.Delete(fileToDelete);
-
                 // Ghi nhật ký thao tác hệ thống
                 try
                 {
@@ -1280,7 +1261,7 @@ namespace PhanMemThiDua2026
                 }
                 catch { }
                 //CapNhatTrangThaiHienThi();
-                MessageBox.Show($"Đã xóa vĩnh viễn tệp CSDL lịch sử:\n👉 {selectedFile.TenHienThi}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show($"Đã xóa vĩnh viễn tệp CSDL lịch sử:\n👉 {selectedFile.TenHienThi}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // 6. NẠP LẠI DANH SÁCH & CẬP NHẬT TỰ ĐỘNG GIAO DIỆN
                 // Quét lại thư mục CSDL lịch sử
                 LoadDanhSachFileLichSu();
@@ -1309,7 +1290,6 @@ namespace PhanMemThiDua2026
                 // Khôi phục lại sự kiện nếu xảy ra ngoại lệ
                 comboBox_ChonCSDLNam.SelectedIndexChanged -= comboBox_ChonCSDLNam_SelectedIndexChanged;
                 comboBox_ChonCSDLNam.SelectedIndexChanged += comboBox_ChonCSDLNam_SelectedIndexChanged;
-
                 MessageBox.Show($"Không thể xóa tệp CSDL do tệp đang bị ứng dụng khác chiếm dụng hoặc lỗi hệ thống:\n\n{ex.Message}", "Lỗi xóa tệp", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

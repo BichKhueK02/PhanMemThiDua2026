@@ -8,12 +8,21 @@ namespace PhanMemThiDua2026
     public partial class Form25_ThongKeTaiKhoanDaSuDung : Form
     {
         private readonly string _csdl3Path = Module_DanduongGPS.DuongDanCSDL3;
-        private bool _gridInitialized = false;
-        // ⭐ KHAI BÁO ẢNH TRÊN RAM (Tối ưu hiệu suất, load 1 lần dùng mãi mãi)
         private readonly Image _iconActiveUser = Properties.Resources.client_account_template;
         private readonly Image _iconSystemUser = Properties.Resources.ic_default; // Thay bằng icon system của bạn nếu có
         private readonly Image _iconNormalUser = Properties.Resources.ic_user;
-
+        private readonly Color _headerBackColor = Color.FromArgb(225, 232, 241);
+        private readonly Color _headerForeColor = Color.FromArgb(30, 30, 30);
+        private readonly Color _gridLineColor = Color.FromArgb(210, 210, 210);
+        private readonly Color _selectionBackColor = Color.FromArgb(210, 228, 255);
+        private readonly Color _selectionForeColor = Color.Black;
+        private readonly Color _alternateRowColor = Color.FromArgb(248, 250, 252);
+        private static readonly Font _headerFont = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
+        private static readonly Font _cellFont = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
+        private static readonly Font _cellBoldFont = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
+        private static readonly Font _fontRegular = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
+        private static readonly Font _fontBold = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
+        private bool _gridInitialized = false;  // ⭐ KHAI BÁO ẢNH TRÊN RAM (Tối ưu hiệu suất, load 1 lần dùng mãi mãi)
         // ⭐ CHUẨN KỸ SƯ 1: Dùng List Model cho Virtual Mode, tuyệt đối không dùng DataTable
         private List<ThongKeTaiKhoanModel> _cacheThongKe = new List<ThongKeTaiKhoanModel>();
         private bool _isLoading = false;
@@ -230,16 +239,6 @@ namespace PhanMemThiDua2026
         }
         // ⭐ VIRTUAL MODE: BƠM DỮ LIỆU ĐỘNG VÀO Ô
         // ========================= COLOR PALETTE =========================
-        private readonly Color _headerBackColor = Color.FromArgb(225, 232, 241);
-        private readonly Color _headerForeColor = Color.FromArgb(30, 30, 30);
-        private readonly Color _gridLineColor = Color.FromArgb(210, 210, 210);
-        private readonly Color _selectionBackColor = Color.FromArgb(210, 228, 255);
-        private readonly Color _selectionForeColor = Color.Black;
-        private readonly Color _alternateRowColor = Color.FromArgb(248, 250, 252);
-        // ========================= FONT =========================
-        private readonly Font _headerFont = new Font("Segoe UI", 10F, FontStyle.Bold);
-        private readonly Font _cellFont = new Font("Segoe UI", 10F, FontStyle.Regular);
-        private readonly Font _cellBoldFont = new Font("Segoe UI", 10F, FontStyle.Bold);
         private void KhoiTaoGrid()
         {
             if (_gridInitialized)
@@ -478,11 +477,6 @@ namespace PhanMemThiDua2026
         // =====================================================================
         // ⭐ VẼ ICON TÙY CHỈNH KẾT HỢP VỚI VIRTUAL MODE
         // =====================================================================
-        private readonly Font _fontRegular =
-     new Font("Segoe UI", 9F, FontStyle.Regular);
-
-        private readonly Font _fontBold =
-            new Font("Segoe UI", 9F, FontStyle.Bold);
         private void KryptonDataGridView1_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
             var dgv = sender as DataGridView;

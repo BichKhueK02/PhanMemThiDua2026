@@ -19,7 +19,7 @@ namespace PhanMemThiDua2026
         private int _isLoading = 0;
         // ⭐ 3. ANTI-ZOMBIE TASK: Hủy an toàn khi đóng form
         private CancellationTokenSource _cts = new CancellationTokenSource();
-        private readonly Font _headerFont = new Font("Segoe UI", 9F, FontStyle.Bold);
+        private readonly Font _headerFont = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
         private readonly Dictionary<string, string> _tenCotTiengViet = new Dictionary<string, string>
         {
             {"HoVaTen","Họ và tên"}, {"SoHieu","Số hiệu"}, {"NamSinh","Năm sinh"},
@@ -33,16 +33,7 @@ namespace PhanMemThiDua2026
         private const int WM_SETREDRAW = 11;
         [DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int wMsg, bool wParam, int lParam);
-        private static readonly Font THONGKE_FONT = new Font("Segoe UI", 9F, FontStyle.Bold);
-        private static readonly Font STATUS_FONT =
-     new Font("Segoe UI", 9F, FontStyle.Bold);
-
-        private static readonly Color STATUS_OK_FORE =
-            Color.FromArgb(25, 135, 84); // xanh lá đẹp
-
-        private static readonly Color STATUS_OK_BACK =
-            Color.FromArgb(240, 255, 244); // nền xanh nhạt
-
+        private static readonly Font THONGKE_FONT = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
         // CACHE MÀU THỐNG KÊ
         private static readonly Color COLOR_LOAI_1 = Color.FromArgb(0, 102, 204); // xanh dương
         private static readonly Color COLOR_LOAI_2 = Color.FromArgb(204, 153, 0); // vàng đậm dễ đọc
@@ -86,6 +77,7 @@ namespace PhanMemThiDua2026
                 _iconLoai1 = new Bitmap(Properties.Resources.ic_khenthuong, new Size(16, 16));
             }
         }
+        // Lê Trung Kiên -  Yêu mèo cam
         private async void Form29_CBCSTrongDienQuanLy_Load(object sender, EventArgs e)
         {
             if (Interlocked.Exchange(ref _isLoading, 1) == 1)
@@ -1043,7 +1035,6 @@ namespace PhanMemThiDua2026
             toolStripStatusLabel_TongSoLoai4.Visible = false;
             toolStripStatusLabel_TongSoKhongPhanLoai.Visible = false;
         }
-
         private void kryptonButton_LamMoiCacOTimKiem_Click(object sender, EventArgs e)
         {
             // 1. Dừng timer tìm kiếm đang chạy ngầm (nếu có) để tránh xung đột luồng

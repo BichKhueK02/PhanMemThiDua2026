@@ -780,9 +780,9 @@
             // 
             pictureBox1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(3, 11);
+            pictureBox1.Location = new Point(3, 8);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(80, 49);
+            pictureBox1.Size = new Size(80, 55);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;

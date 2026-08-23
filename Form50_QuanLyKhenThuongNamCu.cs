@@ -44,6 +44,9 @@ namespace PhanMemThiDua2026
         private SolidBrush _rowHeaderBrush = null;
         private StringFormat _rowHeaderFormat = null;
         private System.Windows.Forms.Timer _timKiemTimer;
+        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        private static readonly Font _fontGridHeader95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
+        private static readonly Font _fontGridCell95Regular = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular);
         public Form50_QuanLyKhenThuongNamCu()
         {
             InitializeComponent();
@@ -917,9 +920,6 @@ namespace PhanMemThiDua2026
 
             string textBanDau = kryptonButton_XuatData.Values.Text;
             Image anhBanDau = kryptonButton_XuatData.Values.Image;
-            Form_Loading frmLoad = new Form_Loading("Đang tạo tệp Excel từ dữ liệu lịch sử...");
-            frmLoad.Icon = this.Icon;
-            bool isLoadShown = false;
 
             try
             {
@@ -928,48 +928,57 @@ namespace PhanMemThiDua2026
                 kryptonButton_XuatData.Values.Image = null;
                 this.Enabled = false;
 
-                frmLoad.Show(this);
-                isLoadShown = true;
                 await Task.Delay(50);
 
+                // 🌟 1. LOẠI BỎ CỘT STT CŨ (NẾU CÓ) ĐỂ TRÁNH TRÙNG LẶP
                 var exportCols = kryptonDataGridView1.Columns.Cast<DataGridViewColumn>()
-                    .Where(c => c.Visible && c.Name != "ID")
+                    .Where(c => c.Visible && c.Name != "ID" && c.Name != "STT")
                     .ToList();
 
                 int rowCount = _filteredIndexes.Count;
-                int colCount = exportCols.Count;
+                // 🌟 2. TĂNG TỔNG SỐ CỘT LÊN 1 ĐỂ CHỨA CỘT STT MỚI TẠO
+                int colCount = exportCols.Count + 1;
 
                 string[] headerArray = new string[colCount];
                 double[] colWidths = new double[colCount];
                 var dataList = new List<object[]>(rowCount);
 
-                for (int c = 0; c < colCount; c++)
+                // 🌟 3. THIẾT LẬP TIÊU ĐỀ VÀ ĐỘ RỘNG CHO CỘT STT (CỘT ĐẦU TIÊN)
+                headerArray[0] = "STT";
+                colWidths[0] = 6;
+
+                // 🌟 4. ĐẨY CÁC CỘT DỮ LIỆU GỐC LÙI VỀ PHÍA SAU 1 VỊ TRÍ (c + 1)
+                for (int c = 0; c < exportCols.Count; c++)
                 {
-                    headerArray[c] = exportCols[c].HeaderText;
-                    colWidths[c] = exportCols[c].Width / 7.5;
+                    headerArray[c + 1] = string.IsNullOrWhiteSpace(exportCols[c].HeaderText) ? exportCols[c].Name : exportCols[c].HeaderText;
+                    colWidths[c + 1] = exportCols[c].Width / 7.5;
                 }
 
                 for (int r = 0; r < rowCount; r++)
                 {
                     var dto = _dataCacheGiayKhen[_filteredIndexes[r]];
                     var rowValues = new object[colCount];
-                    for (int c = 0; c < colCount; c++)
+
+                    // 🌟 5. GÁN SỐ THỨ TỰ TỰ ĐỘNG TĂNG DẦN VÀO CỘT 0
+                    rowValues[0] = r + 1;
+
+                    for (int c = 0; c < exportCols.Count; c++)
                     {
                         string cName = exportCols[c].Name;
                         switch (cName)
                         {
-                            case "STT": rowValues[c] = dto.STT; break;
-                            case "HoVaTen": rowValues[c] = dto.HoVaTen; break;
-                            case "SoHieu": rowValues[c] = dto.SoHieu; break;
-                            case "DonVi": rowValues[c] = dto.DonVi; break;
-                            case "TinhTrang": rowValues[c] = dto.TinhTrang; break;
-                            case "HinhThuc_Khen": rowValues[c] = dto.HinhThuc_Khen; break;
-                            case "QuyetDinh_Khen": rowValues[c] = dto.QuyetDinh_Khen; break;
-                            case "NgayCapQD_Khen": rowValues[c] = dto.NgayCapQD_Khen; break;
-                            case "DonVi_Khen": rowValues[c] = dto.DonVi_Khen; break;
-                            case "VeViec_Khen": rowValues[c] = dto.VeViec_Khen; break;
-                            case "GhiChu_Khen": rowValues[c] = dto.GhiChu_Khen; break;
-                            default: rowValues[c] = ""; break;
+                            // Đẩy toàn bộ dữ liệu vào index [c + 1]
+                            case "HoVaTen": rowValues[c + 1] = dto.HoVaTen; break;
+                            case "SoHieu": rowValues[c + 1] = dto.SoHieu; break;
+                            case "DonVi": rowValues[c + 1] = dto.DonVi; break;
+                            case "TinhTrang": rowValues[c + 1] = dto.TinhTrang; break;
+                            case "HinhThuc_Khen": rowValues[c + 1] = dto.HinhThuc_Khen; break;
+                            case "QuyetDinh_Khen": rowValues[c + 1] = dto.QuyetDinh_Khen; break;
+                            case "NgayCapQD_Khen": rowValues[c + 1] = dto.NgayCapQD_Khen; break;
+                            case "DonVi_Khen": rowValues[c + 1] = dto.DonVi_Khen; break;
+                            case "VeViec_Khen": rowValues[c + 1] = dto.VeViec_Khen; break;
+                            case "GhiChu_Khen": rowValues[c + 1] = dto.GhiChu_Khen; break;
+                            default: rowValues[c + 1] = ""; break;
                         }
                     }
                     dataList.Add(rowValues);
@@ -995,7 +1004,8 @@ namespace PhanMemThiDua2026
                     for (int c = 0; c < colCount; c++)
                     {
                         var cell = ws.Cell(excelStartRow, c + 1);
-                        cell.Value = string.IsNullOrWhiteSpace(headerArray[c]) ? exportCols[c].Name : headerArray[c];
+                        // 🌟 6. ÁP DỤNG TRỰC TIẾP MẢNG headerArray ĐÃ ĐƯỢC XỬ LÝ (Tránh lỗi Index)
+                        cell.Value = headerArray[c];
                         cell.Style.Font.Bold = true;
                         cell.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
                         cell.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
@@ -1031,14 +1041,13 @@ namespace PhanMemThiDua2026
                     ws.PageSetup.Margins.Bottom = 0.5;
                     ws.PageSetup.Margins.Left = 0.4;
                     ws.PageSetup.Margins.Right = 0.4;
-                    // ⭐ SỬA TẠI ĐÂY: Truyền 'wb' (XLWorkbook) thay vì 'ws'
+
                     Module_BanQuyen.DongDauExcel(wb);
                     wb.SaveAs(filePath);
                 });
 
                 try { Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath); } catch { }
                 Module_ThongBao.ThanhCong("Xuất Excel thành công!");
-        
             }
             catch (Exception ex)
             {
@@ -1046,7 +1055,7 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                if (isLoadShown) { frmLoad.Close(); this.Enabled = true; }
+                this.Enabled = true;
                 kryptonButton_XuatData.Values.Text = textBanDau;
                 kryptonButton_XuatData.Values.Image = anhBanDau;
                 kryptonButton_XuatData.Enabled = true;
@@ -1072,7 +1081,7 @@ namespace PhanMemThiDua2026
             dgv.ColumnHeadersHeight = 60;
             dgv.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                Font = _fontGridHeader95Bold,
                 Alignment = DataGridViewContentAlignment.MiddleCenter,
                 BackColor = Color.FromArgb(240, 244, 248),
                 ForeColor = Color.FromArgb(40, 40, 40),
@@ -1083,7 +1092,7 @@ namespace PhanMemThiDua2026
             dgv.RowTemplate.Height = 36;
             dgv.DefaultCellStyle = new DataGridViewCellStyle
             {
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Regular),
+                Font = _fontGridCell95Regular,
                 ForeColor = Color.FromArgb(45, 45, 45),
                 SelectionBackColor = Color.FromArgb(232, 244, 253),
                 SelectionForeColor = Color.FromArgb(0, 102, 204),

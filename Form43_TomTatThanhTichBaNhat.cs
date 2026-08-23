@@ -9,7 +9,6 @@ namespace PhanMemThiDua2026
 {
     public partial class Form43_TomTatThanhTichBaNhat : Form
     {
-        // Sử dụng chung đường dẫn CSDL từ module dẫn đường của hệ thống
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private const int GioiHanKhuyenNghi = 830;
         // 🌟 THÊM THUỘC TÍNH ĐỘNG: Tự động chọn bảng Tóm tắt theo phiên bản hệ thống
