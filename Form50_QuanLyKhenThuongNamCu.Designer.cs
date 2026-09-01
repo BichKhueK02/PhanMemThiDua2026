@@ -237,7 +237,7 @@
             comboBox_ChonCSDLNam.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_ChonCSDLNam.Font = new Font("Segoe UI", 9.792F);
             comboBox_ChonCSDLNam.FormattingEnabled = true;
-            comboBox_ChonCSDLNam.Location = new Point(122, 11);
+            comboBox_ChonCSDLNam.Location = new Point(122, 12);
             comboBox_ChonCSDLNam.Margin = new Padding(2, 3, 2, 3);
             comboBox_ChonCSDLNam.Name = "comboBox_ChonCSDLNam";
             comboBox_ChonCSDLNam.Size = new Size(253, 25);
@@ -405,7 +405,7 @@
             comboBox_TimKiemDonVi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_TimKiemDonVi.Font = new Font("Segoe UI", 9.792F);
             comboBox_TimKiemDonVi.FormattingEnabled = true;
-            comboBox_TimKiemDonVi.Location = new Point(623, 9);
+            comboBox_TimKiemDonVi.Location = new Point(623, 8);
             comboBox_TimKiemDonVi.Margin = new Padding(2, 3, 2, 3);
             comboBox_TimKiemDonVi.Name = "comboBox_TimKiemDonVi";
             comboBox_TimKiemDonVi.Size = new Size(191, 25);
@@ -445,7 +445,7 @@
             comboBox1_HinhThucKT.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_HinhThucKT.Font = new Font("Segoe UI", 9.792F);
             comboBox1_HinhThucKT.FormattingEnabled = true;
-            comboBox1_HinhThucKT.Location = new Point(950, 9);
+            comboBox1_HinhThucKT.Location = new Point(950, 8);
             comboBox1_HinhThucKT.Margin = new Padding(2, 3, 2, 3);
             comboBox1_HinhThucKT.Name = "comboBox1_HinhThucKT";
             comboBox1_HinhThucKT.Size = new Size(202, 25);

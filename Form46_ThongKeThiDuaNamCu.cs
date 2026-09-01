@@ -109,7 +109,7 @@ namespace PhanMemThiDua2026
             {
                 // ================= CẤU HÌNH CHUNG =================
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
                 // UX: Phản hồi nhanh – không gây khó chịu khi rê chuột qua
@@ -313,8 +313,8 @@ namespace PhanMemThiDua2026
                 var dsDonVi = Module_DonVi.GetDanhSachDonVi();
                 if (dsDonVi == null) dsDonVi = new List<string>();
 
-                if (!dsDonVi.Contains("Tất cả"))
-                    dsDonVi.Insert(0, "Tất cả");
+                if (!dsDonVi.Contains(Module_HeThong.Tat_Ca))
+                    dsDonVi.Insert(0, Module_HeThong.Tat_Ca);
 
                 comboBox_TimKiemDonVi.DataSource = null;
                 comboBox_TimKiemDonVi.DataSource = dsDonVi;
@@ -379,9 +379,9 @@ namespace PhanMemThiDua2026
             {
                 _filteredIndexes.Clear();
                 bool hasTen = !string.IsNullOrWhiteSpace(tenFilterLower);
-                bool hasDV = !string.IsNullOrWhiteSpace(dvFilter) && dvFilter != "Tất cả";
-                bool hasTT = !string.IsNullOrWhiteSpace(tinhTrangFilter) && tinhTrangFilter != "Tất cả";
-                bool hasPL = !string.IsNullOrWhiteSpace(plFilter) && plFilter != "Tất cả";
+                bool hasDV = !string.IsNullOrWhiteSpace(dvFilter) && dvFilter != Module_HeThong.Tat_Ca;
+                bool hasTT = !string.IsNullOrWhiteSpace(tinhTrangFilter) && tinhTrangFilter != Module_HeThong.Tat_Ca;
+                bool hasPL = !string.IsNullOrWhiteSpace(plFilter) && plFilter != Module_HeThong.Tat_Ca;
 
                 var selectedFile = (FileLichSuDTO)comboBox_ChonCSDLNam.SelectedItem;
 
@@ -453,8 +453,8 @@ namespace PhanMemThiDua2026
 
             // 2. Nếu có CSDL thì hiển thị số lượng bản ghi sau khi lọc
             toolStripStatusLabel1.Text = _isDataMaxMode
-                ? $"Tổng cộng: {_filteredIndexes.Count} đồng chí [Chế độ hiệu năng cao]"
-                : $"Tổng cộng: {_filteredIndexes.Count} đồng chí";
+                ? $"Tổng cộng: {_filteredIndexes.Count} {Module_HeThong.Tu_dong_chi}  [Chế độ hiệu năng cao]"
+                : $"Tổng cộng: {_filteredIndexes.Count} {Module_HeThong.Tu_dong_chi}";
         }
         private void KryptonDataGridView1_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
         {
@@ -587,12 +587,10 @@ namespace PhanMemThiDua2026
                 headerMap["Sau_Thang_Dau_Nam"] = "6 tháng\nđầu năm";
                 headerMap["TongKet_Nam"] = "Tổng kết\nnăm";
             }
-
-            headerMap["TS_Loai1"] = "Tổng\nLoại 1";
-            headerMap["TS_Loai2"] = "Tổng\nLoại 2";
-            headerMap["TS_Loai3"] = "Tổng\nLoại 3";
-            headerMap["TS_Loai4"] = "Tổng\nLoại 4";
-
+            headerMap["TS_Loai1"] = $"Tổng\n{Module_HeThong.Loai_1}";
+            headerMap["TS_Loai2"] = $"Tổng\n{Module_HeThong.Loai_2}";
+            headerMap["TS_Loai3"] = $"Tổng\n{Module_HeThong.Loai_3}";
+            headerMap["TS_Loai4"] = $"Tổng\n{Module_HeThong.Loai_4}";
             foreach (var kv in headerMap)
                 if (grid.Columns.Contains(kv.Key)) grid.Columns[kv.Key].HeaderText = kv.Value;
 
@@ -1281,7 +1279,7 @@ namespace PhanMemThiDua2026
                     if (comboBox1_TinhTrang.Items.Count > 0) comboBox1_TinhTrang.SelectedIndex = 0;
                     if (comboBox1_PhanLoaiThiDuaNamCu.Items.Count > 0) comboBox1_PhanLoaiThiDuaNamCu.SelectedIndex = 0;
 
-                    toolStripStatusLabel1.Text = "Tổng cộng: 0 đồng chí";
+                    toolStripStatusLabel1.Text = $"Tổng cộng: 0 {Module_HeThong.Tu_dong_chi}";
                     kryptonDataGridView1.Refresh();
                 }
             }

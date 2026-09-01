@@ -10,18 +10,18 @@ namespace PhanMemThiDua2026
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl3Path = Module_DanduongGPS.DuongDanCSDL3;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
-
         // CỜ CHỐNG TREO FORM (ANTI-FREEZE FLAG)
         private bool _isInitializing = false;
-
         // BIẾN LƯU ẢNH CHUẨN BỊ GHI VÀO CSDL
         private byte[] _hinhAnhDaiDienBytes = null;
         private byte[] _thumbnailBytes = null;
-
         // CẤU HÌNH ẢNH AN TOÀN
         private const int MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB
         private const int MAX_WIDTH = 4096;
         private const int MAX_HEIGHT = 4096;
+        private static readonly Font TitleFont = new Font(Module_HeThong.TenFontHeThong, 12F, FontStyle.Bold);
+        private static readonly Font ContentFont = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular);
+        private static readonly Font ButtonFont = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
         public Form3_DangKyTaiKhoan()
         {
             InitializeComponent();
@@ -35,7 +35,6 @@ namespace PhanMemThiDua2026
             this.AcceptButton = btn_Luu;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
-
             // ⭐ Căn giữa thủ công lớp 2 chống lệch màn hình phụ
             var screen = Screen.PrimaryScreen;
             if (screen != null)
@@ -45,12 +44,10 @@ namespace PhanMemThiDua2026
                     (screen.Bounds.Height - this.Height) / 2
                 );
             }
-
             // Mặc định mật khẩu ẩn
             text_MatKhauMoi.UseSystemPasswordChar = true;
             text_NhapLaiMatKhau.UseSystemPasswordChar = true;
             Check_HienMatKhau.CheckedChanged += Check_HienMatKhau_CheckedChanged;
-
             // Thiết lập Text mặc định cho nút ảnh
             kryptonButton1_ThemAnhDaiDien.Text = "Thêm ảnh";
         }
@@ -64,13 +61,12 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
             toolTip1.InitialDelay = 200;
             toolTip1.AutoPopDelay = 1200;
             toolTip1.ReshowDelay = 50;
             toolTip1.ShowAlways = true;
-
             var tips = new Dictionary<Control, string>
             {
                 { Check_HienMatKhau, "Hiển thị hoặc ẩn mật khẩu đang nhập" },
@@ -527,7 +523,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Lỗi ghi ảnh vào CSDL: " + ex.Message, "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void PictureBox1_Click(object sender, EventArgs e)
         {
             string tieuDe = "Thông tin Token nội bộ";
@@ -537,7 +532,6 @@ namespace PhanMemThiDua2026
 
             HienThiFormAo_ThongTin(tieuDe, noiDung);
         }
-
         /// <summary>
         /// Dựng Form động kế thừa FormAoBase (Anti-Flicker tuyệt đối).
         /// Chuyên hiển thị các văn bản hướng dẫn, giải thích dài.
@@ -564,7 +558,7 @@ namespace PhanMemThiDua2026
                 panelTop.StateCommon.Color1 = System.Drawing.Color.White;
 
                 var lblTitle = new Krypton.Toolkit.KryptonLabel { Text = tieuDe.ToUpper(), Dock = DockStyle.Fill, AutoSize = false };
-                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font("Segoe UI", 11.5F, System.Drawing.FontStyle.Bold);
+                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 11.5F, System.Drawing.FontStyle.Bold);
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(0, 82, 155); // Xanh đại dương
                 panelTop.Controls.Add(lblTitle);
 
@@ -587,7 +581,7 @@ namespace PhanMemThiDua2026
                 };
                 txtContent.StateCommon.Back.Color1 = System.Drawing.Color.White;
                 txtContent.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.None;
-                txtContent.StateCommon.Content.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Regular);
+                txtContent.StateCommon.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Regular);
                 txtContent.StateCommon.Content.Color1 = System.Drawing.Color.FromArgb(45, 45, 45); // Xám đậm chống mỏi mắt
                 txtContent.StateCommon.Content.Padding = new Padding(0);
 
@@ -601,7 +595,7 @@ namespace PhanMemThiDua2026
                     Height = 36,
                     DialogResult = DialogResult.OK
                 };
-                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
                 btnClose.StateCommon.Border.Rounding = 5;
 
                 // Căn giữa nút Đóng
@@ -629,15 +623,10 @@ namespace PhanMemThiDua2026
                 formAo.ShowDialog(this);
             }
         }
-
         // Đặt 3 dòng này ở phía trên cùng của class Form3_DangKyTaiKhoan
         // ==========================================================
         // FONT DÙNG CHUNG
         // ==========================================================
-
-        private static readonly Font TitleFont = new Font("Segoe UI", 12F, FontStyle.Bold);
-        private static readonly Font ContentFont = new Font("Segoe UI", 10.5F, FontStyle.Regular);
-        private static readonly Font ButtonFont = new Font("Segoe UI", 9.5F, FontStyle.Bold);
         private void pictureBox2_ThongTin_DKTK_Click(object sender, EventArgs e)
         {
             const string tieuDe = "         Hướng dẫn";

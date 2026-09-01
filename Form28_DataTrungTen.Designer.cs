@@ -347,6 +347,7 @@
             Name = "Form28_DataTrungTen";
             ShowInTaskbar = false;
             Text = "Phân tích CBCS trùng tên";
+            Load += Form28_DataTrungTen_Load_1;
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);

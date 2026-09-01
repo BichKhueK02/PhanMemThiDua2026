@@ -100,7 +100,6 @@ namespace PhanMemThiDua2026
 
             return ketQua;
         }
-
         public static List<FileLichSuDTO> LayDanhSachFileLichSu_KhenThuongCaNhan()
         {
             var danhSach = new List<FileLichSuDTO>();
@@ -141,7 +140,6 @@ namespace PhanMemThiDua2026
 
             return ketQua;
         }
-
         public static DataTable LoadDataFromHistoryDB(string dbPath, string tableName)
         {
             DataTable dt = new DataTable();
@@ -190,7 +188,6 @@ namespace PhanMemThiDua2026
             }
             return dt;
         }
-
         private static string SafeDecrypt(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return string.Empty;
@@ -201,7 +198,6 @@ namespace PhanMemThiDua2026
             }
             catch { return input; }
         }
-
         // =======================================================================
         // LÕI HỆ THỐNG: HÀM REVERSE ATTACH & CLONE DDL
         // GIÚP COPY 100% CẤU TRÚC (PRIMARY KEY, AUTOINCREMENT, INDEX) TỪ DB GỐC
@@ -311,7 +307,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         // =======================================================================
         // 3 HÀM LƯU TRỮ ĐƯỢC CẬP NHẬT GỌN GÀNG VÀ CHUẨN XÁC
         public static string LuuTruDuLieuThiDuaNam()
@@ -402,7 +397,6 @@ namespace PhanMemThiDua2026
 
             return targetPath;
         }
-
         public static string LuuTruDuLieuKhenThuongToanDienNam()
         {
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
@@ -455,20 +449,10 @@ namespace PhanMemThiDua2026
 
             return targetPath;
         }
-
         // =======================================================================
         // XUẤT EXCEL VÀ CẬP NHẬT TÌNH TRẠNG LỊCH SỬ
         // =======================================================================
-        public static void XuatExcelLichSuCore(
-        string targetExcelPath,
-        bool laTanBinh,
-        bool isDataMaxMode,
-        List<ColumnExportMeta> exportCols,
-        List<int> filteredIndexes,
-        DataTable dtSource,
-        List<HistoryCBCSDTO> cacheCBCS,
-        List<HistoryTanBinhDTO> cacheTanBinh,
-        string tenTieuDoan)
+        public static void XuatExcelLichSuCore(string targetExcelPath, bool laTanBinh, bool isDataMaxMode, List<ColumnExportMeta> exportCols, List<int> filteredIndexes, DataTable dtSource, List<HistoryCBCSDTO> cacheCBCS,List<HistoryTanBinhDTO> cacheTanBinh, string tenTieuDoan)
         {
             int rowCount = filteredIndexes.Count;
             int colCount = exportCols.Count + 1;
@@ -530,7 +514,6 @@ namespace PhanMemThiDua2026
                     dataArray[r, cIndex++] = cellValue;
                 }
             }
-
             using (var wb = new ClosedXML.Excel.XLWorkbook())
             {
                 var ws = wb.Worksheets.Add("ThongKeThiDua");
@@ -578,12 +561,11 @@ namespace PhanMemThiDua2026
                     if (hoTenColIndex >= 0) ws.Range(excelStartRow + 1, hoTenColIndex + 2, excelStartRow + rowCount, hoTenColIndex + 2).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Left;
                 }
                 int tongDong = rowCount + excelStartRow + 1;
-                var totalCell = ws.Cell(tongDong, 1); totalCell.Value = $"Tổng cộng: {rowCount} đồng chí./."; totalCell.Style.Font.SetBold().Font.SetItalic(); ws.Range(tongDong, 1, tongDong, colCount).Merge();
+                var totalCell = ws.Cell(tongDong, 1); totalCell.Value = $"Tổng cộng: {rowCount} {Module_HeThong.Tu_dong_chi} ./."; totalCell.Style.Font.SetBold().Font.SetItalic(); ws.Range(tongDong, 1, tongDong, colCount).Merge();
                 Module_BanQuyen.DongDauExcel(wb);
                 wb.SaveAs(targetExcelPath);
             }
         }
-
         public static void CapNhatTinhTrangThiDuaNamCu(string pathCsdl2, string pathCsdlNamCu, bool laTanBinh)
         {
             if (string.IsNullOrEmpty(pathCsdlNamCu) || !File.Exists(pathCsdlNamCu)) return;
@@ -633,11 +615,11 @@ namespace PhanMemThiDua2026
 
                         if (tonTaiInCsdl2)
                         {
-                            if (ttHienTai != "Đang công tác") idDangCongTac.Add(id);
+                            if (ttHienTai != Module_HeThong.TT_DANG_CONG_TAC) idDangCongTac.Add(id);
                         }
                         else
                         {
-                            if (ttHienTai != "Chuyển công tác") idChuyenCongTac.Add(id);
+                            if (ttHienTai != Module_HeThong.TT_CHUYEN_CONG_TAC) idChuyenCongTac.Add(id);
                         }
                     }
                 }
@@ -686,7 +668,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Lỗi cập nhật TinhTrang CSDL năm cũ: " + ex.Message);
             }
         }
-
         public static void CapNhatTinhTrangLichSuTuDanhSachGoc(string pathCsdl2, string pathCsdlNamCu, bool laTanBinh)
         {
             if (string.IsNullOrEmpty(pathCsdlNamCu) || !File.Exists(pathCsdlNamCu)) return;
@@ -745,8 +726,8 @@ namespace PhanMemThiDua2026
                             string plainSh = SafeDecrypt(rawSh).Trim();
 
                             string ttMoi = (!string.IsNullOrEmpty(plainSh) && hashSoHieuCsdl2.Contains(plainSh))
-                                ? "Đang công tác"
-                                : "Chuyển công tác";
+                                ? Module_HeThong.TT_DANG_CONG_TAC
+                                : Module_HeThong.TT_CHUYEN_CONG_TAC;
 
                             if (!string.Equals(ttCu, ttMoi, StringComparison.OrdinalIgnoreCase))
                             {
@@ -787,6 +768,30 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine($"Lỗi Cốt lõi Đồng Bộ Tình Trạng Lịch Sử: {ex.Message}");
             }
+        }
+        /// </summary>
+        public static bool LaPhienBanCBCS()
+        {
+            try
+            {
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(phienBan)) return false;
+
+                // Nếu KHÔNG chứa từ "tân binh" -> Là phiên bản CBCS
+                return !phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        /// Tự động ẩn/hiện ToolStripMenuItem tùy theo phiên bản (Chỉ hiện ở CBCS, ẩn ở Tân Binh)
+        public static void CapNhatAnHienMenuDongBo(ToolStripItem menuItem)
+        {
+            if (menuItem == null) return;
+
+            // Dùng Available thay vì Visible để WinForms ẩn tuyệt đối trên ToolStrip/ContextMenu
+            menuItem.Available = LaPhienBanCBCS();
         }
     }
 }

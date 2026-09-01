@@ -168,7 +168,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("[Lỗi khôi phục thư viện hệ thống]: " + ex.Message);
             }
         }
-
         private static void SaoChepThuVienAnToan(string source, string target)
         {
             try
@@ -188,7 +187,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"[LỖI SAO CHÉP THƯ VIỆN {target}]: " + ex.Message);
             }
         }
-
         private static void ThaoGoQuyenReadOnly(string path)
         {
             if (File.Exists(path))
@@ -909,15 +907,13 @@ namespace PhanMemThiDua2026
             catch { }
         }       
         // ⭐ QUẢN LÝ COMBOBOX CÂU HỎI BẢO MẬT      
-        public static readonly string[] DanhSachCauHoiNhom1 =
-        {
+        public static readonly string[] DanhSachCauHoiNhom1 = {
             "Họ và tên của bạn?", "Bạn sinh ra ở Tỉnh/Thành phố nào?", "Món ăn yêu thích nhất của bạn là gì?",
             "Tên trường THPT của bạn?", "Tên thú cưng bạn yêu thích?", "Tên cô người bạn yêu đầu tiên?",
             "Tên bộ phim mà bạn yêu thích nhất?", "Công việc đầu tiên bạn làm để kiếm ra tiền?",
             "Nghề nghiệp mơ ước của bạn khi còn nhỏ là gì?", "Bạn đã từng đi du lịch nước ngoài chưa?"
         };
-        public static readonly string[] DanhSachCauHoiNhom2 =
-        {
+        public static readonly string[] DanhSachCauHoiNhom2 = {
             "Tên con vật yêu thích của bạn?", "Giới tính của bạn là Nam hay nữ?", "Bạn vào CAND ngày tháng năm nào?",
             "Món quà sinh nhật đầu tiên bạn nhận được là gì?", "Bạn có thích chơi game không?",
             "Bạn thích đội bóng hoặc câu lạc bộ thể thao nào?", "Bài hát mà bạn nghe đi nghe lại nhiều nhất thời học sinh là gì?",
@@ -986,127 +982,472 @@ namespace PhanMemThiDua2026
                 cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
             }
         }
-        // =========================================================================
         // 🛡️ CHÍNH SÁCH TUẦN TRA VÀ KHÔI PHỤC CHÉO (SELF-HEALING) CHO CORE REPOSITORY
-        // =========================================================================
-
         // Danh sách các tệp ĐƯỢC PHÉP tồn tại (data1 -> data15)
         private static readonly HashSet<string> DanhSachDataHopLe = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "data1", "data2", "data3", "data4", "data5",
             "data6", "data7", "data8", "data9", "data10",
-            "data11", "data12", "data13", "data14", "data15"
+            "data11", "data12"
         };
-
         public static void TuanTraVaPhucHoiCoreRepository()
         {
             try
             {
                 string baseDir = AppContext.BaseDirectory;
 
-                // Xác định 2 vùng chứa Repository
-                string dirDatabase = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, THU_MUC_CONG_CU, "CoreDatabaseRepository");
-                string dirBackup = Path.Combine(baseDir, "Database Backup", THU_MUC_CONG_CU, "CoreDatabaseRepository");
+                
+                // XÁC ĐỊNH 2 VÙNG CHỨA REPOSITORY
+                
+                string dirDatabase = Path.Combine(
+                    Module_DanduongGPS.ThuMucCoSoDuLieu,
+                    THU_MUC_CONG_CU,
+                    "CoreDatabaseRepository");
 
-                // Tạo thư mục nếu nó lỡ bị xóa mất
+                string dirBackup = Path.Combine(
+                    baseDir,
+                    "Database Backup",
+                    THU_MUC_CONG_CU,
+                    "CoreDatabaseRepository");
+
+                // Tạo thư mục nếu bị xóa mất
                 Directory.CreateDirectory(dirDatabase);
                 Directory.CreateDirectory(dirBackup);
 
                 int soTepBiXoa = 0;
                 int soTepDuocCuu = 0;
+                int soTepHong = 0;
+                int soCanhBao = 0;
+
                 List<string> chiTietHanhDong = new List<string>();
 
-                // -------------------------------------------------------------
-                // BƯỚC 1: TUẦN TRA & TIÊU DIỆT TỆP LẠ (CHỈ DUY TRÌ TỆP TRONG DANH SÁCH)
-                // -------------------------------------------------------------
-                void TieuDietTepLa(string thuMucPath, string tenVung)
+
+                
+                // HÀM KIỂM TRA FILE CÓ TỒN TẠI VÀ CÓ DỮ LIỆU
+                
+                bool FileHopLe(string filePath)
+                {
+                    try
+                    {
+                        if (!File.Exists(filePath))
+                            return false;
+
+                        FileInfo fileInfo = new FileInfo(filePath);
+
+                        // File 0 byte → coi là không hợp lệ
+                        return fileInfo.Length > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(
+                            $"[TuanTraCoreRepository] " +
+                            $"Không thể kiểm tra file '{filePath}': {ex.Message}");
+
+                        return false;
+                    }
+                }
+
+
+                
+                // TÍNH SHA-256 CHO FILE
+                
+                string LaySHA256(string filePath)
+                {
+                    try
+                    {
+                        using FileStream stream = new FileStream(
+                            filePath,
+                            FileMode.Open,
+                            FileAccess.Read,
+                            FileShare.Read);
+
+                        using System.Security.Cryptography.SHA256 sha256 =
+                            System.Security.Cryptography.SHA256.Create();
+
+                        byte[] hash = sha256.ComputeHash(stream);
+
+                        return Convert.ToHexString(hash);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(
+                            $"[TuanTraCoreRepository] " +
+                            $"Không thể tính SHA-256 '{filePath}': {ex.Message}");
+
+                        return string.Empty;
+                    }
+                }
+
+
+                
+                // SO SÁNH TOÀN VẸN 2 FILE
+                //
+                // Bước 1: So sánh kích thước.
+                // Bước 2: Nếu cùng kích thước → mới tính SHA-256.
+                //
+                // Như vậy tránh tính hash không cần thiết.
+                
+                bool HaiFileGiongNhau(
+                    string file1,
+                    string file2)
+                {
+                    try
+                    {
+                        if (!FileHopLe(file1) ||
+                            !FileHopLe(file2))
+                        {
+                            return false;
+                        }
+
+                        FileInfo info1 = new FileInfo(file1);
+                        FileInfo info2 = new FileInfo(file2);
+
+                        // Kích thước khác → chắc chắn khác
+                        if (info1.Length != info2.Length)
+                            return false;
+
+                        string hash1 = LaySHA256(file1);
+                        string hash2 = LaySHA256(file2);
+
+                        if (string.IsNullOrEmpty(hash1) ||
+                            string.IsNullOrEmpty(hash2))
+                        {
+                            return false;
+                        }
+
+                        return string.Equals(
+                            hash1,
+                            hash2,
+                            StringComparison.OrdinalIgnoreCase);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(
+                            $"[TuanTraCoreRepository] " +
+                            $"Lỗi so sánh toàn vẹn: {ex.Message}");
+
+                        return false;
+                    }
+                }
+
+
+                
+                // BƯỚC 1:
+                // TUẦN TRA & TIÊU DIỆT TỆP LẠ
+                
+                void TieuDietTepLa(
+                    string thuMucPath,
+                    string tenVung)
                 {
                     foreach (string filePath in Directory.GetFiles(thuMucPath))
                     {
-                        string fileName = Path.GetFileName(filePath);
+                        string fileName =
+                            Path.GetFileName(filePath);
 
-                        // Nếu tên file không nằm trong danh sách cho phép -> Bắn bỏ
-                        if (!DanhSachDataHopLe.Contains(fileName))
+                        // File hợp lệ → giữ nguyên
+                        if (DanhSachDataHopLe.Contains(fileName))
+                            continue;
+
+                        try
                         {
-                            try
-                            {
-                                ThaoGoQuyenReadOnly(filePath); // Gỡ ReadOnly trước khi xóa
-                                File.Delete(filePath);
-                                soTepBiXoa++;
-                                chiTietHanhDong.Add($"[TIÊU DIỆT] Đã xóa tệp lạ '{fileName}' tại vùng {tenVung}.");
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Lỗi xóa tệp lạ {fileName}: {ex.Message}");
-                            }
+                            ThaoGoQuyenReadOnly(filePath);
+
+                            File.Delete(filePath);
+
+                            soTepBiXoa++;
+
+                            chiTietHanhDong.Add(
+                                $"[TIÊU DIỆT] Đã xóa tệp lạ " +
+                                $"'{fileName}' tại vùng {tenVung}.");
+                        }
+                        catch (Exception ex)
+                        {
+                            chiTietHanhDong.Add(
+                                $"[LỖI XÓA] Không thể xóa tệp lạ " +
+                                $"'{fileName}' tại {tenVung}: {ex.Message}");
+
+                            Debug.WriteLine(
+                                $"[TuanTraCoreRepository] " +
+                                $"Lỗi xóa {fileName}: {ex.Message}");
                         }
                     }
                 }
 
-                TieuDietTepLa(dirDatabase, "Database Gốc");
-                TieuDietTepLa(dirBackup, "Database Backup");
 
-                // -------------------------------------------------------------
-                // BƯỚC 2: KHÔI PHỤC CHÉO (SELF-HEALING) - NẾU KHUYẾT THÌ COPY BÙ VÀO
-                // -------------------------------------------------------------
+                TieuDietTepLa(
+                    dirDatabase,
+                    "Database Gốc");
+
+                TieuDietTepLa(
+                    dirBackup,
+                    "Database Backup");
+
+
+                
+                // BƯỚC 2:
+                // KHÔI PHỤC CHÉO + KIỂM TRA TOÀN VẸN
+                
                 foreach (string fileName in DanhSachDataHopLe)
                 {
-                    string fileInDB = Path.Combine(dirDatabase, fileName);
-                    string fileInBackup = Path.Combine(dirBackup, fileName);
+                    string fileInDB =
+                        Path.Combine(
+                            dirDatabase,
+                            fileName);
 
-                    bool existsInDB = File.Exists(fileInDB);
-                    bool existsInBackup = File.Exists(fileInBackup);
+                    string fileInBackup =
+                        Path.Combine(
+                            dirBackup,
+                            fileName);
 
-                    // TH1: Có ở Backup nhưng mất ở DB -> Copy từ Backup sang DB
+
+                    // =========================================================
+                    // KIỂM TRA THỰC TẾ
+                    //
+                    // File tồn tại nhưng 0 byte → exists = false
+                    // =========================================================
+                    bool existsInDB =
+                        FileHopLe(fileInDB);
+
+                    bool existsInBackup =
+                        FileHopLe(fileInBackup);
+
+
+                    // =========================================================
+                    // TH1:
+                    // BACKUP CÒN - DATABASE MẤT/HỎNG
+                    // =========================================================
                     if (!existsInDB && existsInBackup)
                     {
                         try
                         {
-                            File.Copy(fileInBackup, fileInDB, true);
-                            File.SetAttributes(fileInDB, FileAttributes.ReadOnly); // Khóa lại ngay lập tức
+                            File.Copy(
+                                fileInBackup,
+                                fileInDB,
+                                true);
+
+                            File.SetAttributes(
+                                fileInDB,
+                                FileAttributes.ReadOnly);
+
                             soTepDuocCuu++;
-                            chiTietHanhDong.Add($"[KHÔI PHỤC] Đã chép bù '{fileName}' từ Backup sang Database Gốc.");
+
+                            if (File.Exists(fileInDB))
+                            {
+                               // soTepHong++;
+                                chiTietHanhDong.Add(
+                                    $"[KHÔI PHỤC] '{fileName}' " +
+                                    $"được phục hồi từ Backup → Database Gốc.");
+                            }
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            chiTietHanhDong.Add(
+                                $"[LỖI KHÔI PHỤC] Không thể phục hồi " +
+                                $"'{fileName}' từ Backup → Database: " +
+                                $"{ex.Message}");
+
+                            Debug.WriteLine(
+                                $"[TuanTraCoreRepository] " +
+                                $"Lỗi copy {fileName}: {ex.Message}");
+                        }
+
+                        continue;
                     }
-                    // TH2: Có ở DB nhưng mất ở Backup -> Copy từ DB sang Backup
-                    else if (existsInDB && !existsInBackup)
+
+
+                    // =========================================================
+                    // TH2:
+                    // DATABASE CÒN - BACKUP MẤT/HỎNG
+                    // =========================================================
+                    if (existsInDB && !existsInBackup)
                     {
                         try
                         {
-                            File.Copy(fileInDB, fileInBackup, true);
-                            File.SetAttributes(fileInBackup, FileAttributes.ReadOnly); // Khóa lại
+                            File.Copy(
+                                fileInDB,
+                                fileInBackup,
+                                true);
+
+                            File.SetAttributes(
+                                fileInBackup,
+                                FileAttributes.ReadOnly);
+
                             soTepDuocCuu++;
-                            chiTietHanhDong.Add($"[KHÔI PHỤC] Đã chép bù '{fileName}' từ Database Gốc sang Backup.");
+
+                            chiTietHanhDong.Add(
+                                $"[KHÔI PHỤC] '{fileName}' " +
+                                $"được sao lưu lại từ Database → Backup.");
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            chiTietHanhDong.Add(
+                                $"[LỖI KHÔI PHỤC] Không thể sao lưu " +
+                                $"'{fileName}' từ Database → Backup: " +
+                                $"{ex.Message}");
+
+                            Debug.WriteLine(
+                                $"[TuanTraCoreRepository] " +
+                                $"Lỗi copy {fileName}: {ex.Message}");
+                        }
+
+                        continue;
                     }
-                    // TH3: Mất ở cả 2 nơi (Có thể log cảnh báo nghiêm trọng nếu cần thiết)
-                    else if (!existsInDB && !existsInBackup)
+
+
+                    // =========================================================
+                    // TH3:
+                    // CẢ DATABASE VÀ BACKUP ĐỀU MẤT/HỎNG
+                    // =========================================================
+                    if (!existsInDB && !existsInBackup)
                     {
-                        chiTietHanhDong.Add($"[CẢNH BÁO ĐỎ] Tệp cốt lõi '{fileName}' đã bị xóa vĩnh viễn ở cả 2 vùng!");
+                        soCanhBao++;
+
+                        chiTietHanhDong.Add(
+                            $"[CẢNH BÁO ĐỎ] Tệp cốt lõi " +
+                            $"'{fileName}' không tồn tại hoặc " +
+                            $"đã bị hỏng ở cả 2 vùng.");
+
+                        Debug.WriteLine(
+                            $"[TuanTraCoreRepository] " +
+                            $"CẢNH BÁO ĐỎ: {fileName}");
+
+                        continue;
+                    }
+                    // TH4:
+                    // CẢ HAI ĐỀU TỒN TẠI → KIỂM TRA TOÀN VẸN
+                    if (existsInDB && existsInBackup)
+                    {
+                        try
+                        {
+                            FileInfo infoDB =
+                                new FileInfo(fileInDB);
+
+                            FileInfo infoBackup =
+                                new FileInfo(fileInBackup);
+
+
+                            
+                            // 4A.
+                            // KÍCH THƯỚC KHÁC NHAU
+                            
+                            if (infoDB.Length != infoBackup.Length)
+                            {
+                                chiTietHanhDong.Add(
+                                    $"[CẢNH BÁO TOÀN VẸN] " +
+                                    $"'{fileName}' có kích thước khác nhau " +
+                                    $"giữa Database ({infoDB.Length:N0} byte) " +
+                                    $"và Backup ({infoBackup.Length:N0} byte).");
+
+                                // Không tự ý ghi đè.
+                                // Vì chưa biết bên nào là bản đúng.
+                                soCanhBao++;
+
+                                continue;
+                            }    
+                            // 4B.
+                            // CÙNG KÍCH THƯỚC → SO SÁNH SHA-256
+                            string hashDB =
+                                LaySHA256(fileInDB);
+
+                            string hashBackup =
+                                LaySHA256(fileInBackup);
+                            // Không thể tính hash
+                            if (string.IsNullOrEmpty(hashDB) ||
+                                string.IsNullOrEmpty(hashBackup))
+                            {
+                                soCanhBao++;
+
+                                chiTietHanhDong.Add(
+                                    $"[CẢNH BÁO TOÀN VẸN] " +
+                                    $"Không thể xác định SHA-256 " +
+                                    $"của '{fileName}'.");
+
+                                continue;
+                            }                         
+                            // 4C.
+                            // HASH GIỐNG → FILE TOÀN VẸN
+                            if (string.Equals(
+                                    hashDB,
+                                    hashBackup,
+                                    StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            } 
+                            // 4D.
+                            // HASH KHÁC → DỮ LIỆU ĐÃ LỆCH                          
+                            soCanhBao++;
+
+                            chiTietHanhDong.Add(
+                                $"[CẢNH BÁO TOÀN VẸN] " +
+                                $"Hash SHA-256 của '{fileName}' " +
+                                $"khác nhau giữa Database và Backup. " +
+                                $"Hệ thống KHÔNG tự ý ghi đè để tránh " +
+                                $"mất dữ liệu.");
+
+                            Debug.WriteLine(
+                                $"[TuanTraCoreRepository] " +
+                                $"Hash không khớp: {fileName}");
+                        }
+                        catch (Exception ex)
+                        {
+                            soCanhBao++;
+
+                            chiTietHanhDong.Add(
+                                $"[LỖI KIỂM TRA TOÀN VẸN] " +
+                                $"'{fileName}': {ex.Message}");
+
+                            Debug.WriteLine(
+                                $"[TuanTraCoreRepository] " +
+                                $"Lỗi integrity {fileName}: {ex}");
+                        }
                     }
                 }
-
-                // -------------------------------------------------------------
-                // BƯỚC 3: GHI NHẬT KÝ NẾU CÓ BIẾN ĐỘNG
-                // -------------------------------------------------------------
-                if (soTepBiXoa > 0 || soTepDuocCuu > 0)
+                // BƯỚC 3:
+                // GHI NHẬT KÝ
+                if (soTepBiXoa > 0 ||
+                    soTepDuocCuu > 0 ||
+                    soTepHong > 0 ||
+                    soCanhBao > 0)
                 {
-                    string taiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System" : Module_TaiKhoan.TenTaiKhoan_RAM;
-                    string hanhDong = "Bảo vệ Core Repository (Tự động)";
-                    string ghiChu = $"Hệ thống đã tiêu diệt {soTepBiXoa} tệp lạ và khôi phục chéo {soTepDuocCuu} tệp bị khuyết.\r\nChi tiết:\r\n" + string.Join("\r\n", chiTietHanhDong);
+                    string taiKhoan =
+                        string.IsNullOrWhiteSpace(
+                            Module_TaiKhoan.TenTaiKhoan_RAM)
+                        ? "System"
+                        : Module_TaiKhoan.TenTaiKhoan_RAM;
+
+                    string hanhDong =
+                        "Bảo vệ Core Repository (Tự động)";
+
+                    string ghiChu =
+                        $"Hệ thống đã tiêu diệt {soTepBiXoa} tệp lạ, " +
+                        $"khôi phục {soTepDuocCuu} tệp, " +
+                        $"phát hiện {soTepHong} tệp có dấu hiệu không hợp lệ " +
+                        $"và {soCanhBao} cảnh báo toàn vẹn.\r\n" +
+                        $"Chi tiết:\r\n" +
+                        string.Join(
+                            "\r\n",
+                            chiTietHanhDong);
 
                     try
                     {
-                        Module_NhatKy.GhiNhatKy(taiKhoan, hanhDong, ghiChu);
+                        Module_NhatKy.GhiNhatKy(
+                            taiKhoan,
+                            hanhDong,
+                            ghiChu);
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine(
+                            "[TuanTraCoreRepository] " +
+                            $"Không thể ghi nhật ký: {ex.Message}");
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("[Lỗi Tuần tra Core Repository]: " + ex.Message);
+                Debug.WriteLine(
+                    "[Lỗi Tuần tra Core Repository]: " +
+                    ex);
             }
         }
     }

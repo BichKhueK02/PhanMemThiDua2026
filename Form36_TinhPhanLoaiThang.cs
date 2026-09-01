@@ -9,14 +9,11 @@ namespace PhanMemThiDua2026
     public partial class Form36_TinhPhanLoaiThang : KryptonForm
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        // 1. Biến lưu trữ dữ liệu
         private DataTable _dtGoc;
         private DataTable _dtXuLy;
         private DataView _dvHienThi;
-        // Khai báo biến toàn cục
         private DataTable _dtData;
         private bool _isTanBinh;
-        // 2. Map Tên hiển thị
         private Dictionary<string, string> _mapCotThoiGian = new Dictionary<string, string>();
         private List<string> _danhSachThoiGianGoc = new List<string>();
         // 3. Cờ trạng thái đa luồng
@@ -323,6 +320,7 @@ namespace PhanMemThiDua2026
         private static readonly Color COLOR_L2_FORE = Color.DarkGoldenrod;
         private static readonly Color COLOR_L34_BACK = Color.FromArgb(255, 200, 200);
         private static readonly Color COLOR_L34_FORE = Color.DarkRed;
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private void KryptonDataGridView1_CellFormatting(
             object sender,
             DataGridViewCellFormattingEventArgs e)
@@ -373,22 +371,22 @@ namespace PhanMemThiDua2026
 
             switch (ketQua)
             {
-                case "Loại 1":
+                case Module_HeThong.Loai_1:
                     {
                         backColor = COLOR_L1_BACK;
                         foreColor = COLOR_L1_FORE;
                         break;
                     }
 
-                case "Loại 2":
+                case Module_HeThong.Loai_2:
                     {
                         backColor = COLOR_L2_BACK;
                         foreColor = COLOR_L2_FORE;
                         break;
                     }
 
-                case "Loại 3":
-                case "Loại 4":
+                case Module_HeThong.Loai_3:
+                case Module_HeThong.Loai_4:
                     {
                         backColor = COLOR_L34_BACK;
                         foreColor = COLOR_L34_FORE;
@@ -560,7 +558,7 @@ namespace PhanMemThiDua2026
 
                             string res = TinhLogicPhanLoaiMDK_Fast(t1, t2, t3, t4);
                             resultKetQua[i] = res;
-                            resultIsLoai1[i] = (res == "Loại 1");
+                            resultIsLoai1[i] = (res == Module_HeThong.Loai_1);
                         }
                     });
                 });
@@ -611,8 +609,6 @@ namespace PhanMemThiDua2026
                 _isCalculating = false;
             }
         }
-
-        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private string TinhLogicPhanLoaiMDK_Fast(string t1, string t2, string t3, string t4)
         {
             int l1 = 0, l2 = 0, l3 = 0, l4 = 0;
@@ -632,12 +628,11 @@ namespace PhanMemThiDua2026
 
             Check(t1); Check(t2); Check(t3); Check(t4);
 
-            if (validCount == 0) return "Loại 4";
-            if (l1 >= 2 && l3 == 0 && l4 == 0) return "Loại 1";
-            if ((l1 + l2) >= 2 && l3 == 0 && l4 == 0) return "Loại 2";
-            if ((l1 + l2 + l3) >= 2 && l4 == 0) return "Loại 3";
-
-            return "Loại 4";
+            if (validCount == 0) return Module_HeThong.Loai_4;
+            if (l1 >= 2 && l3 == 0 && l4 == 0) return Module_HeThong.Loai_1;
+            if ((l1 + l2) >= 2 && l3 == 0 && l4 == 0) return Module_HeThong.Loai_2;
+            if ((l1 + l2 + l3) >= 2 && l4 == 0) return Module_HeThong.Loai_3;
+            return Module_HeThong.Loai_4;
         }
         // =========================================================================
         // UI & FILTER
@@ -849,7 +844,7 @@ namespace PhanMemThiDua2026
                 dgv.EnableHeadersVisualStyles = false;
 
                 // Định dạng Header chuyên nghiệp
-                dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9f, FontStyle.Bold);
+                dgv.ColumnHeadersDefaultCellStyle.Font = new Font(Module_HeThong.TenFontHeThong, 9f, FontStyle.Bold);
                 dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 dgv.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 dgv.ColumnHeadersHeight = 55;
@@ -883,7 +878,6 @@ namespace PhanMemThiDua2026
                 dgv.ResumeLayout();
             }
         }
-
         // Hàm bổ trợ để code ngắn gọn, an toàn, tránh lỗi copy-paste
         private void AddColumn(DataGridView dgv, string name, string header, int weight, DataGridViewContentAlignment align, string dataProp = "")
         {
@@ -1079,7 +1073,7 @@ namespace PhanMemThiDua2026
                 toolTip1.InitialDelay = 400;
                 toolTip1.ReshowDelay = 100;
 
-                toolTip1.SetToolTip(kryptonButton1_TinhToan, "Bắt đầu tính toán phân loại thi đua (Loại 1, 2, 3, 4)\ndựa trên 4 mốc thời gian Tuần/Tháng mà đồng chí đã chọn.");
+                toolTip1.SetToolTip(kryptonButton1_TinhToan, "Bắt đầu tính toán phân loại thi đua (Loại 1, 2, 3, 4)\ndựa trên 4 mốc thời gian Tuần/Tháng mà " + Module_HeThong.Tu_dong_chi + " đã chọn.");
                 toolTip1.SetToolTip(kryptonButton_LamMoiCacOTimKiem, "Xóa bỏ các điều kiện tìm kiếm hiện tại để hiển thị lại toàn bộ quân số.");
                 toolTip1.SetToolTip(kryptonButton1_Dong, "Đóng cửa sổ làm việc này và quay trở về màn hình trước đó.");
             }
@@ -1136,13 +1130,11 @@ namespace PhanMemThiDua2026
                 {
                     sb.AppendLine("Chưa có dữ liệu đánh giá tuần hoặc kết quả tháng.");
                 }
-
                 sb.AppendLine("TỔNG CỘNG CHỈ TIÊU:");
-                sb.AppendLine($" - Loại 1: {Fix(Get("TS_Loai1"))} lần");
-                sb.AppendLine($" - Loại 2: {Fix(Get("TS_Loai2"))} lần");
-                sb.AppendLine($" - Loại 3: {Fix(Get("TS_Loai3"))} lần");
-                sb.AppendLine($" - Loại 4: {Fix(Get("TS_Loai4"))} lần");
-
+                sb.AppendLine($" - {Module_HeThong.Loai_1}: {Fix(Get("TS_Loai1"))} lần");
+                sb.AppendLine($" - {Module_HeThong.Loai_2}: {Fix(Get("TS_Loai2"))} lần");
+                sb.AppendLine($" - {Module_HeThong.Loai_3}: {Fix(Get("TS_Loai3"))} lần");
+                sb.AppendLine($" - {Module_HeThong.Loai_4}: {Fix(Get("TS_Loai4"))} lần");
                 MessageBox.Show(sb.ToString(), "Chi tiết hồ sơ thi đua", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -1153,19 +1145,24 @@ namespace PhanMemThiDua2026
         private void kryptonButton1_Dong_Click(object sender, EventArgs e) => this.Close();
         private void UpdateLabels(int tongSo, int l1, int l2, int l3, int l4)
         {
-            toolStripStatusLabel1.Text = $"Tổng quân số: {tongSo} đồng chí";
+            toolStripStatusLabel1.Text =
+                $"Tổng quân số: {tongSo} {Module_HeThong.Tu_Dong_Chi}";
 
-            toolStripStatusLabel2.Visible = (l1 > 0);
-            toolStripStatusLabel2.Text = $"Loại 1: {l1} đồng chí";
+            toolStripStatusLabel2.Visible = l1 > 0;
+            toolStripStatusLabel2.Text =
+                $"{Module_HeThong.Loai_1}: {l1} {Module_HeThong.Tu_Dong_Chi}";
 
-            toolStripStatusLabel3.Visible = (l2 > 0);
-            toolStripStatusLabel3.Text = $"Loại 2: {l2} đồng chí";
+            toolStripStatusLabel3.Visible = l2 > 0;
+            toolStripStatusLabel3.Text =
+                $"{Module_HeThong.Loai_2}: {l2} {Module_HeThong.Tu_Dong_Chi}";
 
-            toolStripStatusLabel4.Visible = (l3 > 0);
-            toolStripStatusLabel4.Text = $"Loại 3: {l3} đồng chí";
+            toolStripStatusLabel4.Visible = l3 > 0;
+            toolStripStatusLabel4.Text =
+                $"{Module_HeThong.Loai_3}: {l3} {Module_HeThong.Tu_Dong_Chi}";
 
-            toolStripStatusLabel5.Visible = (l4 > 0);
-            toolStripStatusLabel5.Text = $"Loại 4: {l4} đồng chí";
+            toolStripStatusLabel5.Visible = l4 > 0;
+            toolStripStatusLabel5.Text =
+                $"{Module_HeThong.Loai_4}: {l4} {Module_HeThong.Tu_Dong_Chi}";
         }
         private void CauHinhUI_StatusStrip()
         {
@@ -1190,17 +1187,17 @@ namespace PhanMemThiDua2026
         private void LoadComboboxDonVi()
         {
             comboBox_TimKiemDonVi.Items.Clear();
-            comboBox_TimKiemDonVi.Items.Add("Tất cả");
+            comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
             var dsDonVi = _dtXuLy.AsEnumerable().Select(r => r.Field<string>("DonVi")).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x);
             foreach (var dv in dsDonVi) comboBox_TimKiemDonVi.Items.Add(dv);
             comboBox_TimKiemDonVi.SelectedIndex = 0;
 
             comboBox_XepLoaiThiDua.Items.Clear();
-            comboBox_XepLoaiThiDua.Items.AddRange(new string[] { "Tất cả", "Loại 1", "Loại 2", "Loại 3", "Loại 4" });
+            comboBox_XepLoaiThiDua.Items.AddRange(new string[] { Module_HeThong.Tat_Ca, Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4 });
             comboBox_XepLoaiThiDua.SelectedIndex = 0;
 
             comboBox_TimKiemTinhTrang.Items.Clear();
-            comboBox_TimKiemTinhTrang.Items.AddRange(new string[] { "Tất cả", "Đang công tác", "Chuyển công tác" });
+            comboBox_TimKiemTinhTrang.Items.AddRange(new string[] { Module_HeThong.Tat_Ca, Module_HeThong.TT_DANG_CONG_TAC, Module_HeThong.TT_CHUYEN_CONG_TAC });
             comboBox_TimKiemTinhTrang.SelectedIndex = 0;
         }
         private string EscapeFilter(string value)
@@ -1244,9 +1241,9 @@ namespace PhanMemThiDua2026
         private string BuildFilterString()
         {
             string ten = EscapeFilter(textBox_TimKiemTheoTen.Text.Trim());
-            string dv = comboBox_TimKiemDonVi.Text == "Tất cả" ? "" : EscapeFilter(comboBox_TimKiemDonVi.Text);
-            string loai = comboBox_XepLoaiThiDua.Text == "Tất cả" ? "" : EscapeFilter(comboBox_XepLoaiThiDua.Text);
-            string tinhTrang = comboBox_TimKiemTinhTrang.Text == "Tất cả" ? "" : EscapeFilter(comboBox_TimKiemTinhTrang.Text);
+            string dv = comboBox_TimKiemDonVi.Text == Module_HeThong.Tat_Ca ? "" : EscapeFilter(comboBox_TimKiemDonVi.Text);
+            string loai = comboBox_XepLoaiThiDua.Text == Module_HeThong.Tat_Ca ? "" : EscapeFilter(comboBox_XepLoaiThiDua.Text);
+            string tinhTrang = comboBox_TimKiemTinhTrang.Text == Module_HeThong.Tat_Ca ? "" : EscapeFilter(comboBox_TimKiemTinhTrang.Text);
 
             return string.Join(" AND ", new List<string> {
         !string.IsNullOrEmpty(ten) ? $"HoVaTen LIKE '%{ten}%'" : "",
@@ -1255,45 +1252,6 @@ namespace PhanMemThiDua2026
         !string.IsNullOrEmpty(tinhTrang) ? $"TinhTrang = '{tinhTrang}'" : ""
     }.Where(s => !string.IsNullOrEmpty(s)));
         }
-        //private async void BoLoc_Changed(object sender, EventArgs e)
-        //{
-        //    if (_isUpdatingCombos || _dvHienThi == null) return;
-
-        //    _ctsFilter?.Cancel();
-        //    _ctsFilter = new CancellationTokenSource();
-        //    var token = _ctsFilter.Token;
-
-        //    try
-        //    {
-        //        await Task.Delay(300, token); // Debounce
-
-        //        string ten = EscapeFilter(textBox_TimKiemTheoTen.Text.Trim());
-        //        string dv = comboBox_TimKiemDonVi.Text == "Tất cả" ? "" : EscapeFilter(comboBox_TimKiemDonVi.Text);
-        //        string loai = comboBox_XepLoaiThiDua.Text == "Tất cả" ? "" : EscapeFilter(comboBox_XepLoaiThiDua.Text);
-        //        string tinhTrang = comboBox_TimKiemTinhTrang.Text == "Tất cả" ? "" : EscapeFilter(comboBox_TimKiemTinhTrang.Text);
-
-        //        string filter = string.Join(" AND ", new List<string> {
-        //    !string.IsNullOrEmpty(ten) ? $"HoVaTen LIKE '%{ten}%'" : "",
-        //    !string.IsNullOrEmpty(dv) ? $"DonVi = '{dv}'" : "",
-        //    !string.IsNullOrEmpty(loai) ? $"KetQuaTinhToan = '{loai}'" : "",
-        //    !string.IsNullOrEmpty(tinhTrang) ? $"TinhTrang = '{tinhTrang}'" : ""
-        //}.Where(s => !string.IsNullOrEmpty(s)));
-
-        //        // 🔥 CƠ CHẾ AN TOÀN: Đẩy thao tác lên luồng UI và khóa DataSource
-        //        this.Invoke(new Action(() =>
-        //        {
-        //            kryptonDataGridView1.DataSource = null; // Ngắt kết nối để không vẽ tranh trong lúc lọc
-        //            lock (_dataLock)
-        //            {
-        //                _dvHienThi.RowFilter = filter;
-        //            }
-        //            kryptonDataGridView1.DataSource = _dvHienThi; // Gán lại sau khi lọc xong
-        //            CapNhatThongKeStatus();
-        //        }));
-        //    }
-        //    catch (OperationCanceledException) { }
-        //    catch (Exception ex) { Debug.WriteLine("Lỗi Filter: " + ex.Message); }
-        //}
         private void CapNhatThongKeStatus()
         {
             if (this.IsDisposed || _dvHienThi == null) return;
@@ -1325,10 +1283,10 @@ namespace PhanMemThiDua2026
 
             // Đếm trên List đã copy (hoàn toàn an toàn)
             int tongSo = ketQuaList.Count;
-            int loai1 = ketQuaList.Count(k => k == "Loại 1");
-            int loai2 = ketQuaList.Count(k => k == "Loại 2");
-            int loai3 = ketQuaList.Count(k => k == "Loại 3");
-            int loai4 = ketQuaList.Count(k => k == "Loại 4");
+            int loai1 = ketQuaList.Count(k => k == Module_HeThong.Loai_1);
+            int loai2 = ketQuaList.Count(k => k == Module_HeThong.Loai_2);
+            int loai3 = ketQuaList.Count(k => k == Module_HeThong.Loai_3);
+            int loai4 = ketQuaList.Count(k => k == Module_HeThong.Loai_4);
 
             // Cập nhật UI
             if (this.InvokeRequired)
@@ -1386,11 +1344,11 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrEmpty(h1) || string.IsNullOrEmpty(h2) || string.IsNullOrEmpty(h3) || string.IsNullOrEmpty(h4))
             {
                 var result = MessageBox.Show(
-                    "Đồng chí chưa chọn đủ giá trị thi đua (Tuần - Tháng) để đưa vào xuất báo cáo.\n\nĐồng chí có muốn tiếp tục mở giao diện xuất tệp không?",
-                    "Xác nhận",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
+                  $"{Module_HeThong.Tu_Dong_Chi} chưa chọn đủ giá trị thi đua (Tuần - Tháng) để đưa vào xuất báo cáo.\n\n" +
+                  $"{Module_HeThong.Tu_Dong_Chi} có muốn tiếp tục mở giao diện xuất tệp không?",
+                  "Xác nhận",
+                  MessageBoxButtons.YesNo,
+                  MessageBoxIcon.Question);
                 if (result == DialogResult.No) return;
 
                 if (string.IsNullOrEmpty(h1)) h1 = "Kết quả Tuần 1";
@@ -1402,7 +1360,5 @@ namespace PhanMemThiDua2026
             var f = new Form38_XuatExcelTinhToan(_dvHienThi, _mapCotThoiGian, h1, h2, h3, h4);
             f.ShowDialog();
         }
-
-
     }
 }

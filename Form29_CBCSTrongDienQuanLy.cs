@@ -20,8 +20,7 @@ namespace PhanMemThiDua2026
         // ⭐ 3. ANTI-ZOMBIE TASK: Hủy an toàn khi đóng form
         private CancellationTokenSource _cts = new CancellationTokenSource();
         private readonly Font _headerFont = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
-        private readonly Dictionary<string, string> _tenCotTiengViet = new Dictionary<string, string>
-        {
+        private readonly Dictionary<string, string> _tenCotTiengViet = new Dictionary<string, string>{
             {"HoVaTen","Họ và tên"}, {"SoHieu","Số hiệu"}, {"NamSinh","Năm sinh"},
             {"QueQuan","Quê quán"}, {"NgayVaoCAND","Vào CAND"}, {"CapBac","Cấp bậc"},
             {"ChucVu","Chức vụ"}, {"DonVi","Đơn vị"}, {"PhanLoai","Phân loại"}, {"GhiChu","Ghi chú"}
@@ -112,13 +111,13 @@ namespace PhanMemThiDua2026
                 if (tongSo > 0)
                 {
                     toolStripStatusLabel4.Text =
-                        $"Tổng cộng {tongSo:N0} đồng chí";
+                        $"Tổng cộng {tongSo:N0} {Module_HeThong.Tu_dong_chi}";
                 }
                 toolStripStatusLabel4.ForeColor =
                     Color.FromArgb(25, 135, 84); // xanh lá đẹp
 
                 toolStripStatusLabel4.Font =
-                    new Font("Segoe UI", 9F, FontStyle.Bold);
+                    new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
             }
             catch (OperationCanceledException)
             {
@@ -241,13 +240,13 @@ namespace PhanMemThiDua2026
                 }
 
                 if (!string.IsNullOrWhiteSpace(donVi) &&
-                    donVi != "Tất cả")
+                    donVi != Module_HeThong.Tat_Ca)
                 {
                     query = query.Where(x => x.DonVi == donVi);
                 }
 
                 if (!string.IsNullOrWhiteSpace(phanLoai) &&
-                    phanLoai != "Tất cả")
+                    phanLoai != Module_HeThong.Tat_Ca)
                 {
                     if (phanLoai == "Không PL")
                     {
@@ -261,7 +260,7 @@ namespace PhanMemThiDua2026
                 }
 
                 if (!string.IsNullOrWhiteSpace(ghiChu) &&
-                    ghiChu != "Tất cả")
+                    ghiChu != Module_HeThong.Tat_Ca)
                 {
                     query = query.Where(x => x.GhiChu == ghiChu);
                 }
@@ -347,7 +346,7 @@ namespace PhanMemThiDua2026
 
                 string phanLoai = _viewData[e.RowIndex].PhanLoai ?? string.Empty;
 
-                if (string.Equals(phanLoai, "Loại 1", StringComparison.OrdinalIgnoreCase) && _iconLoai1 != null)
+                if (string.Equals(phanLoai, Module_HeThong.Loai_1, StringComparison.OrdinalIgnoreCase) && _iconLoai1 != null)
                 {
                     DataGridViewPaintParts parts = DataGridViewPaintParts.Background | DataGridViewPaintParts.SelectionBackground | DataGridViewPaintParts.Focus;
                     e.Paint(e.CellBounds, parts);
@@ -441,7 +440,7 @@ namespace PhanMemThiDua2026
             // ===================================================================================
             // ⭐ BƯỚC QUAN TRỌNG: THIẾT LẬP FONT MẶC ĐỊNH CHO TOÀN BỘ TRANG TÍNH
             // ===================================================================================
-            ws.Style.Font.SetFontName("Times New Roman");
+            ws.Style.Font.SetFontName(Module_HeThong.Font_Times_New_Roman);
             ws.Style.Font.SetFontSize(12); // Kích cỡ chuẩn 12 cho nội dung
 
             // 2. TIÊU ĐỀ BÁO CÁO (A1, A2)
@@ -500,7 +499,7 @@ namespace PhanMemThiDua2026
 
             // 7. DÒNG TỔNG CỘNG
             var footerCell = ws.Cell(lastDataRow + 1, 1);
-            footerCell.Value = $"Tổng cộng: {soLuong} đồng chí./.";
+            footerCell.Value = $"Tổng cộng: {soLuong} {Module_HeThong.Tu_dong_chi}/.";
             footerCell.Style.Font.SetBold(true).Font.SetItalic(true).Font.SetFontSize(12);
             footerCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
@@ -621,11 +620,11 @@ namespace PhanMemThiDua2026
 
                 // 1.2 Font và Padding cho Tiêu đề (Header)
                 grid.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
-                grid.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+                grid.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9F, System.Drawing.FontStyle.Bold);
                 grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
                 // 1.3 Font và Padding cho Dữ liệu (Cell)
-                grid.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+                grid.StateCommon.DataCell.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9F, System.Drawing.FontStyle.Regular);
                 grid.StateCommon.DataCell.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8); // Đệm chữ vào giữa ô
 
                 // 1.4 Viền phẳng (Flat Border) tinh tế màu xám nhạt
@@ -723,20 +722,20 @@ namespace PhanMemThiDua2026
         private void LoadComboPhanLoai()
         {
             var list = _dataGoc.Select(x => x.PhanLoai).Distinct().OrderBy(x => x).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
-            list.Insert(0, "Tất cả");
+            list.Insert(0, Module_HeThong.Tat_Ca);
             list.Add("Không PL");
             comboBox_XepLoaiThiDua.DataSource = list;
         }
         private void LoadComboDonVi()
         {
             var list = _dataGoc.Select(x => x.DonVi).Distinct().OrderBy(x => x).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
-            list.Insert(0, "Tất cả");
+            list.Insert(0, Module_HeThong.Tat_Ca);
             comboBox_TimKiemDonVi.DataSource = list;
         }
         private void LoadComboGhiChu()
         {
             var list = _dataGoc.Select(x => x.GhiChu).Distinct().OrderBy(x => x).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
-            list.Insert(0, "Tất cả");
+            list.Insert(0, Module_HeThong.Tat_Ca);
             comboBox1_GhiChu.DataSource = list;
         }
         private void ReloadComboSafe()
@@ -766,7 +765,7 @@ namespace PhanMemThiDua2026
         }
         private void CapNhatThongKeDonVi(int soDongChis, int soDonVi)
         {
-            toolStripStatusLabel4.Text = $"Kết quả: {soDongChis} đồng chí - {soDonVi} đơn vị";
+            toolStripStatusLabel4.Text = $"Kết quả: {soDongChis} {Module_HeThong.Tu_dong_chi} - {soDonVi} đơn vị";
         }
         private async void lamMoi_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -893,10 +892,10 @@ namespace PhanMemThiDua2026
 
             return value switch
             {
-                "Loai 1" => "Loại 1",
-                "Loai 2" => "Loại 2",
-                "Loai 3" => "Loại 3",
-                "Loai 4" => "Loại 4",
+                "Loai 1" => Module_HeThong.Loai_1,
+                "Loai 2" => Module_HeThong.Loai_2,
+                "Loai 3" => Module_HeThong.Loai_3,
+                "Loai 4" => Module_HeThong.Loai_4,
                 _ => value
             };
         }
@@ -930,19 +929,19 @@ namespace PhanMemThiDua2026
 
                     switch (pl)
                     {
-                        case "Loại 1":
+                        case Module_HeThong.Loai_1:
                             loai1++;
                             break;
 
-                        case "Loại 2":
+                        case Module_HeThong.Loai_2:
                             loai2++;
                             break;
 
-                        case "Loại 3":
+                        case Module_HeThong.Loai_3:
                             loai3++;
                             break;
 
-                        case "Loại 4":
+                        case Module_HeThong.Loai_4:
                             loai4++;
                             break;
 
@@ -956,7 +955,7 @@ namespace PhanMemThiDua2026
                 UpdateThongKeLabel(
                     toolStripStatusLabel_TongSoLoai1,
                     loai1,
-                    "Loại 1",
+                    Module_HeThong.Loai_1,
                     COLOR_LOAI_1);
 
                 UpdateThongKeLabel(
@@ -1011,7 +1010,7 @@ namespace PhanMemThiDua2026
             label.Visible = true;
 
             // text chuẩn
-            label.Text = $"{title}: {count:N0} đồng chí";
+            label.Text = $"{title}: {count:N0} {Module_HeThong.Tu_dong_chi}";
 
             // màu
             label.ForeColor = color;
@@ -1040,7 +1039,7 @@ namespace PhanMemThiDua2026
             // 1. Dừng timer tìm kiếm đang chạy ngầm (nếu có) để tránh xung đột luồng
             _searchTimer?.Stop();
 
-            // 2. Khôi phục các ComboBox về "Tất cả" và TextBox về Placeholder (Sử dụng hàm ResetUI an toàn đã có sẵn)
+            // 2. Khôi phục các ComboBox về Module_HeThong.Tat_Ca và TextBox về Placeholder (Sử dụng hàm ResetUI an toàn đã có sẵn)
             ResetUI();
 
             // 3. Trả Focus về lại lưới dữ liệu để UX mượt mà, tránh tình trạng con trỏ nháy bị kẹt

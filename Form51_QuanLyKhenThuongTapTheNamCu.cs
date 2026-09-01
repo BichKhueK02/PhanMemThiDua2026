@@ -1,18 +1,18 @@
-﻿        using System;
-        using System.Collections.Generic;
-        using System.ComponentModel;
-        using System.Data;
-        using System.Drawing;
-        using System.Linq;
-        using System.Text;
-        using System.Threading.Tasks;
-        using System.Windows.Forms;
-        using Microsoft.Data.Sqlite;
-        using Krypton.Toolkit;
-        using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Microsoft.Data.Sqlite;
+using Krypton.Toolkit;
+using System.IO;
 
-        namespace PhanMemThiDua2026
-        {
+namespace PhanMemThiDua2026
+{
     public partial class Form51_QuanLyKhenThuongTapTheNamCu : Form
     {
         // BIẾN QUAN TRỌNG: Lưu đường dẫn CSDL năm cũ hiện tại đang được chọn
@@ -241,7 +241,7 @@
             try
             {
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
                 toolTip1.InitialDelay = 300;
                 toolTip1.AutoPopDelay = 2500;
@@ -1199,7 +1199,7 @@
                     using var wb = new ClosedXML.Excel.XLWorkbook();
                     var ws = wb.Worksheets.Add("ThongKeKhenThuongTapThe");
 
-                    ws.Style.Font.FontName = "Times New Roman";
+                    ws.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     ws.Style.Font.FontSize = 11;
 
                     ws.Cell("A1").Value = "DANH SÁCH";
@@ -1298,7 +1298,6 @@
             dgv.AllowUserToOrderColumns = false;
             dgv.AllowUserToResizeColumns = false;
         }
-
         private void CauHinhStyleWeb(DataGridView dgv)
         {
             if (dgv == null) return;

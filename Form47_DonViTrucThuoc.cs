@@ -1,6 +1,4 @@
-﻿
-
-using Krypton.Toolkit;
+﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Data;
@@ -43,11 +41,8 @@ namespace PhanMemThiDua2026
             {
                 // Chỉ gọi 1 lần khi Form mở
                 CauHinhGiaoDienGrid();
-
                 await KhoiTaoBangAndDuLieuMauAsync();
-
                 await LoadDuLieuLenGridAsync();
-
                 kryptonDataGridView1.SelectionChanged -= KryptonDataGridView1_SelectionChanged;
                 kryptonDataGridView1.SelectionChanged += KryptonDataGridView1_SelectionChanged;
             }
@@ -92,7 +87,6 @@ namespace PhanMemThiDua2026
 
                 using var cmd = new SqliteCommand("SELECT ID, STT, TenDonVi, KyHieu, ThoiGian FROM DanhSachDonVi_CapTrucThuoc ORDER BY STT ASC, ID ASC", conn);
                 using var rd = cmd.ExecuteReader();
-
                 while (rd.Read())
                 {
                     dsMoi.Add(new DonViDTO
@@ -302,12 +296,6 @@ namespace PhanMemThiDua2026
             kryptonTextBox_KyHieuDonVi.SelectionStart = pos;
         }
 
-
-        //endregion
-
-        //region THAO TÁC C.R.U.D (THÊM - SỬA/LƯU - XÓA)
-        // 🟢 THÊM MỚI ĐƠN VỊ
-        // 🟢 THÊM MỚI ĐƠN VỊ
         private async void kryptonButton1_Them_Click(object sender, EventArgs e)
         {
             string tenDonVi = textBox_TenDonVi.Text.Trim();
@@ -361,7 +349,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Lỗi khi thêm đơn vị: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        // 🟡 SỬA / LƯU CẬP NHẬT ĐƠN VỊ
         // 🟡 SỬA / LƯU CẬP NHẬT ĐƠN VỊ
         private async void kryptonButton1_Sua_Click(object sender, EventArgs e)
         {

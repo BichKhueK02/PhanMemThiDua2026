@@ -196,7 +196,7 @@
             kryptonButton1_KiemTraTaiNguyenLoi.TabIndex = 30;
             kryptonButton1_KiemTraTaiNguyenLoi.Values.DropDownArrowColor = Color.Empty;
             kryptonButton1_KiemTraTaiNguyenLoi.Values.Image = (Image)resources.GetObject("kryptonButton1_KiemTraTaiNguyenLoi.Values.Image");
-            kryptonButton1_KiemTraTaiNguyenLoi.Values.Text = "Kiểm tra tài nguyên phần mềm";
+            kryptonButton1_KiemTraTaiNguyenLoi.Values.Text = "Kiểm tra tài nguyên";
             kryptonButton1_KiemTraTaiNguyenLoi.Click += kryptonButton1_KiemTraTaiNguyenLoi_Click;
             // 
             // tableLayoutPanel3

@@ -1,11 +1,12 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 
 namespace PhanMemThiDua2026
 {
     public partial class Form11_KiemTraTyLe : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private static readonly string[] GoiYPhanLoai = { "Loại 1", "Loại 2", "Loại 3", "Loại 4" };
+        private static readonly string[] GoiYPhanLoai = { Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4 };
         // 🚀 BỘ NHỚ ĐỆM (CACHE): Lưu sẵn tỷ lệ của cả 4 loại, không cần query DB nhiều lần
         private Dictionary<string, double[]> _cacheTyLe = new Dictionary<string, double[]>();
         private bool _daTaiXong = false;
@@ -51,7 +52,7 @@ namespace PhanMemThiDua2026
 
             if (string.IsNullOrWhiteSpace(text_Texttongquanso.Text))
             {
-                ListBox2.Items.Add("⚠️ Đồng chí hãy nhập Tổng quân số!");
+                ListBox2.Items.Add($"⚠️ {Module_HeThong.Tu_Dong_Chi} hãy nhập Tổng quân số!");
                 ListBox2.Items.Add("Để thực hiện phép tính số lượng đạt tỷ lệ %");
             }
             text_Texttongquanso.Focus();
@@ -72,60 +73,134 @@ namespace PhanMemThiDua2026
         private void TaiDuLieuTuSQLiteVaoCache()
         {
             _cacheTyLe.Clear();
-            foreach (var loai in GoiYPhanLoai)
+
+            // =====================================================
+            // 1. KHỞI TẠO CACHE
+            // =====================================================
+
+            foreach (string loai in GoiYPhanLoai)
             {
-                _cacheTyLe[loai] = new double[3]; // Khởi tạo mảng 3 phần tử (chứa ID 1, 2, 3)
+                _cacheTyLe[loai] = new double[3];
             }
 
-            if (!File.Exists(_csdl2Path))
+            // =====================================================
+            // 2. KIỂM TRA CSDL
+            // =====================================================
+
+            if (string.IsNullOrWhiteSpace(_csdl2Path) ||
+                !File.Exists(_csdl2Path))
             {
-                MessageBox.Show("Không tìm thấy tệp cơ sở dữ liệu hệ thống!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Không tìm thấy tệp cơ sở dữ liệu hệ thống!",
+                    "Cảnh báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+
                 return;
             }
 
             try
             {
-                // 🌟 Nhận diện phiên bản phần mềm để chọn đúng tên bảng quy định tỷ lệ
+                // =================================================
+                // 3. XÁC ĐỊNH BẢNG THEO PHIÊN BẢN
+                // =================================================
+
                 bool laTanBinh = false;
+
                 try
                 {
-                    string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                    laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                    string phienBan =
+                        Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty;
+
+                    laTanBinh = phienBan.Contains(
+                        "tân binh",
+                        StringComparison.OrdinalIgnoreCase);
                 }
-                catch { }
-
-                // Chọn bảng "QuyDinhTyLe_TanBinh" nếu là tân binh, ngược lại dùng "QuyDinhTyLe" cho CBCS
-                string tableQuyDinh = laTanBinh ? "QuyDinhTyLe_TanBinh" : "QuyDinhTyLe";
-
-                using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_csdl2Path}"))
+                catch (Exception ex)
                 {
-                    conn.Open();
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        // Truy vấn động dựa trên tên bảng đã xác định theo phiên bản
-                        cmd.CommandText = $"SELECT ID, Loai_1, Loai_2, Loai_3, Loai_4 FROM [{tableQuyDinh}] WHERE ID IN (1, 2, 3)";
+                    Debug.WriteLine(
+                        $"[Form11] Không xác định được phiên bản: {ex.Message}");
+                }
 
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                int id = Convert.ToInt32(reader["ID"]);
-                                if (id < 1 || id > 3) continue;
+                string tableQuyDinh = laTanBinh
+                    ? "QuyDinhTyLe_TanBinh"
+                    : "QuyDinhTyLe";
 
-                                int index = id - 1; // Chuyển ID (1,2,3) thành Index mảng (0,1,2)
+                // =================================================
+                // 4. ĐỌC CSDL
+                // =================================================
 
-                                _cacheTyLe["Loại 1"][index] = GiaiMaVaChuanHoa(reader["Loai_1"]?.ToString());
-                                _cacheTyLe["Loại 2"][index] = GiaiMaVaChuanHoa(reader["Loai_2"]?.ToString());
-                                _cacheTyLe["Loại 3"][index] = GiaiMaVaChuanHoa(reader["Loai_3"]?.ToString());
-                                _cacheTyLe["Loại 4"][index] = GiaiMaVaChuanHoa(reader["Loai_4"]?.ToString());
-                            }
-                        }
-                    }
+                using var conn = new Microsoft.Data.Sqlite.SqliteConnection(
+                    $"Data Source={_csdl2Path};Mode=ReadOnly;");
+
+                conn.Open();
+
+                using var cmd = conn.CreateCommand();
+
+                cmd.CommandText = $"""
+            SELECT
+                ID,
+                {Module_HeThong.COL_LOAI_1},
+                {Module_HeThong.COL_LOAI_2},
+                {Module_HeThong.COL_LOAI_3},
+                {Module_HeThong.COL_LOAI_4}
+            FROM [{tableQuyDinh}]
+            WHERE ID BETWEEN 1 AND 3;
+            """;
+
+                using var reader = cmd.ExecuteReader();
+
+                // Lấy ordinal một lần thay vì tìm tên cột lặp lại
+                int ordinalId = reader.GetOrdinal("ID");
+                int ordinalLoai1 = reader.GetOrdinal(Module_HeThong.COL_LOAI_1);
+                int ordinalLoai2 = reader.GetOrdinal(Module_HeThong.COL_LOAI_2);
+                int ordinalLoai3 = reader.GetOrdinal(Module_HeThong.COL_LOAI_3);
+                int ordinalLoai4 = reader.GetOrdinal(Module_HeThong.COL_LOAI_4);
+
+                while (reader.Read())
+                {
+                    int id = reader.GetInt32(ordinalId);
+
+                    if (id < 1 || id > 3)
+                        continue;
+
+                    int index = id - 1;
+
+                    _cacheTyLe[Module_HeThong.Loai_1][index] =
+                        GiaiMaVaChuanHoa(
+                            reader.IsDBNull(ordinalLoai1)
+                                ? null
+                                : reader.GetString(ordinalLoai1));
+
+                    _cacheTyLe[Module_HeThong.Loai_2][index] =
+                        GiaiMaVaChuanHoa(
+                            reader.IsDBNull(ordinalLoai2)
+                                ? null
+                                : reader.GetString(ordinalLoai2));
+
+                    _cacheTyLe[Module_HeThong.Loai_3][index] =
+                        GiaiMaVaChuanHoa(
+                            reader.IsDBNull(ordinalLoai3)
+                                ? null
+                                : reader.GetString(ordinalLoai3));
+
+                    _cacheTyLe[Module_HeThong.Loai_4][index] =
+                        GiaiMaVaChuanHoa(
+                            reader.IsDBNull(ordinalLoai4)
+                                ? null
+                                : reader.GetString(ordinalLoai4));
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi nạp CSDL Form 11: {ex.Message}", "Lỗi Debug");
+                Debug.WriteLine(
+                    $"[Lỗi nạp CSDL Form 11]: {ex}");
+
+                MessageBox.Show(
+                    $"Lỗi nạp CSDL Form 11:\n\n{ex.Message}",
+                    "Lỗi Debug",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
         private double GiaiMaVaChuanHoa(string rawValue)
@@ -169,7 +244,7 @@ namespace PhanMemThiDua2026
             {
                 ListBox2.Items.Clear();
                 System.Media.SystemSounds.Exclamation.Play();
-                ListBox2.Items.Add("⚠️ Đồng chí hãy nhập Tổng quân số hợp lệ (Từ 2 đến 1.000.000)!");
+                ListBox2.Items.Add($"⚠️ {Module_HeThong.Tu_Dong_Chi} hãy nhập Tổng quân số hợp lệ (Từ 2 đến 1.000.000)!");
                 text_Texttongquanso.Focus();
                 return;
             }
@@ -261,15 +336,15 @@ namespace PhanMemThiDua2026
             ListBox2.Items.Add(new string('-', 30));
 
             ListBox2.Items.Add("1. Thông số theo quy định:");
-            ListBox2.Items.Add($"   Loại 1: {text_Textloai1.Text}% (Tính trong Loại 2)");
-            ListBox2.Items.Add($"   Loại 2: {text_Textloai2.Text}% (Tính trong Tổng QS)");
-            ListBox2.Items.Add($"   Loại 3: {text_Textloai3.Text}% (Tính trong Tổng QS)");
+            ListBox2.Items.Add($"   {Module_HeThong.Loai_1}: {text_Textloai1.Text}% (Tính trong {Module_HeThong.Loai_2})");
+            ListBox2.Items.Add($"   {Module_HeThong.Loai_2}: {text_Textloai2.Text}% (Tính trong Tổng QS)");
+            ListBox2.Items.Add($"   {Module_HeThong.Loai_3}: {text_Textloai3.Text}% (Tính trong Tổng QS)");
 
             ListBox2.Items.Add("");
             ListBox2.Items.Add($"2. Kết quả khi phân loại tập thể đạt [{com_Textphanloai.Text}]:");
-            ListBox2.Items.Add($"   Loại 1: {qLoai1} đ/c (Đạt {tlLoai1Thuc.ToString(CultureInfo.InvariantCulture)}%)");
-            ListBox2.Items.Add($"   Loại 2: {qLoai2} đ/c (Đạt {tlLoai2Thuc.ToString(CultureInfo.InvariantCulture)}%)");
-            ListBox2.Items.Add($"   Loại 3: {qLoai3} đ/c (Đạt {tlLoai3Thuc.ToString(CultureInfo.InvariantCulture)}%)");
+            ListBox2.Items.Add($"   {Module_HeThong.Loai_1}: {qLoai1} đ/c (Đạt {tlLoai1Thuc.ToString(CultureInfo.InvariantCulture)}%)");
+            ListBox2.Items.Add($"   {Module_HeThong.Loai_2}: {qLoai2} đ/c (Đạt {tlLoai2Thuc.ToString(CultureInfo.InvariantCulture)}%)");
+            ListBox2.Items.Add($"   {Module_HeThong.Loai_3}: {qLoai3} đ/c (Đạt {tlLoai3Thuc.ToString(CultureInfo.InvariantCulture)}%)");
 
             ListBox2.Items.Add("");
             ListBox2.Items.Add("3. Trích xuất báo cáo nhanh:");

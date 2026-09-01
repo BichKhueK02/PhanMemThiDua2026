@@ -332,11 +332,9 @@ namespace PhanMemThiDua2026
                 {
                     if (!daBaoLoi)
                     {
-                        MessageBox.Show(
-                            $"Chức vụ của đồng chí {hovatenTextBoxes[i].Text} không được để trống!",
-                            "Lỗi",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
+                        MessageBox.Show( $"Chức vụ của {Module_HeThong.Tu_Dong_Chi} {hovatenTextBoxes[i].Text} không được để trống!", "Lỗi",
+                         MessageBoxButtons.OK,
+                         MessageBoxIcon.Error);
                         daBaoLoi = true;
                     }
 

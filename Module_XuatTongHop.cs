@@ -143,7 +143,7 @@ namespace PhanMemThiDua2026
                 // Gán vào ô A11 và định dạng sơ bộ
                 var cellA11 = ws.Cell("A11");
                 cellA11.Value = chuoiKyHieuGhep;
-                cellA11.Style.Font.FontName = "Times New Roman";
+                cellA11.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
 
                 // ⭐ Cập nhật Font Size thành 12 theo yêu cầu
                 cellA11.Style.Font.FontSize = 12;
@@ -270,7 +270,7 @@ namespace PhanMemThiDua2026
                     ? khoangTrang
                     : tenTrungDoanDong1;
 
-                cellA1.Style.Font.FontName = "Times New Roman";
+                cellA1.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellA1.Style.Font.FontSize = 13;
                 cellA1.Style.Font.Bold = false;
                 cellA1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -281,7 +281,7 @@ namespace PhanMemThiDua2026
                     // ===== A2 : Trung đoàn CSCD (KHÔNG ĐẬM) =====
                     var cellA2 = ws.Cell("A2");
                     cellA2.Value = tenTrungDoanCSCD;
-                    cellA2.Style.Font.FontName = "Times New Roman";
+                    cellA2.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     cellA2.Style.Font.FontSize = 13;
                     cellA2.Style.Font.Bold = false;
                     cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -290,7 +290,7 @@ namespace PhanMemThiDua2026
                     // ===== A3 : Tiểu đoàn (IN ĐẬM + GẠCH CHÂN 1/3) =====
                     var cellA3 = ws.Cell("A3");
                     cellA3.Value = tenTieuDoanCSCD;
-                    cellA3.Style.Font.FontName = "Times New Roman";
+                    cellA3.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     cellA3.Style.Font.FontSize = 13;
                     cellA3.Style.Font.Bold = true;
                     cellA3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -304,7 +304,7 @@ namespace PhanMemThiDua2026
                     // ===== KHÔNG CÓ A2 → A2 LÀ DÒNG CUỐI =====
                     var cellA2 = ws.Cell("A2");
                     cellA2.Value = tenTieuDoanCSCD;
-                    cellA2.Style.Font.FontName = "Times New Roman";
+                    cellA2.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     cellA2.Style.Font.FontSize = 13;
                     cellA2.Style.Font.Bold = true;
                     cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -322,7 +322,7 @@ namespace PhanMemThiDua2026
                 //========================
                 var cellH4 = ws.Cell("H4");
                 cellH4.Value = $"{diaDiem}, ngày {ngay} tháng {thang} năm {nam}";
-                cellH4.Style.Font.FontName = "Times New Roman";
+                cellH4.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellH4.Style.Font.FontSize = 14;
                 cellH4.Style.Font.Italic = true;
                 cellH4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -388,7 +388,7 @@ namespace PhanMemThiDua2026
                 tieuDe.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 tieuDe.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center; // Kéo chữ nằm ngay giữa ô gộp
                 tieuDe.Style.Font.Bold = true;
-                tieuDe.Style.Font.FontName = "Times New Roman";
+                tieuDe.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 tieuDe.Style.Font.FontSize = 14;
                 // ===== 6. DÒNG A7 (RICH TEXT) =====
                 var cellA7 = ws.Cell("A7");
@@ -396,7 +396,7 @@ namespace PhanMemThiDua2026
 
                 var rt = cellA7.GetRichText();
                 rt.AddText("(Kèm theo Báo cáo ")
-                  .SetFontName("Times New Roman")
+                  .SetFontName(Module_HeThong.Font_Times_New_Roman)
                   .SetFontSize(14)
                   .SetItalic();
 
@@ -420,8 +420,8 @@ namespace PhanMemThiDua2026
                     ? ""  // nếu rỗng thì dùng chuỗi trống
                     : char.ToUpper(tenTieuDoanCSCD.ToLower()[0]) + tenTieuDoanCSCD.ToLower().Substring(1);
                 rt.AddText($"số:            {kyHieuBaoCao}, ngày {ngay}/{thang}/{nam}")
-                  .SetFontName("Times New Roman").SetFontSize(14).SetItalic().SetUnderline();
-                rt.AddText(" của " + tieuDoanHienThi + ")").SetFontName("Times New Roman").SetFontSize(14).SetItalic();
+                  .SetFontName(Module_HeThong.Font_Times_New_Roman).SetFontSize(14).SetItalic().SetUnderline();
+                rt.AddText(" của " + tieuDoanHienThi + ")").SetFontName(Module_HeThong.Font_Times_New_Roman).SetFontSize(14).SetItalic();
 
                 cellA7.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cellA7.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -453,7 +453,40 @@ namespace PhanMemThiDua2026
                 ws.Cell("H11").Value = tyLe.GetValueOrDefault(5).canDat;
                 ws.Cell("I11").Value = tyLe.GetValueOrDefault(6).canDat;
                 ws.Cell("K11").Value = deNghi;
-                ws.Cell("L11").Value = string.IsNullOrWhiteSpace(Module_XuatTongHop.TOM_TAT_GHI_CHU) ? "" : Module_XuatTongHop.TOM_TAT_GHI_CHU;
+                // ws.Cell("L11").Value = string.IsNullOrWhiteSpace(Module_XuatTongHop.TOM_TAT_GHI_CHU) ? "" : Module_XuatTongHop.TOM_TAT_GHI_CHU;
+
+                // ===== XỬ LÝ Ô L11 - TÓM TẮT GHI CHÚ =====
+                string ghiChu = Module_XuatTongHop.TOM_TAT_GHI_CHU?.Trim() ?? string.Empty;
+                int doDai = ghiChu.Length;
+
+                var cell = ws.Cell("L11");
+                var style = cell.Style;
+
+                cell.Value = ghiChu;
+
+                style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
+                style.Font.FontSize = doDai switch
+                {
+                    <= 450 => 14,
+                    <= 510 => 13,
+                    <= 600 => 12,
+                    <= 900 => 11,
+                    _ => 8
+                };
+
+                style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                style.Alignment.Horizontal =
+                    doDai is > 0 and < 50
+                        ? XLAlignmentHorizontalValues.Center
+                        : XLAlignmentHorizontalValues.Left;
+
+                style.Alignment.WrapText = true;
+                style.Alignment.ShrinkToFit = doDai > 900;
+
+
+
+
+
                 // E12
                 ws.Cell("E12").FormulaA1 =
                 "=IFERROR((E11*100)/F11," +
@@ -495,7 +528,6 @@ namespace PhanMemThiDua2026
                 Module_ThongBao.DangXuLy("Lỗi xuất báo cáo tổng hợp: " + ex.Message);
             }
         }
-        // KÝ TÊN – LẤY TỪ CSDL
         private static void VietKyTenBaoCaoTongHop(IXLWorksheet ws, string fileDB)
         {
             string hoTenKy = "     "; // Khoảng trắng mặc định
@@ -597,7 +629,7 @@ namespace PhanMemThiDua2026
             foreach (string addr in new[] { "L14", "L15", "L19" })
             {
                 var c = ws.Cell(addr);
-                c.Style.Font.FontName = "Times New Roman";
+                c.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 c.Style.Font.FontSize = 14;
                 c.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 c.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;

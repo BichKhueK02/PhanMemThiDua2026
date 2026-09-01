@@ -6,9 +6,9 @@ namespace PhanMemThiDua2026
     {
         private readonly Form15_ThongKeThiDua _parentForm15;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
-        // ==========================================
+        
         // CBCS
-        // ==========================================
+        
         private static readonly string[] ThangDisplay =
         {
             "Tháng 12 (Năm cũ)", "Tháng 1", "Tháng 2", "Tháng 3",
@@ -23,9 +23,9 @@ namespace PhanMemThiDua2026
             "Thang_7", "Thang_8", "Thang_9", "Thang_10",
             "Thang_11", "TongKet_Nam"
         };
-        // ==========================================
+        
         // TÂN BINH
-        // ==========================================
+        
         private static readonly string[] ThangDisplayTanBinh =
         {
             "Tuần 1 - Tháng 2", "Tuần 2 - Tháng 2",
@@ -208,13 +208,6 @@ namespace PhanMemThiDua2026
                     else
                         _parentForm15.CapNhatForm15();
                 }
-
-                //MessageBox.Show(
-                //    "Đã xóa dữ liệu thành công.",
-                //    "Thông báo",
-                //    MessageBoxButtons.OK,
-                //    MessageBoxIcon.Information);
-
                 Close();
             }
             catch (Exception ex)

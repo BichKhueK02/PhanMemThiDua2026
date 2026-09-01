@@ -15,7 +15,7 @@ namespace PhanMemThiDua2026
             InitializeComponent();
             // Ẩn icon trên Taskbar
             this.ShowInTaskbar = false;
-            Load += Form21_ChucVu_Load; // Vẫn giữ nguyên tên hàm Load của đồng chí
+            Load += Form21_ChucVu_Load; // Vẫn giữ nguyên tên hàm Load của đồng chí Module_HeThong.Tu_dong_chi
             kryptonDataGridView1_DanhSach_ChucVu.CellClick += kryptonDataGridView1_DanhSach_ChucVu_CellClick;
 
             // ===== 2. BỔ SUNG SỰ KIỆN VẼ GIAO DIỆN =====
@@ -37,7 +37,7 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
             var tips = new Dictionary<Control, string>

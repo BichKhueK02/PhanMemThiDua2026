@@ -10,7 +10,6 @@ namespace PhanMemThiDua2026
         public DataView? _dvHienThi;
         public Dictionary<string, string>? _mapCotThoiGian;
         public string _h1 = "", _h2 = "", _h3 = "", _h4 = "";
-
         // ⭐ KHÓA AN TOÀN ĐA LUỒNG & TOKEN HỦY TÁC VỤ
         private int _isProcessing = 0;
         private CancellationTokenSource? _cts;
@@ -34,12 +33,9 @@ namespace PhanMemThiDua2026
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string tenDonViTieuDe = LayTenDonViTuCSDL();
             string cleanTenDonVi = string.IsNullOrEmpty(tenDonViTieuDe) ? "" : " - " + string.Join("_", tenDonViTieuDe.Split(Path.GetInvalidFileNameChars()));
-
             string defaultFileName = $"THỐNG KÊ PHÂN LOẠI THI ĐUA THÁNG {DateTime.Now.Month} NĂM {DateTime.Now.Year}{cleanTenDonVi}.xlsx";
-
             label_DuongDan.Text = Path.Combine(desktopPath, defaultFileName);
             radioButton1_XuatTheoThuTuTrongBienChe.Checked = true;
-
             UpdateUIColors();
         }
         private void RadioGroup_CheckedChanged(object? sender, EventArgs e) => UpdateUIColors();
@@ -49,12 +45,10 @@ namespace PhanMemThiDua2026
             Color mauR1 = radioButton1_XuatTheoThuTuTrongBienChe.Checked ? Color.Green : Color.Red;
             Color mauR2 = radioButton1_XuatTheoPhanLoaiTangDan.Checked ? Color.Green : Color.Red;
             Color mauLabel = !string.IsNullOrWhiteSpace(label_DuongDan.Text) ? Color.Green : Color.Red;
-
             radioButton1_XuatTheoThuTuTrongBienChe.ForeColor = mauR1;
             radioButton1_XuatTheoPhanLoaiTangDan.ForeColor = mauR2;
             label2_ChonTep.ForeColor = mauLabel;
         }
-#pragma warning disable IDE1006 
         private void kryptonButton1_ChonDuongDan_Click(object? sender, EventArgs e)
         {
             string tenDonViTieuDe = LayTenDonViTuCSDL();
@@ -78,7 +72,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrWhiteSpace(label_DuongDan.Text))
             {
-                MessageBox.Show("Đồng chí vui lòng chọn đường dẫn trước khi xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"{Module_HeThong.Tu_dong_chi} vui lòng chọn đường dẫn trước khi xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -147,10 +141,8 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _isProcessing, 0);
             }
         }
-#pragma warning restore IDE1006
-        // =========================================================================================
+        //pragma warning restore IDE1006
         // ⭐ DATA PIPELINE: VIRTUAL ENUMERATOR (SIÊU TIẾT KIỆM RAM)
-        // =========================================================================================
         private IEnumerable<Form38ExportModel> StreamDataViewRows()
         {
             if (_dvHienThi == null) yield break;
@@ -195,9 +187,7 @@ namespace PhanMemThiDua2026
             string text = value?.ToString()?.Trim() ?? "";
             return string.IsNullOrWhiteSpace(text) ? "Không phân loại" : text;
         }
-        // =========================================================================================
         // ⭐ EXCEL WRITER (LAZY STREAMING & SAFE SAVE)
-        // =========================================================================================
         private static void ExportToExcelTask(IEnumerable<Form38ExportModel> exportStream, int totalCount, string filePath, string tenDonVi, string[] headers, CancellationToken token)
         {
             string dbPath = Module_DanduongGPS.DuongDanCSDL2;
@@ -319,7 +309,7 @@ namespace PhanMemThiDua2026
             }
 
             var totalRange = ws.Range(rowIndex, 1, rowIndex, 10).Merge();
-            totalRange.Value = $"Tổng cộng: {totalCount} đồng chí./.";
+            totalRange.Value = $"Tổng cộng: {totalCount} {Module_HeThong.Tu_dong_chi}/.";
             totalRange.Style.Font.Bold = true;
             totalRange.Style.Font.Italic = true;
             totalRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
@@ -352,9 +342,7 @@ namespace PhanMemThiDua2026
                 throw new Exception("Không thể ghi đè file! Hãy đảm bảo bạn đã đóng file Excel trước khi xuất.", ex);
             }
         }
-        // ==========================================
         // CÁC HÀM TIỆN ÍCH CƠ BẢN (KHÔNG DUPLICATE CODE)
-        // ==========================================
         private static string LayTenDonViTuCSDL()
         {
             string dbPath = Module_DanduongGPS.DuongDanCSDL2;
@@ -375,10 +363,10 @@ namespace PhanMemThiDua2026
         private static int MucDoUuTienPhanLoai(string ketQua)
         {
             if (string.IsNullOrWhiteSpace(ketQua) || ketQua.Equals("Không phân loại", StringComparison.OrdinalIgnoreCase)) return 5;
-            if (ketQua.Contains("Loại 1", StringComparison.OrdinalIgnoreCase)) return 1;
-            if (ketQua.Contains("Loại 2", StringComparison.OrdinalIgnoreCase)) return 2;
-            if (ketQua.Contains("Loại 3", StringComparison.OrdinalIgnoreCase)) return 3;
-            if (ketQua.Contains("Loại 4", StringComparison.OrdinalIgnoreCase)) return 4;
+            if (ketQua.Contains(Module_HeThong.Loai_1, StringComparison.OrdinalIgnoreCase)) return 1;
+            if (ketQua.Contains(Module_HeThong.Loai_2, StringComparison.OrdinalIgnoreCase)) return 2;
+            if (ketQua.Contains(Module_HeThong.Loai_3, StringComparison.OrdinalIgnoreCase)) return 3;
+            if (ketQua.Contains(Module_HeThong.Loai_4, StringComparison.OrdinalIgnoreCase)) return 4;
             return 5;
         }
         private static string SafeDecrypt(object? value)

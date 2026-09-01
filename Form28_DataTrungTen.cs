@@ -52,7 +52,7 @@ namespace PhanMemThiDua2026
 
         private async void Form28_DataTrungTen_Load(object sender, EventArgs e)
         {
-            
+
             kryptonDataGridView_TrungTen.ContextMenuStrip = contextMenuStrip1;
             Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             XacDinhPhienBan();
@@ -738,7 +738,7 @@ namespace PhanMemThiDua2026
             }
 
             if (filtered == total)
-                toolStripStatusLabel1.Text = $"Số CBCS có tên trùng nhau: {total} đồng chí";
+                toolStripStatusLabel1.Text = $"Số CBCS có tên trùng nhau: {total} {Module_HeThong.Tu_dong_chi}";
             else
                 toolStripStatusLabel1.Text = $"Kết quả tìm kiếm: {filtered}/{total} CBCS trùng tên";
         }
@@ -886,6 +886,11 @@ namespace PhanMemThiDua2026
             base.OnFormClosing(e);
         }
         #endregion
+
+        private void Form28_DataTrungTen_Load_1(object sender, EventArgs e)
+        {
+
+        }
     }
 
     public class TrungTenModel

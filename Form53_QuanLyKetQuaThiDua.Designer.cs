@@ -33,6 +33,7 @@
             menuStrip1 = new MenuStrip();
             quanLyThiDuaNamHienTai_ToolStripMenuItem = new ToolStripMenuItem();
             quanLyThiDuaNamCu_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -48,7 +49,7 @@
             // 
             menuStrip1.BackColor = Color.FromArgb(192, 192, 255);
             menuStrip1.Font = new Font("Segoe UI", 9F);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { quanLyThiDuaNamHienTai_ToolStripMenuItem, quanLyThiDuaNamCu_ToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { quanLyThiDuaNamHienTai_ToolStripMenuItem, toolStripMenuItem1, quanLyThiDuaNamCu_ToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1264, 29);
@@ -73,6 +74,12 @@
             quanLyThiDuaNamCu_ToolStripMenuItem.Text = "Quản lý thi đua năm cũ";
             quanLyThiDuaNamCu_ToolStripMenuItem.Click += quanLyThiDuaNamCu_ToolStripMenuItem_Click;
             // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(22, 25);
+            toolStripMenuItem1.Text = "|";
+            // 
             // Form53_QuanLyKetQuaThiDua
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -95,5 +102,6 @@
         private MenuStrip menuStrip1;
         private ToolStripMenuItem quanLyThiDuaNamHienTai_ToolStripMenuItem;
         private ToolStripMenuItem quanLyThiDuaNamCu_ToolStripMenuItem;
+        private ToolStripMenuItem toolStripMenuItem1;
     }
 }

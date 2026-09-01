@@ -17,17 +17,13 @@ namespace PhanMemThiDua2026
         private readonly SemaphoreSlim _switchLock = new(1, 1);
         private Form? _activeSubForm;
         private bool _isClosing;
-
         public bool DaLoadDuLieu { get; private set; }
-
         public Form53_QuanLyKetQuaThiDua()
         {
             InitializeComponent();
-        }
-
-        // ========================================================================
+        }       
         // SỰ KIỆN LOAD
-        // ========================================================================
+        
         private async void Form53_QuanLyKetQuaThiDua_Load(object sender, EventArgs e)
         {
             if (quanLyThiDuaNamHienTai_ToolStripMenuItem != null)
@@ -43,9 +39,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // ========================================================================
+        
         // RELOAD DỮ LIỆU ĐỊNH TUYẾN DÀNH CHO FORM ĐANG MỞ
-        // ========================================================================
+        
         public async Task ReloadDuLieu()
         {
             if (_isClosing || IsDisposed) return;
@@ -79,9 +75,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // ========================================================================
+        
         // HÀM MỞ FORM CON SIÊU TỐC (SINGLE ENTRY POINT KIỂM SOÁT VÒNG ĐỜI)
-        // ========================================================================
+        
         private async Task OpenSubFormAsync<T>(string tieuDeForm) where T : Form, new()
         {
             if (_isClosing || IsDisposed) return;
@@ -159,9 +155,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // ========================================================================
+        
         // SỰ KIỆN FORM CON TỰ ĐÓNG
-        // ========================================================================
+        
         private void ChildForm_FormClosed(object? sender, FormClosedEventArgs e)
         {
             if (sender is not Form childForm) return;
@@ -184,9 +180,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // ========================================================================
+        
         // SỰ KIỆN CLICK MENU
-        // ========================================================================
+        
         private async void quanLyThiDuaNamHienTai_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (_isClosing) return;
@@ -201,9 +197,9 @@ namespace PhanMemThiDua2026
             await OpenSubFormAsync<Form46_ThongKeThiDuaNamCu>(tieuDe);
         }
 
-        // ========================================================================
+        
         // HÀM TIỆN ÍCH UI
-        // ========================================================================
+        
         private void CapNhatTieuDeFormChinh(string tieuDe)
         {
             if (_isClosing) return;
@@ -215,9 +211,9 @@ namespace PhanMemThiDua2026
             }
         }
 
-        // ========================================================================
+        
         // DỌN DẸP & HỦY DIỆT FORM CHA
-        // ========================================================================
+        
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _isClosing = true;

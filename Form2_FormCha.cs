@@ -132,8 +132,8 @@ namespace PhanMemThiDua2026
             // TỐI ƯU GIAO DIỆN: So sánh chuỗi và chỉ gán màu khi màu thực sự bị lệch (Chống chớp nháy màn hình)
             if (Label1.Text.Trim().Equals(chuoiTrangChu, StringComparison.OrdinalIgnoreCase))
             {
-                if (Label1.ForeColor != Color.Red)
-                    Label1.ForeColor = Color.Red;
+                if (Label1.ForeColor != Color.Green)
+                    Label1.ForeColor = Color.Green;
             }
             else
             {
@@ -536,49 +536,39 @@ namespace PhanMemThiDua2026
             }
         }
         // Cache form trên RAM
-        private Form39_ThongTinNguoiDung _formThongTinNguoiDung;
-        private void Label2_Click(object sender, EventArgs e)
+        //private Form39_ThongTinNguoiDung _formThongTinNguoiDung;
+        private void Label2_Click(object? sender, EventArgs e)
         {
             try
             {
-                // Nếu chưa có hoặc đã bị hủy -> tạo mới
-                if (_formThongTinNguoiDung == null || _formThongTinNguoiDung.IsDisposed)
-                {
-                    _formThongTinNguoiDung = new Form39_ThongTinNguoiDung();
+                Form39_ThongTinNguoiDung form =
+                    Form39_ThongTinNguoiDung.GetInstance();
 
-                    // Khi form bị dispose thì giải phóng reference
-                    _formThongTinNguoiDung.FormClosed += (s, ev) =>
-                    {
-                        _formThongTinNguoiDung = null;
-                    };
+                if (form.WindowState == FormWindowState.Minimized)
+                {
+                    form.WindowState = FormWindowState.Normal;
                 }
 
-                // Nếu đang minimize -> phục hồi
-                if (_formThongTinNguoiDung.WindowState == FormWindowState.Minimized)
+                if (!form.Visible)
                 {
-                    _formThongTinNguoiDung.WindowState = FormWindowState.Normal;
+                    form.Show(this);
                 }
 
-                // Nếu đang ẩn
-                if (!_formThongTinNguoiDung.Visible)
-                {
-                    _formThongTinNguoiDung.Show();
-                }
-
-                // Đưa lên trước
-                _formThongTinNguoiDung.BringToFront();
-                _formThongTinNguoiDung.Activate();
+                form.BringToFront();
+                form.Activate();
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"[Form2] Lỗi mở Form39: {ex}");
+
                 MessageBox.Show(
-                    $"Không thể mở thông tin người dùng.\n{ex.Message}",
+                    "Không thể mở thông tin người dùng.\n\n" +
+                    ex.Message,
                     "UI Error",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
         }
-
         private bool _tuDongAnMenu;
         private void checkBox1_TuDongAnMenu_CheckedChanged(
     object sender,
@@ -668,7 +658,7 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        await Task.Run(() => frm.ReloadDuLieu());
+                        await Task.Run(() => frm.ReloadDuLieuAsync());
                         frm.DaLoadDuLieu = true;
                     }
                     catch (Exception ex)
@@ -696,7 +686,7 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        frm.ReloadDuLieu();
+                        frm.ReloadDuLieuAsync();
                     }
                     catch (Exception ex)
                     {
@@ -946,7 +936,7 @@ namespace PhanMemThiDua2026
                     AutoSize = false
                 };
                 // Sử dụng màu Đỏ Thẫm (Crimson Red) để báo hiệu sự cố chuyên nghiệp
-                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 12F, System.Drawing.FontStyle.Bold);
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(198, 40, 40);
 
                 // --- 2. ĐƯỜNG KẺ NGANG (Separator) ---
@@ -992,7 +982,7 @@ namespace PhanMemThiDua2026
                 // 🔴 ĐIỂM SÁNG: TextBox Tàng Hình! Giống y hệt Label nhưng có thể bôi đen mã lỗi
                 txtContent.StateCommon.Back.Color1 = System.Drawing.Color.White;
                 txtContent.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.None;
-                txtContent.StateCommon.Content.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Regular);
+                txtContent.StateCommon.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Regular);
                 txtContent.StateCommon.Content.Color1 = System.Drawing.Color.FromArgb(40, 40, 40);
                 txtContent.StateCommon.Content.Padding = new Padding(0);
 
@@ -1011,7 +1001,7 @@ namespace PhanMemThiDua2026
                     Width = 160,
                     Height = 35
                 };
-                btnCopy.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+                btnCopy.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
                 btnCopy.Click += (s, ev) =>
                 {
                     try
@@ -1029,7 +1019,7 @@ namespace PhanMemThiDua2026
                     Height = 35,
                     DialogResult = DialogResult.OK
                 };
-                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
 
                 // Căn giữa cụm 2 nút bấm
                 int totalWidth = btnCopy.Width + 15 + btnClose.Width;
@@ -1226,7 +1216,7 @@ namespace PhanMemThiDua2026
                             Module_NhatKy.GhiNhatKy(
                                 taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                                 hanhDong: "Chuyển tab Hướng dẫn (PDF)",
-                                ghiChu: "Người dùng tái sử dụng form PDF đã mở."
+                                ghiChu: "Người dùng tái sử dụng form pdf đã mở."
                             );
 
                             return;
@@ -1371,7 +1361,6 @@ namespace PhanMemThiDua2026
             // 🌟 Thay Refresh thành Invalidate
             btn.Invalidate();
         }
-       
     }
 }
 public static class UIHelper

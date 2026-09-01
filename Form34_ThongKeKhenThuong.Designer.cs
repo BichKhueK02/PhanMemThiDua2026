@@ -78,8 +78,11 @@
             xuatDuLieuRaTepExcel_ToolStripMenuItem = new ToolStripMenuItem();
             thongKeKhenThuong_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem_XuatToanBoDanhSachRaTepExcel = new ToolStripMenuItem();
-            toolStripMenuItem3 = new ToolStripSeparator();
+            toolStripMenuItem4 = new ToolStripSeparator();
             toolStripMenuItem_LuuKetQuaThiDuaTheoNam = new ToolStripMenuItem();
+            saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem = new ToolStripMenuItem();
+            khoiPhucDuLieuKhenThuong_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem3 = new ToolStripSeparator();
             xoaToanBoDuLieu_ToolStripMenuItem = new ToolStripMenuItem();
             toolTip1 = new ToolTip(components);
             kryptonStatusStrip1.SuspendLayout();
@@ -613,9 +616,9 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, capNhatThongTinKhenThuong_ToolStripMenuItem, phanTichKhenThuong_ToolStripMenuItem, toolStripMenuItem2, xuatDuLieuRaTepExcel_ToolStripMenuItem, thongKeKhenThuong_ToolStripMenuItem, toolStripMenuItem_XuatToanBoDanhSachRaTepExcel, toolStripMenuItem3, toolStripMenuItem_LuuKetQuaThiDuaTheoNam, xoaToanBoDuLieu_ToolStripMenuItem });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, capNhatThongTinKhenThuong_ToolStripMenuItem, phanTichKhenThuong_ToolStripMenuItem, toolStripMenuItem_LuuKetQuaThiDuaTheoNam, toolStripMenuItem2, xuatDuLieuRaTepExcel_ToolStripMenuItem, thongKeKhenThuong_ToolStripMenuItem, toolStripMenuItem_XuatToanBoDanhSachRaTepExcel, toolStripMenuItem4, saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem, khoiPhucDuLieuKhenThuong_ToolStripMenuItem, toolStripMenuItem3, xoaToanBoDuLieu_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(275, 256);
+            contextMenuStrip1.Size = new Size(275, 314);
             // 
             // lamMoi_ToolStripMenuItem
             // 
@@ -687,10 +690,10 @@
             toolStripMenuItem_XuatToanBoDanhSachRaTepExcel.Text = "Xuất toàn bộ danh sách khen thưởng";
             toolStripMenuItem_XuatToanBoDanhSachRaTepExcel.Click += toolStripMenuItem_XuatToanBoDanhSachRaTepExcel_Click;
             // 
-            // toolStripMenuItem3
+            // toolStripMenuItem4
             // 
-            toolStripMenuItem3.Name = "toolStripMenuItem3";
-            toolStripMenuItem3.Size = new Size(271, 6);
+            toolStripMenuItem4.Name = "toolStripMenuItem4";
+            toolStripMenuItem4.Size = new Size(271, 6);
             // 
             // toolStripMenuItem_LuuKetQuaThiDuaTheoNam
             // 
@@ -699,6 +702,27 @@
             toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Size = new Size(274, 26);
             toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Text = "Lưu kết quả khen thưởng theo năm";
             toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Click += toolStripMenuItem_LuuKetQuaThiDuaTheoNam_Click;
+            // 
+            // saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem
+            // 
+            saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem.Image = (Image)resources.GetObject("saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem.Image");
+            saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem.Name = "saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem";
+            saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem.Size = new Size(274, 26);
+            saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem.Text = "Sao lưu dữ liệu khen thưởng";
+            saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem.Click += saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem_Click;
+            // 
+            // khoiPhucDuLieuKhenThuong_ToolStripMenuItem
+            // 
+            khoiPhucDuLieuKhenThuong_ToolStripMenuItem.Image = Properties.Resources.ic_database;
+            khoiPhucDuLieuKhenThuong_ToolStripMenuItem.Name = "khoiPhucDuLieuKhenThuong_ToolStripMenuItem";
+            khoiPhucDuLieuKhenThuong_ToolStripMenuItem.Size = new Size(274, 26);
+            khoiPhucDuLieuKhenThuong_ToolStripMenuItem.Text = "Khôi phục dữ liệu khen thưởng";
+            khoiPhucDuLieuKhenThuong_ToolStripMenuItem.Click += khoiPhucDuLieuKhenThuong_ToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(271, 6);
             // 
             // xoaToanBoDuLieu_ToolStripMenuItem
             // 
@@ -794,5 +818,8 @@
         private ComboBox comboBox1_DonViKhenThuong;
         private ToolStripMenuItem toolStripMenuItem_LuuKetQuaThiDuaTheoNam;
         private ToolTip toolTip1;
+        private ToolStripMenuItem saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem4;
+        private ToolStripMenuItem khoiPhucDuLieuKhenThuong_ToolStripMenuItem;
     }
 }

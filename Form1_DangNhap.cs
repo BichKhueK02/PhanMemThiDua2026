@@ -1,6 +1,8 @@
 ﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
+using BCrypt.Net;
+
 namespace PhanMemThiDua2026
 {
     public partial class Form1 : Form
@@ -269,9 +271,7 @@ namespace PhanMemThiDua2026
 
             try
             {
-                // =========================================================
                 // 1. KIỂM TRA GIỚI HẠN
-                // =========================================================
                 if (_soLanDaGoiYMatKhau >= GioiHanGoiYMatKhau)
                 {
                     text_MatKhau.Clear();
@@ -279,35 +279,20 @@ namespace PhanMemThiDua2026
                     return;
                 }
 
-                // =========================================================
                 // 2. KIỂM TRA FILE CSDL
-                // =========================================================
                 if (!File.Exists(_csdl2Path) || !File.Exists(_csdl1Path))
                     return;
 
-                // =========================================================
                 // 3. KIỂM TRA CHO PHÉP GỢI Ý
-                // =========================================================
-                string connStr2 =
-                    $"Data Source={_csdl2Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;";
-
+                string connStr2 = $"Data Source={_csdl2Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;";
                 await using var connThongTin = new SqliteConnection(connStr2);
-
                 await connThongTin.OpenAsync();
 
-                const string sqlFlag =
-                    "SELECT ChoPhepDupChuotVaoAnh_GoiYMatKhau FROM ThongTin WHERE ID = 1";
+                const string sqlFlag = "SELECT ChoPhepDupChuotVaoAnh_GoiYMatKhau FROM ThongTin WHERE ID = 1";
+                await using var cmdFlag = new SqliteCommand(sqlFlag, connThongTin);
 
-                await using var cmdFlag =
-                    new SqliteCommand(sqlFlag, connThongTin);
-
-                string flagEncrypted =
-                    (await cmdFlag.ExecuteScalarAsync())?.ToString() ?? "";
-
-                string flag =
-                    string.IsNullOrWhiteSpace(flagEncrypted)
-                        ? "FALSE"
-                        : BaoMatAES.GiaiMa(flagEncrypted);
+                string flagEncrypted = (await cmdFlag.ExecuteScalarAsync())?.ToString() ?? "";
+                string flag = string.IsNullOrWhiteSpace(flagEncrypted) ? "FALSE" : BaoMatAES.GiaiMa(flagEncrypted);
 
                 if (!string.Equals(flag, "TRUE", StringComparison.OrdinalIgnoreCase))
                 {
@@ -315,47 +300,40 @@ namespace PhanMemThiDua2026
                     return;
                 }
 
-                // =========================================================
                 // 4. ĐỌC PASSWORD
-                // =========================================================
-                string connStr1 =
-                    $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;";
-
+                string connStr1 = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;";
                 await using var connAdmin = new SqliteConnection(connStr1);
-
                 await connAdmin.OpenAsync();
 
-                const string sqlPass =
-                    "SELECT MatKhau FROM Admin WHERE ID = 1 LIMIT 1";
+                const string sqlPass = "SELECT MatKhau FROM Admin WHERE ID = 1 LIMIT 1";
+                await using var cmdPass = new SqliteCommand(sqlPass, connAdmin);
 
-                await using var cmdPass =
-                    new SqliteCommand(sqlPass, connAdmin);
-
-                string passEncrypted =
-                    (await cmdPass.ExecuteScalarAsync())?.ToString() ?? "";
+                string passEncrypted = (await cmdPass.ExecuteScalarAsync())?.ToString() ?? "";
 
                 if (string.IsNullOrWhiteSpace(passEncrypted))
                     return;
 
+                // [GIA CỐ BẢO MẬT]: Không thể giải mã ngược chuỗi BCrypt để xem lại mật khẩu
+                if (passEncrypted.StartsWith("$2a$") || passEncrypted.StartsWith("$2b$") || passEncrypted.StartsWith("$2y$"))
+                {
+                    MessageBox.Show("Tài khoản này đã được nâng cấp lên mã hóa một chiều (BCrypt). Hệ thống không thể hiển thị lại mật khẩu bằng chữ gốc!",
+                        "Bảo mật cấp cao", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    text_MatKhau.Clear();
+                    return;
+                }
+
                 string matKhau = BaoMatAES.GiaiMa(passEncrypted);
 
-                // =========================================================
                 // 5. HIỂN THỊ PASSWORD
-                // =========================================================
                 text_MatKhau.Text = matKhau;
 
-                // =========================================================
                 // 6. TĂNG BỘ ĐẾM
-                // =========================================================
                 _soLanDaGoiYMatKhau++;
             }
             catch (Exception ex)
             {
                 text_MatKhau.Clear();
-
-                Module_ThongBao.Loi(
-                    "Lỗi hiển thị mật khẩu: " + ex.Message
-                );
+                Module_ThongBao.Loi("Lỗi hiển thị mật khẩu: " + ex.Message);
             }
             finally
             {
@@ -394,9 +372,7 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         // HỆ THỐNG LƯU TRỮ CẤU HÌNH KHỞI ĐỘNG (THAY THẾ MY.SETTINGS)
-
         /// <summary>
         /// Khởi tạo bảng Check_KhoiDong nếu chưa tồn tại
         /// </summary>
@@ -480,7 +456,151 @@ namespace PhanMemThiDua2026
         // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
         // ========================================================================
         private bool _daKhoiTaoToolTip = false;
+        private async void btn_DangNhap_Click(object sender, EventArgs e)
+        {
+            // 1. NGĂN CHẶN SPAM CLICK
+            btn_DangNhap.Enabled = false;
 
+            try
+            {
+                // --- 2. RESET MÀU NỀN VÀ KIỂM TRA RỖNG ---
+                text_TenDangNhap.StateCommon.Back.Color1 = Color.White;
+                text_MatKhau.StateCommon.Back.Color1 = Color.White;
+
+                string tenNhap = text_TenDangNhap.Text.Trim();
+                string mkNhap = text_MatKhau.Text.Trim();
+
+                KryptonTextBox? oCanFocus = null;
+
+                if (string.IsNullOrWhiteSpace(tenNhap))
+                {
+                    text_TenDangNhap.StateCommon.Back.Color1 = Color.LightGreen;
+                    oCanFocus = text_TenDangNhap;
+                }
+
+                if (string.IsNullOrWhiteSpace(mkNhap))
+                {
+                    text_MatKhau.StateCommon.Back.Color1 = Color.LightGreen;
+                    oCanFocus ??= text_MatKhau;
+                }
+
+                if (oCanFocus != null)
+                {
+                    oCanFocus.Focus();
+                    MessageBox.Show("Vui lòng nhập đầy đủ tài khoản và mật khẩu!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+
+                // 3. MỞ KẾT NỐI CSDL BẤT ĐỒNG BỘ VỚI TIMEOUT AN TOÀN
+                string connectionString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
+                await using var conn = new SqliteConnection(connectionString);
+                await conn.OpenAsync();
+
+                string sqlAdmin = "SELECT encAdminUs, encAdminPa FROM Admin_DefaultValue LIMIT 1";
+                await using (var cmdAdmin = new SqliteCommand(sqlAdmin, conn))
+                await using (var readerAdmin = await cmdAdmin.ExecuteReaderAsync())
+                {
+                    if (await readerAdmin.ReadAsync())
+                    {
+                        string reversedMixed1 = (!readerAdmin.IsDBNull(readerAdmin.GetOrdinal("encAdminUs"))) ? readerAdmin["encAdminUs"].ToString()!.Trim() : "";
+                        string reversedMixed2 = (!readerAdmin.IsDBNull(readerAdmin.GetOrdinal("encAdminPa"))) ? readerAdmin["encAdminPa"].ToString()!.Trim() : "";
+                        string mixed1 = BaoMatAES.TraLaiTenChoMeoCam(reversedMixed1).Trim();
+                        string mixed2 = BaoMatAES.TraLaiTenChoMeoCam(reversedMixed2).Trim();
+
+                        if (mixed1.Length == 47 && mixed2.Length == 47)
+                        {
+                            string encAdminUser = mixed1.Substring(0, 24) + mixed2.Substring(24);
+                            string encAdminPass = mixed2.Substring(0, 24) + mixed1.Substring(24);
+
+                            string adminUserGiaiMa = BaoMatAES.GiaiMa(encAdminUser).Trim();
+                            string adminPassGiaiMa = BaoMatAES.GiaiMa(encAdminPass).Trim();
+
+                            if (string.Equals(tenNhap, adminUserGiaiMa, StringComparison.Ordinal) &&
+                                string.Equals(mkNhap, adminPassGiaiMa, StringComparison.Ordinal))
+                            {
+                                XacNhanDangNhapThanhCong(tenNhap, "Đăng nhập thành công (Quyền Admin cao nhất)");
+                                return;
+                            }
+                        }
+                    }
+                }
+
+
+                // BƯỚC 2: KIỂM TRA TÀI KHOẢN THƯỜNG TRONG BẢNG ADMIN
+                string sqlUser = "SELECT TenTaiKhoan, MatKhau FROM Admin";
+                bool isLoginSuccess = false;
+
+                await using (var cmdUser = new SqliteCommand(sqlUser, conn))
+                await using (var readerUser = await cmdUser.ExecuteReaderAsync())
+                {
+                    while (await readerUser.ReadAsync())
+                    {
+                        string userGiaiMa = "";
+                        try
+                        {
+                            userGiaiMa = BaoMatAES.GiaiMa(readerUser.GetString(0)).Trim();
+                        }
+                        catch { continue; } // Bỏ qua nếu lỗi giải mã Tên đăng nhập
+
+                        string dbPassData = readerUser.GetString(1).Trim();
+
+                        if (string.Equals(tenNhap, userGiaiMa, StringComparison.Ordinal))
+                        {
+                            // [GIA CỐ BẢO MẬT]: Chuyển đổi mềm (Fallback Migration)
+
+                            // 1. Kiểm tra xem mật khẩu có phải chuẩn BCrypt không (thường bắt đầu bằng $2a$, $2b$, $2y$)
+                            bool isBcryptHash = dbPassData.StartsWith("$2a$") || dbPassData.StartsWith("$2b$") || dbPassData.StartsWith("$2y$");
+
+                            if (isBcryptHash)
+                            {
+                                // So sánh bằng BCrypt
+                                if (BCrypt.Net.BCrypt.Verify(mkNhap, dbPassData))
+                                {
+                                    isLoginSuccess = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                // 2. Fallback: Nếu không phải BCrypt, giải mã bằng AES cũ (Cho các tài khoản chưa cập nhật)
+                                try
+                                {
+                                    string passGiaiMa = BaoMatAES.GiaiMa(dbPassData).Trim();
+                                    if (string.Equals(mkNhap, passGiaiMa, StringComparison.Ordinal))
+                                    {
+                                        isLoginSuccess = true;
+                                        break;
+                                    }
+                                }
+                                catch { /* Bỏ qua lỗi giải mã AES */ }
+                            }
+                        }
+                    }
+                }
+
+                // 4. XỬ LÝ KẾT QUẢ CUỐI CÙNG
+                if (isLoginSuccess)
+                {
+                    XacNhanDangNhapThanhCong(tenNhap, "Đăng nhập thành công");
+                }
+                else
+                {
+                    XulyDangNhapSai(tenNhap);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi kết nối hoặc xử lý dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (!this.IsDisposed && this.IsHandleCreated)
+                {
+                    btn_DangNhap.Enabled = true;
+                }
+            }
+        }
         private void InitToolTips()
         {
             // Chống gọi lại nhiều lần không cần thiết
@@ -493,7 +613,7 @@ namespace PhanMemThiDua2026
             {
                 // ================= CẤU HÌNH CHUNG =================
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
                 // UX: Phản hồi nhanh – không gây khó chịu khi rê chuột qua
@@ -689,126 +809,6 @@ namespace PhanMemThiDua2026
                 this.Hide();
             }
         }
-        private async void btn_DangNhap_Click(object sender, EventArgs e)
-        {
-            // 1. NGĂN CHẶN SPAM CLICK
-            btn_DangNhap.Enabled = false;
-
-            try
-            {
-                // --- 2. RESET MÀU NỀN VÀ KIỂM TRA RỖNG ---
-                text_TenDangNhap.StateCommon.Back.Color1 = Color.White;
-                text_MatKhau.StateCommon.Back.Color1 = Color.White;
-
-                string tenNhap = text_TenDangNhap.Text.Trim();
-                string mkNhap = text_MatKhau.Text.Trim();
-
-                KryptonTextBox oCanFocus = null;
-
-                if (string.IsNullOrWhiteSpace(tenNhap))
-                {
-                    text_TenDangNhap.StateCommon.Back.Color1 = Color.LightGreen;
-                    oCanFocus = text_TenDangNhap;
-                }
-
-                if (string.IsNullOrWhiteSpace(mkNhap))
-                {
-                    text_MatKhau.StateCommon.Back.Color1 = Color.LightGreen;
-                    oCanFocus ??= text_MatKhau;
-                }
-
-                if (oCanFocus != null)
-                {
-                    oCanFocus.Focus();
-                    MessageBox.Show("Vui lòng nhập đầy đủ tài khoản và mật khẩu!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-
-                // 3. MỞ KẾT NỐI CSDL BẤT ĐỒNG BỘ VỚI TIMEOUT AN TOÀN
-
-                string connectionString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
-                await using var conn = new SqliteConnection(connectionString);
-                await conn.OpenAsync();
-
-                string sqlAdmin = "SELECT encAdminUs, encAdminPa FROM Admin_DefaultValue LIMIT 1";
-                await using (var cmdAdmin = new SqliteCommand(sqlAdmin, conn))
-                await using (var readerAdmin = await cmdAdmin.ExecuteReaderAsync())
-                {
-                    if (await readerAdmin.ReadAsync())
-                    {
-                        //string reversedMixed1 = readerAdmin["encAdminUs"]?.ToString()?.Trim() ?? "";
-                        //string reversedMixed2 = readerAdmin["encAdminPa"]?.ToString()?.Trim() ?? "";
-                        string reversedMixed1 = (!readerAdmin.IsDBNull(readerAdmin.GetOrdinal("encAdminUs"))) ? readerAdmin["encAdminUs"].ToString()!.Trim() : "";
-                        string reversedMixed2 = (!readerAdmin.IsDBNull(readerAdmin.GetOrdinal("encAdminPa"))) ? readerAdmin["encAdminPa"].ToString()!.Trim() : "";
-                        string mixed1 = BaoMatAES.TraLaiTenChoMeoCam(reversedMixed1).Trim();
-                        string mixed2 = BaoMatAES.TraLaiTenChoMeoCam(reversedMixed2).Trim();
-
-                        if (mixed1.Length == 47 && mixed2.Length == 47)
-                        {
-                            string encAdminUser = mixed1.Substring(0, 24) + mixed2.Substring(24);
-                            string encAdminPass = mixed2.Substring(0, 24) + mixed1.Substring(24);
-
-                            string adminUserGiaiMa = BaoMatAES.GiaiMa(encAdminUser).Trim();
-                            string adminPassGiaiMa = BaoMatAES.GiaiMa(encAdminPass).Trim();
-
-                            if (string.Equals(tenNhap, adminUserGiaiMa, StringComparison.Ordinal) &&
-                                string.Equals(mkNhap, adminPassGiaiMa, StringComparison.Ordinal))
-                            {
-                                XacNhanDangNhapThanhCong(tenNhap, "Đăng nhập thành công (Quyền Admin cao nhất)");
-                                return;
-                            }
-                        }
-                    }
-                }
-
-
-                // BƯỚC 2: KIỂM TRA TÀI KHOẢN THƯỜNG TRONG BẢNG ADMIN
-
-                string sqlUser = "SELECT TenTaiKhoan, MatKhau FROM Admin";
-                bool isLoginSuccess = false;
-
-                await using (var cmdUser = new SqliteCommand(sqlUser, conn))
-                await using (var readerUser = await cmdUser.ExecuteReaderAsync())
-                {
-                    while (await readerUser.ReadAsync())
-                    {
-                        string userGiaiMa = BaoMatAES.GiaiMa(readerUser.GetString(0)).Trim();
-                        string passGiaiMa = BaoMatAES.GiaiMa(readerUser.GetString(1)).Trim();
-
-                        if (string.Equals(tenNhap, userGiaiMa, StringComparison.Ordinal) &&
-                            string.Equals(mkNhap, passGiaiMa, StringComparison.Ordinal))
-                        {
-                            isLoginSuccess = true;
-                            break;
-                        }
-                    }
-                }
-
-
-                // 4. XỬ LÝ KẾT QUẢ CUỐI CÙNG
-
-                if (isLoginSuccess)
-                {
-                    XacNhanDangNhapThanhCong(tenNhap, "Đăng nhập thành công");
-                }
-                else
-                {
-                    XulyDangNhapSai(tenNhap);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi kết nối hoặc xử lý dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                if (!this.IsDisposed && this.IsHandleCreated)
-                {
-                    btn_DangNhap.Enabled = true;
-                }
-            }
-        }
         private void XacNhanDangNhapThanhCong(string tenNhap, string thongDiepNhatKy)
         {
             SessionInfo.TenTaiKhoan = tenNhap;
@@ -920,7 +920,7 @@ namespace PhanMemThiDua2026
                 panelTop.StateCommon.Color1 = System.Drawing.Color.White;
 
                 var lblTitle = new Krypton.Toolkit.KryptonLabel { Text = tieuDe.ToUpper(), Dock = DockStyle.Fill, AutoSize = false };
-                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font("Segoe UI", 11.5F, System.Drawing.FontStyle.Bold);
+                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 11.5F, System.Drawing.FontStyle.Bold);
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(0, 82, 155); // Xanh đại dương
                 panelTop.Controls.Add(lblTitle);
 
@@ -943,7 +943,7 @@ namespace PhanMemThiDua2026
                 };
                 txtContent.StateCommon.Back.Color1 = System.Drawing.Color.White;
                 txtContent.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.None;
-                txtContent.StateCommon.Content.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Regular);
+                txtContent.StateCommon.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Regular);
                 txtContent.StateCommon.Content.Color1 = System.Drawing.Color.FromArgb(45, 45, 45);
                 txtContent.StateCommon.Content.Padding = new Padding(0);
 
@@ -952,7 +952,7 @@ namespace PhanMemThiDua2026
 
                 // Nút 1: Copy Token thông minh (Tự động trích xuất chuỗi)
                 var btnCopy = new Krypton.Toolkit.KryptonButton { Text = "Sao chép Token", Width = 150, Height = 38 };
-                btnCopy.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+                btnCopy.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
                 btnCopy.StateCommon.Border.Rounding = 5;
                 btnCopy.Click += (s, ev) =>
                 {
@@ -983,7 +983,7 @@ namespace PhanMemThiDua2026
 
                 // Nút 2: Đóng
                 var btnClose = new Krypton.Toolkit.KryptonButton { Text = "Đóng", Width = 110, Height = 38, DialogResult = DialogResult.OK };
-                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
                 btnClose.StateCommon.Border.Rounding = 5;
 
                 // Căn giữa 2 nút bấm

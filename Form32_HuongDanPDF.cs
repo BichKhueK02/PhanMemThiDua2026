@@ -8,7 +8,6 @@ namespace PhanMemThiDua2026
     {
         private PdfViewer pdfViewer;
         private static bool _pdfiumResolverSet = false;
-
         public Form32_HuongDanPDF()
         {
             InitializeComponent();
@@ -17,7 +16,6 @@ namespace PhanMemThiDua2026
             InitViewer();
             this.FormClosed += (s, e) => DisposePdf();
         }
-
         private void InitViewer()
         {
             if (pdfViewer == null)
@@ -26,7 +24,6 @@ namespace PhanMemThiDua2026
                 Controls.Add(pdfViewer);
             }
         }
-
         public void GoiTenEmTrongDem_LoadPdf(string path)
         {
             if (!File.Exists(path))
@@ -48,7 +45,6 @@ namespace PhanMemThiDua2026
                 this.Close();
             }
         }
-
         private void TaTimThayEm_OpenPdfExternally(string path)
         {
             try
@@ -60,7 +56,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"Không thể mở file: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         public void DisposePdf()
         {
             try
@@ -75,34 +70,55 @@ namespace PhanMemThiDua2026
         }
         private void LoadPdfiumDll()
         {
-            if (_pdfiumResolverSet) return;
+            if (_pdfiumResolverSet)
+                return;
 
             try
             {
-                // 1. Tự động nhận diện CPU (64-bit hay 32-bit) để chọn đúng DLL
-                string dllName = Environment.Is64BitProcess ? "pdfium-x64.dll" : "pdfium-x86.dll";
-                string pdfPath = Path.Combine(AppContext.BaseDirectory, "Database", "HuongDanSuDung", dllName);
+                // Phần mềm chỉ phát hành x64
+                const string dllName = "pdfium-x64.dll";
 
+                string pdfPath = Path.Combine(
+                    Module_DanduongGPS.ThuMucHuongDan,
+                    dllName);
+
+                // Kiểm tra thư viện trước khi đăng ký Resolver
                 if (!File.Exists(pdfPath))
                 {
-                    MessageBox.Show($"Lỗi bộ cài: Không tìm thấy thư viện tương thích kiến trúc máy tính '{dllName}'.\nVui lòng kiểm tra lại cấu hình hệ thống.", "Lỗi nghiêm trọng", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(
+                        $"Lỗi bộ cài: Không tìm thấy thư viện PDFium:\n\n{pdfPath}\n\n" +
+                        "Vui lòng kiểm tra lại thư mục HuongDanSuDung.",
+                        "Lỗi nghiêm trọng",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+
                     return;
                 }
 
-                // 2. Resolve (Hỗ trợ tốt nhất từ .NET Core 3.1 / .NET 6+)
                 NativeLibrary.SetDllImportResolver(
                     typeof(PdfDocument).Assembly,
                     (name, assembly, path) =>
-                        string.Equals(name, "pdfium.dll", StringComparison.OrdinalIgnoreCase)
-                            ? NativeLibrary.Load(pdfPath)
-                            : IntPtr.Zero
-                );
+                    {
+                        if (!string.Equals(
+                                name,
+                                "pdfium.dll",
+                                StringComparison.OrdinalIgnoreCase))
+                        {
+                            return IntPtr.Zero;
+                        }
+
+                        return NativeLibrary.Load(pdfPath);
+                    });
 
                 _pdfiumResolverSet = true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi nạp nền tảng hiển thị PDF: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    $"Lỗi nạp thư viện PDFium:\n\n{ex.Message}",
+                    "Lỗi hệ thống",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
     }

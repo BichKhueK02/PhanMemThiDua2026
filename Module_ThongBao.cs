@@ -1,9 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
+
 namespace PhanMemThiDua2026
 {
-    // =========================================================
-    // DÒNG THÔNG BÁO (CÓ MÀU)
-    // =========================================================
     internal sealed class DongThongBao
     {
         public string Text { get; }
@@ -18,7 +16,6 @@ namespace PhanMemThiDua2026
         }
         public override string ToString() => Text;
     }
-    // MODULE THÔNG BÁO (STATIC – DÙNG TOÀN HỆ THỐNG)
     internal static class Module_ThongBao
     {
         private static ListBox _listBox;
@@ -185,7 +182,7 @@ namespace PhanMemThiDua2026
                 }
 
                 // Thêm dòng mới
-                _listBox.Items.Add(new DongThongBao($"{DateTime.Now:HH:mm:ss}  {text}", mau, false));
+                _listBox.Items.Add(new DongThongBao($"{DateTime.Now:HH:mm:ss} {text}", mau, false));
 
                 // Cuộn xuống cuối
                 _listBox.TopIndex = _listBox.Items.Count - 1;
@@ -242,7 +239,7 @@ namespace PhanMemThiDua2026
                         // THÊM VÀO LIST TẠM VỚI CỜ LaGhim = true
                         dsGhimMoi.Add(new DongThongBao($"  Địa điểm: {diaDiem}, ngày {ngay} tháng {thang} năm {nam}", Color.MediumPurple, true));
                         dsGhimMoi.Add(new DongThongBao($"  Chỉ huy duyệt: {chiHuyD}", Color.MediumPurple, true));
-                        dsGhimMoi.Add(new DongThongBao($"  KQ thông báo của Cụm thi đua: {deNghi}", Color.MediumPurple, true));
+                        dsGhimMoi.Add(new DongThongBao($"  Kết quả phân loại tập thể: {deNghi}", Color.MediumPurple, true));
                     }
                 }
             }
@@ -276,18 +273,74 @@ namespace PhanMemThiDua2026
         }
         private static void VeDong(object sender, DrawItemEventArgs e)
         {
-            if (e.Index < 0 || e.Index >= _listBox.Items.Count) return;
-
-            e.DrawBackground();
-
-            if (_listBox.Items[e.Index] is DongThongBao item)
+            if (_listBox == null ||
+                _listBox.IsDisposed ||
+                e.Index < 0 ||
+                e.Index >= _listBox.Items.Count)
             {
-                using var brush = new SolidBrush(item.Mau);
-                Rectangle r = new Rectangle(e.Bounds.X + 3, e.Bounds.Y, e.Bounds.Width, e.Bounds.Height);
-                e.Graphics.DrawString(item.Text, e.Font, brush, r);
+                return;
             }
 
-            e.DrawFocusRectangle();
+            bool dangChon = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+
+            // ============================================================
+            // 1. MÀU NỀN
+            // ============================================================
+            Color mauNen;
+
+            if (dangChon)
+            {
+                // Xanh lá rất nhạt -> nhẹ mắt, hiện đại, không lấn át nội dung
+                mauNen = Color.FromArgb(220, 245, 225);
+            }
+            else
+            {
+                // Nền bình thường
+                mauNen = _listBox.BackColor;
+            }
+
+            using (var brushNen = new SolidBrush(mauNen))
+            {
+                e.Graphics.FillRectangle(brushNen, e.Bounds);
+            }
+
+            // ============================================================
+            // 2. VẼ NỘI DUNG
+            // ============================================================
+            if (_listBox.Items[e.Index] is DongThongBao item)
+            {
+                Color mauChu;
+
+                if (dangChon)
+                {
+                    // Khi chọn -> dùng xanh lá đậm để tương phản tốt
+                    mauChu = Color.FromArgb(35, 120, 65);
+                }
+                else
+                {
+                    // Bình thường -> giữ nguyên màu từng loại thông báo
+                    mauChu = item.Mau;
+                }
+
+                using var brushChu = new SolidBrush(mauChu);
+
+                Rectangle r = new Rectangle(
+                    e.Bounds.X + 8,
+                    e.Bounds.Y,
+                    e.Bounds.Width - 8,
+                    e.Bounds.Height);
+
+                e.Graphics.DrawString(
+                    item.Text,
+                    e.Font,
+                    brushChu,
+                    r);
+            }
+
+            // ============================================================
+            // 3. KHÔNG VẼ KHUNG FOCUS XANH/ĐEN MẶC ĐỊNH
+            // ============================================================
+            // Không gọi e.DrawFocusRectangle();
         }
         private static void ThucThiUI(Action action)
         {

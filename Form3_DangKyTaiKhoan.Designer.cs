@@ -35,11 +35,11 @@
             ComboBox2_CauHoi2 = new ComboBox();
             ComboBox1_CauHoi1 = new ComboBox();
             TableLayoutPanel11 = new TableLayoutPanel();
+            label10 = new Label();
             TextBox1_CauTraLoi1 = new Krypton.Toolkit.KryptonTextBox();
-            PictureBox4 = new PictureBox();
             TableLayoutPanel13 = new TableLayoutPanel();
+            label11 = new Label();
             TextBox2_CauTraLoi2 = new Krypton.Toolkit.KryptonTextBox();
-            PictureBox5 = new PictureBox();
             Label9 = new Label();
             PictureBox1 = new PictureBox();
             Label6 = new Label();
@@ -74,9 +74,7 @@
             tableLayoutPanel12 = new TableLayoutPanel();
             TableLayoutPanel7.SuspendLayout();
             TableLayoutPanel11.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)PictureBox4).BeginInit();
             TableLayoutPanel13.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)PictureBox5).BeginInit();
             ((System.ComponentModel.ISupportInitialize)PictureBox1).BeginInit();
             TableLayoutPanel10.SuspendLayout();
             TableLayoutPanel4.SuspendLayout();
@@ -102,7 +100,7 @@
             TableLayoutPanel7.Controls.Add(Label8, 0, 0);
             TableLayoutPanel7.Controls.Add(ComboBox2_CauHoi2, 1, 0);
             TableLayoutPanel7.Dock = DockStyle.Fill;
-            TableLayoutPanel7.Location = new Point(509, 149);
+            TableLayoutPanel7.Location = new Point(509, 150);
             TableLayoutPanel7.Name = "TableLayoutPanel7";
             TableLayoutPanel7.RowCount = 1;
             TableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
@@ -146,15 +144,27 @@
             TableLayoutPanel11.ColumnCount = 2;
             TableLayoutPanel11.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.1397057F));
             TableLayoutPanel11.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 78.86029F));
+            TableLayoutPanel11.Controls.Add(label10, 0, 0);
             TableLayoutPanel11.Controls.Add(TextBox1_CauTraLoi1, 1, 0);
-            TableLayoutPanel11.Controls.Add(PictureBox4, 0, 0);
             TableLayoutPanel11.Dock = DockStyle.Fill;
-            TableLayoutPanel11.Location = new Point(509, 100);
+            TableLayoutPanel11.Location = new Point(509, 101);
             TableLayoutPanel11.Name = "TableLayoutPanel11";
             TableLayoutPanel11.RowCount = 1;
             TableLayoutPanel11.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             TableLayoutPanel11.Size = new Size(487, 43);
             TableLayoutPanel11.TabIndex = 28;
+            // 
+            // label10
+            // 
+            label10.Anchor = AnchorStyles.Left;
+            label10.AutoSize = true;
+            label10.Font = new Font("Segoe UI Semilight", 10.9439993F);
+            label10.ForeColor = Color.Blue;
+            label10.Location = new Point(3, 11);
+            label10.Name = "label10";
+            label10.Size = new Size(48, 20);
+            label10.TabIndex = 27;
+            label10.Text = "Trả lời";
             // 
             // TextBox1_CauTraLoi1
             // 
@@ -166,31 +176,32 @@
             TextBox1_CauTraLoi1.StateCommon.Border.Width = 1;
             TextBox1_CauTraLoi1.TabIndex = 24;
             // 
-            // PictureBox4
-            // 
-            PictureBox4.Anchor = AnchorStyles.None;
-            PictureBox4.Image = (Image)resources.GetObject("PictureBox4.Image");
-            PictureBox4.Location = new Point(22, 8);
-            PictureBox4.Name = "PictureBox4";
-            PictureBox4.Size = new Size(58, 27);
-            PictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
-            PictureBox4.TabIndex = 20;
-            PictureBox4.TabStop = false;
-            // 
             // TableLayoutPanel13
             // 
             TableLayoutPanel13.ColumnCount = 2;
             TableLayoutPanel13.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.32353F));
             TableLayoutPanel13.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 78.67647F));
+            TableLayoutPanel13.Controls.Add(label11, 0, 0);
             TableLayoutPanel13.Controls.Add(TextBox2_CauTraLoi2, 1, 0);
-            TableLayoutPanel13.Controls.Add(PictureBox5, 0, 0);
             TableLayoutPanel13.Dock = DockStyle.Fill;
-            TableLayoutPanel13.Location = new Point(509, 198);
+            TableLayoutPanel13.Location = new Point(509, 199);
             TableLayoutPanel13.Name = "TableLayoutPanel13";
             TableLayoutPanel13.RowCount = 1;
             TableLayoutPanel13.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             TableLayoutPanel13.Size = new Size(487, 43);
             TableLayoutPanel13.TabIndex = 29;
+            // 
+            // label11
+            // 
+            label11.Anchor = AnchorStyles.Left;
+            label11.AutoSize = true;
+            label11.Font = new Font("Segoe UI Semilight", 10.9439993F);
+            label11.ForeColor = Color.Blue;
+            label11.Location = new Point(3, 11);
+            label11.Name = "label11";
+            label11.Size = new Size(48, 20);
+            label11.TabIndex = 27;
+            label11.Text = "Trả lời";
             // 
             // TextBox2_CauTraLoi2
             // 
@@ -201,17 +212,6 @@
             TextBox2_CauTraLoi2.StateCommon.Border.Rounding = 8F;
             TextBox2_CauTraLoi2.StateCommon.Border.Width = 1;
             TextBox2_CauTraLoi2.TabIndex = 24;
-            // 
-            // PictureBox5
-            // 
-            PictureBox5.Anchor = AnchorStyles.None;
-            PictureBox5.Image = (Image)resources.GetObject("PictureBox5.Image");
-            PictureBox5.Location = new Point(23, 8);
-            PictureBox5.Name = "PictureBox5";
-            PictureBox5.Size = new Size(56, 27);
-            PictureBox5.SizeMode = PictureBoxSizeMode.StretchImage;
-            PictureBox5.TabIndex = 20;
-            PictureBox5.TabStop = false;
             // 
             // Label9
             // 
@@ -269,7 +269,7 @@
             TableLayoutPanel10.Controls.Add(text_NhapLaiMatKhau, 1, 0);
             TableLayoutPanel10.Controls.Add(Label5, 0, 0);
             TableLayoutPanel10.Dock = DockStyle.Fill;
-            TableLayoutPanel10.Location = new Point(3, 149);
+            TableLayoutPanel10.Location = new Point(3, 150);
             TableLayoutPanel10.Name = "TableLayoutPanel10";
             TableLayoutPanel10.RowCount = 1;
             TableLayoutPanel10.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
@@ -317,7 +317,7 @@
             TableLayoutPanel4.Controls.Add(TableLayoutPanel8, 0, 1);
             TableLayoutPanel4.Dock = DockStyle.Fill;
             TableLayoutPanel4.Font = new Font("Courier New", 12.096F, FontStyle.Italic);
-            TableLayoutPanel4.Location = new Point(3, 108);
+            TableLayoutPanel4.Location = new Point(3, 109);
             TableLayoutPanel4.Name = "TableLayoutPanel4";
             TableLayoutPanel4.RowCount = 6;
             TableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 16.666666F));
@@ -331,7 +331,7 @@
             TableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 14F));
             TableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 14F));
             TableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Absolute, 14F));
-            TableLayoutPanel4.Size = new Size(999, 294);
+            TableLayoutPanel4.Size = new Size(999, 296);
             TableLayoutPanel4.TabIndex = 20;
             // 
             // tableLayoutPanel16
@@ -342,18 +342,18 @@
             tableLayoutPanel16.Controls.Add(pictureBox2_ThongTin_DKTK, 0, 0);
             tableLayoutPanel16.Controls.Add(Check_HienMatKhau, 1, 0);
             tableLayoutPanel16.Dock = DockStyle.Fill;
-            tableLayoutPanel16.Location = new Point(3, 247);
+            tableLayoutPanel16.Location = new Point(3, 248);
             tableLayoutPanel16.Name = "tableLayoutPanel16";
             tableLayoutPanel16.RowCount = 1;
             tableLayoutPanel16.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel16.Size = new Size(500, 44);
+            tableLayoutPanel16.Size = new Size(500, 45);
             tableLayoutPanel16.TabIndex = 31;
             // 
             // pictureBox2_ThongTin_DKTK
             // 
             pictureBox2_ThongTin_DKTK.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             pictureBox2_ThongTin_DKTK.Image = (Image)resources.GetObject("pictureBox2_ThongTin_DKTK.Image");
-            pictureBox2_ThongTin_DKTK.Location = new Point(3, 3);
+            pictureBox2_ThongTin_DKTK.Location = new Point(3, 4);
             pictureBox2_ThongTin_DKTK.Name = "pictureBox2_ThongTin_DKTK";
             pictureBox2_ThongTin_DKTK.Size = new Size(54, 37);
             pictureBox2_ThongTin_DKTK.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -367,7 +367,7 @@
             Check_HienMatKhau.AutoSize = true;
             Check_HienMatKhau.Font = new Font("Segoe UI Semibold", 12.096F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             Check_HienMatKhau.ForeColor = Color.Red;
-            Check_HienMatKhau.Location = new Point(207, 8);
+            Check_HienMatKhau.Location = new Point(207, 9);
             Check_HienMatKhau.Name = "Check_HienMatKhau";
             Check_HienMatKhau.Size = new Size(146, 27);
             Check_HienMatKhau.TabIndex = 0;
@@ -394,7 +394,7 @@
             TableLayoutPanel6.Controls.Add(Label7, 0, 0);
             TableLayoutPanel6.Controls.Add(ComboBox1_CauHoi1, 1, 0);
             TableLayoutPanel6.Dock = DockStyle.Fill;
-            TableLayoutPanel6.Location = new Point(509, 51);
+            TableLayoutPanel6.Location = new Point(509, 52);
             TableLayoutPanel6.Name = "TableLayoutPanel6";
             TableLayoutPanel6.RowCount = 1;
             TableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
@@ -409,11 +409,11 @@
             TableLayoutPanel2.Controls.Add(btn_Thoat, 0, 0);
             TableLayoutPanel2.Controls.Add(btn_Luu, 1, 0);
             TableLayoutPanel2.Dock = DockStyle.Fill;
-            TableLayoutPanel2.Location = new Point(509, 247);
+            TableLayoutPanel2.Location = new Point(509, 248);
             TableLayoutPanel2.Name = "TableLayoutPanel2";
             TableLayoutPanel2.RowCount = 1;
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            TableLayoutPanel2.Size = new Size(487, 44);
+            TableLayoutPanel2.Size = new Size(487, 45);
             TableLayoutPanel2.TabIndex = 17;
             // 
             // btn_Thoat
@@ -421,7 +421,7 @@
             btn_Thoat.Anchor = AnchorStyles.None;
             btn_Thoat.Location = new Point(66, 7);
             btn_Thoat.Name = "btn_Thoat";
-            btn_Thoat.Size = new Size(111, 30);
+            btn_Thoat.Size = new Size(111, 31);
             btn_Thoat.StateCommon.Border.Rounding = 4F;
             btn_Thoat.TabIndex = 1;
             btn_Thoat.Values.DropDownArrowColor = Color.Empty;
@@ -434,7 +434,7 @@
             btn_Luu.Anchor = AnchorStyles.None;
             btn_Luu.Location = new Point(309, 7);
             btn_Luu.Name = "btn_Luu";
-            btn_Luu.Size = new Size(111, 30);
+            btn_Luu.Size = new Size(111, 31);
             btn_Luu.StateCommon.Border.Rounding = 4F;
             btn_Luu.TabIndex = 0;
             btn_Luu.Values.DropDownArrowColor = Color.Empty;
@@ -452,7 +452,7 @@
             TableLayoutPanel3.Controls.Add(Label9, 0, 0);
             TableLayoutPanel3.Controls.Add(PictureBox1, 2, 0);
             TableLayoutPanel3.Dock = DockStyle.Fill;
-            TableLayoutPanel3.Location = new Point(3, 198);
+            TableLayoutPanel3.Location = new Point(3, 199);
             TableLayoutPanel3.Name = "TableLayoutPanel3";
             TableLayoutPanel3.RowCount = 1;
             TableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
@@ -477,7 +477,7 @@
             TableLayoutPanel9.Controls.Add(text_MatKhauMoi, 1, 0);
             TableLayoutPanel9.Controls.Add(Label3, 0, 0);
             TableLayoutPanel9.Dock = DockStyle.Fill;
-            TableLayoutPanel9.Location = new Point(3, 100);
+            TableLayoutPanel9.Location = new Point(3, 101);
             TableLayoutPanel9.Name = "TableLayoutPanel9";
             TableLayoutPanel9.RowCount = 1;
             TableLayoutPanel9.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
@@ -514,7 +514,7 @@
             TableLayoutPanel8.Controls.Add(text_TaiKhoanMoi, 1, 0);
             TableLayoutPanel8.Controls.Add(Label4, 0, 0);
             TableLayoutPanel8.Dock = DockStyle.Fill;
-            TableLayoutPanel8.Location = new Point(3, 51);
+            TableLayoutPanel8.Location = new Point(3, 52);
             TableLayoutPanel8.Name = "TableLayoutPanel8";
             TableLayoutPanel8.RowCount = 1;
             TableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
@@ -558,7 +558,7 @@
             tableLayoutPanel5.Name = "tableLayoutPanel5";
             tableLayoutPanel5.RowCount = 1;
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel5.Size = new Size(999, 101);
+            tableLayoutPanel5.Size = new Size(999, 102);
             tableLayoutPanel5.TabIndex = 21;
             // 
             // tableLayoutPanel15
@@ -573,13 +573,13 @@
             tableLayoutPanel15.RowCount = 2;
             tableLayoutPanel15.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             tableLayoutPanel15.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel15.Size = new Size(111, 97);
+            tableLayoutPanel15.Size = new Size(111, 98);
             tableLayoutPanel15.TabIndex = 33;
             // 
             // kryptonButton1_ThemAnhDaiDien
             // 
             kryptonButton1_ThemAnhDaiDien.Anchor = AnchorStyles.None;
-            kryptonButton1_ThemAnhDaiDien.Location = new Point(5, 57);
+            kryptonButton1_ThemAnhDaiDien.Location = new Point(5, 58);
             kryptonButton1_ThemAnhDaiDien.Name = "kryptonButton1_ThemAnhDaiDien";
             kryptonButton1_ThemAnhDaiDien.Size = new Size(100, 30);
             kryptonButton1_ThemAnhDaiDien.StateCommon.Border.Rounding = 4F;
@@ -591,15 +591,15 @@
             // 
             // label2
             // 
-            label2.Anchor = AnchorStyles.Top;
+            label2.Anchor = AnchorStyles.None;
             label2.AutoSize = true;
-            label2.Font = new Font("Segoe UI", 18.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label2.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.Green;
-            label2.Location = new Point(310, 0);
+            label2.Location = new Point(375, 35);
             label2.Name = "label2";
-            label2.Size = new Size(625, 35);
+            label2.Size = new Size(495, 32);
             label2.TabIndex = 31;
-            label2.Text = "Đăng ký thông tin tài khoản mới theo mẫu dưới đây";
+            label2.Text = "Đăng ký tài khoản mới theo mẫu dưới đây";
             // 
             // tableLayoutPanel14
             // 
@@ -613,14 +613,14 @@
             tableLayoutPanel14.RowCount = 1;
             tableLayoutPanel14.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel14.RowStyles.Add(new RowStyle(SizeType.Absolute, 81F));
-            tableLayoutPanel14.Size = new Size(123, 97);
+            tableLayoutPanel14.Size = new Size(123, 98);
             tableLayoutPanel14.TabIndex = 32;
             // 
             // pictureBox2_AnhDaiDienAdmin
             // 
             pictureBox2_AnhDaiDienAdmin.Anchor = AnchorStyles.None;
             pictureBox2_AnhDaiDienAdmin.Image = (Image)resources.GetObject("pictureBox2_AnhDaiDienAdmin.Image");
-            pictureBox2_AnhDaiDienAdmin.Location = new Point(5, 5);
+            pictureBox2_AnhDaiDienAdmin.Location = new Point(5, 6);
             pictureBox2_AnhDaiDienAdmin.Name = "pictureBox2_AnhDaiDienAdmin";
             pictureBox2_AnhDaiDienAdmin.Size = new Size(113, 86);
             pictureBox2_AnhDaiDienAdmin.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -640,14 +640,14 @@
             tableLayoutPanel12.RowCount = 2;
             tableLayoutPanel12.RowStyles.Add(new RowStyle(SizeType.Percent, 26.13391F));
             tableLayoutPanel12.RowStyles.Add(new RowStyle(SizeType.Percent, 73.86609F));
-            tableLayoutPanel12.Size = new Size(1005, 405);
+            tableLayoutPanel12.Size = new Size(1005, 408);
             tableLayoutPanel12.TabIndex = 22;
             // 
             // Form3_DangKyTaiKhoan
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1005, 405);
+            ClientSize = new Size(1005, 408);
             Controls.Add(tableLayoutPanel12);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form3_DangKyTaiKhoan";
@@ -657,10 +657,8 @@
             TableLayoutPanel7.PerformLayout();
             TableLayoutPanel11.ResumeLayout(false);
             TableLayoutPanel11.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)PictureBox4).EndInit();
             TableLayoutPanel13.ResumeLayout(false);
             TableLayoutPanel13.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)PictureBox5).EndInit();
             ((System.ComponentModel.ISupportInitialize)PictureBox1).EndInit();
             TableLayoutPanel10.ResumeLayout(false);
             TableLayoutPanel10.PerformLayout();
@@ -733,5 +731,7 @@
         internal Krypton.Toolkit.KryptonButton btn_Thoat;
         internal TableLayoutPanel tableLayoutPanel16;
         internal PictureBox pictureBox2_ThongTin_DKTK;
+        internal Label label10;
+        internal Label label11;
     }
 }

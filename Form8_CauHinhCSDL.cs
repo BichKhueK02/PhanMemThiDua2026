@@ -44,16 +44,13 @@ namespace PhanMemThiDua2026
             foreach (var ktb in controls)
             {
                 if (ktb == null) continue;
-
                 // Thiết lập viền mặc định
                 ktb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
                 ktb.StateCommon.Border.Color1 = NormalBorderColor;
                 ktb.StateCommon.Border.Width = NormalBorderWidth;
-
                 // An toàn: Hủy đăng ký trước khi gắn sự kiện mới
                 ktb.Enter -= Ktb_EnterFocus;
                 ktb.Leave -= Ktb_LeaveFocus;
-
                 ktb.Enter += Ktb_EnterFocus;
                 ktb.Leave += Ktb_LeaveFocus;
             }
@@ -203,38 +200,40 @@ namespace PhanMemThiDua2026
         // --- BẮT ĐẦU KHU VỰC GIA CỐ ASYNC/AWAIT ---
         private async Task<string> VanLyTruongThanh_DuongDanMoPhanMem_CongCuQuanLyCSDLAsync()
         {
-            string baseDir = AppContext.BaseDirectory;
-            string dbDir = Module_DanduongGPS.ThuMucCoSoDuLieu;
-            string folderName = "CongCuQuanLyCSDL";
-            string exeName = "DB Browser for SQLite.exe";
-
-            string motherDir = Path.Combine(baseDir, "Database Backup");
-            string dbFolder = Path.Combine(dbDir, folderName);
-            string motherFolder = Path.Combine(motherDir, folderName);
-            string exePath = Path.Combine(dbFolder, exeName);
-
+            // 1. LẤY ĐƯỜNG DẪN TỪ MODULE DÙNG CHUNG
+            string dbFolder = Module_DanduongGPS.ThuMucCongCuQuanLyCSDL;
+            string motherFolder = Module_DanduongGPS.ThuMucBackupCongCuQuanLyCSDL;
+            string exePath = Module_DanduongGPS.DuongDanDBBrowserSQLite;
             try
             {
-                // Nếu chưa có trong thư mục đích, chờ thực hiện copy từ thư mục mẹ (Chạy nền)
-                if (!Directory.Exists(dbFolder) && Directory.Exists(motherFolder))
+                // 2. NẾU CHƯA CÓ THƯ MỤC CÔNG CỤ
+                if (!Directory.Exists(dbFolder) &&
+                    Directory.Exists(motherFolder))
                 {
-                    await MuaThuOHoKaido_CopyDirectorySmartAsync(motherFolder, dbFolder);
+                    await MuaThuOHoKaido_CopyDirectorySmartAsync(
+                        motherFolder,
+                        dbFolder);
                 }
-
-                if (File.Exists(exePath)) return exePath;
-
-                string motherExe = Path.Combine(motherFolder, exeName);
-                if (File.Exists(motherExe)) return motherExe;
-
-                string fallback1 = Path.Combine(Application.StartupPath, folderName, exeName);
-                if (File.Exists(fallback1)) return fallback1;
-
-                string fallback2 = Path.Combine(Application.StartupPath, exeName);
-                if (File.Exists(fallback2)) return fallback2;
+                // 3. KIỂM TRA FILE Ở VỊ TRÍ CHÍNH
+                if (File.Exists(exePath))
+                    return exePath;
+                // 4. KIỂM TRA FILE TRONG THƯ MỤC BACKUP
+                string motherExe =Path.Combine(motherFolder, Module_DanduongGPS.TenFileDBBrowserSQLite);
+                if (File.Exists(motherExe))
+                    return motherExe;
+                // 5. FALLBACK 1
+                string fallback1 =Path.Combine(Application.StartupPath, Module_DanduongGPS.TenThuMucCongCuQuanLyCSDL, Module_DanduongGPS.TenFileDBBrowserSQLite);
+                if (File.Exists(fallback1))
+                    return fallback1;
+                // 6. FALLBACK 2
+                string fallback2 = Path.Combine(Application.StartupPath, Module_DanduongGPS.TenFileDBBrowserSQLite);
+                if (File.Exists(fallback2))
+                    return fallback2;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[Vạn Lý Trường Thành] Lỗi truy xuất: {ex.Message}");
+                Debug.WriteLine(
+                    $"[Vạn Lý Trường Thành] Lỗi truy xuất: {ex.Message}");
             }
 
             return string.Empty;
@@ -384,7 +383,6 @@ namespace PhanMemThiDua2026
             CapNhatTrangThaiHienMatKhau();
         }
     }
-
     public static class SessionInfo
     {
         public static string TenTaiKhoan { get; set; } = "";

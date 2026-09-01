@@ -418,8 +418,8 @@
             // 
             // tabControl1
             // 
-            tabControl1.Controls.Add(tabPage1);
             tabControl1.Controls.Add(tabPage2);
+            tabControl1.Controls.Add(tabPage1);
             tabControl1.Dock = DockStyle.Fill;
             tabControl1.Location = new Point(0, 0);
             tabControl1.Margin = new Padding(2);
@@ -833,7 +833,7 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(2);
             Name = "Form7_ThongTinAdmin";
-            Text = "Chứng thư số";
+            Text = "Thông tin và liên hệ";
             Load += Form7_Load;
             TableLayoutPanel1.ResumeLayout(false);
             TableLayoutPanel1.PerformLayout();

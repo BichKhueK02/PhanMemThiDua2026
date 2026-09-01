@@ -9,9 +9,7 @@ namespace PhanMemThiDua2026
     {
         // 1. CHUẨN KỸ SƯ: Cache năm hệ thống để giảm thiểu I/O Database nhiều lần
         private readonly int _namHeThong = Module_HeThong.LayNamHeThong();
-
         private Form _activeSubForm = null;
-
         // 2. CHUẨN KỸ SƯ: Private set để bảo vệ tính toàn vẹn của trạng thái Form
         public bool DaLoadDuLieu { get; private set; } = false;
 
@@ -19,10 +17,7 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
         }
-
-
         // KHỞI TẠO VÀ TẢI DỮ LIỆU
-
         private void Form52_QuanLyKhenThuong_Load(object sender, EventArgs e)
         {
             // Cập nhật tên menu động bằng biến cache
@@ -30,14 +25,11 @@ namespace PhanMemThiDua2026
             {
                 quanLyKhenThuongNamHienTai_ToolStripMenuItem.Text = $"Quản lý khen thưởng năm {_namHeThong}";
             }
-
             // Gọi mở form mặc định
             string tieuDeMacDinh = $"Quản lý khen thưởng CBCS năm {_namHeThong}";
             OpenSubForm<Form34_ThongKeKhenThuong>(tieuDeMacDinh);
-
             DaLoadDuLieu = true;
         }
-
         // 3. CHUẨN KỸ SƯ: Tách biệt logic Reload thực sự, không gọi lại OpenSubForm
         public async Task ReloadDuLieu()
         {
@@ -54,10 +46,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Lỗi tải lại dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-
         // HÀM 1: MỞ FORM BẰNG MENU CLICK (CÓ XÓA FORM CŨ ĐỂ GIẢI PHÓNG RAM)
-
         private void OpenSubForm<T>(string tieuDeForm) where T : Form, new()
         {
             if (_activeSubForm != null && _activeSubForm.GetType() == typeof(T))
@@ -74,7 +63,6 @@ namespace PhanMemThiDua2026
 
             EmbedFormToPanel(childForm, tieuDeForm);
         }
-
         private void EmbedFormToPanel(Form childForm, string tieuDeForm)
         {
             if (_activeSubForm != null && _activeSubForm != childForm)
@@ -162,30 +150,18 @@ namespace PhanMemThiDua2026
             var frmChinh = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
             frmChinh?.CapNhatTieuDe(tieuDe);
         }
-
-
         // CÁC SỰ KIỆN CLICK MENU
-
-        private void toolStripMenuItem_KhenThuongCBCSNamHienTai_Click(object sender, EventArgs e)
-        {
-            OpenSubForm<Form34_ThongKeKhenThuong>($"Quản lý khen thưởng CBCS năm {_namHeThong}");
-        }
-
-        private void toolStripMenuItem_KhenThuongTapTheNamHienTai_Click(object sender, EventArgs e)
-        {
-            OpenSubForm<Form49_QuanLyKhenThuongTapThe>($"Quản lý khen thưởng tập thể năm {_namHeThong}");
-        }
-
-        private void toolStripMenuItem_QuanLyKhenThuongCBCSNamCu_Click(object sender, EventArgs e)
-        {
-            OpenSubForm<Form50_QuanLyKhenThuongNamCu>("Quản lý khen thưởng CBCS năm cũ");
-        }
-
-        private void toolStripMenuItem_QuanLyKhenThuongTapTheNamCu_Click(object sender, EventArgs e)
-        {
-            OpenSubForm<Form51_QuanLyKhenThuongTapTheNamCu>("Quản lý khen thưởng tập thể năm cũ");
-        }
-
-     
+        private void toolStripMenuItem_KhenThuongCBCSNamHienTai_Click(object sender, EventArgs e) =>
+     OpenSubForm<Form34_ThongKeKhenThuong>(
+         $"Quản lý khen thưởng CBCS năm {_namHeThong}");
+        private void toolStripMenuItem_KhenThuongTapTheNamHienTai_Click(object sender, EventArgs e) =>
+            OpenSubForm<Form49_QuanLyKhenThuongTapThe>(
+                $"Quản lý khen thưởng tập thể năm {_namHeThong}");
+        private void toolStripMenuItem_QuanLyKhenThuongCBCSNamCu_Click(object sender, EventArgs e) =>
+            OpenSubForm<Form50_QuanLyKhenThuongNamCu>(
+                "Quản lý khen thưởng CBCS năm cũ");
+        private void toolStripMenuItem_QuanLyKhenThuongTapTheNamCu_Click(object sender, EventArgs e) =>
+            OpenSubForm<Form51_QuanLyKhenThuongTapTheNamCu>(
+                "Quản lý khen thưởng tập thể năm cũ");
     }
 }

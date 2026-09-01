@@ -116,7 +116,7 @@ namespace PhanMemThiDua2026
             ChuanHoaDataGridView();
 
             // Cập nhật nhãn
-            toolStripStatusLabel1.Text = $"Tổng quân số: {_tongQuanSo} đồng chí.";
+            toolStripStatusLabel1.Text = $"Tổng quân số: {_tongQuanSo} {Module_HeThong.Tu_dong_chi}.";
 
             // TRUYỀN DỮ LIỆU VÀ YÊU CẦU VẼ LẠI BẢNG GÓC DƯỚI
             _dtBieuDo = dtKetQua;
@@ -148,8 +148,8 @@ namespace PhanMemThiDua2026
             r["ChienSiNghiaVu"] = _chienSi;
             dt.Rows.Add(r);
         }
-        private static readonly Font HeaderFont = new Font("Segoe UI", 11F, FontStyle.Bold);
-        private static readonly Font CellFont = new Font("Segoe UI", 10F, FontStyle.Regular);
+        private static readonly Font HeaderFont = new Font(Module_HeThong.TenFontHeThong, 11F, FontStyle.Bold);
+        private static readonly Font CellFont = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private void ChuanHoaDataGridView()
         {
             var grid = kryptonDataGridView1;
@@ -515,8 +515,8 @@ namespace PhanMemThiDua2026
                 using (Brush bChienSi = new SolidBrush(Color.FromArgb(76, 175, 80)))    // Xanh lá cây nhạt
                 //FromArgb(39, 174, 96)
                 using (Brush bText = new SolidBrush(Color.FromArgb(60, 60, 60)))
-                using (Font fontText = new Font("Segoe UI", 9))
-                using (Font fontSo = new Font("Segoe UI", 8, FontStyle.Bold))
+                using (Font fontText = new Font(Module_HeThong.TenFontHeThong, 9))
+                using (Font fontSo = new Font(Module_HeThong.TenFontHeThong, 8, FontStyle.Bold))
                 using (StringFormat sfCenter = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Far })
                 {
                     // --- VẼ LƯỚI NGANG ---

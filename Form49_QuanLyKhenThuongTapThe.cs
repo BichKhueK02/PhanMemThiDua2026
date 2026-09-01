@@ -153,9 +153,9 @@ namespace PhanMemThiDua2026
         }
         private void InitToolTips()
         {
-            // ============================================================
+            
             // KHỞI TẠO TOOLTIP - ỔN ĐỊNH CHO HỆ THỐNG NỘI BỘ
-            // ============================================================
+            
             // 1. Kiểm tra ToolTip
             if (toolTip1 == null)
                 return;
@@ -164,7 +164,7 @@ namespace PhanMemThiDua2026
             {
                 // 2. Cấu hình chung
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
                 // Thời gian chờ trước khi hiển thị
@@ -628,11 +628,6 @@ namespace PhanMemThiDua2026
             }
             return true;
         }
-        // CRUD: THÊM, SỬA, XÓA
-
-        // =================================================================
-        // 1. HÀM THÊM MỚI
-        // =================================================================
         private async void kryptonButton_ThemKhenThuong_Click(object sender, EventArgs e)
         {
             if (kryptonButton_ThemKhenThuong.Values.Text == "Làm mới")
@@ -971,7 +966,7 @@ namespace PhanMemThiDua2026
             dgv.AllowUserToOrderColumns = false;  // Khóa: Không cho kéo thả đổi vị trí cột
             dgv.AllowUserToResizeColumns = false; // Khóa: Không cho kéo giãn thay đổi độ rộng cột
         }
-        private void CauHinhStyleWeb(DataGridView dgv) { dgv.RowTemplate.Height = 36; dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; dgv.AllowUserToResizeRows = false; dgv.ColumnHeadersHeight = 60; dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single; dgv.GridColor = Color.FromArgb(224, 224, 224); dgv.RowsDefaultCellStyle.BackColor = Color.White; dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252); dgv.BackgroundColor = Color.White; if (dgv is Krypton.Toolkit.KryptonDataGridView kDgv) { kDgv.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List; kDgv.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8); kDgv.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold); kDgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter; kDgv.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular); kDgv.StateCommon.DataCell.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8); kDgv.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All; kDgv.StateCommon.DataCell.Border.Color1 = System.Drawing.Color.FromArgb(224, 224, 224); kDgv.StateCommon.DataCell.Border.Width = 1; kDgv.StateSelected.DataCell.Back.Color1 = System.Drawing.Color.FromArgb(232, 244, 253); kDgv.StateSelected.DataCell.Back.Color2 = System.Drawing.Color.FromArgb(232, 244, 253); kDgv.StateSelected.DataCell.Content.Color1 = System.Drawing.Color.FromArgb(0, 102, 204); kDgv.Margin = new Padding(0, 0, 0, 30); } }
+        private void CauHinhStyleWeb(DataGridView dgv) { dgv.RowTemplate.Height = 36; dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; dgv.AllowUserToResizeRows = false; dgv.ColumnHeadersHeight = 60; dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single; dgv.GridColor = Color.FromArgb(224, 224, 224); dgv.RowsDefaultCellStyle.BackColor = Color.White; dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252); dgv.BackgroundColor = Color.White; if (dgv is Krypton.Toolkit.KryptonDataGridView kDgv) { kDgv.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List; kDgv.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8); kDgv.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9F, System.Drawing.FontStyle.Bold); kDgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter; kDgv.StateCommon.DataCell.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9F, System.Drawing.FontStyle.Regular); kDgv.StateCommon.DataCell.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8); kDgv.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All; kDgv.StateCommon.DataCell.Border.Color1 = System.Drawing.Color.FromArgb(224, 224, 224); kDgv.StateCommon.DataCell.Border.Width = 1; kDgv.StateSelected.DataCell.Back.Color1 = System.Drawing.Color.FromArgb(232, 244, 253); kDgv.StateSelected.DataCell.Back.Color2 = System.Drawing.Color.FromArgb(232, 244, 253); kDgv.StateSelected.DataCell.Content.Color1 = System.Drawing.Color.FromArgb(0, 102, 204); kDgv.Margin = new Padding(0, 0, 0, 30); } }
         private void CauHinhCotGrid(DataGridView dgv)
         {
             dgv.Columns.Clear();
@@ -1017,8 +1012,6 @@ namespace PhanMemThiDua2026
             float currentSize = richTextBox1_NoiDungKhenThuong.Font.Size;
             if (currentSize > 8.0f) { richTextBox1_NoiDungKhenThuong.Font = new Font(richTextBox1_NoiDungKhenThuong.Font.FontFamily, currentSize - 2, richTextBox1_NoiDungKhenThuong.Font.Style); }
         }
-        // HÀM XÓA TOÀN BỘ DỮ LIỆU
-        // TẢI VÀ CACHE DANH SÁCH HÌNH THỨC KHEN THƯỞNG VÀO BỘ LỌC
         private async Task LoadComboBoxHinhThucKTAsync(bool forceReload = false)
         {
             if (comboBox1_HinhThucKT == null) return;
@@ -1142,7 +1135,6 @@ namespace PhanMemThiDua2026
         {
             kryptonButton_LamMoiCacOTimKiem.PerformClick();
         }
-        // HÀM XUẤT EXCEL (TỐI ƯU CLOSEDXML BULK INSERT)       
         private async void xuatDuLieuRaTepExcel_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (kryptonDataGridView1.Rows.Count == 0)
@@ -1218,7 +1210,7 @@ namespace PhanMemThiDua2026
                     using var wb = new ClosedXML.Excel.XLWorkbook();
                     var ws = wb.Worksheets.Add("ThongKeKhenThuongTapThe");
 
-                    ws.Style.Font.FontName = "Times New Roman";
+                    ws.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     ws.Style.Font.FontSize = 11;
 
                     ws.Cell("A1").Value = "DANH SÁCH";

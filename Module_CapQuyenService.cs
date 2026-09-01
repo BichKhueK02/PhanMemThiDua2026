@@ -15,9 +15,7 @@ namespace PhanMemThiDua2026
         private static readonly byte[] Cache_RAM_SYS_CFG_MOD_A = { 0x21, 0x39, 0x39, 0x39, 0x39, 0x5F };
         private static readonly byte[] Cache_RAM_SYS_CFG_MOD_B = { 0x59, 0x45, 0x4B, 0x5F, 0x4E, 0x4F, 0x49, 0x54, 0x41, 0x5A, 0x49, 0x52 };
         private static readonly byte[] Cache_RAM_SYS_CFG_MOD_C = { 0x4F, 0x48, 0x54, 0x55, 0x41, 0x5F, 0x36, 0x32, 0x30, 0x32, 0x44, 0x54, 0x4D, 0x50 };
-        // =====================================================
         // HMAC KEY (BINARY FRAGMENT)
-        // =====================================================
         private static readonly byte[] Cache_GPU_SEC_KEY_BLOCK_X = { 0x21, 0x36, 0x32, 0x30, 0x32, 0x5F, 0x59, 0x45, 0x4B, 0x5F };
         private static readonly byte[] Cache_GPU_SEC_KEY_BLOCK_Y = { 0x45, 0x52, 0x55, 0x54, 0x41, 0x4E, 0x47, 0x49, 0x53, 0x5F, 0x43, 0x41 };
         private static readonly byte[] Cache_GPU_SEC_KEY_BLOCK_Z = { 0x4D, 0x48, 0x5F, 0x36, 0x32, 0x30, 0x32, 0x44, 0x54, 0x4D, 0x50 };
@@ -66,8 +64,7 @@ namespace PhanMemThiDua2026
                 byte[] plainBytes =
                   Encoding.UTF8.GetBytes(noiDung);
 
-                
-                // AES
+// AES
                 
                 using Aes aes = Aes.Create();
 
@@ -80,8 +77,7 @@ namespace PhanMemThiDua2026
                 // IV random mỗi lần tạo
                 aes.GenerateIV();
 
-                
-                // Encrypt
+// Encrypt
                 // Format:
                 // [IV][CIPHER]
                 
@@ -115,8 +111,7 @@ namespace PhanMemThiDua2026
                     cipherBytes = ms.ToArray();
                 }
 
-                
-                // HMACSHA256
+// HMACSHA256
                 // Chống sửa đổi file
                 
                 byte[] hmacBytes;
@@ -128,8 +123,7 @@ namespace PhanMemThiDua2026
                       hmac.ComputeHash(cipherBytes);
                 }
 
-                
-                // Final file
+// Final file
                 // Format:
                 // [IV][CIPHER][HMAC]
                 
@@ -155,8 +149,7 @@ namespace PhanMemThiDua2026
                   hmacBytes.Length
                 );
 
-                
-                // Ghi file
+// Ghi file
                 
                 File.WriteAllBytes(
           fileName,
@@ -189,8 +182,7 @@ namespace PhanMemThiDua2026
                 byte[] fullBytes =
                   File.ReadAllBytes(fileName);
 
-                
-                // Kiểm tra độ dài tối thiểu
+// Kiểm tra độ dài tối thiểu
                 // AES IV = 16 bytes
                 // HMACSHA256 = 32 bytes
                 
@@ -199,8 +191,7 @@ namespace PhanMemThiDua2026
                     return false;
                 }
 
-                
-                // Tách:
+// Tách:
                 // [IV][CIPHER][HMAC]
                 
                 const int HMAC_SIZE = 32;
@@ -230,8 +221,7 @@ namespace PhanMemThiDua2026
                   HMAC_SIZE
                 );
 
-                
-                // Verify HMAC trước
+// Verify HMAC trước
                 
                 byte[] computedHmac;
 
@@ -254,8 +244,7 @@ namespace PhanMemThiDua2026
                     return false;
                 }
 
-                
-                // AES
+// AES
                 
                 using Aes aes = Aes.Create();
 
@@ -263,8 +252,7 @@ namespace PhanMemThiDua2026
                 aes.Mode = CipherMode.CBC;
                 aes.Padding = PaddingMode.PKCS7;
 
-                
-                // Đọc IV
+// Đọc IV
                 
                 byte[] iv =
           new byte[aes.BlockSize / 8];
@@ -279,8 +267,7 @@ namespace PhanMemThiDua2026
 
                 aes.IV = iv;
 
-                
-                // Giải mã
+// Giải mã
                 
                 string noiDungGoc;
 
@@ -316,8 +303,7 @@ namespace PhanMemThiDua2026
                     }
                 }
 
-                
-                // Parse & Validate
+// Parse & Validate
                 
                 return ParseAndValidate(
           noiDungGoc,
@@ -374,8 +360,7 @@ namespace PhanMemThiDua2026
                     data[key] = value;
                 }
 
-                
-                // Validate APP
+// Validate APP
                 
                 if (!data.TryGetValue(
           "APP",
@@ -393,8 +378,7 @@ namespace PhanMemThiDua2026
                     return false;
                 }
 
-                
-                // Validate MACHINE
+// Validate MACHINE
                 
                 if (!data.TryGetValue(
           "MACHINE",

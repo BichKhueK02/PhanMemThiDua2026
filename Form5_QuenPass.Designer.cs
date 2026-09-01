@@ -34,16 +34,16 @@
             PictureBox2 = new PictureBox();
             Label1 = new Label();
             Text_MatKhauLayLai = new Krypton.Toolkit.KryptonTextBox();
-            pictureBox1 = new PictureBox();
             TextBox2_TraLoi2 = new Krypton.Toolkit.KryptonTextBox();
             Label8 = new Label();
             ComboBox2_CauHoi2 = new ComboBox();
-            PictureBox4 = new PictureBox();
             TextBox1_TraLoi1 = new Krypton.Toolkit.KryptonTextBox();
             Label7 = new Label();
             ComboBox1_CauHoi1 = new ComboBox();
             Btn_KiemTra = new Krypton.Toolkit.KryptonButton();
             TableLayoutPanel6 = new TableLayoutPanel();
+            label5 = new Label();
+            label4 = new Label();
             TableLayoutPanel1 = new TableLayoutPanel();
             TableLayoutPanel2 = new TableLayoutPanel();
             Text_TenTaiKhoan = new Krypton.Toolkit.KryptonTextBox();
@@ -57,8 +57,6 @@
             groupBox1 = new GroupBox();
             TableLayoutPanel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PictureBox2).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)PictureBox4).BeginInit();
             TableLayoutPanel6.SuspendLayout();
             TableLayoutPanel1.SuspendLayout();
             TableLayoutPanel2.SuspendLayout();
@@ -129,18 +127,6 @@
             Text_MatKhauLayLai.StateCommon.Border.Width = 1;
             Text_MatKhauLayLai.TabIndex = 3;
             // 
-            // pictureBox1
-            // 
-            pictureBox1.Anchor = AnchorStyles.None;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(39, 159);
-            pictureBox1.Margin = new Padding(3, 2, 3, 2);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(38, 20);
-            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox1.TabIndex = 24;
-            pictureBox1.TabStop = false;
-            // 
             // TextBox2_TraLoi2
             // 
             TextBox2_TraLoi2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
@@ -174,18 +160,6 @@
             ComboBox2_CauHoi2.Name = "ComboBox2_CauHoi2";
             ComboBox2_CauHoi2.Size = new Size(358, 25);
             ComboBox2_CauHoi2.TabIndex = 0;
-            // 
-            // PictureBox4
-            // 
-            PictureBox4.Anchor = AnchorStyles.None;
-            PictureBox4.Image = (Image)resources.GetObject("PictureBox4.Image");
-            PictureBox4.Location = new Point(39, 62);
-            PictureBox4.Margin = new Padding(3, 2, 3, 2);
-            PictureBox4.Name = "PictureBox4";
-            PictureBox4.Size = new Size(38, 20);
-            PictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
-            PictureBox4.TabIndex = 21;
-            PictureBox4.TabStop = false;
             // 
             // TextBox1_TraLoi1
             // 
@@ -240,13 +214,13 @@
             TableLayoutPanel6.ColumnCount = 2;
             TableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.166666F));
             TableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 75.8333359F));
+            TableLayoutPanel6.Controls.Add(label5, 0, 3);
+            TableLayoutPanel6.Controls.Add(label4, 0, 1);
             TableLayoutPanel6.Controls.Add(TextBox2_TraLoi2, 1, 3);
             TableLayoutPanel6.Controls.Add(ComboBox2_CauHoi2, 1, 2);
             TableLayoutPanel6.Controls.Add(TextBox1_TraLoi1, 1, 1);
             TableLayoutPanel6.Controls.Add(Label8, 0, 2);
-            TableLayoutPanel6.Controls.Add(pictureBox1, 0, 3);
             TableLayoutPanel6.Controls.Add(Label7, 0, 0);
-            TableLayoutPanel6.Controls.Add(PictureBox4, 0, 1);
             TableLayoutPanel6.Controls.Add(ComboBox1_CauHoi1, 1, 0);
             TableLayoutPanel6.Dock = DockStyle.Fill;
             TableLayoutPanel6.Location = new Point(3, 2);
@@ -259,6 +233,30 @@
             TableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
             TableLayoutPanel6.Size = new Size(480, 195);
             TableLayoutPanel6.TabIndex = 26;
+            // 
+            // label5
+            // 
+            label5.Anchor = AnchorStyles.None;
+            label5.AutoSize = true;
+            label5.Font = new Font("Segoe UI Semilight", 12.096F);
+            label5.ForeColor = Color.Blue;
+            label5.Location = new Point(30, 158);
+            label5.Name = "label5";
+            label5.Size = new Size(56, 23);
+            label5.TabIndex = 28;
+            label5.Text = "Trả lời";
+            // 
+            // label4
+            // 
+            label4.Anchor = AnchorStyles.None;
+            label4.AutoSize = true;
+            label4.Font = new Font("Segoe UI Semilight", 12.096F);
+            label4.ForeColor = Color.Blue;
+            label4.Location = new Point(30, 60);
+            label4.Name = "label4";
+            label4.Size = new Size(56, 23);
+            label4.TabIndex = 27;
+            label4.Text = "Trả lời";
             // 
             // TableLayoutPanel1
             // 
@@ -353,14 +351,14 @@
             // 
             label1_PhienBanPhanMem.Image = (Image)resources.GetObject("label1_PhienBanPhanMem.Image");
             label1_PhienBanPhanMem.Name = "label1_PhienBanPhanMem";
-            label1_PhienBanPhanMem.Size = new Size(143, 21);
-            label1_PhienBanPhanMem.Text = "Viết bởi " + Module_PhienBan.NguoiPhatTrienPhanMem.ToString();
+            label1_PhienBanPhanMem.Size = new Size(243, 21);
+            label1_PhienBanPhanMem.Text = "Viết bởi LeTrungKien và Nhóm phát triển";
             // 
             // toolStripStatusLabel1
             // 
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(118, 21);
-            toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+            toolStripStatusLabel1.Size = new Size(65, 21);
+            toolStripStatusLabel1.Text = "HuongDan";
             // 
             // tableLayoutPanel10
             // 
@@ -420,8 +418,6 @@
             Load += Form5_Load;
             TableLayoutPanel5.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)PictureBox2).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
-            ((System.ComponentModel.ISupportInitialize)PictureBox4).EndInit();
             TableLayoutPanel6.ResumeLayout(false);
             TableLayoutPanel6.PerformLayout();
             TableLayoutPanel1.ResumeLayout(false);
@@ -443,7 +439,6 @@
         internal Label Label1;
         internal Label Label8;
         internal ComboBox ComboBox2_CauHoi2;
-        internal PictureBox PictureBox4;
         internal Label Label7;
         internal ComboBox ComboBox1_CauHoi1;
         internal Krypton.Toolkit.KryptonButton Btn_KiemTra;
@@ -462,7 +457,8 @@
         private TableLayoutPanel tableLayoutPanel10;
         private GroupBox groupBox1;
         internal Label label3;
-        internal PictureBox pictureBox1;
         private ToolStripStatusLabel toolStripStatusLabel1;
+        internal Label label5;
+        internal Label label4;
     }
 }

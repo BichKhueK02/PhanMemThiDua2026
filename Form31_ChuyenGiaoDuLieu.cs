@@ -109,72 +109,7 @@ namespace PhanMemThiDua2026
                 _dangXuLyClickCheckedList = false;
             }
         }
-        //private void checkedListBox1_clb_DanhSachBang_MouseDown(object? sender, MouseEventArgs e)
-        //{
-        //    if (_dangCapNhatCheckedListBox)
-        //        return;
 
-        //    if (_dangXuLyClickCheckedList)
-        //        return;
-
-        //    try
-        //    {
-        //        _dangXuLyClickCheckedList = true;
-
-        //        if (sender is not CheckedListBox clb)
-        //            return;
-
-        //        int index =
-        //            clb.IndexFromPoint(e.Location);
-
-        //        if (index < 0)
-        //            return;
-
-        //        // =============================================
-        //        // KIỂM TRA CLICK VÀO CHECKBOX ?
-        //        // =============================================
-
-        //        Rectangle itemRect =
-        //            clb.GetItemRectangle(index);
-
-        //        Rectangle checkboxRect =
-        //            new Rectangle(
-        //                itemRect.X,
-        //                itemRect.Y,
-        //                20,
-        //                itemRect.Height
-        //            );
-
-        //        bool clickVaoCheckbox =
-        //            checkboxRect.Contains(e.Location);
-
-        //        // =============================================
-        //        // NẾU CLICK VÀO TEXT
-        //        // => TỰ TOGGLE
-        //        // =============================================
-
-        //        if (!clickVaoCheckbox)
-        //        {
-        //            bool dangChecked =
-        //                clb.GetItemChecked(index);
-
-        //            clb.SetItemChecked(
-        //                index,
-        //                !dangChecked
-        //            );
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Debug.WriteLine(
-        //            "[CheckedListBox UX Error] " + ex.Message
-        //        );
-        //    }
-        //    finally
-        //    {
-        //        _dangXuLyClickCheckedList = false;
-        //    }
-        //}
         private void checkedListBox1_clb_DanhSachBang_ItemCheck(
             object? sender,
             ItemCheckEventArgs e

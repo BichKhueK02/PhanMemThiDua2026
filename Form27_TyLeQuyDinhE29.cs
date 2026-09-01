@@ -91,7 +91,6 @@ namespace PhanMemThiDua2026
             InitToolTips();
             SetupStatusStrip();
         }
-        // Hàm Load dữ liệu SQLite lên TextBox và mapping Dictionary
         // Nhớ gọi hàm này trong Constructor (Public Form...) ngay dưới InitializeComponent()
         private void SetupStatusStrip()
         {
@@ -114,11 +113,9 @@ namespace PhanMemThiDua2026
                 // Set lại layout
                 statusStrip1.SuspendLayout();
                 statusStrip1.Items.Clear();
-
                 statusStrip1.Items.Add(toolStripStatusLabel1);
                 statusStrip1.Items.Add(springLabel);
                 statusStrip1.Items.Add(toolStripStatusLabel2);
-
                 statusStrip1.ResumeLayout();
             }
             catch (Exception ex)
@@ -139,10 +136,7 @@ namespace PhanMemThiDua2026
                 toolTip1.SetToolTip(kryptonButton_LuuE29, "Lưu quy định tỷ lệ vào cơ sở dữ liệu");
             }
         }
-
-        // ======================================================
-        // THÊM: BIẾN ĐỂ XÁC ĐỊNH BẢNG THEO CHẾ ĐỘ (TÂN BINH / CBCS)
-        // ======================================================
+        // THÊM: BIẾN ĐỂ XÁC ĐỊNH BẢNG THEO CHẾ ĐỘ (TÂN BINH / CBCS)    
         private string TenBangHienTai
         {
             get
@@ -153,7 +147,6 @@ namespace PhanMemThiDua2026
                     : "QuyDinhTyLe";
             }
         }
-
         private async Task LoadQuyDinhTyLeAsync()
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
@@ -221,7 +214,6 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine(ex);
             }
         }
-
         // Hàm Save dữ liệu từ TextBox về SQLite, chuẩn async + transaction + tối ưu
         // Truyền CancellationToken vào hàm
         private async Task SaveQuyDinhTyLeAsync(CancellationToken ct)
@@ -312,57 +304,79 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
- 
         private async void kryptonButton_LuuE29_Click(object sender, EventArgs e)
-        {
-            if (!kryptonButton_LuuE29.Enabled) return;
-
-            // Khởi tạo mới Token Source cho lần bấm này
-            _ctsLuuDuLieu?.Dispose();
-            _ctsLuuDuLieu = new CancellationTokenSource();
-            var token = _ctsLuuDuLieu.Token;
-
-            string textBanDau = kryptonButton_LuuE29.Values.Text;
-            Image anhBanDau = kryptonButton_LuuE29.Values.Image;
-
-            try
-            {
-                kryptonButton_LuuE29.Enabled = false;
-                kryptonButton_LuuE29.Values.Text = "Đang lưu...";
-                kryptonButton_LuuE29.Values.Image = null;
-
-                HienThiThongBao("Hệ thống đang thực hiện lưu quy định tỷ lệ...", Color.Black);
-
-                await Task.Delay(250, token); // Bỏ token vào Delay để có thể ngắt ngay lập tức
-
-                // Truyền token vào hàm Save
-                await SaveQuyDinhTyLeAsync(token);
-
-                Module_QuyDinhTyLe.ReloadData();
-                OnQuyDinhChanged?.Invoke();
-
-                HienThiThongBao("✔ Đã lưu quy định tỷ lệ thành công!", Color.DarkGreen);
-            }
-            catch (OperationCanceledException)
-            {
-                // Form bị đóng ngang, luồng bị hủy an toàn, không cần làm gì thêm.
-            }
-            catch (Exception ex)
-            {
-                HienThiThongBao("✘ Lỗi lưu quy định tỷ lệ!", Color.Red);
-                MessageBox.Show("Đã xảy ra lỗi khi lưu dữ liệu vào CSDL:\n\n" + ex.Message,
-                                "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                if (!this.IsDisposed) // Chỉ phục hồi nút nếu Form chưa bị hủy
                 {
-                    kryptonButton_LuuE29.Values.Text = textBanDau;
-                    kryptonButton_LuuE29.Values.Image = anhBanDau;
-                    kryptonButton_LuuE29.Enabled = true;
+                    if (!kryptonButton_LuuE29.Enabled)
+                        return;
+
+                    _ctsLuuDuLieu?.Dispose();
+                    _ctsLuuDuLieu = new CancellationTokenSource();
+                    var token = _ctsLuuDuLieu.Token;
+
+                    string textBanDau = kryptonButton_LuuE29.Values.Text;
+                    Image? anhBanDau = kryptonButton_LuuE29.Values.Image;
+
+                    try
+                    {
+                        kryptonButton_LuuE29.Enabled = false;
+                        kryptonButton_LuuE29.Values.Text = "Đang lưu...";
+                        kryptonButton_LuuE29.Values.Image = null;
+
+                        HienThiThongBao(
+                            "Hệ thống đang thực hiện lưu quy định tỷ lệ...",
+                            Color.Black);
+
+                        await Task.Delay(250, token);
+                        await SaveQuyDinhTyLeAsync(token);
+
+                        if (IsDisposed || Disposing)
+                            return;
+
+                        Module_QuyDinhTyLe.ReloadData();
+                        OnQuyDinhChanged?.Invoke();
+
+                        const string thongBao = "✔ Đã lưu quy định tỷ lệ thành công!";
+
+                        HienThiThongBao(thongBao, Color.DarkGreen);
+
+                        Module_NhatKy.GhiNhatKy(
+                            taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
+                            hanhDong: thongBao,
+                            ghiChu: "Thành công");
+
+                        await Task.Delay(500, token);
+
+                        if (!IsDisposed && !Disposing)
+                            Close();
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                    catch (Exception ex)
+                    {
+                        if (IsDisposed || Disposing)
+                            return;
+
+                        HienThiThongBao(
+                            "✘ Lỗi lưu quy định tỷ lệ!",
+                            Color.Red);
+
+                        MessageBox.Show(
+                            "Đã xảy ra lỗi khi lưu dữ liệu vào CSDL:\n\n" + ex.Message,
+                            "Lỗi hệ thống",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        if (!IsDisposed && !Disposing)
+                        {
+                            kryptonButton_LuuE29.Values.Text = textBanDau;
+                            kryptonButton_LuuE29.Values.Image = anhBanDau;
+                            kryptonButton_LuuE29.Enabled = true;
+                        }
+                    }
                 }
-            }
-        }
         private void DoiTenGroupBox()
         {
             try

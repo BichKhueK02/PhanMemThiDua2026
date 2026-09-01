@@ -17,10 +17,8 @@ namespace PhanMemThiDua2026
         private bool _isProcessing = false;
         private bool _isClosingRequested = false;
         private CancellationTokenSource _cts;
-
         // 1. TỐI ƯU UI: Cache control để tránh reflection lookup (Controls.Find) tốn CPU nếu chạy dài hạn
         private Label _lblTrangThai;
-
         // ⭐ CHUẨN ERP: Ghi nhớ trạng thái trong một phiên làm việc (Session - RAM)
         private static bool _daXacNhanResetTrongSession = false;
         private static bool _memLoai1 = false;
@@ -192,11 +190,11 @@ namespace PhanMemThiDua2026
         private HashSet<string> GetKeepList()
         {
             var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (checkBox1_GuiNguyenLoai1.Checked) set.Add("Loại 1");
-            if (checkBox1_GuiNguyenLoai2.Checked) set.Add("Loại 2");
-            if (checkBox1_GuiNguyenLoai3.Checked) set.Add("Loại 3");
-            if (checkBox1_GuiNguyenLoai4.Checked) set.Add("Loại 4");
-            if (checkBox1_GuiNguyenKhongPhanLoai.Checked) set.Add("Không PL");
+            if (checkBox1_GuiNguyenLoai1.Checked) set.Add(Module_HeThong.Loai_1);
+            if (checkBox1_GuiNguyenLoai2.Checked) set.Add(Module_HeThong.Loai_2);
+            if (checkBox1_GuiNguyenLoai3.Checked) set.Add(Module_HeThong.Loai_3);
+            if (checkBox1_GuiNguyenLoai4.Checked) set.Add(Module_HeThong.Loai_4);
+            if (checkBox1_GuiNguyenKhongPhanLoai.Checked) set.Add(Module_HeThong.PL_KHONG_PL);
             return set;
         }
 

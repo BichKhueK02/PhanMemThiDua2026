@@ -55,6 +55,9 @@
             lamMoi_ToolStripMenuItem = new ToolStripMenuItem();
             dongBoDuLieu_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripSeparator();
+            suaThongTin_ToolStripMenuItem = new ToolStripMenuItem();
+            dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem4 = new ToolStripSeparator();
             xuatDuLieu_ToolStripMenuItem = new ToolStripMenuItem();
             nhapDuLieuTuTepExcel_ExcelToolStripMenuItem = new ToolStripMenuItem();
             xemThongKeThiDuaTapThe = new ToolStripMenuItem();
@@ -367,9 +370,9 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, dongBoDuLieu_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieu_ToolStripMenuItem, nhapDuLieuTuTepExcel_ExcelToolStripMenuItem, xemThongKeThiDuaTapThe, tinhPhanLoaiThang_ToolStripMenuItem, toolStripMenuItem2, taoBanSaoLuuTruTheoNamToolStripMenuItem, toolStripMenuItem3, xoaTatCaDuLieu_ToolStripMenuItem, xoaDuLieu_ToolStripMenuItem, xoaDuLieuThiDuaThang_ToolStripMenuItem });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, dongBoDuLieu_ToolStripMenuItem, toolStripMenuItem1, suaThongTin_ToolStripMenuItem, dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem, toolStripMenuItem4, xuatDuLieu_ToolStripMenuItem, nhapDuLieuTuTepExcel_ExcelToolStripMenuItem, xemThongKeThiDuaTapThe, tinhPhanLoaiThang_ToolStripMenuItem, toolStripMenuItem2, taoBanSaoLuuTruTheoNamToolStripMenuItem, toolStripMenuItem3, xoaTatCaDuLieu_ToolStripMenuItem, xoaDuLieu_ToolStripMenuItem, xoaDuLieuThiDuaThang_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(290, 324);
+            contextMenuStrip1.Size = new Size(290, 364);
             // 
             // lamMoi_ToolStripMenuItem
             // 
@@ -393,6 +396,27 @@
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
             toolStripMenuItem1.Size = new Size(286, 6);
+            // 
+            // suaThongTin_ToolStripMenuItem
+            // 
+            suaThongTin_ToolStripMenuItem.Image = (Image)resources.GetObject("suaThongTin_ToolStripMenuItem.Image");
+            suaThongTin_ToolStripMenuItem.Name = "suaThongTin_ToolStripMenuItem";
+            suaThongTin_ToolStripMenuItem.Size = new Size(289, 28);
+            suaThongTin_ToolStripMenuItem.Text = "Sửa thông tin";
+            suaThongTin_ToolStripMenuItem.Click += suaThongTin_ToolStripMenuItem_Click;
+            // 
+            // dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem
+            // 
+            dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Image = (Image)resources.GetObject("dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Image");
+            dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Name = "dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem";
+            dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Size = new Size(289, 28);
+            dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Text = "Đồng bộ kết quả thi đua năm trước";
+            dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Click += dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem4
+            // 
+            toolStripMenuItem4.Name = "toolStripMenuItem4";
+            toolStripMenuItem4.Size = new Size(286, 6);
             // 
             // xuatDuLieu_ToolStripMenuItem
             // 
@@ -541,5 +565,8 @@
         private ToolStripSeparator toolStripMenuItem2;
         private ToolStripSeparator toolStripMenuItem3;
         private ToolStripMenuItem taoBanSaoLuuTruTheoNamToolStripMenuItem;
+        private ToolStripMenuItem suaThongTin_ToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem4;
+        private ToolStripMenuItem dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem;
     }
 }

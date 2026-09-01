@@ -17,7 +17,7 @@ namespace PhanMemThiDua2026
         private readonly Color ThemeColor = Color.FromArgb(41, 128, 185); // Xanh dương
         private readonly Color TrackColor = Color.FromArgb(220, 220, 220); // Xám nhạt
         private readonly Color TextColor = Color.FromArgb(64, 64, 64);     // Xám đậm
-        private readonly Font MessageFont = new Font("Segoe UI", 10F, FontStyle.Regular); // Font chữ thông báo
+        private readonly Font MessageFont = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular); // Font chữ thông báo
 
         // Khai báo hàm API Windows để bo góc Form
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
@@ -127,7 +127,7 @@ namespace PhanMemThiDua2026
 
             // --- VẼ PHẦN TRĂM ---
             string percentText = $"{_currentPercent}%";
-            using (Font percentFont = new Font("Segoe UI", 11F, FontStyle.Bold))
+            using (Font percentFont = new Font(Module_HeThong.TenFontHeThong, 11F, FontStyle.Bold))
             using (Brush percentBrush = new SolidBrush(ThemeColor))
             using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
             {

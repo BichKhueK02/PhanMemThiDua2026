@@ -25,29 +25,33 @@ namespace PhanMemThiDua2026
             this.Shown += Form5_Shown;
             ComboBox1_CauHoi1.HandleCreated += ComboBox_ClearHighlight;
             ComboBox2_CauHoi2.HandleCreated += ComboBox_ClearHighlight;
+            // Cho phép click vào thông tin tác giả trên StatusStrip
+            toolStripStatusLabel1.Click += ToolStripStatusLabel1_Click;
         }
-        private void Form5_Load(object sender, EventArgs e)
+        private void Form5_Load(object? sender, EventArgs e)
         {
+            // 1. CẤU HÌNH CỬA SỔ
             MaximizeBox = false;
+            MinimizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             DoubleBuffered = true;
             AcceptButton = Btn_KiemTra;
+            // Không cho phép thay đổi kích thước StatusStrip
             statusStrip1.SizingGrip = false;
-
-            // ===== 2️⃣ CẤU HÌNH TEXTBOX CHỈ XEM (CHO COPY) =====
+            // 2. CẤU HÌNH CÁC Ô HIỂN THỊ THÔNG TIN
             SetupReadOnlyBox(Text_TenTaiKhoan);
             SetupReadOnlyBox(Text_MatKhauLayLai);
-
-            // ===== 3️⃣ CĂN GIỮA FORM =====
+            // 3. CĂN GIỮA FORM
             CenterFormOnScreen();
-
-            // ===== 4️⃣ KHỞI ĐỘNG PROGRESS =====
+            // 4. KHỞI TẠO THANH TIẾN TRÌNH
             StartProgressBar();
-            label1_PhienBanPhanMem.Text = "Phiên bản: " + Module_PhienBan.SoftwareVersion;
-            // ===== THIẾT LẬP CĂN PHẢI CHO NHÃN TÁC GIẢ =====
-            toolStripStatusLabel1.Text = "Viết bởi " + Module_PhienBan.NguoiPhatTrienPhanMem.ToString();
-            toolStripStatusLabel1.Spring = true; // Chiếm toàn bộ khoảng trống còn lại trên thanh StatusStrip
-            toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleRight; // Đẩy chữ sang mép bên phải
+            // 5. HIỂN THỊ THÔNG TIN PHIÊN BẢN
+            label1_PhienBanPhanMem.Text = $"Phiên bản: {Module_PhienBan.SoftwareVersion}";
+            // 6. CẤU HÌNH NÚT HƯỚNG DẪN TRÊN STATUS STRIP
+            toolStripStatusLabel1.Text = "Hướng dẫn tôi";
+            toolStripStatusLabel1.Spring = true;
+            toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleRight;
+            toolStripStatusLabel1.IsLink = true;
         }
         private void SetupReadOnlyBox(Krypton.Toolkit.KryptonTextBox tb)
         {
@@ -161,8 +165,8 @@ namespace PhanMemThiDua2026
                         if (isDaDangNhap)
                         {
                             // KỊCH BẢN 1: Đang gọi từ Form 12 (Đã vào phần mềm)
-                            MessageBox.Show($"Xác minh thành công!\n\nMật khẩu của bạn là: {matKhau}",
-                                            "Lấy lại mật khẩu",
+                            MessageBox.Show($"Đối chiếu và giải mã thành công!\n\nMật khẩu của bạn là: {matKhau}",
+                                            "Kết quả giải mã",
                                             MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                             try
@@ -178,8 +182,8 @@ namespace PhanMemThiDua2026
                         else
                         {
                             // KỊCH BẢN 2: Đang gọi từ Form 1 (Chưa đăng nhập)
-                            MessageBox.Show($"Xác minh thành công!\n\nMật khẩu của bạn là: {matKhau}\n\nNhấn OK để đăng nhập ngay vào hệ thống.",
-                                            "Giải mã thành công",
+                            MessageBox.Show($"Đối chiếu và giải mã thành công!\n\nMật khẩu của bạn là: {matKhau}\n\nNhấn OK để đăng nhập ngay vào hệ thống.",
+                                            "Kết quả giải mã",
                                             MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                             SessionInfo.TenTaiKhoan = taiKhoan;
@@ -341,27 +345,6 @@ namespace PhanMemThiDua2026
             // Cứ để base.OnFormClosing chạy, WinForms sẽ tự động Hide() form này thay vì Dispose.
             base.OnFormClosing(e);
         }
-
-
-        private void PictureBox2_Click(object sender, EventArgs e)
-        {
-            // Tối ưu chuỗi: Sửa lỗi cú pháp và căn chỉnh ngắt dòng cho vuông vắn giao diện
-            string msgTuChoi = "Kính chào đồng chí!\n\n" +
-                               "Hệ thống nhận thấy đồng chí chưa thực hiện đăng nhập.\n" +
-                               "Vui lòng xác minh qua câu hỏi bảo mật hoặc đăng nhập\n" +
-                               "để xem thông tin.\n\n" +
-                               "Trong trường hợp cần cấp lại quyền hoặc hỗ trợ kỹ thuật,\n" +
-                               "xin vui lòng liên hệ người phát triển:\n\n" +
-                               "  • Admin: TrungKien\n" +
-                               "  • Điện thoại: 0975 287 973\n" +
-                               "  • Email: tramnamcodon535@gmail.com\n\n" +
-                               "Trân trọng!";
-            string tieuDe = "Nếu tôi quên thông tin khôi phục?";
-
-            // Gọi Form ảo chuyên dụng Liên hệ / Cảnh báo
-            HienThiFormAo_LienHe(tieuDe, msgTuChoi);
-        }
-
         /// <summary>
         /// Dựng Form động kế thừa FormAoBase (Chống giật 100%).
         /// Chuyên hiển thị Thông báo Liên hệ hỗ trợ.
@@ -371,7 +354,6 @@ namespace PhanMemThiDua2026
         {
             // Tiêu chuẩn hóa ký tự xuống dòng cho TextBox
             string noiDungChuan = noiDung.Replace("\n", Environment.NewLine);
-
             // ⭐ SỬ DỤNG CLASS FORMAOBASE ĐỂ KÍCH HOẠT CHỐNG GIẬT TẦNG HỆ ĐIỀU HÀNH
             using (var formAo = new FormAoBase())
             {
@@ -398,7 +380,7 @@ namespace PhanMemThiDua2026
                     Dock = DockStyle.Fill,
                     AutoSize = false
                 };
-                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
+                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 13F, System.Drawing.FontStyle.Bold);
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(211, 84, 0);
                 panelTop.Controls.Add(lblTitle);
 
@@ -430,7 +412,7 @@ namespace PhanMemThiDua2026
                 };
                 txtContent.StateCommon.Back.Color1 = System.Drawing.Color.White;
                 txtContent.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.None;
-                txtContent.StateCommon.Content.Font = new System.Drawing.Font("Segoe UI", 11.5F, System.Drawing.FontStyle.Regular);
+                txtContent.StateCommon.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 11.5F, System.Drawing.FontStyle.Regular);
                 txtContent.StateCommon.Content.Color1 = System.Drawing.Color.FromArgb(45, 45, 45);
                 txtContent.StateCommon.Content.Padding = new Padding(0);
 
@@ -449,7 +431,7 @@ namespace PhanMemThiDua2026
                     Width = 190,
                     Height = 42
                 };
-                btnCopy.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Bold);
+                btnCopy.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Bold);
                 btnCopy.StateCommon.Border.Rounding = 6;
                 btnCopy.Click += (s, ev) =>
                 {
@@ -468,7 +450,7 @@ namespace PhanMemThiDua2026
                     Width = 140,
                     Height = 42
                 };
-                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Bold);
+                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Bold);
                 btnClose.StateCommon.Border.Rounding = 6;
 
                 // Căn giữa cụm 2 nút bấm với khoảng cách 20px
@@ -503,6 +485,41 @@ namespace PhanMemThiDua2026
 
                 formAo.ShowDialog(this);
             }
+        }
+        /// <summary>
+        /// Hiển thị thông báo hướng dẫn khi người dùng chưa đăng nhập.
+        /// </summary>
+        private void HienThiThongBaoQuenThongTinKhoiPhuc()
+        {
+            const string tieuDe = "Nếu tôi quên thông tin khôi phục?";
+
+            string msgTuChoi =
+                $"Kính chào {Module_HeThong.Tu_dong_chi} !\n\n" +
+                $"Hệ thống nhận thấy {Module_HeThong.Tu_dong_chi} chưa thực hiện đăng nhập.\n" +
+                "Vui lòng xác minh qua câu hỏi bảo mật hoặc đăng nhập\n" +
+                "để xem thông tin.\n\n" +
+                "Trong trường hợp cần cấp lại quyền hoặc hỗ trợ kỹ thuật,\n" +
+                "xin vui lòng liên hệ người phát triển:\n\n" +
+                "  • Admin: TrungKien\n" +
+                "  • Điện thoại: 0975 287 973\n" +
+                "  • Email: tramnamcodon535@gmail.com\n\n" +
+                "Trân trọng!";
+
+            HienThiFormAo_LienHe(tieuDe, msgTuChoi);
+        }
+        /// <summary>
+        /// Sự kiện khi nhấn vào PictureBox.
+        /// </summary>
+        private void PictureBox2_Click(object? sender, EventArgs e)
+        {
+            HienThiThongBaoQuenThongTinKhoiPhuc();
+        }
+        /// <summary>
+        /// Sự kiện khi nhấn vào ToolStripStatusLabel.
+        /// </summary>
+        private void ToolStripStatusLabel1_Click(object? sender, EventArgs e)
+        {
+            HienThiThongBaoQuenThongTinKhoiPhuc();
         }
     }
 }

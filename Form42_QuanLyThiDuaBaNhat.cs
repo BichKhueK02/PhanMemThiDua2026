@@ -48,6 +48,9 @@ namespace PhanMemThiDua2026
                     : "DanhSachBaNhat";
             }
         }
+        // Cờ kiểm soát tiến trình làm mới dữ liệu
+        private bool _dangLamMoiCSDL = false;
+        private bool _daKhoiTaoToolTip = false;
         public Form42_QuanLyThiDuaBaNhat()
         {
             InitializeComponent();
@@ -102,7 +105,6 @@ namespace PhanMemThiDua2026
         // ========================================================================
         // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
         // ========================================================================
-        private bool _daKhoiTaoToolTip = false;
         private void InitToolTips()
         {
             // Chống gọi lại nhiều lần không cần thiết
@@ -115,7 +117,7 @@ namespace PhanMemThiDua2026
             {
                 // ================= CẤU HÌNH CHUNG =================
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
                 // UX: Phản hồi nhanh – không gây khó chịu
@@ -279,11 +281,11 @@ namespace PhanMemThiDua2026
             string cauThongKe;
             if (soDeNghi > 0)
             {
-                cauThongKe = $"Tổng cộng: {tongCong} đồng chí, được đề nghị biểu dương {soDeNghi} đồng chí.";
+                cauThongKe = $"Tổng cộng: {tongCong} {Module_HeThong.Tu_dong_chi}, được đề nghị biểu dương {soDeNghi} {Module_HeThong.Tu_dong_chi}.";
             }
             else
             {
-                cauThongKe = $"Tổng cộng: {tongCong} đồng chí.";
+                cauThongKe = $"Tổng cộng: {tongCong} {Module_HeThong.Tu_dong_chi}.";
             }
         }
         private void KhoaCacTextBox()
@@ -645,7 +647,7 @@ namespace PhanMemThiDua2026
                     if (dangLoc)
                     {
                         // Nếu ĐANG lọc, hiển thị: Tổng quân số | Kết quả tìm kiếm
-                        toolStripStatusLabel1.Text = $"Tổng quân số: {_tongQuanSoGoc} đồng chí | Kết quả tìm kiếm: {soKetQuaTimKiem} đồng chí";
+                        toolStripStatusLabel1.Text = $"Tổng quân số: {_tongQuanSoGoc} {Module_HeThong.Tu_dong_chi} | Kết quả tìm kiếm: {soKetQuaTimKiem} {Module_HeThong.Tu_dong_chi}";
                         toolStripStatusLabel1.ForeColor = System.Drawing.Color.Blue; // Đổi màu để làm nổi bật trạng thái tìm kiếm (tuỳ chọn)
                     }
                     else
@@ -764,11 +766,11 @@ namespace PhanMemThiDua2026
             }
             else if (soDeNghi == 0)
             {
-                toolStripStatusLabel1.Text = $"Tổng cộng: {tongSoDong} đồng chí.";
+                toolStripStatusLabel1.Text = $"Tổng cộng: {tongSoDong} {Module_HeThong.Tu_dong_chi}.";
             }
             else
             {
-                toolStripStatusLabel1.Text = $"Tổng cộng: {tongSoDong} đồng chí, đề nghị: {soDeNghi} đồng chí.";
+                toolStripStatusLabel1.Text = $"Tổng cộng: {tongSoDong} {Module_HeThong.Tu_dong_chi}, đề nghị: {soDeNghi} {Module_HeThong.Tu_dong_chi}.";
             }
             // THÊM DÒNG NÀY VÀO ĐỂ TÍNH LẠI TỶ LỆ KHI CÓ NGƯỜI MỚI ĐƯỢC CHUYỂN SANG LOẠI 1:
             _ = Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(toolStripStatusLabel2_TyLeBaNhat);
@@ -801,13 +803,13 @@ namespace PhanMemThiDua2026
 
             // ĐỊNH DẠNG FONT & VIỀN
             kryptonDataGridView1.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
-            kryptonDataGridView1.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            kryptonDataGridView1.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9F, System.Drawing.FontStyle.Bold);
             kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 
             kryptonDataGridView1.StateCommon.HeaderRow.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
-            kryptonDataGridView1.StateCommon.HeaderRow.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            kryptonDataGridView1.StateCommon.HeaderRow.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9F, System.Drawing.FontStyle.Bold);
 
-            kryptonDataGridView1.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
+            kryptonDataGridView1.StateCommon.DataCell.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9F, System.Drawing.FontStyle.Regular);
             kryptonDataGridView1.StateCommon.DataCell.Border.Color1 = System.Drawing.Color.FromArgb(224, 224, 224);
             kryptonDataGridView1.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
             kryptonDataGridView1.StateCommon.DataCell.Border.Width = 1;
@@ -1155,8 +1157,6 @@ namespace PhanMemThiDua2026
                 kryptonButton_LuuDataDeNghi.Refresh();
             }
         }
-        // Cờ kiểm soát tiến trình làm mới dữ liệu
-        private bool _dangLamMoiCSDL = false;
         private async void kryptonButton_RefershCSDL_Click(object sender, EventArgs e)
         {
             // Chặn click kép khi đang chạy
@@ -1413,135 +1413,350 @@ namespace PhanMemThiDua2026
             }
         }
         private async void toolStripMenuItem_luuVaoSoVang_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-                await conn.OpenAsync();
-
-                // 1. LẤY TẤT CẢ DỮ LIỆU (KHÔNG LỌC Ở SQL NỮA)
-                //string sqlSelect = "SELECT * FROM DanhSachBaNhat";
-                string sqlSelect = $"SELECT * FROM [{TenBangDanhSachBaNhat}]";
-                DataTable dtTatCa = new DataTable();
-                using (var cmdSelect = new SqliteCommand(sqlSelect, conn))
                 {
-                    using var reader = await cmdSelect.ExecuteReaderAsync();
-                    dtTatCa.Load(reader);
-                }
-
-                // 2. LỌC DỮ LIỆU TRÊN BỘ NHỚ RAM (ĐÃ GIẢI MÃ)
-                List<DataRow> dsDeNghi = new List<DataRow>();
-                foreach (DataRow row in dtTatCa.Rows)
-                {
-                    // Giải mã cột DeNghi để kiểm tra
-                    string rawDeNghi = row["DeNghi"]?.ToString() ?? "";
-                    string decodedDeNghi = string.IsNullOrWhiteSpace(rawDeNghi) ? "" : BaoMatAES.GiaiMa(rawDeNghi).Trim();
-
-                    if (decodedDeNghi.Equals("X", StringComparison.OrdinalIgnoreCase))
+                    try
                     {
-                        dsDeNghi.Add(row);
+                        using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                        await conn.OpenAsync();
+
+                        string sqlSelect = $"SELECT * FROM [{TenBangDanhSachBaNhat}]";
+                        var dtTatCa = new DataTable();
+
+                        using (var cmdSelect = new SqliteCommand(sqlSelect, conn))
+                        using (var reader = await cmdSelect.ExecuteReaderAsync())
+                        {
+                            dtTatCa.Load(reader);
+                        }
+
+                        var dsDeNghi = new List<DataRow>();
+
+                        foreach (DataRow row in dtTatCa.Rows)
+                        {
+                            string rawDeNghi = row["DeNghi"]?.ToString() ?? string.Empty;
+                            string decodedDeNghi = string.IsNullOrWhiteSpace(rawDeNghi)
+                                ? string.Empty
+                                : BaoMatAES.GiaiMa(rawDeNghi).Trim();
+
+                            if (decodedDeNghi.Equals("X", StringComparison.OrdinalIgnoreCase))
+                                dsDeNghi.Add(row);
+                        }
+
+                        int count = dsDeNghi.Count;
+
+                        if (count == 0)
+                        {
+                            MessageBox.Show(
+                                $"Không tìm thấy {Module_HeThong.Tu_dong_chi} nào được đánh dấu 'Đề nghị' (X)!",
+                                "Thông báo",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information);
+                            return;
+                        }
+
+                        var result = MessageBox.Show(
+                            $"Tìm thấy {count:N0} {Module_HeThong.Tu_dong_chi} được đề nghị vào Sổ vàng.\n\n" +
+                            "Bạn có muốn tiếp tục ghi tên vào Sổ vàng?",
+                            "Xác nhận",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+
+                        if (result != DialogResult.Yes)
+                            return;
+
+                        string thangCongNhan;
+
+                        using (var cmdThongTin = conn.CreateCommand())
+                        {
+                            cmdThongTin.CommandText = """
+                        SELECT Thang, Nam
+                        FROM ThongTin
+                        WHERE ID = 1
+                        LIMIT 1;
+                        """;
+
+                            using var readerThongTin = await cmdThongTin.ExecuteReaderAsync();
+
+                            if (!await readerThongTin.ReadAsync())
+                            {
+                                MessageBox.Show(
+                                    "Không tìm thấy thông tin Tháng / Năm trong bảng ThongTin.",
+                                    "Lỗi dữ liệu",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Warning);
+                                return;
+                            }
+
+                            string thangEnc = readerThongTin["Thang"]?.ToString() ?? string.Empty;
+                            string namEnc = readerThongTin["Nam"]?.ToString() ?? string.Empty;
+
+                            string thang;
+                            string nam;
+
+                            try
+                            {
+                                thang = string.IsNullOrWhiteSpace(thangEnc)
+                                    ? string.Empty
+                                    : BaoMatAES.GiaiMa(thangEnc).Trim();
+
+                                nam = string.IsNullOrWhiteSpace(namEnc)
+                                    ? string.Empty
+                                    : BaoMatAES.GiaiMa(namEnc).Trim();
+                            }
+                            catch
+                            {
+                                MessageBox.Show(
+                                    "Không thể giải mã thông tin Tháng / Năm trong bảng ThongTin.",
+                                    "Lỗi dữ liệu",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error);
+                                return;
+                            }
+
+                            if (string.IsNullOrWhiteSpace(thang) ||
+                                string.IsNullOrWhiteSpace(nam))
+                            {
+                                MessageBox.Show(
+                                    "Thông tin Tháng / Năm trong CSDL đang trống hoặc không hợp lệ.",
+                                    "Lỗi dữ liệu",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Warning);
+                                return;
+                            }
+
+                            thangCongNhan = $"{thang}/{nam}";
+                        }
+
+                        string thangCongNhanMaHoa = BaoMatAES.MaHoa(thangCongNhan);
+
+                        int countSuccess = 0;
+
+                        using var transaction = conn.BeginTransaction();
+
+                        try
+                        {
+                            string sqlCheck = $"""
+                        SELECT COUNT(*)
+                        FROM [{TenBangSoVangHienTai}]
+                        WHERE SoHieu = @SoHieu;
+                        """;
+
+                            string sqlUpdate = $"""
+                        UPDATE [{TenBangSoVangHienTai}]
+                        SET
+                            HoVaTen = @HoVaTen,
+                            NamSinh = @NamSinh,
+                            QueQuan = @QueQuan,
+                            NgayVaoCAND = @NgayVaoCAND,
+                            CapBac = @CapBac,
+                            ChucVu = @ChucVu,
+                            DonVi = @DonVi,
+                            PhanLoai = @PhanLoai,
+                            GhiChu = @GhiChu,
+                            ThanhTich = @ThanhTich,
+                            ThangCongNhan = @ThangCongNhan
+                        WHERE SoHieu = @SoHieu;
+                        """;
+
+                            string sqlInsert = $"""
+                        INSERT INTO [{TenBangSoVangHienTai}]
+                        (
+                            STT,
+                            HoVaTen,
+                            SoHieu,
+                            NamSinh,
+                            QueQuan,
+                            NgayVaoCAND,
+                            CapBac,
+                            ChucVu,
+                            DonVi,
+                            PhanLoai,
+                            GhiChu,
+                            ThanhTich,
+                            ThongBaoTrungDoan,
+                            SoTTTrongSo,
+                            ThangCongNhan
+                        )
+                        VALUES
+                        (
+                            (SELECT IFNULL(MAX(STT), 0) + 1
+                             FROM [{TenBangSoVangHienTai}]),
+                            @HoVaTen,
+                            @SoHieu,
+                            @NamSinh,
+                            @QueQuan,
+                            @NgayVaoCAND,
+                            @CapBac,
+                            @ChucVu,
+                            @DonVi,
+                            @PhanLoai,
+                            @GhiChu,
+                            @ThanhTich,
+                            @TB,
+                            @STT,
+                            @ThangCongNhan
+                        );
+                        """;
+
+                            using var cmdCheck = new SqliteCommand(sqlCheck, conn, transaction);
+                            using var cmdUpdate = new SqliteCommand(sqlUpdate, conn, transaction);
+                            using var cmdInsert = new SqliteCommand(sqlInsert, conn, transaction);
+
+                            cmdCheck.Parameters.Add("@SoHieu", SqliteType.Text);
+
+                            cmdUpdate.Parameters.Add("@HoVaTen", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@NamSinh", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@QueQuan", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@NgayVaoCAND", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@CapBac", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@ChucVu", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@DonVi", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@PhanLoai", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@GhiChu", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@ThanhTich", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@ThangCongNhan", SqliteType.Text);
+                            cmdUpdate.Parameters.Add("@SoHieu", SqliteType.Text);
+
+                            cmdInsert.Parameters.Add("@HoVaTen", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@SoHieu", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@NamSinh", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@QueQuan", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@NgayVaoCAND", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@CapBac", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@ChucVu", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@DonVi", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@PhanLoai", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@GhiChu", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@ThanhTich", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@TB", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@STT", SqliteType.Text);
+                            cmdInsert.Parameters.Add("@ThangCongNhan", SqliteType.Text);
+
+                            string giaTriRongMaHoa = BaoMatAES.MaHoa(string.Empty);
+
+                            foreach (DataRow row in dsDeNghi)
+                            {
+                                string soHieuEnc = row["SoHieu"]?.ToString() ?? string.Empty;
+
+                                if (string.IsNullOrWhiteSpace(soHieuEnc))
+                                    continue;
+
+                                cmdCheck.Parameters["@SoHieu"].Value = soHieuEnc;
+
+                                long tonTai = Convert.ToInt64(
+                                    await cmdCheck.ExecuteScalarAsync() ?? 0);
+
+                                if (tonTai > 0)
+                                {
+                                    cmdUpdate.Parameters["@HoVaTen"].Value =
+                                        row["HoVaTen"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@NamSinh"].Value =
+                                        row["NamSinh"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@QueQuan"].Value =
+                                        row["QueQuan"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@NgayVaoCAND"].Value =
+                                        row["NgayVaoCAND"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@CapBac"].Value =
+                                        row["CapBac"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@ChucVu"].Value =
+                                        row["ChucVu"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@DonVi"].Value =
+                                        row["DonVi"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@PhanLoai"].Value =
+                                        row["PhanLoai"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@GhiChu"].Value =
+                                        row["GhiChu"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@ThanhTich"].Value =
+                                        row["ThanhTich"] ?? DBNull.Value;
+                                    cmdUpdate.Parameters["@ThangCongNhan"].Value =
+                                        thangCongNhanMaHoa;
+                                    cmdUpdate.Parameters["@SoHieu"].Value =
+                                        soHieuEnc;
+
+                                    await cmdUpdate.ExecuteNonQueryAsync();
+                                }
+                                else
+                                {
+                                    cmdInsert.Parameters["@HoVaTen"].Value =
+                                        row["HoVaTen"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@SoHieu"].Value =
+                                        soHieuEnc;
+                                    cmdInsert.Parameters["@NamSinh"].Value =
+                                        row["NamSinh"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@QueQuan"].Value =
+                                        row["QueQuan"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@NgayVaoCAND"].Value =
+                                        row["NgayVaoCAND"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@CapBac"].Value =
+                                        row["CapBac"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@ChucVu"].Value =
+                                        row["ChucVu"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@DonVi"].Value =
+                                        row["DonVi"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@PhanLoai"].Value =
+                                        row["PhanLoai"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@GhiChu"].Value =
+                                        row["GhiChu"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@ThanhTich"].Value =
+                                        row["ThanhTich"] ?? DBNull.Value;
+                                    cmdInsert.Parameters["@TB"].Value =
+                                        giaTriRongMaHoa;
+                                    cmdInsert.Parameters["@STT"].Value =
+                                        giaTriRongMaHoa;
+                                    cmdInsert.Parameters["@ThangCongNhan"].Value =
+                                        thangCongNhanMaHoa;
+
+                                    await cmdInsert.ExecuteNonQueryAsync();
+                                }
+
+                                countSuccess++;
+                            }
+
+                            await transaction.CommitAsync();
+                        }
+                        catch
+                        {
+                            try
+                            {
+                                await transaction.RollbackAsync();
+                            }
+                            catch
+                            {
+                            }
+
+                            throw;
+                        }
+
+                        if (toolStripStatusLabel1 != null)
+                        {
+                            toolStripStatusLabel1.Text =
+                                $"Đã chuyển thành công {countSuccess:N0} {Module_HeThong.Tu_dong_chi} " +
+                                $"vào Sổ vàng [{TenBangSoVangHienTai}]!";
+
+                            toolStripStatusLabel1.Owner?.Refresh();
+                        }
+
+                        await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
+
+                        await Task.Delay(800);
+
+                        ThongKeSoLuongBaNhat(false);
+
+                        Module_NhatKy.GhiNhatKy(
+                            "System",
+                            $"Xuất hàng loạt {countSuccess:N0} CBCS vào Sổ vàng " +
+                            $"({TenBangSoVangHienTai}), Tháng công nhận: {thangCongNhan}",
+                            DateTime.Now.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(
+                            "Không thể chuyển dữ liệu vào Sổ vàng.\n\n" +
+                            $"Chi tiết: {ex.Message}",
+                            "Lỗi",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
                     }
                 }
-                // 3. THÔNG BÁO CHO NGƯỜI DÙNG
-                int count = dsDeNghi.Count;
-                if (count == 0)
-                {
-                    MessageBox.Show("Không tìm thấy đồng chí nào được đánh dấu 'Đề nghị' (X)!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                var result = MessageBox.Show(
-                    $"Tìm thấy {count} đồng chí được đề nghị vào Sổ vàng.\nBạn có muốn tiếp tục ghi tên vào Sổ vàng?",
-                    "Xác nhận",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (result != DialogResult.Yes) return;
-
-                // 4. THỰC HIỆN VÒNG LẶP XỬ LÝ
-                int countSuccess = 0;
-                foreach (DataRow row in dsDeNghi)
-                {
-                    // Lấy dữ liệu mã hóa từ dòng đã lọc
-                    string soHieuEnc = row["SoHieu"].ToString();
-
-                    // 🌟 SỬA ĐỊNH TUYẾN 1: Kiểm tra tồn tại trong Sổ vàng bảng động
-                    string sqlCheck = $"SELECT COUNT(*) FROM [{TenBangSoVangHienTai}] WHERE SoHieu = @SoHieu";
-                    using var cmdCheck = new SqliteCommand(sqlCheck, conn);
-                    cmdCheck.Parameters.AddWithValue("@SoHieu", soHieuEnc);
-                    long tonTai = (long)(await cmdCheck.ExecuteScalarAsync() ?? 0);
-
-                    if (tonTai > 0)
-                    {
-                        // 🌟 SỬA ĐỊNH TUYẾN 2: Cập nhật bảng động
-                        string sqlUpdate = $@"UPDATE [{TenBangSoVangHienTai}] SET 
-                            HoVaTen=@HoVaTen, NamSinh=@NamSinh, QueQuan=@QueQuan, NgayVaoCAND=@NgayVaoCAND, 
-                            CapBac=@CapBac, ChucVu=@ChucVu, DonVi=@DonVi, PhanLoai=@PhanLoai, 
-                            GhiChu=@GhiChu, ThanhTich=@ThanhTich 
-                            WHERE SoHieu = @SoHieu";
-
-                        using var cmdUpdate = new SqliteCommand(sqlUpdate, conn);
-                        cmdUpdate.Parameters.AddWithValue("@HoVaTen", row["HoVaTen"]);
-                        cmdUpdate.Parameters.AddWithValue("@NamSinh", row["NamSinh"]);
-                        cmdUpdate.Parameters.AddWithValue("@QueQuan", row["QueQuan"]);
-                        cmdUpdate.Parameters.AddWithValue("@NgayVaoCAND", row["NgayVaoCAND"]);
-                        cmdUpdate.Parameters.AddWithValue("@CapBac", row["CapBac"]);
-                        cmdUpdate.Parameters.AddWithValue("@ChucVu", row["ChucVu"]);
-                        cmdUpdate.Parameters.AddWithValue("@DonVi", row["DonVi"]);
-                        cmdUpdate.Parameters.AddWithValue("@PhanLoai", row["PhanLoai"]);
-                        cmdUpdate.Parameters.AddWithValue("@GhiChu", row["GhiChu"]);
-                        cmdUpdate.Parameters.AddWithValue("@ThanhTich", row["ThanhTich"]);
-                        cmdUpdate.Parameters.AddWithValue("@SoHieu", soHieuEnc);
-                        await cmdUpdate.ExecuteNonQueryAsync();
-                    }
-                    else
-                    {
-                        // 🌟 SỬA ĐỊNH TUYẾN 3: Thêm mới bảng động
-                        string sqlInsert = $@"INSERT INTO [{TenBangSoVangHienTai}] 
-                            (STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan) 
-                            VALUES ((SELECT IFNULL(MAX(STT),0)+1 FROM [{TenBangSoVangHienTai}]), 
-                            @HoVaTen, @SoHieu, @NamSinh, @QueQuan, @NgayVaoCAND, @CapBac, @ChucVu, @DonVi, @PhanLoai, @GhiChu, @ThanhTich, @TB, @STT, @TCN)";
-
-                        using var cmdInsert = new SqliteCommand(sqlInsert, conn);
-                        cmdInsert.Parameters.AddWithValue("@HoVaTen", row["HoVaTen"]);
-                        cmdInsert.Parameters.AddWithValue("@SoHieu", soHieuEnc);
-                        cmdInsert.Parameters.AddWithValue("@NamSinh", row["NamSinh"]);
-                        cmdInsert.Parameters.AddWithValue("@QueQuan", row["QueQuan"]);
-                        cmdInsert.Parameters.AddWithValue("@NgayVaoCAND", row["NgayVaoCAND"]);
-                        cmdInsert.Parameters.AddWithValue("@CapBac", row["CapBac"]);
-                        cmdInsert.Parameters.AddWithValue("@ChucVu", row["ChucVu"]);
-                        cmdInsert.Parameters.AddWithValue("@DonVi", row["DonVi"]);
-                        cmdInsert.Parameters.AddWithValue("@PhanLoai", row["PhanLoai"]);
-                        cmdInsert.Parameters.AddWithValue("@GhiChu", row["GhiChu"]);
-                        cmdInsert.Parameters.AddWithValue("@ThanhTich", row["ThanhTich"]);
-                        cmdInsert.Parameters.AddWithValue("@TB", BaoMatAES.MaHoa(""));
-                        cmdInsert.Parameters.AddWithValue("@STT", BaoMatAES.MaHoa(""));
-                        cmdInsert.Parameters.AddWithValue("@TCN", BaoMatAES.MaHoa(""));
-
-                        await cmdInsert.ExecuteNonQueryAsync();
-                    }
-                    countSuccess++;
-                }
-
-                if (toolStripStatusLabel1 != null)
-                {
-                    toolStripStatusLabel1.Text = $"Đã chuyển thành công {countSuccess} đồng chí vào Sổ vàng [{TenBangSoVangHienTai}]!";
-                    // Ép vẽ lại thanh trạng thái
-                    if (toolStripStatusLabel1.Owner != null)
-                        toolStripStatusLabel1.Owner.Refresh();
-                }
-                await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
-                // Dừng 1.5 giây để người dùng kịp đọc thông báo "Đã lưu thành công"
-                await Task.Delay(800);
-                // Gọi lại hàm thống kê để trả dòng chữ Tổng cộng về bình thường
-                ThongKeSoLuongBaNhat(false);
-                Module_NhatKy.GhiNhatKy("System", $"Xuất hàng loạt {countSuccess} CBCS vào Sổ vàng ({TenBangSoVangHienTai})", DateTime.Now.ToString());
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi: " + ex.Message);
-            }
-        }
         private async void toolStripMenuItem_MoSoVang_Click(object sender, EventArgs e)
         {
             // Tìm Form55 đang bao bọc bên ngoài
@@ -1639,7 +1854,7 @@ namespace PhanMemThiDua2026
                 // Hiển thị thông báo lên Form 42
                 if (toolStripStatusLabel1 != null)
                 {
-                    toolStripStatusLabel1.Text = $"Nhập thành công: {soDongThanhCong} đồng chí vào CSDL hệ thống";
+                    toolStripStatusLabel1.Text = $"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào CSDL hệ thống";
                     if (toolStripStatusLabel1.Owner != null)
                         toolStripStatusLabel1.Owner.Refresh();
                 }
@@ -1800,7 +2015,7 @@ namespace PhanMemThiDua2026
                         using var rd = cmdDem.ExecuteReader();
                         while (rd.Read())
                         {
-                            if (BaoMatAES.GiaiMa(rd["PhanLoai"]?.ToString() ?? "").Trim().Equals("Loại 1", StringComparison.OrdinalIgnoreCase))
+                            if (BaoMatAES.GiaiMa(rd["PhanLoai"]?.ToString() ?? "").Trim().Equals(Module_HeThong.Loai_1, StringComparison.OrdinalIgnoreCase))
                                 tongSoLoai1++;
                         }
                     }
@@ -1842,7 +2057,7 @@ namespace PhanMemThiDua2026
                 if (danhSachDeNghi.Count < soLuongChiTieu)
                 {
                     var dr = MessageBox.Show(
-                        $"Chưa đạt tỷ lệ quy định!\nChỉ tiêu: {soLuongChiTieu} đồng chí ({tyLeQuyDinh}%).\nHiện tại chỉ có: {danhSachDeNghi.Count} đồng chí.\n\nBạn có muốn tiếp tục xuất báo cáo không?",
+                        $"Chưa đạt tỷ lệ quy định!\nChỉ tiêu: {soLuongChiTieu} {Module_HeThong.Tu_dong_chi} ({tyLeQuyDinh}%).\nHiện tại chỉ có: {danhSachDeNghi.Count} đồng chí.\n\nBạn có muốn tiếp tục xuất báo cáo không?",
                         "Cảnh báo tỷ lệ", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
                     if (dr == DialogResult.No) return;
@@ -1977,7 +2192,7 @@ namespace PhanMemThiDua2026
                         {
                             while (rd.Read())
                             {
-                                if (BaoMatAES.GiaiMa(rd["PhanLoai"]?.ToString() ?? "").Trim().Equals("Loại 1", StringComparison.OrdinalIgnoreCase))
+                                if (BaoMatAES.GiaiMa(rd["PhanLoai"]?.ToString() ?? "").Trim().Equals(Module_HeThong.Loai_1, StringComparison.OrdinalIgnoreCase))
                                     tongSoLoai1++;
                             }
                         }
@@ -2073,7 +2288,7 @@ namespace PhanMemThiDua2026
                         }
                         // 5. Chốt danh sách "Tổng cộng" ngay dưới danh sách
                         var rngTongCong = ws.Range(startRow, 1, startRow, 10);
-                        rngTongCong.Merge().Value = $"Tổng cộng: {danhSachDeNghi.Count:00} đồng chí./.";
+                        rngTongCong.Merge().Value = $"Tổng cộng: {danhSachDeNghi.Count:00} {Module_HeThong.Tu_dong_chi}/.";
                         rngTongCong.Style.Font.Bold = true;
                         rngTongCong.Style.Font.Italic = true;
                         rngTongCong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
@@ -2087,16 +2302,16 @@ namespace PhanMemThiDua2026
                         string trangThai = danhSachDeNghi.Count == soLuongChiTieu
                             ? "Đạt tỷ lệ"
                             : (danhSachDeNghi.Count < soLuongChiTieu
-                                ? $"Thiếu {soLuongChiTieu - danhSachDeNghi.Count} đồng chí"
-                                : $"Thừa {danhSachDeNghi.Count - soLuongChiTieu} đồng chí");
+                                ? $"Thiếu {soLuongChiTieu - danhSachDeNghi.Count} {Module_HeThong.Tu_dong_chi}"
+                                : $"Thừa {danhSachDeNghi.Count - soLuongChiTieu} {Module_HeThong.Tu_dong_chi}");
 
                         int rowThongTin = startRow + 2;
                         var cellThongTin = ws.Cell(rowThongTin, 1);
                         ws.Range(rowThongTin, 1, rowThongTin + 5, 10).Merge(); // Gộp một vùng để chứa text
 
-                        cellThongTin.Value = $"Tổng cộng: {tongSoLoai1} đồng chí, đề nghị: {danhSachDeNghi.Count} đồng chí.\n" +
-                                             $"Chỉ tiêu \"Ba nhất\": {tyLeQuyDinh}% = {soLuongChiTieu} đồng chí\n" +
-                                             $"Tỷ lệ hiện tại: {danhSachDeNghi.Count} đồng chí = {tyLeHienTai}%\n" +
+                        cellThongTin.Value = $"Tổng cộng: {tongSoLoai1} {Module_HeThong.Tu_dong_chi}, đề nghị: {danhSachDeNghi.Count} {Module_HeThong.Tu_dong_chi}.\n" +
+                                             $"Chỉ tiêu \"Ba nhất\": {tyLeQuyDinh}% = {soLuongChiTieu} {Module_HeThong.Tu_dong_chi}\n" +
+                                             $"Tỷ lệ hiện tại: {danhSachDeNghi.Count} {Module_HeThong.Tu_dong_chi} = {tyLeHienTai}%\n" +
                                              $"Kết luận: {trangThai}";
                         cellThongTin.Style.Font.Bold = true;
                         cellThongTin.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;

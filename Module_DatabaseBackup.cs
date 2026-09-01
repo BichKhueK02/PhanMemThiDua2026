@@ -116,7 +116,7 @@ namespace PhanMemThiDua2026
             Label lblTitle = new()
             {
                 Text = tieuDe.ToUpperInvariant(),
-                Font = new Font("Segoe UI", 12.5F, FontStyle.Bold),
+                Font = new Font(Module_HeThong.TenFontHeThong, 12.5F, FontStyle.Bold),
                 ForeColor = themeColor,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -132,7 +132,7 @@ namespace PhanMemThiDua2026
                 Dock = DockStyle.Fill,
                 BorderStyle = BorderStyle.None,
                 BackColor = Color.White,
-                Font = new Font("Segoe UI", 10.5F),
+                Font = new Font(Module_HeThong.TenFontHeThong, 10.5F),
                 ReadOnly = true,
                 Margin = new Padding(0),
                 ScrollBars = RichTextBoxScrollBars.Vertical
@@ -155,7 +155,7 @@ namespace PhanMemThiDua2026
                 FlatStyle = FlatStyle.Flat,
                 BackColor = themeColor,
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold)
+                Font = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold)
             };
             btnDong.FlatAppearance.BorderSize = 0;
 
@@ -210,18 +210,18 @@ namespace PhanMemThiDua2026
                 }
 
                 Color textColor = Color.FromArgb(55, 65, 81);
-                Font textFont = new Font("Segoe UI", 10.5F, FontStyle.Regular);
+                Font textFont = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular);
                 string trimmed = line.Trim();
 
                 if (trimmed.StartsWith("✔"))
                 {
                     textColor = Color.FromArgb(21, 115, 71);
-                    textFont = new Font("Segoe UI", 10.5F, FontStyle.Bold);
+                    textFont = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Bold);
                 }
                 else if (trimmed.StartsWith("⚠"))
                 {
                     textColor = Color.FromArgb(211, 47, 47);
-                    textFont = new Font("Segoe UI", 10.5F, FontStyle.Bold);
+                    textFont = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Bold);
                 }
                 else if (trimmed.StartsWith("•"))
                 {
@@ -235,7 +235,7 @@ namespace PhanMemThiDua2026
                 else if (trimmed.EndsWith(":") || trimmed.EndsWith("]:"))
                 {
                     textColor = Color.FromArgb(17, 24, 39);
-                    textFont = new Font("Segoe UI", 11F, FontStyle.Bold);
+                    textFont = new Font(Module_HeThong.TenFontHeThong, 11F, FontStyle.Bold);
                 }
 
                 int startPos = rtb.TextLength;

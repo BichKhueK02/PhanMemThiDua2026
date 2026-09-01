@@ -370,18 +370,18 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
         
         private string ChuyenLoaiSangSo(string v) => v switch
         {
-            "Loại 1" => "1",
-            "Loại 2" => "2",
-            "Loại 3" => "3",
-            "Loại 4" => "4",
+            Module_HeThong.Loai_1 => "1",
+            Module_HeThong.Loai_2 => "2",
+            Module_HeThong.Loai_3 => "3",
+            Module_HeThong.Loai_4 => "4",
             _ => ""
         };
         private string ChuyenTongKetNam(string v) => v switch
         {
-            "Loại 1" => Module_HeThong.PL_CSTD,
-            "Loại 2" => Module_HeThong.PL_CSTT,
-            "Loại 3" => Module_HeThong.PL_HTNV,
-            "Loại 4" => Module_HeThong.PL_KHTNV,
+            Module_HeThong.Loai_1 => Module_HeThong.PL_CSTD,
+            Module_HeThong.Loai_2 => Module_HeThong.PL_CSTT,
+            Module_HeThong.Loai_3 => Module_HeThong.PL_HTNV,
+            Module_HeThong.Loai_4 => Module_HeThong.PL_KHTNV,
             _ => ""
         };
         private string GetTenCotThang(bool laTanBinh)
@@ -425,7 +425,7 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
             toolTip1.AutoPopDelay = 3000;

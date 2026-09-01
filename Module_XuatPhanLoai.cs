@@ -14,7 +14,6 @@ namespace PhanMemThiDua2026
         private static string _tenTrungDoan = "";
         private static string _tenTieuDoan = "";
         private static string _tomTatGhiChu = "";
-        // Biến toàn cục trong module
         public static string LinkLuuDuongDanTepXuat = string.Empty;
         public static string TEN_TRUNG_DOAN => _tenTrungDoan;
         public static string TEN_TIEU_DOAN => _tenTieuDoan;
@@ -158,7 +157,6 @@ namespace PhanMemThiDua2026
         public static int soLuongBCHDLoai3;
         public static int soLuongBCHDLoai4;
         public static int soLuongBCHDKhongPhanLoai;
-
         public static void XuatPhanLoai(string phanLoai, int soThuTuFile)
         {
             try
@@ -252,7 +250,7 @@ namespace PhanMemThiDua2026
                     cellSTT.Value = row - rowStart + 1;
                     cellSTT.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cellSTT.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                    cellSTT.Style.Font.FontName = "Times New Roman";
+                    cellSTT.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     cellSTT.Style.Font.FontSize = 13;
 
                     for (int c = 0; c < cols.Count; c++)
@@ -276,7 +274,7 @@ namespace PhanMemThiDua2026
                         }
 
                         cell.Style.NumberFormat.Format = "@";
-                        cell.Style.Font.FontName = "Times New Roman";
+                        cell.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                         cell.Style.Font.FontSize = 13;
                         cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
@@ -290,7 +288,7 @@ namespace PhanMemThiDua2026
                     string phanLoaiHienThi = BaoMatAES.GiaiMa(phanLoai ?? "").Trim();
                     if (string.IsNullOrEmpty(phanLoaiHienThi)) phanLoaiHienThi = phanLoai ?? "";
                     cellDatLoai.Value = phanLoaiHienThi;
-                    cellDatLoai.Style.Font.FontName = "Times New Roman";
+                    cellDatLoai.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     cellDatLoai.Style.Font.FontSize = 13;
                     cellDatLoai.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cellDatLoai.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -303,10 +301,10 @@ namespace PhanMemThiDua2026
 
                 ws.Range(row, 1, row, 11).Merge();
                 var tong = ws.Cell(row, 1);
-                tong.Value = $"Tổng cộng: {data.Count} đồng chí./.";
+                tong.Value = $"Tổng cộng: {data.Count} {Module_HeThong.Tu_dong_chi}./.";
                 tong.Style.Font.Bold = true;
                 tong.Style.Font.Italic = true;
-                tong.Style.Font.FontName = "Times New Roman";
+                tong.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 tong.Style.Font.FontSize = 14;
                 tong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
@@ -376,7 +374,7 @@ namespace PhanMemThiDua2026
                     ws.Range(dongKy, 6, dongKy, 10).Merge();
                     var c = ws.Cell(dongKy, 6);
                     c.Value = text;
-                    c.Style.Font.Bold = true; c.Style.Font.FontName = "Times New Roman"; c.Style.Font.FontSize = 14;
+                    c.Style.Font.Bold = true; c.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; c.Style.Font.FontSize = 14;
                     c.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     c.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     dongKy++;
@@ -492,24 +490,24 @@ namespace PhanMemThiDua2026
 
                 var cellA1 = ws.Cell("A1");
                 cellA1.Value = string.IsNullOrWhiteSpace(dong1TrungDoan) ? khoangTrang : dong1TrungDoan;
-                cellA1.Style.Font.FontName = "Times New Roman"; cellA1.Style.Font.FontSize = 13;
+                cellA1.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA1.Style.Font.FontSize = 13;
                 cellA1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                 if (!string.IsNullOrWhiteSpace(donviCapTrungDoan))
                 {
                     var cellA2 = ws.Cell("A2"); cellA2.Value = donviCapTrungDoan;
-                    cellA2.Style.Font.FontName = "Times New Roman"; cellA2.Style.Font.FontSize = 13;
+                    cellA2.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA2.Style.Font.FontSize = 13;
                     cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                     var cellA3 = ws.Cell("A3"); cellA3.Value = donviCapTieuDoan;
-                    cellA3.Style.Font.FontName = "Times New Roman"; cellA3.Style.Font.FontSize = 13; cellA3.Style.Font.Bold = true;
+                    cellA3.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA3.Style.Font.FontSize = 13; cellA3.Style.Font.Bold = true;
                     cellA3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     GanGachChan1Phan3(cellA3, donviCapTieuDoan);
                 }
                 else
                 {
-                    var cellA2 = ws.Cell("A2"); cellA2.Value = donviCapTieuDoan;
-                    cellA2.Style.Font.FontName = "Times New Roman"; cellA2.Style.Font.FontSize = 13; cellA2.Style.Font.Bold = true;
+                        var cellA2 = ws.Cell("A2"); cellA2.Value = donviCapTieuDoan;
+                        cellA2.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA2.Style.Font.FontSize = 13; cellA2.Style.Font.Bold = true;
                     cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     GanGachChan1Phan3(cellA2, donviCapTieuDoan);
                     ws.Cell("A3").Value = "";
@@ -551,7 +549,7 @@ namespace PhanMemThiDua2026
                 cellA6.Value = $"CBCS ĐỀ NGHỊ {phanLoaiGiaiMa} TRONG PHONG TRÀO THI ĐUA \"VÌ ANTQ\" {chuoiThoiGian}";
 
                 // 5. Định dạng Cell chuẩn chỉ (Bổ sung Vertical Alignment để không bị lệch khung Excel)
-                cellA6.Style.Font.FontName = "Times New Roman";
+                cellA6.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellA6.Style.Font.FontSize = 14;
                 cellA6.Style.Font.Bold = true;
                 cellA6.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -561,7 +559,7 @@ namespace PhanMemThiDua2026
                 var cellA7 = ws.Cell("A7");
                 cellA7.Clear(XLClearOptions.Contents);
                 var rt = cellA7.GetRichText();
-                rt.AddText("(Kèm theo Báo cáo ").SetFontName("Times New Roman").SetFontSize(14).SetItalic();
+                rt.AddText("(Kèm theo Báo cáo ").SetFontName(Module_HeThong.Font_Times_New_Roman).SetFontSize(14).SetItalic();
 
                 string kyHieuBaoCao = "...............";
                 try
@@ -572,15 +570,15 @@ namespace PhanMemThiDua2026
                 }
                 catch { }
 
-                rt.AddText($"số:            {kyHieuBaoCao}, ngày {ngay}/{thang}/{nam}").SetFontName("Times New Roman").SetFontSize(14).SetItalic().SetUnderline();
+                rt.AddText($"số:            {kyHieuBaoCao}, ngày {ngay}/{thang}/{nam}").SetFontName(Module_HeThong.Font_Times_New_Roman).SetFontSize(14).SetItalic().SetUnderline();
                 string d2HienThi = string.IsNullOrWhiteSpace(donviCapTieuDoan) ? "      " : char.ToUpper(donviCapTieuDoan.ToLower()[0]) + donviCapTieuDoan.ToLower().Substring(1);
-                rt.AddText(" của " + d2HienThi + ")").SetFontName("Times New Roman").SetFontSize(14).SetItalic();
+                rt.AddText(" của " + d2HienThi + ")").SetFontName(Module_HeThong.Font_Times_New_Roman).SetFontSize(14).SetItalic();
                 cellA7.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                 // --- PHẦN E4 (GIỮ NGUYÊN GỐC) ---
                 var cellE4 = ws.Cell("E4");
                 cellE4.Value = $"{diaDiem}, ngày {ngay} tháng {thang} năm {nam}";
-                cellE4.Style.Font.FontName = "Times New Roman"; cellE4.Style.Font.FontSize = 14; cellE4.Style.Font.Italic = true;
+                cellE4.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellE4.Style.Font.FontSize = 14; cellE4.Style.Font.Italic = true;
                 cellE4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 Module_BanQuyen.DongDauExcel(wb);
                 wb.SaveAs(fileDich);
@@ -734,7 +732,7 @@ namespace PhanMemThiDua2026
                 var c = ws.Cell(dongKy, 6);
                 c.Value = text;
                 c.Style.Font.Bold = true;
-                c.Style.Font.FontName = "Times New Roman";
+                c.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 c.Style.Font.FontSize = 14;
                 c.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 c.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -900,7 +898,7 @@ namespace PhanMemThiDua2026
             // ===== A1 : Trung đoàn dòng 1 (LUÔN GHI) =====
             var cellA1 = ws.Cell("A1");
             cellA1.Value = string.IsNullOrWhiteSpace(tenTrungDoanDong1) ? khoangTrang : tenTrungDoanDong1;
-            cellA1.Style.Font.FontName = "Times New Roman";
+            cellA1.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             cellA1.Style.Font.FontSize = 13;
             cellA1.Style.Font.Bold = false;
             cellA1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -912,7 +910,7 @@ namespace PhanMemThiDua2026
                 // ===== A2 : Trung đoàn CSCD (KHÔNG ĐẬM) =====
                 var cellA2 = ws.Cell("A2");
                 cellA2.Value = tenTrungDoanCSCD;
-                cellA2.Style.Font.FontName = "Times New Roman";
+                cellA2.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellA2.Style.Font.FontSize = 13;
                 cellA2.Style.Font.Bold = false;
                 cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -921,7 +919,7 @@ namespace PhanMemThiDua2026
                 // ===== A3 : Tiểu đoàn (IN ĐẬM) =====
                 var cellA3 = ws.Cell("A3");
                 cellA3.Value = tenTieuDoanCSCD;
-                cellA3.Style.Font.FontName = "Times New Roman";
+                cellA3.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellA3.Style.Font.FontSize = 13;
                 cellA3.Style.Font.Bold = true;   // ✅ IN ĐẬM
                 cellA3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -936,7 +934,7 @@ namespace PhanMemThiDua2026
                 // ===== A2 : Tiểu đoàn (IN ĐẬM) =====
                 var cellA2 = ws.Cell("A2");
                 cellA2.Value = tenTieuDoanCSCD;
-                cellA2.Style.Font.FontName = "Times New Roman";
+                cellA2.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellA2.Style.Font.FontSize = 13;
                 cellA2.Style.Font.Bold = true;   // ✅ IN ĐẬM
                 cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -983,7 +981,7 @@ namespace PhanMemThiDua2026
             cellA6.Value = $"CBCS ĐỀ NGHỊ {phanLoaiGiaiMa} TRONG PHONG TRÀO THI ĐUA \"VÌ ANTQ\" {chuoiThoiGian}";
 
             // 5. Định dạng Cell chuẩn chỉ (Bổ sung Vertical Alignment để không bị lệch khung Excel)
-            cellA6.Style.Font.FontName = "Times New Roman";
+            cellA6.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             cellA6.Style.Font.FontSize = 14;
             cellA6.Style.Font.Bold = true;
             cellA6.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -1027,7 +1025,7 @@ namespace PhanMemThiDua2026
             string fullText = phanDau + phanGiua + phanCuoi;
 
             cellA7.Value = fullText;
-            cellA7.Style.Font.FontName = "Times New Roman";
+            cellA7.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             cellA7.Style.Font.FontSize = 14;
             cellA7.Style.Font.Italic = true;
             cellA7.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -1039,7 +1037,7 @@ namespace PhanMemThiDua2026
             // E4:J4
             var cellE4 = ws.Cell("E4");
             cellE4.Value = $"{diaDiem}, ngày {ngay} tháng {thang} năm {nam}";
-            cellE4.Style.Font.FontName = "Times New Roman";
+            cellE4.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             cellE4.Style.Font.FontSize = 14;
             cellE4.Style.Font.Italic = true;
             cellE4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -1061,7 +1059,7 @@ namespace PhanMemThiDua2026
                 cellSTT.Value = row - rowStart + 1;
                 cellSTT.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cellSTT.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                cellSTT.Style.Font.FontName = "Times New Roman";
+                cellSTT.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellSTT.Style.Font.FontSize = 14;
 
                 // ===== CÁC CỘT B → I =====
@@ -1081,7 +1079,7 @@ namespace PhanMemThiDua2026
 
                     cell.Value = val;
                     cell.Style.NumberFormat.Format = "@";
-                    cell.Style.Font.FontName = "Times New Roman";
+                    cell.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     cell.Style.Font.FontSize = 13;
                     cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
@@ -1125,7 +1123,7 @@ namespace PhanMemThiDua2026
                 // Ghi Excel
                 cellDatLoai.Value = phanLoaiHienThi;
 
-                cellDatLoai.Style.Font.FontName = "Times New Roman";
+                cellDatLoai.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellDatLoai.Style.Font.FontSize = 13;
                 cellDatLoai.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cellDatLoai.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -1139,10 +1137,10 @@ namespace PhanMemThiDua2026
             // Tổng cộng
             ws.Range(row, 1, row, 11).Merge();
             var tong = ws.Cell(row, 1);
-            tong.Value = $"Tổng cộng: {data.Count} đồng chí./.";
+            tong.Value = $"Tổng cộng: {data.Count} {Module_HeThong.Tu_dong_chi}./.";
             tong.Style.Font.Bold = true;
             tong.Style.Font.Italic = true;
-            tong.Style.Font.FontName = "Times New Roman";
+            tong.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             tong.Style.Font.FontSize = 14;
             tong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
@@ -1183,7 +1181,7 @@ namespace PhanMemThiDua2026
             int rowEnd = rowStart + listDTO.Count - 1;
             var dataRange = ws.Range(rowStart, 1, rowEnd, 11);
 
-            dataRange.Style.Font.FontName = "Times New Roman";
+            dataRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             dataRange.Style.Font.FontSize = 13;
             dataRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
@@ -1215,10 +1213,10 @@ namespace PhanMemThiDua2026
             int rowTongCong = rowEnd + 1;
             var rangeTong = ws.Range(rowTongCong, 1, rowTongCong, 11);
             rangeTong.Merge();
-            rangeTong.Value = $"Tổng cộng: {listDTO.Count} đồng chí./.";
+            rangeTong.Value = $"Tổng cộng: {listDTO.Count} {Module_HeThong.Tu_dong_chi}./.";
             rangeTong.Style.Font.Bold = true;
             rangeTong.Style.Font.Italic = true;
-            rangeTong.Style.Font.FontName = "Times New Roman";
+            rangeTong.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             rangeTong.Style.Font.FontSize = 14;
             rangeTong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
@@ -1226,10 +1224,10 @@ namespace PhanMemThiDua2026
         }
         public static string GetTenSheet(string pl) => pl switch
         {
-            "Loại 1" => "LOAI_1",
-            "Loại 2" => "LOAI_2",
-            "Loại 3" => "LOAI_3",
-            "Loại 4" => "LOAI_4",
+            Module_HeThong.Loai_1 => "LOAI_1",
+            Module_HeThong.Loai_2 => "LOAI_2",
+            Module_HeThong.Loai_3 => "LOAI_3",
+            Module_HeThong.Loai_4 => "LOAI_4",
             _ => "KHONG_PL"
         };
         private static void FormatCell(IXLWorksheet ws, int row, int colStart, int colEnd)
@@ -1237,7 +1235,7 @@ namespace PhanMemThiDua2026
             for (int c = colStart; c <= colEnd; c++)
             {
                 var cell = ws.Cell(row, c);
-                cell.Style.Font.FontName = "Times New Roman";
+                cell.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cell.Style.Font.FontSize = 13;
                 cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 cell.Style.Alignment.Horizontal = (c == 1 || c == 4) ? XLAlignmentHorizontalValues.Left : XLAlignmentHorizontalValues.Center;
@@ -1448,7 +1446,7 @@ namespace PhanMemThiDua2026
 
             // ===== Format (GIỮ NGUYÊN 100%) =====
             rangeTitle.Style.Font.Bold = true;
-            rangeTitle.Style.Font.FontName = "Times New Roman";
+            rangeTitle.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             rangeTitle.Style.Font.FontSize = 13;
 
             rangeTitle.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -1469,16 +1467,17 @@ namespace PhanMemThiDua2026
                 int tileHienThiText = (tongBCH > 0) ? (int)Math.Round((double)soLuongBCHDLoai1 / tongBCH * 100) : 50;
                 string tenLoaiHienThi = string.IsNullOrEmpty(deNghiRaw) ? "..." : char.ToUpper(deNghiRaw.ToLower()[0]) + deNghiRaw.ToLower().Substring(1);
 
-                // Chuỗi văn bản cấu trúc động hoàn toàn theo kết quả phân bổ thực tế
-                string noiDung = $"Tập thể D2 đạt {tenLoaiHienThi} thì BCH xét {tileHienThiText}% (Loại 1: {soLuongBCHDLoai1} đ/c; Loại 2: {soLuongBCHDLoai2} đ/c; Loại 3: {soLuongBCHDLoai3} đ/c)";
-
+                string noiDung =
+                  $"Tập thể D2 đạt {tenLoaiHienThi} thì BCH xét {tileHienThiText}% " +
+                  $"({Module_HeThong.Loai_1}: {soLuongBCHDLoai1} {Module_HeThong.Tu_dong_chi}; " +
+                  $"{Module_HeThong.Loai_2}: {soLuongBCHDLoai2} {Module_HeThong.Tu_dong_chi}; " +
+                  $"{Module_HeThong.Loai_3}: {soLuongBCHDLoai3} {Module_HeThong.Tu_dong_chi})";
                 ws.Cell(11, 1).Value = noiDung;
-
                 // ================== FORMAT (GIỮ NGUYÊN 100%) ==================
                 var cell = ws.Cell(11, 1);
 
                 cell.Style.Font.Bold = true;
-                cell.Style.Font.FontName = "Times New Roman";
+                cell.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cell.Style.Font.FontSize = 13;
                 cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -1558,7 +1557,7 @@ namespace PhanMemThiDua2026
 
                 // ===== Format =====
                 rangeTitle.Style.Font.Bold = true;
-                rangeTitle.Style.Font.FontName = "Times New Roman";
+                rangeTitle.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 rangeTitle.Style.Font.FontSize = 13;
                 rangeTitle.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 rangeTitle.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -1670,7 +1669,7 @@ namespace PhanMemThiDua2026
                     // ---- Tiêu đề loại ----
                     var rangeLoai = ws.Range(row, 1, row, 7);
                     rangeLoai.Merge();
-                    rangeLoai.Value = $"{Loai(loai)}: {dsTheoLoai.Count} đồng chí";
+                    rangeLoai.Value = $"{Loai(loai)}: {dsTheoLoai.Count} {Module_HeThong.Tu_dong_chi}";
                     rangeLoai.Style.Font.Bold = true;
                     rangeLoai.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     rangeLoai.Style.Fill.BackgroundColor = XLColor.LightGray;
@@ -1723,7 +1722,7 @@ namespace PhanMemThiDua2026
                 // Gộp ô A7:G7
                 var rangeTQS = ws.Range(7, 1, 7, 7);
                 rangeTQS.Merge();
-                rangeTQS.Style.Font.FontName = "Times New Roman";
+                rangeTQS.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 rangeTQS.Style.Font.FontSize = 12;
                 rangeTQS.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 rangeTQS.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -1754,9 +1753,9 @@ namespace PhanMemThiDua2026
                     Module_ThongBao.Loi("Lỗi load thông tin PTLoai từ CSDL:\n" + ex.Message);
                 }
                 string tongQSText = $"Tổng QS {dtTyLe.Rows[0]["KQ Can dat"]} đồng chí (Trong đó: " +
-                                     $"Loại 1 {phanTramL1}% = {dtTyLe.Rows[1]["KQ Can dat"]} đ/c, " +
-                                     $"Loại 2 {phanTramL2}% = {dtTyLe.Rows[2]["KQ Can dat"]} đ/c, " +
-                                     $"Loại 3 {phanTramL3}% = {dtTyLe.Rows[3]["KQ Can dat"]} đ/c)";
+                                     $"{Module_HeThong.Loai_1} {phanTramL1}% = {dtTyLe.Rows[1]["KQ Can dat"]} đ/c, " +
+                                     $"{Module_HeThong.Loai_2} {phanTramL2}% = {dtTyLe.Rows[2]["KQ Can dat"]} đ/c, " +
+                                     $"{Module_HeThong.Loai_3} {phanTramL3}% = {dtTyLe.Rows[3]["KQ Can dat"]} đ/c)";
 
                 rangeTQS.Value = tongQSText;
 
@@ -1772,7 +1771,7 @@ namespace PhanMemThiDua2026
                 var rangeGhiChu = ws.Range(startRow, 1, startRow, 7);
                 rangeGhiChu.Merge();
                 rangeGhiChu.Value = "Ghi chú:";
-                rangeGhiChu.Style.Font.FontName = "Times New Roman";
+                rangeGhiChu.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 rangeGhiChu.Style.Font.FontSize = 12;
                 rangeGhiChu.Style.Font.Bold = true;
                 rangeGhiChu.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
@@ -1800,12 +1799,12 @@ namespace PhanMemThiDua2026
 
                     // Nếu là ID 1, ghép thêm " đồng chí./."
                     if (i == 0)
-                        cellValue += " đồng chí.";
+                        cellValue += $" {Module_HeThong.Tu_dong_chi}.";
                     // Gộp ô A:G
                     var range = ws.Range(startRow, 1, startRow, 7);
                     range.Merge();
                     range.Value = cellValue;
-                    range.Style.Font.FontName = "Times New Roman";
+                    range.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     range.Style.Font.FontSize = 12;
                     range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                     range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -1959,7 +1958,7 @@ namespace PhanMemThiDua2026
                 // Cell A3
                 var cellA1 = ws.Cell("A1");
                 cellA1.Value = $"{donviCapTieuDoan}"; // chắc bạn muốn một giá trị khác thì đổi vào đây
-                cellA1.Style.Font.FontName = "Times New Roman";
+                cellA1.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 cellA1.Style.Font.FontSize = 13;
                 cellA1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cellA1.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -2021,7 +2020,7 @@ namespace PhanMemThiDua2026
                 rangeHeader.Merge();
                 rangeHeader.Value = "DANH SÁCH PHÂN LOẠI CBCS";
                 rangeHeader.Style.Font.Bold = true;
-                rangeHeader.Style.Font.FontName = "Times New Roman";
+                rangeHeader.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 rangeHeader.Style.Font.FontSize = 13;
                 rangeHeader.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 rangeHeader.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -2085,9 +2084,9 @@ namespace PhanMemThiDua2026
                     rangeLoai.Merge();
 
                     // Dùng hàm Loai để viết "LOẠI 1" → "Loại 1"
-                    rangeLoai.Value = $"{Loai(loai)}: {soLuongKhongBCH} đồng chí";
+                    rangeLoai.Value = $"{Loai(loai)}: {soLuongKhongBCH} {Module_HeThong.Tu_dong_chi}";
                     rangeLoai.Style.Font.Bold = true;
-                    rangeLoai.Style.Font.FontName = "Times New Roman";
+                    rangeLoai.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     rangeLoai.Style.Font.FontSize = 13;
                     rangeLoai.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     rangeLoai.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -2187,7 +2186,7 @@ namespace PhanMemThiDua2026
                 // Gộp ô A7:G7
                 var rangeTQS = ws.Range(7, 1, 7, 7);
                 rangeTQS.Merge();
-                rangeTQS.Style.Font.FontName = "Times New Roman";
+                rangeTQS.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 rangeTQS.Style.Font.FontSize = 12;
                 rangeTQS.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 rangeTQS.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -2217,7 +2216,7 @@ namespace PhanMemThiDua2026
                 {
                     Module_ThongBao.Loi("Lỗi load thông tin PTLoai từ CSDL:\n" + ex.Message);
                 }
-                string tongQSText = $"Tổng QS {dtTyLe.Rows[0]["KQ Can dat"]} đồng chí (Trong đó: " +
+                string tongQSText = $"Tổng QS {dtTyLe.Rows[0]["KQ Can dat"]} {Module_HeThong.Tu_dong_chi} (Trong đó: " +
                                      $"Loại 1 {phanTramL1}% = {dtTyLe.Rows[1]["KQ Can dat"]} đ/c, " +
                                      $"Loại 2 {phanTramL2}% = {dtTyLe.Rows[2]["KQ Can dat"]} đ/c, " +
                                      $"Loại 3 {phanTramL3}% = {dtTyLe.Rows[3]["KQ Can dat"]} đ/c)";
@@ -2236,7 +2235,7 @@ namespace PhanMemThiDua2026
                 var rangeGhiChu = ws.Range(startRow, 1, startRow, 7);
                 rangeGhiChu.Merge();
                 rangeGhiChu.Value = "Ghi chú:";
-                rangeGhiChu.Style.Font.FontName = "Times New Roman";
+                rangeGhiChu.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 rangeGhiChu.Style.Font.FontSize = 12;
                 rangeGhiChu.Style.Font.Bold = true;
                 rangeGhiChu.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
@@ -2265,13 +2264,13 @@ namespace PhanMemThiDua2026
 
                     // Nếu là ID 1, ghép thêm " đồng chí./."
                     if (i == 0)
-                        cellValue += " đồng chí.";
+                        cellValue += $" {Module_HeThong.Tu_dong_chi}.";
 
                     // Gộp ô A:G
                     var range = ws.Range(startRow, 1, startRow, 7);
                     range.Merge();
                     range.Value = cellValue;
-                    range.Style.Font.FontName = "Times New Roman";
+                    range.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     range.Style.Font.FontSize = 12;
                     range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                     range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -2370,7 +2369,7 @@ namespace PhanMemThiDua2026
                     .LayPhienBanPhanMem()
                     .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
                 ///==================
-                string[] phanLoaiArr = { "Loại 1", "Loại 2", "Loại 3", "Loại 4", "Không PL" };
+                string[] phanLoaiArr = { Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4, Module_HeThong.PL_KHONG_PL };
                 HashSet<string> usedSheets = new();
 
                 foreach (string pl in phanLoaiArr)
@@ -2645,4 +2644,3 @@ namespace PhanMemThiDua2026
         public string GhiChu { get; set; }
     }
 }
-

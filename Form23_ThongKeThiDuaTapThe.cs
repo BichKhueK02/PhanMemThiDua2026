@@ -50,7 +50,7 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
             // Thời gian hiển thị – UX dễ chịu
@@ -265,11 +265,11 @@ namespace PhanMemThiDua2026
 
             return giaTriChon switch
             {
-                "Loại 1" => "Loại 1",
-                "Loại 2" => "Loại 2",
-                "Loại 3" => "Loại 3",
-                "Loại 4" => "Loại 4",
-                "Không PL" => "Không PL",
+                Module_HeThong.Loai_1 => Module_HeThong.Loai_1,
+                Module_HeThong.Loai_2 => Module_HeThong.Loai_2,
+                Module_HeThong.Loai_3 => Module_HeThong.Loai_3,
+                Module_HeThong.Loai_4 => Module_HeThong.Loai_4,
+                Module_HeThong.PL_KHONG_PL => Module_HeThong.PL_KHONG_PL,
                 _ => string.Empty // Giá trị lạ → bỏ qua an toàn
             };
         }
@@ -374,11 +374,11 @@ VALUES (1);";
                 // ================== 3. MAP NGHIỆP VỤ (DUY NHẤT 1 CHỖ) ==================
                 var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    ["Loại 1"] = DanhHieu_Loai1,
-                    ["Loại 2"] = DanhHieu_Loai2,
-                    ["Loại 3"] = DanhHieu_Loai3,
-                    ["Loại 4"] = DanhHieu_Loai4,
-                    ["Không PL"] = string.Empty
+                    [Module_HeThong.Loai_1] = DanhHieu_Loai1,
+                    [Module_HeThong.Loai_2] = DanhHieu_Loai2,
+                    [Module_HeThong.Loai_3] = DanhHieu_Loai3,
+                    [Module_HeThong.Loai_4] = DanhHieu_Loai4,
+                    [Module_HeThong.PL_KHONG_PL] = string.Empty
                 };
 
                 // ================== 4. TÍNH TOÁN CỘT ==================
@@ -391,7 +391,7 @@ VALUES (1);";
                 titleRange.Value = $"KẾT QUẢ PHÂN LOẠI TẬP THỂ {tenDonVi} NĂM {nam}";
 
                 titleRange.Style.Font.Bold = true;
-                titleRange.Style.Font.FontName = "Times New Roman";
+                titleRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 titleRange.Style.Font.FontSize = 14;
                 titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 titleRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -407,7 +407,7 @@ VALUES (1);";
 
                 var headerRange = ws.Range($"A3:{cotCuoi}3");
                 headerRange.Style.Font.Bold = true;
-                headerRange.Style.Font.FontName = "Times New Roman";
+                headerRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 headerRange.Style.Font.FontSize = 14;
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -465,7 +465,7 @@ VALUES (1);";
 
                 // ================== 9. ĐỊNH DẠNG CHUNG ==================
                 var allRange = ws.Range($"A1:{cotCuoi}4");
-                allRange.Style.Font.FontName = "Times New Roman";
+                allRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 allRange.Style.Font.FontSize = 14;
 
                 allRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;

@@ -5,7 +5,7 @@ namespace PhanMemThiDua2026
     internal static class Module_PhienBan
     {
         // ================= VERSION =================
-        public const string SoftwareVersion = "1.0.151";
+        public const string SoftwareVersion = "1.0.152";
 
         // ================= DATE (GIỮ NGUYÊN CHUỖI GỐC) =================
         public const string NgayThangNamHeThong = "10/8/2026";

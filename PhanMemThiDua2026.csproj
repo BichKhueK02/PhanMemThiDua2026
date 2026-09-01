@@ -8,9 +8,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Resources\ic_PhanMem.ico</ApplicationIcon>
     <StartupObject>PhanMemThiDua2026.Program</StartupObject>
-    <Version>1.0.151</Version>
-    <AssemblyVersion>1.0.151</AssemblyVersion>
-    <FileVersion>1.0.151</FileVersion>
+    <Version>1.0.152</Version>
+    <AssemblyVersion>1.0.152</AssemblyVersion>
+    <FileVersion>1.0.152</FileVersion>
     <Copyright>TrungKien</Copyright>
     <PackageIcon>icon.ico</PackageIcon>
     
@@ -35,9 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ClosedXML" Version="0.105.0" />
-    <PackageReference Include="ExcelDataReader" Version="3.9.0-develop00565" />
-    <PackageReference Include="ExcelDataReader.DataSet" Version="3.8.0" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
+    <PackageReference Include="ExcelDataReader" Version="3.9.0" />
+    <PackageReference Include="ExcelDataReader.DataSet" Version="3.9.0" />
     <PackageReference Include="Krypton.Toolkit" Version="105.26.4.110" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0-preview.3.26207.106" />
     <PackageReference Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" />

@@ -502,7 +502,7 @@
             kryptonButton1_ThanhTichTapThe.TabIndex = 1;
             kryptonButton1_ThanhTichTapThe.Values.DropDownArrowColor = Color.Empty;
             kryptonButton1_ThanhTichTapThe.Values.Image = (Image)resources.GetObject("kryptonButton1_ThanhTichTapThe.Values.Image");
-            kryptonButton1_ThanhTichTapThe.Values.Text = "Thành tích tập thể";
+            kryptonButton1_ThanhTichTapThe.Values.Text = "Thành tích";
             kryptonButton1_ThanhTichTapThe.Click += kryptonButton1_ThanhTichTapThe_Click;
             // 
             // kryptonButton_RefershCSDL

@@ -116,7 +116,7 @@ namespace PhanMemThiDua2026
         }
         private void KhoiTaoGiaTriCombo()
         {
-            string[] loai = { "", "Loại 1", "Loại 2", "Loại 3", "Loại 4" };
+            string[] loai = { "", Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4 };
 
             foreach (var c in _cboMapping.Values)
             {
@@ -143,19 +143,19 @@ namespace PhanMemThiDua2026
 
             switch (cb.Text)
             {
-                case "Loại 1":
+                case Module_HeThong.Loai_1:
                     cb.BackColor = Color.ForestGreen;
                     cb.ForeColor = Color.White;
                     break;
-                case "Loại 2":
+                case Module_HeThong.Loai_2:
                     cb.BackColor = Color.LightGreen;
                     cb.ForeColor = Color.Black;
                     break;
-                case "Loại 3":
+                case Module_HeThong.Loai_3:
                     cb.BackColor = Color.Yellow;
                     cb.ForeColor = Color.Black;
                     break;
-                case "Loại 4":
+                case Module_HeThong.Loai_4:
                     cb.BackColor = Color.Red;
                     cb.ForeColor = Color.White;
                     break;
@@ -221,7 +221,7 @@ namespace PhanMemThiDua2026
         private void HienThiDuLieuLenForm(SqliteDataReader reader)
         {
             string dbHoTen = GiaiMaSafe(reader["HoVaTen"]?.ToString());
-            label1_HoVaTen.Text = "Đồng chí: " + (string.IsNullOrEmpty(dbHoTen) ? _hoTenTimKiem : dbHoTen);
+            label1_HoVaTen.Text = $"{Module_HeThong.Tu_dong_chi}: " + (string.IsNullOrEmpty(dbHoTen) ? _hoTenTimKiem : dbHoTen);
             label1_ID_Tanbinh.Text = "Số hiệu: " + GiaiMaSafe(reader["SoHieu"]?.ToString());
 
             foreach (var item in _cboMapping)

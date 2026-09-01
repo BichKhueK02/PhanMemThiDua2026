@@ -265,7 +265,7 @@ namespace PhanMemThiDua2026
                         cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     }
 
-                    wsEmpty.Style.Font.FontName = "Times New Roman";
+                    wsEmpty.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     wsEmpty.Style.Font.FontSize = 13;
                     wsEmpty.Columns().AdjustToContents();
                     // 👇 GỌI HÀM HELPER TẠI ĐÂY 👇 (Truyền font size 13 cho CBCS)
@@ -301,7 +301,7 @@ namespace PhanMemThiDua2026
 
                 // 1. Định dạng toàn bộ bảng
                 var fullRange = ws.Range(1, 1, danhSach.Count + 1, 11);
-                fullRange.Style.Font.FontName = "Times New Roman";
+                fullRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 fullRange.Style.Font.FontSize = 13;
                 fullRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 fullRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
@@ -381,7 +381,7 @@ namespace PhanMemThiDua2026
                         cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     }
 
-                    wsEmpty.Style.Font.FontName = "Times New Roman";
+                    wsEmpty.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     wsEmpty.Style.Font.FontSize = 14;
                     wsEmpty.Columns().AdjustToContents();
                     // 👇 GỌI HÀM HELPER TẠI ĐÂY 👇 (Truyền font size 13 cho CBCS)
@@ -395,7 +395,7 @@ namespace PhanMemThiDua2026
                 ws.TabColor = XLColor.DarkGreen;
 
                 // Gán font mặc định cho toàn bộ Sheet
-                ws.Style.Font.FontName = "Times New Roman";
+                ws.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 ws.Style.Font.FontSize = 14;
 
                 // 1. GHI TIÊU ĐỀ
@@ -470,14 +470,14 @@ namespace PhanMemThiDua2026
 
             if (laTanBinh)
             {
-                danhSachMau.Add(new object[] { 1, "Nguyễn Văn A (Mẫu)", "(Bỏ trống)", 1996, "Hòa Thuận, An Giang", "'02/" + DateTime.Now.Year, "B2", "CS", "C1, DHL1", "Loại 1", "Đảng viên DB" });
-                danhSachMau.Add(new object[] { 2, "Nguyễn Văn B (Mẫu)", "(Bỏ trống)", 1996, "Hòa Thuận, An Giang", "'02/" + DateTime.Now.Year, "B2", "CS", "C2, DHL1", "Loại 2", "Đảng viên DB" });
-                danhSachMau.Add(new object[] { 3, "Nguyễn Văn C (Mẫu)", "(Bỏ trống)", 1996, "Hòa Thuận, An Giang", "'02/" + DateTime.Now.Year, "B2", "CS", "C3, DHL1", "Loại 3", "" });
+                danhSachMau.Add(new object[] { 1, "Nguyễn Văn A (Mẫu)", "(Bỏ trống)", 1996, "Hòa Thuận, An Giang", "'02/" + DateTime.Now.Year, "B2", "CS", "C1, DHL1", Module_HeThong.Loai_1, "Đảng viên DB" });
+                danhSachMau.Add(new object[] { 2, "Nguyễn Văn B (Mẫu)", "(Bỏ trống)", 1996, "Hòa Thuận, An Giang", "'02/" + DateTime.Now.Year, "B2", "CS", "C2, DHL1", Module_HeThong.Loai_2, "Đảng viên DB" });
+                danhSachMau.Add(new object[] { 3, "Nguyễn Văn C (Mẫu)", "(Bỏ trống)", 1996, "Hòa Thuận, An Giang", "'02/" + DateTime.Now.Year, "B2", "CS", "C3, DHL1", Module_HeThong.Loai_3, "" });
             }
             else
             {
-                danhSachMau.Add(new object[] { 1, "Nguyễn Văn A (Mẫu)", "'123456", 1996, "Hòa Thuận, An Giang", "'02/2016", "U2", "Cán bộ", "TTM,D2", "Loại 1", "Đảng viên DB" });
-                danhSachMau.Add(new object[] { 2, "Nguyễn Văn B (Mẫu)", "'123789", 1997, "Hòa Thuận, An Giang", "'02/2017", "U2", "Cán bộ", "TCT,D2", "Loại 2", "Rớt CAK" });
+                danhSachMau.Add(new object[] { 1, "Nguyễn Văn A (Mẫu)", "'123456", 1996, "Hòa Thuận, An Giang", "'02/2016", "U2", "Cán bộ", "TTM,D2", Module_HeThong.Loai_1, "Đảng viên DB" });
+                danhSachMau.Add(new object[] { 2, "Nguyễn Văn B (Mẫu)", "'123789", 1997, "Hòa Thuận, An Giang", "'02/2017", "U2", "Cán bộ", "TCT,D2", Module_HeThong.Loai_2, "Rớt CAK" });
             }
 
             // 3. Đổ dữ liệu mẫu vào Sheet từ dòng 2
@@ -491,7 +491,7 @@ namespace PhanMemThiDua2026
 
             // 4. Định dạng chung cho vùng A2:K5
             var dataRange = ws.Range(2, 1, 5, 11);
-            dataRange.Style.Font.FontName = "Times New Roman";
+            dataRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             dataRange.Style.Font.FontSize = fontSize;
             dataRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             dataRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -537,7 +537,7 @@ namespace PhanMemThiDua2026
 
             // Cấu hình Font size (14 cho Tân Binh, 13 cho CBCS)
             int fontSize = laTanBinh ? 14 : 13;
-            wsEmpty.Style.Font.FontName = "Times New Roman";
+            wsEmpty.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
             wsEmpty.Style.Font.FontSize = fontSize;
             wsEmpty.Columns().AdjustToContents();
 

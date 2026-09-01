@@ -38,7 +38,7 @@ namespace PhanMemThiDua2026
         private static readonly Font _fontFormAoGrid10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private static readonly Font _fontFormAoGrid10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
         private static readonly Font _fontBtn95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
-        private static readonly Font _fontErrorContent10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
+       // private static readonly Font _fontErrorContent10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         public Form33_KiemTraSucKhoeCSDL()
         {
             InitializeComponent();
@@ -127,7 +127,7 @@ namespace PhanMemThiDua2026
             {
                 // 2. Cấu hình chung
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
                 // Thời gian chờ trước khi hiển thị
                 toolTip1.InitialDelay = 300;
@@ -876,7 +876,7 @@ namespace PhanMemThiDua2026
                 // --- 3. PANEL NÚT ĐÓNG ---
                 var panelBottom = new Panel { Dock = DockStyle.Bottom, Height = 65, BackColor = System.Drawing.Color.WhiteSmoke };
                 var btnClose = new Krypton.Toolkit.KryptonButton { Text = "Đóng", Width = 120, Height = 38, DialogResult = DialogResult.OK };
-                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
+                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
                 btnClose.StateCommon.Border.Rounding = 5;
                 btnClose.Location = new System.Drawing.Point((formAo.Width - btnClose.Width) / 2, 13);
                 panelBottom.Controls.Add(btnClose);
@@ -1288,7 +1288,7 @@ namespace PhanMemThiDua2026
                     int stt = 1;
                     string thuMucCore = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, "CongCuQuanLyCSDL", "CoreDatabaseRepository");
 
-                    for (int i = 1; i <= 15; i++)
+                    for (int i = 1; i <= 12; i++)
                     {
                         string tenFile = $"data{i}";
                         string duongDanFile = Path.Combine(thuMucCore, tenFile);
@@ -1346,7 +1346,7 @@ namespace PhanMemThiDua2026
             // ⭐ SỬ DỤNG LỚP CƠ SỞ FORMAOBASE ĐỂ TẠO GIAO DIỆN NỔI AN TOÀN VÀ TỰ ĐỘNG DISPOSE
             using (var formAo = new FormAoBase())
             {
-                formAo.Text = "Trạng thái Hệ thống";
+                formAo.Text = "Kết quả tra cứu";
                 formAo.Size = new System.Drawing.Size(950, 620); // Nới rộng Form đảm bảo không bao giờ bị cắt chữ
                 formAo.FormBorderStyle = FormBorderStyle.FixedDialog;
                 formAo.MaximizeBox = false;
@@ -1560,5 +1560,4 @@ namespace PhanMemThiDua2026
         public string QuyenGhi { get; set; } = "-";
         public string OTrong { get; set; } = "-";
     }
-
 }

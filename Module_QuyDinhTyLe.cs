@@ -209,7 +209,8 @@ namespace PhanMemThiDua2026
                 DeNghiMapping[$"Loai{idx + 1}_TapThe"] = values;
             }
         }
-        public static int[] GetLoaiTapThe(string key)
+
+public static int[] GetLoaiTapThe(string key)
         {
             if (DeNghiMapping.Count == 0)
                 ReloadData();

@@ -13,21 +13,29 @@ namespace PhanMemThiDua2026
     {
         // 1. Dùng chung Font cho toàn hệ thống
         public const string TenFontHeThong = "Segoe UI";
-
-        // 2. Constants cấu hình CSDL
+        public const string Font_Times_New_Roman = "Times New Roman";
         private const int ID_NAM_HE_THONG = 1;
-
-        // 3. Đường dẫn DB
-        private static string DbPath => Module_DanduongGPS.DuongDanCSDL2;
-
-        // ==========================================
-        // ⭐ 4. KHAI BÁO BIẾN DÙNG CHUNG: PHÂN LOẠI THI ĐUA
-        // ==========================================
+        public const string TT_DANG_CONG_TAC = "Đang công tác";
+        public const string TT_CHUYEN_CONG_TAC = "Chuyển công tác";
+        public const string Tu_Dong_Chi = "Đồng chí";
+        public const string Tu_dong_chi = "đồng chí";
+        public const string Goi_Y_Thao_Tac = "Gợi ý thao tác";
         public const string PL_CSTD = "CSTĐ";
         public const string PL_CSTT = "CSTT";
         public const string PL_HTNV = "HTNV";
         public const string PL_KHTNV = "KHTNV";
         public const string PL_KHONG_PL = "Không PL";
+        public const string Loai_1 = "Loại 1";
+        public const string Loai_2 = "Loại 2";
+        public const string Loai_3 = "Loại 3";
+        public const string Loai_4 = "Loại 4";
+        // Tên cột thực tế trong SQLite
+        public const string COL_LOAI_1 = "Loai_1";
+        public const string COL_LOAI_2 = "Loai_2";
+        public const string COL_LOAI_3 = "Loai_3";
+        public const string COL_LOAI_4 = "Loai_4";
+        public const string Tat_Ca = "Tất cả";
+        private static string DbPath => Module_DanduongGPS.DuongDanCSDL2;
 
         // Mảng chuẩn 5 loại (Dành cho Form46_ThongKeThiDuaNamCu - CSDL Năm)
         public static readonly object[] DanhSach_PhanLoai_Chuan =
@@ -185,13 +193,8 @@ namespace PhanMemThiDua2026
 
             return DateTime.Now.Year;
         }
-
-        // ==========================================
         // 2. Lưu năm hệ thống
-        /// <summary>
         /// Yêu Mèo Cam 🐈
-        /// </summary>
-        // ==========================================
         public static void LuuNamHeThong(int nam)
         {
             // Chặn dữ liệu rác/lỗi từ đầu vào
@@ -219,10 +222,7 @@ namespace PhanMemThiDua2026
                 throw new Exception($"Lỗi gián đoạn khi lưu năm hệ thống: {ex.Message}", ex);
             }
         }
-
-        // ==========================================
         // 3. Lấy danh sách biên độ năm
-        // ==========================================
         public static List<int> LayDanhSachNam(int bienDo = 5)
         {
             int namTrungTam = LayNamHeThong();

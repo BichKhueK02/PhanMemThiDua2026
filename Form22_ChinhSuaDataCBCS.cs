@@ -82,25 +82,25 @@ namespace PhanMemThiDua2026
         /// </summary>
         private void BindHeaderInformation()
         {
-            label1_ID_HoVaTen.Text = $"Đồng chí: {this.HoVaTen}";
+            label1_ID_HoVaTen.Text = $"{Module_HeThong.Tu_Dong_Chi}: {this.HoVaTen}";
             //label_ID_SoHieu.Text = $"Số hiệu CAND: {this.SoHieu}";
             label_ID_SoHieu.Text = this.SoHieu;
         }
         /// <summary>
-        /// Thiết lập logic hiển thị trạng thái công tác (Mặc định: Đang công tác)
+        /// Thiết lập logic hiển thị trạng thái công tác (Mặc định: Đang công tác) Module_HeThong.TT_DANG_CONG_TAC
         /// </summary>
         private void SetStatusDisplay()
         {
-            // Logic: Nếu là "Chuyển công tác" thì hiện thông tin đơn vị cũ, ngược lại mặc định là Đang công tác
+            // Logic: Nếu là "Chuyển công tác" Module_HeThong.TT_CHUYEN_CONG_TAC thì hiện thông tin đơn vị cũ, ngược lại mặc định là Đang công tác
             if (!string.IsNullOrWhiteSpace(TinhTrang) &&
-                TinhTrang.Equals("Chuyển công tác", StringComparison.OrdinalIgnoreCase))
+                TinhTrang.Equals(Module_HeThong.TT_CHUYEN_CONG_TAC, StringComparison.OrdinalIgnoreCase))
             {
                 toolStripLabel1.Text = $"Tình trạng công tác: {TinhTrang} - Đơn vị công tác cũ là {LayTenDonViHienThi(DonVi)}";
             }
             else
             {
-                // ⭐ Đáp ứng yêu cầu: Luôn hiển thị Đang công tác khi mở từ danh sách Form 6
-                toolStripLabel1.Text = "Tình trạng: Đang công tác";
+                // ⭐ Đáp ứng yêu cầu: Luôn hiển thị Module_HeThong.TT_DANG_CONG_TAC khi mở từ danh sách Form 6
+                toolStripLabel1.Text = $"Tình trạng: " + Module_HeThong.TT_DANG_CONG_TAC;
             }
         }
         /// <summary>
@@ -136,7 +136,7 @@ namespace PhanMemThiDua2026
 
 
             if (!string.IsNullOrWhiteSpace(TinhTrang) &&
-                TinhTrang.Equals("Chuyển công tác", StringComparison.OrdinalIgnoreCase))
+                TinhTrang.Equals(Module_HeThong.TT_CHUYEN_CONG_TAC, StringComparison.OrdinalIgnoreCase))
             {
                 toolStripLabel1.Text = $"Tình trạng công tác: {TinhTrang} - Đơn vị công tác cũ là {LayTenDonViHienThi(DonVi)}";
             }
@@ -198,7 +198,7 @@ namespace PhanMemThiDua2026
                 groupBox2_ThongTinThiDuaKhenThuongNamHienTai.Text = $"2. Thông tin thi đua - khen thưởng năm {namHienTai}";
 
                 if (!string.IsNullOrWhiteSpace(TinhTrang) &&
-                    TinhTrang.Equals("Chuyển công tác", StringComparison.OrdinalIgnoreCase))
+                    TinhTrang.Equals(Module_HeThong.TT_CHUYEN_CONG_TAC, StringComparison.OrdinalIgnoreCase))
                 {
                     toolStripLabel1.Text = $"Tình trạng công tác: {TinhTrang} - Đơn vị công tác cũ là {LayTenDonViHienThi(DonVi)}";
                 }
@@ -276,7 +276,7 @@ namespace PhanMemThiDua2026
 
                                 if (!found)
                                 {
-                                    MessageBox.Show($"Chưa có kết quả thi đua của đồng chí mang Số hiệu: {SoHieu} trong cơ sở dữ liệu.", "Chưa có dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    MessageBox.Show($"Chưa có kết quả thi đua của {Module_HeThong.Tu_dong_chi} mang Số hiệu: {SoHieu} trong cơ sở dữ liệu.", "Chưa có dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 }
                             }
                         }

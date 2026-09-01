@@ -7,7 +7,7 @@ namespace PhanMemThiDua2026
 {
     internal static class Module_DanduongGPS
     {
-                // Lê Trung Kiên -  Yêu mèo cam
+        // Lê Trung Kiên -  Yêu mèo cam
         public static readonly string ThuMucCoSoDuLieu = Path.Combine(AppContext.BaseDirectory, "Database");
         // Đường dẫn toàn cục của thư mục lịch sử thi đua năm
         public static string ThuMucLichSuThiDua => Path.Combine(ThuMucCoSoDuLieu, "LuuTruThiDua_LichSu");
@@ -20,6 +20,13 @@ namespace PhanMemThiDua2026
         public static string FileHuongDanIndex => Path.Combine(ThuMucHuongDan, "HuongDanSuDung.html");
         public static string TenDangNhapMacDinh { get; private set; } = string.Empty;
         public static string MatKhauDangNhapMacDinh { get; private set; } = string.Empty;
+        // CÔNG CỤ QUẢN LÝ CSDL
+        public const string TenThuMucCongCuQuanLyCSDL = "CongCuQuanLyCSDL";
+        public const string TenFileDBBrowserSQLite = "DB Browser for SQLite.exe";
+        public static string ThuMucCongCuQuanLyCSDL => Path.Combine(ThuMucCoSoDuLieu, TenThuMucCongCuQuanLyCSDL);
+        public static string ThuMucDatabaseBackup => Path.Combine(AppContext.BaseDirectory, "Database Backup");
+        public static string ThuMucBackupCongCuQuanLyCSDL => Path.Combine(ThuMucDatabaseBackup, TenThuMucCongCuQuanLyCSDL);
+        public static string DuongDanDBBrowserSQLite => Path.Combine(ThuMucCongCuQuanLyCSDL, TenFileDBBrowserSQLite);
         // BIẾN CHỨA KEY BASE64 VÀ GIÁ TRỊ GỐC CUỐI CÙNG
         public static string ToiCanChuIVMeoCam1_KeyMaHoa = string.Empty;
         public static string ToiCanChuIVMeoCam2_KeyMaHoa = string.Empty;
@@ -263,6 +270,7 @@ namespace PhanMemThiDua2026
     }
     internal static class Module_TaiKhoan
     {
+
         public static string TenTaiKhoan_RAM = string.Empty;
         public static string MatKhau_RAM = string.Empty;
         public static bool NapTaiKhoanTuCSDL(int id = 1)
@@ -389,6 +397,12 @@ namespace PhanMemThiDua2026
             catch { return "Không xác định"; }
         }
         /// <summary>
-   
+        public static event EventHandler? OnPhienBanThayDoi;
+
+        // Hàm hỗ trợ kích hoạt sự kiện
+        public static void ThongBaoPhienBanThayDoi()
+        {
+            OnPhienBanThayDoi?.Invoke(null, EventArgs.Empty);
+        }
     }
 }

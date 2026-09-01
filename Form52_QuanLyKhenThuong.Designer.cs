@@ -37,6 +37,7 @@
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu = new ToolStripMenuItem();
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu = new ToolStripMenuItem();
             panelContent = new Panel();
+            toolStripMenuItem1 = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -44,7 +45,7 @@
             // 
             menuStrip1.BackColor = Color.FromArgb(192, 192, 255);
             menuStrip1.Font = new Font("Segoe UI", 9F);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { quanLyKhenThuongNamHienTai_ToolStripMenuItem, quanLyKhenThuongNamCu_ToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { quanLyKhenThuongNamHienTai_ToolStripMenuItem, toolStripMenuItem1, quanLyKhenThuongNamCu_ToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1264, 29);
@@ -113,6 +114,12 @@
             panelContent.Size = new Size(1264, 652);
             panelContent.TabIndex = 1;
             // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(22, 25);
+            toolStripMenuItem1.Text = "|";
+            // 
             // Form52_QuanLyKhenThuong
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -140,5 +147,6 @@
         private ToolStripMenuItem toolStripMenuItem_QuanLyKhenThuongCBCSNamCu;
         private ToolStripMenuItem toolStripMenuItem_QuanLyKhenThuongTapTheNamCu;
         private Panel panelContent;
+        private ToolStripMenuItem toolStripMenuItem1;
     }
 }

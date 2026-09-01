@@ -196,10 +196,10 @@
             // 
             btn_Thoat.Anchor = AnchorStyles.None;
             btn_Thoat.DialogResult = DialogResult.TryAgain;
-            btn_Thoat.Location = new Point(52, 23);
+            btn_Thoat.Location = new Point(42, 23);
             btn_Thoat.Margin = new Padding(3, 2, 3, 2);
             btn_Thoat.Name = "btn_Thoat";
-            btn_Thoat.Size = new Size(110, 32);
+            btn_Thoat.Size = new Size(130, 32);
             btn_Thoat.StateCommon.Border.Rounding = 4F;
             btn_Thoat.StateTracking.Back.Color1 = Color.FromArgb(255, 128, 255);
             btn_Thoat.StateTracking.Back.Color2 = Color.FromArgb(255, 128, 255);
@@ -213,10 +213,10 @@
             // 
             btn_DangNhap.Anchor = AnchorStyles.None;
             btn_DangNhap.DialogResult = DialogResult.TryAgain;
-            btn_DangNhap.Location = new Point(267, 23);
+            btn_DangNhap.Location = new Point(257, 23);
             btn_DangNhap.Margin = new Padding(3, 2, 3, 2);
             btn_DangNhap.Name = "btn_DangNhap";
-            btn_DangNhap.Size = new Size(110, 32);
+            btn_DangNhap.Size = new Size(130, 32);
             btn_DangNhap.StateCommon.Border.Rounding = 4F;
             btn_DangNhap.StateTracking.Back.Color1 = Color.FromArgb(192, 255, 192);
             btn_DangNhap.StateTracking.Back.Color2 = Color.FromArgb(192, 255, 192);

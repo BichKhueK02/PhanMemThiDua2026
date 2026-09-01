@@ -6,7 +6,6 @@ namespace PhanMemThiDua2026
     {
         private Form15_ThongKeThiDua _formCha;
         private string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
-
         public Form37_XoaThongKeNangCao(Form15_ThongKeThiDua parent)
         {
             InitializeComponent();
@@ -14,7 +13,6 @@ namespace PhanMemThiDua2026
             this.MaximizeBox = false; // Mờ nút Phóng to (Maximize) trên thanh tiêu đề
             this.FormBorderStyle = FormBorderStyle.FixedSingle; // Khóa viền, ngăn dùng chuột kéo giãn Form
         }
-
         private void Form37_XoaThongKeNangCao_Load(object sender, EventArgs e)
         {
             ThietLapGiaoDienTheoPhienBan();
@@ -27,10 +25,8 @@ namespace PhanMemThiDua2026
             bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             string loaiDoiTuong = laTanBinh ? "tân binh" : "CBCS";
             string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
-
             // 2. Đếm số lượng thực tế từ Database
             int tong = 0, dangCongTac = 0, chuyenCongTac = 0;
-
             try
             {
                 using (var conn = new SqliteConnection($"Data Source={_csdl4Path}"))
@@ -55,19 +51,13 @@ namespace PhanMemThiDua2026
                 btn_XoaDuLieuThongKe.Enabled = false;
                 return;
             }
-
             // 3. Gán Text cho các RadioButton để hiện rõ số lượng
-            radioButton1_XoaTatCaDuLieuThongKe.Text = $"Xóa tất cả dữ liệu ({tong} đồng chí {loaiDoiTuong})";
-            radioButton2_XoaCBCSDangCongTac.Text = $"Xóa danh sách đang công tác ({dangCongTac} đ/c {loaiDoiTuong})";
-            radioButton3_XoaCBCSChuyenCongTac.Text = $"Xóa danh sách chuyển công tác ({chuyenCongTac} đ/c {loaiDoiTuong})";
-
-            // ========================================================
+            radioButton1_XoaTatCaDuLieuThongKe.Text = $"Xóa tất cả dữ liệu ({tong} {Module_HeThong.Tu_dong_chi} {loaiDoiTuong})";
+            radioButton2_XoaCBCSDangCongTac.Text = $"Xóa danh sách đang công tác ({dangCongTac} {Module_HeThong.Tu_dong_chi} {loaiDoiTuong})";
+            radioButton3_XoaCBCSChuyenCongTac.Text = $"Xóa danh sách chuyển công tác ({chuyenCongTac} {Module_HeThong.Tu_dong_chi} {loaiDoiTuong})";
             // 4. 🔥 LOGIC UX MỚI THEO YÊU CẦU
-            // ========================================================
-
             // Luôn luôn hiển thị "Xóa tất cả" nếu có dữ liệu
             radioButton1_XoaTatCaDuLieuThongKe.Visible = (tong > 0);
-
             // Kịch bản: Cả 2 loại tình trạng đều > 0 (Có cả người Đang công tác và Chuyển công tác)
             if (dangCongTac > 0 && chuyenCongTac > 0)
             {
@@ -91,17 +81,13 @@ namespace PhanMemThiDua2026
                     radioButton1_XoaTatCaDuLieuThongKe.Checked = true;
                 }
             }
-
-            // ========================================================
             // 5. Khóa nút nếu không có dữ liệu
-            // ========================================================
             btn_XoaDuLieuThongKe.Enabled = (tong > 0);
             if (tong == 0)
             {
                 btn_XoaDuLieuThongKe.Text = "Không có dữ liệu để xóa";
             }
         }
-
         private async void btn_XoaDuLieuThongKe_Click(object sender, EventArgs e)
         {
             // 1. Kiểm tra an toàn: Phải có ít nhất 1 RadioButton hiển thị và được chọn

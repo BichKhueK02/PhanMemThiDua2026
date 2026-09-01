@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.VisualBasic.Devices; // 🌟 Thêm thư viện này để dùng ComputerInfo (An toàn 100% với Antivirus)
-
 namespace PhanMemThiDua2026
 {
     internal static class Module_TrangThaiHeThong
@@ -19,10 +18,8 @@ namespace PhanMemThiDua2026
         // ================== BỘ NHỚ ĐỆM & TÀI NGUYÊN DÙNG CHUNG ==================
         private static readonly ToolTip _sharedToolTip = new ToolTip { AutoPopDelay = 10000, InitialDelay = 500, ReshowDelay = 100, ShowAlways = true };
         private static string _cachedCpuName = string.Empty;
-
         // Đã xóa bỏ Struct MEMORYSTATUSEX và [DllImport("kernel32.dll")] để tránh bị EDR bắt nhầm
-
-        public static void CapNhatStatusCSDL(StatusStrip status, ToolStripStatusLabel label)
+       public static void CapNhatStatusCSDL(StatusStrip status, ToolStripStatusLabel label)
         {
             if (status == null || label == null || status.IsDisposed || label.IsDisposed)
             {
@@ -75,7 +72,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"CapNhatStatusCSDL Error: {ex}");
             }
         }
-
         public static string LayUUIDMayTinh()
         {
             try
@@ -89,7 +85,6 @@ namespace PhanMemThiDua2026
             }
             catch { return $"SYS-{Environment.MachineName}"; }
         }
-
         public static void MoFormNhungVaoPanel(Form formHienTai)
         {
             Panel? panelContainer = formHienTai.Parent as Panel;
@@ -114,7 +109,6 @@ namespace PhanMemThiDua2026
             fTask.Show();
             fTask.BringToFront();
         }
-
         public static void NhungFormVaoTabPage(Control targetContainer)
         {
             if (targetContainer == null) return;
@@ -135,7 +129,6 @@ namespace PhanMemThiDua2026
             fTask.Show();
             fTask.BringToFront();
         }
-
         // ================== CÁC HÀM TRUY VẤN ==================
         private static string LayUngDungDocExcel()
         {
@@ -173,7 +166,6 @@ namespace PhanMemThiDua2026
                 return "Không thể xác định (Khóa quyền truy cập Registry)";
             }
         }
-
         private static string GetCpuName()
         {
             if (!string.IsNullOrWhiteSpace(_cachedCpuName))
@@ -190,13 +182,11 @@ namespace PhanMemThiDua2026
 
             return _cachedCpuName;
         }
-
         private static string LayDotNetRuntime()
         {
             try { return RuntimeInformation.FrameworkDescription; }
             catch { return ".NET Unknown"; }
         }
-
         private static string LayWindowsVersionChiTiet()
         {
             try
@@ -205,7 +195,6 @@ namespace PhanMemThiDua2026
             }
             catch { return Environment.OSVersion.ToString(); }
         }
-
         private static string LayTrangThaiUAC()
         {
             try
@@ -219,7 +208,21 @@ namespace PhanMemThiDua2026
             }
             catch { return "Không xác định"; }
         }
+        public static string LayLoaiMayTinh()
+        {
+            try
+            {
+                PowerStatus powerStatus = SystemInformation.PowerStatus;
 
+                return powerStatus.BatteryChargeStatus == BatteryChargeStatus.NoSystemBattery
+                    ? "Máy bàn"
+                    : "Laptop";
+            }
+            catch
+            {
+                return "Không xác định";
+            }
+        }
         // =========================================================================================
         // 🌟 CUSTOM CONTROL: Chống nháy (Flickering) An Toàn, không dùng Reflection
         // =========================================================================================
@@ -232,7 +235,6 @@ namespace PhanMemThiDua2026
                 this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
             }
         }
-
         private class SmoothListView : ListView
         {
             public SmoothListView()
@@ -241,7 +243,6 @@ namespace PhanMemThiDua2026
                 this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
             }
         }
-
         // =========================================================================================
         // 🚀 FORM NỘI BỘ (COMPACT WIDGET LAYOUT)
         // =========================================================================================
@@ -290,7 +291,7 @@ namespace PhanMemThiDua2026
                 this.MinimumSize = new Size(950, 550);
                 this.StartPosition = FormStartPosition.CenterScreen;
                 this.BackColor = Color.FromArgb(245, 246, 250);
-                this.Font = new System.Drawing.Font("Segoe UI", 10F);
+                this.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F);
                 this.ShowIcon = false;
 
                 SplitContainer split = new SplitContainer
@@ -311,16 +312,16 @@ namespace PhanMemThiDua2026
 
                 // CỤM RAM
                 Label lblRamTitle = new Label { Text = "RAM MÁY TÍNH", Font = new System.Drawing.Font("Segoe UI Semibold", 9F), ForeColor = Color.DarkGray, AutoSize = false, Size = new Size(safeWidth, 20), Location = new Point(leftPadding, 30), TextAlign = ContentAlignment.BottomLeft };
-                lblSysRamPercent = new Label { Text = "0%", Font = new System.Drawing.Font("Segoe UI", 32F, System.Drawing.FontStyle.Bold), ForeColor = Color.FromArgb(45, 52, 54), AutoSize = false, Size = new Size(safeWidth, 60), Location = new Point(leftPadding - 3, 55), TextAlign = ContentAlignment.MiddleLeft };
-                lblSysRamDetail = new Label { Text = "0,0 / 0,0 GB", Font = new System.Drawing.Font("Segoe UI", 10F), ForeColor = Color.FromArgb(127, 140, 141), AutoSize = false, Size = new Size(safeWidth, 25), Location = new Point(leftPadding, 115), TextAlign = ContentAlignment.MiddleLeft };
+                lblSysRamPercent = new Label { Text = "0%", Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 32F, System.Drawing.FontStyle.Bold), ForeColor = Color.FromArgb(45, 52, 54), AutoSize = false, Size = new Size(safeWidth, 60), Location = new Point(leftPadding - 3, 55), TextAlign = ContentAlignment.MiddleLeft };
+                lblSysRamDetail = new Label { Text = "0,0 / 0,0 GB", Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F), ForeColor = Color.FromArgb(127, 140, 141), AutoSize = false, Size = new Size(safeWidth, 25), Location = new Point(leftPadding, 115), TextAlign = ContentAlignment.MiddleLeft };
 
                 pnlSysRamBar = new SmoothPanel { Height = 10, Location = new Point(leftPadding, 145), Width = 230, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
                 pnlSysRamBar.Paint += (s, e) => DrawFlatProgressBar(e.Graphics, pnlSysRamBar.ClientRectangle, _bgSysRamPercent, false);
 
                 // CỤM APP
                 Label lblAppTitle = new Label { Text = "APP ĐANG CHIẾM", Font = new System.Drawing.Font("Segoe UI Semibold", 9F), ForeColor = Color.DarkGray, AutoSize = false, Size = new Size(safeWidth, 20), Location = new Point(leftPadding, 210), TextAlign = ContentAlignment.BottomLeft };
-                lblAppRamPercent = new Label { Text = "0%", Font = new System.Drawing.Font("Segoe UI", 32F, System.Drawing.FontStyle.Bold), ForeColor = Color.FromArgb(45, 52, 54), AutoSize = false, Size = new Size(safeWidth, 60), Location = new Point(leftPadding - 3, 235), TextAlign = ContentAlignment.MiddleLeft };
-                lblAppRamDetail = new Label { Text = "0 MB", Font = new System.Drawing.Font("Segoe UI", 10F), ForeColor = Color.FromArgb(127, 140, 141), AutoSize = false, Size = new Size(safeWidth, 25), Location = new Point(leftPadding, 295), TextAlign = ContentAlignment.MiddleLeft };
+                lblAppRamPercent = new Label { Text = "0%", Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 32F, System.Drawing.FontStyle.Bold), ForeColor = Color.FromArgb(45, 52, 54), AutoSize = false, Size = new Size(safeWidth, 60), Location = new Point(leftPadding - 3, 235), TextAlign = ContentAlignment.MiddleLeft };
+                lblAppRamDetail = new Label { Text = "0 MB", Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F), ForeColor = Color.FromArgb(127, 140, 141), AutoSize = false, Size = new Size(safeWidth, 25), Location = new Point(leftPadding, 295), TextAlign = ContentAlignment.MiddleLeft };
 
                 pnlAppRamBar = new SmoothPanel { Height = 10, Location = new Point(leftPadding, 325), Width = 230, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
                 pnlAppRamBar.Paint += (s, e) => DrawFlatProgressBar(e.Graphics, pnlAppRamBar.ClientRectangle, _bgAppRamPercent, true);
@@ -337,7 +338,7 @@ namespace PhanMemThiDua2026
                     GridLines = true,
                     HeaderStyle = ColumnHeaderStyle.Nonclickable,
                     BorderStyle = BorderStyle.None,
-                    Font = new System.Drawing.Font("Segoe UI", 10F),
+                    Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F),
                     BackColor = Color.White
                 };
 
@@ -362,7 +363,7 @@ namespace PhanMemThiDua2026
                     BackColor = Color.FromArgb(9, 132, 227),
                     ForeColor = Color.White,
                     FlatStyle = FlatStyle.Flat,
-                    Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold),
+                    Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F, System.Drawing.FontStyle.Bold),
                     Cursor = Cursors.Hand
                 };
                 btnExport.FlatAppearance.BorderSize = 0;

@@ -3,9 +3,7 @@
     public static class Module_ThoatAnToan
     {
         private static bool isExiting = false; // Tránh gọi nhiều lần
-        /// <summary>
         /// Kích hoạt ESC cho Form
-        /// </summary>
         public static void KichHoatESC(Form frm)
         {
             if (frm == null) return;
@@ -49,9 +47,6 @@
                 }
             }
         }
-        /// <summary>
-        /// Thoát phần mềm an toàn
-        /// </summary>
         public static void ThoatAnToan()
         {
             try
@@ -68,11 +63,8 @@
                 Application.Exit();
             }
         }
-        #region Private helper để tránh thêm handler nhiều lần
         private static readonly HashSet<Form> registeredForms = new();
-
         private static bool isHandlerRegistered(Form frm) => registeredForms.Contains(frm);
         private static void MarkHandlerRegistered(Form frm) => registeredForms.Add(frm);
-        #endregion
     }
 }

@@ -27,8 +27,7 @@ namespace PhanMemThiDua2026
             comboBox1_ChonThangCanXuat.SelectedIndexChanged += comboBox1_ChonThangCanXuat_SelectedIndexChanged;
             InitToolTips();
         }
-
-        private void Form54_ThongKeThiDuaTapTheNamCu_Load(object sender, EventArgs e)
+        private void Form54_ThongKeThiDuaTapTheNamCu_Load(object? sender, EventArgs e)
         {
             this.CenterToScreen();
             this.MaximizeBox = false;
@@ -40,34 +39,29 @@ namespace PhanMemThiDua2026
             if (toolTip1 == null) return;
 
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
             toolTip1.InitialDelay = 300;
             toolTip1.AutoPopDelay = 2000;
             toolTip1.ReshowDelay = 100;
             toolTip1.ShowAlways = true;
-
-            var tips = new Dictionary<Control, string>
-            {
+            var tips = new Dictionary<Control, string> {
                 { comboBox1_ChonThangCanXuat, "Chọn tháng cần thống kê thi đua" },
                 { comboBox1_ChonLoai, "Chọn loại thống kê thi đua tập thể" },
                 { kryptonButton1_CapNhat, "Cập nhật và đồng bộ dữ liệu thống kê năm cũ" },
                 { kryptonButton_XuatTepExcel, "Xuất kết quả thống kê ra tệp Excel" },
                 { kryptonButton_Dong, "Đóng màn hình thống kê" }
             };
-
             foreach (var tip in tips)
             {
                 if (tip.Key != null && !tip.Key.IsDisposed)
                     toolTip1.SetToolTip(tip.Key, tip.Value);
             }
         }
-
         private void comboBox1_ChonThangCanXuat_SelectedIndexChanged(object? sender, EventArgs e)
         {
             comboBox1_ChonLoai.Enabled = comboBox1_ChonThangCanXuat.SelectedIndex != -1;
         }
-
         // ⭐ HÀM NHẬN DỮ LIỆU ĐỘNG TỪ FORM 46 (Tái sử dụng RAM)
         public void CapNhatDuLieuNamCu(string namHienThi, string duongDanCSDL)
         {
@@ -79,7 +73,6 @@ namespace PhanMemThiDua2026
             ChinhTieuDeBangThongKe();
             CapNhatTrangThaiKetNoi();
         }
-
         private void CauHinhGridBanDau()
         {
             var dgv = kryptonDataGridView1;
@@ -263,11 +256,11 @@ namespace PhanMemThiDua2026
 
             return giaTriChon switch
             {
-                "Loại 1" => "Loại 1",
-                "Loại 2" => "Loại 2",
-                "Loại 3" => "Loại 3",
-                "Loại 4" => "Loại 4",
-                "Không PL" => "Không PL",
+               Module_HeThong.Loai_1 => Module_HeThong.Loai_1,
+                Module_HeThong.Loai_2 => Module_HeThong.Loai_2,
+                Module_HeThong.Loai_3 => Module_HeThong.Loai_3,
+                Module_HeThong.Loai_4 => Module_HeThong.Loai_4,
+                Module_HeThong.PL_KHONG_PL => Module_HeThong.PL_KHONG_PL,
                 _ => string.Empty
             };
         }
@@ -288,7 +281,6 @@ namespace PhanMemThiDua2026
         {
             this.Close();
         }
-
         private void kryptonButton1_CapNhat_Click(object sender, EventArgs e)
         {
             // ============================================================
@@ -442,11 +434,11 @@ WHERE ID = 1;";
 
                 var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    ["Loại 1"] = Module_HeThong.PL_CSTD,
-                    ["Loại 2"] = Module_HeThong.PL_CSTT,
-                    ["Loại 3"] = Module_HeThong.PL_HTNV,
-                    ["Loại 4"] = Module_HeThong.PL_KHTNV,
-                    ["Không PL"] = string.Empty
+                    [Module_HeThong.Loai_1] = Module_HeThong.PL_CSTD,
+                    [Module_HeThong.Loai_2] = Module_HeThong.PL_CSTT,
+                    [Module_HeThong.Loai_3] = Module_HeThong.PL_HTNV,
+                    [Module_HeThong.Loai_4] = Module_HeThong.PL_KHTNV,
+                    [Module_HeThong.PL_KHONG_PL] = string.Empty
                 };
 
                 int soCotExcel = kryptonDataGridView1.Columns.Count + 1;
@@ -457,7 +449,7 @@ WHERE ID = 1;";
                 titleRange.Merge();
                 titleRange.Value = $"KẾT QUẢ PHÂN LOẠI TẬP THỂ {tenDonVi} - {_namHienThi.ToUpper()}";
                 titleRange.Style.Font.Bold = true;
-                titleRange.Style.Font.FontName = "Times New Roman";
+                titleRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 titleRange.Style.Font.FontSize = 14;
                 titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 titleRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -471,7 +463,7 @@ WHERE ID = 1;";
 
                 var headerRange = ws.Range($"A3:{cotCuoi}3");
                 headerRange.Style.Font.Bold = true;
-                headerRange.Style.Font.FontName = "Times New Roman";
+                headerRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 headerRange.Style.Font.FontSize = 14;
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
@@ -518,7 +510,7 @@ WHERE ID = 1;";
                 row4Range.Style.Alignment.WrapText = true;
 
                 var allRange = ws.Range($"A1:{cotCuoi}4");
-                allRange.Style.Font.FontName = "Times New Roman";
+                allRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 allRange.Style.Font.FontSize = 14;
                 allRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 ws.Range($"A3:{cotCuoi}4").Style.Border.InsideBorder = XLBorderStyleValues.Thin;
@@ -527,10 +519,12 @@ WHERE ID = 1;";
                 Module_BanQuyen.DongDauExcel(wb);
 
                 wb.SaveAs(sfd.FileName);
-
                 MessageBox.Show("Xuất Excel thành công!", "Hoàn tất",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+                Module_NhatKy.GhiNhatKy(
+                     taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
+                     hanhDong: "Xuất Excel thống kê thi đua tập thể năm cũ tên tệp tin là" + sfd.FileName,
+                     ghiChu: "Thành công");
                 if (File.Exists(sfd.FileName))
                 {
                     Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(sfd.FileName);

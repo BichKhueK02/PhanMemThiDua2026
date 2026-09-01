@@ -1,5 +1,4 @@
-﻿
-using Krypton.Toolkit;
+﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -17,18 +16,13 @@ namespace PhanMemThiDua2026
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly Color _focusColor = Color.FromArgb(0, 120, 215);
         private readonly Color _normalColor = Color.FromArgb(200, 200, 200);
-
         public static event Action? OnQuyDinhBCHChanged;
-
         private CancellationTokenSource? _ctsLuuDuLieu;
         private static readonly object _logLock = new object();
         private System.Windows.Forms.Timer _timerThongBao;
-
         public Dictionary<string, string[]> DeNghiBCHMapping { get; private set; }
             = new Dictionary<string, string[]>();
-
         private KryptonTextBox?[,] _txtGrid = new KryptonTextBox?[4, 5];
-
         private void InitTextBoxGrid()
         {
             _txtGrid = new KryptonTextBox?[4, 5]
@@ -45,7 +39,6 @@ namespace PhanMemThiDua2026
                 }
             };
         }
-
         public Form41_TyLeBCHD()
         {
             InitializeComponent();
@@ -63,7 +56,6 @@ namespace PhanMemThiDua2026
             _timerThongBao.Interval = 3000;
             _timerThongBao.Tick += _timerThongBao_Tick;
         }
-
         private void _timerThongBao_Tick(object? sender, EventArgs e)
         {
             _timerThongBao.Stop();
@@ -72,7 +64,6 @@ namespace PhanMemThiDua2026
                 label1_ThongBao.Visible = false;
             }
         }
-
         private void HienThiThongBao(string noiDung, Color mauChu)
         {
             if (label1_ThongBao == null) return;
@@ -89,7 +80,6 @@ namespace PhanMemThiDua2026
             _timerThongBao.Stop();
             _timerThongBao.Start();
         }
-
         private async void Form41_TyLeBCHD_Load(object sender, EventArgs e)
         {
             InitTextBoxGrid();
@@ -98,7 +88,6 @@ namespace PhanMemThiDua2026
             InitToolTips();
             SetupStatusStrip();
         }
-
         private void SetupStatusStrip()
         {
             try
@@ -124,7 +113,6 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine("Lỗi SetupStatusStrip: " + ex.Message);
             }
         }
-
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
@@ -135,11 +123,8 @@ namespace PhanMemThiDua2026
             {
                 toolTip1.SetToolTip(kryptonButton_LuuE29, "Lưu quy định tỷ lệ BCH vào cơ sở dữ liệu");
             }
-        }
-
-        
+        }  
         // LOAD DỮ LIỆU: Bỏ hoàn toàn ký tự % khi nạp lên giao diện TextBox
-        
         private async Task LoadQuyDinhTyLeBCHAsync()
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
@@ -188,10 +173,7 @@ namespace PhanMemThiDua2026
                 Console.WriteLine(ex);
             }
         }
-
-        
         // SAVE DỮ LIỆU: Lưu số thuần túy vào TEXT CSDL (Không chèn thêm đuôi %)
-        
         private async Task SaveQuyDinhTyLeBCHAsync(CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
@@ -283,7 +265,6 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
-
         private async void kryptonButton_LuuE29_Click(object sender, EventArgs e)
         {
             if (!kryptonButton_LuuE29.Enabled) return;
@@ -330,9 +311,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
-       
-
         private void TextBox_Enter(object? sender, EventArgs e)
         {
             if (sender is not KryptonTextBox tb) return;
@@ -341,14 +319,12 @@ namespace PhanMemThiDua2026
             tb.StateCommon.Border.Width = 2;
             tb.StateCommon.Border.Color1 = _focusColor;
         }
-
         private void TextBox_Leave(object? sender, EventArgs e)
         {
             if (sender is not KryptonTextBox tb) return;
             tb.StateCommon.Border.Width = 1;
             tb.StateCommon.Border.Color1 = _normalColor;
         }
-
         private void GanSuKienFocusTextBox()
         {
             foreach (Control ctrl in this.Controls)
@@ -356,7 +332,6 @@ namespace PhanMemThiDua2026
                 GanDeQuyTextBox(ctrl);
             }
         }
-
         private void GanDeQuyTextBox(Control parent)
         {
             foreach (Control ctrl in parent.Controls)
@@ -370,7 +345,6 @@ namespace PhanMemThiDua2026
                     GanDeQuyTextBox(ctrl);
             }
         }
-
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             _ctsLuuDuLieu?.Cancel();

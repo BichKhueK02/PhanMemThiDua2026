@@ -97,11 +97,11 @@
             xuatDuLieuSangThongKe_ToolStripMenuItem = new ToolStripMenuItem();
             xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem3 = new ToolStripSeparator();
-            phanTichDuLieuTrungTen_ToolStripMenuItem = new ToolStripMenuItem();
-            cBCSTrongDienQuanLy_ToolStripMenuItem = new ToolStripMenuItem();
-            toolStripMenuItem4 = new ToolStripSeparator();
-            ToolStripMenuItem_QuanLyThiDuaBaNhat = new ToolStripMenuItem();
             toolStripMenuItem_PhanTichQuanSo = new ToolStripMenuItem();
+            phanTichDuLieuTrungTen_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem4 = new ToolStripSeparator();
+            cBCSTrongDienQuanLy_ToolStripMenuItem = new ToolStripMenuItem();
+            ToolStripMenuItem_QuanLyThiDuaBaNhat = new ToolStripMenuItem();
             tableLayoutPanel1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -513,7 +513,7 @@
             textBox_CapBac.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             textBox_CapBac.DropDownStyle = ComboBoxStyle.DropDownList;
             textBox_CapBac.FormattingEnabled = true;
-            textBox_CapBac.Items.AddRange(new object[] { "T3", "T2", "T1", "U4", "U3", "U2", "U1", "H3", "H2", "H1", "B1", "B2" });
+            textBox_CapBac.Items.AddRange(new object[] { "T4", "T3", "T2", "T1", "U4", "U3", "U2", "U1", "H3", "H2", "H1", "B1", "B2" });
             textBox_CapBac.Location = new Point(250, 11);
             textBox_CapBac.Name = "textBox_CapBac";
             textBox_CapBac.Size = new Size(80, 23);
@@ -848,7 +848,7 @@
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, kiemTraKetNoi, xoaTimKiem, xoaToanBoDuLieuDSCBCS_ToolStripMenuItem, toolStripMenuItem1, nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem, themDuLieuTuFileExce_ToolStripMenuItem, toolStripMenuItem2, xuatDuLieuSangThongKe_ToolStripMenuItem, xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem, toolStripMenuItem3, toolStripMenuItem_PhanTichQuanSo, phanTichDuLieuTrungTen_ToolStripMenuItem, toolStripMenuItem4, cBCSTrongDienQuanLy_ToolStripMenuItem, ToolStripMenuItem_QuanLyThiDuaBaNhat });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(281, 386);
+            contextMenuStrip1.Size = new Size(281, 364);
             // 
             // lamMoiHeThong
             // 
@@ -937,6 +937,14 @@
             toolStripMenuItem3.Name = "toolStripMenuItem3";
             toolStripMenuItem3.Size = new Size(277, 6);
             // 
+            // toolStripMenuItem_PhanTichQuanSo
+            // 
+            toolStripMenuItem_PhanTichQuanSo.Image = (Image)resources.GetObject("toolStripMenuItem_PhanTichQuanSo.Image");
+            toolStripMenuItem_PhanTichQuanSo.Name = "toolStripMenuItem_PhanTichQuanSo";
+            toolStripMenuItem_PhanTichQuanSo.Size = new Size(280, 28);
+            toolStripMenuItem_PhanTichQuanSo.Text = "Phân tích quân số";
+            toolStripMenuItem_PhanTichQuanSo.Click += toolStripMenuItem_PhanTichQuanSo_Click;
+            // 
             // phanTichDuLieuTrungTen_ToolStripMenuItem
             // 
             phanTichDuLieuTrungTen_ToolStripMenuItem.Image = (Image)resources.GetObject("phanTichDuLieuTrungTen_ToolStripMenuItem.Image");
@@ -945,6 +953,11 @@
             phanTichDuLieuTrungTen_ToolStripMenuItem.Size = new Size(280, 28);
             phanTichDuLieuTrungTen_ToolStripMenuItem.Text = "Phân tích dữ liệu trùng tên";
             phanTichDuLieuTrungTen_ToolStripMenuItem.Click += phanTichDuLieuTrungTen_ToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem4
+            // 
+            toolStripMenuItem4.Name = "toolStripMenuItem4";
+            toolStripMenuItem4.Size = new Size(277, 6);
             // 
             // cBCSTrongDienQuanLy_ToolStripMenuItem
             // 
@@ -955,11 +968,6 @@
             cBCSTrongDienQuanLy_ToolStripMenuItem.Text = "CBCS trong diện quản lý";
             cBCSTrongDienQuanLy_ToolStripMenuItem.Click += cBCSTrongDienQuanLy_ToolStripMenuItem_Click;
             // 
-            // toolStripMenuItem4
-            // 
-            toolStripMenuItem4.Name = "toolStripMenuItem4";
-            toolStripMenuItem4.Size = new Size(277, 6);
-            // 
             // ToolStripMenuItem_QuanLyThiDuaBaNhat
             // 
             ToolStripMenuItem_QuanLyThiDuaBaNhat.Image = (Image)resources.GetObject("ToolStripMenuItem_QuanLyThiDuaBaNhat.Image");
@@ -967,14 +975,6 @@
             ToolStripMenuItem_QuanLyThiDuaBaNhat.Size = new Size(280, 28);
             ToolStripMenuItem_QuanLyThiDuaBaNhat.Text = "Quản lý thi đua Ba nhất";
             ToolStripMenuItem_QuanLyThiDuaBaNhat.Click += ToolStripMenuItem_QuanLyThiDuaBaNhat_Click;
-            // 
-            // toolStripMenuItem_PhanTichQuanSo
-            // 
-            toolStripMenuItem_PhanTichQuanSo.Image = (Image)resources.GetObject("toolStripMenuItem_PhanTichQuanSo.Image");
-            toolStripMenuItem_PhanTichQuanSo.Name = "toolStripMenuItem_PhanTichQuanSo";
-            toolStripMenuItem_PhanTichQuanSo.Size = new Size(280, 28);
-            toolStripMenuItem_PhanTichQuanSo.Text = "Phân tích quân số";
-            toolStripMenuItem_PhanTichQuanSo.Click += toolStripMenuItem_PhanTichQuanSo_Click;
             // 
             // Form6_XuLyData
             // 

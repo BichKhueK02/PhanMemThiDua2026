@@ -47,7 +47,7 @@ namespace PhanMemThiDua2026
             {
                 // 2. Cấu hình chung
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Gợi ý thao tác";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
 
                 // Thời gian chờ trước khi hiển thị
@@ -297,7 +297,7 @@ namespace PhanMemThiDua2026
             _form34Nguon = formNguon;
             _currentRowIndexForm34 = rowIndex;
             // 3. Đổ dữ liệu nhân thân lên Nhãn
-            if (label1_HoVaTen != null) label1_HoVaTen.Text = "Đồng chí: " + hoTen;
+            if (label1_HoVaTen != null) label1_HoVaTen.Text = Module_HeThong.Tu_Dong_Chi + ": " + hoTen;
             if (label1_SoHieu != null) label1_SoHieu.Text = "Số hiệu: " + soHieu;
             if (label1_DonVi != null) label1_DonVi.Text = "Đơn vị: " + donVi;           
             // 4. 🚀 TÍNH NĂNG ĐỘC QUYỀN: LẤY TÌNH TRẠNG CHÍNH XÁC 100% TỪ RAM FORM 34        
@@ -314,7 +314,7 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel2_TinhTrangCongTac.Text = $"Tình trạng: {tinhTrangChinhXac}";
 
                 // Hiệu ứng màu sắc trực quan
-                if (string.Equals(tinhTrangChinhXac, "Đang công tác", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(tinhTrangChinhXac, Module_HeThong.TT_DANG_CONG_TAC, StringComparison.OrdinalIgnoreCase))
                 {
                     toolStripStatusLabel2_TinhTrangCongTac.ForeColor = Color.SeaGreen; // Xanh an tâm
                 }

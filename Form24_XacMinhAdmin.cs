@@ -1,31 +1,43 @@
-﻿using Krypton.Toolkit;
+﻿using DocumentFormat.OpenXml.Math;
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using BCrypt.Net;
 
 namespace PhanMemThiDua2026
 {
     public partial class Form24_XacMinhAdmin : Form
     {
-        // =====================================================
-        // 1. CONFIG & STATE
-        // =====================================================
+        // 1. CONFIG & STATE 
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
-        private const int MAX_SAI = 3;
-        private int _soLanSai = 0;
 
-        // Cờ chống double-click hoặc thao tác khi đang truy xuất DB
+        // [CẬP NHẬT]: Thêm đường dẫn CSDL2 để đọc bảng cấu hình (ThongTin)
+        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+
+        private const int MAX_SAI = 3;
+        private const int THOI_GIAN_KHOA_PHUT = 5;
+        private static int _soLanSaiToanCuc = 0;
+        private static DateTime _thoiGianMoKhoa = DateTime.MinValue;
+
         private bool _isProcessing = false;
 
-        // =====================================================
-        // 2. UI CONSTANTS (Fluent Design)
-        // =====================================================
-        private static readonly Color FocusBorderColor = Color.FromArgb(0, 120, 215); // Xanh dương Win 11
-        private static readonly Color NormalBorderColor = Color.Silver;               // Màu bạc mặc định
+        // Cờ chống spam nháy đúp chuột liên tục
+        private bool _dangXuLyGoiYTaiKhoan = false;
+
+        private readonly string _cacheUserPath = Path.Combine(Application.StartupPath, "last_admin.txt");
+
+        // 2. UI CONSTANTS
+        private static readonly Color FocusBorderColor = Color.FromArgb(0, 120, 215);
+        private static readonly Color NormalBorderColor = Color.Silver;
         private const int FocusBorderWidth = 2;
         private const int NormalBorderWidth = 1;
 
-        // =====================================================
-        // 3. CONSTRUCTOR (Chỉ dựng giao diện, KHÔNG gọi DB ở đây)
-        // =====================================================
+        // 3. CONSTRUCTOR
         public Form24_XacMinhAdmin()
         {
             InitializeComponent();
@@ -44,73 +56,172 @@ namespace PhanMemThiDua2026
             text_MatKhau.UseSystemPasswordChar = true;
         }
 
-        // =====================================================
-        // 4. QUẢN LÝ SỰ KIỆN (Tránh lỗi mất Event của VS Designer)
-        // =====================================================
+        // 4. QUẢN LÝ SỰ KIỆN
         private void RegisterEvents()
         {
-            // Vòng đời Form
             this.Load += Form24_XacMinhAdmin_Load;
 
-            // Xử lý Checkbox & Nút bấm
             check_HienMatKhau.CheckedChanged += (s, e) => text_MatKhau.UseSystemPasswordChar = !check_HienMatKhau.Checked;
-            btn_XacThuc.Click -= btn_XacThuc_Click; // Hủy đăng ký cũ (nếu có)
+
+            btn_XacThuc.Click -= btn_XacThuc_Click;
             btn_XacThuc.Click += btn_XacThuc_Click;
+
             btn_Thoat.Click -= btn_Thoat_Click;
             btn_Thoat.Click += btn_Thoat_Click;
+
             PictureBox1.Click -= PictureBox1_Click;
             PictureBox1.Click += PictureBox1_Click;
 
-            // Xử lý Phím tắt (Enter)
             text_TenDangNhap.KeyDown += Text_TenDangNhap_KeyDown;
             text_MatKhau.KeyDown += Text_MatKhau_KeyDown;
+
+            // [CẬP NHẬT]: Đăng ký sự kiện nháy đúp chuột để gợi ý tài khoản
+            text_TenDangNhap.DoubleClick -= Text_TenDangNhap_DoubleClick;
+            text_TenDangNhap.DoubleClick += Text_TenDangNhap_DoubleClick;
         }
 
-        // =====================================================
-        // 5. FORM LOAD (Chạy bất đồng bộ, không làm đơ Form khi mở)
-        // =====================================================
+        // 5. FORM LOAD
+        // 1. CHUYỂN SỰ KIỆN LOAD THÀNH ASYNC ĐỂ CHẠY BẤT ĐỒNG BỘ
         private async void Form24_XacMinhAdmin_Load(object sender, EventArgs e)
         {
+            // Đợi nạp tên tài khoản tự động (nếu được phép)
             await LoadGoiYTenTaiKhoanAsync();
 
+            // Sau khi nạp xong, tự động nhảy con trỏ xuống ô Mật khẩu
             BeginInvoke(new Action(() =>
             {
                 if (IsDisposed) return;
-
                 text_MatKhau.Focus();
                 text_MatKhau.Select();
             }));
         }
+
+        // 2. LÕI TỰ ĐỘNG GỢI Ý TÊN ĐĂNG NHẬP
         private async Task LoadGoiYTenTaiKhoanAsync()
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(_csdl1Path) || !File.Exists(_csdl1Path)) return;
-
-                // Sử dụng "await using" để tự động giải phóng tài nguyên (C# 8.0)
-                await using var cn = new SqliteConnection($"Data Source={_csdl1Path}");
-                await cn.OpenAsync(); // Mở kết nối bất đồng bộ
-
-                await using var cmd = cn.CreateCommand();
-                cmd.CommandText = "SELECT TenTaiKhoan FROM Admin ORDER BY ID DESC LIMIT 1";
-
-                var obj = await cmd.ExecuteScalarAsync(); // Đọc bất đồng bộ
-
-                if (obj != null)
+                // BƯỚC 1: Kiểm tra cấu hình trong CSDL2 xem có cho phép gợi ý không
+                if (CoChoPhepGoiYTenTaiKhoan())
                 {
-                    text_TenDangNhap.Text = BaoMatAES.GiaiMa(obj.ToString());
-                    text_TenDangNhap.ReadOnly = true;
+                    // BƯỚC 2: Truy xuất lấy Tên đăng nhập từ CSDL1
+                    if (!string.IsNullOrWhiteSpace(_csdl1Path) && File.Exists(_csdl1Path))
+                    {
+                        string connStr = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;";
+                        await using var conn = new SqliteConnection(connStr);
+                        await conn.OpenAsync();
+
+                        const string sql = "SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1";
+                        await using var cmd = new SqliteCommand(sql, conn);
+
+                        var val = await cmd.ExecuteScalarAsync();
+
+                        if (val != null && val != DBNull.Value)
+                        {
+                            // Giải mã AES 
+                            string tenTK = BaoMatAES.GiaiMa(val.ToString() ?? string.Empty);
+
+                            if (!string.IsNullOrEmpty(tenTK))
+                            {
+                                text_TenDangNhap.Text = tenTK;
+                                return; // Điền thành công thì thoát hàm ngay, không cần quét Cache nữa
+                            }
+                        }
+                    }
                 }
+
+                // BƯỚC 3: DỰ PHÒNG (Fallback) 
+                // Nếu người dùng thiết lập KHÔNG cho phép (FALSE), ta sẽ lấy lại tên của lần đăng nhập thành công gần nhất từ file ẩn
+                if (File.Exists(_cacheUserPath))
+                {
+                    string savedUser = File.ReadAllText(_cacheUserPath).Trim();
+                    if (!string.IsNullOrEmpty(savedUser))
+                    {
+                        text_TenDangNhap.Text = savedUser;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Lỗi LoadGoiYTenTaiKhoanAsync Form24]: {ex.Message}");
+            }
+        }
+        // TÍNH NĂNG MỚI: KIỂM TRA ĐIỀU KIỆN VÀ GỢI Ý AUTO-FILL TÊN ĐĂNG NHẬP
+        // ========================================================================
+        private bool CoChoPhepGoiYTenTaiKhoan()
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path))
+                    return false;
+
+                // 🛡️ Mở kết nối với Timeout ngắn vì đây chỉ là hàm kiểm tra nhanh
+                using var cn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;");
+                cn.Open();
+
+                using var cmd = cn.CreateCommand();
+                cmd.CommandText = "SELECT ChoPhepGoiYMatKhau FROM ThongTin WHERE ID = 1 LIMIT 1";
+
+                object val = cmd.ExecuteScalar();
+                if (val == null || val == DBNull.Value) return false;
+
+                string giaiMa = BaoMatAES.GiaiMa(val.ToString() ?? string.Empty);
+                return string.Equals(giaiMa, "TRUE", StringComparison.OrdinalIgnoreCase);
             }
             catch
             {
-                text_TenDangNhap.ReadOnly = false;
+                return false;
             }
         }
 
-        // =====================================================
-        // 6. CORE LOGIC XÁC THỰC (Bất đồng bộ - Async/Await)
-        // =====================================================
+        private async void Text_TenDangNhap_DoubleClick(object sender, EventArgs e)
+        {
+            // 1. Chống Spam Click
+            if (_dangXuLyGoiYTaiKhoan) return;
+
+            try
+            {
+                _dangXuLyGoiYTaiKhoan = true;
+
+                // 2. Kiểm tra cờ cho phép từ cơ sở dữ liệu cấu hình
+                if (!CoChoPhepGoiYTenTaiKhoan())
+                {
+                    return; // Nếu trả về FALSE thì không làm gì cả, im lặng thoát
+                }
+
+                // 3. Tiến hành truy xuất tên đăng nhập nếu được phép
+                if (string.IsNullOrWhiteSpace(_csdl1Path) || !File.Exists(_csdl1Path))
+                    return;
+
+                string connStr = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;";
+                await using var conn = new SqliteConnection(connStr);
+                await conn.OpenAsync();
+
+                const string sql = "SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1";
+                await using var cmd = new SqliteCommand(sql, conn);
+
+                var val = await cmd.ExecuteScalarAsync();
+
+                if (val != null && val != DBNull.Value)
+                {
+                    // 4. Giải mã và nạp lên giao diện
+                    string tenTK = BaoMatAES.GiaiMa(val.ToString() ?? string.Empty);
+
+                    text_TenDangNhap.Text = tenTK;
+                    text_MatKhau.Focus(); // Tự động đưa con trỏ xuống ô mật khẩu cho mượt
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Lỗi gợi ý tên đăng nhập Form 24]: {ex.Message}");
+            }
+            finally
+            {
+                _dangXuLyGoiYTaiKhoan = false;
+            }
+        }
+
+        // 6. LÕI XÁC THỰC BẢO MẬT (Async/Await)
         private async Task<(bool isSuccess, string errorMessage)> KiemTraAdminAsync(string tenDangNhap, string matKhauNhap)
         {
             try
@@ -125,65 +236,82 @@ namespace PhanMemThiDua2026
                 await using var cmd = new SqliteCommand(sql, cn);
                 await using var reader = await cmd.ExecuteReaderAsync();
 
-                bool saiTenDangNhap = true;
+                bool isFoundAndMatched = false;
 
                 while (await reader.ReadAsync())
                 {
                     string userDecrypted = BaoMatAES.GiaiMa(reader.GetString(0));
                     string passDecrypted = BaoMatAES.GiaiMa(reader.GetString(1));
 
-                    if (userDecrypted == tenDangNhap)
+                    if (userDecrypted == tenDangNhap && passDecrypted == matKhauNhap)
                     {
-                        saiTenDangNhap = false;
-                        if (passDecrypted == matKhauNhap)
-                            return (true, string.Empty); // Khớp hoàn toàn
+                        isFoundAndMatched = true;
+                        break;
                     }
                 }
 
-                string error = saiTenDangNhap ? "Tên đăng nhập không tồn tại!" : "Mật khẩu không chính xác!";
-                return (false, error);
+                if (isFoundAndMatched)
+                {
+                    return (true, string.Empty);
+                }
+                else
+                {
+                    return (false, "Tên đăng nhập hoặc mật khẩu không chính xác!");
+                }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return (false, $"Lỗi truy xuất hệ thống: {ex.Message}");
+                return (false, "Hệ thống gặp sự cố an ninh khi xác thực. Vui lòng thử lại sau.");
             }
         }
 
-        // =====================================================
-        // 7. SỰ KIỆN NÚT BẤM VÀ BÀN PHÍM
-        // =====================================================
         private async void btn_XacThuc_Click(object sender, EventArgs e)
         {
-            // Tránh user spam click khi đang xử lý
+            if (DateTime.Now < _thoiGianMoKhoa)
+            {
+                TimeSpan thoiGianConLai = _thoiGianMoKhoa - DateTime.Now;
+                MessageBox.Show($"Tài khoản bị khóa do nhập sai nhiều lần.\nVui lòng thử lại sau {thoiGianConLai.Minutes} phút {thoiGianConLai.Seconds} giây.",
+                    "Cảnh báo an ninh", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             if (_isProcessing) return;
 
             try
             {
                 _isProcessing = true;
-                btn_XacThuc.Enabled = false; // Vô hiệu hóa nút
-                Cursor = Cursors.WaitCursor; // Đổi chuột sang biểu tượng chờ
+                btn_XacThuc.Enabled = false;
+                Cursor = Cursors.WaitCursor;
 
                 string tenNhap = text_TenDangNhap.Text.Trim();
                 string passNhap = text_MatKhau.Text;
 
-                // Sử dụng Tuples C# hiện đại thay cho tham số 'out string'
                 var (isSuccess, errorMessage) = await KiemTraAdminAsync(tenNhap, passNhap);
 
                 if (isSuccess)
                 {
+                    _soLanSaiToanCuc = 0;
+
+                    try
+                    {
+                        File.WriteAllText(_cacheUserPath, tenNhap);
+                    }
+                    catch { }
+
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                     return;
                 }
 
-                _soLanSai++;
+                _soLanSaiToanCuc++;
                 text_MatKhau.Clear();
                 text_MatKhau.Focus();
 
-                if (_soLanSai >= MAX_SAI)
+                if (_soLanSaiToanCuc >= MAX_SAI)
                 {
+                    _thoiGianMoKhoa = DateTime.Now.AddMinutes(THOI_GIAN_KHOA_PHUT);
                     MessageBox.Show(
-                        "Hệ thống nghi ngờ bạn là kẻ phá hoại!\nPhiên xác minh đã bị khóa.",
+                        $"Phát hiện có nỗ lực truy cập trái phép!\nPhiên xác minh đã bị khóa {THOI_GIAN_KHOA_PHUT} phút.",
                         "Cảnh báo an ninh", MessageBoxButtons.OK, MessageBoxIcon.Stop);
 
                     this.DialogResult = DialogResult.Cancel;
@@ -192,13 +320,12 @@ namespace PhanMemThiDua2026
                 else
                 {
                     MessageBox.Show(
-                        $"{errorMessage}\nBạn đã nhập sai lần {_soLanSai}/{MAX_SAI}.",
+                        $"{errorMessage}\nBạn đã nhập sai lần {_soLanSaiToanCuc}/{MAX_SAI}.",
                         "Xác thực thất bại", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
             finally
             {
-                // Luôn khôi phục trạng thái dù có lỗi hay không
                 _isProcessing = false;
                 btn_XacThuc.Enabled = true;
                 Cursor = Cursors.Default;
@@ -232,12 +359,10 @@ namespace PhanMemThiDua2026
         private void PictureBox1_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Vui lòng nhập mật khẩu xác thực để thực hiện thao tác xóa!",
-                "Xác thực quản trị viên", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                "Xác thực quản trị viên", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        // =====================================================
-        // 8. UX TỐI ƯU (HIỆU ỨNG & GỢI Ý)
-        // =====================================================
+        // 8. UX TỐI ƯU
         private void InitFocusEffects()
         {
             var controls = new List<KryptonTextBox> { text_TenDangNhap, text_MatKhau };
@@ -289,7 +414,5 @@ namespace PhanMemThiDua2026
                 if (tip.Key != null) toolTip1.SetToolTip(tip.Key, tip.Value);
             }
         }
-
-
     }
 }

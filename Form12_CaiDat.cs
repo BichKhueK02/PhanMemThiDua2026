@@ -13,15 +13,11 @@ namespace PhanMemThiDua2026
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl3Path = Module_DanduongGPS.DuongDanCSDL3;
         private const int MAX_TOMTAT = 850;
-        private const int ABSOLUTE_MAX = 2000; // Giới hạn tuyệt đối ksy tự cấm lưu Meo cam chia sẽ
+        private const int ABSOLUTE_MAX = 2000; // Giới hạn tuyệt đối ký tự cấm lưu Meo cam chia sẽ
         private bool _hasLoaded = false;
         private const float FONT_DEFAULT = 14f;
         private float _currentFontSize = FONT_DEFAULT;
-        private const float FONT_SIZE_MIN = 8f;
-        private const float FONT_SIZE_MAX = 20f;
-        private const float FONT_SIZE_STEP = 1f;
         private Font? _dynamicRichTextFont;
-        private int _isChangingFont = 0;
         private bool _isDoiTuongChanged = false;       // cờ đánh dấu thay đổi đối tượng phần mềm
         private string _doiTuongBanDau = string.Empty; // lưu giá trị ban đầu của combobox
         // 🔥 BIẾN CACHE FONT TĨNH (Tối ưu RAM & GDI+ handle cho toàn bộ Form ảo và thông báo)
@@ -47,7 +43,6 @@ namespace PhanMemThiDua2026
             // Tab 1
             public string TenTrungDoan { get; set; } = "";
             public string TenTieuDoan { get; set; } = "";
-            public string TomTat { get; set; } = "";
             public string DoiTuongPhanMem { get; set; } = "";
             public string TenTrungDoanDong1 { get; set; } = "";
             public string KyHieuBaoCao { get; set; } = "";
@@ -71,11 +66,9 @@ namespace PhanMemThiDua2026
             {
                 TenTrungDoan = textBox_TrungDoanCSCD.Text?.Trim() ?? "",
                 TenTieuDoan = comboBox_TenTieuDoan.Text?.Trim() ?? "",
-                TomTat = richTextBox1_TomTatGhiChu.Text?.Trim() ?? "",
                 DoiTuongPhanMem = comboBox_DoiTuongPhanMem.Text?.Trim() ?? "",
                 TenTrungDoanDong1 = textBox1_TenTrungDoanDong1.Text?.Trim() ?? "",
                 KyHieuBaoCao = textBox1_KyHieuBaoCao.Text?.Trim() ?? "",
-
                 // Thêm các trường chống phân mảnh giao dịch
                 KyHieuTrungDoan = comboBox_KyHieu_TenTrungDoan.Text?.Trim() ?? "",
                 KyHieuTieuDoan = comboBox_KyHieu_TenTieuDoan.Text?.Trim() ?? "",
@@ -95,50 +88,34 @@ namespace PhanMemThiDua2026
         public Form12()
         {
             InitializeComponent();
-            richTextBox1_TomTatGhiChu.HideSelection = false;
             this.UpdateStyles();
         }
         private async void Form12_Load(object sender, EventArgs e)
         {
             if (_hasLoaded) return;
             _isLoading = true;
-
-            
             // 1. TỐI ƯU UX VÀ CHUẨN BỊ GIAO DIỆN
-            
             await Task.Delay(30); // Nhường luồng cho UI
-
             if (label1_ThongBaoThanhCong != null) label1_ThongBaoThanhCong.Visible = false;
             if (toolStripStatusLabel1 != null)
             {
                 toolStripStatusLabel1.Text = string.Empty;
                 toolStripStatusLabel1.Visible = false;
             }
-
             Module_DonVi.KhoiTao();
             InitToolTips();
-
-            
             // 2. NẠP CÁC DANH SÁCH (Items) CHO COMBOBOX TRƯỚC
-            
             // (Phải có danh sách trước thì lúc load cấu hình mới có cái để SelectedItem)
             LoadComboBoxCauHinh();
             LoadComboBoxTuDongXoa();
             NapDanhSachNam();
             NapDanhSachKyHieuChung();
             LoadDanhSachDonViVaKyHieu();
-
-            
-            // ⭐ 3. NẠP CẤU HÌNH TỔNG LỰC (SIÊU TỐC)
-            
+            // ⭐ 3. NẠP CẤU HÌNH TỔNG LỰC (SIÊU TỐC)           
             // Hàm này ĐÃ BAO GỒM việc load: Năm, Chế độ hướng dẫn, Màu Menu, Sự kiện thoát, Ký hiệu đơn vị
             LoadTatCaCauHinhTuCSDL2();
-
-            
             // 4. NẠP DỮ LIỆU BẢNG THÔNG TIN CHÍNH
-            
             LoadFromSQLite();
-
             // Nạp cấu hình thời gian chuyển ảnh (Thuộc module riêng)
             if (comboBox1_ThoiGianThayDoiAnh != null)
             {
@@ -148,13 +125,8 @@ namespace PhanMemThiDua2026
                 }
                 comboBox1_ThoiGianThayDoiAnh.Text = Module_HinhAnhTrangChu.DocCauHinhThoiGian();
             }
-
-            
             // 5. GẮN SỰ KIỆN VÀ TÙY CHỈNH UI CUỐI CÙNG
-            
             GanSuKien();
-            _currentFontSize = richTextBox1_TomTatGhiChu.Font.Size;
-
             // Trị dứt điểm Highlight (Bôi đen chữ) của ComboBox
             this.BeginInvoke(new Action(() =>
             {
@@ -168,15 +140,12 @@ namespace PhanMemThiDua2026
                 if (comboBox_TenTieuDoan != null) comboBox_TenTieuDoan.SelectionLength = 0;
                 if (comboBox1_NamHienTai != null) comboBox1_NamHienTai.SelectionLength = 0;
             }));
-
             _isLoading = false;
             _hasLoaded = true;
         }
         private void Form12_Shown(object sender, EventArgs e)
         {
-            label7.Text = "";
             kryptonButton_CapNhatDanhSachChiHuyD.AutoSize = false;
-
             // Giữ lại để phòng hờ trường hợp người dùng Alt+Tab
             if (kryptonButton_LuuThongTin != null && kryptonButton_LuuThongTin.CanFocus)
             {
@@ -282,21 +251,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"[LoadTatCaCauHinhTuCSDL2] Lỗi: {ex.Message}");
             }
         }
-        private void CapNhatTrangThaiNutCoChu()
-        {
-            // Kiểm tra xem RichTextBox có rỗng hoặc chỉ toàn khoảng trắng hay không
-            bool coDuLieu = !string.IsNullOrWhiteSpace(richTextBox1_TomTatGhiChu.Text);
-
-            // Chỉ cập nhật trạng thái khi có sự thay đổi thực tế để tránh hiện tượng chớp nháy UI (Flicker)
-            if (kryptonButton2_TangCoChuRichText.Visible != coDuLieu)
-            {
-                kryptonButton2_TangCoChuRichText.Visible = coDuLieu;
-            }
-            if (kryptonButton2_GiamCoChuRichText.Visible != coDuLieu)
-            {
-                kryptonButton2_GiamCoChuRichText.Visible = coDuLieu;
-            }
-        }
         private void OnDataChanged(object sender, EventArgs e)
         {
             if (_isLoading) return;
@@ -311,7 +265,6 @@ namespace PhanMemThiDua2026
             // ⭐ SỬA Ở ĐÂY: Chỉ kiểm tra null, bỏ kiểm tra IsDisposed vì ToolTip không hỗ trợ
             if (toolTip1 == null)
                 return;
-
             try
             {
                 // ================= CẤU HÌNH CHUNG =================
@@ -333,8 +286,6 @@ namespace PhanMemThiDua2026
                     (kryptonButton1_Khoiphuc,                       "Khôi phục dữ liệu từ bản sao lưu"),
                     (kryptonButton_LuuCauHinh,                      "Lưu cấu hình"),
                     (kryptonButton1_CaiDatFileExcel,                "Căn chỉnh in ấn tệp excel"),
-                    (kryptonButton2_TangCoChuRichText,               "Tăng cỡ chữ"),
-                    (kryptonButton2_GiamCoChuRichText,               "Giảm cỡ chữ"),
                     (kryptonButton2_ChuyenGiaoDuLieu,                "Chuyển giao dữ liệu khi chuyển sang phiên bản phần mềm mới"),
                     (kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet,     "Chọn đơn vị có thể bỏ qua việc tính tỷ lệ % ở Bảng 3 - Trang chủ"),
                     (kryptonButton_CapNhat,                          "Cập nhật danh sách đơn vị trực thuộc"),
@@ -441,48 +392,6 @@ namespace PhanMemThiDua2026
             if (comboBox1_TuDongXoaNhatKy.SelectedItem != null)
             {
                 LuuTuDongXoaVaoCSDL(comboBox1_TuDongXoaNhatKy.SelectedItem.ToString());
-            }
-        }
-        private void richTextBox1_TomTatGhiChu_TextChanged(object sender, EventArgs e)
-        {
-            if (_isLoading) return; // Chặn khi load dữ liệu
-
-            int currentLength = richTextBox1_TomTatGhiChu.TextLength;
-
-            // Nếu vượt quá 2000, cắt bớt ngay lập tức
-            if (currentLength > ABSOLUTE_MAX)
-            {
-                int selStart = richTextBox1_TomTatGhiChu.SelectionStart;
-                richTextBox1_TomTatGhiChu.Text = richTextBox1_TomTatGhiChu.Text.Substring(0, ABSOLUTE_MAX);
-                // Giữ con trỏ ở cuối
-                richTextBox1_TomTatGhiChu.SelectionStart = Math.Min(selStart, ABSOLUTE_MAX);
-                currentLength = ABSOLUTE_MAX;
-                System.Media.SystemSounds.Beep.Play(); // cảnh báo
-            }
-
-            // Hiển thị nhãn cảnh báo
-            label7.Text = $"Số ký tự: {currentLength}/{MAX_TOMTAT} (tối đa tuyệt đối {ABSOLUTE_MAX})";
-
-            if (currentLength <= MAX_TOMTAT)
-                label7.ForeColor = Color.Green;
-            else if (currentLength <= ABSOLUTE_MAX)
-                label7.ForeColor = Color.Orange; // > MAX nhưng <= 2000: cảnh báo
-            else
-                label7.ForeColor = Color.Red; // thực tế không xảy ra vì đã cắt
-
-            if (!label7.Visible)
-                label7.Visible = true;
-            // ✅ CHÈN VÀO ĐÂY: Cập nhật trạng thái ẩn hiện nút khi text thay đổi
-            CapNhatTrangThaiNutCoChu();
-            _dataChanged = true;
-        }
-        // Ngăn nhập nếu vượt quá 2000 ký tự
-        private void richTextBox1_TomTatGhiChu_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (richTextBox1_TomTatGhiChu.TextLength >= ABSOLUTE_MAX && !char.IsControl(e.KeyChar))
-            {
-                e.Handled = true; // không cho nhập thêm
-                System.Media.SystemSounds.Beep.Play(); // cảnh báo âm thanh
             }
         }
         private void LuuTuDongXoaVaoCSDL(string luaChon)
@@ -642,7 +551,6 @@ PRAGMA busy_timeout=15000;
                 {
                     TenTD = SafeDecrypt(reader["TenTrungDoan"]),
                     TenTieuD = SafeDecrypt(reader["TenTieuDoan"]),
-                    TomTat = SafeDecrypt(reader["TomTatGhiChu"]),
                     SoLan = SafeDecrypt(reader["SoLanChoPhepHienThi"]), // ĐÃ BỔ SUNG Ở ĐÂY
                     GoiYPass = SafeDecrypt(reader["ChoPhepGoiYMatKhau"]),
                     GoiYAnh = SafeDecrypt(reader["ChoPhepDupChuotVaoAnh_GoiYMatKhau"]),
@@ -670,7 +578,6 @@ PRAGMA busy_timeout=15000;
                     // 1. TẠM GỠ SỰ KIỆN (Chặn việc nạp dữ liệu kích hoạt false trigger)
                     comboBox_DoiTuongPhanMem.TextChanged -= comboBox_DoiTuongPhanMem_TextChanged;
                     comboBox_SoLuongDongChoPhepHienThi.TextChanged -= OnDataChanged;
-                    richTextBox1_TomTatGhiChu.TextChanged -= richTextBox1_TomTatGhiChu_TextChanged;
                     checkBox1_ChoPhepGoiYTenTaiKhoan.CheckedChanged -= CheckBox1_ChoPhepGoiYTenTaiKhoan_CheckedChanged;
                     checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.CheckedChanged -= checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP_CheckedChanged;
 
@@ -692,16 +599,10 @@ PRAGMA busy_timeout=15000;
                         else
                             comboBox_SoLuongDongChoPhepHienThi.Text = data.SoLan;
                     }
-
-                    richTextBox1_TomTatGhiChu.Text = data.TomTat;
-
                     checkBox1_ChoPhepGoiYTenTaiKhoan.Checked = data.GoiYPass == "TRUE";
                     checkBox1_ChoPhepGoiYTenTaiKhoan.ForeColor = checkBox1_ChoPhepGoiYTenTaiKhoan.Checked ? Color.Green : Color.Red;
-
                     checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.Checked = data.GoiYAnh == "TRUE";
                     checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.ForeColor = checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.Checked ? Color.Green : Color.Red;
-                    // ✅ CHÈN VÀO ĐÂY: Cập nhật trạng thái ẩn hiện nút khi text thay đổi
-                    CapNhatTrangThaiNutCoChu();
                     // Đặt lại cờ hệ thống
                     _isDoiTuongChanged = false;
                     _dataChanged = false;
@@ -709,7 +610,6 @@ PRAGMA busy_timeout=15000;
                     // 3. MỞ LẠI SỰ KIỆN SAU KHI DỮ LIỆU ĐÃ ĐỊNH HÌNH
                     comboBox_DoiTuongPhanMem.TextChanged += comboBox_DoiTuongPhanMem_TextChanged;
                     comboBox_SoLuongDongChoPhepHienThi.TextChanged += OnDataChanged;
-                    richTextBox1_TomTatGhiChu.TextChanged += richTextBox1_TomTatGhiChu_TextChanged;
                     checkBox1_ChoPhepGoiYTenTaiKhoan.CheckedChanged += CheckBox1_ChoPhepGoiYTenTaiKhoan_CheckedChanged;
                     checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP.CheckedChanged += checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP_CheckedChanged;
                 }));
@@ -906,96 +806,218 @@ PRAGMA busy_timeout=15000;
         }
         private string SaveToSQLiteCore(CauHinhData uiData)
         {
-            if (uiData == null) return "Dữ liệu không hợp lệ.";
+            if (uiData == null)
+                return "Dữ liệu không hợp lệ.";
 
-            Directory.CreateDirectory(Path.GetDirectoryName(_csdl2Path));
+            Directory.CreateDirectory(
+                Path.GetDirectoryName(_csdl2Path));
 
             // MỞ 1 KẾT NỐI DUY NHẤT
-            using var cn = new SqliteConnection(BuildConnectionString(_csdl2Path));
+            using var cn =
+                new SqliteConnection(
+                    BuildConnectionString(_csdl2Path));
+
             cn.Open();
             ApplySQLitePragma(cn);
 
             using var tran = cn.BeginTransaction();
+
             try
             {
-                // 1. BẢNG THÔNG TIN CHÍNH
                 using (var cmd = cn.CreateCommand())
                 {
                     cmd.Transaction = tran;
-                    cmd.CommandText = @"
-                INSERT INTO ThongTin (ID, TenTrungDoan, TenTieuDoan, TomTatGhiChu, SoLanChoPhepHienThi, ChoPhepGoiYMatKhau, ChoPhepDupChuotVaoAnh_GoiYMatKhau, textBox1_TenTrungDoanDong1, KyHieuBaoCao)
-                VALUES (1, @TenTrungDoan, @TenTieuDoan, @TomTat, @SoLan, @GoiYPass, @GoiYAnh, @TenTDDong1, @KyHieuBC)
-                ON CONFLICT(ID) DO UPDATE SET
-                TenTrungDoan = excluded.TenTrungDoan, TenTieuDoan = excluded.TenTieuDoan, TomTatGhiChu = excluded.TomTatGhiChu,
-                SoLanChoPhepHienThi = excluded.SoLanChoPhepHienThi, ChoPhepGoiYMatKhau = excluded.ChoPhepGoiYMatKhau,
-                ChoPhepDupChuotVaoAnh_GoiYMatKhau = excluded.ChoPhepDupChuotVaoAnh_GoiYMatKhau,
-                textBox1_TenTrungDoanDong1 = excluded.textBox1_TenTrungDoanDong1, KyHieuBaoCao = excluded.KyHieuBaoCao;";
 
-                    cmd.Parameters.AddWithValue("@TenTrungDoan", SafeEncrypt(uiData.TenTrungDoan));
-                    cmd.Parameters.AddWithValue("@TenTieuDoan", SafeEncrypt(uiData.TenTieuDoan));
-                    cmd.Parameters.AddWithValue("@TomTat", SafeEncrypt(uiData.TomTat));
-                    cmd.Parameters.AddWithValue("@SoLan", SafeEncrypt(uiData.SoLanChoPhepHienThi));
-                    cmd.Parameters.AddWithValue("@GoiYPass", SafeEncrypt(uiData.ChoPhepGoiYMatKhau));
-                    cmd.Parameters.AddWithValue("@GoiYAnh", SafeEncrypt(uiData.ChoPhepDupChuotVaoAnh));
-                    cmd.Parameters.AddWithValue("@TenTDDong1", SafeEncrypt(uiData.TenTrungDoanDong1));
-                    cmd.Parameters.AddWithValue("@KyHieuBC", SafeEncrypt(uiData.KyHieuBaoCao));
+                    cmd.CommandText = @"
+INSERT INTO ThongTin
+(
+    ID,
+    TenTrungDoan,
+    TenTieuDoan,
+    SoLanChoPhepHienThi,
+    ChoPhepGoiYMatKhau,
+    ChoPhepDupChuotVaoAnh_GoiYMatKhau,
+    textBox1_TenTrungDoanDong1,
+    KyHieuBaoCao
+)
+VALUES
+(
+    1,
+    @TenTrungDoan,
+    @TenTieuDoan,
+    @SoLan,
+    @GoiYPass,
+    @GoiYAnh,
+    @TenTDDong1,
+    @KyHieuBC
+)
+ON CONFLICT(ID) DO UPDATE SET
+    TenTrungDoan = excluded.TenTrungDoan,
+    TenTieuDoan = excluded.TenTieuDoan,
+    SoLanChoPhepHienThi = excluded.SoLanChoPhepHienThi,
+    ChoPhepGoiYMatKhau = excluded.ChoPhepGoiYMatKhau,
+    ChoPhepDupChuotVaoAnh_GoiYMatKhau =
+        excluded.ChoPhepDupChuotVaoAnh_GoiYMatKhau,
+    textBox1_TenTrungDoanDong1 =
+        excluded.textBox1_TenTrungDoanDong1,
+    KyHieuBaoCao = excluded.KyHieuBaoCao;";
+
+                    cmd.Parameters.AddWithValue(
+                        "@TenTrungDoan",
+                        SafeEncrypt(uiData.TenTrungDoan));
+
+                    cmd.Parameters.AddWithValue(
+                        "@TenTieuDoan",
+                        SafeEncrypt(uiData.TenTieuDoan));
+
+                    cmd.Parameters.AddWithValue(
+                        "@SoLan",
+                        SafeEncrypt(uiData.SoLanChoPhepHienThi));
+
+                    cmd.Parameters.AddWithValue(
+                        "@GoiYPass",
+                        SafeEncrypt(uiData.ChoPhepGoiYMatKhau));
+
+                    cmd.Parameters.AddWithValue(
+                        "@GoiYAnh",
+                        SafeEncrypt(uiData.ChoPhepDupChuotVaoAnh));
+
+                    cmd.Parameters.AddWithValue(
+                        "@TenTDDong1",
+                        SafeEncrypt(uiData.TenTrungDoanDong1));
+
+                    cmd.Parameters.AddWithValue(
+                        "@KyHieuBC",
+                        SafeEncrypt(uiData.KyHieuBaoCao));
+
                     cmd.ExecuteNonQuery();
                 }
 
-                // 2. GOM NHÓM CÁC BẢNG CẤU HÌNH NHỎ VÀO CHUNG GIAO DỊCH (Batch Update)
+                // ================================================================
+                // 2. GOM NHÓM CÁC BẢNG CẤU HÌNH NHỎ VÀO CHUNG GIAO DỊCH
+                // ================================================================
                 using (var cmdBatch = cn.CreateCommand())
                 {
                     cmdBatch.Transaction = tran;
+
                     StringBuilder sqlBatch = new StringBuilder();
 
                     // Đối tượng phần mềm
-                    sqlBatch.AppendLine("INSERT INTO PhienBan_DoiTuong (ID, DoiTuong) VALUES (1, @DoiTuong) ON CONFLICT(ID) DO UPDATE SET DoiTuong = excluded.DoiTuong;");
-                    cmdBatch.Parameters.AddWithValue("@DoiTuong", SafeEncrypt(uiData.DoiTuongPhanMem));
+                    sqlBatch.AppendLine(
+                        "INSERT INTO PhienBan_DoiTuong " +
+                        "(ID, DoiTuong) " +
+                        "VALUES (1, @DoiTuong) " +
+                        "ON CONFLICT(ID) DO UPDATE SET " +
+                        "DoiTuong = excluded.DoiTuong;");
+
+                    cmdBatch.Parameters.AddWithValue(
+                        "@DoiTuong",
+                        SafeEncrypt(uiData.DoiTuongPhanMem));
 
                     // Ký hiệu đơn vị
-                    sqlBatch.AppendLine("UPDATE KyHieu_DonVi SET KyHieu_TrungDoan = @k1, KyHieu_TieuDoan = @k2 WHERE ID = 1;");
-                    cmdBatch.Parameters.AddWithValue("@k1", SafeEncrypt(uiData.KyHieuTrungDoan));
-                    cmdBatch.Parameters.AddWithValue("@k2", SafeEncrypt(uiData.KyHieuTieuDoan));
+                    sqlBatch.AppendLine(
+                        "UPDATE KyHieu_DonVi " +
+                        "SET KyHieu_TrungDoan = @k1, " +
+                        "KyHieu_TieuDoan = @k2 " +
+                        "WHERE ID = 1;");
+
+                    cmdBatch.Parameters.AddWithValue(
+                        "@k1",
+                        SafeEncrypt(uiData.KyHieuTrungDoan));
+
+                    cmdBatch.Parameters.AddWithValue(
+                        "@k2",
+                        SafeEncrypt(uiData.KyHieuTieuDoan));
 
                     // Năm hệ thống
-                    if (int.TryParse(uiData.NamHeThong, out int namParsed))
+                    if (int.TryParse(
+                        uiData.NamHeThong,
+                        out int namParsed))
                     {
-                        sqlBatch.AppendLine("UPDATE NamHeThong SET NAM = @nam WHERE ID = 1;");
-                        cmdBatch.Parameters.AddWithValue("@nam", namParsed);
+                        sqlBatch.AppendLine(
+                            "UPDATE NamHeThong " +
+                            "SET NAM = @nam " +
+                            "WHERE ID = 1;");
+
+                        cmdBatch.Parameters.AddWithValue(
+                            "@nam",
+                            namParsed);
                     }
 
                     // Chế độ xem hướng dẫn
-                    sqlBatch.AppendLine("UPDATE CheDo_XemHuongDan SET CheDoXem_HuongDanSD = @cheDo WHERE ID = 1;");
-                    cmdBatch.Parameters.AddWithValue("@cheDo", uiData.CheDoXemHuongDan);
+                    sqlBatch.AppendLine(
+                        "UPDATE CheDo_XemHuongDan " +
+                        "SET CheDoXem_HuongDanSD = @cheDo " +
+                        "WHERE ID = 1;");
+
+                    cmdBatch.Parameters.AddWithValue(
+                        "@cheDo",
+                        uiData.CheDoXemHuongDan);
 
                     // Sự kiện thoát
-                    sqlBatch.AppendLine("UPDATE SuKien_ThoatPhanMem SET SuKien_DuọcChon = @suKien WHERE ID = 1;");
-                    cmdBatch.Parameters.AddWithValue("@suKien", BaoMatAES.MaHoa(uiData.SuKienThoatPhanMem));
+                    sqlBatch.AppendLine(
+                        "UPDATE SuKien_ThoatPhanMem " +
+                        "SET SuKien_DuọcChon = @suKien " +
+                        "WHERE ID = 1;");
+
+                    cmdBatch.Parameters.AddWithValue(
+                        "@suKien",
+                        BaoMatAES.MaHoa(
+                            uiData.SuKienThoatPhanMem));
 
                     // Màu sắc Menu
-                    sqlBatch.AppendLine("INSERT INTO MauSacMenuHeThong (ID, MauSacNguoiDungChon) VALUES (1, @mauMenu) ON CONFLICT(ID) DO UPDATE SET MauSacNguoiDungChon = excluded.MauSacNguoiDungChon;");
-                    cmdBatch.Parameters.AddWithValue("@mauMenu", uiData.MauSacMenu);
+                    sqlBatch.AppendLine(
+                        "INSERT INTO MauSacMenuHeThong " +
+                        "(ID, MauSacNguoiDungChon) " +
+                        "VALUES (1, @mauMenu) " +
+                        "ON CONFLICT(ID) DO UPDATE SET " +
+                        "MauSacNguoiDungChon = excluded.MauSacNguoiDungChon;");
 
-                    cmdBatch.CommandText = sqlBatch.ToString();
+                    cmdBatch.Parameters.AddWithValue(
+                        "@mauMenu",
+                        uiData.MauSacMenu);
+
+                    cmdBatch.CommandText =
+                        sqlBatch.ToString();
+
                     cmdBatch.ExecuteNonQuery();
                 }
 
+                // ================================================================
+                // 3. COMMIT
+                // ================================================================
                 tran.Commit();
+
                 CheckpointSQLite(cn);
 
                 // Cập nhật RAM tĩnh lập tức để hệ thống khác nhận diện
-                Module_MenuChuotPhai.MauHienTai = uiData.MauSacMenu;
+                Module_MenuChuotPhai.MauHienTai =
+                    uiData.MauSacMenu;
 
                 return "Lưu cấu hình thành công!";
             }
             catch (SqliteException ex)
             {
-                try { tran?.Rollback(); } catch { }
+                try
+                {
+                    tran?.Rollback();
+                }
+                catch
+                {
+                }
+
                 return $"SQLite Error: {ex.Message}";
             }
             catch (Exception ex)
             {
-                try { tran?.Rollback(); } catch { }
+                try
+                {
+                    tran?.Rollback();
+                }
+                catch
+                {
+                }
+
                 return $"System Error: {ex.Message}";
             }
         }
@@ -1110,7 +1132,8 @@ PRAGMA busy_timeout=15000;
                     {
                         Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Hệ thống", "Đổi đối tượng phần mềm", $"Chuyển đổi chế độ: {doiTuongMoi}");
                         formCha?.CapNhatGiaoDienTheoPhienBan();
-
+                        Module_TaiKhoan.ThongBaoPhienBanThayDoi();
+                        // 2. Tự động kiểm tra lại và ẩn/hiện nút đồng bộ mỗi khi mở Menu chuột phải
                         var result = MessageBox.Show("Đã đổi đối tượng phần mềm thành công.\nBạn có muốn cập nhật danh sách đơn vị trực thuộc ngay không?", "Cập nhật danh sách", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                         if (result == DialogResult.Yes) FormManager.OpenModal<Form20_DonVi>(this);
 
@@ -1436,14 +1459,14 @@ PRAGMA busy_timeout=15000;
                 };
 
                 grid.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
-                grid.StateCommon.DataCell.Content.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Regular);
-                grid.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+                grid.StateCommon.DataCell.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Regular);
+                grid.StateCommon.HeaderColumn.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F, System.Drawing.FontStyle.Bold);
 
                 grid.Columns.Add("Cot1", "Thông số");
                 grid.Columns.Add("Cot2", "Giá trị");
                 grid.Columns[0].FillWeight = 34; // Cột thông số hẹp lại
                 grid.Columns[1].FillWeight = 66; // Nhường chỗ cho Token dài
-                grid.Columns[0].DefaultCellStyle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+                grid.Columns[0].DefaultCellStyle.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F, System.Drawing.FontStyle.Bold);
                 grid.Columns[0].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(60, 60, 60);
 
                 // Tự động Wrap text cho cột Giá trị (Vì Token thường rất dài)
@@ -1467,12 +1490,12 @@ PRAGMA busy_timeout=15000;
                         if (valLow.Contains("đã kích hoạt") || valLow.Contains("v1.") || valLow.Contains("hợp lệ") || valLow == "ok")
                         {
                             cellVal.Style.ForeColor = System.Drawing.Color.FromArgb(34, 139, 34); // Xanh lá
-                            cellVal.Style.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Bold);
+                            cellVal.Style.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Bold);
                         }
                         else if (valLow.Contains("chưa") || valLow.Contains("lỗi") || valLow.Contains("hết hạn"))
                         {
                             cellVal.Style.ForeColor = System.Drawing.Color.FromArgb(211, 47, 47); // Đỏ đô
-                            cellVal.Style.Font = new System.Drawing.Font("Segoe UI", 10.5F, System.Drawing.FontStyle.Bold);
+                            cellVal.Style.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Bold);
                         }
                         else if (key.Contains("Token"))
                         {
@@ -1943,7 +1966,7 @@ PRAGMA busy_timeout=15000;
                 {
                     HienThiFormAo_CanhBao(
                         "THIẾU THÔNG TIN",
-                        "Đồng chí vui lòng chọn năm hệ thống trước khi sử dụng.");
+                        $"{Module_HeThong.Tu_Dong_Chi} vui lòng chọn năm hệ thống trước khi sử dụng.");
 
                     comboBox1_NamHienTai.Focus();
                     return;
@@ -1995,7 +2018,7 @@ PRAGMA busy_timeout=15000;
                     "  • Việc thay đổi nội dung sai quy cách có thể gây sai lệch hệ thống.\n\n" +
 
                     "Hệ thống sẽ yêu cầu xác thực quyền Admin.\n" +
-                    "Đồng chí có muốn tiếp tục không?";
+                    $"{Module_HeThong.Tu_Dong_Chi} có muốn tiếp tục không?";
 
                 if (!HienThiFormAo_XacNhan(
                     "CẤU HÌNH HIỂN THỊ EXCEL",
@@ -2482,98 +2505,6 @@ PRAGMA busy_timeout=15000;
                 formAo.ShowDialog(this);
             }
         }
-        private void ThayDoiKichThuocChu(float step)
-        {
-            // = CHỐNG SPAM CLICK =
-            if (Interlocked.Exchange(ref _isChangingFont, 1) == 1)
-                return;
-
-            try
-            {
-                if (IsDisposed || Disposing)
-                    return;
-
-                if (richTextBox1_TomTatGhiChu == null ||
-                    richTextBox1_TomTatGhiChu.IsDisposed)
-                    return;
-
-                // = TÍNH CỠ CHỮ MỚI =
-                float newSize = _currentFontSize + step;
-
-                // = GIỚI HẠN AN TOÀN =
-                if (newSize < FONT_SIZE_MIN)
-                    newSize = FONT_SIZE_MIN;
-
-                if (newSize > FONT_SIZE_MAX)
-                    newSize = FONT_SIZE_MAX;
-                // = KHÔNG ĐỔI => HIỆN MSG & THOÁT =
-                if (Math.Abs(newSize - _currentFontSize) < 0.1f)
-                {
-                    // Kiểm tra chiều hướng bấm (step > 0 là đang bấm tăng, ngược lại là giảm)
-                    if (step > 0)
-                    {
-                        HienThiFormAo_ThongBaoNgan(
-                            "GIỚI HẠN CỠ CHỮ",
-                            $"Cỡ chữ đã đạt mức lớn nhất là {FONT_SIZE_MAX}.");
-                    }
-                    else if (step < 0)
-                    {
-                        HienThiFormAo_ThongBaoNgan(
-                            "GIỚI HẠN CỠ CHỮ",
-                            $"Cỡ chữ đã đạt mức nhỏ nhất là {FONT_SIZE_MIN}.");
-                    }
-                    return;
-                }
-                // = LẤY FONT GỐC =
-                Font oldDynamicFont = _dynamicRichTextFont;
-
-                Font currentFont = richTextBox1_TomTatGhiChu.Font;
-
-                // = TẠO FONT MỚI =
-                Font newFont = new Font(
-                    currentFont.FontFamily,
-                    newSize,
-                    currentFont.Style,
-                    GraphicsUnit.Point);
-
-                // = TREO RENDER =
-                richTextBox1_TomTatGhiChu.SuspendLayout();
-
-                try
-                {
-                    richTextBox1_TomTatGhiChu.Font = newFont;
-                    _currentFontSize = newSize;
-
-                    // Chỉ lưu font do ta tạo
-                    _dynamicRichTextFont = newFont;
-                }
-                finally
-                {
-                    richTextBox1_TomTatGhiChu.ResumeLayout();
-                }
-
-                // = GIẢI PHÓNG FONT CŨ =
-                // Dispose SAU KHI control đã dùng font mới
-                oldDynamicFont?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[Font Resize Error] {ex.Message}");
-            }
-            finally
-            {
-                Interlocked.Exchange(ref _isChangingFont, 0);
-            }
-        }
-        private void kryptonButton2_TangCoChuRichText_Click(object sender, EventArgs e)
-        {
-            ThayDoiKichThuocChu(FONT_SIZE_STEP);
-        }
-        private void kryptonButton2_GiamCoChuRichText_Click(object sender, EventArgs e)
-        {
-            ThayDoiKichThuocChu(-FONT_SIZE_STEP);
-        }
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             try
@@ -2671,7 +2602,7 @@ PRAGMA busy_timeout=15000;
                     "  • Không chạy nhiều phiên bản phần mềm cùng lúc.\n" +
                     "  • Đảm bảo ổ đĩa còn đủ dung lượng.\n\n" +
 
-                    "Đồng chí có muốn tiếp tục không?";
+                    $"{Module_HeThong.Tu_Dong_Chi} có muốn tiếp tục không?";
 
                 if (!HienThiFormAo_XacNhan(tieuDe, noiDung))
                     return;
@@ -2820,7 +2751,7 @@ PRAGMA busy_timeout=15000;
                     "  • Chỉ khôi phục từ nguồn dữ liệu tin cậy.\n" +
                     "  • Nên sao lưu dữ liệu hiện tại trước khi tiếp tục.\n\n" +
 
-                    "Đồng chí có muốn tiếp tục không?";
+                    $"{Module_HeThong.Tu_Dong_Chi} có muốn tiếp tục không?";
 
                 if (!HienThiFormAo_XacNhan(tieuDe, noiDung))
                     return;
@@ -3144,6 +3075,12 @@ PRAGMA busy_timeout=15000;
             {
                 kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Visible = !laTanBinh;
             }
+        }
+
+        private void kryptonButton1_CapNhatTinhThanhPho_Click(object sender, EventArgs e)
+        {
+            //kryptonButton1_CapNhatTinhThanhPho
+            FormManager.OpenModal<Form57_CapNhatTinhThanhPho>(this);
         }
     }
 }//Ngoài luồng

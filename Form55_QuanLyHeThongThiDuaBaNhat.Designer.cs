@@ -33,6 +33,7 @@
             menuStrip1 = new MenuStrip();
             quanLyThiDuaBaNhat_ToolStripMenuItem = new ToolStripMenuItem();
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -48,7 +49,7 @@
             // 
             menuStrip1.BackColor = Color.FromArgb(192, 192, 255);
             menuStrip1.Font = new Font("Segoe UI", 9F);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { quanLyThiDuaBaNhat_ToolStripMenuItem, quanLySoVangThiDuaBaNhat_ToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { quanLyThiDuaBaNhat_ToolStripMenuItem, toolStripMenuItem1, quanLySoVangThiDuaBaNhat_ToolStripMenuItem });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1264, 29);
@@ -73,6 +74,12 @@
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Text = "Sổ vàng thi đua Ba nhất";
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Click += quanLySoVangThiDuaBaNhat_ToolStripMenuItem_Click;
             // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(22, 25);
+            toolStripMenuItem1.Text = "|";
+            // 
             // Form55_QuanLyHeThongThiDuaBaNhat
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -95,5 +102,6 @@
         private MenuStrip menuStrip1;
         private ToolStripMenuItem quanLyThiDuaBaNhat_ToolStripMenuItem;
         private ToolStripMenuItem quanLySoVangThiDuaBaNhat_ToolStripMenuItem;
+        private ToolStripMenuItem toolStripMenuItem1;
     }
 }

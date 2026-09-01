@@ -51,6 +51,7 @@
             groupBox1 = new GroupBox();
             checkedListBox1_LietKeTenCacSheet = new CheckedListBox();
             toolTip1 = new ToolTip(components);
+            toolStripStatusLabel1_GioiThieu = new ToolStripStatusLabel();
             tableLayoutPanel1.SuspendLayout();
             tableLayoutPanel3.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
@@ -273,7 +274,7 @@
             statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.Dock = DockStyle.None;
             statusStrip1.ImageScalingSize = new Size(19, 19);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripProgressBar1_TienTrinhXuatTep, toolStripStatusLabel1_TongCongTepPdf, toolStripStatusLabel1_DangLoad });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripProgressBar1_TienTrinhXuatTep, toolStripStatusLabel1_TongCongTepPdf, toolStripStatusLabel1_DangLoad, toolStripStatusLabel1_GioiThieu });
             statusStrip1.Location = new Point(0, 418);
             statusStrip1.MaximumSize = new Size(0, 31);
             statusStrip1.MinimumSize = new Size(0, 31);
@@ -328,6 +329,12 @@
             checkedListBox1_LietKeTenCacSheet.Size = new Size(905, 205);
             checkedListBox1_LietKeTenCacSheet.TabIndex = 0;
             // 
+            // toolStripStatusLabel1_GioiThieu
+            // 
+            toolStripStatusLabel1_GioiThieu.Name = "toolStripStatusLabel1_GioiThieu";
+            toolStripStatusLabel1_GioiThieu.Size = new Size(61, 26);
+            toolStripStatusLabel1_GioiThieu.Text = "Giới  thiệu";
+            // 
             // Form48_XuatTepPdf
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -378,5 +385,6 @@
         private TableLayoutPanel tableLayoutPanel3;
         private CheckBox checkBox1_ChonTatCa;
         private ToolStripStatusLabel toolStripStatusLabel1_DangLoad;
+        private ToolStripStatusLabel toolStripStatusLabel1_GioiThieu;
     }
 }

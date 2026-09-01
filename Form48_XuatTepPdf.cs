@@ -126,8 +126,42 @@ namespace PhanMemThiDua2026
                 toolStripProgressBar1_TienTrinhXuatTep.Margin = new Padding(1, 5, 1, 5);
             }
             InitToolTips();
+            // Gọi hàm khởi tạo nhãn giới thiệu căn phải
+            CauHinhStatusLabelGioiThieu();
             // Gọi hàm Reload để nạp dữ liệu lần đầu
             ReloadGiaoDienVaDuLieu();
+        }
+        private void CauHinhStatusLabelGioiThieu()
+        {
+            if (toolStripStatusLabel1_GioiThieu == null)
+                return;
+
+            toolStripStatusLabel1_GioiThieu.Spring = true;
+            toolStripStatusLabel1_GioiThieu.TextAlign = ContentAlignment.MiddleRight;
+            toolStripStatusLabel1_GioiThieu.Text = "💡 Giới thiệu";
+
+            // Cấu hình liên kết
+            toolStripStatusLabel1_GioiThieu.IsLink = true;
+            toolStripStatusLabel1_GioiThieu.LinkBehavior = LinkBehavior.HoverUnderline;
+
+            // Tránh đăng ký sự kiện Click nhiều lần
+            toolStripStatusLabel1_GioiThieu.Click -= ToolStripStatusLabel1_GioiThieu_Click;
+            toolStripStatusLabel1_GioiThieu.Click += ToolStripStatusLabel1_GioiThieu_Click;
+        }
+        private void ToolStripStatusLabel1_GioiThieu_Click(object sender, EventArgs e)
+        {
+            const string thongBao =
+                "✔ Tạo tệp gửi lên phần mềm QLVB ĐHTN - K02 nhanh chóng.\n" +
+                "✔ Ánh xạ tên tệp và bảng biểu theo đúng chuẩn quy định.\n" +
+                "✔ Tối ưu định dạng trang in, căn chỉnh lề và cấu hình đóng gói PDF.\n" +
+                "✔ Phù hợp với nhiều máy tính và các phần mềm văn phòng khác nhau.\n" +
+                "✔ Hỗ trợ trích xuất nhanh văn bản phục vụ lưu trữ và chuyển giao số hóa.";
+
+            MessageBox.Show(
+                thongBao,
+                "Giới thiệu chức năng trình tạo *.pdf",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
         }
         /// <summary>
         /// Hàm này được gọi từ Form cha mỗi khi muốn mở lại Form 48 từ RAM.
@@ -210,7 +244,7 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
             toolTip1.InitialDelay = 300;
             toolTip1.AutoPopDelay = 2500;
@@ -984,7 +1018,7 @@ namespace PhanMemThiDua2026
                 excelPath.Equals("Chưa chọn tệp excel", StringComparison.OrdinalIgnoreCase) ||
                 !File.Exists(excelPath))
             {
-                MessageBox.Show("Bạn chưa chọn tệp Excel nguồn hoặc tệp không còn tồn tại!\nHệ thống sẽ mở hộp thoại để bạn chọn tệp ngay bây giờ.", "Gợi ý thao tác", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Bạn chưa chọn tệp Excel nguồn hoặc tệp không còn tồn tại!\nHệ thống sẽ mở hộp thoại để bạn chọn tệp ngay bây giờ.", Module_HeThong.Goi_Y_Thao_Tac, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 // Giả lập cú click của người dùng vào nút Chọn tệp Excel
                 kryptonButton1_ChonDuongDanTepExcel.PerformClick();
@@ -1077,6 +1111,7 @@ namespace PhanMemThiDua2026
 
                 CapNhatStatusStrip(checkedListBox1_LietKeTenCacSheet.Items.Count, itemsToExport.Count, soLuongXuatThanhCong);
                 // 🌟 1. GHI NHẬT KÝ KHI XUẤT THÀNH CÔNG 🌟
+                Module_ThongBao.ThanhCong($"Xuất thành công {soLuongXuatThanhCong} tệp PDF");
                 if (soLuongXuatThanhCong > 0)
                 {
                     Module_NhatKy.GhiNhatKy(
@@ -1341,5 +1376,7 @@ namespace PhanMemThiDua2026
                 label_DuongDanPdf.ForeColor = Color.DarkBlue;
             }
         }
+        // Đặt trong hàm CauHinhStatusLabelGioiThieu() hoặc Form_Load
+
     }
 }

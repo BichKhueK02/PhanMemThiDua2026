@@ -49,28 +49,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        public static Form39_ThongTinNguoiDung GetInstance()
-        {
-            lock (_formLock)
-            {
-                // 🛡️ Form đã bị hủy -> tạo mới
-                if (_instance == null || _instance.IsDisposed)
-                {
-                    _instance = new Form39_ThongTinNguoiDung();
-
-                    // 🚀 Tự reset singleton khi form bị đóng thật
-                    _instance.FormClosed += (_, __) =>
-                    {
-                        lock (_formLock)
-                        {
-                            _instance = null;
-                        }
-                    };
-                }
-
-                return _instance;
-            }
-        }
         public Form39_ThongTinNguoiDung()
         {
             InitializeComponent();
@@ -78,7 +56,6 @@ namespace PhanMemThiDua2026
             // Thêm dòng này để lắng nghe khi Form ẩn/hiện
             this.VisibleChanged += Form39_ThongTinNguoiDung_VisibleChanged;
         }
-
         // Cờ nhận diện Form bật lần đầu tiên
         private bool _isFirstLoad = true;
         // Lê Trung Kiên -  Yêu mèo cam
@@ -89,10 +66,8 @@ namespace PhanMemThiDua2026
                 InitFocusEffects();
                 this.ActiveControl = kryptonButton1_DongFrom;
                 InitToolTips();
-
                 // Luôn đảm bảo bảng tồn tại
                 KhoiTaoBangAnhAdmin(_csdl1Path);
-
                 // ⭐ GỌI HÀM NẠP TỔNG HỢP Ở LẦN ĐẦU KHỞI TẠO
                 await NapDuLieuMoiNhatToanDien();
             }
@@ -106,7 +81,6 @@ namespace PhanMemThiDua2026
                 _isFirstLoad = false;
             }
         }
-
         private async void Form39_ThongTinNguoiDung_VisibleChanged(object? sender, EventArgs e)
         {
             // Cờ _isFirstLoad giúp chặn việc load đè khi Form_Load đang chạy lần đầu
@@ -124,7 +98,29 @@ namespace PhanMemThiDua2026
                 }
             }
         }
+        public static Form39_ThongTinNguoiDung GetInstance()
+        {
+            lock (_formLock)
+            {
+                if (_instance == null || _instance.IsDisposed)
+                {
+                    _instance = new Form39_ThongTinNguoiDung();
 
+                    _instance.FormClosed += (_, __) =>
+                    {
+                        lock (_formLock)
+                        {
+                            if (ReferenceEquals(_instance, null) == false)
+                            {
+                                _instance = null;
+                            }
+                        }
+                    };
+                }
+
+                return _instance;
+            }
+        }
         // ⭐ HÀM GOM CHUNG TRỌNG TÂM: Nạp cả Text lẫn Ảnh
         private async Task NapDuLieuMoiNhatToanDien()
         {
@@ -135,7 +131,7 @@ namespace PhanMemThiDua2026
                 // Cho 2 tác vụ Text và Image chạy song song ép xung
                 var loadTextTask = LoadThongTinVanBanAsync();
                 var loadAvatarTask = LoadAnhDaiDienAsync(cts.Token);
-
+                kryptonTextBox1_TheLoaiMayTinh.Text = Module_TrangThaiHeThong.LayLoaiMayTinh();
                 await Task.WhenAll(loadTextTask, loadAvatarTask);
                 Debug.WriteLine("🔄 [Form39] Đã nạp lại TOÀN BỘ Text và Ảnh mới nhất!");
             }
@@ -188,9 +184,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Lỗi khởi tạo bảng AvatarAdmin: " + ex.Message);
             }
         }
-
-
-
         //private async void Form39_ThongTinNguoiDung_Load(object sender, EventArgs e)
         //{
         //    try
@@ -324,22 +317,18 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý thao tác";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
             toolTip1.InitialDelay = 200;
             toolTip1.AutoPopDelay = 3000;
             toolTip1.ReshowDelay = 50;
-
             string tenTaiKhoan = string.IsNullOrWhiteSpace(textBox_TenTaiKhoan.Text)
                                  ? "người dùng"
                                  : textBox_TenTaiKhoan.Text.Trim();
-
-            var tips = new Dictionary<Control, string>
-            {
+            var tips = new Dictionary<Control, string>{
                 { pictureBox2_AnhDaiDienAdmin, $"Ảnh đại diện của tài khoản {tenTaiKhoan}" },
                 { kryptonButton1_DongFrom, "Đóng cửa sổ thông tin người dùng" }
             };
-
             foreach (var tip in tips)
             {
                 if (tip.Key != null) toolTip1.SetToolTip(tip.Key, tip.Value);
@@ -400,7 +389,7 @@ namespace PhanMemThiDua2026
             {
                 if (dt == default || dt.Year < 2000) return "N/A";
                 dt = dt.ToLocalTime();
-                return $"{dt:HH} giờ {dt:mm} phút {dt:ss} giây, ngày {dt:dd} tháng {dt:MM} năm {dt:yyyy}";
+                return $"{dt:HH} giờ {dt:mm} phút {dt:ss} giây, ngày {dt:dd}/{dt:MM}/{dt:yyyy}";
             }
             catch { return "N/A"; }
         }
@@ -461,7 +450,6 @@ namespace PhanMemThiDua2026
                 GhiLogHeThong("Avatar Load Error", ex);
             }
         }
-
         private async Task<Image?> LayVaXuLyAnhTuDatabaseAsync(CancellationToken token)
         {
             string connString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
@@ -506,7 +494,6 @@ namespace PhanMemThiDua2026
                 return null;
             }
         }
-
 
         //private async Task<Image?> LayVaXuLyAnhTuDatabaseAsync(CancellationToken token)
         //{
@@ -644,6 +631,5 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine($"[CRITICAL] Ghi log CSDL thất bại. Context: {context}. Lỗi: {internalEx.Message}");
             }
         }
-
     }
 }
