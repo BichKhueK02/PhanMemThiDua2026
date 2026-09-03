@@ -1078,5 +1078,99 @@ namespace PhanMemThiDua2026
             }
         }
         //yêu yêu yêu mèo cam
+        public static async Task KiemTraVaNapDuLieuTapTheAsync(string filePath, string csdl4Path)
+        {
+            try
+            {
+                using var wb = new XLWorkbook(filePath);
+
+                // 1. Nếu không có sheet Tập thể -> Tự động thoát, không hiện MessageBox
+                if (!wb.Worksheets.Contains("ThongKe_PhanLoaiTapThe"))
+                {
+                    return;
+                }
+
+                var ws = wb.Worksheet("ThongKe_PhanLoaiTapThe");
+                var firstRow = ws.FirstRowUsed();
+                int lastRowIndex = ws.LastRowUsed()?.RowNumber() ?? 0;
+
+                if (firstRow == null || lastRowIndex <= 1) return;
+
+                // 2. Chỉ hiện MessageBox khi tệp thực sự có sheet và có dữ liệu
+                var dialogResult = MessageBox.Show(
+                    "Phát hiện dữ liệu 'Thống kê phân loại tập thể' trong file Excel.\n\nBạn có muốn nạp dữ liệu thi đua tập thể này vào hệ thống không?",
+                    "Xác nhận nạp dữ liệu Tập thể",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                );
+
+                if (dialogResult != DialogResult.Yes) return;
+
+                // 3. Đọc dữ liệu và nạp vào csdl4.db
+                List<string> colNames = new List<string>();
+                foreach (var cell in firstRow.CellsUsed())
+                {
+                    colNames.Add(cell.Value.ToString().Trim());
+                }
+
+                await Task.Run(() =>
+                {
+                    using var cn = new SqliteConnection($"Data Source={csdl4Path}");
+                    cn.Open();
+                    using var transaction = cn.BeginTransaction();
+
+                    try
+                    {
+                        string columnsJoined = string.Join(", ", colNames);
+                        string paramsJoined = string.Join(", ", colNames.Select(c => $"@{c}"));
+                        string sqlInsert = $"INSERT OR REPLACE INTO ThongKe_PhanLoaiTapThe ({columnsJoined}) VALUES ({paramsJoined})";
+
+                        for (int r = 2; r <= lastRowIndex; r++)
+                        {
+                            var row = ws.Row(r);
+                            using var cmd = new SqliteCommand(sqlInsert, cn, transaction);
+
+                            for (int c = 0; c < colNames.Count; c++)
+                            {
+                                string cellValue = row.Cell(c + 1).Value.ToString().Trim();
+                                string colName = colNames[c];
+
+                                if (string.IsNullOrEmpty(cellValue))
+                                {
+                                    cmd.Parameters.AddWithValue($"@{colName}", DBNull.Value);
+                                }
+                                else
+                                {
+                                    // 🔒 MÃ HÓA DỮ LIỆU BẰNG AES TRƯỚC KHI LƯU VÀO CSDL
+                                    // (Nếu cột ID là số tự tăng hoặc khóa chính dạng số thì không mã hóa ID)
+                                    if (colName.Equals("ID", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        cmd.Parameters.AddWithValue($"@{colName}", cellValue);
+                                    }
+                                    else
+                                    {
+                                        cmd.Parameters.AddWithValue($"@{colName}", BaoMatAES.MaHoa(cellValue));
+                                    }
+                                }
+                            }
+
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                        MessageBox.Show("Nạp dữ liệu thi đua tập thể thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        MessageBox.Show("Lỗi khi nạp dữ liệu tập thể vào CSDL:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Lỗi đọc sheet tập thể: " + ex.Message);
+            }
+        }
     }
 }

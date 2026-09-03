@@ -32,8 +32,10 @@
             panelContent = new Panel();
             menuStrip1 = new MenuStrip();
             quanLyThiDuaNamHienTai_ToolStripMenuItem = new ToolStripMenuItem();
-            quanLyThiDuaNamCu_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripMenuItem();
+            quanLyThiDuaNamCu_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripMenuItem();
+            toolStripMenuItem3_QuanLyThiDuaTapTheNamCu = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -49,7 +51,7 @@
             // 
             menuStrip1.BackColor = Color.FromArgb(192, 192, 255);
             menuStrip1.Font = new Font("Segoe UI", 9F);
-            menuStrip1.Items.AddRange(new ToolStripItem[] { quanLyThiDuaNamHienTai_ToolStripMenuItem, toolStripMenuItem1, quanLyThiDuaNamCu_ToolStripMenuItem });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { quanLyThiDuaNamHienTai_ToolStripMenuItem, toolStripMenuItem1, quanLyThiDuaNamCu_ToolStripMenuItem, toolStripMenuItem2, toolStripMenuItem3_QuanLyThiDuaTapTheNamCu });
             menuStrip1.Location = new Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new Size(1264, 29);
@@ -65,20 +67,35 @@
             quanLyThiDuaNamHienTai_ToolStripMenuItem.Text = "Quản lý thi đua năm hiện tại";
             quanLyThiDuaNamHienTai_ToolStripMenuItem.Click += quanLyThiDuaNamHienTai_ToolStripMenuItem_Click;
             // 
-            // quanLyThiDuaNamCu_ToolStripMenuItem
-            // 
-            quanLyThiDuaNamCu_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
-            quanLyThiDuaNamCu_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyThiDuaNamCu_ToolStripMenuItem.Image");
-            quanLyThiDuaNamCu_ToolStripMenuItem.Name = "quanLyThiDuaNamCu_ToolStripMenuItem";
-            quanLyThiDuaNamCu_ToolStripMenuItem.Size = new Size(199, 25);
-            quanLyThiDuaNamCu_ToolStripMenuItem.Text = "Quản lý thi đua năm cũ";
-            quanLyThiDuaNamCu_ToolStripMenuItem.Click += quanLyThiDuaNamCu_ToolStripMenuItem_Click;
-            // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
             toolStripMenuItem1.Size = new Size(22, 25);
             toolStripMenuItem1.Text = "|";
+            // 
+            // quanLyThiDuaNamCu_ToolStripMenuItem
+            // 
+            quanLyThiDuaNamCu_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
+            quanLyThiDuaNamCu_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyThiDuaNamCu_ToolStripMenuItem.Image");
+            quanLyThiDuaNamCu_ToolStripMenuItem.Name = "quanLyThiDuaNamCu_ToolStripMenuItem";
+            quanLyThiDuaNamCu_ToolStripMenuItem.Size = new Size(241, 25);
+            quanLyThiDuaNamCu_ToolStripMenuItem.Text = "Quản lý thi đua CBCS năm cũ";
+            quanLyThiDuaNamCu_ToolStripMenuItem.Click += quanLyThiDuaNamCu_ToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(22, 25);
+            toolStripMenuItem2.Text = "|";
+            // 
+            // toolStripMenuItem3_QuanLyThiDuaTapTheNamCu
+            // 
+            toolStripMenuItem3_QuanLyThiDuaTapTheNamCu.Font = new Font("Segoe UI", 12F);
+            toolStripMenuItem3_QuanLyThiDuaTapTheNamCu.Image = (Image)resources.GetObject("toolStripMenuItem3_QuanLyThiDuaTapTheNamCu.Image");
+            toolStripMenuItem3_QuanLyThiDuaTapTheNamCu.Name = "toolStripMenuItem3_QuanLyThiDuaTapTheNamCu";
+            toolStripMenuItem3_QuanLyThiDuaTapTheNamCu.Size = new Size(251, 25);
+            toolStripMenuItem3_QuanLyThiDuaTapTheNamCu.Text = "Quản lý thi đua tập thể năm cũ";
+            toolStripMenuItem3_QuanLyThiDuaTapTheNamCu.Click += toolStripMenuItem3_QuanLyThiDuaTapTheNamCu_Click;
             // 
             // Form53_QuanLyKetQuaThiDua
             // 
@@ -103,5 +120,7 @@
         private ToolStripMenuItem quanLyThiDuaNamHienTai_ToolStripMenuItem;
         private ToolStripMenuItem quanLyThiDuaNamCu_ToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItem1;
+        private ToolStripMenuItem toolStripMenuItem2;
+        private ToolStripMenuItem toolStripMenuItem3_QuanLyThiDuaTapTheNamCu;
     }
 }

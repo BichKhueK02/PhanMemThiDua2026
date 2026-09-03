@@ -2474,7 +2474,6 @@ namespace PhanMemThiDua2026
                 this.Cursor = Cursors.Default;
             }
         }
-      
         private void suaThongTin_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // ============================================================
@@ -2563,10 +2562,6 @@ namespace PhanMemThiDua2026
         private void dongBoDuLieu_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             kryptonButton_CapNhat.PerformClick();
-        }
-        private void xuatDuLieu_ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            kryptonButton_XuatData.PerformClick();
         }
         private void xemThongKeThiDuaTapThe_Click(object sender, EventArgs e)
         {
@@ -3146,6 +3141,10 @@ namespace PhanMemThiDua2026
                 form15Ref.BringToFront();
             };
         }
+        private void xuatDuLieu_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            kryptonButton_XuatData.PerformClick();
+        }
         private async void kryptonButton_XuatData_Click(object sender, EventArgs e)
         {
             // =========================================================
@@ -3401,6 +3400,55 @@ namespace PhanMemThiDua2026
                         totalCell.Value = $"Tổng cộng: {rowCount} {Module_HeThong.Tu_dong_chi}./.";
                         totalCell.Style.Font.SetBold().Font.SetItalic();
                         ws.Range(tongDong, 1, tongDong, colCount).Merge();
+                        // =========================================================================
+                        // =========================================================================
+                        // 🟢 THÊM MỚI: CHỈ XUẤT SHEET TẬP THỂ KHI Ở CHẾ ĐỘ CBCS (!laTanBinh)
+                        // =========================================================================
+                        if (!laTanBinh)
+                        {
+                            var dtTapThe = new DataTable();
+                            using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                            {
+                                cn.Open();
+                                using var cmd = new SqliteCommand("SELECT * FROM ThongKe_PhanLoaiTapThe", cn);
+                                using var rd = cmd.ExecuteReader();
+                                dtTapThe.Load(rd);
+                            }
+
+                            if (dtTapThe.Rows.Count > 0)
+                            {
+                                var wsTapThe = wb.Worksheets.Add("ThongKe_PhanLoaiTapThe");
+
+                                // Ghi Header (Giữ nguyên tên cột)
+                                for (int c = 0; c < dtTapThe.Columns.Count; c++)
+                                {
+                                    var headerCell = wsTapThe.Cell(1, c + 1);
+                                    headerCell.Value = dtTapThe.Columns[c].ColumnName;
+                                    headerCell.Style.Font.Bold = true;
+                                    headerCell.Style.Fill.BackgroundColor = XLColor.LightSteelBlue;
+                                    headerCell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                                }
+
+                                // Ghi Dữ liệu & Giải mã AES
+                                for (int r = 0; r < dtTapThe.Rows.Count; r++)
+                                {
+                                    for (int c = 0; c < dtTapThe.Columns.Count; c++)
+                                    {
+                                        var cell = wsTapThe.Cell(r + 2, c + 1);
+                                        string rawVal = dtTapThe.Rows[r][c]?.ToString() ?? "";
+
+                                        // 🔓 GIẢI MÃ DỮ LIỆU AES TRƯỚC KHI GHI VÀO EXCEL
+                                        // (Nếu chuỗi rỗng thì giữ nguyên, tránh lỗi exception)
+                                        cell.Value = string.IsNullOrEmpty(rawVal) ? "" : BaoMatAES.GiaiMa(rawVal);
+
+                                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                                    }
+                                }
+                                wsTapThe.Columns().AdjustToContents();
+                                wsTapThe.Hide(); // Bảo vệ dữ liệu tập thể
+                            }
+                        }
+                        // =========================================================================
                         var wsVersion = wb.Worksheets.Add("Phiên bản");
                         var cellA1 = wsVersion.Cell("A1");
                         cellA1.Value = "2026 Competition Software developed by TrungKien";
@@ -3749,7 +3797,7 @@ namespace PhanMemThiDua2026
                         throw new Exception("Lỗi khi ghi dữ liệu vào SQLite: " + exTran.Message);
                     }
                 });
-
+                await Module_XuatNhapDuLieuThiDua.KiemTraVaNapDuLieuTapTheAsync(filePath, _csdl4Path);
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Nạp dữ liệu từ Excel", $"Đã nạp {importedRows} dòng vào bảng {tenBang}");
                 await DieuPhoiLoadDuLieuAsync(laTanBinh);
                 ApplyFilter();

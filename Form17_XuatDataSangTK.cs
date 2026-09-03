@@ -8,10 +8,10 @@ namespace PhanMemThiDua2026
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
         private const string TABLE_CBCS = "ThiDuaThang";
         private const string TABLE_TANBINH = "ThiDuaThang_TanBinh";
+        private int _thongBaoCounter = 0;
 
         // Mapping hiển thị -> tên cột DB
-        private readonly Dictionary<string, string> mapCBCS = new()
-        {
+        private readonly Dictionary<string, string> mapCBCS = new() {
             {"Tháng 12 (Năm cũ)","Thang_12_Nam_Cu"},
             {"Tháng 1","Thang_1"},
             {"Tháng 2","Thang_2"},
@@ -27,8 +27,7 @@ namespace PhanMemThiDua2026
             {"Tháng 11","Thang_11"},
             {"Tổng kết năm","TongKet_Nam"}
         };
-        private readonly Dictionary<string, string> mapTanBinh = new()
-        {
+        private readonly Dictionary<string, string> mapTanBinh = new() {
             // Cụm 1: Quá trình Tháng 2 -> Chốt kết quả Tháng 3
             {"Tuần 1 - Tháng 2", "Tuan_1_T2"},
             {"Tuần 2 - Tháng 2", "Tuan_2_T2"},
@@ -58,7 +57,6 @@ namespace PhanMemThiDua2026
             {"Kết quả Tháng 6", "Thang_6"}
         };
         // ⭐ BỔ SUNG 1: Biến đếm để quản lý thời gian ẩn Label an toàn
-        private int _thongBaoCounter = 0;
         public Form17_XuatDataSangTK()
         {
             InitializeComponent();
@@ -246,14 +244,15 @@ namespace PhanMemThiDua2026
                 // 5. XỬ LÝ KẾT QUẢ KHI TASK HOÀN TẤT
                 if (thongBao.Contains("thành công", StringComparison.OrdinalIgnoreCase))
                 {
-                    // THÀNH CÔNG: Cập nhật Label, êm ru không gián đoạn
+                    // THÀNH CÔNG: Cập nhật Label
                     if (toolStripStatusLabel1_ThongBaoThanhCong != null)
                     {
                         toolStripStatusLabel1_ThongBaoThanhCong.ForeColor = Color.DarkGreen;
                         toolStripStatusLabel1_ThongBaoThanhCong.Text = $"✔ {thongBao} lúc {DateTime.Now:HH:mm:ss}";
                     }
 
-                    NapThongKePhanLoaiTapThe(); // Chạy hàm bổ trợ
+                    // Truyền trực tiếp tenCot vào đây để ghi đúng cột Tháng/Tổng kết năm tương ứng
+                    NapThongKePhanLoaiTapThe(tenCot);
                 }
                 else
                 {
@@ -336,8 +335,7 @@ namespace PhanMemThiDua2026
             return map;
         }       
         // Update record       
-        private void UpdateRecord(SqliteConnection cn, SqliteTransaction tr,
-            string table, string column, int id, string value)
+        private void UpdateRecord(SqliteConnection cn, SqliteTransaction tr, string table, string column, int id, string value)
         {
             using var cmd = new SqliteCommand(
                 $"UPDATE {table} SET [{column}]=@v WHERE ID=@id", cn, tr);
@@ -347,10 +345,8 @@ namespace PhanMemThiDua2026
 
             cmd.ExecuteNonQuery();
         }
-        
         // Insert record (Dùng dữ liệu mã hóa nguyên gốc)       
-        private void InsertRecord(SqliteConnection cn, SqliteTransaction tr,
-            string table, string column, RecordCBCS r, string value)
+        private void InsertRecord(SqliteConnection cn, SqliteTransaction tr, string table, string column, RecordCBCS r, string value)
         {
             using var cmd = new SqliteCommand($@"
 INSERT INTO {table}(HoVaTen,SoHieu,DonVi,[{column}])
@@ -365,9 +361,7 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
 
             cmd.ExecuteNonQuery();
         }
-        
         // Chuyển loại
-        
         private string ChuyenLoaiSangSo(string v) => v switch
         {
             Module_HeThong.Loai_1 => "1",
@@ -404,12 +398,8 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
         {
             string pb = Module_TaiKhoan.LayPhienBanPhanMem();
             return pb.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-        }     
-        // Thống kê tập thể 
-        private void NapThongKePhanLoaiTapThe()
-        {
-            // giữ nguyên logic cũ của bạn
         }
+        // Thống kê tập thể 
         // Tổng loại tân binh (giữ nguyên SQL gốc)
         private void CapNhatTongLoaiTanBinh(SqliteConnection cn, SqliteTransaction tr)
         {
@@ -445,6 +435,110 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
                     toolTip1.SetToolTip(tip.Key, tip.Value);
                 }
             }
+        }
+        private void NapThongKePhanLoaiTapThe(string tenCot)
+        {
+            if (string.IsNullOrWhiteSpace(tenCot) || !File.Exists(_csdl2Path) || !File.Exists(_csdl4Path))
+                return;
+
+            try
+            {
+                using var cn2 = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var cn4 = new SqliteConnection($"Data Source={_csdl4Path}");
+
+                cn2.Open();
+                cn4.Open();
+
+                // 1. Đọc dữ liệu duy nhất tại ID = 1 từ bảng ThongTin (CSDL2)
+                string queryThongTin = "SELECT LoaiDeNghi FROM ThongTin WHERE ID = 1 LIMIT 1";
+                using var cmd2 = new SqliteCommand(queryThongTin, cn2);
+                object rawLoaiDeNghiObj = cmd2.ExecuteScalar();
+
+                if (rawLoaiDeNghiObj == null || rawLoaiDeNghiObj == DBNull.Value)
+                    return;
+
+                string rawLoaiDeNghi = rawLoaiDeNghiObj.ToString();
+
+                // 2. Giải mã dữ liệu CSDL2
+                string loaiGiaiMa = TryDec(rawLoaiDeNghi);
+
+                // 3. Ánh xạ sang ký hiệu thi đua tập thể (truyền tenCot vào để xử lý riêng TongKet_Nam)
+                string giatriAnhXa = AnhXaLoaiDeNghiTapThe(loaiGiaiMa, tenCot);
+
+                // 4. Mã hóa lại giá trị đã xử lý để lưu vào CSDL4
+                string giatriMaHoaDuaVaoCSDL = string.IsNullOrEmpty(giatriAnhXa)
+                    ? ""
+                    : BaoMatAES.MaHoa(giatriAnhXa);
+
+                using var tr4 = cn4.BeginTransaction();
+
+                // 5. Kiểm tra sự tồn tại của ID = 1 trong bảng ThongKe_PhanLoaiTapThe (CSDL4)
+                string checkSql = "SELECT COUNT(1) FROM ThongKe_PhanLoaiTapThe WHERE ID = 1";
+                using var cmdCheck = new SqliteCommand(checkSql, cn4, tr4);
+                bool isExisted = Convert.ToInt32(cmdCheck.ExecuteScalar()) > 0;
+
+                // 6. Cập nhật động theo cột (tenCot) được truyền từ ComboBox
+                if (isExisted)
+                {
+                    string updateSql = $"UPDATE ThongKe_PhanLoaiTapThe SET [{tenCot}] = @val WHERE ID = 1";
+                    using var cmdUpdate = new SqliteCommand(updateSql, cn4, tr4);
+                    cmdUpdate.Parameters.AddWithValue("@val", giatriMaHoaDuaVaoCSDL);
+                    cmdUpdate.ExecuteNonQuery();
+                }
+                else
+                {
+                    string insertSql = $"INSERT INTO ThongKe_PhanLoaiTapThe (ID, [{tenCot}]) VALUES (1, @val)";
+                    using var cmdInsert = new SqliteCommand(insertSql, cn4, tr4);
+                    cmdInsert.Parameters.AddWithValue("@val", giatriMaHoaDuaVaoCSDL);
+                    cmdInsert.ExecuteNonQuery();
+                }
+
+                tr4.Commit();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Lỗi NapThongKePhanLoaiTapThe: " + ex.Message);
+            }
+        }
+        // Hàm hỗ trợ ánh xạ chuỗi (chỉ ánh xạ khi là Tổng kết năm)
+        private string AnhXaLoaiDeNghiTapThe(string input, string tenCot)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return "";
+
+            string strInput = input.Trim();
+
+            // Chỉ thực hiện chuyển đổi ký hiệu khi chọn cột Tổng kết năm
+            if (tenCot == "TongKet_Nam")
+            {
+                return strInput switch
+                {
+                    "Loại 1" => "ĐVQT",
+                    "Loại 2" => "ĐVTT",
+                    "Loại 3" => "HTNV",
+                    "Loại 4" => "KTTNV",
+                    "Không PL" => "Không PL",
+                    _ => strInput
+                };
+            }
+
+            // Các tháng khác và 6 tháng đầu năm giữ nguyên giá trị gốc ("Loại 1", "Loại 2",...)
+            return strInput;
+        }
+        private string XacDinhCotThongKe(string thang, string nam)
+        {
+            string digitsOnly = System.Text.RegularExpressions.Regex.Replace(thang ?? "", @"\D", "");
+
+            if (int.TryParse(digitsOnly, out int numThang) && numThang >= 1 && numThang <= 11)
+            {
+                return $"Thang_{numThang}";
+            }
+
+            if (numThang == 12)
+            {
+                return "Thang_12_Nam_Cu";
+            }
+
+            return "TongKet_Nam";
         }
         // Model dữ liệu (Đã cấu trúc lại để chứa song song 2 bản Mật/Rõ)
         class RecordCBCS

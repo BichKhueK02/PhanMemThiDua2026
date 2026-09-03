@@ -432,13 +432,14 @@ WHERE ID = 1;";
                 using var wb = new ClosedXML.Excel.XLWorkbook();
                 var ws = wb.Worksheets.Add("ThongKe");
 
+                // 🔥 ĐÃ SỬA: Bảng ánh xạ danh hiệu dành cho TẬP THỂ (ĐVQT, ĐVTT, HTNV, KHTNV, Không PL)
                 var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    [Module_HeThong.Loai_1] = Module_HeThong.PL_CSTD,
-                    [Module_HeThong.Loai_2] = Module_HeThong.PL_CSTT,
-                    [Module_HeThong.Loai_3] = Module_HeThong.PL_HTNV,
-                    [Module_HeThong.Loai_4] = Module_HeThong.PL_KHTNV,
-                    [Module_HeThong.PL_KHONG_PL] = string.Empty
+                    [Module_HeThong.Loai_1] = "ĐVQT", // "ĐVQT"
+                    [Module_HeThong.Loai_2] = "ĐVTT", // "ĐVTT"
+                    [Module_HeThong.Loai_3] = "HTNV", // "HTNV"
+                    [Module_HeThong.Loai_4] = "KHTNV", // "KHTNV"
+                    [Module_HeThong.PL_KHONG_PL] = "Không PL" // "Không PL"
                 };
 
                 int soCotExcel = kryptonDataGridView1.Columns.Count + 1;
@@ -490,13 +491,12 @@ WHERE ID = 1;";
                     cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     cell.Style.Alignment.WrapText = true;
-
-                    if (giaTriXuat is Module_HeThong.PL_CSTD or Module_HeThong.PL_CSTT)
-                        {
+                    if (giaTriXuat is "ĐVQT" or "ĐVTT")
+                    {
                         cell.Style.Font.Bold = true;
                         cell.Style.Font.FontColor = XLColor.DarkGreen;
                     }
-                    else if (giaTriXuat == Module_HeThong.PL_KHTNV)
+                    else if (giaTriXuat == "KHTNV")
                     {
                         cell.Style.Font.Bold = true;
                         cell.Style.Font.FontColor = XLColor.DarkRed;

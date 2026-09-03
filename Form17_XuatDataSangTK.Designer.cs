@@ -75,8 +75,8 @@
             tableLayoutPanel2.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 3;
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 53.5975456F));
-            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 34.4083023F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 56.8862267F));
+            tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 30.5389214F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 11.9941549F));
             tableLayoutPanel2.Size = new Size(716, 167);
             tableLayoutPanel2.TabIndex = 2;
@@ -91,18 +91,18 @@
             tableLayoutPanel3.Controls.Add(comboBox1_ChonThangCanXuat, 1, 0);
             tableLayoutPanel3.Controls.Add(label1, 0, 0);
             tableLayoutPanel3.Dock = DockStyle.Fill;
-            tableLayoutPanel3.Location = new Point(3, 91);
+            tableLayoutPanel3.Location = new Point(3, 97);
             tableLayoutPanel3.Margin = new Padding(3, 2, 3, 2);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.Size = new Size(710, 53);
+            tableLayoutPanel3.Size = new Size(710, 47);
             tableLayoutPanel3.TabIndex = 5;
             // 
             // kryptonButton_XuatDuLieuSangThongKe
             // 
             kryptonButton_XuatDuLieuSangThongKe.Anchor = AnchorStyles.None;
-            kryptonButton_XuatDuLieuSangThongKe.Location = new Point(540, 11);
+            kryptonButton_XuatDuLieuSangThongKe.Location = new Point(540, 8);
             kryptonButton_XuatDuLieuSangThongKe.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_XuatDuLieuSangThongKe.Name = "kryptonButton_XuatDuLieuSangThongKe";
             kryptonButton_XuatDuLieuSangThongKe.Size = new Size(130, 30);
@@ -118,7 +118,7 @@
             comboBox1_ChonThangCanXuat.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox1_ChonThangCanXuat.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_ChonThangCanXuat.FormattingEnabled = true;
-            comboBox1_ChonThangCanXuat.Location = new Point(234, 15);
+            comboBox1_ChonThangCanXuat.Location = new Point(234, 12);
             comboBox1_ChonThangCanXuat.Margin = new Padding(3, 2, 3, 2);
             comboBox1_ChonThangCanXuat.Name = "comboBox1_ChonThangCanXuat";
             comboBox1_ChonThangCanXuat.Size = new Size(264, 23);
@@ -130,7 +130,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.Blue;
-            label1.Location = new Point(56, 16);
+            label1.Location = new Point(56, 13);
             label1.Name = "label1";
             label1.Size = new Size(119, 20);
             label1.TabIndex = 1;
@@ -143,7 +143,7 @@
             pictureBox1.Location = new Point(3, 2);
             pictureBox1.Margin = new Padding(3, 2, 3, 2);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(710, 85);
+            pictureBox1.Size = new Size(710, 91);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 1;
             pictureBox1.TabStop = false;

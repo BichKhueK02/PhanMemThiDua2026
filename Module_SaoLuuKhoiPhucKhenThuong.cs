@@ -86,12 +86,8 @@ namespace PhanMemThiDua2026
                             wb.SaveAs(stream);
                         }
                     }
-
-                    //MessageBox.Show("Sao lưu dữ liệu khen thưởng thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     MessageBox.Show(
-                       $"Sao lưu dữ liệu khen thưởng thành công!\n\n" +
-                       $"Tên máy tính: {tenMayTinh}\n" +
-                       $"User máy tính: {userMayTinh}",
+                       $"Sao lưu dữ liệu khen thưởng thành công!\n\n",
                        "Thông báo",
                        MessageBoxButtons.OK,
                        MessageBoxIcon.Information);

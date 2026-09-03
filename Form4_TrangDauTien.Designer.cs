@@ -719,7 +719,7 @@
             label2_ChucVu.Anchor = AnchorStyles.Left;
             label2_ChucVu.AutoSize = true;
             label2_ChucVu.Font = new Font("Segoe UI", 9.792F, FontStyle.Italic);
-            label2_ChucVu.ForeColor = Color.FromArgb(0, 0, 192);
+            label2_ChucVu.ForeColor = Color.Green;
             label2_ChucVu.Location = new Point(407, 6);
             label2_ChucVu.Margin = new Padding(2, 0, 2, 0);
             label2_ChucVu.Name = "label2_ChucVu";

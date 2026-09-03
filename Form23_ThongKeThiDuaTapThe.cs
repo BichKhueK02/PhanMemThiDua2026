@@ -10,10 +10,10 @@ namespace PhanMemThiDua2026
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
         // 🌟 4 biến hằng số danh hiệu thi đua dùng chung toàn Form
-        public const string DanhHieu_Loai1 = Module_HeThong.PL_CSTD; // "TĐ"
-        public const string DanhHieu_Loai2 = Module_HeThong.PL_CSTT;
-        public const string DanhHieu_Loai3 = Module_HeThong.PL_HTNV;
-        public const string DanhHieu_Loai4 = Module_HeThong.PL_KHTNV;
+        public const string DanhHieu_Loai1 = "ĐVQT"; // "TĐ"
+        public const string DanhHieu_Loai2 = "ĐVTT"; // "ĐVTT"
+        public const string DanhHieu_Loai3 = "HTNV"; // "HTNV"
+        public const string DanhHieu_Loai4 = "KHTNV"; // "KHTNV"
         public Form23_ThongKeThiDuaTapThe()
         {
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -45,7 +45,8 @@ namespace PhanMemThiDua2026
             }
             CapNhatTrangThaiKetNoi();
             HienThiPhienBan();
-            comboBox1_ChonLoai.Enabled = false;
+            // 🌟 Tự động chọn Tháng hiện tại và kích hoạt nạp comboBox1_ChonLoai
+            ChonThangHienTaiTuDong();            // comboBox1_ChonLoai.Enabled = false;
         }
         private void InitToolTips()
         {
@@ -66,6 +67,7 @@ namespace PhanMemThiDua2026
 
         { kryptonButton1_CapNhat, "Cập nhật và đồng bộ dữ liệu thống kê" },
         { kryptonButton_XuatTepExcel, "Xuất kết quả thống kê ra tệp Excel" },
+        { kryptonButton1_XoaTatCaDataPhanLoaiTapThe, "Xóa tất cả dữ liệu trong bảng" },
         { kryptonButton_Dong, "Đóng màn hình thống kê" }
     };
 
@@ -77,8 +79,44 @@ namespace PhanMemThiDua2026
         }
         private void comboBox1_ChonThangCanXuat_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            comboBox1_ChonLoai.Enabled =
-                comboBox1_ChonThangCanXuat.SelectedIndex != -1;
+            // Luôn xóa sạch items cũ để nạp bộ danh mục mới
+            comboBox1_ChonLoai.Items.Clear();
+
+            if (comboBox1_ChonThangCanXuat.SelectedItem == null)
+                return;
+
+            string thangChon = comboBox1_ChonThangCanXuat.SelectedItem.ToString() ?? string.Empty;
+
+            if (thangChon.Equals("Tổng kết năm", StringComparison.OrdinalIgnoreCase))
+            {
+                // Nạp danh hiệu thi đua tổng kết năm
+                comboBox1_ChonLoai.Items.AddRange(new object[]
+                {
+            DanhHieu_Loai1,            // "ĐVQT"
+            DanhHieu_Loai2,            // "ĐVTT"
+            DanhHieu_Loai3,            // "HTNV"
+            DanhHieu_Loai4,            // "KHTNV"
+            Module_HeThong.PL_KHONG_PL  // "Không PL"
+                });
+            }
+            else
+            {
+                // Nạp phân loại tháng/định kỳ thông thường
+                comboBox1_ChonLoai.Items.AddRange(new object[]
+                {
+            Module_HeThong.Loai_1,
+            Module_HeThong.Loai_2,
+            Module_HeThong.Loai_3,
+            Module_HeThong.Loai_4,
+            Module_HeThong.PL_KHONG_PL
+                });
+            }
+
+            // Tự động chọn mục đầu tiên để tối ưu thao tác
+            if (comboBox1_ChonLoai.Items.Count > 0)
+            {
+                comboBox1_ChonLoai.SelectedIndex = 0;
+            }
         }
         private void kryptonButton_Dong_Click(object sender, EventArgs e)
         {
@@ -162,8 +200,7 @@ namespace PhanMemThiDua2026
                     tatCaCot.Add(rd["name"].ToString()!);
             }
 
-            var cotHopLe = new List<string>
-    {
+            var cotHopLe = new List<string> {
         "Thang_12_Nam_Cu","Thang_1","Thang_2","Thang_3","Thang_4","Thang_5",
         "Sau_Thang_Dau_Nam","Thang_6","Thang_7","Thang_8","Thang_9",
         "Thang_10","Thang_11","TongKet_Nam"
@@ -175,10 +212,8 @@ namespace PhanMemThiDua2026
             string sql =
                 $"SELECT {string.Join(",", cotTonTai.Select(c => $"\"{c}\""))} " +
                 "FROM ThongKe_PhanLoaiTapThe WHERE ID = 1";
-
             using var cmd = cn.CreateCommand();
             cmd.CommandText = sql;
-
             using var reader = cmd.ExecuteReader();
             DataTable dt = new();
             dt.Load(reader);
@@ -261,17 +296,23 @@ namespace PhanMemThiDua2026
             string giaTriChon = comboBox1_ChonLoai.SelectedItem.ToString()!;
 
             if (string.IsNullOrWhiteSpace(giaTriChon))
-                return string.Empty; // Cho phép xóa phân loại
+                return string.Empty;
 
-            return giaTriChon switch
+            // Kiểm tra tính hợp lệ của giá trị (chấp nhận cả 2 bộ danh hiệu)
+            if (giaTriChon == Module_HeThong.Loai_1 ||
+                giaTriChon == Module_HeThong.Loai_2 ||
+                giaTriChon == Module_HeThong.Loai_3 ||
+                giaTriChon == Module_HeThong.Loai_4 ||
+                giaTriChon == DanhHieu_Loai1 ||
+                giaTriChon == DanhHieu_Loai2 ||
+                giaTriChon == DanhHieu_Loai3 ||
+                giaTriChon == DanhHieu_Loai4 ||
+                giaTriChon == Module_HeThong.PL_KHONG_PL)
             {
-                Module_HeThong.Loai_1 => Module_HeThong.Loai_1,
-                Module_HeThong.Loai_2 => Module_HeThong.Loai_2,
-                Module_HeThong.Loai_3 => Module_HeThong.Loai_3,
-                Module_HeThong.Loai_4 => Module_HeThong.Loai_4,
-                Module_HeThong.PL_KHONG_PL => Module_HeThong.PL_KHONG_PL,
-                _ => string.Empty // Giá trị lạ → bỏ qua an toàn
-            };
+                return giaTriChon;
+            }
+
+            return string.Empty; // Giá trị không hợp lệ
         }
         private void DamBaoBangThongKeTonTai()
         {
@@ -545,6 +586,96 @@ WHERE ID = 1";
             ChinhTieuDeBangThongKe();
             CapNhatTrangThaiKetNoi();
             HienThiPhienBan();
+        }
+        private void ChonThangHienTaiTuDong()
+        {
+            // Lấy tháng hiện tại của hệ thống (1 -> 12)
+            int thangHienTai = DateTime.Now.Month;
+            string tenThangCanTim = $"Tháng {thangHienTai}";
+
+            // Tìm index của "Tháng X" trong comboBox1_ChonThangCanXuat
+            for (int i = 0; i < comboBox1_ChonThangCanXuat.Items.Count; i++)
+            {
+                string itemText = comboBox1_ChonThangCanXuat.Items[i]?.ToString() ?? string.Empty;
+                if (itemText.Equals(tenThangCanTim, StringComparison.OrdinalIgnoreCase))
+                {
+                    comboBox1_ChonThangCanXuat.SelectedIndex = i;
+                    return;
+                }
+            }
+        }
+        private void kryptonButton1_XoaTatCaDataPhanLoaiTapThe_Click(object sender, EventArgs e)
+        {
+            // =========================================================================
+            using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
+            {
+                frmXacMinh.TopMost = true;
+                frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
+                if (frmXacMinh.ShowDialog() != DialogResult.OK) return;
+            }
+
+            //// 1. Hỏi xác nhận người dùng trước khi thực hiện thao tác nguy hiểm
+            //var confirm = MessageBox.Show(
+            //    "Bạn có chắc chắn muốn XÓA TẤT CẢ dữ liệu thi đua tập thể không?\n\nHành động này không thể hoàn tác!",
+            //    "Xác nhận xóa toàn bộ dữ liệu",
+            //    MessageBoxButtons.YesNo,
+            //    MessageBoxIcon.Warning,
+            //    MessageBoxDefaultButton.Button2
+            //);
+
+            //if (confirm != DialogResult.Yes) return;
+
+            try
+            {
+                string dbPath = _csdl4Path;
+                if (!File.Exists(dbPath))
+                {
+                    MessageBox.Show("Không tìm thấy tệp CSDL!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // 2. Thực thi xóa sạch dữ liệu trong csdl4.db
+                using (var cn = new SqliteConnection($"Data Source={dbPath}"))
+                {
+                    cn.Open();
+                    using var transaction = cn.BeginTransaction();
+                    try
+                    {
+                        // Xóa toàn bộ dữ liệu bảng Tập thể
+                        using (var cmdDelete = new SqliteCommand("DELETE FROM ThongKe_PhanLoaiTapThe", cn, transaction))
+                        {
+                            cmdDelete.ExecuteNonQuery();
+                        }
+
+                        // Reset lại ID tự tăng trong sqlite_sequence (nếu bảng dùng khóa chính AUTOINCREMENT)
+                        using (var cmdResetSeq = new SqliteCommand("DELETE FROM sqlite_sequence WHERE name = 'ThongKe_PhanLoaiTapThe'", cn, transaction))
+                        {
+                            cmdResetSeq.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+                LoadBangThongKe();
+                ChinhTieuDeBangThongKe();
+                // 3. Ghi nhật ký thao tác
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa dữ liệu thi đua tập thể", $"Xóa toàn bộ bảng ThongKe_PhanLoaiTapThe | {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
+
+                // 4. Thông báo và tải lại giao diện (nếu có GridView hiển thị)
+                MessageBox.Show("Đã xóa toàn bộ dữ liệu thi đua tập thể thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // TODO: Gọi hàm Load lại DataGridView Tập thể của bạn ở đây (nếu có)
+                // LoadDataGridTapThe(); 
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi xóa dữ liệu tập thể:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
