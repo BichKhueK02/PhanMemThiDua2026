@@ -705,7 +705,7 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(2, 3, 2, 3);
             Name = "Form10_NhatKy";
-            Text = "Nhật ký phần mềm";
+            Text = "Trang Nhật ký phần mềm";
             Load += Form10_Load;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();

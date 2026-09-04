@@ -1359,7 +1359,7 @@
             Margin = new Padding(2, 4, 2, 4);
             MdiChildrenMinimizedAnchorBottom = false;
             Name = "Form12";
-            Text = "Cài đặt";
+            Text = "Trang Cài đặt";
             Load += Form12_Load;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel3.ResumeLayout(false);

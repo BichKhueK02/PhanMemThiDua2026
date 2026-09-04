@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -36,22 +37,16 @@ namespace PhanMemThiDua2026
         public const string COL_LOAI_4 = "Loai_4";
         public const string Tat_Ca = "Tất cả";
         private static string DbPath => Module_DanduongGPS.DuongDanCSDL2;
-
         // Mảng chuẩn 5 loại (Dành cho Form46_ThongKeThiDuaNamCu - CSDL Năm)
-        public static readonly object[] DanhSach_PhanLoai_Chuan =
-        {
+        public static readonly object[] DanhSach_PhanLoai_Chuan = {
             PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV, PL_KHONG_PL
         };
-
         // Mảng có thêm chuỗi rỗng ở đầu (Dành cho Form22, Form30)
-        public static readonly object[] DanhSach_PhanLoai_CoRong =
-        {
+        public static readonly object[] DanhSach_PhanLoai_CoRong = {
             "", PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV
         };
-
         // Mảng có thêm "Tất cả" (Dành cho Form46 - Bộ lọc tìm kiếm)
-        public static readonly object[] DanhSach_PhanLoai_TatCa =
-        {
+        public static readonly object[] DanhSach_PhanLoai_TatCa = {
             "Tất cả", PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV, PL_KHONG_PL
         };
         // ==========================================
@@ -238,5 +233,248 @@ namespace PhanMemThiDua2026
 
             return ds;
         }
+        public static string TenDonViHienTai { get; private set; } = string.Empty;
+        public static event Action SuKienThayDoiTenDonVi;
+        public static string LayTenDonViChuan(bool lamMoiTuCSDL = false)
+        {
+            // Nếu đã có trong RAM và không yêu cầu đọc lại từ CSDL -> Trả về luôn
+            if (!lamMoiTuCSDL && !string.IsNullOrEmpty(TenDonViHienTai))
+                return TenDonViHienTai;
+
+            string dbPath = Module_DanduongGPS.DuongDanCSDL2;
+            if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
+                return string.Empty;
+
+            try
+            {
+                using var cn = new SqliteConnection($"Data Source={dbPath}");
+                cn.Open();
+
+                using var cmd = cn.CreateCommand();
+                cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin ORDER BY ID ASC LIMIT 1";
+
+                var result = cmd.ExecuteScalar();
+                if (result == null || result == DBNull.Value)
+                    return string.Empty;
+
+                string rawText = result.ToString()!;
+                string tenDonViGiaiMa = string.Empty;
+
+                try
+                {
+                    tenDonViGiaiMa = BaoMatAES.GiaiMa(rawText);
+                }
+                catch
+                {
+                    tenDonViGiaiMa = rawText;
+                }
+
+                if (string.IsNullOrWhiteSpace(tenDonViGiaiMa))
+                    return string.Empty;
+
+                // Chuẩn hóa: "TIỂU ĐOÀN 2" -> "Tiểu đoàn 2"
+                string lower = tenDonViGiaiMa.Trim().ToLower(new CultureInfo("vi-VN"));
+                if (lower.Length == 0) return string.Empty;
+
+                TenDonViHienTai = char.ToUpper(lower[0], new CultureInfo("vi-VN")) + lower.Substring(1);
+
+                // Bắn sự kiện thông báo cho các Form đang lắng nghe
+                SuKienThayDoiTenDonVi?.Invoke();
+
+                return TenDonViHienTai;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+            //        //ở namespace PhanMemThiDua2026
+            //{
+            //    internal static class Module_HeThong
+            //        {
+            //============= Ánh xạ tên phân loại chuẩn sang tên cột SQLite =================
+            // 🎯 QUẢN LÝ BẢNG CheDo_XetThiDuaNam ("Tháng" / "Năm")
+            // 1. Cache lưu giá trị trong RAM để truy vấn siêu nhanh
+            private static string _cheDoXetThiDuaNamCache = string.Empty;
+        /// <summary>
+        /// Sự kiện phát ra toàn hệ thống khi Chế độ xét thi đua bị thay đổi.
+        /// Tất cả các Form đang mở có thể đăng ký sự kiện này để tự động cập nhật lại UI.
+        /// </summary>
+        public static event Action SuKienThayDoiCheDoXetThiDua;
+        /// <summary>
+        /// HÀM 1: Đọc giá trị từ CSDL2 (ID = 1, cột ChoPhepCheDoXetThiDuaNam).
+        /// Trả về "Năm" hoặc "Tháng" (văn bản thuần không mã hóa).
+        /// </summary>
+        /// <param name="lamMoiTuCSDL">True: Buộc đọc lại từ CSDL2; False: Lấy từ RAM Cache</param>
+        public static string LayCheDoXetThiDuaNam(bool lamMoiTuCSDL = false)
+        {
+            if (!lamMoiTuCSDL && !string.IsNullOrEmpty(_cheDoXetThiDuaNamCache))
+                return _cheDoXetThiDuaNamCache;
+
+            string dbPath = Module_DanduongGPS.DuongDanCSDL2;
+            if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
+            {
+                _cheDoXetThiDuaNamCache = "Tháng";
+                return _cheDoXetThiDuaNamCache;
+            }
+
+            try
+            {
+                using var conn = new SqliteConnection($"Data Source={dbPath}");
+                conn.Open();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT ChoPhepCheDoXetThiDuaNam FROM CheDo_XetThiDuaNam WHERE ID = 1 LIMIT 1;";
+
+                object result = cmd.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    string val = result.ToString()?.Trim() ?? "";
+                    if (val.Equals("Năm", StringComparison.OrdinalIgnoreCase))
+                        _cheDoXetThiDuaNamCache = "Năm";
+                    else
+                        _cheDoXetThiDuaNamCache = "Tháng";
+                }
+                else
+                {
+                    _cheDoXetThiDuaNamCache = "Tháng";
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Lỗi CSDL - LayCheDoXetThiDuaNam]: {ex.Message}");
+                _cheDoXetThiDuaNamCache = "Tháng";
+            }
+
+            return _cheDoXetThiDuaNamCache;
+        }
+        /// <summary>
+        /// HÀM 2: Kiểm tra nhanh xem hệ thống có đang ở Chế độ xét thi đua "Năm" hay không.
+        /// </summary>
+        public static bool IsCheDoXetThiDuaNam(bool lamMoiTuCSDL = false)
+        {
+            return LayCheDoXetThiDuaNam(lamMoiTuCSDL).Equals("Năm", StringComparison.OrdinalIgnoreCase);
+        }
+        /// <summary>
+        /// HÀM 3: Dành cho Form4 (hoặc Form Cấu hình) gọi khi người dùng bấm LƯU.
+        /// Ghi trực tiếp text thuần "Năm" hoặc "Tháng" vào ID = 1, cập nhật Cache và phát Event toàn hệ thống.
+        /// </summary>
+        /// <param name="giaTri">Truyền vào "Năm" hoặc "Tháng"</param>
+        public static bool LuuCheDoXetThiDuaNam(string giaTri)
+        {
+            string dbPath = Module_DanduongGPS.DuongDanCSDL2;
+            if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
+                return false;
+
+            // Chuẩn hóa chuỗi lưu trữ
+            string valToSave = giaTri?.Trim().Equals("Năm", StringComparison.OrdinalIgnoreCase) == true ? "Năm" : "Tháng";
+
+            try
+            {
+                using var conn = new SqliteConnection($"Data Source={dbPath}");
+                conn.Open();
+
+                // 1. Tạo bảng nếu chưa tồn tại
+                using (var cmdCreateTable = conn.CreateCommand())
+                {
+                    cmdCreateTable.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS CheDo_XetThiDuaNam (
+                            ID INTEGER NOT NULL PRIMARY KEY,
+                            ChoPhepCheDoXetThiDuaNam TEXT
+                        );";
+                    cmdCreateTable.ExecuteNonQuery();
+                }
+
+                // 2. Ghi đè/Chèn dữ liệu text thuần tại ID = 1
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        INSERT OR REPLACE INTO CheDo_XetThiDuaNam (ID, ChoPhepCheDoXetThiDuaNam)
+                        VALUES (1, @val);";
+                    cmd.Parameters.AddWithValue("@val", valToSave);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 3. Cập nhật lại RAM Cache ngay lập tức
+                _cheDoXetThiDuaNamCache = valToSave;
+
+                // 4. 🚀 BẮN SỰ KIỆN THÔNG BÁO CHO TẤT CẢ CÁC FORM ĐANG MỞ RECEIVE GIÁ TRỊ MỚI
+                SuKienThayDoiCheDoXetThiDua?.Invoke();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Lỗi CSDL - LuuCheDoXetThiDuaNam]: {ex.Message}");
+                return false;
+            }
+        }
+        /// <summary>
+        /// HÀM 4: Kiểm tra xem có kích hoạt chế độ Ánh xạ hay không.
+        /// Điều kiện: Không phải phiên bản "Tân binh" (tức phiên bản CBCS) VÀ Chế độ = "Năm".
+        /// </summary>
+        public static bool IsKichHoatAnhXa(bool lamMoiTuCSDL = false)
+        {
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            bool isCBCS = !laTanBinh;
+
+            return isCBCS && IsCheDoXetThiDuaNam(lamMoiTuCSDL);
+        }
+        public static async Task<bool> LuuCheDoXetThiDuaNamAsync(string giaTri, SqliteConnection conn = null, SqliteTransaction tran = null)
+        {
+            string valToSave = giaTri?.Trim().Equals("Năm", StringComparison.OrdinalIgnoreCase) == true ? "Năm" : "Tháng";
+
+            try
+            {
+                bool isExternalConn = conn != null;
+                if (!isExternalConn)
+                {
+                    string dbPath = Module_DanduongGPS.DuongDanCSDL2;
+                    if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return false;
+                    conn = new SqliteConnection($"Data Source={dbPath}");
+                    await conn.OpenAsync();
+                }
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    if (tran != null) cmd.Transaction = tran;
+                    cmd.CommandText = @"
+                INSERT OR REPLACE INTO CheDo_XetThiDuaNam (ID, ChoPhepCheDoXetThiDuaNam)
+                VALUES (1, @val);";
+                    cmd.Parameters.AddWithValue("@val", valToSave);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                if (!isExternalConn) conn.Dispose();
+
+                // Cập nhật Cache RAM & Bắn Sự kiện
+                _cheDoXetThiDuaNamCache = valToSave;
+                SuKienThayDoiCheDoXetThiDua?.Invoke();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Lỗi CSDL - LuuCheDoXetThiDuaNamAsync]: {ex.Message}");
+                return false;
+            }
+        }
+        /// <summary>
+        /// Sự kiện phát ra toàn hệ thống khi Tháng/Năm hoặc Thông tin cấu hình bị thay đổi
+        /// </summary>
+        public static event Action SuKienThayDoiThoiGianHeThong;
+        /// <summary>
+        /// Hàm phát thông báo làm mới thời gian hệ thống và xóa Cache dữ liệu chung
+        /// </summary>
+        public static void ThongBaoThayDoiThoiGian()
+        {
+            // 1. Xóa Cache dữ liệu cũ nếu ứng dụng có dùng DataCache
+            // DataCache.Clear(); // Bỏ comment nếu project bạn có DataCache.Clear() hoặc DataCache.IsLoaded = false;
+            // 2. Bắn sự kiện cho các Form đang mở (Form6, FormMain,...) reload
+            SuKienThayDoiThoiGianHeThong?.Invoke();
+        }
+
+
     }
 }

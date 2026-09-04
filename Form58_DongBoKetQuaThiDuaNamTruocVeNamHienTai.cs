@@ -246,7 +246,7 @@ namespace PhanMemThiDua2026
                 string huongDan = """
                     HƯỚNG DẪN ĐỒNG BỘ KẾT QUẢ THI ĐUA NĂM CŨ
                     1. MỤC ĐÍCH & PHẠM VI
-                    - Đưa kết quả tổng kết năm cũ vào dữ liệu năm nay.
+                    - Đưa kết quả tổng kết năm cũ vào cột thống kê năm cũ trong trang dữ liệu năm nay.
                     - Chỉ áp dụng cho CBCS.
                     2. CƠ CHẾ ĐỐI CHIẾU:
                     - Chọn CSDL thi đua của năm cũ.

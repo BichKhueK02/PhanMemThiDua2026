@@ -73,7 +73,78 @@ namespace PhanMemThiDua2026
                 case "ThoiGian": e.Value = item.ThoiGian; break;
             }
         }
-        //region KHOI TAO DATABASE & DU LIEU MAU
+
+        //private async Task LoadDuLieuLenGridAsync()
+        //{
+        //    if (!File.Exists(_csdl2Path)) return;
+
+        //    var dsMoi = new List<DonViDTO>();
+
+        //    await Task.Run(() =>
+        //    {
+        //        using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadOnly");
+        //        conn.Open();
+
+        //        using var cmd = new SqliteCommand("SELECT ID, STT, TenDonVi, KyHieu, ThoiGian FROM DanhSachDonVi_CapTrucThuoc ORDER BY STT ASC, ID ASC", conn);
+        //        using var rd = cmd.ExecuteReader();
+        //        while (rd.Read())
+        //        {
+        //            dsMoi.Add(new DonViDTO
+        //            {
+        //                ID = rd.GetInt32(0),
+        //                STT = rd.IsDBNull(1) ? 0 : rd.GetInt32(1),
+        //                TenDonVi = GiaiMaSafe(rd.IsDBNull(2) ? "" : rd.GetString(2)),
+        //                KyHieu = GiaiMaSafe(rd.IsDBNull(3) ? "" : rd.GetString(3)),
+        //                ThoiGian = rd.IsDBNull(4) ? "" : rd.GetString(4)
+        //            });
+        //        }
+        //    });
+
+        //    // Gán dữ liệu vào kho RAM
+        //    _danhSachDonVi = dsMoi;
+
+        //    kryptonDataGridView1.SuspendLayout();
+
+        //    // Nếu lưới chưa có cột, ta tạo cột cho nó
+        //    if (kryptonDataGridView1.Columns.Count == 0)
+        //    {
+        //        kryptonDataGridView1.Columns.Add("ID", "ID");
+        //        kryptonDataGridView1.Columns.Add("STT", "STT");
+        //        kryptonDataGridView1.Columns.Add("TenDonVi", "Tên đơn vị trực thuộc");
+        //        kryptonDataGridView1.Columns.Add("KyHieu", "Ký hiệu");
+        //        kryptonDataGridView1.Columns.Add("ThoiGian", "Thời gian");
+
+        //        kryptonDataGridView1.Columns["ID"].Visible = false;
+
+        //        CauHinhCotGrid("STT", "STT", 60, DataGridViewContentAlignment.MiddleCenter);
+        //        CauHinhCotGrid("TenDonVi", "Tên đơn vị trực thuộc", 250, DataGridViewContentAlignment.MiddleLeft);
+        //        CauHinhCotGrid("KyHieu", "Ký hiệu", 120, DataGridViewContentAlignment.MiddleCenter);
+        //        CauHinhCotGrid("ThoiGian", "Thời gian", 150, DataGridViewContentAlignment.MiddleCenter);
+
+        //        kryptonDataGridView1.Columns["STT"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+        //        kryptonDataGridView1.Columns["KyHieu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+        //        kryptonDataGridView1.Columns["ThoiGian"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+        //        kryptonDataGridView1.Columns["TenDonVi"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+        //    }
+
+        //    // ⭐ CỐT LÕI CỦA VIRTUAL MODE: Báo cho lưới biết có bao nhiêu dòng để nó vẽ
+        //    kryptonDataGridView1.RowCount = _danhSachDonVi.Count;
+
+        //    kryptonDataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        //    kryptonDataGridView1.MultiSelect = false;
+        //    kryptonDataGridView1.ReadOnly = true;
+
+        //    kryptonDataGridView1.ResumeLayout();
+        //    kryptonDataGridView1.Invalidate(); // Ép vẽ lại toàn bộ
+        //    kryptonDataGridView1.ClearSelection();
+
+        //    XoaTrangOInput();
+        //    CapNhatTongCongDonViLabel();
+        //}
+        //endregion
+
+        //region LOAD DỮ LIỆU LÊN LƯỚI
+
         private async Task LoadDuLieuLenGridAsync()
         {
             if (!File.Exists(_csdl2Path)) return;
@@ -85,7 +156,8 @@ namespace PhanMemThiDua2026
                 using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadOnly");
                 conn.Open();
 
-                using var cmd = new SqliteCommand("SELECT ID, STT, TenDonVi, KyHieu, ThoiGian FROM DanhSachDonVi_CapTrucThuoc ORDER BY STT ASC, ID ASC", conn);
+                // Bạn có thể giữ nguyên câu SQL hoặc bỏ ORDER BY đi cho nhẹ vì đằng nào mình cũng sort lại trên C#
+                using var cmd = new SqliteCommand("SELECT ID, STT, TenDonVi, KyHieu, ThoiGian FROM DanhSachDonVi_CapTrucThuoc", conn);
                 using var rd = cmd.ExecuteReader();
                 while (rd.Read())
                 {
@@ -98,6 +170,10 @@ namespace PhanMemThiDua2026
                         ThoiGian = rd.IsDBNull(4) ? "" : rd.GetString(4)
                     });
                 }
+
+                // ⭐ SẮP XẾP A-Z TẠI ĐÂY (Sau khi đã giải mã xong)
+                // Dùng StringComparer.CurrentCultureIgnoreCase để sắp xếp đúng bảng chữ cái, không phân biệt hoa thường
+                dsMoi = dsMoi.OrderBy(x => x.TenDonVi, StringComparer.CurrentCultureIgnoreCase).ToList();
             });
 
             // Gán dữ liệu vào kho RAM
@@ -141,9 +217,6 @@ namespace PhanMemThiDua2026
             XoaTrangOInput();
             CapNhatTongCongDonViLabel();
         }
-        //endregion
-
-        //region LOAD DỮ LIỆU LÊN LƯỚI
         private async Task KhoiTaoBangAndDuLieuMauAsync()
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path))

@@ -164,8 +164,7 @@
             // toolStripStatusLabel3_ThongBao
             // 
             toolStripStatusLabel3_ThongBao.Name = "toolStripStatusLabel3_ThongBao";
-            toolStripStatusLabel3_ThongBao.Size = new Size(62, 20);
-            toolStripStatusLabel3_ThongBao.Text = "ThongBao";
+            toolStripStatusLabel3_ThongBao.Size = new Size(0, 20);
             // 
             // contextMenuStrip1
             // 

@@ -34,11 +34,9 @@ namespace PhanMemThiDua2026
                 return "";
             }
         }
-        public static void LayThongTinDonVi(
-     out string tenTrungDoanDong1,
-     out string tenTrungDoan,
-     out string tenTieuDoan,
-     out string tomTatGhiChu)
+       
+        //Chuyển từ Chữ IN HOA "TIỂU ĐOÀN 2"sang chữ thường "Tiểu đoàn 2"
+        public static void LayThongTinDonVi( out string tenTrungDoanDong1, out string tenTrungDoan, out string tenTieuDoan, out string tomTatGhiChu)
         {
             tenTrungDoanDong1 = "";
             tenTrungDoan = "";

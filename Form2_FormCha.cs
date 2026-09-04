@@ -507,7 +507,7 @@ namespace PhanMemThiDua2026
             //ClosePdfIfOpen(); // 🔹 add ở đây
             // Gọi hàm đổi màu và truyền nút hiện tại vào
             HighlightNavButton((KryptonButton)sender);
-            OpenChildForm<Form12>("Cài đặt");
+            OpenChildForm<Form12>("Trang Cài đặt");
         }
         private void SafeReload(Form6_XuLyData frm)
         {
@@ -649,7 +649,7 @@ namespace PhanMemThiDua2026
             if (!AllowSwitch()) return;
             HighlightNavButton(kryptonButton1_NhatKyPhanMem);
 
-            OpenChildForm<Form10_NhatKy>("Nhật ký phần mềm");
+            OpenChildForm<Form10_NhatKy>("Trang Nhật ký phần mềm");
 
             if (_currentChild is Form10_NhatKy frm)
             {

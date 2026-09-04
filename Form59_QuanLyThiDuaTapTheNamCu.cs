@@ -27,21 +27,27 @@ namespace PhanMemThiDua2026
             this.SuspendLayout();
             try
             {
-                // 1. Khởi tạo cấu hình Giao diện & Control trước (Cực nhanh)
+                // 1. Khởi tạo cấu hình Giao diện & Control
                 KhoiTaoDanhSachTextBox();
                 KhoiTaoComboBoxThangVaPhanLoai();
-                CapNhatLabelThiDuaThang();
                 InitToolTips();
                 DinhDangGiaoDienDataGridTongKetThang(kryptonDataGridView1);
 
-                // 2. Đăng ký sự kiện ComboBox CSDL ngay trước khi nạp data
+                // 2. Tải danh sách CSDL bất đồng bộ
+                await TaiDanhSachCoSoDuLieuNamCuAsync();
+
+                // 3. Chủ động gọi load dữ liệu dòng đầu tiên
+                if (comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedItem is NamThiDuaTapTheItem itemChon)
+                {
+                    TaiDuLieuVaoDataGridView(itemChon.DuongDanCSDL);
+                }
+
+                // 🌟 Cập nhật số lượng dòng SAU KHI đã nạp dữ liệu vào DataGridView thành công
+                CapNhatSoLuongDongDataGrid();
+
+                // 4. Đăng ký sự kiện SelectedIndexChanged SAU CÙNG
                 this.comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedIndexChanged -= comboBox1_ChonCscdThiDuaTapTheNamCu_SelectedIndexChanged;
                 this.comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedIndexChanged += comboBox1_ChonCscdThiDuaTapTheNamCu_SelectedIndexChanged;
-
-                // 3. Tải danh sách CSDL bất đồng bộ
-                // (Lưu ý: Trong TaiDanhSachCoSoDuLieuNamCuAsync có gán SelectedIndex = 0, 
-                // nó sẽ TỰ ĐỘNG kích hoạt SelectedIndexChanged -> Tự nạp dữ liệu vào DataGridView 1 lần duy nhất)
-                await TaiDanhSachCoSoDuLieuNamCuAsync();
             }
             catch (Exception ex)
             {
@@ -146,6 +152,7 @@ namespace PhanMemThiDua2026
 
                 // 5. Áp dụng lại định dạng UI DataGridView
                 DinhDangGiaoDienDataGridTongKetThang(kryptonDataGridView1);
+                CapNhatLabelThiDuaThang();
             }
             catch (Exception ex)
             {
@@ -821,13 +828,13 @@ namespace PhanMemThiDua2026
         /// <summary>
         /// Cập nhật nội dung label9_ChonTenThiDuaThang linh hoạt dựa theo giá trị chọn trên comboBox1_ChonThang
         /// </summary>
-        private void CapNhatLabelThiDuaThang()
+        public void CapNhatLabelThiDuaThang()
         {
             if (label9_ChonTenThiDuaThang == null) return;
 
             if (comboBox1_ChonThang.SelectedItem?.ToString()?.Equals("Tổng kết năm", StringComparison.OrdinalIgnoreCase) == true)
             {
-                label9_ChonTenThiDuaThang.Text = "Cập nhật danh hiệu thi đua tập thể năm:";
+                label9_ChonTenThiDuaThang.Text = "Cập nhật danh hiệu thi đua tập thể:";
             }
             else
             {

@@ -993,214 +993,244 @@ namespace PhanMemThiDua2026
             }
         }
         private async void kryptonButton1_XuatData_Click(object sender, EventArgs e)
+        {
+            if (!File.Exists(_csdl2Path))
+            {
+                MessageBox.Show(
+                    "Không tìm thấy cơ sở dữ liệu CSDL2.",
+                    "Lỗi cơ sở dữ liệu",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
+            string fileName = $"DanhSachTinhVaThanhPho_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+            using var saveFileDialog = new SaveFileDialog
+            {
+                Title = "Chọn nơi lưu danh sách Tỉnh / Thành phố",
+                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                DefaultExt = "xlsx",
+                AddExtension = true,
+                FileName = fileName,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                OverwritePrompt = true
+            };
+
+            if (saveFileDialog.ShowDialog() != DialogResult.OK)
+                return;
+
+            string filePath = saveFileDialog.FileName;
+            string textBanDau = kryptonButton1_XuatData.Values.Text;
+            Image? anhBanDau = kryptonButton1_XuatData.Values.Image;
+
+            try
+            {
+                kryptonButton1_XuatData.Enabled = false;
+                kryptonButton1_XuatData.Values.Text = "Đang xuất...";
+                kryptonButton1_XuatData.Values.Image = null;
+                this.Enabled = false;
+                await Task.Delay(50);
+
+                // Kiểm tra thư mục đích còn tồn tại không (phòng trường hợp ổ đĩa/thư mục bị rút/xóa
+                // giữa lúc chọn nơi lưu và lúc thực sự ghi file). Không kiểm tra filePath vì file
+                // đích CHƯA được tạo ra ở bước này — nó chỉ được tạo bên trong workbook.SaveAs().
+                string? thuMucDich = Path.GetDirectoryName(filePath);
+
+                if (string.IsNullOrEmpty(thuMucDich) || !Directory.Exists(thuMucDich))
                 {
-                    if (!File.Exists(_csdl2Path))
+                    MessageBox.Show(
+                        "Thư mục lưu tệp Excel không tồn tại hoặc đã bị di chuyển.",
+                        "Lỗi đường dẫn",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return;
+                }
+
+                var danhSachDto = new List<TinhVaThanhPhoDto>();
+
+                using (var cn = new SqliteConnection($"Data Source={_csdl2Path}"))
+                {
+                    await cn.OpenAsync();
+
+                    using var cmd = cn.CreateCommand();
+                    cmd.CommandText = """
+                SELECT ID, TenTinhVaThanhPho
+                FROM TinhVaThanhPho
+                WHERE TenTinhVaThanhPho IS NOT NULL
+                  AND TRIM(TenTinhVaThanhPho) <> ''
+                ORDER BY ID ASC;
+                """;
+
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    int stt = 1;
+
+                    while (await reader.ReadAsync())
                     {
-                        MessageBox.Show(
-                            "Không tìm thấy cơ sở dữ liệu CSDL2.",
-                            "Lỗi cơ sở dữ liệu",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                        return;
-                    }
+                        string ten = reader["TenTinhVaThanhPho"]?.ToString()?.Trim() ?? string.Empty;
 
-                    string fileName = $"DanhSachTinhVaThanhPho_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                        if (string.IsNullOrWhiteSpace(ten))
+                            continue;
 
-                    using var saveFileDialog = new SaveFileDialog
-                    {
-                        Title = "Chọn nơi lưu danh sách Tỉnh / Thành phố",
-                        Filter = "Excel Workbook (*.xlsx)|*.xlsx",
-                        DefaultExt = "xlsx",
-                        AddExtension = true,
-                        FileName = fileName,
-                        InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                        OverwritePrompt = true
-                    };
-
-                    if (saveFileDialog.ShowDialog() != DialogResult.OK)
-                        return;
-
-                    string filePath = saveFileDialog.FileName;
-                    string textBanDau = kryptonButton1_XuatData.Values.Text;
-                    Image? anhBanDau = kryptonButton1_XuatData.Values.Image;
-
-                    try
-                    {
-                        kryptonButton1_XuatData.Enabled = false;
-                        kryptonButton1_XuatData.Values.Text = "Đang xuất...";
-                        kryptonButton1_XuatData.Values.Image = null;
-                        this.Enabled = false;
-                        await Task.Delay(50);
-
-                        if (!File.Exists(filePath))
+                        danhSachDto.Add(new TinhVaThanhPhoDto
                         {
-                            MessageBox.Show(
-                                "Tệp Excel không tồn tại hoặc đã bị di chuyển.",
-                                "Lỗi tệp Excel",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-                            return;
-                        }
-
-                        var danhSachDto = new List<TinhVaThanhPhoDto>();
-
-                        using (var cn = new SqliteConnection($"Data Source={_csdl2Path}"))
-                        {
-                            await cn.OpenAsync();
-
-                            using var cmd = cn.CreateCommand();
-                            cmd.CommandText = """
-                        SELECT ID, TenTinhVaThanhPho
-                        FROM TinhVaThanhPho
-                        WHERE TenTinhVaThanhPho IS NOT NULL
-                          AND TRIM(TenTinhVaThanhPho) <> ''
-                        ORDER BY ID ASC;
-                        """;
-
-                            using var reader = await cmd.ExecuteReaderAsync();
-                            int stt = 1;
-
-                            while (await reader.ReadAsync())
-                            {
-                                string ten = reader["TenTinhVaThanhPho"]?.ToString()?.Trim() ?? string.Empty;
-
-                                if (string.IsNullOrWhiteSpace(ten))
-                                    continue;
-
-                                danhSachDto.Add(new TinhVaThanhPhoDto
-                                {
-                                    STT = stt++,
-                                    TenTinhVaThanhPho = ChuanHoaTenTinh(ten)
-                                });
-                            }
-                        }
-
-                        if (danhSachDto.Count == 0)
-                        {
-                            MessageBox.Show(
-                                "Cơ sở dữ liệu hiện không có Tỉnh / Thành phố để xuất.",
-                                "Thông báo",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information);
-                            return;
-                        }
-
-                        var dataList = danhSachDto
-                            .Select(dto => new object[]
-                            {
-                        dto.STT,
-                        dto.TenTinhVaThanhPho
-                            })
-                            .ToList();
-
-                        int rowCount = dataList.Count;
-                        const int colCount = 2;
-
-                        await Task.Run(() =>
-                        {
-                            using var workbook = new XLWorkbook();
-                            var ws = workbook.Worksheets.Add("DuLieuTinhVaThanhPho");
-
-                            ws.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
-                            ws.Style.Font.FontSize = 11;
-
-                            ws.Cell("A1").Value = "DANH SÁCH TỈNH VÀ THÀNH PHỐ";
-
-                            var titleRange = ws.Range(1, 1, 1, colCount);
-                            titleRange.Merge();
-                            titleRange.Style.Font.Bold = true;
-                            titleRange.Style.Font.FontSize = 14;
-                            titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                            titleRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            ws.Row(1).Height = 28;
-
-                            const int headerRow = 2;
-
-                            ws.Cell(headerRow, 1).Value = "STT";
-                            ws.Cell(headerRow, 2).Value = "Tên Tỉnh và Thành phố";
-
-                            var headerRange = ws.Range(headerRow, 1, headerRow, colCount);
-                            headerRange.Style.Font.Bold = true;
-                            headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                            headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            headerRange.Style.Fill.BackgroundColor = XLColor.FromArgb(217, 225, 242);
-                            headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                            headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-                            ws.Row(headerRow).Height = 30;
-
-                            int dataStartRow = headerRow + 1;
-
-                            ws.Cell(dataStartRow, 1).InsertData(dataList);
-
-                            var dataRange = ws.Range(
-                                dataStartRow,
-                                1,
-                                dataStartRow + rowCount - 1,
-                                colCount);
-
-                            dataRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            dataRange.Style.Alignment.WrapText = true;
-                            dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                            dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-
-                            ws.Range(
-                                dataStartRow,
-                                1,
-                                dataStartRow + rowCount - 1,
-                                1)
-                                .Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
-                            ws.Range(
-                                dataStartRow,
-                                2,
-                                dataStartRow + rowCount - 1,
-                                2)
-                                .Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-
-                            ws.Column(1).Width = 8;
-                            ws.Column(2).Width = 45;
-
-                            ws.PageSetup.PaperSize = XLPaperSize.A4Paper;
-                            ws.PageSetup.PageOrientation = XLPageOrientation.Portrait;
-                            ws.PageSetup.FitToPages(1, 0);
-                            ws.PageSetup.Margins.Top = 0.5;
-                            ws.PageSetup.Margins.Bottom = 0.5;
-                            ws.PageSetup.Margins.Left = 0.5;
-                            ws.PageSetup.Margins.Right = 0.5;
-
-                            Module_BanQuyen.DongDauExcel(workbook);
-                            workbook.SaveAs(filePath);
+                            STT = stt++,
+                            TenTinhVaThanhPho = ChuanHoaTenTinh(ten)
                         });
-
-                        try
-                        {
-                            Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath);
-                        }
-                        catch
-                        {
-                        }
-
-                        Module_ThongBao.ThanhCong(
-                            $"Xuất Excel thành công! Đã xuất {danhSachDto.Count:N0} Tỉnh / Thành phố.");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(
-                            "Không thể xuất dữ liệu ra Excel.\n\n" +
-                            $"Chi tiết: {ex.Message}",
-                            "Lỗi xuất dữ liệu",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                    }
-                    finally
-                    {
-                        this.Enabled = true;
-                        kryptonButton1_XuatData.Values.Text = textBanDau;
-                        kryptonButton1_XuatData.Values.Image = anhBanDau;
-                        kryptonButton1_XuatData.Enabled = true;
-                        this.Focus();
                     }
                 }
+
+                if (danhSachDto.Count == 0)
+                {
+                    MessageBox.Show(
+                        "Cơ sở dữ liệu hiện không có Tỉnh / Thành phố để xuất.",
+                        "Thông báo",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return;
+                }
+
+                var dataList = danhSachDto
+                    .Select(dto => new object[]
+                    {
+                dto.STT,
+                dto.TenTinhVaThanhPho
+                    })
+                    .ToList();
+
+                int rowCount = dataList.Count;
+                const int colCount = 2;
+
+                try
+                {
+                    await Task.Run(() =>
+                    {
+                        using var workbook = new XLWorkbook();
+                        var ws = workbook.Worksheets.Add("DuLieuTinhVaThanhPho");
+
+                        ws.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
+                        ws.Style.Font.FontSize = 11;
+
+                        ws.Cell("A1").Value = "DANH SÁCH TỈNH VÀ THÀNH PHỐ";
+
+                        var titleRange = ws.Range(1, 1, 1, colCount);
+                        titleRange.Merge();
+                        titleRange.Style.Font.Bold = true;
+                        titleRange.Style.Font.FontSize = 14;
+                        titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        titleRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        ws.Row(1).Height = 28;
+
+                        const int headerRow = 2;
+
+                        ws.Cell(headerRow, 1).Value = "STT";
+                        ws.Cell(headerRow, 2).Value = "Tên Tỉnh và Thành phố";
+
+                        var headerRange = ws.Range(headerRow, 1, headerRow, colCount);
+                        headerRange.Style.Font.Bold = true;
+                        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        headerRange.Style.Fill.BackgroundColor = XLColor.FromArgb(217, 225, 242);
+                        headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                        ws.Row(headerRow).Height = 30;
+
+                        int dataStartRow = headerRow + 1;
+
+                        ws.Cell(dataStartRow, 1).InsertData(dataList);
+
+                        var dataRange = ws.Range(
+                            dataStartRow,
+                            1,
+                            dataStartRow + rowCount - 1,
+                            colCount);
+
+                        dataRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        dataRange.Style.Alignment.WrapText = true;
+                        dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+                        ws.Range(
+                            dataStartRow,
+                            1,
+                            dataStartRow + rowCount - 1,
+                            1)
+                            .Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                        ws.Range(
+                            dataStartRow,
+                            2,
+                            dataStartRow + rowCount - 1,
+                            2)
+                            .Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+
+                        ws.Column(1).Width = 8;
+                        ws.Column(2).Width = 45;
+
+                        ws.PageSetup.PaperSize = XLPaperSize.A4Paper;
+                        ws.PageSetup.PageOrientation = XLPageOrientation.Portrait;
+                        ws.PageSetup.FitToPages(1, 0);
+                        ws.PageSetup.Margins.Top = 0.5;
+                        ws.PageSetup.Margins.Bottom = 0.5;
+                        ws.PageSetup.Margins.Left = 0.5;
+                        ws.PageSetup.Margins.Right = 0.5;
+
+                        Module_BanQuyen.DongDauExcel(workbook);
+                        workbook.SaveAs(filePath);
+                    });
+                }
+                catch (IOException ioEx)
+                {
+                    // Thường gặp khi tệp đích đang được mở bởi Excel hoặc chương trình khác.
+                    MessageBox.Show(
+                        "Không thể ghi tệp Excel. Tệp có thể đang được mở bởi chương trình khác.\n\n" +
+                        $"Chi tiết: {ioEx.Message}",
+                        "Lỗi ghi tệp",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Xác nhận file thực sự đã được tạo ra sau khi SaveAs hoàn tất.
+                if (!File.Exists(filePath))
+                {
+                    MessageBox.Show(
+                        "Xuất Excel thất bại: không tìm thấy tệp sau khi lưu.",
+                        "Lỗi xuất dữ liệu",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return;
+                }
+
+                try
+                {
+                    Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath);
+                }
+                catch
+                {
+                }
+
+                Module_ThongBao.ThanhCong(
+                    $"Xuất Excel thành công! Đã xuất {danhSachDto.Count:N0} Tỉnh / Thành phố.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Không thể xuất dữ liệu ra Excel.\n\n" +
+                    $"Chi tiết: {ex.Message}",
+                    "Lỗi xuất dữ liệu",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                this.Enabled = true;
+                kryptonButton1_XuatData.Values.Text = textBanDau;
+                kryptonButton1_XuatData.Values.Image = anhBanDau;
+                kryptonButton1_XuatData.Enabled = true;
+                this.Focus();
+            }
+        }
         private void kryptonButton1_Them_Click(object sender, EventArgs e)
                 {
                    
@@ -1693,8 +1723,6 @@ namespace PhanMemThiDua2026
                          StringSplitOptions.RemoveEmptyEntries));
         }
     }
-    /// DTO dùng để trao đổi dữ liệu Tỉnh và Thành phố
-    /// giữa Excel, giao diện và cơ sở dữ liệu SQLite.
     public sealed class TinhVaThanhPhoDto
     {
         public int STT { get; set; }

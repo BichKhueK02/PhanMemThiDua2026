@@ -1065,6 +1065,7 @@ ON CONFLICT(ID) DO UPDATE SET
                     MessageBox.Show(thongBao, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 Module_HeThong.LayNamHeThong();
+                Module_HeThong.LayTenDonViChuan(lamMoiTuCSDL: true);
                 AnThongBaoSauDelay(20000);
             }
             catch (Exception ex)
@@ -1743,7 +1744,7 @@ ON CONFLICT(ID) DO UPDATE SET
                 }
 
                 // ⭐ Đảm bảo luôn có dòng ID=1 (Trống cũng được) để UPSERT phía sau hoạt động trơn tru
-                using (var cmdInit = cn.CreateCommand())
+               using (var cmdInit = cn.CreateCommand())
                 {
                     cmdInit.CommandText = "INSERT OR IGNORE INTO KyHieu_DonVi (ID, KyHieu_TrungDoan, KyHieu_TieuDoan) VALUES (1, '', '');";
                     cmdInit.ExecuteNonQuery();
@@ -1754,7 +1755,7 @@ ON CONFLICT(ID) DO UPDATE SET
                     cmd.CommandText = "SELECT KyHieu_TrungDoan, KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1";
                     using (var reader = cmd.ExecuteReader())
                     {
-                        if (reader.Read())
+                        if (reader.Read()) 
                         {
                             // Lấy ra và giải mã AES ngay lập tức
                             comboBox_KyHieu_TenTrungDoan.Text = SafeDecrypt(reader["KyHieu_TrungDoan"]);

@@ -61,14 +61,15 @@
             groupBox5 = new GroupBox();
             tableLayoutPanel5 = new TableLayoutPanel();
             tableLayoutPanel3 = new TableLayoutPanel();
-            comboBox1_ChonLoaiBaoCao = new ComboBox();
             label4 = new Label();
             label2_LabelThang = new Label();
             label2_ChonTuan = new Label();
             comboBox2_ChonSoThang = new ComboBox();
             comboBox2_ChonSoTuan = new ComboBox();
+            comboBox1_ChonLoaiBaoCao = new ComboBox();
             tableLayoutPanel9 = new TableLayoutPanel();
-            label2_ChucVu = new Label();
+            comboBox1_CheDoXetThiDua = new ComboBox();
+            label1_CheDoXetThiDuaTanBinh = new Label();
             comboBox_ChiHuyD = new ComboBox();
             label10 = new Label();
             tableLayoutPanel16 = new TableLayoutPanel();
@@ -538,7 +539,7 @@
             comboBox1_ChonLoaiDeXuat.Font = new Font("Segoe UI", 9.216F);
             comboBox1_ChonLoaiDeXuat.ForeColor = Color.Black;
             comboBox1_ChonLoaiDeXuat.FormattingEnabled = true;
-            comboBox1_ChonLoaiDeXuat.Location = new Point(114, 9);
+            comboBox1_ChonLoaiDeXuat.Location = new Point(114, 8);
             comboBox1_ChonLoaiDeXuat.Margin = new Padding(2, 3, 2, 3);
             comboBox1_ChonLoaiDeXuat.Name = "comboBox1_ChonLoaiDeXuat";
             comboBox1_ChonLoaiDeXuat.RightToLeft = RightToLeft.No;
@@ -584,18 +585,18 @@
             // tableLayoutPanel3
             // 
             tableLayoutPanel3.ColumnCount = 6;
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.7536659F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 17.5953083F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.2695141F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 17.3784981F));
             tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15.3958941F));
             tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.4633427F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18.4750729F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.9032259F));
-            tableLayoutPanel3.Controls.Add(comboBox1_ChonLoaiBaoCao, 1, 0);
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18.7039757F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.2547865F));
             tableLayoutPanel3.Controls.Add(label4, 0, 0);
             tableLayoutPanel3.Controls.Add(label2_LabelThang, 2, 0);
             tableLayoutPanel3.Controls.Add(label2_ChonTuan, 4, 0);
             tableLayoutPanel3.Controls.Add(comboBox2_ChonSoThang, 3, 0);
             tableLayoutPanel3.Controls.Add(comboBox2_ChonSoTuan, 5, 0);
+            tableLayoutPanel3.Controls.Add(comboBox1_ChonLoaiBaoCao, 1, 0);
             tableLayoutPanel3.Dock = DockStyle.Fill;
             tableLayoutPanel3.Location = new Point(2, 120);
             tableLayoutPanel3.Margin = new Padding(2, 3, 2, 3);
@@ -604,21 +605,6 @@
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel3.Size = new Size(679, 35);
             tableLayoutPanel3.TabIndex = 11;
-            // 
-            // comboBox1_ChonLoaiBaoCao
-            // 
-            comboBox1_ChonLoaiBaoCao.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            comboBox1_ChonLoaiBaoCao.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox1_ChonLoaiBaoCao.Font = new Font("Segoe UI", 9.216F);
-            comboBox1_ChonLoaiBaoCao.ForeColor = Color.Black;
-            comboBox1_ChonLoaiBaoCao.FormattingEnabled = true;
-            comboBox1_ChonLoaiBaoCao.Items.AddRange(new object[] { "Tháng", "Tuần" });
-            comboBox1_ChonLoaiBaoCao.Location = new Point(162, 6);
-            comboBox1_ChonLoaiBaoCao.Margin = new Padding(2, 3, 2, 3);
-            comboBox1_ChonLoaiBaoCao.Name = "comboBox1_ChonLoaiBaoCao";
-            comboBox1_ChonLoaiBaoCao.RightToLeft = RightToLeft.No;
-            comboBox1_ChonLoaiBaoCao.Size = new Size(114, 23);
-            comboBox1_ChonLoaiBaoCao.TabIndex = 0;
             // 
             // label4
             // 
@@ -641,7 +627,7 @@
             label2_LabelThang.AutoSize = true;
             label2_LabelThang.Font = new Font("Segoe UI", 9.792F, FontStyle.Italic);
             label2_LabelThang.ForeColor = Color.FromArgb(0, 0, 192);
-            label2_LabelThang.Location = new Point(296, 8);
+            label2_LabelThang.Location = new Point(293, 8);
             label2_LabelThang.Margin = new Padding(2, 0, 2, 0);
             label2_LabelThang.Name = "label2_LabelThang";
             label2_LabelThang.RightToLeft = RightToLeft.No;
@@ -656,7 +642,7 @@
             label2_ChonTuan.AutoSize = true;
             label2_ChonTuan.Font = new Font("Segoe UI", 9.792F, FontStyle.Italic);
             label2_ChonTuan.ForeColor = Color.FromArgb(0, 0, 192);
-            label2_ChonTuan.Location = new Point(512, 8);
+            label2_ChonTuan.Location = new Point(511, 8);
             label2_ChonTuan.Margin = new Padding(2, 0, 2, 0);
             label2_ChonTuan.Name = "label2_ChonTuan";
             label2_ChonTuan.RightToLeft = RightToLeft.No;
@@ -673,7 +659,7 @@
             comboBox2_ChonSoThang.ForeColor = Color.Black;
             comboBox2_ChonSoThang.FormattingEnabled = true;
             comboBox2_ChonSoThang.Items.AddRange(new object[] { "01", "02", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" });
-            comboBox2_ChonSoThang.Location = new Point(383, 6);
+            comboBox2_ChonSoThang.Location = new Point(380, 5);
             comboBox2_ChonSoThang.Margin = new Padding(2, 3, 2, 3);
             comboBox2_ChonSoThang.Name = "comboBox2_ChonSoThang";
             comboBox2_ChonSoThang.RightToLeft = RightToLeft.No;
@@ -688,21 +674,37 @@
             comboBox2_ChonSoTuan.ForeColor = Color.Black;
             comboBox2_ChonSoTuan.FormattingEnabled = true;
             comboBox2_ChonSoTuan.Items.AddRange(new object[] { "Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4" });
-            comboBox2_ChonSoTuan.Location = new Point(591, 6);
+            comboBox2_ChonSoTuan.Location = new Point(590, 5);
             comboBox2_ChonSoTuan.Margin = new Padding(2, 3, 2, 3);
             comboBox2_ChonSoTuan.Name = "comboBox2_ChonSoTuan";
             comboBox2_ChonSoTuan.RightToLeft = RightToLeft.No;
-            comboBox2_ChonSoTuan.Size = new Size(86, 23);
+            comboBox2_ChonSoTuan.Size = new Size(87, 23);
             comboBox2_ChonSoTuan.TabIndex = 15;
+            // 
+            // comboBox1_ChonLoaiBaoCao
+            // 
+            comboBox1_ChonLoaiBaoCao.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            comboBox1_ChonLoaiBaoCao.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox1_ChonLoaiBaoCao.Font = new Font("Segoe UI", 9.216F);
+            comboBox1_ChonLoaiBaoCao.ForeColor = Color.Black;
+            comboBox1_ChonLoaiBaoCao.FormattingEnabled = true;
+            comboBox1_ChonLoaiBaoCao.Items.AddRange(new object[] { "Tháng", "Tuần" });
+            comboBox1_ChonLoaiBaoCao.Location = new Point(159, 5);
+            comboBox1_ChonLoaiBaoCao.Margin = new Padding(2, 3, 2, 3);
+            comboBox1_ChonLoaiBaoCao.Name = "comboBox1_ChonLoaiBaoCao";
+            comboBox1_ChonLoaiBaoCao.RightToLeft = RightToLeft.No;
+            comboBox1_ChonLoaiBaoCao.Size = new Size(113, 23);
+            comboBox1_ChonLoaiBaoCao.TabIndex = 0;
             // 
             // tableLayoutPanel9
             // 
-            tableLayoutPanel9.ColumnCount = 3;
-            tableLayoutPanel9.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.7353821F));
-            tableLayoutPanel9.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35.9960365F));
-            tableLayoutPanel9.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40.26858F));
-            tableLayoutPanel9.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
-            tableLayoutPanel9.Controls.Add(label2_ChucVu, 2, 0);
+            tableLayoutPanel9.ColumnCount = 4;
+            tableLayoutPanel9.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.41679F));
+            tableLayoutPanel9.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 39.17526F));
+            tableLayoutPanel9.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.4477177F));
+            tableLayoutPanel9.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.2547865F));
+            tableLayoutPanel9.Controls.Add(comboBox1_CheDoXetThiDua, 3, 0);
+            tableLayoutPanel9.Controls.Add(label1_CheDoXetThiDuaTanBinh, 2, 0);
             tableLayoutPanel9.Controls.Add(comboBox_ChiHuyD, 1, 0);
             tableLayoutPanel9.Controls.Add(label10, 0, 0);
             tableLayoutPanel9.Dock = DockStyle.Fill;
@@ -714,20 +716,35 @@
             tableLayoutPanel9.Size = new Size(679, 31);
             tableLayoutPanel9.TabIndex = 8;
             // 
-            // label2_ChucVu
+            // comboBox1_CheDoXetThiDua
             // 
-            label2_ChucVu.Anchor = AnchorStyles.Left;
-            label2_ChucVu.AutoSize = true;
-            label2_ChucVu.Font = new Font("Segoe UI", 9.792F, FontStyle.Italic);
-            label2_ChucVu.ForeColor = Color.Green;
-            label2_ChucVu.Location = new Point(407, 6);
-            label2_ChucVu.Margin = new Padding(2, 0, 2, 0);
-            label2_ChucVu.Name = "label2_ChucVu";
-            label2_ChucVu.RightToLeft = RightToLeft.No;
-            label2_ChucVu.Size = new Size(59, 19);
-            label2_ChucVu.TabIndex = 14;
-            label2_ChucVu.Text = "Chức vụ";
-            label2_ChucVu.TextAlign = ContentAlignment.MiddleLeft;
+            comboBox1_CheDoXetThiDua.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            comboBox1_CheDoXetThiDua.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox1_CheDoXetThiDua.Font = new Font("Segoe UI", 9.216F);
+            comboBox1_CheDoXetThiDua.ForeColor = Color.Black;
+            comboBox1_CheDoXetThiDua.FormattingEnabled = true;
+            comboBox1_CheDoXetThiDua.Items.AddRange(new object[] { "Tháng", "Năm" });
+            comboBox1_CheDoXetThiDua.Location = new Point(590, 3);
+            comboBox1_CheDoXetThiDua.Margin = new Padding(2, 3, 2, 3);
+            comboBox1_CheDoXetThiDua.Name = "comboBox1_CheDoXetThiDua";
+            comboBox1_CheDoXetThiDua.RightToLeft = RightToLeft.No;
+            comboBox1_CheDoXetThiDua.Size = new Size(87, 23);
+            comboBox1_CheDoXetThiDua.TabIndex = 16;
+            // 
+            // label1_CheDoXetThiDuaTanBinh
+            // 
+            label1_CheDoXetThiDuaTanBinh.Anchor = AnchorStyles.Right;
+            label1_CheDoXetThiDuaTanBinh.AutoSize = true;
+            label1_CheDoXetThiDuaTanBinh.Font = new Font("Segoe UI", 9.792F, FontStyle.Italic);
+            label1_CheDoXetThiDuaTanBinh.ForeColor = Color.FromArgb(0, 0, 192);
+            label1_CheDoXetThiDuaTanBinh.Location = new Point(462, 6);
+            label1_CheDoXetThiDuaTanBinh.Margin = new Padding(2, 0, 2, 0);
+            label1_CheDoXetThiDuaTanBinh.Name = "label1_CheDoXetThiDuaTanBinh";
+            label1_CheDoXetThiDuaTanBinh.RightToLeft = RightToLeft.No;
+            label1_CheDoXetThiDuaTanBinh.Size = new Size(124, 19);
+            label1_CheDoXetThiDuaTanBinh.TabIndex = 15;
+            label1_CheDoXetThiDuaTanBinh.Text = "Chế độ xét thi đua";
+            label1_CheDoXetThiDuaTanBinh.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // comboBox_ChiHuyD
             // 
@@ -736,11 +753,11 @@
             comboBox_ChiHuyD.Font = new Font("Segoe UI", 9.216F);
             comboBox_ChiHuyD.ForeColor = Color.Black;
             comboBox_ChiHuyD.FormattingEnabled = true;
-            comboBox_ChiHuyD.Location = new Point(163, 3);
+            comboBox_ChiHuyD.Location = new Point(160, 4);
             comboBox_ChiHuyD.Margin = new Padding(2, 3, 2, 3);
             comboBox_ChiHuyD.Name = "comboBox_ChiHuyD";
             comboBox_ChiHuyD.RightToLeft = RightToLeft.No;
-            comboBox_ChiHuyD.Size = new Size(240, 23);
+            comboBox_ChiHuyD.Size = new Size(261, 23);
             comboBox_ChiHuyD.TabIndex = 0;
             // 
             // label10
@@ -848,7 +865,7 @@
             com_DeNghi.ForeColor = Color.Black;
             com_DeNghi.FormattingEnabled = true;
             com_DeNghi.Items.AddRange(new object[] { "Loại 1", "Loại 2", "Loại 3", "Loại 4", "Không phân loại" });
-            com_DeNghi.Location = new Point(162, 4);
+            com_DeNghi.Location = new Point(162, 5);
             com_DeNghi.Margin = new Padding(2, 3, 2, 3);
             com_DeNghi.Name = "com_DeNghi";
             com_DeNghi.RightToLeft = RightToLeft.No;
@@ -873,8 +890,8 @@
             // 
             tableLayoutPanel15.ColumnCount = 9;
             tableLayoutPanel15.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.54788F));
-            tableLayoutPanel15.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18.2103615F));
-            tableLayoutPanel15.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 9.380531F));
+            tableLayoutPanel15.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18.4094257F));
+            tableLayoutPanel15.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 9.131075F));
             tableLayoutPanel15.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 6.54867268F));
             tableLayoutPanel15.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 3.00884962F));
             tableLayoutPanel15.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 7.079646F));
@@ -921,7 +938,7 @@
             comboBox_Nam.Font = new Font("Segoe UI", 9.216F);
             comboBox_Nam.ForeColor = Color.Black;
             comboBox_Nam.FormattingEnabled = true;
-            comboBox_Nam.Location = new Point(482, 6);
+            comboBox_Nam.Location = new Point(482, 5);
             comboBox_Nam.Margin = new Padding(2, 3, 2, 3);
             comboBox_Nam.Name = "comboBox_Nam";
             comboBox_Nam.RightToLeft = RightToLeft.No;
@@ -966,7 +983,7 @@
             comboBox_Thang.ForeColor = Color.Black;
             comboBox_Thang.FormattingEnabled = true;
             comboBox_Thang.Items.AddRange(new object[] { "01", "02", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" });
-            comboBox_Thang.Location = new Point(413, 6);
+            comboBox_Thang.Location = new Point(413, 5);
             comboBox_Thang.Margin = new Padding(2, 3, 2, 3);
             comboBox_Thang.Name = "comboBox_Thang";
             comboBox_Thang.RightToLeft = RightToLeft.No;
@@ -996,7 +1013,7 @@
             comboBox_Ngay.ForeColor = Color.Black;
             comboBox_Ngay.FormattingEnabled = true;
             comboBox_Ngay.Items.AddRange(new object[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31" });
-            comboBox_Ngay.Location = new Point(349, 6);
+            comboBox_Ngay.Location = new Point(349, 5);
             comboBox_Ngay.Margin = new Padding(2, 3, 2, 3);
             comboBox_Ngay.Name = "comboBox_Ngay";
             comboBox_Ngay.RightToLeft = RightToLeft.No;
@@ -1024,11 +1041,11 @@
             comboBox_DiaDiem.Font = new Font("Segoe UI", 9.216F);
             comboBox_DiaDiem.ForeColor = Color.Black;
             comboBox_DiaDiem.FormattingEnabled = true;
-            comboBox_DiaDiem.Location = new Point(162, 6);
+            comboBox_DiaDiem.Location = new Point(162, 5);
             comboBox_DiaDiem.Margin = new Padding(2, 3, 2, 3);
             comboBox_DiaDiem.Name = "comboBox_DiaDiem";
             comboBox_DiaDiem.RightToLeft = RightToLeft.No;
-            comboBox_DiaDiem.Size = new Size(120, 23);
+            comboBox_DiaDiem.Size = new Size(121, 23);
             comboBox_DiaDiem.TabIndex = 0;
             // 
             // splitContainer1
@@ -1283,7 +1300,6 @@
         private ComboBox comboBox2_ChonSoThang;
         private ComboBox comboBox2_ChonSoTuan;
         private TableLayoutPanel tableLayoutPanel9;
-        private Label label2_ChucVu;
         private ComboBox comboBox_ChiHuyD;
         private Label label10;
         private TableLayoutPanel tableLayoutPanel16;
@@ -1326,5 +1342,7 @@
         private PictureBox pictureBox2;
         private PictureBox pictureBox1;
         private Krypton.Toolkit.KryptonButton kryptonButton1_TomTatThanhTich;
+        private ComboBox comboBox1_CheDoXetThiDua;
+        private Label label1_CheDoXetThiDuaTanBinh;
     }
 }

@@ -2,6 +2,7 @@
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Data;
+using System.Globalization;
 
 namespace PhanMemThiDua2026
 {
@@ -14,26 +15,31 @@ namespace PhanMemThiDua2026
         public const string DanhHieu_Loai2 = "ĐVTT"; // "ĐVTT"
         public const string DanhHieu_Loai3 = "HTNV"; // "HTNV"
         public const string DanhHieu_Loai4 = "KHTNV"; // "KHTNV"
+        private static readonly Font _fontHeaderBangThongKe = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
         public Form23_ThongKeThiDuaTapThe()
         {
             this.StartPosition = FormStartPosition.CenterScreen;
-            // Ẩn icon trên Taskbar
             this.ShowInTaskbar = false;
             InitializeComponent();
             comboBox1_ChonThangCanXuat.SelectedIndexChanged += comboBox1_ChonThangCanXuat_SelectedIndexChanged;
+            // Đăng ký sự kiện lắng nghe khi tên đơn vị thay đổi từ Module_HeThong
+            Module_HeThong.SuKienThayDoiTenDonVi += CapNhatTieuDeGroupBox;
             InitToolTips();
         }
-        private void Form23_ThongKeThiDuaTapThe_Load(object sender, EventArgs e)
+        private void Form23_ThongKeThiDuaTapThe_Load(object? sender, EventArgs e)
         {
-
             this.CenterToScreen();
             this.MaximizeBox = false;
+            Font fontThuong = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
+            CapNhatTieuDeGroupBox();
+            comboBox1_ChonThangCanXuat.Font = fontThuong;
+            comboBox1_ChonLoai.Font = fontThuong;
             try
             {
                 DamBaoBangThongKeTonTai();
                 LoadBangThongKe();
                 ChinhTieuDeBangThongKe();
-                DatTieuDeForm(); // ✅ ĐẶT TIÊU ĐỀ Ở ĐÂY
+                DatTieuDeForm();
             }
             catch (Exception ex)
             {
@@ -45,32 +51,43 @@ namespace PhanMemThiDua2026
             }
             CapNhatTrangThaiKetNoi();
             HienThiPhienBan();
-            // 🌟 Tự động chọn Tháng hiện tại và kích hoạt nạp comboBox1_ChonLoai
-            ChonThangHienTaiTuDong();            // comboBox1_ChonLoai.Enabled = false;
+            ChonThangHienTaiTuDong();
+        }
+        private void CapNhatTieuDeGroupBox()
+        {
+            // Lấy tên đơn vị từ Module_HeThong
+            string tenDonVi = Module_HeThong.LayTenDonViChuan();
+            if (!string.IsNullOrWhiteSpace(tenDonVi))
+            {
+                groupBox1.Text = $"1. Cập nhật phân loại/danh hiệu thi đua {tenDonVi}";
+            }
+            else
+            {
+                groupBox1.Text = "1. Cập nhật phân loại/danh hiệu thi đua";
+            }
+        }
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            Module_HeThong.SuKienThayDoiTenDonVi -= CapNhatTieuDeGroupBox;
+            base.OnFormClosed(e);
         }
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
             toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
-
             // Thời gian hiển thị – UX dễ chịu
             toolTip1.InitialDelay = 300;
             toolTip1.AutoPopDelay = 2000;
             toolTip1.ReshowDelay = 100;
             toolTip1.ShowAlways = true;
-
-            var tips = new Dictionary<Control, string>
-    {
+            var tips = new Dictionary<Control, string>{
         { comboBox1_ChonThangCanXuat, "Chọn tháng cần thống kê thi đua" },
         { comboBox1_ChonLoai, "Chọn loại thống kê thi đua tập thể" },
-
         { kryptonButton1_CapNhat, "Cập nhật và đồng bộ dữ liệu thống kê" },
         { kryptonButton_XuatTepExcel, "Xuất kết quả thống kê ra tệp Excel" },
-        { kryptonButton1_XoaTatCaDataPhanLoaiTapThe, "Xóa tất cả dữ liệu trong bảng" },
-        { kryptonButton_Dong, "Đóng màn hình thống kê" }
+        { kryptonButton1_XoaTatCaDataPhanLoaiTapThe, "Xóa tất cả dữ liệu trong bảng" }
     };
-
             foreach (var tip in tips)
             {
                 if (tip.Key != null) // an toàn khi ẩn / refactor control
@@ -141,19 +158,16 @@ namespace PhanMemThiDua2026
         {
             toolStripLabel2.Alignment = ToolStripItemAlignment.Right;
             toolStripLabel2.Text =
-                $"Phiên bản {Module_PhienBan.SoftwareVersion} {Module_PhienBan.NgayThangNamCapNhat}";
+                $"Phiên bản phần mềm {Module_PhienBan.SoftwareVersion} {Module_PhienBan.NgayThangNamCapNhat}";
         }
-        private static readonly Font _fontHeaderBangThongKe = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private void ChinhTieuDeBangThongKe()
         {
             var dgv = kryptonDataGridView1;
-
+            dgv.AllowUserToResizeColumns = false;
             dgv.EnableHeadersVisualStyles = false;
             dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgv.ColumnHeadersDefaultCellStyle.Font = _fontHeaderBangThongKe;
-
-            var map = new Dictionary<string, string>
-            {
+            var map = new Dictionary<string, string>{
                 ["Thang_12_Nam_Cu"] = "Tháng 12 (Năm cũ)",
                 ["Thang_1"] = "Tháng 1",
                 ["Thang_2"] = "Tháng 2",
@@ -169,11 +183,9 @@ namespace PhanMemThiDua2026
                 ["Thang_11"] = "Tháng 11",
                 ["TongKet_Nam"] = "Tổng kết năm"
             };
-
             foreach (var kv in map)
                 if (dgv.Columns.Contains(kv.Key))
                     dgv.Columns[kv.Key].HeaderText = kv.Value;
-
             foreach (DataGridViewColumn col in dgv.Columns)
             {
                 col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
@@ -259,7 +271,6 @@ namespace PhanMemThiDua2026
             {
                 // tránh crash UI
             }
-
             return string.Empty;
         }
         private string LayTenCotTheoThang()
@@ -316,42 +327,35 @@ namespace PhanMemThiDua2026
         }
         private void DamBaoBangThongKeTonTai()
         {
-            using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
-            cn.Open();
+            using var connection = new SqliteConnection($"Data Source={_csdl4Path}");
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = @"
+        CREATE TABLE IF NOT EXISTS ThongKe_PhanLoaiTapThe
+        (
+            ID INTEGER NOT NULL,
+            Thang_12_Nam_Cu TEXT,
+            Thang_1 TEXT,
+            Thang_2 TEXT,
+            Thang_3 TEXT,
+            Thang_4 TEXT,
+            Thang_5 TEXT,
+            Sau_Thang_Dau_Nam TEXT,
+            Thang_6 TEXT,
+            Thang_7 TEXT,
+            Thang_8 TEXT,
+            Thang_9 TEXT,
+            Thang_10 TEXT,
+            Thang_11 TEXT,
+            TongKet_Nam TEXT,
+            PRIMARY KEY(ID AUTOINCREMENT)
+        );
 
-            using var tran = cn.BeginTransaction();
+        INSERT OR IGNORE INTO ThongKe_PhanLoaiTapThe (ID)
+        VALUES (1);
+    ";
 
-            using var cmd = cn.CreateCommand();
-            cmd.Transaction = tran;
-
-            cmd.CommandText = @"
-CREATE TABLE IF NOT EXISTS ThongKe_PhanLoaiTapThe (
-    ID INTEGER PRIMARY KEY,
-    Thang_12_Nam_Cu TEXT,
-    Thang_1 TEXT,
-    Thang_2 TEXT,
-    Thang_3 TEXT,
-    Thang_4 TEXT,
-    Thang_5 TEXT,
-    Sau_Thang_Dau_Nam TEXT,
-    Thang_6 TEXT,
-    Thang_7 TEXT,
-    Thang_8 TEXT,
-    Thang_9 TEXT,
-    Thang_10 TEXT,
-    Thang_11 TEXT,
-    TongKet_Nam TEXT
-);";
-            cmd.ExecuteNonQuery();
-
-            // INSERT OR IGNORE giúp tránh trùng ID
-            cmd.CommandText = @"
-INSERT OR IGNORE INTO ThongKe_PhanLoaiTapThe (ID)
-VALUES (1);";
-
-            cmd.ExecuteNonQuery();
-
-            tran.Commit();
+            command.ExecuteNonQuery();
         }
         private string GiaiMaAnToan(object value)
         {
@@ -413,8 +417,7 @@ VALUES (1);";
                 var ws = wb.Worksheets.Add("ThongKe");
 
                 // ================== 3. MAP NGHIỆP VỤ (DUY NHẤT 1 CHỖ) ==================
-                var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                {
+                var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase){
                     [Module_HeThong.Loai_1] = DanhHieu_Loai1,
                     [Module_HeThong.Loai_2] = DanhHieu_Loai2,
                     [Module_HeThong.Loai_3] = DanhHieu_Loai3,
@@ -511,17 +514,14 @@ VALUES (1);";
 
                 allRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 ws.Range($"A3:{cotCuoi}4").Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-
                 ws.Columns($"A:{cotCuoi}").AdjustToContents();
                 Module_BanQuyen.DongDauExcel(wb);
                 // ================== 10. LƯU FILE ==================
                 wb.SaveAs(sfd.FileName);
-
-                MessageBox.Show(
-                    "Xuất Excel thành công!",
-                    "Hoàn tất",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
+                Module_NhatKy.GhiNhatKy(
+                     Module_TaiKhoan.TenTaiKhoan_RAM,
+                     "Xuất dữ liệu Excel",
+                     $"Xuất Excel thành công | {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
 
                 if (File.Exists(sfd.FileName))
                 {
@@ -606,53 +606,76 @@ WHERE ID = 1";
         }
         private void kryptonButton1_XoaTatCaDataPhanLoaiTapThe_Click(object sender, EventArgs e)
         {
-            // =========================================================================
+            // 1. Xác minh quyền Admin
             using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
             {
                 frmXacMinh.TopMost = true;
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
-                if (frmXacMinh.ShowDialog() != DialogResult.OK) return;
+
+                if (frmXacMinh.ShowDialog() != DialogResult.OK)
+                    return;
             }
-
-            //// 1. Hỏi xác nhận người dùng trước khi thực hiện thao tác nguy hiểm
-            //var confirm = MessageBox.Show(
-            //    "Bạn có chắc chắn muốn XÓA TẤT CẢ dữ liệu thi đua tập thể không?\n\nHành động này không thể hoàn tác!",
-            //    "Xác nhận xóa toàn bộ dữ liệu",
-            //    MessageBoxButtons.YesNo,
-            //    MessageBoxIcon.Warning,
-            //    MessageBoxDefaultButton.Button2
-            //);
-
-            //if (confirm != DialogResult.Yes) return;
+            // 2. Xác nhận lần cuối trước khi xóa
+            DialogResult confirm = MessageBox.Show(
+                "Bạn có chắc chắn muốn XÓA TOÀN BỘ dữ liệu phân loại thi đua tập thể không?\n\n" +
+                "Toàn bộ dữ liệu hiện tại sẽ bị xóa và không thể hoàn tác.",
+                "Xác nhận xóa toàn bộ dữ liệu",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning,
+                MessageBoxDefaultButton.Button2);
+            if (confirm != DialogResult.Yes)
+                return;
 
             try
             {
+                // 3. Kiểm tra CSDL
                 string dbPath = _csdl4Path;
-                if (!File.Exists(dbPath))
+                if (string.IsNullOrWhiteSpace(dbPath))
                 {
-                    MessageBox.Show("Không tìm thấy tệp CSDL!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(
+                        "Đường dẫn CSDL không hợp lệ!",
+                        "Lỗi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+
                     return;
                 }
+                if (!File.Exists(dbPath))
+                {
+                    MessageBox.Show(
+                        "Không tìm thấy tệp CSDL!\n\n" + dbPath,
+                        "Lỗi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
 
-                // 2. Thực thi xóa sạch dữ liệu trong csdl4.db
+                    return;
+                }
+                // 4. Xóa dữ liệu và tạo lại bản ghi ID = 1
                 using (var cn = new SqliteConnection($"Data Source={dbPath}"))
                 {
                     cn.Open();
+
                     using var transaction = cn.BeginTransaction();
+
                     try
                     {
-                        // Xóa toàn bộ dữ liệu bảng Tập thể
-                        using (var cmdDelete = new SqliteCommand("DELETE FROM ThongKe_PhanLoaiTapThe", cn, transaction))
+                        // Xóa toàn bộ dữ liệu
+                        using (var cmdDelete = new SqliteCommand(
+                            "DELETE FROM ThongKe_PhanLoaiTapThe",
+                            cn,
+                            transaction))
                         {
                             cmdDelete.ExecuteNonQuery();
                         }
-
-                        // Reset lại ID tự tăng trong sqlite_sequence (nếu bảng dùng khóa chính AUTOINCREMENT)
-                        using (var cmdResetSeq = new SqliteCommand("DELETE FROM sqlite_sequence WHERE name = 'ThongKe_PhanLoaiTapThe'", cn, transaction))
+                        // Tạo lại bản ghi gốc ID = 1
+                        using (var cmdInsert = new SqliteCommand(
+                            "INSERT INTO ThongKe_PhanLoaiTapThe (ID) VALUES (1)",
+                            cn,
+                            transaction))
                         {
-                            cmdResetSeq.ExecuteNonQuery();
+                            cmdInsert.ExecuteNonQuery();
                         }
-
+                        // Hoàn tất transaction
                         transaction.Commit();
                     }
                     catch
@@ -661,20 +684,23 @@ WHERE ID = 1";
                         throw;
                     }
                 }
+                // 5. Tải lại giao diện
                 LoadBangThongKe();
                 ChinhTieuDeBangThongKe();
-                // 3. Ghi nhật ký thao tác
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa dữ liệu thi đua tập thể", $"Xóa toàn bộ bảng ThongKe_PhanLoaiTapThe | {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
-
-                // 4. Thông báo và tải lại giao diện (nếu có GridView hiển thị)
-                MessageBox.Show("Đã xóa toàn bộ dữ liệu thi đua tập thể thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                // TODO: Gọi hàm Load lại DataGridView Tập thể của bạn ở đây (nếu có)
-                // LoadDataGridTapThe(); 
+                // 6. Ghi nhật ký
+                Module_NhatKy.GhiNhatKy(
+                    Module_TaiKhoan.TenTaiKhoan_RAM,
+                    "Xóa dữ liệu thi đua tập thể",
+                    $"Xóa toàn bộ dữ liệu bảng ThongKe_PhanLoaiTapThe và tạo lại ID=1 | " +
+                    $"{DateTime.Now:dd-MM-yyyy HH:mm:ss}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi xóa dữ liệu tập thể:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Lỗi khi xóa dữ liệu tập thể:\n\n" + ex.Message,
+                    "Lỗi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
     }

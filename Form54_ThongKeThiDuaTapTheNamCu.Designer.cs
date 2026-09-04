@@ -58,7 +58,7 @@
             toolStrip1.Items.AddRange(new ToolStripItem[] { toolStripLabel1, toolStripLabel2, toolStripLabel3 });
             toolStrip1.Location = new Point(0, 240);
             toolStrip1.Name = "toolStrip1";
-            toolStrip1.Size = new Size(983, 25);
+            toolStrip1.Size = new Size(1042, 25);
             toolStrip1.TabIndex = 2;
             toolStrip1.Text = "toolStrip1";
             // 
@@ -95,7 +95,7 @@
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 68.679245F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 21.8867931F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
-            tableLayoutPanel1.Size = new Size(983, 265);
+            tableLayoutPanel1.Size = new Size(1042, 265);
             tableLayoutPanel1.TabIndex = 3;
             // 
             // kryptonDataGridView1
@@ -107,7 +107,7 @@
             kryptonDataGridView1.Margin = new Padding(2, 3, 2, 3);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(979, 176);
+            kryptonDataGridView1.Size = new Size(1038, 176);
             kryptonDataGridView1.TabIndex = 10;
             // 
             // tableLayoutPanel2
@@ -131,14 +131,14 @@
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.Size = new Size(979, 52);
+            tableLayoutPanel2.Size = new Size(1038, 52);
             tableLayoutPanel2.TabIndex = 11;
             // 
             // kryptonButton_XuatTepExcel
             // 
             kryptonButton_XuatTepExcel.Anchor = AnchorStyles.None;
             kryptonButton_XuatTepExcel.DialogResult = DialogResult.TryAgain;
-            kryptonButton_XuatTepExcel.Location = new Point(613, 11);
+            kryptonButton_XuatTepExcel.Location = new Point(656, 11);
             kryptonButton_XuatTepExcel.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatTepExcel.Name = "kryptonButton_XuatTepExcel";
             kryptonButton_XuatTepExcel.Size = new Size(136, 30);
@@ -153,7 +153,7 @@
             // 
             kryptonButton1_CapNhat.Anchor = AnchorStyles.None;
             kryptonButton1_CapNhat.DialogResult = DialogResult.TryAgain;
-            kryptonButton1_CapNhat.Location = new Point(428, 11);
+            kryptonButton1_CapNhat.Location = new Point(460, 11);
             kryptonButton1_CapNhat.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_CapNhat.Name = "kryptonButton1_CapNhat";
             kryptonButton1_CapNhat.Size = new Size(136, 30);
@@ -183,10 +183,10 @@
             comboBox1_ChonLoai.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_ChonLoai.FormattingEnabled = true;
             comboBox1_ChonLoai.Items.AddRange(new object[] { "", "Loại 1", "Loại 2", "Loại 3", "Loại 4", "Không PL" });
-            comboBox1_ChonLoai.Location = new Point(294, 14);
+            comboBox1_ChonLoai.Location = new Point(313, 14);
             comboBox1_ChonLoai.Margin = new Padding(2, 3, 2, 3);
             comboBox1_ChonLoai.Name = "comboBox1_ChonLoai";
-            comboBox1_ChonLoai.Size = new Size(114, 23);
+            comboBox1_ChonLoai.Size = new Size(121, 23);
             comboBox1_ChonLoai.TabIndex = 1;
             // 
             // comboBox1_ChonThangCanXuat
@@ -195,17 +195,17 @@
             comboBox1_ChonThangCanXuat.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_ChonThangCanXuat.FormattingEnabled = true;
             comboBox1_ChonThangCanXuat.Items.AddRange(new object[] { "Tháng 12 (Năm cũ)", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "6 Tháng đầu năm", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tổng kết năm" });
-            comboBox1_ChonThangCanXuat.Location = new Point(124, 14);
+            comboBox1_ChonThangCanXuat.Location = new Point(132, 14);
             comboBox1_ChonThangCanXuat.Margin = new Padding(2, 3, 2, 3);
             comboBox1_ChonThangCanXuat.Name = "comboBox1_ChonThangCanXuat";
-            comboBox1_ChonThangCanXuat.Size = new Size(166, 23);
+            comboBox1_ChonThangCanXuat.Size = new Size(177, 23);
             comboBox1_ChonThangCanXuat.TabIndex = 0;
             // 
             // kryptonButton_Dong
             // 
             kryptonButton_Dong.Anchor = AnchorStyles.None;
             kryptonButton_Dong.DialogResult = DialogResult.TryAgain;
-            kryptonButton_Dong.Location = new Point(811, 11);
+            kryptonButton_Dong.Location = new Point(865, 11);
             kryptonButton_Dong.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_Dong.Name = "kryptonButton_Dong";
             kryptonButton_Dong.Size = new Size(136, 30);
@@ -220,7 +220,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(983, 265);
+            ClientSize = new Size(1042, 265);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form54_ThongKeThiDuaTapTheNamCu";

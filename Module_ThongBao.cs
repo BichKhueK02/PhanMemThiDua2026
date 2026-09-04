@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using System.Diagnostics;
 
 namespace PhanMemThiDua2026
 {
@@ -128,11 +129,11 @@ namespace PhanMemThiDua2026
             LaySoDongToiDa();
 
             KhoiTaoTimer();
-            ThucThiUI(HienThongTinMacDinh);
+            ThucThiUI(async () => await HienThongTinMacDinhAsync());
         }
         public static void CapNhatThongTin()
         {
-            ThucThiUI(HienThongTinMacDinh);
+            ThucThiUI(async () => await HienThongTinMacDinhAsync());
         }
         public static void Info(string s) => ThemDong("✔ " + s, Color.MediumPurple);
         public static void DangXuLy(string s) => ThemDong("⏳ " + s, Color.DarkOrange);
@@ -210,25 +211,54 @@ namespace PhanMemThiDua2026
                 XoaTatCa();
             };
         }
-        private static void HienThongTinMacDinh()
+        private static async Task HienThongTinMacDinhAsync()
         {
             if (_listBox == null || _listBox.IsDisposed) return;
 
             DateTime now = DateTime.Now;
-            List<DongThongBao> dsGhimMoi = new List<DongThongBao>();
+            var dsGhimMoi = new List<DongThongBao>();
 
             try
             {
                 string csdlPath = Module_DanduongGPS.DuongDanCSDL2;
-                using (var conn = new SqliteConnection($"Data Source={csdlPath};Mode=ReadOnly"))
+                if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))
                 {
-                    conn.Open();
-                    using var cmd = new SqliteCommand(
-                        "SELECT DiaDiem, Ngay, Thang, Nam, ChiHuyD, LoaiDeNghi FROM ThongTin WHERE ID = 1", conn);
+                    return;
+                }
 
-                    using var reader = cmd.ExecuteReader();
-                    if (reader.Read())
+                // TỐI ƯU 1: Dùng Pooling=True và Mode=ReadOnly để đọc file SQLite cực nhanh
+                string connectionString = $"Data Source={csdlPath};Mode=ReadOnly;Pooling=True;";
+
+                using (var conn = new SqliteConnection(connectionString))
+                {
+                    // TỐI ƯU 2: Dùng OpenAsync để không gây đơ/khựng giao diện (UI Thread)
+                    await conn.OpenAsync();
+
+                    // AN TOÀN 1: Tạo bảng CheDo_XetThiDuaNam nếu chưa có để tránh văng Exception "no such table"
+                    using (var cmdInit = new SqliteCommand(@"
+                CREATE TABLE IF NOT EXISTS CheDo_XetThiDuaNam (
+                    ID INTEGER NOT NULL PRIMARY KEY,
+                    ChoPhepCheDoXetThiDuaNam TEXT
+                );", conn))
                     {
+                        await cmdInit.ExecuteNonQueryAsync();
+                    }
+
+                    // TỐI ƯU 3: Lấy toàn bộ thông tin chỉ qua 1 câu truy vấn LEFT JOIN duy nhất
+                    string query = @"
+                SELECT 
+                    t.DiaDiem, t.Ngay, t.Thang, t.Nam, t.ChiHuyD, t.LoaiDeNghi,
+                    c.ChoPhepCheDoXetThiDuaNam
+                FROM ThongTin t
+                LEFT JOIN CheDo_XetThiDuaNam c ON c.ID = 1
+                WHERE t.ID = 1 LIMIT 1";
+
+                    using var cmd = new SqliteCommand(query, conn);
+                    using var reader = await cmd.ExecuteReaderAsync();
+
+                    if (await reader.ReadAsync())
+                    {
+                        // AN TOÀN 2: Giải mã bảo vệ Null-safe
                         string diaDiem = Dep(BaoMatAES.GiaiMa(reader["DiaDiem"]?.ToString() ?? ""));
                         string ngay = Dep(BaoMatAES.GiaiMa(reader["Ngay"]?.ToString() ?? ""));
                         string thang = Dep(BaoMatAES.GiaiMa(reader["Thang"]?.ToString() ?? ""));
@@ -236,40 +266,59 @@ namespace PhanMemThiDua2026
                         string chiHuyD = Dep(BaoMatAES.GiaiMa(reader["ChiHuyD"]?.ToString() ?? ""));
                         string deNghi = Dep(BaoMatAES.GiaiMa(reader["LoaiDeNghi"]?.ToString() ?? ""));
 
-                        // THÊM VÀO LIST TẠM VỚI CỜ LaGhim = true
+                        // Chế độ xét thi đua lưu text thuần, Fallback về "Tháng" nếu chưa có dữ liệu
+                        string cheDoThiDua = reader["ChoPhepCheDoXetThiDuaNam"]?.ToString();
+                        if (string.IsNullOrWhiteSpace(cheDoThiDua))
+                        {
+                            cheDoThiDua = "Tháng";
+                        }
+
+                        // Kiểm tra logic chế độ để đổi tiêu đề tương ứng
+                        bool isCheDoNam = cheDoThiDua.Equals("Năm", StringComparison.OrdinalIgnoreCase);
+                        string nhanPhanLoai = isCheDoNam ? "Danh hiệu thi đua tập thể" : "Kết quả phân loại tập thể";
+
+                        // Nạp vào danh sách ghim
                         dsGhimMoi.Add(new DongThongBao($"  Địa điểm: {diaDiem}, ngày {ngay} tháng {thang} năm {nam}", Color.MediumPurple, true));
                         dsGhimMoi.Add(new DongThongBao($"  Chỉ huy duyệt: {chiHuyD}", Color.MediumPurple, true));
-                        dsGhimMoi.Add(new DongThongBao($"  Kết quả phân loại tập thể: {deNghi}", Color.MediumPurple, true));
+                        dsGhimMoi.Add(new DongThongBao($"  Chế độ xét thi đua: {cheDoThiDua}", Color.MediumPurple, true));
+                        dsGhimMoi.Add(new DongThongBao($"  {nhanPhanLoai}: {deNghi}", Color.MediumPurple, true));
                     }
                 }
             }
             catch (Exception ex)
             {
+                Debug.WriteLine("Lỗi HienThongTinMacDinh: " + ex.Message);
                 dsGhimMoi.Add(new DongThongBao($"Lỗi khi lấy thông tin từ CSDL: {ex.Message}", Color.Red, true));
             }
 
             dsGhimMoi.Add(new DongThongBao($"  Thời gian đăng nhập: {now:HH:mm:ss dd/MM/yyyy}", Color.Gray, true));
             dsGhimMoi.Add(new DongThongBao(new string('-', 40), Color.Silver, true));
 
+            // CẬP NHẬT GIAO DIỆN LẠI TRÊN UI THREAD
             _listBox.BeginUpdate();
-            _listBox.ItemHeight = 22;
-
-            // 1. XÓA CÁC DÒNG GHIM CŨ (NẾU CÓ)
-            for (int i = _listBox.Items.Count - 1; i >= 0; i--)
+            try
             {
-                if (_listBox.Items[i] is DongThongBao dtb && dtb.LaGhim)
+                _listBox.ItemHeight = 22;
+
+                // Xóa các dòng ghim cũ
+                for (int i = _listBox.Items.Count - 1; i >= 0; i--)
                 {
-                    _listBox.Items.RemoveAt(i);
+                    if (_listBox.Items[i] is DongThongBao dtb && dtb.LaGhim)
+                    {
+                        _listBox.Items.RemoveAt(i);
+                    }
+                }
+
+                // Chèn danh sách mới vào đầu ListBox
+                for (int i = 0; i < dsGhimMoi.Count; i++)
+                {
+                    _listBox.Items.Insert(i, dsGhimMoi[i]);
                 }
             }
-
-            // 2. CHÈN CÁC DÒNG GHIM MỚI VÀO ĐẦU LISTBOX
-            for (int i = 0; i < dsGhimMoi.Count; i++)
+            finally
             {
-                _listBox.Items.Insert(i, dsGhimMoi[i]);
+                _listBox.EndUpdate(); // AN TOÀN 3: Đảm bảo luôn EndUpdate dù có lỗi xảy ra để không đơ ListBox
             }
-
-            _listBox.EndUpdate();
         }
         private static void VeDong(object sender, DrawItemEventArgs e)
         {

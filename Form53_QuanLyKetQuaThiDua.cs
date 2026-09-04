@@ -123,33 +123,6 @@ namespace PhanMemThiDua2026
             }
         }
         // HÀM CLICK MENU TỐI ƯU CỰC ĐOAN (Sử dụng Async/Await mượt mà)
-        private async void toolStripMenuItem3_QuanLyThiDuaTapTheNamCu_Click(object sender, EventArgs e)
-        {
-            if (_isClosing) return;
-            const string tieuDe = "Thống kê kết quả phân loại thi đua tập thể năm cũ";
-
-            await OpenSubFormAsync<Form59_QuanLyThiDuaTapTheNamCu>(tieuDe);
-
-            // Lấy instance từ Dictionary Cache
-            if (_subFormCache.TryGetValue(typeof(Form59_QuanLyThiDuaTapTheNamCu), out Form? cachedForm)
-                && cachedForm is Form59_QuanLyThiDuaTapTheNamCu frm59
-                && !frm59.IsDisposed)
-            {
-                await frm59.ReloadDataAsync();
-            }
-        }
-        private async void quanLyThiDuaNamHienTai_ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (_isClosing) return;
-            string tieuDe = $"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {_namHeThong}";
-            await OpenSubFormAsync<Form15_ThongKeThiDua>(tieuDe);
-        }
-        private async void quanLyThiDuaNamCu_ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (_isClosing) return;
-            const string tieuDe = "Thống kê kết quả phân loại thi đua CBCS năm cũ";
-            await OpenSubFormAsync<Form46_ThongKeThiDuaNamCu>(tieuDe);
-        }
         public async Task ReloadDuLieu()
         {
             if (_isClosing || IsDisposed) return;
@@ -215,5 +188,41 @@ namespace PhanMemThiDua2026
                 base.OnFormClosing(e);
             }
         }
+        private async void quanLyThiDuaCBCS_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_isClosing) return;
+            string tieuDe = $"Thống kê kết quả phân loại thi đua CBCS phong trào \"VÌ ANTQ\" năm {_namHeThong}";
+            await OpenSubFormAsync<Form15_ThongKeThiDua>(tieuDe);
+        }
+        private async void quanLyThiDuaTapThe_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //Form23_ThongKeThiDuaTapThe
+            if (_isClosing) return;
+            string tieuDe = $"Thống kê kết quả phân loại thi đua tập thể phong trào \"VÌ ANTQ\" năm {_namHeThong}";
+            await OpenSubFormAsync<Form23_ThongKeThiDuaTapThe>(tieuDe);
+        }
+        private async void quanLyThiDuaCBCSNamCu_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            if (_isClosing) return;
+            const string tieuDe = "Thống kê kết quả phân loại thi đua CBCS năm cũ";
+            await OpenSubFormAsync<Form46_ThongKeThiDuaNamCu>(tieuDe);
+        }
+        private async void quanLyThiDuaTapTheNamCu_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_isClosing) return;
+            const string tieuDe = "Thống kê kết quả phân loại thi đua tập thể năm cũ";
+
+            await OpenSubFormAsync<Form59_QuanLyThiDuaTapTheNamCu>(tieuDe);
+
+            // Lấy instance từ Dictionary Cache
+            if (_subFormCache.TryGetValue(typeof(Form59_QuanLyThiDuaTapTheNamCu), out Form? cachedForm)
+                && cachedForm is Form59_QuanLyThiDuaTapTheNamCu frm59
+                && !frm59.IsDisposed)
+            {
+                await frm59.ReloadDataAsync();
+            }
+        }
+
     }
 }
