@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -259,10 +256,10 @@
             // 
             kryptonButton1_CauhinhCSDL.Anchor = AnchorStyles.None;
             kryptonButton1_CauhinhCSDL.DialogResult = DialogResult.TryAgain;
-            kryptonButton1_CauhinhCSDL.Location = new Point(955, 11);
+            kryptonButton1_CauhinhCSDL.Location = new Point(950, 11);
             kryptonButton1_CauhinhCSDL.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_CauhinhCSDL.Name = "kryptonButton1_CauhinhCSDL";
-            kryptonButton1_CauhinhCSDL.Size = new Size(130, 34);
+            kryptonButton1_CauhinhCSDL.Size = new Size(141, 34);
             kryptonButton1_CauhinhCSDL.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CauhinhCSDL.TabIndex = 29;
             kryptonButton1_CauhinhCSDL.Values.DropDownArrowColor = Color.Empty;
@@ -397,9 +394,7 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
-
         private StatusStrip statusStrip1;
         private TableLayoutPanel tableLayoutPanel1;
         private TableLayoutPanel tableLayoutPanel2;

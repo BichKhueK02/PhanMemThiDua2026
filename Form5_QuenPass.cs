@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.Runtime.InteropServices;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form5_QuenPass : Form
@@ -56,17 +55,13 @@ namespace PhanMemThiDua2026
         private void SetupReadOnlyBox(Krypton.Toolkit.KryptonTextBox tb)
         {
             if (tb == null) return;
-
             tb.ReadOnly = true;
             tb.ShortcutsEnabled = true;
-
             // Màu nền xanh nhẹ
             Color mauNen = Color.FromArgb(230, 245, 255);
             tb.StateCommon.Back.Color1 = mauNen;
-
             // Giữ chữ rõ
             tb.StateCommon.Content.Color1 = Color.Black;
-
             // Viền xanh nhẹ để dễ phân biệt
             tb.StateCommon.Border.Color1 = Color.SteelBlue;
         }
@@ -74,23 +69,20 @@ namespace PhanMemThiDua2026
         {
             var screen = Screen.PrimaryScreen;
             if (screen == null) return;
-
             int x = (screen.Bounds.Width - this.Width) / 2;
             int y = (screen.Bounds.Height - this.Height) / 2;
-
             this.Location = new Point(x, y);
         }
         private void Form5_Shown(object? sender, EventArgs e)
         {
             InitCauHoiVaFocus();
         }
-        private void Btn_KiemTra_Click(object sender, EventArgs e)
+        private void Btn_KiemTra_Click(object? sender, EventArgs e)
         {
             string cauHoi1 = ComboBox1_CauHoi1.Text.Trim();
             string traLoi1 = TextBox1_TraLoi1.Text.Trim();
             string cauHoi2 = ComboBox2_CauHoi2.Text.Trim();
             string traLoi2 = TextBox2_TraLoi2.Text.Trim();
-
             if (string.IsNullOrWhiteSpace(cauHoi1) || string.IsNullOrWhiteSpace(traLoi1) ||
                 string.IsNullOrWhiteSpace(cauHoi2) || string.IsNullOrWhiteSpace(traLoi2))
             {
@@ -98,18 +90,14 @@ namespace PhanMemThiDua2026
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             try
             {
                 using var conn = new SqliteConnection($"Data Source={_csdl1Path}");
                 conn.Open();
-
                 // TỐI ƯU HIỆU SUẤT: Gom chung thành 1 vòng truy vấn
                 string sqlKiemTra = "SELECT ID, CauHoi, CauTraLoi FROM CauHoiBaoMat WHERE ID IN (1, 2)";
-
                 bool cau1HopLe = false;
                 bool cau2HopLe = false;
-
                 using (var cmd = new SqliteCommand(sqlKiemTra, conn))
                 using (var reader = cmd.ExecuteReader())
                 {
@@ -118,11 +106,9 @@ namespace PhanMemThiDua2026
                         int id = reader.GetInt32(0);
                         string cauHoiDB_Enc = reader.GetString(1);
                         string cauTraLoiDB_Enc = reader.GetString(2);
-
                         // ⭐ SỬA LỖI LOGIC: Phải Giải Mã CSDL rồi mới so sánh (Giống hệt cách Form1 làm)
-                        string cauHoiGiaiMa = BaoMatAES.GiaiMa(cauHoiDB_Enc).Trim();
-                        string cauTraLoiGiaiMa = BaoMatAES.GiaiMa(cauTraLoiDB_Enc).Trim();
-
+                        string cauHoiGiaiMa = Module_BaoMatAES.GiaiMa(cauHoiDB_Enc).Trim();
+                        string cauTraLoiGiaiMa = Module_BaoMatAES.GiaiMa(cauTraLoiDB_Enc).Trim();
                         if (id == 1)
                         {
                             // Dùng StringComparison.OrdinalIgnoreCase để cho phép người dùng lỡ gõ hoa/thường vẫn qua được (UX tốt hơn)
@@ -149,26 +135,21 @@ namespace PhanMemThiDua2026
                     string sqlAdmin = "SELECT TenTaiKhoan, MatKhau FROM Admin WHERE ID=1";
                     using var cmdAdmin = new SqliteCommand(sqlAdmin, conn);
                     using var readerAdmin = cmdAdmin.ExecuteReader();
-
                     if (readerAdmin.Read())
                     {
-                        string taiKhoan = BaoMatAES.GiaiMa(readerAdmin.GetString(0));
-                        string matKhau = BaoMatAES.GiaiMa(readerAdmin.GetString(1));
-
+                        string taiKhoan = Module_BaoMatAES.GiaiMa(readerAdmin.GetString(0));
+                        string matKhau = Module_BaoMatAES.GiaiMa(readerAdmin.GetString(1));
                         Text_TenTaiKhoan.Text = taiKhoan;
                         Text_MatKhauLayLai.Text = matKhau;
                         soLanSai = 0;
-
                         // KIỂM TRA TRẠNG THÁI: Đã đăng nhập hay chưa?
                         bool isDaDangNhap = !string.IsNullOrEmpty(SessionInfo.TenTaiKhoan);
-
                         if (isDaDangNhap)
                         {
                             // KỊCH BẢN 1: Đang gọi từ Form 12 (Đã vào phần mềm)
                             MessageBox.Show($"Đối chiếu và giải mã thành công!\n\nMật khẩu của bạn là: {matKhau}",
                                             "Kết quả giải mã",
                                             MessageBoxButtons.OK, MessageBoxIcon.Information);
-
                             try
                             {
                                 Module_NhatKy.GhiNhatKy(
@@ -185,10 +166,8 @@ namespace PhanMemThiDua2026
                             MessageBox.Show($"Đối chiếu và giải mã thành công!\n\nMật khẩu của bạn là: {matKhau}\n\nNhấn OK để đăng nhập ngay vào hệ thống.",
                                             "Kết quả giải mã",
                                             MessageBoxButtons.OK, MessageBoxIcon.Information);
-
                             SessionInfo.TenTaiKhoan = taiKhoan;
                             SessionInfo.ThoiGianDangNhap = DateTime.Now;
-
                             try
                             {
                                 Module_NhatKy.GhiNhatKy(
@@ -199,7 +178,6 @@ namespace PhanMemThiDua2026
                             }
                             catch { }
                         }
-
                         this.DialogResult = DialogResult.OK;
                         this.Close();
                     }
@@ -211,7 +189,6 @@ namespace PhanMemThiDua2026
                     {
                         MessageBox.Show("Bạn đã thử quá 3 lần! Hệ thống nghi ngờ truy cập trái phép, phần mềm sẽ khóa.", "Lỗi bảo mật",
                                         MessageBoxButtons.OK, MessageBoxIcon.Error);
-
                         this.DialogResult = DialogResult.Abort;
                         this.Close();
                     }
@@ -245,10 +222,8 @@ namespace PhanMemThiDua2026
                 // 1. Nạp danh sách gợi ý từ Module
                 Module_KhoiTaoCSDL.NapDuLieuCauHoiBaoMat(Module_KhoiTaoCSDL.DanhSachCauHoiNhom1, ComboBox1_CauHoi1);
                 Module_KhoiTaoCSDL.NapDuLieuCauHoiBaoMat(Module_KhoiTaoCSDL.DanhSachCauHoiNhom2, ComboBox2_CauHoi2);
-
                 // 2. Load câu hỏi thật từ CSDL
                 LoadCauHoiDaLuu();
-
                 // 3. CHO PHÉP người dùng chọn hoặc tự nhập câu hỏi mới
                 ComboBox1_CauHoi1.Enabled = true;
                 ComboBox2_CauHoi2.Enabled = true;
@@ -257,7 +232,6 @@ namespace PhanMemThiDua2026
             {
                 _isInitializing = false; // Kết thúc nạp
             }
-
             // 4. Focus vào ô trả lời
             this.ActiveControl = TextBox1_TraLoi1;
             TextBox1_TraLoi1.SelectionStart = TextBox1_TraLoi1.TextLength;
@@ -268,20 +242,16 @@ namespace PhanMemThiDua2026
             {
                 using var conn = new SqliteConnection($"Data Source={_csdl1Path}");
                 conn.Open();
-
                 string sql = "SELECT ID, CauHoi FROM CauHoiBaoMat WHERE ID IN (1, 2)";
                 using var cmd = new SqliteCommand(sql, conn);
                 using var reader = cmd.ExecuteReader();
-
                 while (reader.Read())
                 {
                     int id = reader.GetInt32(0);
                     string cauHoiMaHoa = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
-
                     if (!string.IsNullOrWhiteSpace(cauHoiMaHoa))
                     {
-                        string cauHoiGiaiMa = BaoMatAES.GiaiMa(cauHoiMaHoa);
-
+                        string cauHoiGiaiMa = Module_BaoMatAES.GiaiMa(cauHoiMaHoa);
                         if (id == 1)
                         {
                             // Nếu câu hỏi nằm trong danh sách có sẵn -> Chọn Index
@@ -307,23 +277,19 @@ namespace PhanMemThiDua2026
         private void StartProgressBar()
         {
             if (progressBar1 == null) return;
-
             progressBar1.Style = ProgressBarStyle.Marquee;
             progressBar1.MarqueeAnimationSpeed = 30; // tốc độ vừa phải
-
             // Đảm bảo handle đã tạo
             if (progressBar1.IsHandleCreated)
             {
                 SendMessage(progressBar1.Handle, PBM_SETSTATE,
                     (IntPtr)PBST_NORMAL, IntPtr.Zero);
             }
-
             progressBar1.Visible = true;
         }
         private void StopProgressBar()
         {
             if (progressBar1 == null) return;
-
             progressBar1.MarqueeAnimationSpeed = 0;
             progressBar1.Style = ProgressBarStyle.Blocks;
             progressBar1.Visible = false;
@@ -331,16 +297,13 @@ namespace PhanMemThiDua2026
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             StopProgressBar();
-
             // DỌN DẸP BỘ NHỚ TRỰC QUAN: Xóa sạch text để lần sau mở lên (từ RAM) nó như mới
             TextBox1_TraLoi1.Text = string.Empty;
             TextBox2_TraLoi2.Text = string.Empty;
             Text_TenTaiKhoan.Text = string.Empty;
             Text_MatKhauLayLai.Text = string.Empty;
-
             // Xóa luôn trạng thái Focus cũ, đưa về ô đầu tiên
             this.ActiveControl = TextBox1_TraLoi1;
-
             // ĐỐI VỚI SHOWDIALOG: KHÔNG gọi e.Cancel = true ở đây!
             // Cứ để base.OnFormClosing chạy, WinForms sẽ tự động Hide() form này thay vì Dispose.
             base.OnFormClosing(e);
@@ -364,7 +327,6 @@ namespace PhanMemThiDua2026
                 formAo.MinimizeBox = false;
                 formAo.ShowIcon = false;
                 formAo.ShowInTaskbar = false; // Chuẩn UI hộp thoại
-
                 // --- 1. PANEL TIÊU ĐỀ (Tone màu Cam Đất - Warning) ---
                 var panelTop = new Krypton.Toolkit.KryptonPanel
                 {
@@ -373,7 +335,6 @@ namespace PhanMemThiDua2026
                     Padding = new Padding(30, 25, 20, 5)
                 };
                 panelTop.StateCommon.Color1 = System.Drawing.Color.White;
-
                 var lblTitle = new Krypton.Toolkit.KryptonLabel
                 {
                     Text = tieuDe.ToUpper(),
@@ -383,7 +344,6 @@ namespace PhanMemThiDua2026
                 lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 13F, System.Drawing.FontStyle.Bold);
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(211, 84, 0);
                 panelTop.Controls.Add(lblTitle);
-
                 // --- 2. ĐƯỜNG KẺ NGANG (Separator) ---
                 var separator = new Label
                 {
@@ -392,7 +352,6 @@ namespace PhanMemThiDua2026
                     BackColor = System.Drawing.Color.FromArgb(240, 220, 200),
                     Margin = new Padding(0, 5, 0, 10)
                 };
-
                 // --- 3. NỘI DUNG VĂN BẢN (TextBox TÀNG HÌNH) ---
                 var panelContent = new Krypton.Toolkit.KryptonPanel
                 {
@@ -400,7 +359,6 @@ namespace PhanMemThiDua2026
                     Padding = new Padding(30, 15, 30, 20)
                 };
                 panelContent.StateCommon.Color1 = System.Drawing.Color.White;
-
                 var txtContent = new Krypton.Toolkit.KryptonTextBox
                 {
                     Text = noiDungChuan,
@@ -415,7 +373,6 @@ namespace PhanMemThiDua2026
                 txtContent.StateCommon.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 11.5F, System.Drawing.FontStyle.Regular);
                 txtContent.StateCommon.Content.Color1 = System.Drawing.Color.FromArgb(45, 45, 45);
                 txtContent.StateCommon.Content.Padding = new Padding(0);
-
                 // --- 4. PANEL NÚT BẤM (Nền xám nhạt) ---
                 var panelBottom = new Panel
                 {
@@ -423,7 +380,6 @@ namespace PhanMemThiDua2026
                     Height = 75,
                     BackColor = System.Drawing.Color.WhiteSmoke
                 };
-
                 // Nút 1: Copy thông tin
                 var btnCopy = new Krypton.Toolkit.KryptonButton
                 {
@@ -442,7 +398,6 @@ namespace PhanMemThiDua2026
                     }
                     catch { }
                 };
-
                 // Nút 2: Đóng
                 var btnClose = new Krypton.Toolkit.KryptonButton
                 {
@@ -452,37 +407,27 @@ namespace PhanMemThiDua2026
                 };
                 btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Bold);
                 btnClose.StateCommon.Border.Rounding = 6;
-
                 // Căn giữa cụm 2 nút bấm với khoảng cách 20px
                 int totalWidth = btnCopy.Width + 20 + btnClose.Width;
                 int startX = (formAo.Width - totalWidth) / 2;
-
                 btnCopy.Location = new System.Drawing.Point(startX, 16);
                 btnClose.Location = new System.Drawing.Point(startX + btnCopy.Width + 20, 16);
-
                 panelBottom.Controls.Add(btnCopy);
                 panelBottom.Controls.Add(btnClose);
-
                 // --- 5. RÁP LAYER ---
                 panelContent.Controls.Add(txtContent);
                 panelContent.Controls.Add(separator);
-
                 panelTop.Controls.Add(lblTitle);
-
                 // Đẩy TextBox lên trên để không bị đè, đẩy Separator xuống dưới
                 txtContent.BringToFront();
                 separator.SendToBack();
-
                 formAo.Controls.Add(panelContent);
                 formAo.Controls.Add(panelTop);
                 formAo.Controls.Add(panelBottom);
-
                 formAo.AcceptButton = btnClose;
                 formAo.CancelButton = btnClose;
-
                 // Tránh TextBox bị bôi đen toàn bộ văn bản khi vừa hiển thị Form
                 formAo.Shown += (s, ev) => btnClose.Focus();
-
                 formAo.ShowDialog(this);
             }
         }
@@ -492,7 +437,6 @@ namespace PhanMemThiDua2026
         private void HienThiThongBaoQuenThongTinKhoiPhuc()
         {
             const string tieuDe = "Nếu tôi quên thông tin khôi phục?";
-
             string msgTuChoi =
                 $"Kính chào {Module_HeThong.Tu_dong_chi} !\n\n" +
                 $"Hệ thống nhận thấy {Module_HeThong.Tu_dong_chi} chưa thực hiện đăng nhập.\n" +
@@ -504,7 +448,6 @@ namespace PhanMemThiDua2026
                 "  • Điện thoại: 0975 287 973\n" +
                 "  • Email: tramnamcodon535@gmail.com\n\n" +
                 "Trân trọng!";
-
             HienThiFormAo_LienHe(tieuDe, msgTuChoi);
         }
         /// <summary>

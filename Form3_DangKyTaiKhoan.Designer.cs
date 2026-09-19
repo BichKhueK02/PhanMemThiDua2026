@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -684,9 +681,7 @@
             tableLayoutPanel12.ResumeLayout(false);
             ResumeLayout(false);
         }
-
         #endregion
-
         internal TableLayoutPanel TableLayoutPanel7;
         internal Label Label8;
         internal ComboBox ComboBox2_CauHoi2;
@@ -711,7 +706,7 @@
         internal TableLayoutPanel TableLayoutPanel2;
         internal Krypton.Toolkit.KryptonButton Btn_Thoat;
         internal TableLayoutPanel TableLayoutPanel6;
-        internal Krypton.Toolkit.KryptonButton Btn_Luu;
+        //internal Krypton.Toolkit.KryptonButton Btn_Luu;
         internal Label label1;
         private ToolTip toolTip1;
         private Krypton.Toolkit.KryptonTextBox text_NhapLaiMatKhau;

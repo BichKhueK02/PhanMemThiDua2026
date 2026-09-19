@@ -1,7 +1,6 @@
 ﻿using Krypton.Toolkit; // 🟢 BẮT BUỘC THÊM ĐỂ SỬ DỤNG GIAO DIỆN KRYPTON
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form8_CauHinhCSDL : Form
@@ -20,7 +19,7 @@ namespace PhanMemThiDua2026
             InitializeComponent();
             InitToolTips_CauHinhCSDL();
         }
-        private void Form8_Load(object sender, EventArgs e)
+        private void Form8_Load(object? sender, EventArgs e)
         {
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -33,7 +32,6 @@ namespace PhanMemThiDua2026
             CapNhatTrangThaiHienMatKhau();
             // 🌟 KÍCH HOẠT TÍNH NĂNG TÔ MÀU VIỀN TỰ ĐỘNG
             InitFocusEffects();
-
             Text_Password.Focus();
         }
         // 🌟 HÀM TÔ MÀU VIỀN CHUẨN KỸ SƯ (CHỐNG MEMORY LEAK)
@@ -55,7 +53,7 @@ namespace PhanMemThiDua2026
                 ktb.Leave += Ktb_LeaveFocus;
             }
         }
-        private void Ktb_EnterFocus(object sender, EventArgs e)
+        private void Ktb_EnterFocus(object? sender, EventArgs e)
         {
             if (sender is KryptonTextBox ktb)
             {
@@ -64,7 +62,7 @@ namespace PhanMemThiDua2026
                 ktb.Refresh(); // Cập nhật UI ngay lập tức
             }
         }
-        private void Ktb_LeaveFocus(object sender, EventArgs e)
+        private void Ktb_LeaveFocus(object? sender, EventArgs e)
         {
             if (sender is KryptonTextBox ktb)
             {
@@ -86,14 +84,12 @@ namespace PhanMemThiDua2026
                 ReshowDelay = 100,
                 ShowAlways = true
             };
-
             var tips = new Dictionary<Control, string>
             {
                 { Chex_HienMatKhau, "Hiển thị/ẩn mật khẩu đăng nhập" },
                 { btn_DangNhap, "Xác thực thông tin và truy cập cấu hình CSDL" },
                 { btn_Thoat, "Thoát khỏi màn hình cấu hình cơ sở dữ liệu" }
             };
-
             foreach (var tip in tips)
             {
                 if (tip.Key != null)
@@ -104,10 +100,8 @@ namespace PhanMemThiDua2026
         {
             if (!string.IsNullOrWhiteSpace(_csdl2Path) && File.Exists(_csdl2Path))
                 return _csdl2Path;
-
             if (!string.IsNullOrWhiteSpace(_csdl1Path) && File.Exists(_csdl1Path))
                 return _csdl1Path;
-
             return string.Empty;
         }
         private void LoadTaiKhoanMacDinh()
@@ -119,26 +113,22 @@ namespace PhanMemThiDua2026
                 {
                     csdl = GetValidCsdlPath();
                 }
-
                 if (string.IsNullOrEmpty(csdl))
                 {
                     Debug.WriteLine("DEBUG: Không tìm thấy tệp CSDL để load tên tài khoản.");
                     Text_Admin.Text = "";
                     return;
                 }
-
                 using SqliteConnection conn = new SqliteConnection("Data Source=" + csdl);
                 conn.Open();
-
                 string sql = "SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1";
                 using SqliteCommand cmd = new SqliteCommand(sql, conn);
                 using SqliteDataReader reader = cmd.ExecuteReader();
-
                 if (reader.Read())
                 {
                     string encrypted = reader.GetString(0);
                     // ⭐ SỬA LỖI ĐỌC (FALLBACK): Xử lý an toàn nếu AES nuốt lỗi khi CSDL chưa mã hóa
-                    string dec = BaoMatAES.GiaiMa(encrypted);
+                    string dec = Module_BaoMatAES.GiaiMa(encrypted);
                     Text_Admin.Text = string.IsNullOrWhiteSpace(dec) ? encrypted : dec;
                 }
             }
@@ -148,7 +138,7 @@ namespace PhanMemThiDua2026
                 Text_Admin.Text = "";
             }
         }
-        private void Form8_FormClosing(object sender, FormClosingEventArgs e)
+        private void Form8_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // GIA CỐ: Nếu Form này được gọi bằng .ShowDialog(), việc Hide() có thể gây treo ẩn.
             // Tốt nhất là chỉ Hide khi ứng dụng cấu hình chạy nền, nếu không hãy để nó Close bình thường.
@@ -165,27 +155,21 @@ namespace PhanMemThiDua2026
                     MessageBox.Show("⚠️ Không tìm thấy tệp cơ sở dữ liệu. Vui lòng kiểm tra cấu hình.", "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
-
                 using SqliteConnection conn = new SqliteConnection("Data Source=" + csdl);
                 conn.Open();
-
                 string sql = "SELECT TenTaiKhoan, MatKhau FROM Admin WHERE ID = 1 LIMIT 1";
                 using SqliteCommand cmd = new SqliteCommand(sql, conn);
                 using SqliteDataReader reader = cmd.ExecuteReader();
-
                 if (reader.Read())
                 {
                     string tenCSDLRoi = reader.GetString(0).Trim();
                     string mkCSDLRoi = reader.GetString(1).Trim();
-
                     // ⭐ SỬA LỖI LOGIC: Phải GIẢI MÃ CSDL rồi mới đem so với thông tin người dùng gõ
                     // Dùng kèm Fallback nếu CSDL cũ chưa mã hóa.
-                    string tenThucTe = BaoMatAES.GiaiMa(tenCSDLRoi);
+                    string tenThucTe = Module_BaoMatAES.GiaiMa(tenCSDLRoi);
                     if (string.IsNullOrWhiteSpace(tenThucTe)) tenThucTe = tenCSDLRoi;
-
-                    string mkThucTe = BaoMatAES.GiaiMa(mkCSDLRoi);
+                    string mkThucTe = Module_BaoMatAES.GiaiMa(mkCSDLRoi);
                     if (string.IsNullOrWhiteSpace(mkThucTe)) mkThucTe = mkCSDLRoi;
-
                     // So sánh plain-text (Bỏ qua hoa thường cho Tài khoản, phân biệt hoa thường cho Mật khẩu)
                     return string.Equals(tenThucTe, tenNhap, StringComparison.OrdinalIgnoreCase) &&
                            mkThucTe == mkNhap;
@@ -233,9 +217,8 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 Debug.WriteLine(
-                    $"[Vạn Lý Trường Thành] Lỗi truy xuất: {ex.Message}");
+                    $"[Dường dẫn công cụ hỗ trợ Fix CSDL] Lỗi truy xuất: {ex.Message}");
             }
-
             return string.Empty;
         }
         // Bọc tác vụ IO nặng vào Task.Run để giải phóng giao diện
@@ -247,14 +230,12 @@ namespace PhanMemThiDua2026
                 {
                     if (!Directory.Exists(srcDirPath)) return;
                     Directory.CreateDirectory(dstDirPath);
-
                     foreach (string srcFile in Directory.GetFiles(srcDirPath))
                     {
                         string dstFile = Path.Combine(dstDirPath, Path.GetFileName(srcFile));
                         if (!File.Exists(dstFile) || File.GetLastWriteTime(srcFile) > File.GetLastWriteTime(dstFile))
                             File.Copy(srcFile, dstFile, true);
                     }
-
                     foreach (string folder in Directory.GetDirectories(srcDirPath))
                     {
                         string dstFolder = Path.Combine(dstDirPath, Path.GetFileName(folder));
@@ -265,7 +246,7 @@ namespace PhanMemThiDua2026
                 catch (Exception ex)
                 {
                     // Ghi log để sau này dễ truy vết nếu copy thất bại do quyền truy cập
-                    Debug.WriteLine($"[Mùa Thu Hokkaido] Lỗi chép file: {ex.Message}");
+                    Debug.WriteLine($"Công cụ Copy] Lỗi chép file: {ex.Message}");
                 }
             });
         }
@@ -275,10 +256,8 @@ namespace PhanMemThiDua2026
             try
             {
                 this.Hide();
-
                 // Đợi quá trình tìm/chép file hoàn tất
                 string pathApp = await VanLyTruongThanh_DuongDanMoPhanMem_CongCuQuanLyCSDLAsync();
-
                 if (string.IsNullOrEmpty(pathApp))
                 {
                     MessageBox.Show(
@@ -289,7 +268,6 @@ namespace PhanMemThiDua2026
                         $"- {Application.StartupPath}\\CongCuQuanLyCSDL\n\n" +
                         "Hoặc đặt 'DB Browser for SQLite.exe' vào một trong các thư mục trên.",
                         "Thiếu file", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
                     this.Show();
                     return;
                 }
@@ -314,7 +292,7 @@ namespace PhanMemThiDua2026
             Chex_HienMatKhau.ForeColor = isChecked ? Color.Green : Color.Red;
         }
         // Thay đổi thành async để đợi Gõ Cửa Trái Tim
-        private void btn_DangNhap_Click(object sender, EventArgs e)
+        private void btn_DangNhap_Click(object? sender, EventArgs e)
         {
             string ten = Text_Admin.Text.Trim();
             string mk = Text_Password.Text.Trim();
@@ -330,13 +308,11 @@ namespace PhanMemThiDua2026
                 Module_TaiKhoan.TenTaiKhoan_RAM = ten;
                 SessionInfo.TenTaiKhoan = ten;
                 SessionInfo.ThoiGianDangNhap = DateTime.Now;
-
                 Module_NhatKy.GhiNhatKy(
                     taiKhoan: ten,
                     hanhDong: "Truy cập phần mềm quản lý cơ sở dữ liệu",
                     ghiChu: $"Thời gian: {SessionInfo.ThoiGianDangNhap:dd-MM-yyyy HH:mm:ss}"
                 );
-
                 // Gõ cửa trái tim giờ sẽ chạy bất đồng bộ
                 GoCuaTraiTim_MoChucNangSQLite();
             }
@@ -349,7 +325,6 @@ namespace PhanMemThiDua2026
                     ghiChu: "Thất bại!"
                 );
             }
-
             // Mở khóa lại nút sau khi xử lý xong
             btn_DangNhap.Enabled = true;
         }
@@ -358,7 +333,6 @@ namespace PhanMemThiDua2026
             soLanSai++;
             Text_Password.Clear();
             Text_Password.Focus();
-
             if (soLanSai >= MaxSai)
             {
                 MessageBox.Show("Bạn đã nhập sai quá 5 lần. Ứng dụng sẽ đóng.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -369,7 +343,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"❌ Sai tên hoặc mật khẩu! Lần {soLanSai}/{MaxSai}", "Đăng nhập thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void btn_Thoat_Click(object sender, EventArgs e)
+        private void btn_Thoat_Click(object? sender, EventArgs e)
         {
             Module_NhatKy.GhiNhatKy(
                 taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
@@ -378,7 +352,7 @@ namespace PhanMemThiDua2026
             );
             Close();
         }
-        private void Chex_HienMatKhau_CheckedChanged(object sender, EventArgs e)
+        private void Chex_HienMatKhau_CheckedChanged(object? sender, EventArgs e)
         {
             CapNhatTrangThaiHienMatKhau();
         }

@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -59,7 +56,7 @@
             label20 = new Label();
             label21 = new Label();
             tableLayoutPanel2 = new TableLayoutPanel();
-            kryptonButton_LuuE29 = new Krypton.Toolkit.KryptonButton();
+            kryptonButton_LuuTyLeBCHE09 = new Krypton.Toolkit.KryptonButton();
             label1_ThongBao = new Label();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             toolStripStatusLabel2 = new ToolStripStatusLabel();
@@ -444,7 +441,7 @@
             tableLayoutPanel2.ColumnCount = 2;
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 72.75641F));
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.24359F));
-            tableLayoutPanel2.Controls.Add(kryptonButton_LuuE29, 1, 0);
+            tableLayoutPanel2.Controls.Add(kryptonButton_LuuTyLeBCHE09, 1, 0);
             tableLayoutPanel2.Controls.Add(label1_ThongBao, 0, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
             tableLayoutPanel2.Location = new Point(3, 181);
@@ -455,19 +452,19 @@
             tableLayoutPanel2.Size = new Size(818, 43);
             tableLayoutPanel2.TabIndex = 30;
             // 
-            // kryptonButton_LuuE29
+            // kryptonButton_LuuTyLeBCHE09
             // 
-            kryptonButton_LuuE29.Anchor = AnchorStyles.None;
-            kryptonButton_LuuE29.Location = new Point(627, 6);
-            kryptonButton_LuuE29.Margin = new Padding(3, 2, 3, 2);
-            kryptonButton_LuuE29.Name = "kryptonButton_LuuE29";
-            kryptonButton_LuuE29.Size = new Size(158, 30);
-            kryptonButton_LuuE29.StateCommon.Border.Rounding = 4F;
-            kryptonButton_LuuE29.TabIndex = 29;
-            kryptonButton_LuuE29.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LuuE29.Values.Image = (Image)resources.GetObject("kryptonButton_LuuE29.Values.Image");
-            kryptonButton_LuuE29.Values.Text = "Lưu tỷ lệ";
-            kryptonButton_LuuE29.Click += kryptonButton_LuuE29_Click;
+            kryptonButton_LuuTyLeBCHE09.Anchor = AnchorStyles.None;
+            kryptonButton_LuuTyLeBCHE09.Location = new Point(627, 6);
+            kryptonButton_LuuTyLeBCHE09.Margin = new Padding(3, 2, 3, 2);
+            kryptonButton_LuuTyLeBCHE09.Name = "kryptonButton_LuuTyLeBCHE09";
+            kryptonButton_LuuTyLeBCHE09.Size = new Size(158, 30);
+            kryptonButton_LuuTyLeBCHE09.StateCommon.Border.Rounding = 4F;
+            kryptonButton_LuuTyLeBCHE09.TabIndex = 29;
+            kryptonButton_LuuTyLeBCHE09.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton_LuuTyLeBCHE09.Values.Image = (Image)resources.GetObject("kryptonButton_LuuTyLeBCHE09.Values.Image");
+            kryptonButton_LuuTyLeBCHE09.Values.Text = "Lưu tỷ lệ";
+            kryptonButton_LuuTyLeBCHE09.Click += kryptonButton_LuuTyLeBCHE09_Click;
             // 
             // label1_ThongBao
             // 
@@ -529,7 +526,6 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
         private ToolTip toolTip1;
         private GroupBox groupBox_TyLeTheoQuyDinh;
@@ -560,7 +556,7 @@
         private Label label20;
         private Label label21;
         private TableLayoutPanel tableLayoutPanel2;
-        internal Krypton.Toolkit.KryptonButton kryptonButton_LuuE29;
+        internal Krypton.Toolkit.KryptonButton kryptonButton_LuuTyLeBCHE09;
         private Label label1_ThongBao;
         private ToolStripStatusLabel toolStripStatusLabel1;
         private ToolStripStatusLabel toolStripStatusLabel2;

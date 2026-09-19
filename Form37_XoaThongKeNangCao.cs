@@ -1,5 +1,4 @@
 ﻿using Microsoft.Data.Sqlite;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form37_XoaThongKeNangCao : Form
@@ -13,7 +12,7 @@ namespace PhanMemThiDua2026
             this.MaximizeBox = false; // Mờ nút Phóng to (Maximize) trên thanh tiêu đề
             this.FormBorderStyle = FormBorderStyle.FixedSingle; // Khóa viền, ngăn dùng chuột kéo giãn Form
         }
-        private void Form37_XoaThongKeNangCao_Load(object sender, EventArgs e)
+        private void Form37_XoaThongKeNangCao_Load(object? sender, EventArgs e)
         {
             ThietLapGiaoDienTheoPhienBan();
         }
@@ -35,11 +34,9 @@ namespace PhanMemThiDua2026
                     // Đếm tổng
                     using (var cmd = new SqliteCommand($"SELECT COUNT(*) FROM {tenBang}", conn))
                         tong = Convert.ToInt32(cmd.ExecuteScalar());
-
                     // Đếm Đang công tác
                     using (var cmd = new SqliteCommand($"SELECT COUNT(*) FROM {tenBang} WHERE TinhTrang = 'Đang công tác'", conn))
                         dangCongTac = Convert.ToInt32(cmd.ExecuteScalar());
-
                     // Đếm Chuyển công tác
                     using (var cmd = new SqliteCommand($"SELECT COUNT(*) FROM {tenBang} WHERE TinhTrang = 'Chuyển công tác'", conn))
                         chuyenCongTac = Convert.ToInt32(cmd.ExecuteScalar());
@@ -64,7 +61,6 @@ namespace PhanMemThiDua2026
                 // Hiện TẤT CẢ các tùy chọn để người dùng tự do chọn lọc
                 radioButton2_XoaCBCSDangCongTac.Visible = true;
                 radioButton3_XoaCBCSChuyenCongTac.Visible = true;
-
                 // Mặc định tick vào "Xóa tất cả"
                 radioButton1_XoaTatCaDuLieuThongKe.Checked = true;
             }
@@ -74,7 +70,6 @@ namespace PhanMemThiDua2026
                 // Ẩn 2 lựa chọn con đi, chỉ giữ lại lựa chọn "Xóa tất cả"
                 radioButton2_XoaCBCSDangCongTac.Visible = false;
                 radioButton3_XoaCBCSChuyenCongTac.Visible = false;
-
                 // Nếu có dữ liệu thì tự tick vào "Xóa tất cả"
                 if (tong > 0)
                 {
@@ -88,7 +83,7 @@ namespace PhanMemThiDua2026
                 btn_XoaDuLieuThongKe.Text = "Không có dữ liệu để xóa";
             }
         }
-        private async void btn_XoaDuLieuThongKe_Click(object sender, EventArgs e)
+        private async void btn_XoaDuLieuThongKe_Click(object? sender, EventArgs e)
         {
             // 1. Kiểm tra an toàn: Phải có ít nhất 1 RadioButton hiển thị và được chọn
             if ((!radioButton1_XoaTatCaDuLieuThongKe.Visible || !radioButton1_XoaTatCaDuLieuThongKe.Checked) &&
@@ -97,14 +92,11 @@ namespace PhanMemThiDua2026
             {
                 return;
             }
-
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
-
             string sqlQuery = "";
             string thongBaoLog = "";
-
             // 2. Xác định điều kiện xóa
             if (radioButton1_XoaTatCaDuLieuThongKe.Checked)
             {
@@ -121,16 +113,13 @@ namespace PhanMemThiDua2026
                 sqlQuery = $"DELETE FROM {tenBang} WHERE TinhTrang = 'Chuyển công tác'";
                 thongBaoLog = "Xóa danh sách chuyển công tác";
             }
-
             if (string.IsNullOrEmpty(sqlQuery)) return;
-
             try
             {
                 // 3. Khóa UI
                 this.Cursor = Cursors.WaitCursor;
                 btn_XoaDuLieuThongKe.Enabled = false;
                 int rowsAffected = 0;
-
                 // 4. Xóa ngầm
                 await Task.Run(() =>
                 {
@@ -145,13 +134,11 @@ namespace PhanMemThiDua2026
                                 {
                                     rowsAffected = cmd.ExecuteNonQuery();
                                 }
-
                                 if (radioButton1_XoaTatCaDuLieuThongKe.Checked)
                                 {
                                     using (var cmdSeq = new SqliteCommand($"DELETE FROM sqlite_sequence WHERE name='{tenBang}'", conn, tran))
                                         cmdSeq.ExecuteNonQuery();
                                 }
-
                                 tran.Commit();
                             }
                             catch
@@ -160,25 +147,21 @@ namespace PhanMemThiDua2026
                                 throw;
                             }
                         }
-
                         using (var cmdVac = new SqliteCommand("VACUUM", conn))
                             cmdVac.ExecuteNonQuery();
                     }
                 });
-
                 // 5. Ghi Log
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     "Xóa nâng cao",
                     $"{thongBaoLog} ({rowsAffected} dòng)"
                 );
-
                 // 6. Cập nhật và Đóng
                 if (_formCha != null && !_formCha.IsDisposed)
                 {
                     _formCha.ReloadData();
                 }
-
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }

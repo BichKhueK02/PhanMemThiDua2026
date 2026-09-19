@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -62,10 +59,10 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 4;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 15.5064411F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 66.88312F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 12.121212F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 66.06335F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 12.8959274F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 5.33333349F));
-            tableLayoutPanel1.Size = new Size(755, 462);
+            tableLayoutPanel1.Size = new Size(853, 442);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // tableLayoutPanel3
@@ -79,17 +76,17 @@
             tableLayoutPanel3.Controls.Add(kryptonButton2_TangCoChuRichText, 1, 0);
             tableLayoutPanel3.Controls.Add(kryptonButton2_GiamCoChuRichText, 0, 0);
             tableLayoutPanel3.Dock = DockStyle.Fill;
-            tableLayoutPanel3.Location = new Point(3, 383);
+            tableLayoutPanel3.Location = new Point(3, 363);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 1;
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel3.Size = new Size(749, 50);
+            tableLayoutPanel3.Size = new Size(847, 51);
             tableLayoutPanel3.TabIndex = 4;
             // 
             // kryptonButton_LuuDataDeNghi
             // 
             kryptonButton_LuuDataDeNghi.Anchor = AnchorStyles.None;
-            kryptonButton_LuuDataDeNghi.Location = new Point(549, 9);
+            kryptonButton_LuuDataDeNghi.Location = new Point(629, 9);
             kryptonButton_LuuDataDeNghi.Name = "kryptonButton_LuuDataDeNghi";
             kryptonButton_LuuDataDeNghi.Size = new Size(132, 32);
             kryptonButton_LuuDataDeNghi.StateCommon.Border.Rounding = 4F;
@@ -104,7 +101,7 @@
             // kryptonButton2_TangCoChuRichText
             // 
             kryptonButton2_TangCoChuRichText.Anchor = AnchorStyles.None;
-            kryptonButton2_TangCoChuRichText.Location = new Point(80, 10);
+            kryptonButton2_TangCoChuRichText.Location = new Point(94, 11);
             kryptonButton2_TangCoChuRichText.Margin = new Padding(2, 4, 2, 4);
             kryptonButton2_TangCoChuRichText.Name = "kryptonButton2_TangCoChuRichText";
             kryptonButton2_TangCoChuRichText.Size = new Size(55, 29);
@@ -118,7 +115,7 @@
             // kryptonButton2_GiamCoChuRichText
             // 
             kryptonButton2_GiamCoChuRichText.Anchor = AnchorStyles.None;
-            kryptonButton2_GiamCoChuRichText.Location = new Point(10, 10);
+            kryptonButton2_GiamCoChuRichText.Location = new Point(14, 11);
             kryptonButton2_GiamCoChuRichText.Margin = new Padding(2, 4, 2, 4);
             kryptonButton2_GiamCoChuRichText.Name = "kryptonButton2_GiamCoChuRichText";
             kryptonButton2_GiamCoChuRichText.Size = new Size(51, 29);
@@ -132,10 +129,10 @@
             // richTextBox1_TomTatThanhTichBaNhat
             // 
             richTextBox1_TomTatThanhTichBaNhat.Dock = DockStyle.Fill;
-            richTextBox1_TomTatThanhTichBaNhat.Font = new Font("Segoe UI", 12F, FontStyle.Italic, GraphicsUnit.Point, 0);
-            richTextBox1_TomTatThanhTichBaNhat.Location = new Point(3, 74);
+            richTextBox1_TomTatThanhTichBaNhat.Font = new Font("Segoe UI", 14.25F, FontStyle.Italic, GraphicsUnit.Point, 0);
+            richTextBox1_TomTatThanhTichBaNhat.Location = new Point(3, 71);
             richTextBox1_TomTatThanhTichBaNhat.Name = "richTextBox1_TomTatThanhTichBaNhat";
-            richTextBox1_TomTatThanhTichBaNhat.Size = new Size(749, 303);
+            richTextBox1_TomTatThanhTichBaNhat.Size = new Size(847, 286);
             richTextBox1_TomTatThanhTichBaNhat.TabIndex = 0;
             richTextBox1_TomTatThanhTichBaNhat.Text = "";
             // 
@@ -151,7 +148,7 @@
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Size = new Size(749, 65);
+            tableLayoutPanel2.Size = new Size(847, 62);
             tableLayoutPanel2.TabIndex = 1;
             // 
             // label3
@@ -160,7 +157,7 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 12F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(0, 0, 192);
-            label3.Location = new Point(234, 22);
+            label3.Location = new Point(289, 20);
             label3.Name = "label3";
             label3.Size = new Size(385, 21);
             label3.TabIndex = 2;
@@ -172,7 +169,7 @@
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(3, 3);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(98, 59);
+            pictureBox1.Size = new Size(111, 56);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 3;
             pictureBox1.TabStop = false;
@@ -182,11 +179,11 @@
             kryptonStatusStrip1.Dock = DockStyle.Fill;
             kryptonStatusStrip1.Font = new Font("Segoe UI", 9F);
             kryptonStatusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1_SoLuongKyTu });
-            kryptonStatusStrip1.Location = new Point(0, 436);
+            kryptonStatusStrip1.Location = new Point(0, 417);
             kryptonStatusStrip1.Name = "kryptonStatusStrip1";
             kryptonStatusStrip1.ProgressBars = null;
             kryptonStatusStrip1.RenderMode = ToolStripRenderMode.ManagerRenderMode;
-            kryptonStatusStrip1.Size = new Size(755, 26);
+            kryptonStatusStrip1.Size = new Size(853, 25);
             kryptonStatusStrip1.TabIndex = 3;
             kryptonStatusStrip1.Text = "kryptonStatusStrip1";
             // 
@@ -194,14 +191,14 @@
             // 
             toolStripStatusLabel1_SoLuongKyTu.Image = (Image)resources.GetObject("toolStripStatusLabel1_SoLuongKyTu.Image");
             toolStripStatusLabel1_SoLuongKyTu.Name = "toolStripStatusLabel1_SoLuongKyTu";
-            toolStripStatusLabel1_SoLuongKyTu.Size = new Size(28, 21);
+            toolStripStatusLabel1_SoLuongKyTu.Size = new Size(28, 20);
             toolStripStatusLabel1_SoLuongKyTu.Text = "*";
             // 
             // Form43_TomTatThanhTichBaNhat
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(755, 462);
+            ClientSize = new Size(853, 442);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form43_TomTatThanhTichBaNhat";
@@ -217,9 +214,7 @@
             kryptonStatusStrip1.PerformLayout();
             ResumeLayout(false);
         }
-
         #endregion
-
         private TableLayoutPanel tableLayoutPanel1;
         private RichTextBox richTextBox1_TomTatThanhTichBaNhat;
         private TableLayoutPanel tableLayoutPanel2;

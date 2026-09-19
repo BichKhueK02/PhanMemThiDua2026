@@ -38,7 +38,6 @@
                         case Keys.Enter: return Invoke(actionXacNhan);
                     }
                 }
-
                 if (modifier == Keys.Control)
                 {
                     switch (key)
@@ -53,7 +52,6 @@
                         case Keys.P: return Invoke(actionInAn);
                     }
                 }
-
                 if (modifier == Keys.Alt)
                 {
                     switch (key)
@@ -67,7 +65,6 @@
                 System.Diagnostics.Debug.WriteLine($"Lỗi Module Phím Tắt [{keyData}]: {ex.Message}");
                 return true;
             }
-
             // Nếu không trúng phím tắt nào -> lập tức trả về false để hệ điều hành lo việc gõ chữ
             return false;
         }    
@@ -75,13 +72,11 @@
         private static bool Invoke(Action? action)
         {
             if (action == null) return false;
-
             // CHỈ CHỐNG SPAM KHI ĐÓ LÀ PHÍM TẮT ĐƯỢC GỌI
             if ((DateTime.Now - _lastKeyTime).TotalMilliseconds < KEY_DELAY_MS)
             {
                 return true; // Vẫn "nuốt" phím tắt này để chống gọi hàm 2 lần liên tục, nhưng ko ảnh hưởng gõ chữ
             }
-
             _lastKeyTime = DateTime.Now;
             action.Invoke();
             return true;

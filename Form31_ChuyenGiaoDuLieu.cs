@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form31_ChuyenGiaoDuLieu : Form
@@ -17,8 +16,7 @@ namespace PhanMemThiDua2026
         private CancellationTokenSource? _boHuyLuong_Quet;
         private string _duongDanCSDL_Nguon = string.Empty;
         private readonly List<string> _danhSachDuongDanThucTe = new(16);
-        private readonly Dictionary<string, string> _anhXaTenDatabase = new(StringComparer.OrdinalIgnoreCase)
-        {
+        private readonly Dictionary<string, string> _anhXaTenDatabase = new(StringComparer.OrdinalIgnoreCase) {
             { "csdl1", "Database_1 (Danh tính & Cấu hình)" },
             { "csdl2", "Database_2 (Thông tin chung)" },
             { "csdl3", "Database_3 (Nhật ký hệ thống)" },
@@ -32,7 +30,7 @@ namespace PhanMemThiDua2026
             DangKyChuoiSuKien();
             InitToolTips();
         }
-        private void Form31_ChuyenGiaoDuLieu_Load(object sender, EventArgs e)
+        private void Form31_ChuyenGiaoDuLieu_Load(object? sender, EventArgs e)
         {
             richTextBox1_ThongTinDatabaseDuocChon.Clear();
             richTextBox1_ThongTinDatabaseDuocChon.AppendText(
@@ -43,13 +41,12 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý đăng nhập";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Dang_Nhap;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
             toolTip1.InitialDelay = 300;
             toolTip1.AutoPopDelay = 2000;
             toolTip1.ReshowDelay = 100;
             toolTip1.ShowAlways = true;
-
             var tips = new Dictionary<Control, string>
 {
     { btn_XuatDuLieuJson, "Xuất dữ liệu hệ thống ra tệp định dạng JSON" },
@@ -58,7 +55,6 @@ namespace PhanMemThiDua2026
     { kryptonButton_Dong, "Đóng cửa sổ làm việc này" },
     { btn_QuetTimKiem, "Quét và tìm kiếm tệp dữ liệu trong thư mục" }
 };
-
             foreach (var tip in tips)
             {
                 if (tip.Key != null) toolTip1.SetToolTip(tip.Key, tip.Value);
@@ -69,28 +65,21 @@ namespace PhanMemThiDua2026
             // Chặn thực thi nếu hệ thống đang nạp lại danh sách bảng tự động
             if (_dangCapNhatCheckedListBox || _dangXuLyClickCheckedList)
                 return;
-
             try
             {
                 _dangXuLyClickCheckedList = true;
-
                 if (sender is not CheckedListBox clb)
                     return;
-
                 int index = clb.SelectedIndex;
                 if (index < 0) return; // Không có dòng nào được chọn
-
                 // Tạm hủy lắng nghe sự kiện gốc để chặn vòng lặp kích hoạt liên tục
                 clb.ItemCheck -= checkedListBox1_clb_DanhSachBang_ItemCheck;
-
                 // Đảo ngược trạng thái tích chọn hiện tại của dòng
                 bool isChecked = clb.GetItemChecked(index);
                 clb.SetItemChecked(index, !isChecked);
-
                 // Gọi thủ công hàm xử lý logic gốc để hệ thống ghi nhận trạng thái mới (đồng bộ code gốc)
                 var args = new ItemCheckEventArgs(index, !isChecked ? CheckState.Checked : CheckState.Unchecked, isChecked ? CheckState.Checked : CheckState.Unchecked);
                 checkedListBox1_clb_DanhSachBang_ItemCheck(clb, args);
-
                 // 🌟 BÍ QUYẾT UX: Xóa vùng bôi xanh dòng ngay lập tức để danh sách nhìn thanh thoát, đẹp mắt
                 clb.ClearSelected();
             }
@@ -109,7 +98,6 @@ namespace PhanMemThiDua2026
                 _dangXuLyClickCheckedList = false;
             }
         }
-
         private void checkedListBox1_clb_DanhSachBang_ItemCheck(
             object? sender,
             ItemCheckEventArgs e
@@ -117,7 +105,6 @@ namespace PhanMemThiDua2026
         {
             if (_dangCapNhatCheckedListBox)
                 return;
-
             Debug.WriteLine(
                 $"[CheckedChanged] Index={e.Index} | {e.NewValue}"
             );
@@ -127,7 +114,6 @@ namespace PhanMemThiDua2026
             SuspendLayout();
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
             UpdateStyles();
-
             DoubleBuffered = true;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterScreen;
@@ -135,10 +121,8 @@ namespace PhanMemThiDua2026
             prb_TienTrinhChuyenGiao.Visible = false;
             chk_BackupTruocKhiChuyen.Checked = true;
             chk_XoaDuLieuCu.Checked = false;
-
             CapNhatMauHienThiCheckBox(chk_BackupTruocKhiChuyen);
             CapNhatMauHienThiCheckBox(chk_XoaDuLieuCu);
-
             lbl_TrangThaiHoatDong.Text = "Sẵn sàng.";
             ResumeLayout(false);
         }
@@ -167,13 +151,9 @@ namespace PhanMemThiDua2026
             kryptonButton2_MoThuMuc.Click += kryptonButton2_MoThuMuc_Click;
             chk_BackupTruocKhiChuyen.CheckedChanged += CheckBox_ThayDoiTrangThai;
             chk_XoaDuLieuCu.CheckedChanged += CheckBox_ThayDoiTrangThai;
-
-            // =================================================
             // CHECKED LIST ENGINE - CẬP NHẬT ĐĂNG KÝ SỰ KIỆN UX MỚI
-            // =================================================
             // Thay thế sự kiện MouseDown cũ bằng sự kiện thay đổi lựa chọn dòng chữ
             checkedListBox1_clb_DanhSachBang.SelectedIndexChanged += checkedListBox1_clb_DanhSachBang_SelectedIndexChanged;
-
             checkedListBox1_clb_DanhSachBang.ItemCheck += checkedListBox1_clb_DanhSachBang_ItemCheck;
         }
         private async Task TaiDuLieuNenAsync()
@@ -184,49 +164,35 @@ namespace PhanMemThiDua2026
             {
                 return;
             }
-
             try
             {
                 if (IsDisposed || Disposing)
                     return;
-
                 _boHuyLuong_Quet?.Cancel();
                 _boHuyLuong_Quet?.Dispose();
-
                 _boHuyLuong_Quet =
                     new CancellationTokenSource();
-
                 CancellationToken token =
                     _boHuyLuong_Quet.Token;
-
                 CapNhatTrangThaiHoatDong(
                     "Đang quét tìm hệ thống dữ liệu...");
-
                 ThietLapTrangThaiTuongTacUI(false);
-
                 List<string> danhSachFile =
                     await Task.Run(() =>
                     {
                         token.ThrowIfCancellationRequested();
-
                         return Module_ChuyenGiaoDuLieu
                             .NoiVongTayLonKetNoiTimKiemCSDL();
                     }, token);
-
                 token.ThrowIfCancellationRequested();
-
                 if (IsDisposed || Disposing)
                     return;
-
                 await CapNhatComboboxDanhSachAsync(
                     danhSachFile,
                     token);
-
                 if (IsDisposed || Disposing)
                     return;
-                // ====================================================================
                 // ⭐ BƯỚC CẢI TIẾN UX CHUẨN KỸ SƯ: TỰ ĐỘNG CHỌN DATABASE ĐẦU TIÊN
-                // ====================================================================
                 // 🛡️ BƯỚC CẢI TIẾN: Chọn Database đầu tiên và ép tải dữ liệu tức thì
                 if (cbo_ChonCSDL_Nguon.Items.Count > 0)
                 {
@@ -235,7 +201,6 @@ namespace PhanMemThiDua2026
                     this.BeginInvoke(new Action(() =>
                     {
                         cbo_ChonCSDL_Nguon.SelectedIndex = 0;
-
                         // 💡 BÍ QUYẾT: Gọi trực tiếp hàm xử lý để UI tự cập nhật RichTextBox ngay
                         // mà không cần chờ người dùng click lại.
                         Cbo_ChonCSDL_Nguon_SelectedIndexChanged(cbo_ChonCSDL_Nguon, EventArgs.Empty);
@@ -251,7 +216,6 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine(
                     "[TaiDuLieuNenAsync] " + ex);
-
                 if (!IsDisposed && !Disposing)
                 {
                     CapNhatTrangThaiHoatDong(
@@ -264,7 +228,6 @@ namespace PhanMemThiDua2026
                 {
                     ThietLapTrangThaiTuongTacUI(true);
                 }
-
                 Interlocked.Exchange(
                     ref _dangTaiDuLieuFlag,
                     0);
@@ -275,30 +238,25 @@ namespace PhanMemThiDua2026
             base.OnShown(e);
             await Task.Yield();
             _ = TaiDuLieuNenAsync();
-
         }
         private async Task CapNhatComboboxDanhSachAsync(List<string> danhSach, CancellationToken token)
         {
             await Task.Yield();
             if (IsDisposed) return;
-
             cbo_ChonCSDL_Nguon.BeginUpdate();
             try
             {
                 cbo_ChonCSDL_Nguon.SelectedIndexChanged -= Cbo_ChonCSDL_Nguon_SelectedIndexChanged;
                 cbo_ChonCSDL_Nguon.Items.Clear();
                 _danhSachDuongDanThucTe.Clear();
-
                 foreach (string duongDan in danhSach)
                 {
                     token.ThrowIfCancellationRequested();
                     string tenFile = Path.GetFileNameWithoutExtension(duongDan);
                     string tenHienThi = _anhXaTenDatabase.TryGetValue(tenFile, out string? alias) ? alias : tenFile;
-
                     cbo_ChonCSDL_Nguon.Items.Add(tenHienThi);
                     _danhSachDuongDanThucTe.Add(duongDan);
                 }
-
                 if (cbo_ChonCSDL_Nguon.Items.Count > 0)
                 {
                     cbo_ChonCSDL_Nguon.SelectedIndex = 0;
@@ -318,31 +276,25 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Vui lòng tích chọn các bảng cần xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             _dangXuLyMigration = true;
             ThietLapTrangThaiTuongTacUI(false);
-
             try
             {
                 string duongDanDesktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
                 string thuMucTong = Path.Combine(duongDanDesktop, "Database-PhanMemThiDua2026");
                 string tenThuMucRieng = Path.GetFileNameWithoutExtension(_duongDanCSDL_Nguon);
                 string thuMucGoiCon = Path.Combine(thuMucTong, tenThuMucRieng);
-
                 int tongSoBang = checkedListBox1_clb_DanhSachBang.CheckedItems.Count;
                 HienThiThanhTienTrinh(tongSoBang);
                 int chiSoTienTrinh = 0;
                 int soBangThanhCong = 0;
                 List<string> danhSachLoi = new(); // Bộ nhớ lưu trữ lỗi cục bộ
-
                 foreach (var item in checkedListBox1_clb_DanhSachBang.CheckedItems)
                 {
                     string tenBang = item.ToString()!;
-
                     // Tính % hiện tại
                     int phanTram = (int)Math.Round((double)chiSoTienTrinh / tongSoBang * 100);
                     CapNhatTrangThaiHoatDong($"{phanTram}% | Đang kết xuất cấu trúc bảng: {tenBang}...");
-
                     try
                     {
                         await Task.Run(() => Module_ChuyenGiaoDuLieu.XuatDuLieuRaJson(_duongDanCSDL_Nguon, tenBang, thuMucGoiCon));
@@ -353,11 +305,9 @@ namespace PhanMemThiDua2026
                         // Nếu bảng này lỗi, ghi nhận lại và ĐI TIẾP bảng sau, không crash ứng dụng
                         danhSachLoi.Add($"- Bảng [{tenBang}]: {exLoiCucBo.Message}");
                     }
-
                     chiSoTienTrinh++;
                     prb_TienTrinhChuyenGiao.Value = chiSoTienTrinh;
                 }
-
                 // BÁO CÁO TỔNG HỢP SAU KHI CHẠY XONG VÒNG LẶP
                 if (danhSachLoi.Count == 0)
                 {
@@ -387,12 +337,10 @@ namespace PhanMemThiDua2026
         {
             if (_dangXuLyMigration || _dangTaiDuLieu)
                 return;
-
             string thuMucNguon = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 "Database-PhanMemThiDua2026",
                 Path.GetFileNameWithoutExtension(_duongDanCSDL_Nguon));
-
             if (!Directory.Exists(thuMucNguon))
             {
                 MessageBox.Show(
@@ -400,12 +348,9 @@ namespace PhanMemThiDua2026
                     "Thiếu nguồn dữ liệu",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
-
                 return;
             }
-
             int tongSoBang = checkedListBox1_clb_DanhSachBang.CheckedItems.Count;
-
             if (tongSoBang <= 0)
             {
                 MessageBox.Show(
@@ -413,10 +358,8 @@ namespace PhanMemThiDua2026
                     "Thông báo",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
-
                 return;
             }
-
             if (chk_XoaDuLieuCu.Checked)
             {
                 if (MessageBox.Show(
@@ -428,48 +371,36 @@ namespace PhanMemThiDua2026
                     return;
                 }
             }
-
             _dangXuLyMigration = true;
             ThietLapTrangThaiTuongTacUI(false);
-
             try
             {
                 string backupFile = string.Empty;
                 int soBangThanhCong = 0;
                 int chiSoTienTrinh = 0;
-
                 List<string> danhSachLoi = new();
-
                 if (chk_BackupTruocKhiChuyen.Checked)
                 {
                     CapNhatTrangThaiHoatDong("Đang tạo điểm khôi phục bảo hiểm...");
-
                     backupFile = await Task.Run(() =>
                         Module_ChuyenGiaoDuLieu.SaoLuuCSDLTruocKhiNhap(_duongDanCSDL_Nguon));
                 }
-
                 HienThiThanhTienTrinh(tongSoBang);
-
                 foreach (object item in checkedListBox1_clb_DanhSachBang.CheckedItems)
                 {
                     string tenBang = item.ToString() ?? string.Empty;
-
                     if (string.IsNullOrWhiteSpace(tenBang))
                     {
                         chiSoTienTrinh++;
                         continue;
                     }
-
                     string fileJson = Path.Combine(
                         thuMucNguon,
                         $"{tenBang}.json");
-
                     int phanTram = (int)Math.Round(
                         (double)chiSoTienTrinh / Math.Max(tongSoBang, 1) * 100);
-
                     CapNhatTrangThaiHoatDong(
                         $"{phanTram}% | Đang xử lý bảng: {tenBang}");
-
                     try
                     {
                         if (!File.Exists(fileJson))
@@ -477,7 +408,6 @@ namespace PhanMemThiDua2026
                             throw new FileNotFoundException(
                                 $"Không tìm thấy file JSON nguồn: {Path.GetFileName(fileJson)}");
                         }
-
                         await Task.Run(() =>
                             Module_ChuyenGiaoDuLieu.NhapDuLieuVaoCSDL(
                                 fileJson,
@@ -486,7 +416,6 @@ namespace PhanMemThiDua2026
                                 chk_XoaDuLieuCu.Checked,
                                 backupFile,
                                 thuMucNguon));
-
                         soBangThanhCong++;
                     }
                     catch (Exception exBang)
@@ -494,30 +423,24 @@ namespace PhanMemThiDua2026
                         danhSachLoi.Add(
                             $"[{tenBang}] : {exBang.Message}");
                     }
-
                     chiSoTienTrinh++;
-
                     if (chiSoTienTrinh <= prb_TienTrinhChuyenGiao.Maximum)
                     {
                         prb_TienTrinhChuyenGiao.Value = chiSoTienTrinh;
                     }
                 }
-
                 if (soBangThanhCong > 0)
                 {
                     CapNhatTrangThaiHoatDong(
                         "Đang tối ưu và dọn dẹp cơ sở dữ liệu...");
-
                     await Task.Run(() =>
                         Module_ChuyenGiaoDuLieu.VacuumDatabase(
                             _duongDanCSDL_Nguon));
                 }
-
                 if (danhSachLoi.Count == 0)
                 {
                     CapNhatTrangThaiHoatDong(
                         "Nạp dữ liệu thành công.");
-
                     MessageBox.Show(
                         $"Đã nạp thành công {soBangThanhCong}/{tongSoBang} bảng.",
                         "Hoàn tất",
@@ -528,7 +451,6 @@ namespace PhanMemThiDua2026
                 {
                     CapNhatTrangThaiHoatDong(
                         "Hoàn tất với một số lỗi.");
-
                     MessageBox.Show(
                         $"Đã nạp thành công {soBangThanhCong}/{tongSoBang} bảng.\n\n" +
                         string.Join(Environment.NewLine, danhSachLoi),
@@ -536,14 +458,12 @@ namespace PhanMemThiDua2026
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
                 }
-
                 await TaiDuLieuNenAsync();
             }
             catch (Exception ex)
             {
                 CapNhatTrangThaiHoatDong(
                     "Tiến trình bị hủy do lỗi.");
-
                 MessageBox.Show(
                     ex.Message,
                     "Lỗi Di Trú",
@@ -553,9 +473,7 @@ namespace PhanMemThiDua2026
             finally
             {
                 _dangXuLyMigration = false;
-
                 ThietLapTrangThaiTuongTacUI(true);
-
                 await AnThanhTienTrinhAsync();
             }
         }
@@ -563,54 +481,36 @@ namespace PhanMemThiDua2026
         {
             if (_dangXuLyMigration)
                 return;
-
             int index = cbo_ChonCSDL_Nguon.SelectedIndex;
-
             if (index < 0)
                 return;
-
             if (index >= _danhSachDuongDanThucTe.Count)
                 return;
-
             string duongDanFile = _danhSachDuongDanThucTe[index];
-
             _duongDanCSDL_Nguon = duongDanFile;
-
             int version = Interlocked.Increment(ref _phienTaiDuLieu);
-
             try
             {
                 ThietLapTrangThaiTuongTacUI(false);
-
                 CapNhatTrangThaiHoatDong("Đang phân tích cơ sở dữ liệu...");
-
                 richTextBox1_ThongTinDatabaseDuocChon.Clear();
-
                 List<string> danhSachBang =
                     await Task.Run(() =>
                     {
                         return Module_ChuyenGiaoDuLieu
                             .LayDanhSachBang(duongDanFile);
                     });
-
                 if (version != _phienTaiDuLieu)
                     return;
-
                 if (IsDisposed || Disposing)
                     return;
-
-                // ====================================================================
                 // 🔒 TRẠM AN TOÀN HỆ THỐNG: Ngắt liên kết sự kiện trước khi làm sạch danh sách
-                // ====================================================================
                 _dangCapNhatCheckedListBox = true;
                 checkedListBox1_clb_DanhSachBang.SelectedIndexChanged -= checkedListBox1_clb_DanhSachBang_SelectedIndexChanged;
-
                 checkedListBox1_clb_DanhSachBang.BeginUpdate(); // Chặn Windows vẽ lại giao diện liên tục gây nhấp nháy
-
                 try
                 {
                     checkedListBox1_clb_DanhSachBang.Items.Clear();
-
                     foreach (string tenBang in danhSachBang)
                     {
                         int idx = checkedListBox1_clb_DanhSachBang.Items.Add(tenBang);
@@ -620,25 +520,20 @@ namespace PhanMemThiDua2026
                 finally
                 {
                     checkedListBox1_clb_DanhSachBang.EndUpdate(); // Cho phép giao diện vẽ lại một lần duy nhất
-
                     // Khôi phục lại liên kết sự kiện sau khi nạp dữ liệu sạch hoàn tất
                     checkedListBox1_clb_DanhSachBang.SelectedIndexChanged += checkedListBox1_clb_DanhSachBang_SelectedIndexChanged;
                     _dangCapNhatCheckedListBox = false;
                 }
-                // ====================================================================
-
                 Module_ChuyenGiaoDuLieu
                     .InThongTinDatabaseLenRichTextBox(
                         richTextBox1_ThongTinDatabaseDuocChon,
                         duongDanFile,
                         danhSachBang);
-
                 CapNhatTrangThaiHoatDong("Đã nạp thông tin phân vùng dữ liệu.");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("[Database Load] " + ex);
-
                 if (!IsDisposed && !Disposing)
                 {
                     Module_ChuyenGiaoDuLieu
@@ -646,7 +541,6 @@ namespace PhanMemThiDua2026
                             richTextBox1_ThongTinDatabaseDuocChon,
                             duongDanFile,
                             ex.Message);
-
                     CapNhatTrangThaiHoatDong("Không thể phân tích dữ liệu.");
                 }
             }
@@ -662,16 +556,13 @@ namespace PhanMemThiDua2026
         private async void kryptonButton2_MoThuMuc_Click(object? sender, EventArgs e)
         {
             if (_dangTaiDuLieu || _dangXuLyMigration) return;
-
             try
             {
                 kryptonButton2_MoThuMuc.Enabled = false;
                 CapNhatTrangThaiHoatDong("Đang khởi động Windows Explorer...");
                 await Task.Yield();
-
                 string thuMucTong = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Database-PhanMemThiDua2026");
                 if (!Directory.Exists(thuMucTong)) Directory.CreateDirectory(thuMucTong);
-
                 await Task.Run(() =>
                 {
                     try
@@ -687,7 +578,6 @@ namespace PhanMemThiDua2026
                     }
                     catch (Exception ex) { Debug.WriteLine("[Explorer Error]: " + ex.Message); }
                 });
-
                 CapNhatTrangThaiHoatDong("Sẵn sàng.");
             }
             finally
@@ -711,21 +601,15 @@ namespace PhanMemThiDua2026
         {
             if (IsDisposed)
                 return;
-
             if (!IsHandleCreated)
                 return;
-
             try
             {
                 prb_TienTrinhChuyenGiao.Visible = true;
-
                 prb_TienTrinhChuyenGiao.Minimum = 0;
-
                 prb_TienTrinhChuyenGiao.Maximum =
                     Math.Max(1, giaTriToiDa);
-
                 prb_TienTrinhChuyenGiao.Value = 0;
-
                 prb_TienTrinhChuyenGiao.Style =
                     ProgressBarStyle.Continuous;
             }
@@ -741,25 +625,19 @@ namespace PhanMemThiDua2026
             try
             {
                 await Task.Delay(1000);
-
                 if (IsDisposed)
                     return;
-
                 if (!IsHandleCreated)
                     return;
-
                 if (_dangXuLyMigration)
                     return;
-
                 BeginInvoke(new Action(() =>
                 {
                     try
                     {
                         if (IsDisposed)
                             return;
-
                         prb_TienTrinhChuyenGiao.Value = 0;
-
                         prb_TienTrinhChuyenGiao.Visible = false;
                     }
                     catch (Exception ex)
@@ -815,22 +693,18 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Hệ thống đang thực thi ghi cơ sở dữ liệu ngầm an toàn. Vui lòng không đóng phần mềm lúc này để tránh hỏng cấu trúc tệp tin!", "Cảnh báo an toàn dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Stop);
                 return;
             }
-
             _boHuyLuong_Quet?.Cancel();
             _boHuyLuong_Quet?.Dispose();
             base.OnFormClosing(e);
         }
         private void kryptonButton_Dong_Click(
-                 object sender,
+                 object? sender,
                  EventArgs e
              )
         {
             try
             {
-                // =================================================
                 // CHỐNG ĐÓNG KHI ĐANG MIGRATION
-                // =================================================
-
                 if (_dangXuLyMigration)
                 {
                     MessageBox.Show(
@@ -839,15 +713,10 @@ namespace PhanMemThiDua2026
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning
                     );
-
                     return;
                 }
-
-                // =================================================
                 // YÊU CẦU HỦY TASK NỀN
                 // KHÔNG DISPOSE TẠI ĐÂY
-                // =================================================
-
                 try
                 {
                     if (_boHuyLuong_Quet != null)
@@ -857,7 +726,6 @@ namespace PhanMemThiDua2026
                             _boHuyLuong_Quet.Cancel();
                         }
                     }
-
                     if (_ctsTaiThongTinDatabase != null)
                     {
                         if (!_ctsTaiThongTinDatabase.IsCancellationRequested)
@@ -872,36 +740,24 @@ namespace PhanMemThiDua2026
                         "[Cancel CTS] " + ex.Message
                     );
                 }
-
-                // =================================================
                 // KHÔI PHỤC FORM12
-                // =================================================
-
                 Form12? form12 =
                     Application.OpenForms["Form12"] as Form12;
-
                 if (form12 != null)
                 {
                     if (!form12.Visible)
                     {
                         form12.Show();
                     }
-
                     if (form12.WindowState == FormWindowState.Minimized)
                     {
                         form12.WindowState =
                             FormWindowState.Normal;
                     }
-
                     form12.BringToFront();
-
                     form12.Activate();
                 }
-
-                // =================================================
                 // ĐÓNG FORM
-                // =================================================
-
                 Close();
             }
             catch (Exception ex)
@@ -910,7 +766,6 @@ namespace PhanMemThiDua2026
                     "[kryptonButton_Dong_Click] "
                     + ex
                 );
-
                 try
                 {
                     Close();

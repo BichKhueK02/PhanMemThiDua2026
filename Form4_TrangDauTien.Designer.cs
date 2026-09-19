@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -312,7 +309,7 @@
             kryptonButton_Refresh.TabIndex = 1;
             kryptonButton_Refresh.Values.DropDownArrowColor = Color.Empty;
             kryptonButton_Refresh.Values.Image = (Image)resources.GetObject("kryptonButton_Refresh.Values.Image");
-            kryptonButton_Refresh.Values.Text = "Refresh";
+            kryptonButton_Refresh.Values.Text = "Làm mới";
             kryptonButton_Refresh.Click += kryptonButton_Refresh_Click;
             // 
             // tableLayoutPanel12
@@ -424,6 +421,7 @@
             label11.TabIndex = 13;
             label11.Text = "Chọn đường dẫn lưu";
             label11.TextAlign = ContentAlignment.MiddleLeft;
+            label11.Click += label11_Click;
             // 
             // Check_MoThuMuc
             // 
@@ -1264,20 +1262,19 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
         private StatusStrip statusStrip1;
         private TableLayoutPanel tableLayoutPanel1;
         private TableLayoutPanel tableLayoutPanel2;
         private ToolStripStatusLabel toolStripStatusLabel1;
         private SplitContainer splitContainer1;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox12;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox11;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox10;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox9;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox8;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox7;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox2;
+        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox12;
+        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox11;
+        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox10;
+        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox9;
+        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox8;
+        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox7;
+        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox2;
         private GroupBox groupBox3;
         private TabControl tabControl1;
         private TabPage tabPage1;

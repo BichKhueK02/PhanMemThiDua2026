@@ -41,7 +41,6 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
                 cn.Open();
-
                 // Đảm bảo bảng luôn tồn tại đúng cấu trúc
                 using (var cmdTaoBang = new SqliteCommand(@"
                     CREATE TABLE IF NOT EXISTS ""CaiDat_AnhDaiDien"" (
@@ -52,11 +51,9 @@ namespace PhanMemThiDua2026
                 {
                     cmdTaoBang.ExecuteNonQuery();
                 }
-
                 // Chỉ đọc duy nhất dòng ID = 1
                 using var cmdDoc = new SqliteCommand("SELECT HinhAnh FROM CaiDat_AnhDaiDien WHERE ID = 1", cn);
                 var kq = cmdDoc.ExecuteScalar();
-
                 if (kq != null && !string.IsNullOrWhiteSpace(kq.ToString()))
                 {
                     return kq.ToString();
@@ -66,7 +63,6 @@ namespace PhanMemThiDua2026
             {
                 System.Diagnostics.Debug.WriteLine($"Lỗi đọc cài đặt hình: {ex.Message}");
             }
-
             return "Mặc định"; // Nếu lỗi hoặc CSDL rỗng thì trả về cấu hình an toàn
         }
         public static void LuuCauHinhThoiGian(string giaTriDuocChon)
@@ -75,14 +71,12 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
                 cn.Open();
-
                 // ⭐ TỐI ƯU HÓA: Dùng UPSERT của SQLite
                 // Chỉ dùng đúng 1 câu lệnh để vừa Insert vừa Update ở đúng dòng ID = 1
                 using var cmdLuu = new SqliteCommand(@"
                     INSERT INTO CaiDat_AnhDaiDien (ID, HinhAnh) 
                     VALUES (1, @val) 
                     ON CONFLICT(ID) DO UPDATE SET HinhAnh = @val;", cn);
-
                 cmdLuu.Parameters.AddWithValue("@val", giaTriDuocChon);
                 cmdLuu.ExecuteNonQuery();
             }

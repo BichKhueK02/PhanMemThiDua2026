@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -258,9 +255,7 @@
             ((System.ComponentModel.ISupportInitialize)PictureBox3).EndInit();
             ResumeLayout(false);
         }
-
         #endregion
-
         internal TableLayoutPanel TableLayoutPanel1;
         internal TableLayoutPanel TableLayoutPanel3;
         internal Krypton.Toolkit.KryptonButton btn_DangNhap;

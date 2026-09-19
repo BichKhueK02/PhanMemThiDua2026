@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-
 namespace PhanMemThiDua2026
 {
     internal static class Program
@@ -11,7 +10,6 @@ namespace PhanMemThiDua2026
         private static Mutex? _appMutex;
         private static readonly string AppMutexName = BuildMutexName("CORE");
         private static readonly string MsgMutexName = BuildMutexName("MSG");
-
         [STAThread]
         static void Main()
         {
@@ -63,17 +61,15 @@ namespace PhanMemThiDua2026
                 {
                     SafeLog("SYSTEM", "Sync Error", $"Lỗi đồng bộ Hướng dẫn sử dụng: {ex.Message}");
                 }
-
                 // 7. Gom cụm Tác vụ nền (Preload & Bảo vệ) vào chung 1 Task để tối ưu ThreadPool
                 Task.Run(() =>
                 {
                     // Chạy preload
                     PreloadBackgroundTasks();
-
                     // Chạy bảo vệ hệ thống
                     try
                     {
-                        Module_KhoiTaoCSDL.ChinhSachBaoVeHeThongEXE(AppContext.BaseDirectory);
+                        Module_KhoiTaoCSDL.TuongLuaBaoVeHeThong(AppContext.BaseDirectory);
                         Module_KhoiTaoCSDL.ChinhSachLamSach();
                     }
                     catch (Exception ex)
@@ -81,7 +77,6 @@ namespace PhanMemThiDua2026
                         Debug.WriteLine("Lỗi tự vệ hệ thống ngầm: " + ex.Message);
                     }
                 });
-
                 // 8. Khởi chạy giao diện chính
                 Application.Run(new Form1());
             }
@@ -94,7 +89,6 @@ namespace PhanMemThiDua2026
                 CleanupResources(isPrimaryInstance);
             }
         }
-
         private static bool KiemTraTrangThaiKhoiDong()
         {
             if (!KhoiTaoHeThong())
@@ -111,7 +105,6 @@ namespace PhanMemThiDua2026
             }
             return true;
         }
-
         // XỬ LÝ BẢO MẬT & ĐỊNH DANH (ZERO-ALLOCATION)
         private static string BuildMutexName(string purpose)
         {
@@ -120,7 +113,6 @@ namespace PhanMemThiDua2026
                 string raw = $"{Environment.MachineName}|PMTD2026_SALT_SECURE|{purpose}";
                 byte[] inputBytes = Encoding.UTF8.GetBytes(raw);
                 byte[] hashBytes = SHA256.HashData(inputBytes);
-
                 Span<char> hashChars = stackalloc char[32];
                 for (int i = 0; i < 16; i++)
                 {
@@ -133,7 +125,6 @@ namespace PhanMemThiDua2026
                 return $"Local\\PMTD2026_FB_{purpose}";
             }
         }
-
         // QUẢN LÝ KHỞI TẠO & HIỆU SUẤT
         private static bool KhoiTaoHeThong()
         {
@@ -142,15 +133,11 @@ namespace PhanMemThiDua2026
             {
                 Module_DanduongGPS.XinTraLaiThoiGianNapKeyBase64();
                 Module_DanduongGPS.LoiChaoTuSiberia();
-
                 // Đã sửa: Dùng GetAwaiter().GetResult() để bắt lỗi nguyên thủy, không bị bọc trong AggregateException
                 Module_DanduongGPS.HanhTrinhToiColombiaAsync().GetAwaiter().GetResult();
-
                 // Đã sửa: Bắt buộc chờ DB khởi tạo xong bằng GetAwaiter().GetResult()
                 Module_KhoiTaoCSDL.BinhMinhOSantoriniAsync().GetAwaiter().GetResult();
-
                 Module_NhatKy.TaoBangNhatKy();
-
                 sw.Stop();
                 return true;
             }
@@ -160,7 +147,6 @@ namespace PhanMemThiDua2026
                 return false;
             }
         }
-
         private static void PreloadBackgroundTasks()
         {
             try
@@ -172,7 +158,6 @@ namespace PhanMemThiDua2026
                 SafeLog("SYSTEM", "Lỗi Preload", $"Thất bại khi nạp bộ nhớ đệm ngầm: {ex.Message}");
             }
         }
-
         // LOGGING & EXCEPTION HANDLING (STABILITY)
         private static void ConfigureGlobalExceptionHandlers()
         {
@@ -182,7 +167,6 @@ namespace PhanMemThiDua2026
                 SafeLog("SYSTEM", "UI Error", e.Exception.Message);
                 ShowErrorDialog("Lỗi Giao Diện", e.Exception.Message);
             };
-
             AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             {
                 var ex = e.ExceptionObject as Exception;
@@ -190,12 +174,10 @@ namespace PhanMemThiDua2026
                 ShowErrorDialog("Lỗi Hệ Thống", ex?.Message ?? "Ứng dụng buộc phải đóng.");
             };
         }
-
         private static void SafeLog(string user, string action, string note)
         {
             try { Module_NhatKy.GhiNhatKy(user, action, note); } catch { }
         }
-
         private static void ShowSingleInstanceMessage()
         {
             using Mutex msgMutex = new Mutex(true, MsgMutexName, out bool created);
@@ -206,19 +188,16 @@ namespace PhanMemThiDua2026
                 msgMutex.ReleaseMutex();
             }
         }
-
         private static void ShowErrorDialog(string title, string message)
         {
             MessageBox.Show($"Chi tiết lỗi: {message}", title, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-
         private static void HandleFatalError(Exception ex)
         {
             SafeLog("SYSTEM", "Crash", ex.Message);
             MessageBox.Show("Lỗi nghiêm trọng. Ứng dụng sẽ đóng để bảo vệ dữ liệu.",
                 "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Stop);
         }
-
         private static void CleanupResources(bool isPrimary)
         {
             if (isPrimary)
@@ -226,10 +205,8 @@ namespace PhanMemThiDua2026
                 try { _appMutex?.ReleaseMutex(); } catch { }
             }
             _appMutex?.Dispose();
-
             try { Module_NhatKy.FlushQueueToDatabase(); } catch { }
         }
-
         private static void SetBrowserFeatureControl()
         {
             try
@@ -243,10 +220,5 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
-
-
-    
     }
-
 }
-

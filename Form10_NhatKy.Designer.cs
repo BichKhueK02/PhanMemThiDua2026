@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -134,26 +131,27 @@
             // 
             toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(139, 25);
-            toolStripStatusLabel1.Text = "toolStripStatusLabel1";
+            toolStripStatusLabel1.Size = new Size(33, 25);
+            toolStripStatusLabel1.Text = "*";
             // 
             // toolStripStatusLabel4
             // 
             toolStripStatusLabel4.Name = "toolStripStatusLabel4";
-            toolStripStatusLabel4.Size = new Size(118, 25);
-            toolStripStatusLabel4.Text = "toolStripStatusLabel4";
+            toolStripStatusLabel4.Size = new Size(17, 25);
+            toolStripStatusLabel4.Text = "**";
             // 
             // toolStripStatusLabel2
             // 
+            toolStripStatusLabel2.ForeColor = Color.Blue;
             toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            toolStripStatusLabel2.Size = new Size(118, 25);
-            toolStripStatusLabel2.Text = "toolStripStatusLabel2";
+            toolStripStatusLabel2.Size = new Size(22, 25);
+            toolStripStatusLabel2.Text = "***";
             // 
             // toolStripStatusLabel3
             // 
             toolStripStatusLabel3.Name = "toolStripStatusLabel3";
-            toolStripStatusLabel3.Size = new Size(118, 25);
-            toolStripStatusLabel3.Text = "toolStripStatusLabel3";
+            toolStripStatusLabel3.Size = new Size(27, 25);
+            toolStripStatusLabel3.Text = "****";
             // 
             // thongTinNguoiDung_toolstrip
             // 
@@ -405,6 +403,7 @@
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
+            pictureBox1.Click += pictureBox1_Click;
             // 
             // groupBox1
             // 
@@ -733,9 +732,7 @@
             contextMenuStrip1.ResumeLayout(false);
             ResumeLayout(false);
         }
-
         #endregion
-
         private TableLayoutPanel tableLayoutPanel1;
         private PictureBox pictureBox1;
         private Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1;

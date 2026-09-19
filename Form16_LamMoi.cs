@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form16_LamMoi : Form
@@ -28,7 +27,6 @@ namespace PhanMemThiDua2026
         public Form16_LamMoi()
         {
             InitializeComponent();
-
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -36,13 +34,6 @@ namespace PhanMemThiDua2026
             // Bật tính năng Click 1 chạm chuẩn của WinForms
             checkedListBox1_ChonDonViDeReset.CheckOnClick = true;
             // ⭐ BỔ SUNG CODE KÍCH HOẠT CHẾ ĐỘ ĐỔI MÀU ĐỘNG CHO CHECKEDLISTBOX
-            //// ==============================================================
-            //checkedListBox1_ChonDonViDeReset.DrawMode = DrawMode.OwnerDrawFixed;
-            //// 👇 THÊM ĐÚNG DÒNG NÀY VÀO ĐÂY:
-            //checkedListBox1_ChonDonViDeReset.ItemHeight = 22;
-
-            //checkedListBox1_ChonDonViDeReset.DrawItem += CheckedListBox1_DrawItem;
-
             // Ép hệ thống vẽ lại màu sắc NGAY LẬP TỨC khi tích/bỏ tích
             checkedListBox1_ChonDonViDeReset.ItemCheck += (s, e) =>
             {
@@ -52,14 +43,12 @@ namespace PhanMemThiDua2026
                         checkedListBox1_ChonDonViDeReset.Invalidate();
                 }));
             };
-            // ==============================================================
-
             this.Load += Form16_LamMoi_Load;
             this.FormClosing += Form16_LamMoi_FormClosing;
             InitCheckBoxEvents();
             InitToolTips();
         }
-        private async void Form16_LamMoi_Load(object sender, EventArgs e)
+        private async void Form16_LamMoi_Load(object? sender, EventArgs e)
         {
             // Tìm và cache Label trạng thái ngay từ đầu
             _lblTrangThai = Controls.Find("label_TrangThai", true).FirstOrDefault() as Label;
@@ -99,7 +88,7 @@ namespace PhanMemThiDua2026
                                 if (string.IsNullOrWhiteSpace(tenRaw)) continue;
                                 try
                                 {
-                                    string tenDec = BaoMatAES.GiaiMa(tenRaw);
+                                    string tenDec = Module_BaoMatAES.GiaiMa(tenRaw);
                                     if (!string.IsNullOrWhiteSpace(tenDec)) dsDonVi.Add(tenDec);
                                 }
                                 catch { } // Bỏ qua nếu lỗi giải mã
@@ -114,12 +103,10 @@ namespace PhanMemThiDua2026
                     int idx = Array.IndexOf(thuTuUuTien, item);
                     return idx == -1 ? int.MaxValue : idx;
                 }).ToList();
-
                 // 🟢 NẠP VÀO CHECKED LIST BOX
                 checkedListBox1_ChonDonViDeReset.SelectedIndexChanged -= checkedListBox1_ChonDonViDeReset_SelectedIndexChanged;
                 checkedListBox1_ChonDonViDeReset.BeginUpdate();
                 checkedListBox1_ChonDonViDeReset.Items.Clear();
-
                 foreach (var dv in sortedList)
                 {
                     // Tham số 'true' giúp MẶC ĐỊNH TÍCH CHỌN tất cả các đơn vị
@@ -137,7 +124,7 @@ namespace PhanMemThiDua2026
         /// UX MƯỢT MÀ: Chỉ xóa bôi xanh dòng để UI phẳng và tinh tế hơn.
         /// (Không tự ý đảo Check vì CheckOnClick = true đã làm việc đó rồi)
         /// </summary>
-        private void checkedListBox1_ChonDonViDeReset_SelectedIndexChanged(object sender, EventArgs e)
+        private void checkedListBox1_ChonDonViDeReset_SelectedIndexChanged(object? sender, EventArgs e)
         {
             checkedListBox1_ChonDonViDeReset.ClearSelected();
         }
@@ -145,7 +132,7 @@ namespace PhanMemThiDua2026
         /// Hàm tự động vẽ màu sắc cho CheckedListBox: 
         /// Checked = Màu Xanh, Unchecked = Màu Đỏ
         /// </summary>   
-        private void Form16_LamMoi_FormClosing(object sender, FormClosingEventArgs e)
+        private void Form16_LamMoi_FormClosing(object? sender, FormClosingEventArgs e)
         {
             if (_isProcessing)
             {
@@ -168,7 +155,6 @@ namespace PhanMemThiDua2026
                 _lblTrangThai.Text = message;
             }
         }
-
         private void InitCheckBoxEvents()
         {
             checkBox1_GuiNguyenLoai1.CheckedChanged += (s, e) => { UpdateLabelColors(); _memLoai1 = checkBox1_GuiNguyenLoai1.Checked; };
@@ -177,7 +163,6 @@ namespace PhanMemThiDua2026
             checkBox1_GuiNguyenLoai4.CheckedChanged += (s, e) => { UpdateLabelColors(); _memLoai4 = checkBox1_GuiNguyenLoai4.Checked; };
             checkBox1_GuiNguyenKhongPhanLoai.CheckedChanged += (s, e) => { UpdateLabelColors(); _memKhongPL = checkBox1_GuiNguyenKhongPhanLoai.Checked; };
         }
-
         private void UpdateLabelColors()
         {
             label1.ForeColor = checkBox1_GuiNguyenLoai1.Checked ? System.Drawing.Color.Red : System.Drawing.Color.Blue;
@@ -186,7 +171,6 @@ namespace PhanMemThiDua2026
             label4.ForeColor = checkBox1_GuiNguyenLoai4.Checked ? System.Drawing.Color.Red : System.Drawing.Color.Blue;
             label5.ForeColor = checkBox1_GuiNguyenKhongPhanLoai.Checked ? System.Drawing.Color.Red : System.Drawing.Color.Blue;
         }
-
         private HashSet<string> GetKeepList()
         {
             var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -197,19 +181,16 @@ namespace PhanMemThiDua2026
             if (checkBox1_GuiNguyenKhongPhanLoai.Checked) set.Add(Module_HeThong.PL_KHONG_PL);
             return set;
         }
-
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Hướng dẫn";
-
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             // ⭐ ĐÃ SỬA: Khai báo tường minh System.Windows.Forms.Control để tránh xung đột với OpenXml
             var tips = new Dictionary<System.Windows.Forms.Control, string>
     {
         { checkBox1_GuiNguyenLoai1, "Tích chọn để không thay đổi những người đã đạt Loại 1" },
         { btn_ResetPhanLoai, "Nhấn để bắt đầu quá trình làm mới toàn bộ danh sách" }
     };
-
             foreach (var tip in tips)
             {
                 if (tip.Key != null)
@@ -217,14 +198,12 @@ namespace PhanMemThiDua2026
             }
         }
         #endregion
-        private async void btn_ResetPhanLoai_Click(object sender, EventArgs e)
+        private async void btn_ResetPhanLoai_Click(object? sender, EventArgs e)
         {
             if (_isProcessing) return;
-
             // 1. QUÉT GIAO DIỆN LẤY DANH SÁCH CHỌN VÀ BỎ QUA
             var danhSachChon = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var danhSachBoQua = new List<string>();
-
             for (int i = 0; i < checkedListBox1_ChonDonViDeReset.Items.Count; i++)
             {
                 string dv = checkedListBox1_ChonDonViDeReset.Items[i].ToString().Trim();
@@ -237,76 +216,60 @@ namespace PhanMemThiDua2026
                     danhSachBoQua.Add(dv);
                 }
             }
-
             if (danhSachChon.Count == 0)
             {
                 MessageBox.Show("Vui lòng tích chọn ít nhất một đơn vị để làm mới dữ liệu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
-            // ==============================================================================
             // 2. XÁC NHẬN NGƯỜI DÙNG (GỘP BÁO CÁO VÀO 1 MSG DUY NHẤT NHƯ YÊU CẦU)
-            // ==============================================================================
             if (!_daXacNhanResetTrongSession)
             {
                 string chuoiChon = string.Join("; ", danhSachChon);
                 string chuoiBoQua = danhSachBoQua.Count > 0 ? string.Join("; ", danhSachBoQua) : "Không có";
-
-                string msgConfirm = $"Đơn vị đặt lại phân loại: {chuoiChon}\n\n" +
-                                    $"Đơn vị bỏ qua: {chuoiBoQua}\n\n" +
-                                    "Bạn có muốn tiếp tục ?";
-
+                // Tinh chỉnh lại câu chữ cho mượt mà và rõ nghĩa hơn
+                string msgConfirm = $"Các đơn vị được chọn để đặt lại phân loại:\n" +
+                                    $"- Bao gồm: {chuoiChon}\n" +
+                                    $"- Đơn vị bỏ qua: {chuoiBoQua}\n\n" +
+                                    "Bạn có chắc chắn muốn tiếp tục thực hiện không?";
                 var confirm = MessageBox.Show(
                     msgConfirm,
-                    "Thông báo",
+                    "Xác nhận quyền Admin - Đặt lại phân loại", // Tiêu đề ngắn gọn, súc tích hơn
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
                     MessageBoxDefaultButton.Button2);
-
                 if (confirm != DialogResult.Yes) return;
                 _daXacNhanResetTrongSession = true;
             }
-
             // 3. SETUP TIẾN TRÌNH & KHÓA GIAO DIỆN
             _cts = new CancellationTokenSource();
             var progress = new Progress<int>(percent =>
             {
                 if (!_isClosingRequested) btn_ResetPhanLoai.Text = $"Đang xử lý: {percent}%";
             });
-
             try
             {
                 _isProcessing = true;
                 btn_ResetPhanLoai.Enabled = false;
                 this.Cursor = Cursors.WaitCursor;
-
                 var keepList = GetKeepList();
-
                 // 4. LUỒNG NGẦM XỬ LÝ DATABASE
                 var (soDong, tbLoi) = await Task.Run(() => ThucThiResetDuLieu(keepList, danhSachChon, progress, _cts.Token));
-
                 if (tbLoi == "CANCELED") return;
-
                 if (!string.IsNullOrEmpty(tbLoi))
                 {
                     MessageBox.Show("Có lỗi trong quá trình cập nhật CSDL.\nChi tiết: " + tbLoi, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
                 // ĐÃ XÓA HÀM HIỂN THỊ BÁO CÁO CHI TIẾT TẠI ĐÂY ĐỂ TRÁNH PHIỀN PHỨC
-
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin", "Reset Phân Loại", $"Số lượng: {soDong} CBCS thuộc {danhSachChon.Count} đơn vị");
-
                 if (Form6_XuLyData.Instance != null && !Form6_XuLyData.Instance.IsDisposed)
                 {
                     Form6_XuLyData.Instance.BeginInvoke(new Action(() => Form6_XuLyData.Instance.RefreshCSDL()));
                 }
-
                 // 5. CHỈ BÁO HOÀN TẤT LÊN NÚT BẤM VÀ TỰ ĐỘNG ĐÓNG FORM MƯỢT MÀ
                 btn_ResetPhanLoai.BackColor = System.Drawing.Color.ForestGreen;
                 btn_ResetPhanLoai.ForeColor = System.Drawing.Color.White;
                 SetStatus($"Hoàn tất! ({soDong} CBCS)", System.Drawing.Color.ForestGreen);
-
                 await Task.Delay(500);
                 this.Close();
             }
@@ -323,7 +286,6 @@ namespace PhanMemThiDua2026
                     _cts.Dispose();
                     _cts = null;
                 }
-
                 if (_isClosingRequested) this.BeginInvoke(new Action(this.Close));
                 else if (!this.IsDisposed)
                 {
@@ -337,58 +299,46 @@ namespace PhanMemThiDua2026
         private (int soDongDaCapNhat, string thongBaoLoi) ThucThiResetDuLieu(HashSet<string> keepList, HashSet<string> danhSachDonViDuocChon, IProgress<int> progress, CancellationToken token)
         {
             var idsToUpdate = new List<long>();
-
             // TỐI ƯU ĐỈNH CAO: RAM Caching chống giải mã trùng lặp
             var cacheDonVi = new Dictionary<string, string>();
             var cachePhanLoai = new Dictionary<string, string>();
-
             try
             {
                 var builder = new SqliteConnectionStringBuilder { DataSource = _csdl2Path, DefaultTimeout = 30 };
                 using var conn = new SqliteConnection(builder.ConnectionString);
                 conn.Open();
-
                 using (var pragmaCmd = conn.CreateCommand())
                 {
                     pragmaCmd.CommandText = "PRAGMA quick_check; PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;";
                     pragmaCmd.ExecuteNonQuery();
                 }
-
-                // =========================================================================
                 // PHASE 1: ĐỌC VÀ LỌC DỮ LIỆU ĐA TẦNG O(N)
-                // =========================================================================
                 using (var cmdSelect = conn.CreateCommand())
                 {
                     cmdSelect.CommandText = "SELECT ID, PhanLoai, DonVi FROM DanhSach WHERE PhanLoai IS NOT NULL AND PhanLoai <> ''";
                     using var reader = cmdSelect.ExecuteReader();
-
                     while (reader.Read())
                     {
                         token.ThrowIfCancellationRequested();
-
                         long dbId = reader.GetInt64(0);
                         string phanLoaiDbMaHoa = reader.GetString(1);
                         string donViDbMaHoa = reader.IsDBNull(2) ? "" : reader.GetString(2);
-
                         // 1. Dùng RAM Cache để giải mã Đơn Vị siêu tốc
                         if (!cacheDonVi.TryGetValue(donViDbMaHoa, out string donViGoc))
                         {
-                            try { donViGoc = BaoMatAES.GiaiMa(donViDbMaHoa)?.Trim() ?? ""; } catch { donViGoc = ""; }
+                            try { donViGoc = Module_BaoMatAES.GiaiMa(donViDbMaHoa)?.Trim() ?? ""; } catch { donViGoc = ""; }
                             cacheDonVi[donViDbMaHoa] = donViGoc;
                         }
-
                         // ⭐ ĐIỀU KIỆN TIÊN QUYẾT: Chỉ làm việc với đơn vị NẰM TRONG DANH SÁCH CHỌN
                         if (danhSachDonViDuocChon.Contains(donViGoc))
                         {
                             // 2. Dùng RAM Cache để giải mã Phân Loại siêu tốc
                             if (!cachePhanLoai.TryGetValue(phanLoaiDbMaHoa, out string phanLoaiGoc))
                             {
-                                try { phanLoaiGoc = BaoMatAES.GiaiMa(phanLoaiDbMaHoa)?.Trim() ?? ""; } catch { phanLoaiGoc = ""; }
+                                try { phanLoaiGoc = Module_BaoMatAES.GiaiMa(phanLoaiDbMaHoa)?.Trim() ?? ""; } catch { phanLoaiGoc = ""; }
                                 cachePhanLoai[phanLoaiDbMaHoa] = phanLoaiGoc;
                             }
-
                             string checkVal = string.IsNullOrEmpty(phanLoaiGoc) ? "Không PL" : phanLoaiGoc;
-
                             // 3. Đối chiếu danh sách Miễn Trừ (Loại 1, 3, 4, Không PL...)
                             if (!keepList.Contains(checkVal))
                             {
@@ -397,33 +347,24 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-
                 int total = idsToUpdate.Count;
                 if (total == 0) return (0, string.Empty);
-
-                // =========================================================================
                 // PHASE 2: CẬP NHẬT BATCH VỚI TRANSACTION & RETRY LOGIC
-                // =========================================================================
-                string loai2Encrypted = BaoMatAES.MaHoa("Loại 2");
+                string loai2Encrypted = Module_BaoMatAES.MaHoa(Module_HeThong.Loai_2); //Loại 2
                 int rowsAffected = 0;
-
                 using var transaction = conn.BeginTransaction();
                 try
                 {
                     using var cmdUpdate = conn.CreateCommand();
                     cmdUpdate.Transaction = transaction;
                     cmdUpdate.CommandText = "UPDATE DanhSach SET PhanLoai = @pl WHERE ID = @id";
-
                     cmdUpdate.Parameters.AddWithValue("@pl", loai2Encrypted);
                     var idParam = cmdUpdate.Parameters.Add("@id", SqliteType.Integer);
-
                     int reportInterval = Math.Max(1, total / 100);
-
                     for (int i = 0; i < total; i++)
                     {
                         token.ThrowIfCancellationRequested();
                         idParam.Value = idsToUpdate[i];
-
                         int maxRetries = 3;
                         for (int retry = 0; retry < maxRetries; retry++)
                         {
@@ -438,7 +379,6 @@ namespace PhanMemThiDua2026
                                 System.Threading.Thread.Sleep(200);
                             }
                         }
-
                         if (i % reportInterval == 0 || i == total - 1)
                         {
                             progress?.Report((i + 1) * 100 / total);
@@ -451,16 +391,12 @@ namespace PhanMemThiDua2026
                     transaction.Rollback();
                     throw;
                 }
-
-                // =========================================================================
                 // PHASE 3: BẢO TRÌ WAL FILE
-                // =========================================================================
                 using (var checkpointCmd = conn.CreateCommand())
                 {
                     checkpointCmd.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
                     checkpointCmd.ExecuteNonQuery();
                 }
-
                 return (rowsAffected, string.Empty);
             }
             catch (OperationCanceledException) { return (0, "CANCELED"); }

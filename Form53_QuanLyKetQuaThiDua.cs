@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form53_QuanLyKetQuaThiDua : Form
@@ -19,18 +18,16 @@ namespace PhanMemThiDua2026
         public Form53_QuanLyKetQuaThiDua()
         {
             InitializeComponent();
-
             // Tối ưu render chống giật nháy cho Form Cha & Panel chứa
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
             panelContent.GetType().GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.SetValue(panelContent, true, null);
         }
-        private async void Form53_QuanLyKetQuaThiDua_Load(object sender, EventArgs e)
+        private async void Form53_QuanLyKetQuaThiDua_Load(object? sender, EventArgs e)
         {
             if (quanLyThiDuaNamHienTai_ToolStripMenuItem != null)
             {
                 quanLyThiDuaNamHienTai_ToolStripMenuItem.Text = $"Quản lý thi đua năm {_namHeThong}";
             }
-
             if (_activeSubForm == null)
             {
                 string tieuDeMacDinh = $"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {_namHeThong}";
@@ -41,29 +38,23 @@ namespace PhanMemThiDua2026
         private async Task OpenSubFormAsync<T>(string tieuDeForm) where T : Form, new()
         {
             if (_isClosing || IsDisposed) return;
-
             await _switchLock.WaitAsync();
             try
             {
                 Type typeT = typeof(T);
-
                 // 1. Nếu đang mở chính Form đó thì bỏ qua
                 if (_activeSubForm != null && _activeSubForm.GetType() == typeT && !_activeSubForm.IsDisposed)
                 {
                     return;
                 }
-
                 DaLoadDuLieu = false;
-
                 // Tạm dừng vẽ giao diện Panel để ép Render 1 lần duy nhất
                 panelContent.SuspendLayout();
-
                 // 2. Ẩn Form cũ (Không Dispose)
                 if (_activeSubForm != null && !_activeSubForm.IsDisposed)
                 {
                     _activeSubForm.Hide();
                 }
-
                 // 3. Lấy Form từ RAM Cache hoặc Khởi tạo mới nếu lần đầu bấm vào
                 Form targetForm;
                 if (_subFormCache.TryGetValue(typeT, out Form? cachedForm) && cachedForm != null && !cachedForm.IsDisposed)
@@ -79,23 +70,17 @@ namespace PhanMemThiDua2026
                         FormBorderStyle = FormBorderStyle.None,
                         Dock = DockStyle.Fill
                     };
-
                     panelContent.Controls.Add(targetForm);
                     _subFormCache[typeT] = targetForm;
                 }
-
                 _activeSubForm = targetForm;
-
                 // 4. Bật hiển thị ngay lập tức từ RAM
                 targetForm.BringToFront();
                 targetForm.Show();
-
                 // Mở lại Render Panel ngay khi Form hiện lên
                 panelContent.ResumeLayout(true);
-
                 // 5. Cập nhật tiêu đề Form chính
                 CapNhatTieuDeFormChinh(tieuDeForm);
-
                 // 6. Reload dữ liệu ngầm nếu cần
                 if (targetForm is Form15_ThongKeThiDua frm15)
                 {
@@ -105,7 +90,6 @@ namespace PhanMemThiDua2026
                 {
                     // await frm46.ReloadData();
                 }
-
                 DaLoadDuLieu = true;
             }
             catch (Exception ex)
@@ -126,7 +110,6 @@ namespace PhanMemThiDua2026
         public async Task ReloadDuLieu()
         {
             if (_isClosing || IsDisposed) return;
-
             await _switchLock.WaitAsync();
             try
             {
@@ -160,11 +143,9 @@ namespace PhanMemThiDua2026
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _isClosing = true;
-
             try
             {
                 _activeSubForm = null;
-
                 // Xóa và Dispose toàn bộ các Form con đang lưu trên RAM Cache
                 foreach (var kvp in _subFormCache)
                 {
@@ -180,7 +161,6 @@ namespace PhanMemThiDua2026
                     }
                 }
                 _subFormCache.Clear();
-
                 _switchLock.Dispose();
             }
             finally
@@ -188,33 +168,30 @@ namespace PhanMemThiDua2026
                 base.OnFormClosing(e);
             }
         }
-        private async void quanLyThiDuaCBCS_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void quanLyThiDuaCBCS_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             if (_isClosing) return;
-            string tieuDe = $"Thống kê kết quả phân loại thi đua CBCS phong trào \"VÌ ANTQ\" năm {_namHeThong}";
+            string tieuDe = $"Trang thống kê kết quả phân loại thi đua CBCS phong trào \"VÌ ANTQ\" năm {_namHeThong}";
             await OpenSubFormAsync<Form15_ThongKeThiDua>(tieuDe);
         }
-        private async void quanLyThiDuaTapThe_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void quanLyThiDuaTapThe_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             //Form23_ThongKeThiDuaTapThe
             if (_isClosing) return;
-            string tieuDe = $"Thống kê kết quả phân loại thi đua tập thể phong trào \"VÌ ANTQ\" năm {_namHeThong}";
+            string tieuDe = $"Trang thống kê kết quả phân loại thi đua tập thể phong trào \"VÌ ANTQ\" năm {_namHeThong}";
             await OpenSubFormAsync<Form23_ThongKeThiDuaTapThe>(tieuDe);
         }
-        private async void quanLyThiDuaCBCSNamCu_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void quanLyThiDuaCBCSNamCu_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
-
             if (_isClosing) return;
-            const string tieuDe = "Thống kê kết quả phân loại thi đua CBCS năm cũ";
+            const string tieuDe = "Trang thống kê kết quả phân loại thi đua CBCS năm cũ";
             await OpenSubFormAsync<Form46_ThongKeThiDuaNamCu>(tieuDe);
         }
-        private async void quanLyThiDuaTapTheNamCu_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void quanLyThiDuaTapTheNamCu_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             if (_isClosing) return;
-            const string tieuDe = "Thống kê kết quả phân loại thi đua tập thể năm cũ";
-
+            const string tieuDe = "Trang thống kê kết quả phân loại thi đua tập thể năm cũ";
             await OpenSubFormAsync<Form59_QuanLyThiDuaTapTheNamCu>(tieuDe);
-
             // Lấy instance từ Dictionary Cache
             if (_subFormCache.TryGetValue(typeof(Form59_QuanLyThiDuaTapTheNamCu), out Form? cachedForm)
                 && cachedForm is Form59_QuanLyThiDuaTapTheNamCu frm59
@@ -223,6 +200,5 @@ namespace PhanMemThiDua2026
                 await frm59.ReloadDataAsync();
             }
         }
-
     }
 }

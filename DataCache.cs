@@ -1,5 +1,4 @@
 ﻿using System.Data;
-
 public static class DataCache
 {
     private static DataTable _cacheDanhSach;

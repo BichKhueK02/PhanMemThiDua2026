@@ -2,18 +2,15 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     internal static class Module_MenuChuotPhai
     {
         // Cache tên màu đang chọn trên RAM để tránh đọc ổ cứng liên tục khi mở menu
         public static string MauHienTai { get; set; } = "Mặc định";
-
         public static void TichHopGiaoDien(ContextMenuStrip menu)
         {
             if (menu == null) return;
-
             menu.Opening += (s, ev) =>
             {
                 menu.RenderMode = ToolStripRenderMode.Professional;
@@ -21,17 +18,14 @@ namespace PhanMemThiDua2026
                 menu.ShowImageMargin = true;
             };
         }
-
         // Tự động đọc màu đã lưu từ CSDL2 khi khởi động phần mềm
         public static void KhoiTaoMauTuCSDL(string csdl2Path)
         {
             try
             {
                 if (!System.IO.File.Exists(csdl2Path)) return;
-
                 using var conn = new SqliteConnection($"Data Source={csdl2Path};Mode=ReadOnly");
                 conn.Open();
-
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT MauSacNguoiDungChon FROM MauSacMenuHeThong WHERE ID = 1 LIMIT 1;";
                 var result = cmd.ExecuteScalar();
@@ -42,7 +36,6 @@ namespace PhanMemThiDua2026
             }
             catch { MauHienTai = "Mặc định"; }
         }
-
         // Factory tạo bảng màu chuẩn UX
         public static ProfessionalColorTable LayBangMauTheoTen(string tenMau)
         {
@@ -55,7 +48,6 @@ namespace PhanMemThiDua2026
             };
         }
     }
-
     // --- BẢNG MÀU VÀNG NHẠT (MẶC ĐỊNH MỚI) ---
     public class YellowMenuColorTable : ProfessionalColorTable
     {
@@ -72,7 +64,6 @@ namespace PhanMemThiDua2026
         public override Color SeparatorDark => Color.FromArgb(235, 220, 180);
         public override Color SeparatorLight => Color.White;
     }
-
     // --- BẢNG MÀU XANH LÁ ---
     public class GreenMenuColorTable : ProfessionalColorTable
     {
@@ -89,7 +80,6 @@ namespace PhanMemThiDua2026
         public override Color SeparatorDark => Color.FromArgb(180, 215, 180);
         public override Color SeparatorLight => Color.White;
     }
-
     // --- BẢNG MÀU XANH DƯƠNG ---
     public class BlueMenuColorTable : ProfessionalColorTable
     {
@@ -106,7 +96,6 @@ namespace PhanMemThiDua2026
         public override Color SeparatorDark => Color.FromArgb(180, 205, 235);
         public override Color SeparatorLight => Color.White;
     }
-
     // --- BẢNG MÀU XÁM TRẮNG (OFFICE CLASSIC) ---
     public class GrayMenuColorTable : ProfessionalColorTable
     {

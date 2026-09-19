@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -186,9 +183,7 @@
             tableLayoutPanel2.PerformLayout();
             ResumeLayout(false);
         }
-
         #endregion
-
         private TableLayoutPanel tableLayoutPanel6;
         internal PictureBox pictureBox2_AnhDaiDienAdmin;
         private TableLayoutPanel tableLayoutPanel1;

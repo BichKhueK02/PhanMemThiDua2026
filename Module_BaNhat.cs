@@ -92,17 +92,14 @@ public static class Module_BaNhat
             {
                 wsBN = package.Worksheets.Add("DS_BaNhat");
             }
-
             // Cấu hình phông nền và màu sắc nhận diện hệ thống
             wsBN.TabColor = ClosedXML.Excel.XLColor.Gold;
             wsBN.Style.Font.SetFontName(Module_HeThong.Font_Times_New_Roman);
             wsBN.Style.Font.SetFontSize(12);
-
             // 2. Thiết lập tiêu đề dòng (Header) cho bảng
             wsBN.Range("A1:M1").Merge().Value = "DANH SÁCH CÁN BỘ CHIẾN SĨ ĐỀ NGHỊ BIỂU DƯƠNG PHONG TRÀO \"BA NHẤT\"";
             wsBN.Cell("A1").Style.Font.SetBold(true).Font.SetFontSize(14).Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center);
             wsBN.Row(1).Height = 30;
-
             // ⭐ ĐÃ SỬA: Khớp chuẩn 13 cột với Database (Bỏ cột ID vì chỉ dùng ngầm)
             string[] headers = { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú", "Đề nghị", "Thành tích" };
             wsBN.Row(3).Height = 25;
@@ -117,33 +114,27 @@ public static class Module_BaNhat
                 cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromHtml("#EBF1F5");
                 cell.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
             }
-
             // ⭐ ĐÃ SỬA: Thiết lập độ rộng chuẩn cho 13 cột
             double[] widths = { 6, 25, 12, 10, 25, 12, 14, 15, 15, 12, 20, 10, 35 };
             for (int i = 0; i < widths.Length; i++) wsBN.Column(i + 1).Width = widths[i];
-
             // 3. Đọc dữ liệu từ SQLite & Giải mã lọc điều kiện (Chỉ chạy khi không phải file mẫu)
             if (!epXuatFileMau && File.Exists(dbPath))
             {
                 var listXuat = new List<Dictionary<string, string>>();
-
                 // Hàm giải mã nội bộ bảo hiểm zero-crash tuyệt đối cho vòng lặp
                 string ThucThiGiaiMa(object? val)
                 {
                     if (val == null || val == DBNull.Value) return string.Empty;
                     string s = val.ToString()?.Trim() ?? string.Empty;
                     if (string.IsNullOrEmpty(s)) return string.Empty;
-                    try { return BaoMatAES.GiaiMa(s)?.Trim() ?? string.Empty; } catch { return s; }
+                    try { return Module_BaoMatAES.GiaiMa(s)?.Trim() ?? string.Empty; } catch { return s; }
                 }
-
                 using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}"))
                 {
                     conn.Open();
                     using var cmd = conn.CreateCommand();
-
                     // ⭐ ĐÃ SỬA: Gọi đúng thứ tự cột khớp với mảng Header phía trên
                     cmd.CommandText = "SELECT STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich FROM DanhSachBaNhat ORDER BY STT ASC";
-
                     using var rd = cmd.ExecuteReader();
                     int sttDem = 1;
                     while (rd.Read())
@@ -151,7 +142,6 @@ public static class Module_BaNhat
                         string deNghiDecrypted = ThucThiGiaiMa(rd["DeNghi"]);
                         if (!deNghiDecrypted.Equals("X", StringComparison.OrdinalIgnoreCase))
                             continue;
-
                         // Dùng Dictionary để linh động không phụ thuộc hoàn toàn vào Class DTO nếu sau này có đổi cột
                         var rowData = new Dictionary<string, string>
                         {
@@ -172,7 +162,6 @@ public static class Module_BaNhat
                         listXuat.Add(rowData);
                     }
                 }
-
                 // 4. Đổ dữ liệu hàng loạt lên trang tính (Tốc độ cao)
                 int dataRowIndex = 4;
                 foreach (var item in listXuat)
@@ -190,14 +179,12 @@ public static class Module_BaNhat
                     wsBN.Cell(dataRowIndex, 11).Value = item["GhiChu"];
                     wsBN.Cell(dataRowIndex, 12).Value = item["DeNghi"];
                     wsBN.Cell(dataRowIndex, 13).Value = item["ThanhTich"];
-
                     // Kẻ viền khung nét mảnh và căn lề từng dòng dữ liệu (Tới cột 13)
                     var rngRow = wsBN.Range(dataRowIndex, 1, dataRowIndex, 13);
                     rngRow.Style.Border.InsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
                     rngRow.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
                     rngRow.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
                     rngRow.Style.Alignment.SetWrapText(true);
-
                     // Căn lề riêng biệt cho từng loại dữ liệu
                     wsBN.Cell(dataRowIndex, 1).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center; // STT
                     wsBN.Cell(dataRowIndex, 2).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Left;   // Họ tên
@@ -212,7 +199,6 @@ public static class Module_BaNhat
                     wsBN.Cell(dataRowIndex, 11).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Left;  // Ghi chú
                     wsBN.Cell(dataRowIndex, 12).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;// Đề nghị
                     wsBN.Cell(dataRowIndex, 13).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Left;  // Thành tích
-
                     wsBN.Row(dataRowIndex).Height = 24;
                     dataRowIndex++;
                 }
@@ -228,13 +214,10 @@ public static class Module_BaNhat
         try
         {
             if (!File.Exists(excelPath) || !File.Exists(dbPath)) return;
-
             var danhSachBoQua = new List<string>();
-
             using (var wb = new ClosedXML.Excel.XLWorkbook(excelPath))
             {
                 if (!wb.Worksheets.TryGetWorksheet("DS_BaNhat", out var ws)) return;
-
                 // KIỂM TRA HEADER
                 string[] mauHeaderChuan = { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú", "Đề nghị", "Thành tích" };
                 for (int i = 0; i < mauHeaderChuan.Length; i++)
@@ -248,28 +231,22 @@ public static class Module_BaNhat
                         return;
                     }
                 }
-
                 int lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
                 if (lastRow < 4) return;
-
                 using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}"))
                 {
                     conn.Open();
-
                     int nextSTT = 0;
                     using (var cmdMax = conn.CreateCommand())
                     {
                         cmdMax.CommandText = "SELECT IFNULL(MAX(STT), 0) FROM DanhSachBaNhat";
                         nextSTT = Convert.ToInt32(cmdMax.ExecuteScalar()) + 1;
                     }
-
                     using var transaction = conn.BeginTransaction();
-
                     using var cmdCheck = conn.CreateCommand();
                     cmdCheck.Transaction = transaction;
                     cmdCheck.CommandText = "SELECT EXISTS(SELECT 1 FROM DanhSachBaNhat WHERE SoHieu = @sh)";
                     var paramShCheck = cmdCheck.Parameters.Add("@sh", Microsoft.Data.Sqlite.SqliteType.Text);
-
                     // ⭐ ĐÃ SỬA: Loại bỏ hoàn toàn DeNghi và ThanhTich khỏi lệnh UPDATE
                     using var cmdUpdate = conn.CreateCommand();
                     cmdUpdate.Transaction = transaction;
@@ -279,7 +256,6 @@ public static class Module_BaNhat
                 GhiChu = @gc 
                 WHERE SoHieu = @sh";
                     PrepareParameters(cmdUpdate);
-
                     using var cmdInsert = conn.CreateCommand();
                     cmdInsert.Transaction = transaction;
                     cmdInsert.CommandText = @"INSERT INTO DanhSachBaNhat 
@@ -287,29 +263,24 @@ public static class Module_BaNhat
                 VALUES (@stt, @ht, @sh, @ns, @qq, @nv, @cb, @cv, @dv, @pl, @gc, @dn, @tt)";
                     var paramSttInsert = cmdInsert.Parameters.Add("@stt", Microsoft.Data.Sqlite.SqliteType.Integer);
                     PrepareParameters(cmdInsert);
-
                     for (int r = 4; r <= lastRow; r++)
                     {
                         string hoTen = ws.Cell(r, 2).GetString().Trim();
                         if (string.IsNullOrWhiteSpace(hoTen)) continue;
-
                         try
                         {
                             string soHieu = ws.Cell(r, 3).GetString().Trim();
                             string deNghi = ws.Cell(r, 12).GetString().Trim();
-
                             if (string.IsNullOrWhiteSpace(soHieu))
                             {
                                 danhSachBoQua.Add($"- {Module_HeThong.Tu_Dong_Chi}: {hoTen} dòng {r} không thể nạp vì thiếu Số hiệu quân số.");
                                 continue;
                             }
-
                             if (!deNghi.Equals("X", StringComparison.OrdinalIgnoreCase))
                             {
                                 danhSachBoQua.Add($"- {Module_HeThong.Tu_Dong_Chi}: {hoTen} (Số hiệu: {soHieu}) bỏ qua do không có dấu X Đề nghị.");
                                 continue;
                             }
-
                             string namSinh = ws.Cell(r, 4).GetString().Trim();
                             string queQuan = ws.Cell(r, 5).GetString().Trim();
                             string ngayVao = ws.Cell(r, 6).GetString().Trim();
@@ -319,11 +290,9 @@ public static class Module_BaNhat
                             string phanLoai = ws.Cell(r, 10).GetString().Trim();
                             string ghiChu = ws.Cell(r, 11).GetString().Trim();
                             string thanhTich = ws.Cell(r, 13).GetString().Trim();
-
-                            string shMaHoa = BaoMatAES.MaHoa(soHieu);
+                            string shMaHoa = Module_BaoMatAES.MaHoa(soHieu);
                             paramShCheck.Value = shMaHoa;
                             bool daTonTai = Convert.ToInt64(cmdCheck.ExecuteScalar()) > 0;
-
                             if (daTonTai)
                             {
                                 BindParameterValues(cmdUpdate, shMaHoa, hoTen, namSinh, queQuan, ngayVao, capBac, chucVu, donVi, phanLoai, ghiChu, deNghi, thanhTich);
@@ -347,12 +316,10 @@ public static class Module_BaNhat
                     transaction.Commit();
                 }
             }
-
             if (danhSachBoQua.Count > 0)
             {
                 string msgCanhBao = string.Join("\n", danhSachBoQua.Take(15));
                 if (danhSachBoQua.Count > 15) msgCanhBao += $"\n... và {danhSachBoQua.Count - 15} trường hợp khác.";
-
                 var activeForms = System.Windows.Forms.Application.OpenForms;
                 if (activeForms.Count > 0)
                 {
@@ -386,27 +353,25 @@ public static class Module_BaNhat
     private static void BindParameterValues(Microsoft.Data.Sqlite.SqliteCommand cmd, string sh, string ht, string ns, string qq, string nv, string cb, string cv, string dv, string pl, string gc, string dn, string tt)
     {
         cmd.Parameters["@sh"].Value = sh;
-        cmd.Parameters["@ht"].Value = BaoMatAES.MaHoa(ht);
-        cmd.Parameters["@ns"].Value = BaoMatAES.MaHoa(ns);
-        cmd.Parameters["@qq"].Value = BaoMatAES.MaHoa(qq);
-        cmd.Parameters["@nv"].Value = BaoMatAES.MaHoa(nv);
-        cmd.Parameters["@cb"].Value = BaoMatAES.MaHoa(cb);
-        cmd.Parameters["@cv"].Value = BaoMatAES.MaHoa(cv);
-        cmd.Parameters["@dv"].Value = BaoMatAES.MaHoa(dv);
-        cmd.Parameters["@pl"].Value = BaoMatAES.MaHoa(pl);
-        cmd.Parameters["@gc"].Value = BaoMatAES.MaHoa(gc);
-        cmd.Parameters["@dn"].Value = BaoMatAES.MaHoa(dn);
-        cmd.Parameters["@tt"].Value = BaoMatAES.MaHoa(tt);
+        cmd.Parameters["@ht"].Value = Module_BaoMatAES.MaHoa(ht);
+        cmd.Parameters["@ns"].Value = Module_BaoMatAES.MaHoa(ns);
+        cmd.Parameters["@qq"].Value = Module_BaoMatAES.MaHoa(qq);
+        cmd.Parameters["@nv"].Value = Module_BaoMatAES.MaHoa(nv);
+        cmd.Parameters["@cb"].Value = Module_BaoMatAES.MaHoa(cb);
+        cmd.Parameters["@cv"].Value = Module_BaoMatAES.MaHoa(cv);
+        cmd.Parameters["@dv"].Value = Module_BaoMatAES.MaHoa(dv);
+        cmd.Parameters["@pl"].Value = Module_BaoMatAES.MaHoa(pl);
+        cmd.Parameters["@gc"].Value = Module_BaoMatAES.MaHoa(gc);
+        cmd.Parameters["@dn"].Value = Module_BaoMatAES.MaHoa(dn);
+        cmd.Parameters["@tt"].Value = Module_BaoMatAES.MaHoa(tt);
     }
     public static void MoTepExcelThiDuaPhongTrao3Nhat(string filePath)
     {
         try
         {
             if (!File.Exists(filePath)) return;
-
             IntPtr pidl = ILCreateFromPathW(filePath);
             if (pidl == IntPtr.Zero) return;
-
             SHOpenFolderAndSelectItems(pidl, 0, IntPtr.Zero, 0);
             ILFree(pidl);
         }
@@ -421,7 +386,7 @@ public static class Module_BaNhat
             if (value == null || value == DBNull.Value) return "";
             string s = value.ToString();
             if (string.IsNullOrWhiteSpace(s)) return "";
-            return BaoMatAES.GiaiMa(s);
+            return Module_BaoMatAES.GiaiMa(s);
         }
         catch
         {
@@ -436,35 +401,27 @@ public static class Module_BaNhat
         {
             if (string.IsNullOrWhiteSpace(fileXuat) || !File.Exists(fileXuat))
                 throw new Exception("File Excel tổng hợp không tồn tại.");
-
             using var wb = new XLWorkbook(fileXuat);
             var ws = wb.Worksheet("BC_BANHAT");
-
             string csdl2 = Module_DanduongGPS.DuongDanCSDL2;
             if (string.IsNullOrWhiteSpace(csdl2) || !File.Exists(csdl2))
                 throw new Exception("Không tìm thấy CSDL csdl2.");
-
-            // ====================================================================================
             // 1. ĐỌC TRỰC TIẾP THÔNG TIN ĐƠN VỊ TỪ BẢNG ThongTin (KHÔNG QUA MODULE TRUNG GIAN)
-            // ====================================================================================
             string tenTrungDoanDong1 = "";
             string tenTrungDoanCSCD = "";
             string tenTieuDoanCSCD = "";
             string thang = "     ", nam = "     ", ngay = "     ", diaDiem = "     ", deNghi = "     ";
-
             try
             {
                 using var conn = new SqliteConnection($"Data Source={csdl2}");
                 conn.Open();
                 using var cmd = new SqliteCommand("SELECT textBox1_TenTrungDoanDong1, TenTrungDoan, TenTieuDoan, Thang, Nam, Ngay, DiaDiem, LoaiDeNghi FROM ThongTin WHERE ID = 1", conn);
                 using var reader = cmd.ExecuteReader();
-
                 if (reader.Read())
                 {
                     tenTrungDoanDong1 = SafeDecrypt(reader["textBox1_TenTrungDoanDong1"]);
                     tenTrungDoanCSCD = SafeDecrypt(reader["TenTrungDoan"]);
                     tenTieuDoanCSCD = SafeDecrypt(reader["TenTieuDoan"]);
-
                     if (!string.IsNullOrWhiteSpace(reader["Thang"]?.ToString())) thang = SafeDecrypt(reader["Thang"]);
                     if (!string.IsNullOrWhiteSpace(reader["Nam"]?.ToString())) nam = SafeDecrypt(reader["Nam"]);
                     if (!string.IsNullOrWhiteSpace(reader["Ngay"]?.ToString())) ngay = SafeDecrypt(reader["Ngay"]);
@@ -476,20 +433,15 @@ public static class Module_BaNhat
             {
                 Debug.WriteLine("Lỗi đọc bảng ThongTin: " + ex.Message);
             }
-
-            // ====================================================================================
             // 2. LẤY KÝ HIỆU ĐƠN VỊ VÀ GHI VÀO Ô A11
-            // ====================================================================================
             string kyHieuTieuDoan = "";
             string kyHieuTrungDoan = "";
-
             try
             {
                 using var cnKyHieu = new SqliteConnection($"Data Source={csdl2}");
                 cnKyHieu.Open();
                 using var cmdKyHieu = new SqliteCommand("SELECT KyHieu_TrungDoan, KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1", cnKyHieu);
                 using var rdKyHieu = cmdKyHieu.ExecuteReader();
-
                 if (rdKyHieu.Read())
                 {
                     kyHieuTrungDoan = SafeDecrypt(rdKyHieu["KyHieu_TrungDoan"]);
@@ -497,10 +449,8 @@ public static class Module_BaNhat
                 }
             }
             catch { }
-
             kyHieuTieuDoan = kyHieuTieuDoan.Trim();
             kyHieuTrungDoan = kyHieuTrungDoan.Trim();
-
             string chuoiKyHieuGhep = "";
             if (!string.IsNullOrEmpty(kyHieuTieuDoan) && !string.IsNullOrEmpty(kyHieuTrungDoan))
                 chuoiKyHieuGhep = $"{kyHieuTieuDoan}, {kyHieuTrungDoan}";
@@ -508,7 +458,6 @@ public static class Module_BaNhat
                 chuoiKyHieuGhep = kyHieuTieuDoan;
             else if (!string.IsNullOrEmpty(kyHieuTrungDoan))
                 chuoiKyHieuGhep = kyHieuTrungDoan;
-
             var cellA11 = ws.Cell("A11");
             cellA11.Value = chuoiKyHieuGhep;
             cellA11.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
@@ -516,38 +465,30 @@ public static class Module_BaNhat
             cellA11.Style.Font.Bold = false;
             cellA11.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             cellA11.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-            // ====================================================================================
             // 3. ĐỊNH DẠNG KHỐI ĐƠN VỊ PHÍA TRÊN (A1, A2, A3)
-            // ====================================================================================
             void GanGachChan1Phan3(IXLCell cell, string text)
             {
                 if (cell == null || string.IsNullOrWhiteSpace(text)) return;
                 int totalLen = text.Length;
                 int underlineLen = (int)Math.Round(totalLen / 3.0);
                 if (underlineLen <= 0) return;
-
                 int start = (totalLen - underlineLen) / 2;
                 var rich = cell.GetRichText();
                 rich.ClearText();
-
                 if (start > 0) rich.AddText(text.Substring(0, start));
                 rich.AddText(text.Substring(start, underlineLen)).SetUnderline();
                 int end = start + underlineLen;
                 if (end < totalLen) rich.AddText(text.Substring(end));
             }
-
             var cellA1 = ws.Cell("A1");
             cellA1.Value = string.IsNullOrWhiteSpace(tenTrungDoanDong1) ? "     " : tenTrungDoanDong1;
             cellA1.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA1.Style.Font.FontSize = 13;
             cellA1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
             if (!string.IsNullOrWhiteSpace(tenTrungDoanCSCD))
             {
                 var cellA2 = ws.Cell("A2"); cellA2.Value = tenTrungDoanCSCD;
                 cellA2.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA2.Style.Font.FontSize = 13;
                 cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
                 var cellA3 = ws.Cell("A3"); cellA3.Value = tenTieuDoanCSCD;
                 cellA3.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA3.Style.Font.FontSize = 13; cellA3.Style.Font.Bold = true;
                 cellA3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -561,13 +502,11 @@ public static class Module_BaNhat
                 GanGachChan1Phan3(cellA2, tenTieuDoanCSCD);
                 ws.Cell("A3").Value = "";
             }
-
             // Địa điểm ngày tháng H4
             var cellH4 = ws.Cell("H4");
             cellH4.Value = $"{diaDiem}, ngày {ngay} tháng {thang} năm {nam}";
             cellH4.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellH4.Style.Font.FontSize = 14; cellH4.Style.Font.Italic = true;
             cellH4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
             // Loại báo cáo
             try
             {
@@ -582,12 +521,10 @@ public static class Module_BaNhat
                 }
             }
             catch { }
-
             string chuoiThoiGian;
             loaiBaoCao = (loaiBaoCao ?? "").Trim().ToUpper();
             tuanBaoCao = (tuanBaoCao ?? "").Trim();
             string thangHT = Module_XuatPhanLoai.LayThangHeThong();
-
             if (loaiBaoCao.Contains("TUẦN"))
             {
                 if (tuanBaoCao.ToUpper().Contains("TUẦN")) tuanBaoCao = tuanBaoCao.ToUpper().Replace("TUẦN", "").Trim();
@@ -598,16 +535,12 @@ public static class Module_BaNhat
             {
                 chuoiThoiGian = $"THÁNG {thangHT}/{nam}";
             }
-
             var tieuDe = ws.Range("A6:M6");
             tieuDe.Merge();
             tieuDe.Value = $"TRONG THỰC HIỆN PHONG TRÀO THI ĐUA \"BA NHẤT\" {chuoiThoiGian}";
             tieuDe.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             tieuDe.Style.Font.Bold = true; tieuDe.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; tieuDe.Style.Font.FontSize = 14;
-
-            // ====================================================================================
             // 4. ĐỊNH DẠNG DÒNG A7 CHUẨN XÁC VÀ GẠCH CHÂN DỰA TRÊN ĐƠN VỊ ĐỘNG
-            // ====================================================================================
             string kyHieuBaoCao = "...............";
             try
             {
@@ -617,31 +550,25 @@ public static class Module_BaNhat
                 cmd.CommandText = "SELECT KyHieuBaoCao FROM ThongTin WHERE ID=1";
                 var result = cmd.ExecuteScalar();
                 if (result != null && !string.IsNullOrWhiteSpace(result.ToString()))
-                    kyHieuBaoCao = BaoMatAES.GiaiMa(result.ToString());
+                    kyHieuBaoCao = Module_BaoMatAES.GiaiMa(result.ToString());
             }
             catch { }
-
             string tieuDoanHienThi = string.IsNullOrWhiteSpace(tenTieuDoanCSCD)
                 ? ""
                 : char.ToUpper(tenTieuDoanCSCD.ToLower()[0]) + tenTieuDoanCSCD.ToLower().Substring(1);
-
             string textA7 = $"(Kèm theo Báo cáo số:            {kyHieuBaoCao}, ngày {ngay}/{thang}/{nam} của {tieuDoanHienThi})";
             var cellA7 = ws.Cell("A7");
             ws.Range("A7:M7").Merge();
             cellA7.Value = textA7;
             cellA7.Style.Font.Italic = true; cellA7.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA7.Style.Font.FontSize = 14;
             cellA7.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
             int startUnderline = textA7.IndexOf("cáo");
             int endUnderline = textA7.IndexOf("của");
             if (startUnderline >= 0 && endUnderline > startUnderline)
             {
                 cellA7.GetRichText().Substring(startUnderline, endUnderline - startUnderline + 4).SetUnderline();
             }
-
-            // ====================================================================================
             // 5. ĐỌC BẢNG TyLe VÀ ĐIỀN CÁC Ô SỐ LIỆU
-            // ====================================================================================
             var tyLe = new Dictionary<int, (int hienTai, int canDat)>();
             using (var conn = new SqliteConnection($"Data Source={csdl2}"))
             {
@@ -656,7 +583,6 @@ public static class Module_BaNhat
                     tyLe[id] = (ht, cd);
                 }
             }
-
             int tongQS = tyLe.GetValueOrDefault(1).hienTai;
             int khongPL = tyLe.GetValueOrDefault(6).hienTai;
             ws.Cell("B11").Value = tongQS;
@@ -668,11 +594,8 @@ public static class Module_BaNhat
             ws.Cell("H11").Value = tyLe.GetValueOrDefault(5).canDat;
             ws.Cell("I11").Value = tyLe.GetValueOrDefault(6).canDat;
             ws.Cell("K11").Value = deNghi;
-
             // Đọc Tóm tắt thành tích đổ vào L11
-            // ====================================================================================
             // Đọc Tóm tắt thành tích đổ vào L11
-            // ====================================================================================
             string tomTatThanhTich = "";
             try
             {
@@ -681,16 +604,13 @@ public static class Module_BaNhat
                 string tenBangTomTat = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
                     ? "TomTatThanhTichBaNhat_TanBinh"
                     : "TomTatThanhTichBaNhat_CBCS";
-
                 using var cnTomTat = new SqliteConnection($"Data Source={csdl2}");
                 cnTomTat.Open();
-
                 // 🌟 SỬA ĐỊNH TUYẾN: Truy vấn vào đúng bảng
                 using var cmdTomTat = new SqliteCommand($"SELECT NoiDung FROM [{tenBangTomTat}] WHERE ID = 1", cnTomTat);
-
                 var objResult = cmdTomTat.ExecuteScalar();
                 if (objResult != null && objResult != DBNull.Value)
-                    tomTatThanhTich = BaoMatAES.GiaiMa(objResult.ToString()).Trim();
+                    tomTatThanhTich = Module_BaoMatAES.GiaiMa(objResult.ToString()).Trim();
             }
             catch { }
             ws.Cell("L11").Value = tomTatThanhTich;
@@ -700,16 +620,13 @@ public static class Module_BaNhat
             ws.Cell("G12").FormulaA1 = "=IFERROR(100-F12,\"Dữ liệu sai\")";
             ws.Cell("H12").FormulaA1 = "=IFERROR(IF(OR(H11=\"\",H11=0),\"0%\",(H11*100)/B11 & \"%\"),\"Dữ liệu sai\")";
             ws.Cell("I12").FormulaA1 = "=IFERROR(IF(OR(I11=\"\",I11=0),\"0%\",(I11*100)/B11 & \"%\"),\"Dữ liệu sai\")";
-
             ws.Cell("E12").Style.NumberFormat.Format = "00.00\"%\"";
             ws.Cell("F12").Style.NumberFormat.Format = "00.00\"%\"";
             ws.Cell("G12").Style.NumberFormat.Format = "00.00\"%\"";
             ws.Cell("H12").Style.NumberFormat.Format = "00.00\"%\"";
             ws.Cell("I12").Style.NumberFormat.Format = "00.00\"%\"";
-
             // ===== 9. KÝ TÊN =====
             VietKyTenBaoCaoTongHop(ws, csdl2);
-
             // ===== 10. ÉP TÁCH SHEET VÀ ĐƯA CON TRỎ VỀ "BC_BANHAT" =====
             try
             {
@@ -755,41 +672,34 @@ public static class Module_BaNhat
                 string chiHuyRaw = reader["ChiHuyD"]?.ToString()?.Trim() ?? "";
                 if (!string.IsNullOrWhiteSpace(chiHuyRaw))
                 {
-                    string decoded = BaoMatAES.GiaiMa(chiHuyRaw);
+                    string decoded = Module_BaoMatAES.GiaiMa(chiHuyRaw);
                     hoTenKy = string.IsNullOrEmpty(decoded) ? chiHuyRaw : decoded.Trim();
                 }
             }
         }
         catch { }
-
         string chucVuTieuDoanTruong = "";
         string chucVuNguoiKy = "";
         int idDauTien = -1, idNguoiKy = -1;
-
         using (var cn = new SqliteConnection("Data Source=" + fileDB))
         {
             cn.Open();
             using var cmd = new SqliteCommand("SELECT ID, HoVaTen, ChucVu FROM ChiHuyD ORDER BY ID ASC", cn);
             using var rd = cmd.ExecuteReader();
             bool isFirst = true, foundMatch = false;
-
             while (rd.Read())
             {
                 int id = Convert.ToInt32(rd["ID"]);
                 string hoTenRaw = rd["HoVaTen"]?.ToString()?.Trim() ?? "";
                 string chucVuRaw = rd["ChucVu"]?.ToString()?.Trim() ?? "";
-
-                string htDec = BaoMatAES.GiaiMa(hoTenRaw);
+                string htDec = Module_BaoMatAES.GiaiMa(hoTenRaw);
                 if (string.IsNullOrEmpty(htDec)) htDec = hoTenRaw;
-
-                string cvDec = BaoMatAES.GiaiMa(chucVuRaw);
+                string cvDec = Module_BaoMatAES.GiaiMa(chucVuRaw);
                 if (string.IsNullOrEmpty(cvDec)) cvDec = chucVuRaw;
-
                 if (isFirst)
                 {
                     idDauTien = id; chucVuTieuDoanTruong = cvDec; isFirst = false;
                 }
-
                 if (htDec.Equals(hoTenKy, StringComparison.OrdinalIgnoreCase))
                 {
                     idNguoiKy = id; chucVuNguoiKy = cvDec; foundMatch = true;
@@ -798,7 +708,6 @@ public static class Module_BaNhat
             }
             if (!foundMatch) idNguoiKy = idDauTien;
         }
-
         if (idNguoiKy == idDauTien)
         {
             ws.Cell("L14").Value = chucVuTieuDoanTruong.ToUpper();
@@ -809,7 +718,6 @@ public static class Module_BaNhat
             ws.Cell("L14").Value = ("KT. " + chucVuTieuDoanTruong).ToUpper();
             ws.Cell("L15").Value = chucVuNguoiKy.ToUpper();
         }
-
         ws.Cell("L17").Value = hoTenKy;
         foreach (string addr in new[] { "L14", "L15", "L17" })
         {
@@ -824,14 +732,11 @@ public static class Module_BaNhat
     {
         // BẢO VỆ TẦNG 1: Tránh lỗi NullReference hoặc control đã bị hủy ngay từ đầu
         if (labelTyLe == null || labelTyLe.IsDisposed) return;
-
         string dbPath = Module_DanduongGPS.DuongDanCSDL2;
         if (!System.IO.File.Exists(dbPath)) return;
-
         int tyLe = 0;
         int tongSoLoai1 = 0;
         int soDangDeNghi = 0;
-
         try
         {
             await Task.Run(() =>
@@ -843,10 +748,8 @@ public static class Module_BaNhat
                     DataSource = dbPath,
                     Mode = Microsoft.Data.Sqlite.SqliteOpenMode.ReadOnly
                 };
-
                 using var conn = new Microsoft.Data.Sqlite.SqliteConnection(builder.ConnectionString);
                 conn.Open();
-
                 // 1. Lấy và Giải mã % từ bảng QuyDinhTyLe_BaNhat
                 using (var cmdTyLe = conn.CreateCommand())
                 {
@@ -859,14 +762,13 @@ public static class Module_BaNhat
                         {
                             try
                             {
-                                string tyLeGoc = BaoMatAES.GiaiMa(tyLeMaHoa);
+                                string tyLeGoc = Module_BaoMatAES.GiaiMa(tyLeMaHoa);
                                 int.TryParse(tyLeGoc, out tyLe);
                             }
                             catch { tyLe = 0; }
                         }
                     }
                 }
-
                 // 2. Đếm số lượng "Loại 1" trong bảng DanhSach
                 using (var cmdDemLoai1 = conn.CreateCommand())
                 {
@@ -879,7 +781,7 @@ public static class Module_BaNhat
                         {
                             try
                             {
-                                string phanLoaiGoc = BaoMatAES.GiaiMa(phanLoaiMaHoa).Trim();
+                                string phanLoaiGoc = Module_BaoMatAES.GiaiMa(phanLoaiMaHoa).Trim();
                                 if (phanLoaiGoc.Equals("Loại 1", StringComparison.OrdinalIgnoreCase))
                                 {
                                     tongSoLoai1++;
@@ -889,7 +791,6 @@ public static class Module_BaNhat
                         }
                     }
                 }
-
                 // 3. Đếm số lượng đang được Đề nghị (Có chữ "X")
                 try
                 {
@@ -897,13 +798,11 @@ public static class Module_BaNhat
                     string tenBangBaNhat = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
                                          ? "DanhSachBaNhat_TanBinh"
                                          : "DanhSachBaNhat";
-
                     // BẢO VỆ TẦNG 3: Kiểm tra cấu trúc CSDL trực tiếp (Kiểm tra bảng tồn tại).
                     // Giúp RAM không bị hao hụt bởi việc quăng Exception vô ích nếu bảng chưa được tạo.
                     using var cmdCheckTable = conn.CreateCommand();
                     cmdCheckTable.CommandText = "SELECT count(name) FROM sqlite_master WHERE type='table' AND name=@tableName";
                     cmdCheckTable.Parameters.AddWithValue("@tableName", tenBangBaNhat);
-
                     if (Convert.ToInt64(cmdCheckTable.ExecuteScalar()) > 0)
                     {
                         using var cmdDemDeNghi = conn.CreateCommand();
@@ -916,7 +815,7 @@ public static class Module_BaNhat
                             {
                                 try
                                 {
-                                    string deNghiGoc = BaoMatAES.GiaiMa(deNghiMaHoa).Trim();
+                                    string deNghiGoc = Module_BaoMatAES.GiaiMa(deNghiMaHoa).Trim();
                                     if (deNghiGoc.Equals("X", StringComparison.OrdinalIgnoreCase))
                                     {
                                         soDangDeNghi++;
@@ -932,15 +831,12 @@ public static class Module_BaNhat
                     System.Diagnostics.Debug.WriteLine($"Lỗi truy xuất cấu trúc: {ex.Message}");
                 }
             });
-
             // BẢO VỆ TẦNG 4: Quét lại vòng đời UI. 
             // Nếu người dùng đóng Form ngay lúc Task.Run đang chạy, bỏ qua ngay để không gây Crash.
             if (labelTyLe.IsDisposed) return;
-
             // 4. Tính toán số lượng chỉ tiêu
             int soLuongChiTieu = (int)Math.Round(tongSoLoai1 * (tyLe / 100.0), MidpointRounding.AwayFromZero);
             double tyLeHienTai = tongSoLoai1 > 0 ? Math.Round((double)soDangDeNghi / tongSoLoai1 * 100, 1) : 0;
-
             // 5. Xây dựng logic chuỗi
             string trangThai;
             if (soDangDeNghi == soLuongChiTieu)
@@ -955,9 +851,7 @@ public static class Module_BaNhat
             {
                 trangThai = $"Đang thừa: {soDangDeNghi - soLuongChiTieu} {Module_HeThong.Tu_dong_chi}";
             }
-
             string textHienThi = $"           Chỉ tiêu “Ba nhất” {tyLe}% = {soLuongChiTieu} {Module_HeThong.Tu_dong_chi}    |    Tỷ lệ hiện tại {soDangDeNghi} {Module_HeThong.Tu_dong_chi} = {tyLeHienTai}%    |    {trangThai}";
-
             // 6. Đẩy kết quả lên UI
             // BẢO VỆ TẦNG 5: Sử dụng GetCurrentParent và BeginInvoke để chống treo luồng cục bộ (Cross-thread Deadlock).
             var parentControl = labelTyLe.GetCurrentParent();
@@ -990,7 +884,6 @@ public static class Module_BaNhat
         // BẢO VỆ TẦNG 1: Kiểm tra đường dẫn CSDL
         string dbPath = Module_DanduongGPS.DuongDanCSDL2;
         if (string.IsNullOrWhiteSpace(dbPath) || !System.IO.File.Exists(dbPath)) return;
-
         try
         {
             // BẢO VỆ TẦNG 2: Đẩy toàn bộ tác vụ nặng xuống luồng nền (Background Thread)
@@ -1004,19 +897,15 @@ public static class Module_BaNhat
                 string bangSoVang = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
                     ? "DanhSachTanBinh_SoVangBaNhat"
                     : "DanhSach_SoVangBaNhat";
-
                 using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}");
                 await conn.OpenAsync();
-
                 // 1. Quét bảng Sổ Vàng để lấy danh sách Số Hiệu
                 HashSet<string> tapHopSoHieuDaVaoSo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
                 // BẢO VỆ TẦNG 3: Kiểm tra bảng Sổ Vàng có tồn tại không trước khi Query
                 using (var cmdCheckSV = conn.CreateCommand())
                 {
                     cmdCheckSV.CommandText = "SELECT count(name) FROM sqlite_master WHERE type='table' AND name=@tableName";
                     cmdCheckSV.Parameters.AddWithValue("@tableName", bangSoVang);
-
                     if (Convert.ToInt64(await cmdCheckSV.ExecuteScalarAsync()) > 0)
                     {
                         using var cmdSV = conn.CreateCommand();
@@ -1029,28 +918,23 @@ public static class Module_BaNhat
                             {
                                 try
                                 {
-                                    tapHopSoHieuDaVaoSo.Add(BaoMatAES.GiaiMa(shEnc).Trim());
+                                    tapHopSoHieuDaVaoSo.Add(Module_BaoMatAES.GiaiMa(shEnc).Trim());
                                 }
                                 catch { /* Bỏ qua dòng bị lỗi giải mã */ }
                             }
                         }
                     }
                 }
-
                 // 2. Đối chiếu với Bảng Danh Sách Ba Nhất
                 var danhSachCanCapNhat = new List<(int ID, string TinhTrangMoi)>();
-
                 // Khởi tạo Transaction bảo vệ DB
                 using var transaction = conn.BeginTransaction();
-
                 using (var cmdDS = conn.CreateCommand())
                 {
                     cmdDS.Transaction = transaction;
-
                     // Kiểm tra bảng Danh Sách có tồn tại không
                     cmdDS.CommandText = "SELECT count(name) FROM sqlite_master WHERE type='table' AND name=@tableNameDS";
                     cmdDS.Parameters.AddWithValue("@tableNameDS", bangDanhSach);
-
                     if (Convert.ToInt64(await cmdDS.ExecuteScalarAsync()) > 0)
                     {
                         cmdDS.CommandText = $"SELECT ID, SoHieu FROM [{bangDanhSach}]";
@@ -1059,30 +943,25 @@ public static class Module_BaNhat
                         {
                             int id = Convert.ToInt32(readerDS["ID"]);
                             if (id == -1) continue; // Bỏ qua dòng đệm mồi của DB
-
                             string shEnc = readerDS["SoHieu"]?.ToString() ?? "";
-                            string shDec = string.IsNullOrWhiteSpace(shEnc) ? "" : BaoMatAES.GiaiMa(shEnc).Trim();
-
+                            string shDec = string.IsNullOrWhiteSpace(shEnc) ? "" : Module_BaoMatAES.GiaiMa(shEnc).Trim();
                             // NẾU Số hiệu có trong Hash Sổ Vàng -> "Đã đề nghị"
                             string tinhTrangMoi = (!string.IsNullOrEmpty(shDec) && tapHopSoHieuDaVaoSo.Contains(shDec))
                                                 ? "Đã đề nghị"
                                                 : "";
                             //Chưa đề nghị
-                            danhSachCanCapNhat.Add((id, BaoMatAES.MaHoa(tinhTrangMoi)));
+                            danhSachCanCapNhat.Add((id, Module_BaoMatAES.MaHoa(tinhTrangMoi)));
                         }
                     }
                 }
-
                 // 3. Thực thi UPDATE đồng loạt vào Cơ sở dữ liệu
                 if (danhSachCanCapNhat.Count > 0)
                 {
                     using var cmdUpdate = conn.CreateCommand();
                     cmdUpdate.Transaction = transaction;
                     cmdUpdate.CommandText = $"UPDATE [{bangDanhSach}] SET TinhTrang = @tt WHERE ID = @id";
-
                     var pTT = cmdUpdate.Parameters.Add("@tt", Microsoft.Data.Sqlite.SqliteType.Text);
                     var pID = cmdUpdate.Parameters.Add("@id", Microsoft.Data.Sqlite.SqliteType.Integer);
-
                     foreach (var item in danhSachCanCapNhat)
                     {
                         pTT.Value = item.TinhTrangMoi;
@@ -1090,7 +969,6 @@ public static class Module_BaNhat
                         await cmdUpdate.ExecuteNonQueryAsync();
                     }
                 }
-
                 // Chốt hạ dữ liệu an toàn
                 await transaction.CommitAsync();
             });
@@ -1110,10 +988,8 @@ public static class Module_BaNhat
                 using (var wb = new XLWorkbook())
                 {
                     var ws = wb.Worksheets.Add("DS_BANHAT_CSDL");
-
                     string[] headers = { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú", "Đề nghị", "Thành tích" };
                     ws.Row(1).Height = 36;
-
                     for (int i = 0; i < headers.Length; i++)
                     {
                         var cell = ws.Cell(1, i + 1);
@@ -1128,13 +1004,10 @@ public static class Module_BaNhat
                         cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         cell.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                     }
-
                     double[] widths = { 6, 25, 12, 10, 25, 12, 14, 15, 15, 12, 20, 10, 35 };
                     for (int i = 0; i < widths.Length; i++) ws.Column(i + 1).Width = widths[i];
-
                     int startRow = 2;
                     int stt = 1;
-
                     foreach (var item in danhSach)
                     {
                         ws.Cell(startRow, 1).Value = stt++;
@@ -1150,7 +1023,6 @@ public static class Module_BaNhat
                         ws.Cell(startRow, 11).Value = item.GhiChu;
                         ws.Cell(startRow, 12).Value = item.DeNghi;
                         ws.Cell(startRow, 13).Value = item.ThanhTich;
-
                         ws.Cell(startRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         ws.Cell(startRow, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         ws.Cell(startRow, 3).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -1164,32 +1036,26 @@ public static class Module_BaNhat
                         ws.Cell(startRow, 11).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         ws.Cell(startRow, 12).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         ws.Cell(startRow, 13).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-
                         ws.Cell(startRow, 11).Style.Alignment.WrapText = true;
                         ws.Cell(startRow, 13).Style.Alignment.WrapText = true;
-
                         var range = ws.Range(startRow, 1, startRow, 13);
                         range.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         range.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                         range.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                         range.Style.Font.FontSize = 13;
                         range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
                         ws.Row(startRow).Height = 36;
                         startRow++;
                     }
-
                     Module_BanQuyen.DongDauExcel(wb);
                     wb.SaveAs(filePathLuu);
                 }
             });
-
             Module_NhatKy.GhiNhatKy(
                 taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
                 hanhDong: "Xuất tệp excel toàn bộ CSDL gốc Ba Nhất",
                 ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
             );
-
             if (File.Exists(filePathLuu))
             {
                 Module_BaNhat.MoTepExcelThiDuaPhongTrao3Nhat(filePathLuu);
@@ -1205,13 +1071,11 @@ public static class Module_BaNhat
     {
         string templatePath = Module_DanduongGPS.DuongDanCSDL4ex;
         string dbPath = Module_DanduongGPS.DuongDanCSDL2; // Dùng biến toàn cục thay cho _csdl2Path
-
         if (!File.Exists(templatePath))
         {
             MessageBox.Show("Không tìm thấy file mẫu Excel tại: " + templatePath, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
-
         string kyHieuTieuDoan = "D2";
         try
         {
@@ -1221,40 +1085,33 @@ public static class Module_BaNhat
                 using var cmdKyHieu = conn.CreateCommand();
                 cmdKyHieu.CommandText = "SELECT KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1";
                 using var reader = await cmdKyHieu.ExecuteReaderAsync();
-
                 if (await reader.ReadAsync())
                 {
-                    string giaiMaTD = BaoMatAES.GiaiMa(reader["KyHieu_TieuDoan"]?.ToString() ?? "");
+                    string giaiMaTD = Module_BaoMatAES.GiaiMa(reader["KyHieu_TieuDoan"]?.ToString() ?? "");
                     if (!string.IsNullOrWhiteSpace(giaiMaTD)) kyHieuTieuDoan = giaiMaTD;
                 }
             }
         }
         catch (Exception ex) { Debug.WriteLine($"Lỗi đọc Ký hiệu: {ex.Message}"); }
-
         using var sfd = new SaveFileDialog
         {
             Filter = "Excel Files|*.xlsx",
             FileName = $"BÁO CÁO BIỂU DƯƠNG PHONG TRÀO BA NHẤT CỦA {kyHieuTieuDoan} {DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
             Title = "Chọn nơi lưu file Excel"
         };
-
         if (sfd.ShowDialog() != DialogResult.OK) return;
         string filePathLuu = sfd.FileName;
         Form_Loading frmLoad = new Form_Loading("Đang tạo tệp excel, vui lòng đợi...");
         bool isLoadShown = false;
-
         // Gán icon theo Form cha nếu có
         if (parentForm != null) frmLoad.Icon = parentForm.Icon;
-
         try
         {
             // Khóa Form cha truyền vào thay vì dùng 'this'
             if (parentForm != null) parentForm.Enabled = false;
-
             frmLoad.Show(parentForm);
             isLoadShown = true;
             await Task.Delay(50);
-
             await Task.Run(() =>
             {
                 using (var wb = new XLWorkbook(templatePath))
@@ -1267,9 +1124,7 @@ public static class Module_BaNhat
                             danhSachSheetXoa.Add(worksheet.Name);
                     }
                     foreach (var sheetName in danhSachSheetXoa) wb.Worksheets.Delete(sheetName);
-
                     var ws = wb.Worksheet("DS_BANHAT");
-
                     string dong1 = "", donviCapTrung = "", donviCapTieu = "";
                     try
                     {
@@ -1281,14 +1136,13 @@ public static class Module_BaNhat
                             using var rd = cmd.ExecuteReader();
                             if (rd.Read())
                             {
-                                dong1 = BaoMatAES.GiaiMa(rd[0].ToString());
-                                donviCapTrung = BaoMatAES.GiaiMa(rd[1].ToString());
-                                donviCapTieu = BaoMatAES.GiaiMa(rd[2].ToString());
+                                dong1 = Module_BaoMatAES.GiaiMa(rd[0].ToString());
+                                donviCapTrung = Module_BaoMatAES.GiaiMa(rd[1].ToString());
+                                donviCapTieu = Module_BaoMatAES.GiaiMa(rd[2].ToString());
                             }
                         }
                     }
                     catch { }
-
                     void GanGachChan1Phan3(IXLCell cell, string text)
                     {
                         if (cell == null || string.IsNullOrWhiteSpace(text)) return;
@@ -1298,18 +1152,15 @@ public static class Module_BaNhat
                         int start = (totalLen - underlineLen) / 2;
                         cell.GetRichText().Substring(start, underlineLen).SetUnderline();
                     }
-
                     var cellA1 = ws.Cell("A1");
                     cellA1.Value = string.IsNullOrWhiteSpace(dong1) ? "      " : dong1;
                     cellA1.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA1.Style.Font.FontSize = 13;
                     cellA1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
                     if (!string.IsNullOrWhiteSpace(donviCapTrung))
                     {
                         var cellA2 = ws.Cell("A2"); cellA2.Value = donviCapTrung;
                         cellA2.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA2.Style.Font.FontSize = 13;
                         cellA2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
                         var cellA3 = ws.Cell("A3"); cellA3.Value = donviCapTieu;
                         cellA3.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman; cellA3.Style.Font.FontSize = 13; cellA3.Style.Font.Bold = true;
                         cellA3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
@@ -1323,7 +1174,6 @@ public static class Module_BaNhat
                         GanGachChan1Phan3(cellA2, donviCapTieu);
                         ws.Cell("A3").Value = "";
                     }
-
                     string thang = "", nam = "", ngay = "", diaDiem = "", kyHieuBaoCao = "...............";
                     try
                     {
@@ -1334,15 +1184,14 @@ public static class Module_BaNhat
                         using var rd = cmd.ExecuteReader();
                         if (rd.Read())
                         {
-                            thang = BaoMatAES.GiaiMa(rd["Thang"]?.ToString() ?? "").Trim();
-                            nam = BaoMatAES.GiaiMa(rd["Nam"]?.ToString() ?? "").Trim();
-                            ngay = BaoMatAES.GiaiMa(rd["Ngay"]?.ToString() ?? "").Trim();
-                            diaDiem = BaoMatAES.GiaiMa(rd["DiaDiem"]?.ToString() ?? "").Trim();
-                            kyHieuBaoCao = BaoMatAES.GiaiMa(rd["KyHieuBaoCao"]?.ToString() ?? "");
+                            thang = Module_BaoMatAES.GiaiMa(rd["Thang"]?.ToString() ?? "").Trim();
+                            nam = Module_BaoMatAES.GiaiMa(rd["Nam"]?.ToString() ?? "").Trim();
+                            ngay = Module_BaoMatAES.GiaiMa(rd["Ngay"]?.ToString() ?? "").Trim();
+                            diaDiem = Module_BaoMatAES.GiaiMa(rd["DiaDiem"]?.ToString() ?? "").Trim();
+                            kyHieuBaoCao = Module_BaoMatAES.GiaiMa(rd["KyHieuBaoCao"]?.ToString() ?? "");
                         }
                     }
                     catch { }
-
                     ws.Range("F3:J3").Clear(XLClearOptions.Contents);
                     string tieuDeNgay = !string.IsNullOrWhiteSpace(diaDiem) ? $"{diaDiem}, ngày {ngay} tháng {thang} năm {nam}" : $"(ngày {ngay} tháng {thang} năm {nam})";
                     var rangeF3 = ws.Range("F3:J3");
@@ -1354,33 +1203,26 @@ public static class Module_BaNhat
                     cellF3.Style.Font.FontSize = 13;
                     cellF3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cellF3.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
                     ws.Range("A9:J500000").Clear(XLClearOptions.All);
-
                     ws.Range("A5:J5").Merge().Value = $"CBCS ĐỀ NGHỊ BIỂU DƯƠNG GƯƠNG ĐIỂN HÌNH TRONG THỰC HIỆN PHONG TRÀO THI ĐUA BA NHẤT THÁNG {thang}/{nam}";
                     ws.Range("A5:J5").Style.Font.Bold = true; ws.Range("A5:J5").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     var rangeA6 = ws.Range("A6:J6");
                     rangeA6.Merge();
-
                     // Ở trong Module gọi về hàm tĩnh trong Form42 để dùng hoặc viết lại Logic (đã viết lại inline cho an toàn độc lập)
                     string donViHienThi = string.IsNullOrWhiteSpace(donviCapTieu) ? "" : char.ToUpper(donviCapTieu.Trim().ToLower()[0]) + donviCapTieu.Trim().ToLower().Substring(1);
-
                     string textA6 = $"(Kèm theo Báo cáo số:                 {kyHieuBaoCao}, ngày {ngay}/{thang}/{nam} của {donViHienThi})";
                     var cellA6 = ws.Cell("A6");
                     cellA6.Value = textA6;
                     cellA6.Style.Font.Italic = true;
                     cellA6.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
                     int start = textA6.IndexOf("cáo");
                     int end = textA6.IndexOf("của");
                     if (start >= 0 && end > start)
                     {
                         cellA6.GetRichText().Substring(start, end - start + 4).SetUnderline();
                     }
-
                     int startRow = 9;
                     int stt = 1;
-
                     foreach (var item in danhSach)
                     {
                         ws.Cell(startRow, 1).Value = stt++;
@@ -1393,24 +1235,19 @@ public static class Module_BaNhat
                         ws.Cell(startRow, 8).Value = item.DonVi;
                         ws.Cell(startRow, 9).Value = item.PhanLoai;
                         ws.Cell(startRow, 10).Value = item.ThanhTich;
-
                         ws.Cell(startRow, 1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         ws.Cell(startRow, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         for (int c = 3; c <= 9; c++) ws.Cell(startRow, c).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         ws.Cell(startRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         ws.Cell(startRow, 10).Style.Alignment.WrapText = true;
-
                         var range = ws.Range(startRow, 1, startRow, 10);
                         range.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         range.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                         range.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                         range.Style.Font.FontSize = 13;
-
                         startRow++;
                     }
-
                     for (int i = 9; i < startRow; i++) ws.Row(i).ClearHeight();
-
                     int tong = stt - 1;
                     string tongStr = tong.ToString("00");
                     var rngTong = ws.Range(startRow, 1, startRow, 2);
@@ -1420,7 +1257,6 @@ public static class Module_BaNhat
                     rngTong.Style.Font.Italic = true;
                     rngTong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                     rngTong.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
                     int rowTongCong = startRow;
                     int dongKy = rowTongCong + 1;
                     string hoTenKy = "";
@@ -1428,7 +1264,6 @@ public static class Module_BaNhat
                     int dongDauTienID = -1;
                     string chucVuNguoiKy = "";
                     int dongNguoiKyID = -1;
-
                     using (var conn2 = new SqliteConnection($"Data Source={dbPath}"))
                     {
                         conn2.Open();
@@ -1438,10 +1273,9 @@ public static class Module_BaNhat
                             cmdTT.CommandText = "SELECT ChiHuyD FROM ThongTin WHERE ID = 1";
                             var result = cmdTT.ExecuteScalar();
                             if (result != null && result != DBNull.Value)
-                                hoTenKy = BaoMatAES.GiaiMa(result.ToString()).Trim();
+                                hoTenKy = Module_BaoMatAES.GiaiMa(result.ToString()).Trim();
                         }
                         catch { }
-
                         try
                         {
                             using var cmdCH = conn2.CreateCommand();
@@ -1454,11 +1288,10 @@ public static class Module_BaNhat
                                 int id = Convert.ToInt32(rd["ID"]);
                                 string htRaw = rd["HoVaTen"]?.ToString() ?? "";
                                 string cvRaw = rd["ChucVu"]?.ToString() ?? "";
-                                string htDec = BaoMatAES.GiaiMa(htRaw).Trim();
+                                string htDec = Module_BaoMatAES.GiaiMa(htRaw).Trim();
                                 if (string.IsNullOrEmpty(htDec)) htDec = htRaw.Trim();
-                                string cvDec = BaoMatAES.GiaiMa(cvRaw).Trim();
+                                string cvDec = Module_BaoMatAES.GiaiMa(cvRaw).Trim();
                                 if (string.IsNullOrEmpty(cvDec)) cvDec = cvRaw.Trim();
-
                                 if (isFirst) { dongDauTienID = id; chucVuTieuDoanTruong = cvDec; isFirst = false; }
                                 if (htDec.Equals(hoTenKy, StringComparison.OrdinalIgnoreCase))
                                 {
@@ -1469,7 +1302,6 @@ public static class Module_BaNhat
                         }
                         catch { }
                     }
-
                     void GhiDongKy(string text)
                     {
                         var rangeKy = ws.Range(dongKy, 6, dongKy, 10);
@@ -1483,7 +1315,6 @@ public static class Module_BaNhat
                         c.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         dongKy++;
                     }
-
                     if (dongNguoiKyID == dongDauTienID)
                     {
                         GhiDongKy(chucVuTieuDoanTruong.ToUpper());
@@ -1493,12 +1324,9 @@ public static class Module_BaNhat
                         GhiDongKy("KT. " + chucVuTieuDoanTruong.ToUpper());
                         GhiDongKy(chucVuNguoiKy.ToUpper());
                     }
-
                     dongKy += 4;
                     GhiDongKy(hoTenKy);
-
                     Module_BanQuyen.DongDauExcel(wb);
-
                     try
                     {
                         var wsBaoCao = wb.Worksheet("BC_BANHAT");
@@ -1512,20 +1340,16 @@ public static class Module_BaNhat
                         wsBaoCao.Range("A1").Select();
                     }
                     catch { }
-
                     wb.SaveAs(filePathLuu);
                 }
             });
-
             Module_NhatKy.GhiNhatKy(
                 taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
                 hanhDong: "Xuất tệp excel báo cáo thi đua Ba Nhất",
                 ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
             );
-
             // Xuất tiếp báo cáo tổng hợp
             XuatBaoCaoTongHop(filePathLuu);
-
             if (File.Exists(filePathLuu))
             {
                 MoTepExcelThiDuaPhongTrao3Nhat(filePathLuu);
@@ -1555,18 +1379,15 @@ public static class Module_BaNhat
         try
         {
             if (!File.Exists(excelPath) || !File.Exists(dbPath)) return 0;
-
             // Tự động nhận diện tên bảng theo phiên bản
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             string tenBangDanhSachBaNhat = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
                 ? "DanhSachBaNhat_TanBinh"
                 : "DanhSachBaNhat";
-
             var dsKhongCoSoHieu = new List<string>();
             var dsKhongPhaiLoai1 = new List<string>();
             var dsChuaDongBo = new List<string>();
             var dsLoiKyThuat = new List<string>();
-
             // Chạy đa luồng Task.Run để không bị đơ UI khi đọc file Excel nặng
             await Task.Run(() =>
             {
@@ -1580,7 +1401,6 @@ public static class Module_BaNhat
                         }
                         return;
                     }
-
                     // 1. KIỂM TRA HEADER
                     string[] mauHeaderChuan = { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú", "Đề nghị", "Thành tích" };
                     for (int i = 0; i < mauHeaderChuan.Length; i++)
@@ -1595,14 +1415,11 @@ public static class Module_BaNhat
                             return;
                         }
                     }
-
                     int lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
                     if (lastRow < 2) return;
-
                     using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}"))
                     {
                         conn.Open();
-
                         // ⭐ BƯỚC 1: Tải & Giải mã Bảng "DanhSach"
                         var tuDienDanhSachGoc = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                         using (var cmdTaiGoc = conn.CreateCommand())
@@ -1613,13 +1430,11 @@ public static class Module_BaNhat
                             {
                                 string shGocMaHoa = rdGoc["SoHieu"]?.ToString() ?? "";
                                 string plGocMaHoa = rdGoc["PhanLoai"]?.ToString() ?? "";
-                                string shGocGiaiMa = string.IsNullOrWhiteSpace(shGocMaHoa) ? "" : BaoMatAES.GiaiMa(shGocMaHoa).Trim();
-                                string plGocGiaiMa = string.IsNullOrWhiteSpace(plGocMaHoa) ? "" : BaoMatAES.GiaiMa(plGocMaHoa).Trim();
-
+                                string shGocGiaiMa = string.IsNullOrWhiteSpace(shGocMaHoa) ? "" : Module_BaoMatAES.GiaiMa(shGocMaHoa).Trim();
+                                string plGocGiaiMa = string.IsNullOrWhiteSpace(plGocMaHoa) ? "" : Module_BaoMatAES.GiaiMa(plGocMaHoa).Trim();
                                 if (!string.IsNullOrWhiteSpace(shGocGiaiMa)) tuDienDanhSachGoc[shGocGiaiMa] = plGocGiaiMa;
                             }
                         }
-
                         // ⭐ BƯỚC 2: Tải & Giải mã Bảng "DanhSachBaNhat"
                         var tuDienBaNhat = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                         using (var cmdTaiBaNhat = conn.CreateCommand())
@@ -1629,12 +1444,10 @@ public static class Module_BaNhat
                             while (rdBaNhat.Read())
                             {
                                 string shBaNhatMaHoa = rdBaNhat["SoHieu"]?.ToString() ?? "";
-                                string shBaNhatGiaiMa = string.IsNullOrWhiteSpace(shBaNhatMaHoa) ? "" : BaoMatAES.GiaiMa(shBaNhatMaHoa).Trim();
-
+                                string shBaNhatGiaiMa = string.IsNullOrWhiteSpace(shBaNhatMaHoa) ? "" : Module_BaoMatAES.GiaiMa(shBaNhatMaHoa).Trim();
                                 if (!string.IsNullOrWhiteSpace(shBaNhatGiaiMa)) tuDienBaNhat[shBaNhatGiaiMa] = shBaNhatMaHoa;
                             }
                         }
-
                         using var transaction = conn.BeginTransaction();
                         using var cmdUpdate = conn.CreateCommand();
                         cmdUpdate.Transaction = transaction;
@@ -1644,7 +1457,6 @@ public static class Module_BaNhat
                         var paramShUpd = cmdUpdate.Parameters.Add("@shEncExact", Microsoft.Data.Sqlite.SqliteType.Text);
                         var paramDnUpd = cmdUpdate.Parameters.Add("@dn", Microsoft.Data.Sqlite.SqliteType.Text);
                         var paramTtUpd = cmdUpdate.Parameters.Add("@tt", Microsoft.Data.Sqlite.SqliteType.Text);
-
                         // ⭐ BƯỚC 3: QUÉT EXCEL VÀ ĐỐI CHIẾU TRÊN RAM
                         for (int r = 2; r <= lastRow; r++)
                         {
@@ -1652,9 +1464,7 @@ public static class Module_BaNhat
                             string soHieuExcel = ws.Cell(r, 3).GetString().Trim(); // Lấy Plaintext
                             string deNghi = ws.Cell(r, 12).GetString().Trim();
                             string thanhTich = ws.Cell(r, 13).GetString().Trim();
-
                             if (string.IsNullOrWhiteSpace(hoTen) && string.IsNullOrWhiteSpace(soHieuExcel)) continue;
-
                             try
                             {
                                 // [RÀNG BUỘC 1]: Số hiệu Excel có tồn tại trong CSDL DanhSach gốc không?
@@ -1662,24 +1472,20 @@ public static class Module_BaNhat
                                 {
                                     dsKhongCoSoHieu.Add(hoTen); continue;
                                 }
-
                                 // [RÀNG BUỘC 2]: Phân loại có phải là Loại 1 không?
                                 if (!phanLoaiGoc.Equals("Loại 1", StringComparison.OrdinalIgnoreCase))
                                 {
                                     dsKhongPhaiLoai1.Add(hoTen); continue;
                                 }
-
                                 // [RÀNG BUỘC 3]: Đã tồn tại bên bảng Ba Nhất chưa?
                                 if (!tuDienBaNhat.TryGetValue(soHieuExcel, out string exactEncSoHieuDb))
                                 {
                                     dsChuaDongBo.Add(hoTen); continue;
                                 }
-
                                 // VƯỢT QUA RÀNG BUỘC -> UPDATE
                                 paramShUpd.Value = exactEncSoHieuDb;
-                                paramDnUpd.Value = BaoMatAES.MaHoa(deNghi);
-                                paramTtUpd.Value = BaoMatAES.MaHoa(thanhTich);
-
+                                paramDnUpd.Value = Module_BaoMatAES.MaHoa(deNghi);
+                                paramTtUpd.Value = Module_BaoMatAES.MaHoa(thanhTich);
                                 int rowsAffected = cmdUpdate.ExecuteNonQuery();
                                 if (rowsAffected > 0) soDongCapNhatThanhCong++;
                                 else dsLoiKyThuat.Add(hoTen + " (Không rõ nguyên nhân DB)");
@@ -1693,14 +1499,11 @@ public static class Module_BaNhat
                     }
                 }
             });
-
             // XỬ LÝ ĐÓNG GÓI HỘP THOẠI BÁO CÁO LỖI (Nằm ngoài Task.Run để luồng Form xử lý an toàn)
             int tongSoLoi = dsKhongCoSoHieu.Count + dsKhongPhaiLoai1.Count + dsChuaDongBo.Count + dsLoiKyThuat.Count;
-
             if (tongSoLoi > 0)
             {
                 var mieuTaLoi = new List<string> { "⚠️ Quá trình nạp dữ liệu hoàn tất nhưng một số trường hợp bị từ chối do vi phạm ràng buộc:\n" };
-
                 if (dsKhongPhaiLoai1.Count > 0)
                 {
                     mieuTaLoi.Add($"📌 Từ chối nhập dữ liệu CBCS có tên: {string.Join(", ", dsKhongPhaiLoai1.Take(30))}{(dsKhongPhaiLoai1.Count > 30 ? "..." : "")}");
@@ -1720,9 +1523,7 @@ public static class Module_BaNhat
                 {
                     mieuTaLoi.Add($"📌 Lỗi kỹ thuật với các CBCS: {string.Join("; ", dsLoiKyThuat.Take(15))}{(dsLoiKyThuat.Count > 15 ? "..." : "")}");
                 }
-
                 string msgCanhBao = string.Join("\n", mieuTaLoi);
-
                 if (parentForm != null && !parentForm.IsDisposed)
                 {
                     MessageBox.Show(parentForm, msgCanhBao, "Báo cáo đối chiếu dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -1738,17 +1539,14 @@ public static class Module_BaNhat
             System.Diagnostics.Debug.WriteLine("[Lỗi NhapDanhSachGoc] " + ex.Message);
             MessageBox.Show("Lỗi hệ thống khi đọc file Excel: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-
         // Trả về số lượng đã nhập thành công để Form tự làm mới giao diện
         return soDongCapNhatThanhCong;
     }
     public static async Task<List<SoVangDTO>> LayDuLieuSoVangTienTienAsync(string tenBang)
     {
         var rawList = new List<(int STT, string HoVaTen, string ThongBao, string SoTT, string Thang)>();
-
         // Tự động lấy đường dẫn CSDL mà không phụ thuộc vào Form
         string dbPath = Module_DanduongGPS.DuongDanCSDL2;
-
         try
         {
             // 1. ĐỌC DỮ LIỆU THÔ TỪ SQLITE (Siêu tốc)
@@ -1758,12 +1556,10 @@ public static class Module_BaNhat
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT ID, HoVaTen, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan FROM [{tenBang}] ORDER BY STT ASC";
                 using var reader = await cmd.ExecuteReaderAsync();
-
                 int sttCounter = 1;
                 while (await reader.ReadAsync())
                 {
                     if (reader.IsDBNull(0) || reader.GetInt32(0) == -1) continue;
-
                     // Lưu dữ liệu mã hóa vào RAM trước
                     rawList.Add((
                         sttCounter++,
@@ -1774,7 +1570,6 @@ public static class Module_BaNhat
                     ));
                 }
             }
-
             // 2. GIẢI MÃ ĐA LUỒNG (PARALLEL LINQ) TRONG QUÁ TRÌNH NỀN
             // Đảm bảo giữ đúng thứ tự danh sách với AsOrdered()
             return await Task.Run(() =>
@@ -1782,10 +1577,10 @@ public static class Module_BaNhat
                 return rawList.AsParallel().AsOrdered().Select(row => new SoVangDTO
                 {
                     STT = row.STT,
-                    HoVaTen = BaoMatAES.GiaiMa(row.HoVaTen),
-                    ThongBaoTrungDoan = BaoMatAES.GiaiMa(row.ThongBao),
-                    SoTTTrongSo = BaoMatAES.GiaiMa(row.SoTT),
-                    ThangCongNhan = BaoMatAES.GiaiMa(row.Thang)
+                    HoVaTen = Module_BaoMatAES.GiaiMa(row.HoVaTen),
+                    ThongBaoTrungDoan = Module_BaoMatAES.GiaiMa(row.ThongBao),
+                    SoTTTrongSo = Module_BaoMatAES.GiaiMa(row.SoTT),
+                    ThangCongNhan = Module_BaoMatAES.GiaiMa(row.Thang)
                 }).ToList();
             });
         }
@@ -1800,25 +1595,20 @@ public static class Module_BaNhat
         Form_Loading frmLoad = new Form_Loading("Đang xử lý và xuất dữ liệu ra Excel...");
         if (parentForm != null) frmLoad.Icon = parentForm.Icon;
         bool isLoadShown = false;
-
         try
         {
             if (parentForm != null) parentForm.Enabled = false;
             frmLoad.Show(parentForm);
             isLoadShown = true;
             await Task.Delay(50);
-
             // 1. LẤY DỮ LIỆU ĐA LUỒNG
             List<SoVangDTO> danhSach = await LayDuLieuSoVangTienTienAsync(tenBangHienTai);
-
             if (danhSach.Count == 0)
             {
                 MessageBox.Show("Không có dữ liệu để xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-
             string tieuDeThongBao = $"Thông báo của {kyHieuTrungDoan}";
-
             // 2. TẠO EXCEL 
             await Task.Run(() =>
             {
@@ -1827,26 +1617,21 @@ public static class Module_BaNhat
                     var ws = wb.Worksheets.Add("DANH_SACH");
                     ws.PageSetup.PaperSize = XLPaperSize.A4Paper;
                     ws.PageSetup.PageOrientation = XLPageOrientation.Portrait;
-
                     // --- HEADER ---
                     ws.Range("A1:E1").Merge().Value = "SỔ VÀNG";
                     ws.Range("A1:E1").Style.Font.SetBold(true).Font.SetFontName(Module_HeThong.Font_Times_New_Roman).Font.SetFontSize(14);
                     ws.Range("A1:E1").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Alignment.SetVertical(XLAlignmentVerticalValues.Center);
-
                     ws.Range("A2:E2").Merge().Value = "BIỂU DƯƠNG GƯƠNG ĐIỂN HÌNH TRONG THỰC HIỆN PHONG TRÀO THI ĐUA BA NHẤT";
                     ws.Range("A2:E2").Style.Font.SetBold(true).Font.SetFontName(Module_HeThong.Font_Times_New_Roman).Font.SetFontSize(12);
                     ws.Range("A2:E2").Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Alignment.SetVertical(XLAlignmentVerticalValues.Center);
-
                     // --- TITLE CỘT ---
                     string[] headers = { "STT", "Họ và tên", tieuDeThongBao, "Vào sổ vàng số", "Ghi chú" };
                     ws.Row(4).Height = 24;
-
                     var headerRange = ws.Range("A4:E4");
                     for (int i = 0; i < headers.Length; i++)
                     {
                         headerRange.Cell(1, i + 1).Value = headers[i];
                     }
-
                     headerRange.Style.Font.SetBold(true).Font.SetFontName(Module_HeThong.Font_Times_New_Roman);
                     headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
                     headerRange.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
@@ -1854,14 +1639,12 @@ public static class Module_BaNhat
                                                .Alignment.SetWrapText(true);
                     headerRange.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin)
                                             .Border.SetInsideBorder(XLBorderStyleValues.Thin);
-
                     // --- ĐỘ RỘNG CHO 5 CỘT ---
                     ws.Column(1).Width = 5;
                     ws.Column(2).Width = 30;
                     ws.Column(3).Width = 40;
                     ws.Column(4).Width = 15;
                     ws.Column(5).Width = 15;
-
                     // --- ĐỔ DỮ LIỆU SIÊU TỐC ---
                     var dataToInsert = danhSach.Select(x => new object[] {
                     x.STT,
@@ -1870,30 +1653,23 @@ public static class Module_BaNhat
                     x.SoTTTrongSo,
                     x.ThangCongNhan
                 }).AsEnumerable();
-
                     ws.Cell(5, 1).InsertData(dataToInsert);
-
                     // --- FORMAT CSS HÀNG LOẠT CHO TOÀN BỘ BẢNG DỮ LIỆU ---
                     int totalRows = danhSach.Count;
                     var dataRange = ws.Range(5, 1, 4 + totalRows, 5);
-
                     ws.Rows(5, 4 + totalRows).Height = 18;
-
                     // Set viền và font chữ
                     dataRange.Style.Font.SetFontName(Module_HeThong.Font_Times_New_Roman);
                     dataRange.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin).Border.SetInsideBorder(XLBorderStyleValues.Thin);
                     dataRange.Style.Alignment.SetVertical(XLAlignmentVerticalValues.Center).Alignment.SetWrapText(true);
-
                     // Căn lề riêng cho từng cột
                     ws.Range(5, 1, 4 + totalRows, 1).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                     ws.Range(5, 2, 4 + totalRows, 3).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
                     ws.Range(5, 4, 4 + totalRows, 5).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-
                     Module_BanQuyen.DongDauExcel(wb);
                     wb.SaveAs(filePath);
                 }
             });
-
             // Mở file sau khi hoàn tất
             if (File.Exists(filePath))
             {
@@ -1921,16 +1697,13 @@ public static class Module_BaNhat
         try
         {
             if (!File.Exists(excelPath) || !File.Exists(dbPath)) return 0;
-
             // 1. Tự động nhận diện tên bảng theo phiên bản hệ thống
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             string tenBangSoVang = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
                 ? "DanhSachTanBinh_SoVangBaNhat"
                 : "DanhSach_SoVangBaNhat";
-
             var danhSachBoQua = new List<string>();
             var dsLoiKyThuat = new List<string>();
-
             await Task.Run(() =>
             {
                 using (var wb = new ClosedXML.Excel.XLWorkbook(excelPath))
@@ -1938,16 +1711,13 @@ public static class Module_BaNhat
                     // Nhận diện Sheet đầu tiên
                     var ws = wb.Worksheets.FirstOrDefault(w => w.Name.Contains("SO_VANG") || w.Name.Contains("BANHAT"))
                              ?? wb.Worksheets.First();
-
                     if (ws == null) return;
-
                     // 2. KIỂM TRA HEADER (15 cột - Không tính ID)
                     string[] mauHeaderChuan = {
                         "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán",
                         "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại",
                         "Ghi chú", "Thành tích", "Thông báo E", "STT Ghi sổ", "Tháng công nhận"
                     };
-
                     // Dò dòng tiêu đề (giả sử nằm ở dòng 1, 2, 3, hoặc 4)
                     int headerRow = 1;
                     for (int i = 1; i <= 5; i++)
@@ -1958,7 +1728,6 @@ public static class Module_BaNhat
                             break;
                         }
                     }
-
                     // Nếu file Excel không có cột Số Hiệu thì từ chối luôn
                     string checkHeaderSoHieu = ws.Cell(headerRow, 3).GetString().Trim();
                     if (!checkHeaderSoHieu.Equals("Số hiệu", StringComparison.OrdinalIgnoreCase))
@@ -1971,14 +1740,11 @@ public static class Module_BaNhat
                         }
                         return;
                     }
-
                     int lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
                     if (lastRow <= headerRow) return;
-
                     using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={dbPath}"))
                     {
                         conn.Open();
-
                         // Lấy STT MAX hiện tại để gán cho người mới
                         int nextSTT = 0;
                         using (var cmdMax = conn.CreateCommand())
@@ -1986,15 +1752,12 @@ public static class Module_BaNhat
                             cmdMax.CommandText = $"SELECT IFNULL(MAX(STT), 0) FROM [{tenBangSoVang}]";
                             nextSTT = Convert.ToInt32(cmdMax.ExecuteScalar()) + 1;
                         }
-
                         using var transaction = conn.BeginTransaction();
-
                         // Lệnh kiểm tra tồn tại
                         using var cmdCheck = conn.CreateCommand();
                         cmdCheck.Transaction = transaction;
                         cmdCheck.CommandText = $"SELECT EXISTS(SELECT 1 FROM [{tenBangSoVang}] WHERE SoHieu = @sh)";
                         var paramShCheck = cmdCheck.Parameters.Add("@sh", Microsoft.Data.Sqlite.SqliteType.Text);
-
                         // Lệnh Cập nhật (Nếu đã có trong sổ vàng)
                         using var cmdUpdate = conn.CreateCommand();
                         cmdUpdate.Transaction = transaction;
@@ -2004,7 +1767,6 @@ public static class Module_BaNhat
                             ThanhTich=@tt, ThongBaoTrungDoan=@tb, SoTTTrongSo=@sott, ThangCongNhan=@tcn 
                             WHERE SoHieu=@sh";
                         PrepareSoVangParameters(cmdUpdate);
-
                         // Lệnh Thêm mới (Nếu chưa có trong sổ vàng)
                         using var cmdInsert = conn.CreateCommand();
                         cmdInsert.Transaction = transaction;
@@ -2013,16 +1775,13 @@ public static class Module_BaNhat
                             VALUES (@stt, @ht, @sh, @ns, @qq, @nv, @cb, @cv, @dv, @pl, @gc, @tt, @tb, @sott, @tcn)";
                         var paramSttInsert = cmdInsert.Parameters.Add("@stt", Microsoft.Data.Sqlite.SqliteType.Integer);
                         PrepareSoVangParameters(cmdInsert);
-
                         // 3. ĐỌC DỮ LIỆU TỪNG DÒNG
                         for (int r = headerRow + 1; r <= lastRow; r++)
                         {
                             string hoTen = ws.Cell(r, 2).GetString().Trim();
                             string soHieu = ws.Cell(r, 3).GetString().Trim();
-
                             if (string.IsNullOrWhiteSpace(hoTen) || string.IsNullOrWhiteSpace(soHieu))
                                 continue;
-
                             try
                             {
                                 string namSinh = ws.Cell(r, 4).GetString().Trim();
@@ -2037,11 +1796,9 @@ public static class Module_BaNhat
                                 string thongBao = ws.Cell(r, 13).GetString().Trim();
                                 string sttSo = ws.Cell(r, 14).GetString().Trim();
                                 string thangCN = ws.Cell(r, 15).GetString().Trim();
-
-                                string shMaHoa = BaoMatAES.MaHoa(soHieu);
+                                string shMaHoa = Module_BaoMatAES.MaHoa(soHieu);
                                 paramShCheck.Value = shMaHoa;
                                 bool daTonTai = Convert.ToInt64(cmdCheck.ExecuteScalar()) > 0;
-
                                 if (daTonTai)
                                 {
                                     BindSoVangParameters(cmdUpdate, shMaHoa, hoTen, namSinh, queQuan, ngayVao, capBac, chucVu, donVi, phanLoai, ghiChu, thanhTich, thongBao, sttSo, thangCN);
@@ -2064,14 +1821,12 @@ public static class Module_BaNhat
                     }
                 }
             });
-
             // 4. HIỂN THỊ BÁO CÁO LỖI
             if (danhSachBoQua.Count > 0 || dsLoiKyThuat.Count > 0)
             {
                 var mieuTaLoi = new List<string> { "⚠️ Quá trình nạp hoàn tất nhưng có lỗi tại một số dòng:\n" };
                 if (danhSachBoQua.Count > 0) mieuTaLoi.Add(string.Join("\n", danhSachBoQua.Take(10)) + (danhSachBoQua.Count > 10 ? "\n..." : ""));
                 if (dsLoiKyThuat.Count > 0) mieuTaLoi.Add(string.Join("\n", dsLoiKyThuat.Take(10)) + (dsLoiKyThuat.Count > 10 ? "\n..." : ""));
-
                 if (parentForm != null && !parentForm.IsDisposed)
                     parentForm.Invoke(new Action(() => MessageBox.Show(parentForm, string.Join("\n", mieuTaLoi), "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning)));
             }
@@ -2081,7 +1836,6 @@ public static class Module_BaNhat
             System.Diagnostics.Debug.WriteLine("[Lỗi NhapSoVang] " + ex.Message);
             MessageBox.Show("Lỗi định dạng tệp Excel: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-
         return soDongCapNhatThanhCong;
     }
     // 2 Hàm tiện ích gán biến SQL cho hàm Sổ vàng
@@ -2105,45 +1859,40 @@ public static class Module_BaNhat
     private static void BindSoVangParameters(Microsoft.Data.Sqlite.SqliteCommand cmd, string sh, string ht, string ns, string qq, string nv, string cb, string cv, string dv, string pl, string gc, string tt, string tb, string sott, string tcn)
     {
         cmd.Parameters["@sh"].Value = sh; // Đã mã hóa ở ngoài
-        cmd.Parameters["@ht"].Value = BaoMatAES.MaHoa(ht);
-        cmd.Parameters["@ns"].Value = BaoMatAES.MaHoa(ns);
-        cmd.Parameters["@qq"].Value = BaoMatAES.MaHoa(qq);
-        cmd.Parameters["@nv"].Value = BaoMatAES.MaHoa(nv);
-        cmd.Parameters["@cb"].Value = BaoMatAES.MaHoa(cb);
-        cmd.Parameters["@cv"].Value = BaoMatAES.MaHoa(cv);
-        cmd.Parameters["@dv"].Value = BaoMatAES.MaHoa(dv);
-        cmd.Parameters["@pl"].Value = BaoMatAES.MaHoa(pl);
-        cmd.Parameters["@gc"].Value = BaoMatAES.MaHoa(gc);
-        cmd.Parameters["@tt"].Value = BaoMatAES.MaHoa(tt);
-        cmd.Parameters["@tb"].Value = BaoMatAES.MaHoa(tb);
-        cmd.Parameters["@sott"].Value = BaoMatAES.MaHoa(sott);
-        cmd.Parameters["@tcn"].Value = BaoMatAES.MaHoa(tcn);
+        cmd.Parameters["@ht"].Value = Module_BaoMatAES.MaHoa(ht);
+        cmd.Parameters["@ns"].Value = Module_BaoMatAES.MaHoa(ns);
+        cmd.Parameters["@qq"].Value = Module_BaoMatAES.MaHoa(qq);
+        cmd.Parameters["@nv"].Value = Module_BaoMatAES.MaHoa(nv);
+        cmd.Parameters["@cb"].Value = Module_BaoMatAES.MaHoa(cb);
+        cmd.Parameters["@cv"].Value = Module_BaoMatAES.MaHoa(cv);
+        cmd.Parameters["@dv"].Value = Module_BaoMatAES.MaHoa(dv);
+        cmd.Parameters["@pl"].Value = Module_BaoMatAES.MaHoa(pl);
+        cmd.Parameters["@gc"].Value = Module_BaoMatAES.MaHoa(gc);
+        cmd.Parameters["@tt"].Value = Module_BaoMatAES.MaHoa(tt);
+        cmd.Parameters["@tb"].Value = Module_BaoMatAES.MaHoa(tb);
+        cmd.Parameters["@sott"].Value = Module_BaoMatAES.MaHoa(sott);
+        cmd.Parameters["@tcn"].Value = Module_BaoMatAES.MaHoa(tcn);
     }
     // HÀM XUẤT DỮ LIỆU GỐC SỔ VÀNG (15 CỘT) ĐỂ BACKUP/NHẬP LẠI (Form 44 gọi)
     public static async Task XuatDuLieuGocSoVangRaExcelAsync(Form parentForm, string filePathLuu)
     {
         string dbPath = Module_DanduongGPS.DuongDanCSDL2;
         if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return;
-
         // Tự động nhận diện tên bảng Sổ vàng theo phiên bản hệ thống
         string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
         string tenBang = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
             ? "DanhSachTanBinh_SoVangBaNhat"
             : "DanhSach_SoVangBaNhat";
-
         Form_Loading frmLoad = new Form_Loading("Đang đọc và tạo tệp excel Sổ Vàng, vui lòng đợi...");
         if (parentForm != null) frmLoad.Icon = parentForm.Icon;
         bool isLoadShown = false;
-
         try
         {
             if (parentForm != null) parentForm.Enabled = false;
             frmLoad.Show(parentForm);
             isLoadShown = true;
             await Task.Delay(50); // Nhường luồng cho UI vẽ form loading mượt
-
             var danhSach = new List<string[]>();
-
             // 1. ĐỌC DỮ LIỆU THÔ VÀ GIẢI MÃ TỪ SQLITE (Tốc độ cao)
             await Task.Run(() =>
             {
@@ -2153,12 +1902,10 @@ public static class Module_BaNhat
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = $"SELECT * FROM [{tenBang}] ORDER BY STT ASC";
                     using var reader = cmd.ExecuteReader();
-
                     int stt = 1;
                     while (reader.Read())
                     {
                         if (reader["ID"] == DBNull.Value || Convert.ToInt32(reader["ID"]) == -1) continue;
-
                         danhSach.Add(new string[] {
                             (stt++).ToString(),
                             SafeDecrypt(reader["HoVaTen"]),
@@ -2179,21 +1926,18 @@ public static class Module_BaNhat
                     }
                 }
             });
-
             // 2. TẠO TỆP EXCEL VÀ ĐỔ DỮ LIỆU
             await Task.Run(() =>
             {
                 using (var wb = new XLWorkbook())
                 {
                     var ws = wb.Worksheets.Add("DS_SO_VANG_CSDL");
-
                     // Khởi tạo HEADER (Đúng 15 cột chuẩn xác với hàm Nhập)
                     string[] headers = {
                         "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán",
                         "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại",
                         "Ghi chú", "Thành tích", "Thông báo E", "STT Ghi sổ", "Tháng công nhận"
                     };
-
                     ws.Row(1).Height = 36;
                     for (int i = 0; i < headers.Length; i++)
                     {
@@ -2209,16 +1953,13 @@ public static class Module_BaNhat
                         cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         cell.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                     }
-
                     // Tùy chỉnh ĐỘ RỘNG CỘT
                     double[] widths = { 6, 25, 12, 10, 25, 12, 14, 15, 15, 12, 20, 35, 15, 12, 15 };
                     for (int i = 0; i < widths.Length; i++) ws.Column(i + 1).Width = widths[i];
-
                     // ĐỔ DỮ LIỆU HÀNG LOẠT VÀ FORMAT
                     if (danhSach.Count > 0)
                     {
                         ws.Cell(2, 1).InsertData(danhSach);
-
                         int lastRow = 1 + danhSach.Count;
                         var range = ws.Range(2, 1, lastRow, 15);
                         range.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
@@ -2226,14 +1967,11 @@ public static class Module_BaNhat
                         range.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                         range.Style.Font.FontSize = 13;
                         range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
                         // Tự động xuống dòng cho Ghi Chú và Thành Tích
                         ws.Column(11).Style.Alignment.WrapText = true;
                         ws.Column(12).Style.Alignment.WrapText = true;
-
                         // Đặt chiều cao dòng cố định
                         for (int i = 2; i <= lastRow; i++) ws.Row(i).Height = 36;
-
                         // Căn lề từng cột cho thẩm mỹ
                         ws.Column(1).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; // STT
                         ws.Column(2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left; // HT
@@ -2251,19 +1989,16 @@ public static class Module_BaNhat
                         ws.Column(14).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; // STT GS
                         ws.Column(15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center; // TCN
                     }
-
                     Module_BanQuyen.DongDauExcel(wb);
                     wb.SaveAs(filePathLuu);
                 }
             });
-
             // 3. GHI NHẬT KÝ VÀ MỞ FILE
             Module_NhatKy.GhiNhatKy(
                 taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
                 hanhDong: $"Xuất tệp excel dữ liệu gốc Sổ Vàng ({tenBang})",
                 ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
             );
-
             if (File.Exists(filePathLuu))
             {
                 MoTepExcelThiDuaPhongTrao3Nhat(filePathLuu);
@@ -2283,6 +2018,4 @@ public static class Module_BaNhat
             }
         }
     }
-
-
 }

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form39_ThongTinNguoiDung : Form
@@ -12,7 +11,6 @@ namespace PhanMemThiDua2026
         private const int MAX_PIXEL_LIMIT = 4096;
         private const int DISPLAY_SIZE = 256;
         // 🚀 CACHE RAM & THREAD SAFETY
-
         //private static readonly object _avatarLock = new object(); // Khóa luồng cho Cache
         private static readonly Color FocusBorderColor = Color.FromArgb(0, 120, 215); // Win 10/11 Blue
         private static readonly Color NormalBorderColor = Color.Silver;
@@ -28,7 +26,6 @@ namespace PhanMemThiDua2026
             {
                 // 🛡️ BẢO VỆ 3 LỚP (Đã gỡ bỏ bẫy !ctrl.IsHandleCreated để không bị nuốt ảnh khi load nhanh)
                 if (ctrl == null || ctrl.IsDisposed || ctrl.Disposing) return;
-
                 try
                 {
                     // InvokeRequired sẽ trả về false nếu Handle chưa được tạo HOẶC đang đứng đúng luồng UI
@@ -59,7 +56,7 @@ namespace PhanMemThiDua2026
         // Cờ nhận diện Form bật lần đầu tiên
         private bool _isFirstLoad = true;
         // Lê Trung Kiên -  Yêu mèo cam
-        private async void Form39_ThongTinNguoiDung_Load(object sender, EventArgs e)
+        private async void Form39_ThongTinNguoiDung_Load(object? sender, EventArgs e)
         {
             try
             {
@@ -105,7 +102,6 @@ namespace PhanMemThiDua2026
                 if (_instance == null || _instance.IsDisposed)
                 {
                     _instance = new Form39_ThongTinNguoiDung();
-
                     _instance.FormClosed += (_, __) =>
                     {
                         lock (_formLock)
@@ -117,7 +113,6 @@ namespace PhanMemThiDua2026
                         }
                     };
                 }
-
                 return _instance;
             }
         }
@@ -127,7 +122,6 @@ namespace PhanMemThiDua2026
             try
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-
                 // Cho 2 tác vụ Text và Image chạy song song ép xung
                 var loadTextTask = LoadThongTinVanBanAsync();
                 var loadAvatarTask = LoadAnhDaiDienAsync(cts.Token);
@@ -147,11 +141,9 @@ namespace PhanMemThiDua2026
             {
                 // Bắt lại ảnh cũ đang hiển thị
                 var oldImage = pictureBox2_AnhDaiDienAdmin.Image;
-
                 // Gán ảnh mới và cấu hình hiển thị
                 pictureBox2_AnhDaiDienAdmin.Image = img;
                 pictureBox2_AnhDaiDienAdmin.SizeMode = PictureBoxSizeMode.StretchImage;
-
                 // Giải phóng ảnh cũ khỏi RAM ngay lập tức
                 oldImage?.Dispose();
             });
@@ -184,34 +176,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Lỗi khởi tạo bảng AvatarAdmin: " + ex.Message);
             }
         }
-        //private async void Form39_ThongTinNguoiDung_Load(object sender, EventArgs e)
-        //{
-        //    try
-        //    {
-        //        // 🌟 Gọi Init Focus khi Form đã tạo Handle xong -> An toàn nhất cho Krypton
-        //        InitFocusEffects();
-
-        //        this.ActiveControl = kryptonButton1_DongFrom;
-        //        InitToolTips();
-
-        //        // 🚀 TIMEOUT 30S: An toàn cho máy cơ quan ổ HDD cũ / Antivirus quét ngầm
-        //        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-
-        //        var loadTextTask = LoadThongTinVanBanAsync();
-        //        var loadAvatarTask = LoadAnhDaiDienAsync(cts.Token);
-        //        KhoiTaoBangAnhAdmin(_csdl1Path); // Đảm bảo bảng tồn tại trước khi load ảnh
-        //        await Task.WhenAll(loadTextTask, loadAvatarTask);
-        //    }
-        //    catch (OperationCanceledException)
-        //    {
-        //        GhiLogHeThong("Quá thời gian tải dữ liệu người dùng (Timeout 30s).");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        GhiLogHeThong("Form Load Error", ex);
-        //    }
-        //}
-        // Cung cấp danh sách Control tĩnh, loại bỏ đệ quy tốn CPU
         private IEnumerable<Control> GetAllTextBoxes()
         {
             return new Control[]
@@ -233,7 +197,6 @@ namespace PhanMemThiDua2026
                 {
                     if (ctrl == null || ctrl.IsDisposed)
                         continue;
-
                     if (ctrl is Krypton.Toolkit.KryptonTextBox ktb)
                     {
                         // Set trạng thái chuẩn để không bị rách viền trên máy DPI cao
@@ -241,7 +204,6 @@ namespace PhanMemThiDua2026
                         ktb.StateCommon.Border.Color1 = NormalBorderColor;
                         ktb.StateCommon.Border.Color2 = NormalBorderColor;
                         ktb.StateCommon.Border.Width = NormalBorderWidth;
-
                         ktb.Enter -= KryptonTextBox_EnterFocus;
                         ktb.Leave -= KryptonTextBox_LeaveFocus;
                         ktb.Enter += KryptonTextBox_EnterFocus;
@@ -268,7 +230,6 @@ namespace PhanMemThiDua2026
                 foreach (var ctrl in GetAllTextBoxes())
                 {
                     if (ctrl == null || ctrl.IsDisposed) continue;
-
                     if (ctrl is Krypton.Toolkit.KryptonTextBox ktb)
                     {
                         ktb.Enter -= KryptonTextBox_EnterFocus;
@@ -311,9 +272,7 @@ namespace PhanMemThiDua2026
         {
             if (sender is TextBox tb) tb.BackColor = SystemColors.Window;
         }
-        // =========================================================================
         // 🚀 CÁC HÀM XỬ LÝ TEXT & DỮ LIỆU CỐT LÕI
-        // =========================================================================
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
@@ -343,15 +302,11 @@ namespace PhanMemThiDua2026
                 textBox_TenMayTinh.Text = SafeGet(() => Environment.MachineName);
                 textBox_TenUserWindows.Text = SafeGet(() => Environment.UserName);
                 textBox_PhienbanPhanMem.Text = Module_PhienBan.SoftwareVersion ?? "N/A";
-
                 if (kryptonTextBox1_CapNhatLanCuoi != null)
                     kryptonTextBox1_CapNhatLanCuoi.Text = Module_PhienBan.NgayThangNamHeThong ?? "N/A";
-
                 SetTextBoxesReadOnly();
-
                 textbox_SeriaMay.Text = "Đang kiểm tra...";
                 string uuid = await Task.Run(() => SafeGet(() => Module_TrangThaiHeThong.LayUUIDMayTinh()));
-
                 // 🛡️ BẢO VỆ HANDLE
                 if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
                 {
@@ -393,15 +348,12 @@ namespace PhanMemThiDua2026
             }
             catch { return "N/A"; }
         }
-        // =========================================================================
         // 🚀 TỐI ƯU ẢNH (Stream Phòng Ngự & Clone An Toàn Tuyệt Đối)
-        // =========================================================================
         private async Task LoadAnhDaiDienAsync(CancellationToken token)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(_csdl1Path) || !File.Exists(_csdl1Path)) return;
-
                 // 1. Kiểm tra RAM (Cache toàn cục từ Module) trước tiên
                 lock (Module_DanduongGPS.AvatarLock)
                 {
@@ -411,16 +363,13 @@ namespace PhanMemThiDua2026
                         return;
                     }
                 }
-
                 // 2. Không có Cache thì lấy từ DB
                 Image? resizedImage = await LayVaXuLyAnhTuDatabaseAsync(token);
-
                 if (this.IsDisposed || this.Disposing || !this.IsHandleCreated)
                 {
                     resizedImage?.Dispose();
                     return;
                 }
-
                 if (resizedImage != null)
                 {
                     // Nạp bản sao vào Cache toàn cục
@@ -429,7 +378,6 @@ namespace PhanMemThiDua2026
                         Module_DanduongGPS.CachedAvatarAdmin?.Dispose();
                         Module_DanduongGPS.CachedAvatarAdmin = new Bitmap(resizedImage);
                     }
-
                     HienThiAnh(new Bitmap(resizedImage));
                     resizedImage.Dispose();
                 }
@@ -455,19 +403,14 @@ namespace PhanMemThiDua2026
             string connString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
             using var conn = new SqliteConnection(connString);
             await conn.OpenAsync(token);
-
             // Lấy ID = 1
             using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);
             using var reader = await cmd.ExecuteReaderAsync(token);
-
             if (!await reader.ReadAsync(token)) return null;
-
             byte[]? imageBytes = null;
-
             // Ưu tiên đọc Thumbnail trước để tối ưu RAM, nếu không có thì lấy ảnh gốc Full
             int thumbOrdinal = reader.GetOrdinal("ThumbnailAnh");
             int fullOrdinal = reader.GetOrdinal("DuLieuAnh");
-
             if (!reader.IsDBNull(thumbOrdinal))
             {
                 imageBytes = (byte[])reader["ThumbnailAnh"];
@@ -476,15 +419,12 @@ namespace PhanMemThiDua2026
             {
                 imageBytes = (byte[])reader["DuLieuAnh"];
             }
-
             if (imageBytes == null || imageBytes.Length == 0) return null;
-
             try
             {
                 using var ms = new MemoryStream(imageBytes);
                 // Dùng mẫu tạo dựng an toàn tránh lỗi GDI+ lock file/stream
                 using var tempBmp = Image.FromStream(ms, false, true);
-
                 // Trả về bản resize chuẩn UI
                 return ResizeImageSafe(tempBmp, DISPLAY_SIZE, DISPLAY_SIZE);
             }
@@ -494,76 +434,22 @@ namespace PhanMemThiDua2026
                 return null;
             }
         }
-
-        //private async Task<Image?> LayVaXuLyAnhTuDatabaseAsync(CancellationToken token)
-        //{
-        //    // 🚀 SQLITE BUSY TIMEOUT: Chờ tối đa 10s nếu file .db đang bị khóa
-        //    string connString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
-        //    using var conn = new SqliteConnection(connString);
-
-        //    await conn.OpenAsync(token);
-
-        //    using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);
-        //    using var reader = await cmd.ExecuteReaderAsync(token);
-
-        //    if (!await reader.ReadAsync(token)) return null;
-
-        //    int thumbOrdinal = reader.GetOrdinal("ThumbnailAnh");
-        //    int fullOrdinal = reader.GetOrdinal("DuLieuAnh");
-        //    int colIndex = !reader.IsDBNull(thumbOrdinal) ? thumbOrdinal :
-        //                   !reader.IsDBNull(fullOrdinal) ? fullOrdinal : -1;
-
-        //    if (colIndex == -1) return null;
-
-        //    using Stream dbStream = reader.GetStream(colIndex);
-
-        //    // 🚀 DEFENSIVE STREAMING: Chống Throw NotSupportedException
-        //    if (!dbStream.CanRead) return null;
-
-        //    try
-        //    {
-        //        if (dbStream.Length == 0 || dbStream.Length > MAX_IMAGE_SIZE) return null;
-        //    }
-        //    catch
-        //    {
-        //        return null; // Bắt an toàn các Provider không hỗ trợ .Length
-        //    }
-
-        //    using var ms = new MemoryStream();
-        //    await dbStream.CopyToAsync(ms, token);
-        //    ms.Position = 0;
-
-        //    // 🚀 SAFE CLONING: Ngắt đứt hoàn toàn khóa GDI+
-        //    using var tempBmp = Image.FromStream(ms, useEmbeddedColorManagement: false, validateImageData: true);
-        //    using var original = new Bitmap(tempBmp);
-
-        //    if (original.Width > MAX_PIXEL_LIMIT || original.Height > MAX_PIXEL_LIMIT)
-        //        return null;
-
-        //    return ResizeImageSafe(original, DISPLAY_SIZE, DISPLAY_SIZE);
-        //}
         private Bitmap ResizeImageSafe(Image img, int maxW, int maxH)
         {
             double ratio = Math.Min((double)maxW / img.Width, (double)maxH / img.Height);
             int newW = Math.Max(1, (int)(img.Width * ratio));
             int newH = Math.Max(1, (int)(img.Height * ratio));
-
             var bmp = new Bitmap(newW, newH);
-
             using var g = Graphics.FromImage(bmp);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.SmoothingMode = SmoothingMode.HighQuality;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.CompositingQuality = CompositingQuality.HighQuality;
-
             g.DrawImage(img, 0, 0, newW, newH);
-
             return bmp;
         }
-        // =========================================================================
         // 🛑 QUẢN LÝ ĐÓNG FORM (NGỦ ĐÔNG TRÊN RAM & DỌN DẸP RÁC)
-        // =========================================================================
-        private void kryptonButton1_DongFrom_Click(object sender, EventArgs e)
+        private void kryptonButton1_DongFrom_Click(object? sender, EventArgs e)
         {
             this.Hide();
         }
@@ -590,21 +476,17 @@ namespace PhanMemThiDua2026
             catch { }
             base.OnFormClosed(e);
         }
-        // =========================================================================
         // 🛠️ THREAD-SAFE PROFESSIONAL LOGGING VÀO DATABASE
-        // =========================================================================
         private void GhiLogHeThong(string context, Exception? ex = null)
         {
             try
             {
                 // 1. Xác định tài khoản (Fallback an toàn nếu app lỗi trước khi load xong)
                 string taiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
-                    ? "Hệ thống (Exception)"
+                    ? "Hệ thống (Exception) - Hàm GhiLogHeThong"
                     : Module_TaiKhoan.TenTaiKhoan_RAM;
-
                 // 2. Định dạng Hành động
                 string hanhDong = $"[LỖI Form39] {context}";
-
                 // 3. Xây dựng Ghi chú an toàn cho DB
                 string ghiChu = "Không có Exception chi tiết.";
                 if (ex != null)
@@ -614,10 +496,8 @@ namespace PhanMemThiDua2026
                     {
                         stackTrace = stackTrace.Substring(0, 800) + "... [Đã cắt bớt]";
                     }
-
                     ghiChu = $"Message: {ex.Message} || StackTrace: {stackTrace}";
                 }
-
                 // 4. Bắn thẳng vào CSDL thông qua Module
                 Module_NhatKy.GhiNhatKy(
                     taiKhoan: taiKhoan,

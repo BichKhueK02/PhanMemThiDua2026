@@ -1,16 +1,16 @@
-﻿using System;
+﻿using Krypton.Toolkit;
+using Microsoft.Data.Sqlite;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.Data.Sqlite;
-using Krypton.Toolkit;
-using System.IO;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form51_QuanLyKhenThuongTapTheNamCu : Form
@@ -40,94 +40,96 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
         }
-        private async void Form51_QuanLyKhenThuongTapTheNamCu_Load(object sender, EventArgs e)
-        {
-            if (_isInitialized) return;
-
-            Module_DonVi.KhoiTao();
-            CauHinhGridCoBan(kryptonDataGridView1);
-            CauHinhStyleWeb(kryptonDataGridView1);
-            CauHinhCotGrid(kryptonDataGridView1);
-
-            if (kryptonTextBox_STT != null)
-            {
-                kryptonTextBox_STT.ReadOnly = true;
-                kryptonTextBox_STT.StateCommon.Back.Color1 = Color.LightGreen;
-            }
-
-            if (kryptonDataGridView1 != null)
-            {
-                kryptonDataGridView1.CellClick -= kryptonDataGridView1_CellClick;
-                kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
-            }
-
-            if (kryptonTextBox_TienThuong != null)
-            {
-                kryptonTextBox_TienThuong.TextChanged -= kryptonTextBox_TienThuong_TextChanged;
-                kryptonTextBox_TienThuong.TextChanged += kryptonTextBox_TienThuong_TextChanged;
-            }
-
-            // ⭐ SỬA TẠI ĐÂY: Gắn sự kiện cho ComboBox Tên Tập Thể thay thế Textbox
-            if (combobox1_TimKiemTheoTen != null)
-            {
-                combobox1_TimKiemTheoTen.TextChanged -= combobox1_TimKiemTheoTen_TextChanged;
-                combobox1_TimKiemTheoTen.TextChanged += combobox1_TimKiemTheoTen_TextChanged;
-            }
-
-            if (comboBox_TimKiemDonViKhenThuong != null)
-            {
-                comboBox_TimKiemDonViKhenThuong.TextChanged -= comboBox_TimKiemDonViKhenThuong_TextChanged;
-                comboBox_TimKiemDonViKhenThuong.TextChanged += comboBox_TimKiemDonViKhenThuong_TextChanged;
-            }
-
-            if (comboBox1_HinhThucKT != null)
-            {
-                comboBox1_HinhThucKT.TextChanged -= comboBox1_HinhThucKT_TextChanged;
-                comboBox1_HinhThucKT.TextChanged += comboBox1_HinhThucKT_TextChanged;
-            }
-            if (richTextBox1_NoiDungKhenThuong != null)
-            {
-                richTextBox1_NoiDungKhenThuong.TextChanged -= richTextBox1_NoiDungKhenThuong_TextChanged;
-                richTextBox1_NoiDungKhenThuong.TextChanged += richTextBox1_NoiDungKhenThuong_TextChanged;
-            }
-            // Gọi kiểm tra ngay lúc đầu để ẩn nút nếu ô text đang trống
-            KiemTraHienThiNutCoChu();
-            ResetInput();
-
-            if (comboBox1_ChonCscdKhenThuongTapTheNamCu != null)
-            {
-                comboBox1_ChonCscdKhenThuongTapTheNamCu.SelectedIndexChanged -= ComboBox1_ChonCscdKhenThuongTapTheNamCu_SelectedIndexChanged;
-                comboBox1_ChonCscdKhenThuongTapTheNamCu.SelectedIndexChanged += ComboBox1_ChonCscdKhenThuongTapTheNamCu_SelectedIndexChanged;
-            }
-
-            LoadDanhSachFileLichSu();
-            await LoadDataToGridAsync();
-            CapNhatTrangThaiNutThaoTac(); // ⭐ Thêm dòng này
-            InitToolTips();
-
-            _isInitialized = true;
-        }
+        private async void Form51_QuanLyKhenThuongTapTheNamCu_Load(object? sender, EventArgs e)
+                {
+                    if (_isInitialized) return;
+                    _isInitialized = true;
+                    try
+                    {
+                        // 1. KHỞI TẠO MODULE / DEPENDENCY
+                        Module_DonVi.KhoiTao();
+                        // 2. KHỞI TẠO DATAGRIDVIEW
+                        CauHinhGridCoBan(kryptonDataGridView1);
+                        CauHinhStyleWeb(kryptonDataGridView1);
+                        CauHinhCotGrid(kryptonDataGridView1);
+                        // 3. KHỞI TẠO TRẠNG THÁI CONTROL
+                        if (kryptonTextBox_STT != null)
+                        {
+                            kryptonTextBox_STT.ReadOnly = true;
+                            kryptonTextBox_STT.StateCommon.Back.Color1 = Color.LightGreen;
+                        }
+                        // 4. ĐĂNG KÝ EVENT DATAGRIDVIEW
+                        if (kryptonDataGridView1 != null)
+                        {
+                            kryptonDataGridView1.CellClick -= kryptonDataGridView1_CellClick;
+                            kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
+                        }
+                        // 5. ĐĂNG KÝ EVENT CÁC CONTROL NHẬP LIỆU
+                        if (kryptonTextBox_TienThuong != null)
+                        {
+                            kryptonTextBox_TienThuong.TextChanged -= kryptonTextBox_TienThuong_TextChanged;
+                            kryptonTextBox_TienThuong.TextChanged += kryptonTextBox_TienThuong_TextChanged;
+                        }
+                        if (combobox1_TimKiemTheoTen != null)
+                        {
+                            combobox1_TimKiemTheoTen.TextChanged -= combobox1_TimKiemTheoTen_TextChanged;
+                            combobox1_TimKiemTheoTen.TextChanged += combobox1_TimKiemTheoTen_TextChanged;
+                        }
+                        if (comboBox_TimKiemDonViKhenThuong != null)
+                        {
+                            comboBox_TimKiemDonViKhenThuong.TextChanged -= comboBox_TimKiemDonViKhenThuong_TextChanged;
+                            comboBox_TimKiemDonViKhenThuong.TextChanged += comboBox_TimKiemDonViKhenThuong_TextChanged;
+                        }
+                        if (comboBox1_HinhThucKT != null)
+                        {
+                            comboBox1_HinhThucKT.TextChanged -= comboBox1_HinhThucKT_TextChanged;
+                            comboBox1_HinhThucKT.TextChanged += comboBox1_HinhThucKT_TextChanged;
+                        }
+                        if (richTextBox1_NoiDungKhenThuong != null)
+                        {
+                            richTextBox1_NoiDungKhenThuong.TextChanged -= richTextBox1_NoiDungKhenThuong_TextChanged;
+                            richTextBox1_NoiDungKhenThuong.TextChanged += richTextBox1_NoiDungKhenThuong_TextChanged;
+                        }
+                        if (comboBox1_ChonCscdKhenThuongTapTheNamCu != null)
+                        {
+                            comboBox1_ChonCscdKhenThuongTapTheNamCu.SelectedIndexChanged -= ComboBox1_ChonCscdKhenThuongTapTheNamCu_SelectedIndexChanged;
+                            comboBox1_ChonCscdKhenThuongTapTheNamCu.SelectedIndexChanged += ComboBox1_ChonCscdKhenThuongTapTheNamCu_SelectedIndexChanged;
+                        }
+                        // 6. ĐƯA FORM VỀ TRẠNG THÁI BAN ĐẦU
+                        ResetInput();
+                        KiemTraHienThiNutCoChu();
+                        // 7. NẠP DANH SÁCH LỊCH SỬ
+                        LoadDanhSachFileLichSu();
+                        // 8. NẠP DỮ LIỆU CHÍNH
+                        await LoadDataToGridAsync();
+                        // 9. CẬP NHẬT TRẠNG THÁI CÁC NÚT
+                        CapNhatTrangThaiNutThaoTac();
+                        // 10. KHỞI TẠO TOOLTIP
+                        InitToolTips();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Lỗi Form51_Load: {ex.Message}");
+                        _isInitialized = false;
+                    }
+                }
         // Hàm tự động ẩn/hiện nút chỉnh cỡ chữ theo nội dung RichTextBox
         private void KiemTraHienThiNutCoChu()
         {
             var richTextBox = richTextBox1_NoiDungKhenThuong;
-
             if (richTextBox == null ||
                 richTextBox.IsDisposed ||
                 richTextBox.Disposing)
             {
                 return;
             }
-
             bool coNoiDung = !string.IsNullOrWhiteSpace(richTextBox.Text);
-
             if (kryptonButton2_TangCoChuRichText != null &&
                 !kryptonButton2_TangCoChuRichText.IsDisposed &&
                 !kryptonButton2_TangCoChuRichText.Disposing)
             {
                 kryptonButton2_TangCoChuRichText.Visible = coNoiDung;
             }
-
             if (kryptonButton2_GiamCoChuRichText != null &&
                 !kryptonButton2_GiamCoChuRichText.IsDisposed &&
                 !kryptonButton2_GiamCoChuRichText.Disposing)
@@ -143,16 +145,13 @@ namespace PhanMemThiDua2026
             {
                 return;
             }
-
             bool coDuLieu = kryptonDataGridView1.Rows.Count > 0;
-
             if (kryptonButton_SuaVaLuuKhenThuong != null &&
                 !kryptonButton_SuaVaLuuKhenThuong.IsDisposed &&
                 !kryptonButton_SuaVaLuuKhenThuong.Disposing)
             {
                 kryptonButton_SuaVaLuuKhenThuong.Visible = coDuLieu;
             }
-
             if (kryptonButton_XoaKhenThuong != null &&
                 !kryptonButton_XoaKhenThuong.IsDisposed &&
                 !kryptonButton_XoaKhenThuong.Disposing)
@@ -160,28 +159,23 @@ namespace PhanMemThiDua2026
                 kryptonButton_XoaKhenThuong.Visible = coDuLieu;
             }
         }
-        private void richTextBox1_NoiDungKhenThuong_TextChanged(object sender, EventArgs e)
+        private void richTextBox1_NoiDungKhenThuong_TextChanged(object? sender, EventArgs e)
         {
             KiemTraHienThiNutCoChu();
         }
         public void LoadDanhSachFileLichSu()
         {
             if (comboBox1_ChonCscdKhenThuongTapTheNamCu == null) return;
-
             comboBox1_ChonCscdKhenThuongTapTheNamCu.Items.Clear();
             string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
-
             if (!Directory.Exists(dir)) return;
-
             // Quét tìm các file tương ứng với Khen thưởng CBCS
             var files = Directory.GetFiles(dir, "KhenThuong_CBCS_Nam*.db");
             var danhSach = new List<FileLichSuDTO>();
-
             foreach (var file in files)
             {
                 string fileName = Path.GetFileNameWithoutExtension(file);
                 string nam = fileName.Replace("KhenThuong_CBCS_Nam", "");
-
                 danhSach.Add(new FileLichSuDTO
                 {
                     TenHienThi = $"Năm {nam}",
@@ -189,15 +183,12 @@ namespace PhanMemThiDua2026
                     LaTanBinh = false
                 });
             }
-
             // Đưa năm mới nhất lên đầu
             danhSach = danhSach.OrderByDescending(x => x.TenHienThi).ToList();
-
             // 🔥 SỬA LỖI TẠI ĐÂY: Phải gán Member trước khi gán DataSource
             comboBox1_ChonCscdKhenThuongTapTheNamCu.DisplayMember = "TenHienThi";
             comboBox1_ChonCscdKhenThuongTapTheNamCu.ValueMember = "DuongDan";
             comboBox1_ChonCscdKhenThuongTapTheNamCu.DataSource = danhSach;
-
             if (danhSach.Count > 0)
             {
                 comboBox1_ChonCscdKhenThuongTapTheNamCu.SelectedIndex = 0;
@@ -208,22 +199,18 @@ namespace PhanMemThiDua2026
             }
             CapNhatTrangThaiNutThaoTac();
         }
-        private async void ComboBox1_ChonCscdKhenThuongTapTheNamCu_SelectedIndexChanged(object sender, EventArgs e)
+        private async void ComboBox1_ChonCscdKhenThuongTapTheNamCu_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (comboBox1_ChonCscdKhenThuongTapTheNamCu.SelectedValue != null)
             {
                 _currentDbPath = comboBox1_ChonCscdKhenThuongTapTheNamCu.SelectedValue.ToString();
-
                 KiemTraVaTaoBangThongKeKhenThuongTapThe();
-
                 _globalCache = null;
                 ResetInput();
                 await LoadComboBoxDonViAsync(true);
                 await LoadComboBoxHinhThucKTAsync(true);
-
                 // ⭐ GỌI LOAD COMBOBOX TÊN TẬP THỂ
                 await LoadComboBoxTenTapTheAsync(true);
-
                 await LoadDataToGridAsync();
             }
             else
@@ -269,10 +256,8 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrEmpty(_currentDbPath) || !File.Exists(_currentDbPath)) return;
             if (_globalCache != null && !forceReload) return;
-
             _globalCache = new List<DuLieuCache>();
             string connectionString = $@"Data Source={_currentDbPath};";
-
             using (var conn = new SqliteConnection(connectionString))
             {
                 await conn.OpenAsync();
@@ -300,7 +285,7 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(s)) return "";
             try
             {
-                string decrypted = BaoMatAES.GiaiMa(s);
+                string decrypted = Module_BaoMatAES.GiaiMa(s);
                 return string.IsNullOrEmpty(decrypted) ? "[Lỗi giải mã]" : decrypted;
             }
             catch
@@ -311,7 +296,7 @@ namespace PhanMemThiDua2026
         private string SafeEncrypt(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return "";
-            return BaoMatAES.MaHoa(input.Trim());
+            return Module_BaoMatAES.MaHoa(input.Trim());
         }
         // LOAD DỮ LIỆU BỘ LỌC (TỪ CACHE)
         private async Task LoadComboBoxDonViAsync(bool forceReload = false)
@@ -319,22 +304,18 @@ namespace PhanMemThiDua2026
             if (comboBox_TimKiemDonViKhenThuong == null) return;
             await BuildGlobalCacheAsync(forceReload);
             if (_globalCache == null) return;
-
             comboBox_TimKiemDonViKhenThuong.TextChanged -= comboBox_TimKiemDonViKhenThuong_TextChanged;
             string currentText = comboBox_TimKiemDonViKhenThuong.Text;
-
             var dsDonVi = _globalCache
         .Where(x => !string.IsNullOrWhiteSpace(x.DonVi) && x.DonVi != "[Lỗi giải mã]")
         .Select(x => x.DonVi)
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .OrderBy(x => x)
         .ToArray();
-
             comboBox_TimKiemDonViKhenThuong.Items.Clear();
             comboBox_TimKiemDonViKhenThuong.Items.Add("");
             comboBox_TimKiemDonViKhenThuong.Items.AddRange(dsDonVi);
             comboBox_TimKiemDonViKhenThuong.Text = currentText;
-
             comboBox_TimKiemDonViKhenThuong.TextChanged += comboBox_TimKiemDonViKhenThuong_TextChanged;
         }
         private async Task LoadComboBoxHinhThucKTAsync(bool forceReload = false)
@@ -342,22 +323,18 @@ namespace PhanMemThiDua2026
             if (comboBox1_HinhThucKT == null) return;
             await BuildGlobalCacheAsync(forceReload);
             if (_globalCache == null) return;
-
             comboBox1_HinhThucKT.TextChanged -= comboBox1_HinhThucKT_TextChanged;
             string currentText = comboBox1_HinhThucKT.Text;
-
             var dsHinhThuc = _globalCache
         .Where(x => !string.IsNullOrWhiteSpace(x.HinhThucKhenThuong) && x.HinhThucKhenThuong != "[Lỗi giải mã]")
         .Select(x => x.HinhThucKhenThuong)
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .OrderBy(x => x)
         .ToArray();
-
             comboBox1_HinhThucKT.Items.Clear();
             comboBox1_HinhThucKT.Items.Add("");
             comboBox1_HinhThucKT.Items.AddRange(dsHinhThuc);
             comboBox1_HinhThucKT.Text = currentText;
-
             comboBox1_HinhThucKT.TextChanged += comboBox1_HinhThucKT_TextChanged;
         }
         // ⭐ HÀM MỚI: TẢI DANH SÁCH TÊN TẬP THỂ TỪ RAM LÊN COMBOBOX
@@ -366,10 +343,8 @@ namespace PhanMemThiDua2026
             if (combobox1_TimKiemTheoTen == null) return;
             await BuildGlobalCacheAsync(forceReload);
             if (_globalCache == null) return;
-
             combobox1_TimKiemTheoTen.TextChanged -= combobox1_TimKiemTheoTen_TextChanged;
             string currentText = combobox1_TimKiemTheoTen.Text;
-
             // Lọc trùng lặp bằng Distinct và sắp xếp A-Z
             var dsTenTapThe = _globalCache
                 .Where(x => !string.IsNullOrWhiteSpace(x.TenTapThe) && x.TenTapThe != "[Lỗi giải mã]")
@@ -377,11 +352,9 @@ namespace PhanMemThiDua2026
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(x => x)
                 .ToArray();
-
             combobox1_TimKiemTheoTen.Items.Clear();
             combobox1_TimKiemTheoTen.Items.Add(""); // Mục rỗng thể hiện trạng thái Không Lọc
             combobox1_TimKiemTheoTen.Items.AddRange(dsTenTapThe);
-
             // Giữ lại text cũ nếu có
             if (!string.IsNullOrEmpty(currentText) && combobox1_TimKiemTheoTen.Items.Contains(currentText))
             {
@@ -391,15 +364,14 @@ namespace PhanMemThiDua2026
             {
                 combobox1_TimKiemTheoTen.SelectedIndex = 0;
             }
-
             combobox1_TimKiemTheoTen.TextChanged += combobox1_TimKiemTheoTen_TextChanged;
         }
         // SỰ KIỆN TÌM KIẾM
         // SỰ KIỆN TÌM KIẾM (Đã đổi sang Combobox)
-        private async void combobox1_TimKiemTheoTen_TextChanged(object sender, EventArgs e) => await DebouncedSearchAsync();
-        private async void comboBox_TimKiemDonViKhenThuong_TextChanged(object sender, EventArgs e) => await DebouncedSearchAsync();
-        private async void comboBox1_HinhThucKT_TextChanged(object sender, EventArgs e) => await DebouncedSearchAsync();
-        private void kryptonTextBox_TienThuong_TextChanged(object sender, EventArgs e)
+        private async void combobox1_TimKiemTheoTen_TextChanged(object? sender, EventArgs e) => await DebouncedSearchAsync();
+        private async void comboBox_TimKiemDonViKhenThuong_TextChanged(object? sender, EventArgs e) => await DebouncedSearchAsync();
+        private async void comboBox1_HinhThucKT_TextChanged(object? sender, EventArgs e) => await DebouncedSearchAsync();
+        private void kryptonTextBox_TienThuong_TextChanged(object? sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(kryptonTextBox_TienThuong.Text)) return;
             kryptonTextBox_TienThuong.TextChanged -= kryptonTextBox_TienThuong_TextChanged;
@@ -407,7 +379,6 @@ namespace PhanMemThiDua2026
             {
                 int cursorPosition = kryptonTextBox_TienThuong.Text.Length - kryptonTextBox_TienThuong.SelectionStart;
                 string rawText = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
-
                 if (long.TryParse(rawText, out long tienThuong))
                 {
                     if (tienThuong < 0) tienThuong = 0;
@@ -441,10 +412,8 @@ namespace PhanMemThiDua2026
                 _searchCts.Cancel();
                 _searchCts.Dispose(); // ⭐ Bổ sung giải phóng bộ nhớ
             }
-
             _searchCts = new System.Threading.CancellationTokenSource();
             var token = _searchCts.Token;
-
             try
             {
                 await Task.Delay(350, token);
@@ -459,33 +428,24 @@ namespace PhanMemThiDua2026
         public async Task LoadDataToGridAsync(System.Threading.CancellationToken token = default)
         {
             if (string.IsNullOrEmpty(_currentDbPath) || !File.Exists(_currentDbPath)) return;
-
             string keywordTen = combobox1_TimKiemTheoTen?.Text.Trim().ToLower() ?? "";
             string keywordDonVi = comboBox_TimKiemDonViKhenThuong?.Text.Trim().ToLower() ?? "";
             string keywordHinhThuc = comboBox1_HinhThucKT?.Text.Trim().ToLower() ?? "";
-
             await BuildGlobalCacheAsync();
             if (_globalCache == null) return;
-
             try
             {
                 DataTable dtThuTu = await Task.Run(async () =>
                 {
                     if (token.IsCancellationRequested) return null;
-
                     var query = _globalCache.AsEnumerable();
-
                     if (!string.IsNullOrEmpty(keywordTen)) query = query.Where(x => x.TenTapThe.ToLower().Contains(keywordTen));
                     if (!string.IsNullOrEmpty(keywordDonVi)) query = query.Where(x => x.DonVi.ToLower().Contains(keywordDonVi));
                     if (!string.IsNullOrEmpty(keywordHinhThuc)) query = query.Where(x => x.HinhThucKhenThuong.ToLower().Contains(keywordHinhThuc));
-
                     var matchedItems = query.Take(500).ToDictionary(x => x.ID, x => x);
-
                     if (matchedItems.Count == 0 || token.IsCancellationRequested) return CreateDataTableSchema();
-
                     DataTable dt = CreateDataTableSchema();
                     string connectionString = $@"Data Source={_currentDbPath};";
-
                     using (SqliteConnection conn = new SqliteConnection(connectionString))
                     {
                         await conn.OpenAsync(token);
@@ -496,20 +456,16 @@ namespace PhanMemThiDua2026
              NguoiDaiDienNhan, GhiChu 
               FROM ThongKe_KhenThuongTapThe 
               WHERE ID IN ({inClause}) ORDER BY STT ASC";
-
                         using (SqliteCommand cmdFull = new SqliteCommand(queryFull, conn))
                         using (SqliteDataReader reader = await cmdFull.ExecuteReaderAsync(token))
                         {
                             while (await reader.ReadAsync(token))
                             {
                                 if (token.IsCancellationRequested) return null;
-
                                 int id = Convert.ToInt32(reader["ID"]);
                                 var cacheItem = matchedItems[id];
-
                                 string tienThuongStr = SafeDecrypt(reader["TienThuong"]);
                                 long.TryParse(tienThuongStr.Replace(".", "").Replace(",", ""), out long tien);
-
                                 dt.Rows.Add(
                             id,
                             reader["STT"] != DBNull.Value ? Convert.ToInt32(reader["STT"]) : 0,
@@ -531,7 +487,6 @@ namespace PhanMemThiDua2026
                     }
                     return dt;
                 }, token);
-
                 if (dtThuTu != null && !token.IsCancellationRequested)
                 {
                     kryptonDataGridView1.DataSource = dtThuTu;
@@ -566,23 +521,20 @@ namespace PhanMemThiDua2026
             return dt;
         }
         // CÁC HÀM TIỆN ÍCH / GIAO DIỆN
-        private async void kryptonButton_LamMoiCacOTimKiem_Click(object sender, EventArgs e)
+        private async void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e)
         {
             // Ngắt sự kiện tạm thời
             if (combobox1_TimKiemTheoTen != null) combobox1_TimKiemTheoTen.TextChanged -= combobox1_TimKiemTheoTen_TextChanged;
             if (comboBox_TimKiemDonViKhenThuong != null) comboBox_TimKiemDonViKhenThuong.TextChanged -= comboBox_TimKiemDonViKhenThuong_TextChanged;
             if (comboBox1_HinhThucKT != null) comboBox1_HinhThucKT.TextChanged -= comboBox1_HinhThucKT_TextChanged;
-
             // Đưa tất cả ComboBox về trạng thái rỗng (Index 0 là mục "")
             if (combobox1_TimKiemTheoTen != null && combobox1_TimKiemTheoTen.Items.Count > 0) combobox1_TimKiemTheoTen.SelectedIndex = 0;
             if (comboBox_TimKiemDonViKhenThuong != null && comboBox_TimKiemDonViKhenThuong.Items.Count > 0) comboBox_TimKiemDonViKhenThuong.SelectedIndex = 0;
             if (comboBox1_HinhThucKT != null && comboBox1_HinhThucKT.Items.Count > 0) comboBox1_HinhThucKT.SelectedIndex = 0;
-
             // Bật lại sự kiện
             if (combobox1_TimKiemTheoTen != null) combobox1_TimKiemTheoTen.TextChanged += combobox1_TimKiemTheoTen_TextChanged;
             if (comboBox_TimKiemDonViKhenThuong != null) comboBox_TimKiemDonViKhenThuong.TextChanged += comboBox_TimKiemDonViKhenThuong_TextChanged;
             if (comboBox1_HinhThucKT != null) comboBox1_HinhThucKT.TextChanged += comboBox1_HinhThucKT_TextChanged;
-
             await LoadDataToGridAsync();
             _ = ShowHanhDongStatusAsync("✔ Đã làm mới bộ lọc!", true);
         }
@@ -590,7 +542,6 @@ namespace PhanMemThiDua2026
         {
             _selectedID = -1;
             isEditing = false;
-
             if (kryptonTextBox_STT != null) kryptonTextBox_STT.Text = "Tự động";
             kryptonTextBox_TenTapThe?.Clear();
             if (comboBox_HinhThucKhenThuong != null) comboBox_HinhThucKhenThuong.SelectedIndex = -1;
@@ -599,7 +550,6 @@ namespace PhanMemThiDua2026
             kryptonTextBox_NgayQuyetDinh?.Clear();
             kryptonTextBox_NguoiKy?.Clear();
             richTextBox1_NoiDungKhenThuong?.Clear();
-
             if (kryptonTextBox_TienThuong != null)
             {
                 kryptonTextBox_TienThuong.TextChanged -= kryptonTextBox_TienThuong_TextChanged;
@@ -610,9 +560,7 @@ namespace PhanMemThiDua2026
             kryptonTextBox_CanBoCapPhat?.Clear();
             kryptonTextBox_NguoiDaiDienNhan?.Clear();
             kryptonTextBox_GhiChu?.Clear();
-
             if (kryptonButton_ThemKhenThuong != null) kryptonButton_ThemKhenThuong.Values.Text = "Thêm";
-
             if (kryptonButton_SuaVaLuuKhenThuong != null)
             {
                 kryptonButton_SuaVaLuuKhenThuong.Enabled = false;
@@ -620,7 +568,7 @@ namespace PhanMemThiDua2026
             }
             if (kryptonButton_XoaKhenThuong != null) kryptonButton_XoaKhenThuong.Enabled = false;
         }
-        private void kryptonDataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || sender is not DataGridView grid) return;
             try
@@ -632,7 +580,6 @@ namespace PhanMemThiDua2026
                     isEditing = true;
                 }
                 else return;
-
                 if (kryptonTextBox_STT != null) kryptonTextBox_STT.Text = row.Cells["STT"].Value?.ToString() ?? "";
                 if (kryptonTextBox_TenTapThe != null) kryptonTextBox_TenTapThe.Text = row.Cells["TenTapThe"].Value?.ToString() ?? "";
                 if (comboBox_HinhThucKhenThuong != null) comboBox_HinhThucKhenThuong.Text = row.Cells["HinhThuc_KhenThuong"].Value?.ToString() ?? "";
@@ -646,7 +593,6 @@ namespace PhanMemThiDua2026
                 if (kryptonTextBox_CanBoCapPhat != null) kryptonTextBox_CanBoCapPhat.Text = row.Cells["CanBoCapPhat"].Value?.ToString() ?? "";
                 if (kryptonTextBox_NguoiDaiDienNhan != null) kryptonTextBox_NguoiDaiDienNhan.Text = row.Cells["NguoiDaiDienNhan"].Value?.ToString() ?? "";
                 if (kryptonTextBox_GhiChu != null) kryptonTextBox_GhiChu.Text = row.Cells["GhiChu"].Value?.ToString() ?? "";
-
                 if (kryptonButton_SuaVaLuuKhenThuong != null)
                 {
                     kryptonButton_SuaVaLuuKhenThuong.Enabled = true;
@@ -665,7 +611,6 @@ namespace PhanMemThiDua2026
         {
             if (!isEditing || _selectedID < 0) return;
             if (string.IsNullOrEmpty(_currentDbPath)) return;
-
             string tenTapThe = kryptonTextBox_TenTapThe.Text?.Trim() ?? string.Empty;
             if (MessageBox.Show($"Bạn có chắc chắn muốn xóa bản ghi:\n{tenTapThe}?", "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
             {
@@ -679,7 +624,6 @@ namespace PhanMemThiDua2026
                 if (frm.ShowDialog(this) != DialogResult.OK) return;
             }
             kryptonButton_XoaKhenThuong.Enabled = false;
-
             try
             {
                 string connectionString = $@"Data Source={_currentDbPath};";
@@ -703,10 +647,8 @@ namespace PhanMemThiDua2026
                         throw;
                     }
                 }
-
                 await DanhLaiSoThuTuAsync();
                 _ = ShowHanhDongStatusAsync("✔ Xóa dữ liệu thành công!", true);
-
                 _globalCache = null;
                 await LoadComboBoxDonViAsync();
                 await LoadComboBoxHinhThucKTAsync();
@@ -730,7 +672,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Vui lòng chọn cơ sở dữ liệu năm cũ từ danh sách trước khi thao tác!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
-
             if (kryptonTextBox_TenTapThe != null && string.IsNullOrWhiteSpace(kryptonTextBox_TenTapThe.Text))
             {
                 MessageBox.Show("Vui lòng nhập 'Tên tập thể' (bắt buộc)!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -740,7 +681,7 @@ namespace PhanMemThiDua2026
             return true;
         }
         // CRUD: THÊM, SỬA, XÓA TRÊN DB NĂM CŨ CHỌN BỞI COMBOBOX   
-        private async void kryptonButton_ThemKhenThuong_Click(object sender, EventArgs e)
+        private async void kryptonButton_ThemKhenThuong_Click(object? sender, EventArgs e)
         {
             // 1. THAO TÁC GIAO DIỆN CƠ BẢN
             if (kryptonButton_ThemKhenThuong.Values.Text == "Làm mới")
@@ -749,30 +690,23 @@ namespace PhanMemThiDua2026
                 kryptonTextBox_TenTapThe?.Focus();
                 return;
             }
-
             // 2. GUARD CLAUSE - CHẶN CỬA DỮ LIỆU ĐẦU VÀO
             if (!KiemTraDuLieuDauVao()) return;
-
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
                 frm.TopMost = true;
                 frm.StartPosition = FormStartPosition.CenterScreen;
                 if (frm.ShowDialog(this) != DialogResult.OK) return;
             }
-
             kryptonButton_ThemKhenThuong.Enabled = false;
-
             // 🌟 CỜ TRẠNG THÁI: Tách biệt lỗi DB và lỗi Giao diện
             bool isDbSuccess = false;
-
             try
             {
                 // 3. CHUẨN HÓA DỮ LIỆU (Thực hiện trên RAM, trước khi mở kết nối DB để tiết kiệm thời gian lock DB)
                 string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
-
                 string connectionString = $@"Data Source={_currentDbPath};";
-
                 // 4. KẾT NỐI VÀ GIAO DỊCH CƠ SỞ DỮ LIỆU
                 using (var conn = new SqliteConnection(connectionString))
                 {
@@ -782,7 +716,6 @@ namespace PhanMemThiDua2026
                     {
                         int newStt = 1;
                         int newId = 1;
-
                         // 🌟 TỐI ƯU HÓA: Gộp 2 lệnh MAX() thành 1 truy vấn duy nhất. Giảm 50% thời gian đọc.
                         string queryMax = "SELECT COALESCE(MAX(ID), 0) AS MaxID, COALESCE(MAX(STT), 0) AS MaxSTT FROM ThongKe_KhenThuongTapThe";
                         using (var cmdMax = new SqliteCommand(queryMax, conn, tran))
@@ -794,7 +727,6 @@ namespace PhanMemThiDua2026
                                 newStt = Convert.ToInt32(reader["MaxSTT"]) + 1;
                             }
                         }
-
                         string sqlInsert = @"INSERT INTO ThongKe_KhenThuongTapThe 
                     (ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, 
                      SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, 
@@ -803,18 +735,14 @@ namespace PhanMemThiDua2026
                     (@ID, @STT, @TenTapThe, @HinhThuc_KhenThuong, @DonVi_CapKhenThuong, 
                      @SoQuyetDinh, @NgayQuyetDinh, @NguoiKy, @NoiDung_KhenThuong, 
                      @TienThuong, @NgayCapPhat, @CanBoCapPhat, @NguoiDaiDienNhan, @GhiChu)";
-
                         using (var cmd = new SqliteCommand(sqlInsert, conn, tran))
                         {
                             // Gán tham số tự tính
                             cmd.Parameters.AddWithValue("@ID", newId);
-
                             // Kế thừa hàm helper của bạn (Xử lý mã hóa)
                             GanThamSoVaMaHoaKhenThuong(cmd, tienThuongStr, newStt);
-
                             await cmd.ExecuteNonQueryAsync();
                         }
-
                         // Chốt giao dịch
                         tran.Commit();
                         isDbSuccess = true; // Đánh dấu dữ liệu đã an toàn nằm trong ổ cứng
@@ -827,18 +755,15 @@ namespace PhanMemThiDua2026
                         throw new Exception("Quá trình ghi vào CSDL thất bại. Đã hoàn tác an toàn (Rollback).", dbEx);
                     }
                 }
-
                 // 5. CẬP NHẬT GIAO DIỆN (Chỉ chạy khi DB đã an toàn)
                 if (isDbSuccess)
                 {
                     _ = ShowHanhDongStatusAsync("✔ Thêm mới dữ liệu thành công!", true);
-
                     _globalCache = null;
                     await LoadComboBoxDonViAsync();
                     await LoadComboBoxHinhThucKTAsync();
                     await LoadComboBoxTenTapTheAsync();
                     await LoadDataToGridAsync();
-
                     ResetInput();
                 }
             }
@@ -847,13 +772,11 @@ namespace PhanMemThiDua2026
                 // Phân loại lỗi để thông báo đúng bản chất cho người dùng
                 string errorTitle = "Lỗi hệ thống";
                 string errorMessage = "Lỗi khi thêm dữ liệu:\n" + ex.Message;
-
                 if (isDbSuccess)
                 {
                     errorTitle = "Lỗi hiển thị";
                     errorMessage = "Dữ liệu ĐÃ ĐƯỢC LƯU THÀNH CÔNG vào hệ thống, nhưng có lỗi khi tải lại giao diện hiển thị. Vui lòng thử mở lại Form.\n\nChi tiết lỗi: " + ex.Message;
                 }
-
                 _ = ShowHanhDongStatusAsync("❌ Có lỗi xảy ra!", false);
                 MessageBox.Show(errorMessage, errorTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -867,25 +790,21 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        private async void kryptonButton_SuaVaLuuKhenThuong_Click(object sender, EventArgs e)
+        private async void kryptonButton_SuaVaLuuKhenThuong_Click(object? sender, EventArgs e)
         {
             if (!isEditing || _selectedID < 0) return;
             if (!KiemTraDuLieuDauVao()) return;
-
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
                 frm.TopMost = true;
                 frm.StartPosition = FormStartPosition.CenterScreen;
                 if (frm.ShowDialog(this) != DialogResult.OK) return;
             }
-
             kryptonButton_SuaVaLuuKhenThuong.Enabled = false;
-
             try
             {
                 string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
-
                 string connectionString = $@"Data Source={_currentDbPath};";
                 using (var conn = new SqliteConnection(connectionString))
                 {
@@ -899,17 +818,14 @@ namespace PhanMemThiDua2026
              NgayCapPhat = @NgayCapPhat, CanBoCapPhat = @CanBoCapPhat, 
              NguoiDaiDienNhan = @NguoiDaiDienNhan, GhiChu = @GhiChu 
              WHERE ID = @ID";
-
                     using (var cmd = new SqliteCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@ID", _selectedID);
                         // ⭐ GỌI HÀM HELPER RÚT GỌN CODE
                         GanThamSoVaMaHoaKhenThuong(cmd, tienThuongStr);
-
                         await cmd.ExecuteNonQueryAsync();
                     }
                 }
-
                 _ = ShowHanhDongStatusAsync("✔ Cập nhật dữ liệu thành công!", true);
                 _globalCache = null;
                 await LoadComboBoxDonViAsync();
@@ -928,11 +844,9 @@ namespace PhanMemThiDua2026
                 kryptonButton_SuaVaLuuKhenThuong.Enabled = true;
             }
         }
-
-        private async void xoaToanBoDuLieu_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void xoaToanBoDuLieu_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(_currentDbPath)) return;
-
             try
             {
                 int tongSoDong = kryptonDataGridView1.Rows.Count;
@@ -947,14 +861,12 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"Lỗi kiểm tra dữ liệu trước khi xóa: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
             using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
             {
                 frmXacMinh.TopMost = true;
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
                 if (frmXacMinh.ShowDialog() != DialogResult.OK) return;
             }
-
             DialogResult result = MessageBox.Show(
               "Bạn có chắc chắn muốn xóa toàn bộ dữ liệu khen thưởng tập thể không?\n\n" +
               "Lưu ý: Dữ liệu đã xóa sẽ không thể khôi phục.",
@@ -963,7 +875,6 @@ namespace PhanMemThiDua2026
               MessageBoxIcon.Warning,
               MessageBoxDefaultButton.Button2);
             if (result != DialogResult.Yes) return;
-
             try
             {
                 using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_currentDbPath}"))
@@ -986,9 +897,7 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-
                 // ⭐ ĐÃ XÓA LỆNH await DanhLaiSoThuTuAsync(); THEO ĐÚNG YÊU CẦU LOGIC VÌ LÚC NÀY BẢNG TRỐNG
-
                 _ = ShowHanhDongStatusAsync("✔ Đã xóa sạch toàn bộ dữ liệu!", true);
                 _globalCache = null;
                 await LoadDataToGridAsync();
@@ -1020,7 +929,6 @@ namespace PhanMemThiDua2026
         FROM RankedData
         WHERE ThongKe_KhenThuongTapThe.ID = RankedData.ID 
           AND ThongKe_KhenThuongTapThe.STT != RankedData.NewSTT;";
-
                 using (var cmd = new SqliteCommand(updateQuery, conn))
                 {
                     await cmd.ExecuteNonQueryAsync();
@@ -1036,24 +944,19 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine("[Cảnh báo] KiemTraVaTaoBang: Đường dẫn CSDL không hợp lệ hoặc file không tồn tại.");
                 return;
             }
-
             string connectionString = $@"Data Source={_currentDbPath};";
-
             using (SqliteConnection conn = new SqliteConnection(connectionString))
             {
                 try
                 {
                     conn.Open();
-
                     // 2. Kiểm tra sự tồn tại của bảng (Dùng COUNT(1) tối ưu hơn COUNT(*))
                     string checkTableQuery = "SELECT COUNT(1) FROM sqlite_master WHERE type='table' AND name='ThongKe_KhenThuongTapThe';";
                     bool isTableExists = false;
-
                     using (SqliteCommand cmdCheck = new SqliteCommand(checkTableQuery, conn))
                     {
                         isTableExists = Convert.ToInt32(cmdCheck.ExecuteScalar()) > 0;
                     }
-
                     // 3. Luồng xử lý phân nhánh rạch ròi
                     if (!isTableExists)
                     {
@@ -1076,7 +979,6 @@ namespace PhanMemThiDua2026
                         ""NguoiDaiDienNhan"" TEXT,
                         ""GhiChu"" TEXT
                     );";
-
                         using (SqliteCommand cmdCreate = new SqliteCommand(createTableQuery, conn))
                         {
                             cmdCreate.ExecuteNonQuery();
@@ -1097,7 +999,6 @@ namespace PhanMemThiDua2026
                             }
                         }
                     }
-
                     // 4. Khởi tạo Index (Luôn chạy để đảm bảo Index không bị mất)
                     // Index giúp các thao tác tìm kiếm bằng Textbox mượt mà hơn trên CSDL lớn
                     string createIndexQuery = @"CREATE INDEX IF NOT EXISTS ""idx_kt_tentapthe"" ON ""ThongKe_KhenThuongTapThe"" (""TenTapThe"");";
@@ -1113,14 +1014,13 @@ namespace PhanMemThiDua2026
                 }
             }
         }        // XUẤT EXCEL & TRỢ GIÚP GIAO DIỆN
-        private async void xuatDuLieuRaTepExcel_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void xuatDuLieuRaTepExcel_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             if (kryptonDataGridView1.Rows.Count == 0)
             {
                 MessageBox.Show("Không có dữ liệu để xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-
             // ⭐ 1. LẤY TÊN NĂM CŨ TỪ COMBOBOX VÀ CHUẨN HÓA KHÔNG DẤU (VD: "Nam2025")
             string tenNamCu = "";
             if (comboBox1_ChonCscdKhenThuongTapTheNamCu.SelectedItem is FileLichSuDTO selectedFile)
@@ -1131,14 +1031,11 @@ namespace PhanMemThiDua2026
             {
                 tenNamCu = comboBox1_ChonCscdKhenThuongTapTheNamCu.Text;
             }
-
             // Dùng LINQ trích xuất đúng 4 chữ số của năm từ chuỗi (Bỏ qua toàn bộ chữ và dấu)
             string soNam = new string(tenNamCu.Where(char.IsDigit).ToArray());
-
             // Xây dựng biến an toàn cho Tên File và Tiêu đề
             string tenFileSafe = string.IsNullOrEmpty(soNam) ? "NamCu" : $"Nam{soNam}";
             string chuoiTieuDe = string.IsNullOrEmpty(soNam) ? "NĂM CŨ" : $"NĂM {soNam}";
-
             using var sfd = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu file Excel thống kê",
@@ -1147,18 +1044,14 @@ namespace PhanMemThiDua2026
                 FileName = $"ThongKe_KhenThuongTapThe_{tenFileSafe}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
             };
-
             if (sfd.ShowDialog() != DialogResult.OK) return;
             string filePath = sfd.FileName;
-
             string textBanDau = xuatDuLieuRaTepExcel_ToolStripMenuItem.Text;
             Form_Loading frmLoad = new Form_Loading("Đang tạo tệp Excel, vui lòng đợi...");
             bool isLoadShown = false;
             frmLoad.Icon = this.Icon;
-
             // ⭐ 3. TẠO BIẾN TIÊU ĐỀ TRƯỚC KHI VÀO LUỒNG NGẦM ĐỂ TRÁNH LỖI CROSS-THREAD
             string tieuDeBaoCao = $"THỐNG KÊ KẾT QUẢ KHEN THƯỞNG TẬP THỂ {chuoiTieuDe}";
-
             try
             {
                 this.Enabled = false;
@@ -1166,24 +1059,19 @@ namespace PhanMemThiDua2026
                 frmLoad.Show(this);
                 isLoadShown = true;
                 await Task.Delay(50);
-
                 var exportCols = kryptonDataGridView1.Columns.Cast<DataGridViewColumn>()
                     .Where(c => c.Visible && c.Name != "ID")
                     .ToList();
-
                 int rowCount = kryptonDataGridView1.Rows.Count;
                 int colCount = exportCols.Count;
-
                 string[] headerArray = new string[colCount];
                 double[] colWidths = new double[colCount];
                 var dataList = new List<object[]>(rowCount);
-
                 for (int c = 0; c < colCount; c++)
                 {
                     headerArray[c] = exportCols[c].HeaderText;
                     colWidths[c] = exportCols[c].Width / 7.5;
                 }
-
                 for (int r = 0; r < rowCount; r++)
                 {
                     var rowValues = new object[colCount];
@@ -1193,26 +1081,20 @@ namespace PhanMemThiDua2026
                     }
                     dataList.Add(rowValues);
                 }
-
                 await Task.Run(() =>
                 {
                     using var wb = new ClosedXML.Excel.XLWorkbook();
                     var ws = wb.Worksheets.Add("ThongKeKhenThuongTapThe");
-
                     ws.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                     ws.Style.Font.FontSize = 11;
-
                     ws.Cell("A1").Value = "DANH SÁCH";
                     ws.Range(1, 1, 1, colCount).Merge().Style.Font.SetBold().Font.SetFontSize(14)
                         .Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center);
-
                     // ⭐ 4. CHÈN TIÊU ĐỀ VÀO TRANG TÍNH EXCEL
                     ws.Cell("A2").Value = tieuDeBaoCao;
                     ws.Range(2, 1, 2, colCount).Merge().Style.Font.SetBold().Font.SetFontSize(13)
                         .Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center);
-
                     int excelStartRow = 4;
-
                     for (int c = 0; c < colCount; c++)
                     {
                         var cell = ws.Cell(excelStartRow, c + 1);
@@ -1224,28 +1106,22 @@ namespace PhanMemThiDua2026
                         ws.Column(c + 1).Width = colWidths[c];
                     }
                     ws.Row(excelStartRow).Height = 35;
-
                     if (rowCount > 0)
                     {
                         ws.Cell(excelStartRow + 1, 1).InsertData(dataList);
-
                         var dataRange = ws.Range(excelStartRow, 1, excelStartRow + rowCount, colCount);
                         dataRange.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
                         dataRange.Style.Border.InsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-
                         var bodyRange = ws.Range(excelStartRow + 1, 1, excelStartRow + rowCount, colCount);
                         bodyRange.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
                         bodyRange.Style.Alignment.WrapText = true;
-
                         ws.Range(excelStartRow + 1, 1, excelStartRow + rowCount, 1).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
                     }
-
                     int tongDong = rowCount + excelStartRow + 1;
                     var totalCell = ws.Cell(tongDong, 1);
                     totalCell.Value = $"Tổng cộng: {rowCount} tập thể được thống kê./.";
                     totalCell.Style.Font.SetBold().Font.SetItalic();
                     ws.Range(tongDong, 1, tongDong, colCount).Merge();
-
                     ws.PageSetup.PaperSize = ClosedXML.Excel.XLPaperSize.A4Paper;
                     ws.PageSetup.PageOrientation = ClosedXML.Excel.XLPageOrientation.Landscape;
                     ws.PageSetup.FitToPages(1, 0);
@@ -1253,17 +1129,14 @@ namespace PhanMemThiDua2026
                     ws.PageSetup.Margins.Bottom = 0.5;
                     ws.PageSetup.Margins.Left = 0.4;
                     ws.PageSetup.Margins.Right = 0.4;
-
                     Module_BanQuyen.DongDauExcel(wb);
                     wb.SaveAs(filePath);
                 });
-
                 try
                 {
                     Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath);
                 }
                 catch { }
-
                 _ = ShowHanhDongStatusAsync("✔ Xuất tệp Excel thành công!", true);
             }
             catch (Exception ex)
@@ -1346,7 +1219,6 @@ namespace PhanMemThiDua2026
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CanBoCapPhat", Name = "CanBoCapPhat", HeaderText = "Cán bộ cấp", Width = 130, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "NguoiDaiDienNhan", Name = "NguoiDaiDienNhan", HeaderText = "Người đại diện nhận", Width = 150, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "GhiChu", Name = "GhiChu", HeaderText = "Ghi chú", Width = 150, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
-
             foreach (DataGridViewColumn col in dgv.Columns)
             {
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;
@@ -1370,40 +1242,35 @@ namespace PhanMemThiDua2026
         {
             if (toolStripStatusLabel2 == null) return;
             int currentCounter = ++_msgCounter;
-
             toolStripStatusLabel2.Text = message;
             toolStripStatusLabel2.ForeColor = isSuccess ? Color.SeaGreen : Color.Red;
             toolStripStatusLabel2.Visible = true;
-
             await Task.Delay(2000);
-
             if (_msgCounter == currentCounter)
             {
                 toolStripStatusLabel2.Visible = false;
             }
         }
-        private void kryptonButton2_TangCoChuRichText_Click(object sender, EventArgs e)
+        private void kryptonButton2_TangCoChuRichText_Click(object? sender, EventArgs e)
         {
             if (richTextBox1_NoiDungKhenThuong == null) return;
             float currentSize = richTextBox1_NoiDungKhenThuong.Font.Size;
             if (currentSize < 36.0f) { richTextBox1_NoiDungKhenThuong.Font = new Font(richTextBox1_NoiDungKhenThuong.Font.FontFamily, currentSize + 2, richTextBox1_NoiDungKhenThuong.Font.Style); }
         }
-        private void kryptonButton2_GiamCoChuRichText_Click(object sender, EventArgs e)
+        private void kryptonButton2_GiamCoChuRichText_Click(object? sender, EventArgs e)
         {
             if (richTextBox1_NoiDungKhenThuong == null) return;
             float currentSize = richTextBox1_NoiDungKhenThuong.Font.Size;
             if (currentSize > 8.0f) { richTextBox1_NoiDungKhenThuong.Font = new Font(richTextBox1_NoiDungKhenThuong.Font.FontFamily, currentSize - 2, richTextBox1_NoiDungKhenThuong.Font.Style); }
         }
-        private void kryptonButton1_Thoat_Click(object sender, EventArgs e)
+        private void kryptonButton1_Thoat_Click(object? sender, EventArgs e)
         {
             // 1. Tìm Form 50 (Thống kê khen thưởng năm cũ) trong RAM
             var f50 = Application.OpenForms.OfType<Form50_QuanLyKhenThuongNamCu>().FirstOrDefault();
-
             if (f50 != null)
             {
                 f50.Show();
                 f50.BringToFront();
-
                 var fCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                 if (fCha != null)
                 {
@@ -1412,7 +1279,7 @@ namespace PhanMemThiDua2026
             }
             this.Close();
         }
-        private void xoaTimKiem_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void xoaTimKiem_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             if (kryptonButton_LamMoiCacOTimKiem == null ||
                 kryptonButton_LamMoiCacOTimKiem.IsDisposed ||
@@ -1420,29 +1287,27 @@ namespace PhanMemThiDua2026
             {
                 return;
             }
-
             kryptonButton_LamMoiCacOTimKiem.PerformClick();
         }
         // ⭐ HÀM HELPER: GOM TOÀN BỘ LOGIC MÃ HÓA VÀ GÁN THAM SỐ VÀO 1 CHỖ DUY NHẤT
-        private void GanThamSoVaMaHoaKhenThuong(SqliteCommand cmd, string tienThuongStr, int? newStt = null)
-        {
-            if (newStt.HasValue)
-            {
-                cmd.Parameters.AddWithValue("@STT", newStt.Value);
-            }
 
-            cmd.Parameters.AddWithValue("@TenTapThe", SafeEncrypt(kryptonTextBox_TenTapThe.Text));
-            cmd.Parameters.AddWithValue("@HinhThuc_KhenThuong", SafeEncrypt(comboBox_HinhThucKhenThuong?.Text));
-            cmd.Parameters.AddWithValue("@DonVi_CapKhenThuong", SafeEncrypt(comboBox_DonViKhenThuong?.Text));
-            cmd.Parameters.AddWithValue("@SoQuyetDinh", SafeEncrypt(kryptonTextBox_SoQuyetDinh?.Text));
-            cmd.Parameters.AddWithValue("@NgayQuyetDinh", SafeEncrypt(kryptonTextBox_NgayQuyetDinh?.Text));
-            cmd.Parameters.AddWithValue("@NguoiKy", SafeEncrypt(kryptonTextBox_NguoiKy?.Text));
-            cmd.Parameters.AddWithValue("@NoiDung_KhenThuong", SafeEncrypt(richTextBox1_NoiDungKhenThuong?.Text));
-            cmd.Parameters.AddWithValue("@TienThuong", SafeEncrypt(tienThuongStr));
-            cmd.Parameters.AddWithValue("@NgayCapPhat", SafeEncrypt(kryptonTextBox_NgayCapPhat?.Text));
-            cmd.Parameters.AddWithValue("@CanBoCapPhat", SafeEncrypt(kryptonTextBox_CanBoCapPhat?.Text));
-            cmd.Parameters.AddWithValue("@NguoiDaiDienNhan", SafeEncrypt(kryptonTextBox_NguoiDaiDienNhan?.Text));
-            cmd.Parameters.AddWithValue("@GhiChu", SafeEncrypt(kryptonTextBox_GhiChu?.Text));
-        }
+        private void GanThamSoVaMaHoaKhenThuong(SqliteCommand cmd, string tienThuongStr, int? newStt = null)
+                {
+                    if (newStt.HasValue)
+                        cmd.Parameters.AddWithValue("@STT", newStt.Value);
+
+                    cmd.Parameters.AddWithValue("@TenTapThe", SafeEncrypt(kryptonTextBox_TenTapThe.Text));
+                    cmd.Parameters.AddWithValue("@HinhThuc_KhenThuong", SafeEncrypt(comboBox_HinhThucKhenThuong?.Text));
+                    cmd.Parameters.AddWithValue("@DonVi_CapKhenThuong", SafeEncrypt(comboBox_DonViKhenThuong?.Text));
+                    cmd.Parameters.AddWithValue("@SoQuyetDinh", SafeEncrypt(kryptonTextBox_SoQuyetDinh?.Text));
+                    cmd.Parameters.AddWithValue("@NgayQuyetDinh", SafeEncrypt(kryptonTextBox_NgayQuyetDinh?.Text));
+                    cmd.Parameters.AddWithValue("@NguoiKy", SafeEncrypt(kryptonTextBox_NguoiKy?.Text));
+                    cmd.Parameters.AddWithValue("@NoiDung_KhenThuong", SafeEncrypt(richTextBox1_NoiDungKhenThuong?.Text));
+                    cmd.Parameters.AddWithValue("@TienThuong", SafeEncrypt(tienThuongStr));
+                    cmd.Parameters.AddWithValue("@NgayCapPhat", SafeEncrypt(kryptonTextBox_NgayCapPhat?.Text));
+                    cmd.Parameters.AddWithValue("@CanBoCapPhat", SafeEncrypt(kryptonTextBox_CanBoCapPhat?.Text));
+                    cmd.Parameters.AddWithValue("@NguoiDaiDienNhan", SafeEncrypt(kryptonTextBox_NguoiDaiDienNhan?.Text));
+                    cmd.Parameters.AddWithValue("@GhiChu", SafeEncrypt(kryptonTextBox_GhiChu?.Text));
+                }
     }
 }

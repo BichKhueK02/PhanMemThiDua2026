@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
             // Lê Trung Kiên -  Yêu mèo cam
@@ -14,18 +13,16 @@ namespace PhanMemThiDua2026
         public Form45_TyLeBaNhat()
         {
             InitializeComponent();
-
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             MinimizeBox = false;
             this.AcceptButton = btnLuu; // ✅ Enter = Thêm
             Load += Form45_TyLeBaNhat_Load;
-
             // Gắn sự kiện chặn phím chữ ngay trong Constructor (Cách làm của bạn rất hay)
             textBoxKrypton_TyLePhanTramBaNhat.KeyPress += txtTyLe_KeyPress;
         }
-        private async void Form45_TyLeBaNhat_Load(object sender, EventArgs e)
+        private async void Form45_TyLeBaNhat_Load(object? sender, EventArgs e)
         {
             // Bỏ hàm KhoiTaoBangTyLeBaNhat() ở ngoài, gộp thẳng vào tiến trình nền của hàm Load để giao diện mượt hơn
             await LoadTyLeBaNhatAsync();
@@ -39,34 +36,28 @@ namespace PhanMemThiDua2026
                     // Thêm Mode=ReadWriteCreate để SQLite tự động sinh ra file nếu file chưa tồn tại
                     using var cn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
                     cn.Open();
-
                     using (var cmd = cn.CreateCommand())
                     {
                         cmd.CommandText = @"
-CREATE TABLE IF NOT EXISTS QuyDinhTyLe_BaNhat
-(
-    ID INTEGER PRIMARY KEY,
-    TyLe TEXT NOT NULL
-);
-INSERT OR IGNORE INTO QuyDinhTyLe_BaNhat(ID, TyLe)
-VALUES(1, '');
-";
+                            CREATE TABLE IF NOT EXISTS QuyDinhTyLe_BaNhat
+                            (
+                                ID INTEGER PRIMARY KEY,
+                                TyLe TEXT NOT NULL
+                            );
+                            INSERT OR IGNORE INTO QuyDinhTyLe_BaNhat(ID, TyLe)
+                            VALUES(1, '');
+                            ";
                         cmd.ExecuteNonQuery();
                     }
-
                     using var cmdLoad = cn.CreateCommand();
                     cmdLoad.CommandText = "SELECT TyLe FROM QuyDinhTyLe_BaNhat WHERE ID = 1;";
                     object obj = cmdLoad.ExecuteScalar();
-
                     if (obj == null || obj == DBNull.Value) return "";
-
                     string value = obj.ToString();
-
                     if (string.IsNullOrWhiteSpace(value)) return "";
-
                     try
                     {
-                        return BaoMatAES.GiaiMa(value);
+                        return Module_BaoMatAES.GiaiMa(value);
                     }
                     catch
                     {
@@ -83,10 +74,9 @@ VALUES(1, '');
                 MessageBox.Show(ex.Message, "Không thể đọc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-        private async void btnLuu_Click(object sender, EventArgs e)
+        private async void btnLuu_Click(object? sender, EventArgs e)
         {
             string text = textBoxKrypton_TyLePhanTramBaNhat.Text.Trim();
-
             if (!int.TryParse(text, out int tyLe) || tyLe < 0 || tyLe > 100)
             {
                 MessageBox.Show("Vui lòng nhập một số nguyên từ 0 đến 100.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -94,7 +84,6 @@ VALUES(1, '');
                 textBoxKrypton_TyLePhanTramBaNhat.SelectAll();
                 return;
             }
-
             await SaveTyLeBaNhatAsync(tyLe);
         }
         private async Task SaveTyLeBaNhatAsync(int tyLe)
@@ -102,7 +91,6 @@ VALUES(1, '');
             string textGoc = btnLuu.Values.Text;
             btnLuu.Enabled = false;
             btnLuu.Values.Text = "Đang lưu...";
-
             try
             {
                 await Task.Run(() =>
@@ -110,14 +98,12 @@ VALUES(1, '');
                     using var cn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
                     cn.Open();
                     using var tran = cn.BeginTransaction();
-
                     try
                     {
                         using var cmd = cn.CreateCommand();
                         cmd.Transaction = tran;
-
                         cmd.CommandText = @"CREATE TABLE IF NOT EXISTS QuyDinhTyLe_BaNhat(    ID INTEGER PRIMARY KEY,    TyLe TEXT NOT NULL);INSERT INTO QuyDinhTyLe_BaNhat(ID, TyLe)VALUES(1, @TyLe)ON CONFLICT(ID)DO UPDATE SET TyLe=excluded.TyLe;";
-                        cmd.Parameters.AddWithValue("@TyLe", BaoMatAES.MaHoa(tyLe.ToString()));
+                        cmd.Parameters.AddWithValue("@TyLe", Module_BaoMatAES.MaHoa(tyLe.ToString()));
                         cmd.ExecuteNonQuery();
                         tran.Commit();
                     }
@@ -127,13 +113,10 @@ VALUES(1, '');
                         throw;
                     }
                 });
-
                 // 1. Nếu lưu DB xong, đổi chữ hiển thị báo thành công
                 btnLuu.Values.Text = "Lưu thành công!";
-
                 // 2. Dừng lại chờ theo đúng yêu cầu
                 await Task.Delay(200);
-
                 // ⭐ THÊM 2 DÒNG NÀY ĐỂ FORM TỰ ĐÓNG:
                 this.DialogResult = DialogResult.OK;
                 this.Close();
@@ -150,7 +133,7 @@ VALUES(1, '');
                 btnLuu.Values.Text = textGoc;
             }
         }
-        private void txtTyLe_KeyPress(object sender, KeyPressEventArgs e)
+        private void txtTyLe_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
             {

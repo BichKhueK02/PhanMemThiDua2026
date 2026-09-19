@@ -2,25 +2,21 @@
 using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.Data.Sqlite;
-
 namespace PhanMemThiDua2026
 {
     public static class Module_GiaoDien
     {
         // Sự kiện báo hiệu khi đổi Theme toàn hệ thống
         public static event Action OnThemeChanged;
-
         // Lưu màu hiện tại trong RAM
         public static Color MauNenMenu { get; set; } = Color.FromArgb(240, 252, 240);
         public static Color MauLeIcon { get; set; } = Color.FromArgb(215, 240, 215);
         public static Color MauHover { get; set; } = Color.FromArgb(200, 235, 200);
-
         public static void ApDungTheme(string tenMau, Color mauNen, Color mauLe, Color mauHover)
         {
             MauNenMenu = mauNen;
             MauLeIcon = mauLe;
             MauHover = mauHover;
-
             // 🌟 ĐÃ LOẠI BỎ Properties.Settings. SỬ DỤNG CSDL ĐỂ LƯU VĨNH VIỄN
             try
             {
@@ -29,7 +25,6 @@ namespace PhanMemThiDua2026
                 {
                     using var cn = new SqliteConnection($"Data Source={csdl2Path}");
                     cn.Open();
-
                     // Đảm bảo bảng tồn tại
                     using (var cmdCreate = cn.CreateCommand())
                     {
@@ -38,7 +33,6 @@ namespace PhanMemThiDua2026
                                                     MauSacNguoiDungChon TEXT);";
                         cmdCreate.ExecuteNonQuery();
                     }
-
                     // Lưu hoặc cập nhật màu
                     using var cmdUpdate = cn.CreateCommand();
                     cmdUpdate.CommandText = @"
@@ -53,7 +47,6 @@ namespace PhanMemThiDua2026
             {
                 System.Diagnostics.Debug.WriteLine($"[Lỗi lưu theme vào CSDL]: {ex.Message}");
             }
-
             // Kích hoạt cập nhật giao diện toàn bộ Form đang mở
             OnThemeChanged?.Invoke();
         }

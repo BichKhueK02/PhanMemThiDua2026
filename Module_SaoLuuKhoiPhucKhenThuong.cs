@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
-
 namespace PhanMemThiDua2026
 {
     internal class Module_SaoLuuKhoiPhucKhenThuong
@@ -17,16 +16,13 @@ namespace PhanMemThiDua2026
             foreach (var cell in ws.Column(1).CellsUsed())
             {
                 string noiDung = cell.GetString();
-
                 if (noiDung.StartsWith(tenTruong, StringComparison.OrdinalIgnoreCase))
                 {
                     int viTri = noiDung.IndexOf(':');
-
                     if (viTri >= 0 && viTri < noiDung.Length - 1)
                         return noiDung[(viTri + 1)..].Trim();
                 }
             }
-
             return "Không xác định";
         }
         public void saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem_Click(object sender, EventArgs e)
@@ -39,7 +35,6 @@ namespace PhanMemThiDua2026
             })
             {
                 if (sfd.ShowDialog() != DialogResult.OK) return;
-
                 try
                 {
                     string tenMayTinh = string.IsNullOrWhiteSpace(Environment.MachineName)? "Không xác định": Environment.MachineName;
@@ -100,7 +95,6 @@ namespace PhanMemThiDua2026
                             $"Máy tính: {tenMayTinh} - " +
                             $"User máy tính: {userMayTinh} - " +
                             $"Đường dẫn: {sfd.FileName}");
-
                     // Tự động mở cửa sổ Explorer và chọn tệp vừa tạo
                     Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(sfd.FileName);
                 }
@@ -117,20 +111,16 @@ namespace PhanMemThiDua2026
                 Filter = "Tệp dữ liệu Sao lưu (*.mdf)|*.mdf|Tất cả tệp (*.*)|*.*",
                 Title = "Chọn file sao lưu khen thưởng (.mdf) để khôi phục dữ liệu"
             };
-
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
-
             try
             {
                 string tenMayTinhNguon = "Không xác định";
                 string userMayTinhNguon = "Không xác định";
                 string tenNguoiDungNguon = "Không xác định";
                 string thoiGianTao = "Không xác định";
-
                 using var stream = File.OpenRead(ofd.FileName);
                 using var wb = new XLWorkbook(stream);
-
                 // Kiểm tra cấu trúc
                 string[] sheetBatBuoc =
                 {
@@ -138,7 +128,6 @@ namespace PhanMemThiDua2026
             "ThongKe_GiayKhen",
             "ThongKe_KhenThuongTapThe"
         };
-
                 if (sheetBatBuoc.Any(sheet => !wb.Worksheets.Contains(sheet)))
                 {
                     MessageBox.Show(
@@ -148,32 +137,25 @@ namespace PhanMemThiDua2026
                         "Lỗi cấu trúc",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
-
                     return;
                 }
-
                 // Đọc thông tin nguồn tạo tệp
                 if (wb.Worksheets.Contains("DuLieuSaoLuu_KhenThuong"))
                 {
                     var wsInfo = wb.Worksheet("DuLieuSaoLuu_KhenThuong");
-
                     thoiGianTao = LayGiaTriThongTin(
                         wsInfo,
                         "Thời gian xuất bản:");
-
                     tenNguoiDungNguon = LayGiaTriThongTin(
                         wsInfo,
                         "Tên người dùng:");
-
                     tenMayTinhNguon = LayGiaTriThongTin(
                         wsInfo,
                         "Tên máy tính:");
-
                     userMayTinhNguon = LayGiaTriThongTin(
                         wsInfo,
                         "User máy tính:");
                 }
-
                 // Xác nhận phương thức khôi phục
                 string thongBao =
                     "THÔNG TIN TỆP SAO LƯU\n\n" +
@@ -186,35 +168,27 @@ namespace PhanMemThiDua2026
                     "[No]   GIỮ dữ liệu cũ, thêm mới và cập nhật.\n" +
                     "[Cancel] Hủy thao tác.\n\n" +
                     "Bạn có muốn tiếp tục khôi phục dữ liệu?";
-
                 DialogResult confirm = MessageBox.Show(
                     thongBao,
                     "Khôi phục dữ liệu khen thưởng",
                     MessageBoxButtons.YesNoCancel,
                     MessageBoxIcon.Question);
-
                 if (confirm == DialogResult.Cancel)
                     return;
-
                 bool isClearData = confirm == DialogResult.Yes;
-
                 // Đọc dữ liệu từ 3 sheet
                 var listCBCS = DocSheetCBCS(
                     wb.Worksheet("ThongKeCBCS_DuocKhenThuong"));
-
                 var listGiayKhen = DocSheetGiayKhen(
                     wb.Worksheet("ThongKe_GiayKhen"));
-
                 var listTapThe = DocSheetTapThe(
                     wb.Worksheet("ThongKe_KhenThuongTapThe"));
-
                 // Lưu vào CSDL
                 LuuVaoDatabase(
                     listCBCS,
                     listGiayKhen,
                     listTapThe,
                     isClearData);
-
                 // Thông báo thành công
                 MessageBox.Show(
                     $"Khôi phục dữ liệu khen thưởng thành công!\n\n" +
@@ -223,17 +197,14 @@ namespace PhanMemThiDua2026
                     "Thông báo",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
-
                 // Ghi nhật ký
                 Module_NhatKy.GhiNhatKy(
                     taiKhoan:
                         string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
                             ? "Không xác định"
                             : Module_TaiKhoan.TenTaiKhoan_RAM,
-
                     hanhDong:
                         "Khôi phục dữ liệu khen thưởng từ tệp .mdf thành công!",
-
                     ghiChu:
                         $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss} - " +
                         $"Nguồn máy tính: {tenMayTinhNguon} - " +
@@ -273,14 +244,12 @@ namespace PhanMemThiDua2026
                                 cmdClear.ExecuteNonQuery();
                             }
                         }
-
                         // 2. Chèn dữ liệu ThongKeCBCS_DuocKhenThuong
                         using (var cmd = conn.CreateCommand())
                         {
                             cmd.Transaction = trans;
                             cmd.CommandText = @"INSERT OR REPLACE INTO ThongKeCBCS_DuocKhenThuong (ID, HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen) 
                                                 VALUES (@ID, @HoVaTen, @SoHieu, @DonVi, @TinhTrang, @SoLuong_Khen, @GhiChu_Khen);";
-
                             cmd.Parameters.Add("@ID", SqliteType.Integer);
                             cmd.Parameters.Add("@HoVaTen", SqliteType.Text);
                             cmd.Parameters.Add("@SoHieu", SqliteType.Text);
@@ -288,7 +257,6 @@ namespace PhanMemThiDua2026
                             cmd.Parameters.Add("@TinhTrang", SqliteType.Text);
                             cmd.Parameters.Add("@SoLuong_Khen", SqliteType.Text);
                             cmd.Parameters.Add("@GhiChu_Khen", SqliteType.Text);
-
                             foreach (var item in listCBCS)
                             {
                                 cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object)item.ID;
@@ -301,14 +269,12 @@ namespace PhanMemThiDua2026
                                 cmd.ExecuteNonQuery();
                             }
                         }
-
                         // 3. Chèn dữ liệu ThongKe_GiayKhen
                         using (var cmd = conn.CreateCommand())
                         {
                             cmd.Transaction = trans;
                             cmd.CommandText = @"INSERT OR REPLACE INTO ThongKe_GiayKhen (ID, HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen) 
                                                 VALUES (@ID, @HoVaTen, @SoHieu, @DonVi, @TinhTrang, @HinhThuc_Khen, @QuyetDinh_Khen, @NgayCapQD_Khen, @DonVi_Khen, @VeViec_Khen, @TienThuong, @NgayCapPhat, @CanBoCapPhat, @GhiChu_Khen);";
-
                             cmd.Parameters.Add("@ID", SqliteType.Integer);
                             cmd.Parameters.Add("@HoVaTen", SqliteType.Text);
                             cmd.Parameters.Add("@SoHieu", SqliteType.Text);
@@ -323,7 +289,6 @@ namespace PhanMemThiDua2026
                             cmd.Parameters.Add("@NgayCapPhat", SqliteType.Text);
                             cmd.Parameters.Add("@CanBoCapPhat", SqliteType.Text);
                             cmd.Parameters.Add("@GhiChu_Khen", SqliteType.Text);
-
                             foreach (var item in listGiayKhen)
                             {
                                 cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object)item.ID;
@@ -343,14 +308,12 @@ namespace PhanMemThiDua2026
                                 cmd.ExecuteNonQuery();
                             }
                         }
-
                         // 4. Chèn dữ liệu ThongKe_KhenThuongTapThe
                         using (var cmd = conn.CreateCommand())
                         {
                             cmd.Transaction = trans;
                             cmd.CommandText = @"INSERT OR REPLACE INTO ThongKe_KhenThuongTapThe (ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu) 
                                                 VALUES (@ID, @STT, @TenTapThe, @HinhThuc_KhenThuong, @DonVi_CapKhenThuong, @SoQuyetDinh, @NgayQuyetDinh, @NguoiKy, @NoiDung_KhenThuong, @TienThuong, @NgayCapPhat, @CanBoCapPhat, @NguoiDaiDienNhan, @GhiChu);";
-
                             cmd.Parameters.Add("@ID", SqliteType.Integer);
                             cmd.Parameters.Add("@STT", SqliteType.Integer);
                             cmd.Parameters.Add("@TenTapThe", SqliteType.Text);
@@ -365,7 +328,6 @@ namespace PhanMemThiDua2026
                             cmd.Parameters.Add("@CanBoCapPhat", SqliteType.Text);
                             cmd.Parameters.Add("@NguoiDaiDienNhan", SqliteType.Text);
                             cmd.Parameters.Add("@GhiChu", SqliteType.Text);
-
                             foreach (var item in listTapThe)
                             {
                                 cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object)item.ID;
@@ -385,7 +347,6 @@ namespace PhanMemThiDua2026
                                 cmd.ExecuteNonQuery();
                             }
                         }
-
                         trans.Commit();
                     }
                     catch

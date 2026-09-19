@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using static UIHelper;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form2_FormCha : Form
@@ -24,6 +23,7 @@ namespace PhanMemThiDua2026
         private bool _isClosing = false;
         private static bool _daMoWelcome = false;
         private static bool _daMoThongTinChungThu = false;
+        private int _namHienTaiCache = -1;
         private bool AllowSwitch()
         {
             var now = DateTime.Now;
@@ -56,7 +56,7 @@ namespace PhanMemThiDua2026
             // Thay 'btnTrangChu' bằng (Name) thực tế của nút trang chủ của bạn
             HighlightNavButton(kryptonButton1_Trangchu);
             this.WindowState = FormWindowState.Maximized;
-            this.Text = "Phần mềm phân loại thi đua năm " + Module_HeThong.LayNamHeThong();
+            this.Text = "Phần mềm thi đua năm " + Module_HeThong.LayNamHeThong();
             this.KeyPreview = true; // bắt phím
             checkBox1_TuDongAnMenu.CheckedChanged -= checkBox1_TuDongAnMenu_CheckedChanged;
             checkBox1_TuDongAnMenu.CheckedChanged += checkBox1_TuDongAnMenu_CheckedChanged;
@@ -91,33 +91,37 @@ namespace PhanMemThiDua2026
             }
         }
         private async Task Form2_LoadCore()
-        {
-            if (_loadExecuted) return;
-            _loadExecuted = true;
-            KhoiTaoDuLieuNguoiDung();
-            KhoiTaoGiaoDien();
-            checkBox1_TuDongAnMenu.Checked = AppRuntime.TuDongAnMenu;
-            KhoiTaoTimerTuDongAnMenu();
-            DangKySuKienTuDongAnMenu();
-            EnsureSuKienThoatTonTai();
-            // ⭐ THÊM VÀO ĐÂY: Thiết lập mũi tên ban đầu khi load Form
-            CapNhatMuiTenGiaoDien();
-            isLoaded = true;
-            await Task.Run(() =>
-            {
-                try
                 {
-                    DataLoader.PreloadDanhSach(_csdl2Path);
+                    if (_loadExecuted) return;
+                    _loadExecuted = true;
+                    // 1. KHỞI TẠO DỮ LIỆU NGƯỜI DÙNG
+                    KhoiTaoDuLieuNguoiDung();
+                    // 2. KHỞI TẠO GIAO DIỆN
+                    KhoiTaoGiaoDien();
+                    // 3. THIẾT LẬP TRẠNG THÁI MENU
+                    checkBox1_TuDongAnMenu.Checked = AppRuntime.TuDongAnMenu;
+                    // 4. KHỞI TẠO TIMER VÀ EVENT
+                    KhoiTaoTimerTuDongAnMenu();
+                    DangKySuKienTuDongAnMenu();
+                    EnsureSuKienThoatTonTai();
+                    // 5. CẬP NHẬT UI BAN ĐẦU
+                    CapNhatMuiTenGiaoDien();
+                    // 6. PRELOAD DỮ LIỆU CSDL Ở NỀN
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            DataLoader.PreloadDanhSach(_csdl2Path);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex);
+                        }
+                    });
+                    // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT
+                    isLoaded = true;
                 }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                }
-            });
-            await Task.Delay(300);
-        }
         // 🌟 BƯỚC 1: Khai báo biến đệm (Cache) lưu trữ năm ở ngoài hàm
-        private int _namHienTaiCache = -1;
         // 🌟 BƯỚC 2: Cập nhật lại hàm xử lý
         private void TuDongDoiMauLabelTieuDe()
         {
@@ -128,7 +132,7 @@ namespace PhanMemThiDua2026
                 _namHienTaiCache = Module_HeThong.LayNamHeThong();
             }
             // Khởi tạo chuỗi gốc làm mốc so sánh sử dụng biến đệm siêu tốc
-            string chuoiTrangChu = $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {_namHienTaiCache}";
+            string chuoiTrangChu = $"PHẦN MỀM THI ĐUA NĂM {_namHienTaiCache}";
             // TỐI ƯU GIAO DIỆN: So sánh chuỗi và chỉ gán màu khi màu thực sự bị lệch (Chống chớp nháy màn hình)
             if (Label1.Text.Trim().Equals(chuoiTrangChu, StringComparison.OrdinalIgnoreCase))
             {
@@ -152,13 +156,10 @@ namespace PhanMemThiDua2026
                 Label2.Text = "Xin chào!";
                 return;
             }
-
             // Nếu thời gian không hợp lệ thì dùng DateTime.Now
             if (thoiGian == default)
                 thoiGian = DateTime.Now;
-
             bool laNgayChan = (thoiGian.Day & 1) == 0; // nhanh hơn %
-
             Label2.Text = laNgayChan
                 ? $"Đăng nhập bởi: {ten} vào lúc {thoiGian:HH:mm dd/MM/yyyy}"
                 : $"Xin chào! {ten} bạn truy cập lúc {thoiGian:HH:mm dd/MM/yyyy}";
@@ -181,22 +182,18 @@ namespace PhanMemThiDua2026
                     CapNhatPictureBoxNgayLapTuc(hinhMacDinh);
                     return;
                 }
-
                 // 3. Nếu có đổi hình -> Xác định Timer
                 int ms = 15000; // Khởi tạo gốc là 15 giây
                 if (cheDo == "30 giây") ms = 30000;
                 else if (cheDo == "1 phút") ms = 60000;
-
                 // Khởi tạo Timer nếu chưa có
                 if (_timerHinhNen == null)
                 {
                     _timerHinhNen = new System.Windows.Forms.Timer();
                     _timerHinhNen.Tick += (s, e) => ThucThiDoiAnhNgam();
                 }
-
                 _timerHinhNen.Interval = ms;
                 _timerHinhNen.Start();
-
                 // Ép lấy ảnh 1 lần ngay lập tức để không bị trống màn hình lúc chờ nhịp Timer đầu
                 ThucThiDoiAnhNgam();
             }
@@ -211,7 +208,6 @@ namespace PhanMemThiDua2026
         {
             if (Interlocked.Exchange(ref _isChangingImage, 1) == 1)
                 return;
-
             try
             {
                 var hinhMoi = await Task.Run(() => Module_HinhAnhTrangChu.LayHinhTiepTheo());
@@ -235,12 +231,10 @@ namespace PhanMemThiDua2026
                 {
                     // Lấy hình cũ ra để chờ dọn dẹp
                     Image? hinhCu = PictureBox1.Image;
-
                     // Gắn hình mới vào và ép vẽ ngay lập tức
                     PictureBox1.Image = hinhMoi;
                     PictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
                     PictureBox1.Update();
-
                     // 🛑 Kỹ thuật chống tràn RAM
                     if (hinhCu != null && !ReferenceEquals(hinhCu, hinhMoi))
                     {
@@ -254,13 +248,11 @@ namespace PhanMemThiDua2026
             int namHienTai = Module_HeThong.LayNamHeThong();
             OpenChildForm<Form4_TrangDauTien>(
                 $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
-
             // 🚀 TỐI ƯU UX: ẨN NÚT KHEN THƯỞNG NẾU LÀ TÂN BINH
             try
             {
                 string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
                 bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-
                 // Nếu là Tân binh -> Visible = false (Ẩn nút)
                 // Nếu là CBCS -> Visible = true (Hiện nút)
                 if (kryptonButton1_KhenThuong != null)
@@ -278,30 +270,24 @@ namespace PhanMemThiDua2026
             UIHelper.SafeInvoke(this, () =>
             {
                 if (PictureBox2 == null || PictureBox2.IsDisposed) return;
-
                 // Xác định hình ảnh mới từ Resources
                 Image hinhMoi = sidebarExpanded
                     ? Properties.Resources.SangTrai
                     : Properties.Resources.SangPhai;
-
                 // Cấu hình chuẩn hiển thị
                 PictureBox2.Image = hinhMoi;
-
                 // 🛠️ ĐỔI THÀNH ZOOM: Thu phóng ảnh vừa vặn trọn vẹn vào khung mà không bị méo (giữ nguyên tỷ lệ)
                 PictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
-
                 PictureBox2.Update();
             });
         }
         private void KhoiTaoTimerTuDongAnMenu()
         {
             if (timerTuDongAnMenu != null) return;
-
             timerTuDongAnMenu = new System.Windows.Forms.Timer
             {
                 Interval = 3000
             };
-
             timerTuDongAnMenu.Tick += TimerTuDongAnMenu_Tick;
         }
         private void DangKySuKienTuDongAnMenu()
@@ -309,7 +295,6 @@ namespace PhanMemThiDua2026
             this.MouseMove -= Form_MouseMove;
             this.KeyDown -= Form_KeyDown;
             PanelContainer.MouseMove -= PanelContainer_MouseMove;
-
             this.MouseMove += Form_MouseMove;
             this.KeyDown += Form_KeyDown;
             PanelContainer.MouseMove += PanelContainer_MouseMove;
@@ -331,22 +316,19 @@ namespace PhanMemThiDua2026
             var toolTip_GT = new System.Windows.Forms.ToolTip
             {
                 IsBalloon = true,
-                ToolTipTitle = "Gợi ý",
+                ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac,
                 ToolTipIcon = ToolTipIcon.Info,
-
                 // UX: nhẹ – nhanh – không gây phiền
                 InitialDelay = 200,
                 AutoPopDelay = 1500,
                 ReshowDelay = 100,
                 ShowAlways = true
             };
-
             var tips = new Dictionary<System.Windows.Forms.Control, string>
     {
         { pictureBox3, "Xem giới thiệu về chứng thư số và chữ ký số" },
         { kryptonButton1_MoMenuPhanMem, "Mở menu chức năng của phần mềm" }
     };
-
             foreach (var tip in tips)
             {
                 if (tip.Key != null)
@@ -356,9 +338,7 @@ namespace PhanMemThiDua2026
         private void TimerTuDongAnMenu_Tick(object? sender, EventArgs e)
         {
             if (_isClosing) return;
-
             timerTuDongAnMenu?.Stop();
-
             if (sidebarExpanded && PanelLeft.IsHandleCreated)
                 AnMenu();
         }
@@ -366,7 +346,6 @@ namespace PhanMemThiDua2026
         {
             if (!checkBox1_TuDongAnMenu.Checked) return;
             if (timerTuDongAnMenu == null) return;
-
             timerTuDongAnMenu.Stop();
             timerTuDongAnMenu.Start();
         }
@@ -382,7 +361,6 @@ namespace PhanMemThiDua2026
         {
             if (!ctrl.IsHandleCreated)
                 ctrl.CreateControl();
-
             typeof(Control).GetProperty("DoubleBuffered",
                 System.Reflection.BindingFlags.NonPublic |
                 System.Reflection.BindingFlags.Instance)
@@ -392,10 +370,8 @@ namespace PhanMemThiDua2026
         public void OpenChildForm<T>(string title = "") where T : Form, new()
         {
             if (_isClosing || IsDisposed) return;
-
             if (Interlocked.Exchange(ref _switching, 1) == 1)
                 return; // chống spam click
-
             try
             {
                 if (InvokeRequired)
@@ -403,33 +379,24 @@ namespace PhanMemThiDua2026
                     BeginInvoke(new Action(() => OpenChildForm<T>(title)));
                     return;
                 }
-
                 var type = typeof(T);
-
                 if (_currentChild != null &&
      !_currentChild.IsDisposed &&
      _currentChild.GetType() == type)
                 {
                     return;
                 }
-
                 if (!_forms.TryGetValue(type, out var form) || form.IsDisposed)
                     _forms[type] = form = new T();
-
                 _currentChild?.Hide();
-
                 form.TopLevel = false;
                 form.FormBorderStyle = FormBorderStyle.None;
                 form.Dock = DockStyle.Fill;
-
                 if (!PanelContainer.Controls.Contains(form))
                     PanelContainer.Controls.Add(form);
-
                 form.Show();
                 form.BringToFront();
-
                 _currentChild = form;
-
                 if (!string.IsNullOrWhiteSpace(title))
                     Label1.Text = title;
             }
@@ -438,10 +405,9 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _switching, 0);
             }
         }
-        private void MoMenuPhanMem_Click(object sender, EventArgs e)
+        private void MoMenuPhanMem_Click(object? sender, EventArgs e)
         {
             ResetTuDongAnMenu();
-
             if (sidebarExpanded)
             {
                 AnMenu();
@@ -456,18 +422,14 @@ namespace PhanMemThiDua2026
             }
         }
         // 1. Thêm từ khóa 'async' vào chữ ký của sự kiện
-        private async void Btn_Trangchu_Click(object sender, EventArgs e)
+        private async void Btn_Trangchu_Click(object? sender, EventArgs e)
         {
             DongToanBoHuongDanSuDung(); //
             if (!AllowSwitch()) return;
             //ClosePdfIfOpen(); // 🔹 add ở đây
-
             // Gọi hàm đổi màu và truyền nút hiện tại vào
             HighlightNavButton((KryptonButton)sender);
-
-            // =================================================================
             // BẮT ĐẦU CODE GỐC
-            // =================================================================
             // 🔹 Nếu Form31 đang mở, giải phóng PDF trước
             //if (_currentChild is Form32_HuongDanPDF pdfForm)
             //{
@@ -475,12 +437,9 @@ namespace PhanMemThiDua2026
             //    pdfForm.Hide();         // ẩn form
             //    _currentChild = null;   // clear current child
             //}
-
             int namHienTai = Module_HeThong.LayNamHeThong();
-
             OpenChildForm<Form4_TrangDauTien>(
                 $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
-
             // 🔹 Load lại dữ liệu (ĐÃ NÂNG CẤP CHUẨN ASYNC)
             if (_forms.TryGetValue(typeof(Form4_TrangDauTien), out var f))
             {
@@ -498,9 +457,8 @@ namespace PhanMemThiDua2026
                     }
                 }
             }
-            // =================================================================
         }
-        private void kryptonButton1_CaiDatPhanMem_Click(object sender, EventArgs e)
+        private void kryptonButton1_CaiDatPhanMem_Click(object? sender, EventArgs e)
         {
             DongToanBoHuongDanSuDung(); //
             if (!AllowSwitch()) return;
@@ -514,7 +472,6 @@ namespace PhanMemThiDua2026
             if (frm == null) return;
             if (frm.IsDisposed) return;
             if (!frm.IsHandleCreated) return;
-
             try
             {
                 // 🔥 tránh block UI + chống giật
@@ -543,24 +500,20 @@ namespace PhanMemThiDua2026
             {
                 Form39_ThongTinNguoiDung form =
                     Form39_ThongTinNguoiDung.GetInstance();
-
                 if (form.WindowState == FormWindowState.Minimized)
                 {
                     form.WindowState = FormWindowState.Normal;
                 }
-
                 if (!form.Visible)
                 {
                     form.Show(this);
                 }
-
                 form.BringToFront();
                 form.Activate();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[Form2] Lỗi mở Form39: {ex}");
-
                 MessageBox.Show(
                     "Không thể mở thông tin người dùng.\n\n" +
                     ex.Message,
@@ -576,11 +529,9 @@ namespace PhanMemThiDua2026
         {
             if (!isLoaded)
                 return;
-
             // lưu RAM
             AppRuntime.TuDongAnMenu =
                 checkBox1_TuDongAnMenu.Checked;
-
             if (AppRuntime.TuDongAnMenu)
             {
                 ResetTuDongAnMenu();
@@ -590,23 +541,19 @@ namespace PhanMemThiDua2026
                 timerTuDongAnMenu?.Stop();
             }
         }
-        private async void kryptonButton_ThongKe_Click(object sender, EventArgs e)
+        private async void kryptonButton_ThongKe_Click(object? sender, EventArgs e)
         {
             DongToanBoHuongDanSuDung();
             if (!AllowSwitch()) return;
             HighlightNavButton(kryptonButton1_ThongKe); // Đảm bảo tên biến nút này đúng với tên nút của bạn
-
             if (_namHienTaiCache == -1) _namHienTaiCache = Module_HeThong.LayNamHeThong();
-
             // Tiêu đề này chỉ là hiển thị tạm trong tíc tắc, ngay sau đó Form 53 sẽ tự "hét" lên tiêu đề chính thức của Form 15
             string tieuDeForm = $"Trang Quản lý kết quả thi đua năm {_namHienTaiCache}";
-
             try
             {
                 // 🌟 CHUẨN KỸ SƯ: Mở Form Container 53, bỏ hoàn toàn Form_Loading và logic đếm DB
                 // Hàm OpenChildForm của bạn (với ConcurrentDictionary) đã tự lo việc lấy từ RAM hay tạo mới!
                 OpenChildForm<Form53_QuanLyKetQuaThiDua>(tieuDeForm);
-
                 // Kích hoạt load dữ liệu ngầm nếu Form 53 mới tinh và chưa nạp data
                 if (_currentChild is Form53_QuanLyKetQuaThiDua frm && !frm.DaLoadDuLieu)
                 {
@@ -618,14 +565,12 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Lỗi khởi tạo trang Quản lý Thi đua: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private async void Btn_XuLyData_Click(object sender, EventArgs e)
+        private async void Btn_XuLyData_Click(object? sender, EventArgs e)
         {
             DongToanBoHuongDanSuDung();
             if (!AllowSwitch()) return;
             HighlightNavButton((KryptonButton)sender);
-
             OpenChildForm<Form6_XuLyData>("Trang phân loại thi đua");
-
             if (_currentChild is Form6_XuLyData frm)
             {
                 // 🌟 CHUẨN KỸ SƯ: Chỉ load nếu chưa từng load, và BẮT BUỘC ĐẨY XUỐNG LUỒNG NGẦM
@@ -643,14 +588,12 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        private async void kryptonButton_NhatKyPhanMem_Click(object sender, EventArgs e)
+        private async void kryptonButton_NhatKyPhanMem_Click(object? sender, EventArgs e)
         {
             DongToanBoHuongDanSuDung();
             if (!AllowSwitch()) return;
             HighlightNavButton(kryptonButton1_NhatKyPhanMem);
-
             OpenChildForm<Form10_NhatKy>("Trang Nhật ký phần mềm");
-
             if (_currentChild is Form10_NhatKy frm)
             {
                 // 🌟 CHUẨN KỸ SƯ: Chỉ load 1 lần duy nhất, giải phóng UI Thread
@@ -667,39 +610,13 @@ namespace PhanMemThiDua2026
                     }
                 }
             }
-
             Module_NhatKy.GhiNhatKy(
                 SessionInfo.TenTaiKhoan,
-                "Mở Form Nhật ký phần mềm",
-                "Người dùng mở form nhật ký từ Form2"
+                "Mở Trang nhật ký phần mềm",
+                "Người dùng mở form nhật ký từ Trang chủ"
             );
         }
-        private void SafeReloadForm10(Form10_NhatKy frm)
-        {
-            if (frm == null) return;
-            if (frm.IsDisposed) return;
-            if (!frm.IsHandleCreated) return;
-
-            try
-            {
-                frm.BeginInvoke(new Action(() =>
-                {
-                    try
-                    {
-                        frm.ReloadDuLieuAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("Reload Form10 lỗi: " + ex.Message);
-                    }
-                }));
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("SafeReload Form10 lỗi: " + ex.Message);
-            }
-        }
-        private void kryptonButton_ThoatPhanMem_Click(object sender, EventArgs e)
+        private void kryptonButton_ThoatPhanMem_Click(object? sender, EventArgs e)
         {
             this.Close(); // Form cha đóng → app tự thoát
         }
@@ -709,9 +626,7 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new Microsoft.Data.Sqlite.SqliteConnection(
                     $"Data Source={_csdl2Path}");
-
                 cn.Open();
-
                 using var cmdCreate = cn.CreateCommand();
                 cmdCreate.CommandText = @"
         CREATE TABLE IF NOT EXISTS SuKien_ThoatPhanMem (
@@ -719,17 +634,14 @@ namespace PhanMemThiDua2026
             SuKien_DuọcChon TEXT
         );";
                 cmdCreate.ExecuteNonQuery();
-
                 using var cmdCheck = cn.CreateCommand();
                 cmdCheck.CommandText =
                     "SELECT COUNT(*) FROM SuKien_ThoatPhanMem WHERE ID = 1";
-
                 long count = (long)cmdCheck.ExecuteScalar();
-
                 if (count == 0)
                 {
                     using var cmdInsert = cn.CreateCommand();
-                    string maHoa = BaoMatAES.MaHoa("Thoát ngay");
+                    string maHoa = Module_BaoMatAES.MaHoa("Thoát ngay");
                     cmdInsert.CommandText =
                         "INSERT INTO SuKien_ThoatPhanMem (SuKien_DuọcChon) VALUES (@v)";
                     cmdInsert.Parameters.AddWithValue("@v", maHoa);
@@ -741,43 +653,32 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"[EnsureSuKienThoatTonTai] {ex.Message}");
             }
         }
-        private void Form2_FormClosing(object sender, FormClosingEventArgs e)
+        private void Form2_FormClosing(object? sender, FormClosingEventArgs e)
         {
             DongToanBoHuongDanSuDung(); //
             // Nếu đang trong tiến trình đóng rồi thì bỏ qua
             if (_isClosing) return;
-
             try
             {
                 string suKien = LoadSuKienThoat();
-
-                // ==========================================
                 // TRƯỜNG HỢP 1: QUAY VỀ FORM LOGIN
-                // ==========================================
                 if (suKien == "Trở về form đăng nhập")
                 {
                     e.Cancel = true; // Chặn sự kiện đóng Form2 hiện tại
                     this.Hide();
-
                     var login = new Form1
                     {
                         StartPosition = FormStartPosition.CenterScreen
                     };
-
                     login.FormClosed += (s, args) =>
                     {
                         Environment.Exit(0); // App tắt hoàn toàn nếu tắt Login
                     };
-
                     login.Show();
                     return;
                 }
-
-                // ==========================================
                 // TRƯỜNG HỢP 2: THOÁT HOÀN TOÀN HỆ THỐNG
-                // ==========================================
                 _isClosing = true;
-
                 // 1. Dọn dẹp Timer
                 if (timerTuDongAnMenu != null)
                 {
@@ -796,7 +697,6 @@ namespace PhanMemThiDua2026
                     _currentChild.Dispose();
                     _currentChild = null;
                 }
-
                 // 3. 🔥 CHUẨN KỸ SƯ: Giải phóng triệt để UI Handles trong Cache
                 foreach (var form in _forms.Values)
                 {
@@ -806,18 +706,14 @@ namespace PhanMemThiDua2026
                     }
                 }
                 _forms.Clear();
-
                 // 4. Giải phóng đối tượng đa luồng (Tránh leak Semaphore)
                 _huongDanLock?.Dispose();
-
-
                 // 6. Đóng tiến trình an toàn và trả mã 0 (Thành công) cho OS
                 Environment.Exit(0);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Lỗi nghiêm trọng khi đóng Form: {ex}");
-
                 // Trả mã 1 để báo cho Hệ điều hành biết là App thoát do bị lỗi
                 Environment.Exit(1);
             }
@@ -828,25 +724,20 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new Microsoft.Data.Sqlite.SqliteConnection(
                     $"Data Source={_csdl2Path}");
-
                 cn.Open();
-
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText =
                     "SELECT SuKien_DuọcChon FROM SuKien_ThoatPhanMem WHERE ID = 1";
-
                 var result = cmd.ExecuteScalar();
-
                 if (result != null && !string.IsNullOrWhiteSpace(result.ToString()))
                 {
-                    return BaoMatAES.GiaiMa(result.ToString());
+                    return Module_BaoMatAES.GiaiMa(result.ToString());
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
             }
-
             return "Thoát ngay"; // fallback an toàn
         }
         private void PictureBox1_DoubleClick(object? sender, EventArgs e)
@@ -854,11 +745,9 @@ namespace PhanMemThiDua2026
             // CHỈ CHO PHÉP MỞ 1 LẦN
             if (_daMoWelcome)
                 return;
-
             try
             {
                 _daMoWelcome = true; // Đánh dấu trước để chống double-click liên tiếp
-
                 using (var frm = new FormWelcome())
                 {
                     frm.StartPosition = FormStartPosition.CenterScreen;
@@ -873,18 +762,16 @@ namespace PhanMemThiDua2026
             }
         }
         private int _isProcessing = 0; // Thêm biến này vào Form2_FormCha
-        private void pictureBox3_Click(object sender, EventArgs e)
+        private void pictureBox3_Click(object? sender, EventArgs e)
         {
             // Kiểm tra nhanh: Nếu đang xử lý hoặc đã mở rồi thì thoát
             if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) != 0)
                 return;
-
             if (_daMoThongTinChungThu)
             {
                 Interlocked.Exchange(ref _isProcessing, 0);
                 return;
             }
-
             try
             {
                 Module_DatabaseBackup.HienThiThongTinChungThu();
@@ -909,7 +796,6 @@ namespace PhanMemThiDua2026
         {
             // Tiêu chuẩn hóa ký tự xuống dòng để đảm bảo không bị lỗi font trên TextBox
             string noiDungChuan = noiDungLoi.Replace("\n", Environment.NewLine);
-
             using (var formAo = new Krypton.Toolkit.KryptonForm())
             {
                 formAo.Text = "Hệ thống ghi nhận sự cố";
@@ -919,7 +805,6 @@ namespace PhanMemThiDua2026
                 formAo.MaximizeBox = false;
                 formAo.MinimizeBox = false;
                 formAo.ShowIcon = false;
-
                 // --- 1. PANEL TIÊU ĐỀ (Đỏ Thẫm) ---
                 var panelTop = new Krypton.Toolkit.KryptonPanel
                 {
@@ -928,7 +813,6 @@ namespace PhanMemThiDua2026
                     Padding = new Padding(25, 20, 20, 5)
                 };
                 panelTop.StateCommon.Color1 = System.Drawing.Color.White;
-
                 var lblTitle = new Krypton.Toolkit.KryptonLabel
                 {
                     Text = tieuDe.ToUpper(),
@@ -938,7 +822,6 @@ namespace PhanMemThiDua2026
                 // Sử dụng màu Đỏ Thẫm (Crimson Red) để báo hiệu sự cố chuyên nghiệp
                 lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 12F, System.Drawing.FontStyle.Bold);
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(198, 40, 40);
-
                 // --- 2. ĐƯỜNG KẺ NGANG (Separator) ---
                 var separator = new Label
                 {
@@ -947,7 +830,6 @@ namespace PhanMemThiDua2026
                     BackColor = System.Drawing.Color.FromArgb(240, 200, 200), // Kẻ ngang màu hồng nhạt
                     Margin = new Padding(0, 5, 0, 10)
                 };
-
                 // --- 3. PANEL NỘI DUNG CHÍNH (Chứa Icon và Text) ---
                 var panelContent = new Krypton.Toolkit.KryptonPanel
                 {
@@ -955,7 +837,6 @@ namespace PhanMemThiDua2026
                     Padding = new Padding(20, 15, 25, 20)
                 };
                 panelContent.StateCommon.Color1 = System.Drawing.Color.White;
-
                 // Thêm Icon Lỗi mặc định của Windows
                 var picIcon = new PictureBox
                 {
@@ -964,7 +845,6 @@ namespace PhanMemThiDua2026
                     Size = new System.Drawing.Size(50, 50),
                     Location = new System.Drawing.Point(20, 15) // Neo bên trái
                 };
-
                 var txtContent = new Krypton.Toolkit.KryptonTextBox
                 {
                     Text = noiDungChuan,
@@ -978,14 +858,12 @@ namespace PhanMemThiDua2026
                     Height = panelContent.Height - 35,
                     Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
                 };
-
                 // 🔴 ĐIỂM SÁNG: TextBox Tàng Hình! Giống y hệt Label nhưng có thể bôi đen mã lỗi
                 txtContent.StateCommon.Back.Color1 = System.Drawing.Color.White;
                 txtContent.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.None;
                 txtContent.StateCommon.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Regular);
                 txtContent.StateCommon.Content.Color1 = System.Drawing.Color.FromArgb(40, 40, 40);
                 txtContent.StateCommon.Content.Padding = new Padding(0);
-
                 // --- 4. PANEL NÚT BẤM ---
                 var panelBottom = new Panel
                 {
@@ -993,7 +871,6 @@ namespace PhanMemThiDua2026
                     Height = 60,
                     BackColor = System.Drawing.Color.WhiteSmoke
                 };
-
                 // Nút Sao chép thông minh
                 var btnCopy = new Krypton.Toolkit.KryptonButton
                 {
@@ -1011,7 +888,6 @@ namespace PhanMemThiDua2026
                     }
                     catch { }
                 };
-
                 var btnClose = new Krypton.Toolkit.KryptonButton
                 {
                     Text = "Đóng",
@@ -1020,39 +896,29 @@ namespace PhanMemThiDua2026
                     DialogResult = DialogResult.OK
                 };
                 btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
-
                 // Căn giữa cụm 2 nút bấm
                 int totalWidth = btnCopy.Width + 15 + btnClose.Width;
                 int startX = (formAo.Width - totalWidth) / 2;
-
                 btnCopy.Location = new System.Drawing.Point(startX, 12);
                 btnClose.Location = new System.Drawing.Point(startX + btnCopy.Width + 15, 12);
-
                 panelBottom.Controls.Add(btnCopy);
                 panelBottom.Controls.Add(btnClose);
-
                 // --- 5. RÁP LAYER ---
                 panelContent.Controls.Add(picIcon);
                 panelContent.Controls.Add(txtContent);
-
                 panelContent.Controls.Add(separator);
                 panelTop.Controls.Add(lblTitle);
-
                 txtContent.BringToFront();
                 picIcon.BringToFront();
                 separator.SendToBack();
-
                 formAo.Controls.Add(panelContent);
                 formAo.Controls.Add(panelTop);
                 formAo.Controls.Add(panelBottom);
-
                 formAo.AcceptButton = btnClose;
                 formAo.CancelButton = btnClose;
                 formAo.Shown += (s, ev) => btnClose.Focus();
-
                 // Ghi Log ngầm hệ thống
                 System.Diagnostics.Debug.WriteLine($"[ERR_UI] {tieuDe} - {noiDungChuan}");
-
                 formAo.ShowDialog(this);
             }
         }
@@ -1063,13 +929,11 @@ namespace PhanMemThiDua2026
                 // 1. Kiểm tra lại phiên bản mới nhất
                 string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
                 bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-
                 // 2. Ẩn/Hiện nút Khen thưởng
                 if (kryptonButton1_KhenThuong != null)
                 {
                     kryptonButton1_KhenThuong.Visible = !laTanBinh;
                 }
-
                 // 3. QUAN TRỌNG: Đóng các Form dữ liệu cũ đang mở để tránh ghi nhầm dữ liệu
                 // Xóa chúng khỏi bộ nhớ Cache (_forms) để khi click lại Menu, chúng sẽ tự tạo mới 100%
                 var danhSachFormCanDong = new[] {
@@ -1077,9 +941,7 @@ namespace PhanMemThiDua2026
                     typeof(Form15_ThongKeThiDua),
                     typeof(Form34_ThongKeKhenThuong)
                 };
-
                 bool formHienTaiBiDong = false;
-
                 foreach (var type in danhSachFormCanDong)
                 {
                     if (_forms.TryGetValue(type, out var formToClose))
@@ -1089,12 +951,10 @@ namespace PhanMemThiDua2026
                         {
                             formHienTaiBiDong = true;
                         }
-
                         formToClose?.Dispose(); // Tiêu diệt Form cũ
                         _forms.TryRemove(type, out _);    // Xóa khỏi bộ nhớ đệm
                     }
                 }
-
                 // 4. CHỈ chuyển về Trang chủ (Form 4) nếu cái Form đang hiển thị vừa bị tiêu diệt.
                 // Vì bạn đang đứng ở Form 12 (Cài đặt) -> Form 12 không nằm trong danh sách tiêu diệt 
                 // -> formHienTaiBiDong = false -> Sẽ KHÔNG bị nhảy trang nữa!
@@ -1104,23 +964,17 @@ namespace PhanMemThiDua2026
                 }
             });
         }
-        private async void kryptonButton1_KhenThuong_Click(object sender, EventArgs e)
+        private async void kryptonButton1_KhenThuong_Click(object? sender, EventArgs e)
         {
             DongToanBoHuongDanSuDung();
             if (!AllowSwitch()) return;
-
             // Gọi hàm đổi màu và truyền nút hiện tại vào
             HighlightNavButton((KryptonButton)sender);
-
-            // =================================================================
             // BẮT ĐẦU CODE ĐÃ ĐỔI SANG Form52_QuanLyKhenThuong
-            // =================================================================
-
             // Tên Form: Quản lý khen thưởng CBCS + năm hệ thống
             string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
                                 Module_HeThong.LayNamHeThong();
             OpenChildForm<Form52_QuanLyKhenThuong>(tieuDeForm);
-
             if (_currentChild is Form52_QuanLyKhenThuong frm)
             {
                 // Nếu trước đó tải ngầm chưa xong hoặc chưa tải thì mới await
@@ -1129,9 +983,8 @@ namespace PhanMemThiDua2026
                     await frm.ReloadDuLieu();
                 }
             }
-            // =================================================================
         }
-        private void kryptonButton1_ThoatHeThong_Click(object sender, EventArgs e)
+        private void kryptonButton1_ThoatHeThong_Click(object? sender, EventArgs e)
         {
             DongToanBoHuongDanSuDung(); //
             Close();
@@ -1141,33 +994,25 @@ namespace PhanMemThiDua2026
         {
             // 1. Guard Clause: Kiểm tra an toàn, ngăn chặn lỗi Null Reference hoặc control đã bị hủy
             if (clickedButton == null || clickedButton.IsDisposed) return;
-
             // 2. Tối ưu UX/Performance: Nếu click lại chính nút đang được chọn -> Bỏ qua (không làm gì cả)
             if (_currentButton == clickedButton) return;
-
             // 3. Tắt màu nút cũ (nếu có và chưa bị hủy)
             if (_currentButton != null && !_currentButton.IsDisposed)
             {
                 ResetKryptonButton(_currentButton);
             }
-
             // 4. Cập nhật trạng thái nút hiện tại thành nút vừa click
             _currentButton = clickedButton;
-
             // 5. Gọi hàm tô màu cho nút mới
             ApplyHighlightColor(_currentButton);
         }
-        private async void kryptonButton1_HuongDan_Click(object sender, EventArgs e)
+        private async void kryptonButton1_HuongDan_Click(object? sender, EventArgs e)
         {
             Label1.Text = "Đang chuẩn bị tài liệu hướng dẫn...";
-
             try
             {
                 string cheDo = Module_HuongDanSuDung.LayCheDoXemHuongDan();
-
-                // =====================================================
                 // PDF MODE
-                // =====================================================
                 if (cheDo == "Chế độ pdf")
                 {
                     if (!await _huongDanLock.WaitAsync(0))
@@ -1177,15 +1022,12 @@ namespace PhanMemThiDua2026
                             hanhDong: "Mở Hướng dẫn (PDF) thất bại",
                             ghiChu: "Hệ thống đang bận xử lý tài liệu khác."
                         );
-
                         MessageBox.Show("Tài liệu đang được xử lý, vui lòng đợi.", "Thông báo");
                         return;
                     }
-
                     try
                     {
                         string pdfPath = Module_HuongDanSuDung.TimFileHuongDanPdf();
-
                         if (string.IsNullOrWhiteSpace(pdfPath))
                         {
                             Module_NhatKy.GhiNhatKy(
@@ -1193,38 +1035,27 @@ namespace PhanMemThiDua2026
                                 hanhDong: "Mở Hướng dẫn (PDF) thất bại",
                                 ghiChu: "Lỗi: Không tìm thấy tệp PDF hướng dẫn trong cơ sở dữ liệu."
                             );
-
                             MessageBox.Show("Không tìm thấy tài liệu PDF.", "Thông báo");
                             return;
                         }
-
                         var existingPdf = PanelContainer.Controls.OfType<Form32_HuongDanPDF>().FirstOrDefault();
-
-                        // =========================================
                         // REUSE EXISTING FORM
-                        // =========================================
                         if (existingPdf != null && !existingPdf.IsDisposed)
                         {
                             existingPdf.GoiTenEmTrongDem_LoadPdf(pdfPath);
                             existingPdf.Show();
                             existingPdf.BringToFront();
-
                             _currentChild?.Hide();
                             _currentChild = existingPdf;
                             HighlightNavButton(kryptonButton1_HuongDan);
-
                             Module_NhatKy.GhiNhatKy(
                                 taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                                 hanhDong: "Chuyển tab Hướng dẫn (PDF)",
                                 ghiChu: "Người dùng tái sử dụng form pdf đã mở."
                             );
-
                             return;
                         }
-
-                        // =========================================
                         // CREATE NEW FORM
-                        // =========================================
                         Form32_HuongDanPDF pdf = new()
                         {
                             TopLevel = false,
@@ -1232,16 +1063,13 @@ namespace PhanMemThiDua2026
                             Dock = DockStyle.Fill,
                             Text = "Hướng dẫn sử dụng"
                         };
-
                         _currentChild?.Hide();
                         PanelContainer.Controls.Add(pdf);
                         _currentChild = pdf;
-
                         pdf.FormClosed += (s, ev) =>
                         {
                             if (PanelContainer.IsDisposed) return;
                             if (_currentChild == pdf) _currentChild = null;
-
                             var defaultForm = PanelContainer.Controls.OfType<Form4_TrangDauTien>().FirstOrDefault();
                             if (defaultForm != null && !defaultForm.IsDisposed)
                             {
@@ -1250,12 +1078,10 @@ namespace PhanMemThiDua2026
                                 _currentChild = defaultForm;
                             }
                         };
-
                         pdf.GoiTenEmTrongDem_LoadPdf(pdfPath);
                         pdf.Show();
                         pdf.BringToFront();
                         HighlightNavButton(kryptonButton1_HuongDan);
-
                         Module_NhatKy.GhiNhatKy(
                             taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                             hanhDong: "Mở Hướng dẫn (PDF) thành công",
@@ -1266,18 +1092,13 @@ namespace PhanMemThiDua2026
                     {
                         _huongDanLock.Release();
                     }
-
                     return;
                 }
-
-                // =====================================================
                 // WEB MODE
-                // =====================================================
                 bool opened = await Task.Run(() =>
                 {
                     return Module_HuongDanSuDung.MoHuongDanBangWeb();
                 });
-
                 if (!opened)
                 {
                     Module_NhatKy.GhiNhatKy(
@@ -1285,7 +1106,6 @@ namespace PhanMemThiDua2026
                         hanhDong: "Mở Hướng dẫn (Web) thất bại",
                         ghiChu: "Không thể đồng bộ hoặc khởi chạy trình duyệt web."
                     );
-
                     MessageBox.Show("Không thể mở hướng dẫn web.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 else
@@ -1304,7 +1124,6 @@ namespace PhanMemThiDua2026
                     hanhDong: "Lỗi ngoại lệ: Mở Hướng dẫn sử dụng",
                     ghiChu: $"Lỗi: {ex.Message}"
                 );
-
                 MessageBox.Show(ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -1322,7 +1141,6 @@ namespace PhanMemThiDua2026
             // 🌟 CHUẨN KỸ SƯ: Dừng ngay nếu form hiện tại KHÔNG PHẢI là Form Hướng Dẫn
             // Việc này giúp cắt bỏ hao phí quét Panel và gọi hàm rác ở các nút Tab khác
             if (!(_currentChild is Form32_HuongDanPDF)) return;
-
             try
             {
                 Module_HuongDanSuDung.DongHuongDan();
@@ -1346,7 +1164,6 @@ namespace PhanMemThiDua2026
             btn.StateCommon.Back.Color2 = highlightColor;
             btn.OverrideDefault.Back.Color1 = highlightColor;
             btn.OverrideDefault.Back.Color2 = highlightColor;
-
             // 🌟 Thay Refresh (ép vẽ đồng bộ) thành Invalidate (xếp hàng vẽ bất đồng bộ)
             btn.Invalidate();
         }
@@ -1357,7 +1174,6 @@ namespace PhanMemThiDua2026
             btn.StateCommon.Back.Color2 = Color.Empty;
             btn.OverrideDefault.Back.Color1 = Color.Empty;
             btn.OverrideDefault.Back.Color2 = Color.Empty;
-
             // 🌟 Thay Refresh thành Invalidate
             btn.Invalidate();
         }

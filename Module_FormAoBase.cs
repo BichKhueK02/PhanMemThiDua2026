@@ -1,11 +1,8 @@
 ﻿using Krypton.Toolkit;
-
 namespace PhanMemThiDua2026
 {
-    // =========================================================================
     // LỚP 1: KẾT THỪA GIAO DIỆN (CHỐNG GIẬT TẦNG HỆ ĐIỀU HÀNH)
     // Dùng 'sealed' để JIT Compiler tối ưu hóa tốc độ gọi hàm
-    // =========================================================================
     public sealed class FormAoBase : KryptonForm
     {
         public FormAoBase()
@@ -17,15 +14,12 @@ namespace PhanMemThiDua2026
                 ControlStyles.OptimizedDoubleBuffer |
                 ControlStyles.ResizeRedraw,
                 true);
-
             UpdateStyles();
             DoubleBuffered = true;
-
             // Tắt autoscale để tránh redraw dư thừa
             AutoScaleMode = AutoScaleMode.None;
             StartPosition = FormStartPosition.CenterParent;
         }
-
         // TRONG CLASS FORMAOBASE
         protected override CreateParams CreateParams
         {
@@ -37,7 +31,6 @@ namespace PhanMemThiDua2026
                 return cp;
             }
         }
-
         private void InitializeComponent()
         {
             SuspendLayout();
@@ -46,15 +39,15 @@ namespace PhanMemThiDua2026
             // 
             ClientSize = new Size(284, 261);
             Name = "FormAoBase";
+            Load += FormAoBase_Load;
             ResumeLayout(false);
-
+        }
+        private void FormAoBase_Load(object sender, EventArgs e)
+        {
         }
     }
-
-    // =========================================================================
     // LỚP 2: CÔNG CỤ QUẢN LÝ ĐÓNG/MỞ FORM TOÀN HỆ THỐNG
     // Bộ xương sống quản lý vòng đời UI, tiêu diệt Memory Leak và GDI Leak
-    // =========================================================================
     public static class FormManager
     {
         /// <summary>
@@ -64,7 +57,6 @@ namespace PhanMemThiDua2026
         public static void OpenModal<T>(Form parent) where T : Form, new()
         {
             if (parent == null || parent.IsDisposed) return;
-
             try
             {
                 using (T child = new T())
@@ -74,7 +66,6 @@ namespace PhanMemThiDua2026
                     child.FormBorderStyle = FormBorderStyle.FixedDialog;
                     child.MinimizeBox = false;
                     child.MaximizeBox = false;
-
                     child.ShowDialog(parent);
                 } // Thoát khỏi đây là GC dọn sạch rác
             }
@@ -87,7 +78,6 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Error);
             }
         }
-
         /// <summary>
         /// Mở Form dạng Modal và CÓ TRẢ VỀ KẾT QUẢ. 
         /// Chuyên dùng cho form bảo mật (Quên mật khẩu, Xác thực Admin).
@@ -95,7 +85,6 @@ namespace PhanMemThiDua2026
         public static DialogResult OpenModalWithResult<T>(Form parent) where T : Form, new()
         {
             if (parent == null || parent.IsDisposed) return DialogResult.None;
-
             try
             {
                 using (T child = new T())
@@ -105,7 +94,6 @@ namespace PhanMemThiDua2026
                     child.FormBorderStyle = FormBorderStyle.FixedDialog;
                     child.MinimizeBox = false;
                     child.MaximizeBox = false;
-
                     return child.ShowDialog(parent);
                 }
             }
@@ -116,11 +104,9 @@ namespace PhanMemThiDua2026
                     "Lỗi hệ thống",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
-
                 return DialogResult.Abort;
             }
         }
-
         /// <summary>
         /// Mở Form dạng tự do (Modeless) CHỐNG TRÙNG LẶP.
         /// Nếu RAM đã có Form -> Kéo lên trên cùng. Chưa có -> Mở mới.
@@ -138,22 +124,18 @@ namespace PhanMemThiDua2026
                     {
                         frm.WindowState = FormWindowState.Normal;
                     }
-
                     // Kéo lên trên cùng và nhấp nháy focus
                     frm.BringToFront();
                     frm.Activate();
                     frm.Focus();
-
                     return; // Đã tìm thấy thì thoát hàm ngay, KHÔNG tạo mới.
                 }
             }
-
             // 2. Nếu quét hết RAM không thấy -> Khởi tạo mới 1 lần duy nhất
             try
             {
                 T newForm = new T();
                 newForm.StartPosition = FormStartPosition.CenterScreen;
-
                 if (parent != null)
                 {
                     newForm.Show(parent);
@@ -173,5 +155,4 @@ namespace PhanMemThiDua2026
             }
         }
     }
-
 }

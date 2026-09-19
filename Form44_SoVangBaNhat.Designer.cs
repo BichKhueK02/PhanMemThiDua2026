@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -941,7 +938,7 @@
             kryptonButton_RefershCSDL.TabIndex = 0;
             kryptonButton_RefershCSDL.Values.DropDownArrowColor = Color.Empty;
             kryptonButton_RefershCSDL.Values.Image = (Image)resources.GetObject("kryptonButton_RefershCSDL.Values.Image");
-            kryptonButton_RefershCSDL.Values.Text = "Refresh";
+            kryptonButton_RefershCSDL.Values.Text = "Làm mới";
             kryptonButton_RefershCSDL.Click += kryptonButton_RefershCSDL_Click;
             // 
             // tableLayoutPanel7
@@ -993,9 +990,7 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
-
         private TableLayoutPanel tableLayoutPanel3;
         private TableLayoutPanel tableLayoutPanel4;
         private TableLayoutPanel tableLayoutPanel10;

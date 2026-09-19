@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -74,12 +71,12 @@
             toolStripMenuItem1 = new ToolStripSeparator();
             capNhatThongTinKhenThuong_ToolStripMenuItem = new ToolStripMenuItem();
             phanTichKhenThuong_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem_LuuKetQuaThiDuaTheoNam = new ToolStripMenuItem();
             toolStripMenuItem2 = new ToolStripSeparator();
             xuatDuLieuRaTepExcel_ToolStripMenuItem = new ToolStripMenuItem();
             thongKeKhenThuong_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem_XuatToanBoDanhSachRaTepExcel = new ToolStripMenuItem();
             toolStripMenuItem4 = new ToolStripSeparator();
-            toolStripMenuItem_LuuKetQuaThiDuaTheoNam = new ToolStripMenuItem();
             saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem = new ToolStripMenuItem();
             khoiPhucDuLieuKhenThuong_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem3 = new ToolStripSeparator();
@@ -661,6 +658,14 @@
             phanTichKhenThuong_ToolStripMenuItem.Text = "Phân tích nhanh";
             phanTichKhenThuong_ToolStripMenuItem.Click += phanTichKhenThuong_ToolStripMenuItem_Click;
             // 
+            // toolStripMenuItem_LuuKetQuaThiDuaTheoNam
+            // 
+            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Image = (Image)resources.GetObject("toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Image");
+            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Name = "toolStripMenuItem_LuuKetQuaThiDuaTheoNam";
+            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Size = new Size(274, 26);
+            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Text = "Lưu kết quả khen thưởng theo năm";
+            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Click += toolStripMenuItem_LuuKetQuaThiDuaTheoNam_Click;
+            // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
@@ -694,14 +699,6 @@
             // 
             toolStripMenuItem4.Name = "toolStripMenuItem4";
             toolStripMenuItem4.Size = new Size(271, 6);
-            // 
-            // toolStripMenuItem_LuuKetQuaThiDuaTheoNam
-            // 
-            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Image = (Image)resources.GetObject("toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Image");
-            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Name = "toolStripMenuItem_LuuKetQuaThiDuaTheoNam";
-            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Size = new Size(274, 26);
-            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Text = "Lưu kết quả khen thưởng theo năm";
-            toolStripMenuItem_LuuKetQuaThiDuaTheoNam.Click += toolStripMenuItem_LuuKetQuaThiDuaTheoNam_Click;
             // 
             // saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem
             // 
@@ -761,9 +758,7 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
-
         private Krypton.Toolkit.KryptonStatusStrip kryptonStatusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
         private TableLayoutPanel tableLayoutPanel1;

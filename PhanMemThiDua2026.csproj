@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -13,7 +12,6 @@
     <FileVersion>1.1.162.0</FileVersion>
     <Copyright>TrungKien</Copyright>
     <PackageIcon>icon.ico</PackageIcon>
-    
     <!-- CẤU HÌNH DPI CHUẨN HIỆN ĐẠI (THÊM MỚI VÀO ĐÂY) -->
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
@@ -24,16 +22,13 @@
     <Description>Phan mem Thi dua 2026</Description>
     <PackageProjectUrl>https://github.com/BichKhueK02/PhanMemThiDua2026</PackageProjectUrl>
   </PropertyGroup>
-
   <ItemGroup>
     <Content Remove="C:\Users\Asus ROG G531\.nuget\packages\pdfiumviewer.native.x86.v8-xfa\2018.4.8.256\Build\x86\pdfium.dll" />
     <Content Remove="C:\Users\Asus ROG G531\.nuget\packages\pdfiumviewer.native.x86_64.v8-xfa\2018.4.8.256\Build\x64\pdfium.dll" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="Resources\ic_PhanMem.ico" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="ClosedXML" Version="0.105.1" />
@@ -44,7 +39,6 @@
     <PackageReference Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -57,14 +51,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -75,18 +67,14 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <EditorConfigFiles Remove="E:\PhanMemThiDua2026\.editorconfig" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="E:\PhanMemThiDua2026\.editorconfig" />
-    <None Include="Module_MaHoaVaGiaiMa.cs" />
+    <None Include="Module_BaoMatAES.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="bin\Release\net8.0-windows\" />
   </ItemGroup>
-
 </Project>

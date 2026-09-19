@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -31,7 +28,7 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form41_TyLeBCHD));
             tableLayoutPanel2 = new TableLayoutPanel();
-            kryptonButton_LuuE29 = new Krypton.Toolkit.KryptonButton();
+            kryptonButton_LuuTyLeBCHE09 = new Krypton.Toolkit.KryptonButton();
             label1_ThongBao = new Label();
             textBox_E3 = new Krypton.Toolkit.KryptonTextBox();
             textBox_E2 = new Krypton.Toolkit.KryptonTextBox();
@@ -76,7 +73,7 @@
             tableLayoutPanel2.ColumnCount = 2;
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 72.75641F));
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.24359F));
-            tableLayoutPanel2.Controls.Add(kryptonButton_LuuE29, 1, 0);
+            tableLayoutPanel2.Controls.Add(kryptonButton_LuuTyLeBCHE09, 1, 0);
             tableLayoutPanel2.Controls.Add(label1_ThongBao, 0, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
             tableLayoutPanel2.Location = new Point(3, 189);
@@ -87,19 +84,19 @@
             tableLayoutPanel2.Size = new Size(786, 53);
             tableLayoutPanel2.TabIndex = 30;
             // 
-            // kryptonButton_LuuE29
+            // kryptonButton_LuuTyLeBCHE09
             // 
-            kryptonButton_LuuE29.Anchor = AnchorStyles.None;
-            kryptonButton_LuuE29.Location = new Point(607, 11);
-            kryptonButton_LuuE29.Margin = new Padding(3, 2, 3, 2);
-            kryptonButton_LuuE29.Name = "kryptonButton_LuuE29";
-            kryptonButton_LuuE29.Size = new Size(142, 30);
-            kryptonButton_LuuE29.StateCommon.Border.Rounding = 4F;
-            kryptonButton_LuuE29.TabIndex = 29;
-            kryptonButton_LuuE29.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LuuE29.Values.Image = (Image)resources.GetObject("kryptonButton_LuuE29.Values.Image");
-            kryptonButton_LuuE29.Values.Text = "Lưu tỷ lệ";
-            kryptonButton_LuuE29.Click += kryptonButton_LuuE29_Click;
+            kryptonButton_LuuTyLeBCHE09.Anchor = AnchorStyles.None;
+            kryptonButton_LuuTyLeBCHE09.Location = new Point(592, 11);
+            kryptonButton_LuuTyLeBCHE09.Margin = new Padding(3, 2, 3, 2);
+            kryptonButton_LuuTyLeBCHE09.Name = "kryptonButton_LuuTyLeBCHE09";
+            kryptonButton_LuuTyLeBCHE09.Size = new Size(173, 30);
+            kryptonButton_LuuTyLeBCHE09.StateCommon.Border.Rounding = 4F;
+            kryptonButton_LuuTyLeBCHE09.TabIndex = 29;
+            kryptonButton_LuuTyLeBCHE09.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton_LuuTyLeBCHE09.Values.Image = (Image)resources.GetObject("kryptonButton_LuuTyLeBCHE09.Values.Image");
+            kryptonButton_LuuTyLeBCHE09.Values.Text = "Lưu tỷ lệ";
+            kryptonButton_LuuTyLeBCHE09.Click += kryptonButton_LuuTyLeBCHE09_Click;
             // 
             // label1_ThongBao
             // 
@@ -531,11 +528,9 @@
             groupBox_TyLeTheoQuyDinh.ResumeLayout(false);
             ResumeLayout(false);
         }
-
         #endregion
-
         private TableLayoutPanel tableLayoutPanel2;
-        internal Krypton.Toolkit.KryptonButton kryptonButton_LuuE29;
+        internal Krypton.Toolkit.KryptonButton kryptonButton_LuuTyLeBCHE09;
         private Label label1_ThongBao;
         private Krypton.Toolkit.KryptonTextBox textBox_E3;
         private Krypton.Toolkit.KryptonTextBox textBox_E2;

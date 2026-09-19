@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Krypton.Toolkit;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form59_QuanLyThiDuaTapTheNamCu : Form
@@ -22,7 +21,7 @@ namespace PhanMemThiDua2026
             // Chỉ đăng ký sự kiện CellClick ở đây
             this.kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
         }
-        private async void Form59_QuanLyThiDuaTapTheNamCu_Load(object sender, EventArgs e)
+        private async void Form59_QuanLyThiDuaTapTheNamCu_Load(object? sender, EventArgs e)
         {
             this.SuspendLayout();
             try
@@ -32,19 +31,15 @@ namespace PhanMemThiDua2026
                 KhoiTaoComboBoxThangVaPhanLoai();
                 InitToolTips();
                 DinhDangGiaoDienDataGridTongKetThang(kryptonDataGridView1);
-
                 // 2. Tải danh sách CSDL bất đồng bộ
                 await TaiDanhSachCoSoDuLieuNamCuAsync();
-
                 // 3. Chủ động gọi load dữ liệu dòng đầu tiên
                 if (comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedItem is NamThiDuaTapTheItem itemChon)
                 {
                     TaiDuLieuVaoDataGridView(itemChon.DuongDanCSDL);
                 }
-
                 // 🌟 Cập nhật số lượng dòng SAU KHI đã nạp dữ liệu vào DataGridView thành công
                 CapNhatSoLuongDongDataGrid();
-
                 // 4. Đăng ký sự kiện SelectedIndexChanged SAU CÙNG
                 this.comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedIndexChanged -= comboBox1_ChonCscdThiDuaTapTheNamCu_SelectedIndexChanged;
                 this.comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedIndexChanged += comboBox1_ChonCscdThiDuaTapTheNamCu_SelectedIndexChanged;
@@ -71,7 +66,6 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             if (toolTip1 == null) return;
-
             try
             {
                 toolTip1.IsBalloon = true;
@@ -81,14 +75,12 @@ namespace PhanMemThiDua2026
                 toolTip1.AutoPopDelay = 2500;
                 toolTip1.ReshowDelay = 100;
                 toolTip1.ShowAlways = true;
-
                 (Control? control, string noiDung)[] danhSachToolTip =
                 {
                     (kryptonButton_CapNhatThiDuaTapTheNamCu, "Cập nhật thông tin thi đua tập thể năm cũ"),
                     (kryptonButton1_LamMoi, "Kiểm tra và kết nối lại CSDL, làm tươi lại giao diện"),
                     (kryptonButton_XoaThiDuaTapThe, "Xóa thông tin thi đua tập thể đang chọn")
                 };
-
                 foreach (var (control, noiDung) in danhSachToolTip)
                 {
                     GanToolTipAnToan(control, noiDung);
@@ -103,7 +95,6 @@ namespace PhanMemThiDua2026
         {
             if (control == null || control.IsDisposed || control.Disposing || string.IsNullOrWhiteSpace(noiDung) || toolTip1 == null)
                 return;
-
             try
             {
                 toolTip1.SetToolTip(control, noiDung);
@@ -121,35 +112,28 @@ namespace PhanMemThiDua2026
         {
             // Kiểm tra an toàn xem Form hoặc Control đã bị Hủy (Disposed) chưa
             if (this.IsDisposed || !this.IsHandleCreated) return;
-
             // Đảm bảo thao tác UI luôn chạy đúng trên Thread chính (UI Thread)
             if (this.InvokeRequired)
             {
                 this.Invoke(new Action(async () => await ReloadDataAsync()));
                 return;
             }
-
             this.SuspendLayout();
             try
             {
                 Cursor.Current = Cursors.WaitCursor;
-
                 // 1. Khởi tạo danh sách TextBox nếu chưa có
                 KhoiTaoDanhSachTextBox();
-
                 // 2. Xóa dữ liệu cũ trên DataGridView & TextBox để chuẩn bị nạp lại
                 kryptonDataGridView1.DataSource = null;
                 XoaTrangCacTextBox();
-
                 // 3. Quét và tải lại danh sách các file CSDL năm cũ trong thư mục
                 await TaiDanhSachCoSoDuLieuNamCuAsync();
-
                 // 4. Nếu ComboBox có dữ liệu năm cũ, tự động tải bảng ghi của item đang được chọn
                 if (comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedItem is NamThiDuaTapTheItem itemChon)
                 {
                     TaiDuLieuVaoDataGridView(itemChon.DuongDanCSDL);
                 }
-
                 // 5. Áp dụng lại định dạng UI DataGridView
                 DinhDangGiaoDienDataGridTongKetThang(kryptonDataGridView1);
                 CapNhatLabelThiDuaThang();
@@ -164,17 +148,14 @@ namespace PhanMemThiDua2026
                 this.ResumeLayout(true);
             }
         }
-        private void kryptonDataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || kryptonDataGridView1 == null) return;
-
             DataGridViewRow row = kryptonDataGridView1.Rows[e.RowIndex];
-
             if (kryptonDataGridView1.Columns.Contains("ID"))
             {
                 KryptonTextBox_Thang12NamCu.Tag = row.Cells["ID"].Value;
             }
-
             SetTextBoxText(KryptonTextBox_Thang12NamCu, row, "Thang_12_Nam_Cu");
             SetTextBoxText(KryptonTextBox_Thang1, row, "Thang_1");
             SetTextBoxText(KryptonTextBox_Thang2, row, "Thang_2");
@@ -193,7 +174,6 @@ namespace PhanMemThiDua2026
         private void SetTextBoxText(KryptonTextBox txt, DataGridViewRow row, string columnName)
         {
             if (txt == null) return;
-
             if (row.DataGridView != null && row.DataGridView.Columns.Contains(columnName))
             {
                 string value = row.Cells[columnName].Value?.ToString() ?? string.Empty;
@@ -204,7 +184,7 @@ namespace PhanMemThiDua2026
                 txt.Text = string.Empty;
             }
         }
-        private void comboBox1_ChonCscdThiDuaTapTheNamCu_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBox1_ChonCscdThiDuaTapTheNamCu_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedItem is NamThiDuaTapTheItem itemChon)
             {
@@ -215,18 +195,13 @@ namespace PhanMemThiDua2026
         {
             // 1. Cập nhật nội dung Label hiển thị
             CapNhatLabelThiDuaThang();
-
             // 2. Xóa sạch dữ liệu phân loại cũ
             comboBox_ChonPhanLoai.Items.Clear();
-
             if (comboBox1_ChonThang.SelectedItem == null)
                 return;
-
             string thangChon = comboBox1_ChonThang.SelectedItem.ToString() ?? string.Empty;
-
             // Thêm tùy chọn rỗng lên đầu tiên
             comboBox_ChonPhanLoai.Items.Add(string.Empty);
-
             // Nếu chọn mốc "Tổng kết năm" -> Load 5 Danh hiệu thi đua năm
             if (thangChon.Equals("Tổng kết năm", StringComparison.OrdinalIgnoreCase))
             {
@@ -251,7 +226,6 @@ namespace PhanMemThiDua2026
             Module_HeThong.PL_KHONG_PL
                 });
             }
-
             // Mặc định chọn giá trị rỗng (index = 0)
             if (comboBox_ChonPhanLoai.Items.Count > 0)
             {
@@ -264,13 +238,11 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new SqliteConnection($"Data Source={duongDanCSDLCu}");
                 cn.Open();
-
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = @"
                     SELECT COUNT(*) 
                     FROM sqlite_master 
                     WHERE type = 'table' AND name = 'ThongKe_PhanLoaiTapThe';";
-
                 long count = (long)(cmd.ExecuteScalar() ?? 0);
                 return count > 0;
             }
@@ -279,7 +251,7 @@ namespace PhanMemThiDua2026
                 return false;
             }
         }
-        private void kryptonButton_CapNhatThiDuaTapTheNamCu_Click(object sender, EventArgs e)
+        private void kryptonButton_CapNhatThiDuaTapTheNamCu_Click(object? sender, EventArgs e)
         {
             if (comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedItem == null)
             {
@@ -290,7 +262,6 @@ namespace PhanMemThiDua2026
             {
                 frmXacMinh.TopMost = true;
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
-
                 if (frmXacMinh.ShowDialog() != DialogResult.OK)
                 {
                     return;
@@ -306,7 +277,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Vui lòng chọn cơ sở dữ liệu năm cũ trước khi cập nhật!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             // 2. Kiểm tra ComboBox Tháng
             string tenCot = LayTenCotTheoThang();
             if (string.IsNullOrEmpty(tenCot))
@@ -314,30 +284,24 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Vui lòng chọn Tháng cần cập nhật!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             // 3. Kiểm tra ComboBox Phân loại
             if (comboBox_ChonPhanLoai.SelectedItem == null)
             {
                 MessageBox.Show("Vui lòng chọn Loại phân loại thi đua!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             string giaTriLoai = comboBox_ChonPhanLoai.SelectedItem.ToString() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(giaTriLoai))
             {
                 MessageBox.Show("Giá trị phân loại không hợp lệ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             try
             {
                 string duongDanCSDLCu = itemChon.DuongDanCSDL;
-
                 using var cn = new SqliteConnection($"Data Source={duongDanCSDLCu}");
                 cn.Open();
-
                 using var tran = cn.BeginTransaction();
-
                 // 🌟 Đảm bảo dòng ID = 1 luôn tồn tại trước khi UPDATE
                 using (var cmdExist = cn.CreateCommand())
                 {
@@ -345,10 +309,8 @@ namespace PhanMemThiDua2026
                     cmdExist.CommandText = @"INSERT OR IGNORE INTO ""ThongKe_PhanLoaiTapThe"" (ID) VALUES (1);";
                     cmdExist.ExecuteNonQuery();
                 }
-
                 // Mã hóa dữ liệu phân loại bằng AES trước khi lưu
-                string giaTriMaHoa = BaoMatAES.MaHoa(giaTriLoai);
-
+                string giaTriMaHoa = Module_BaoMatAES.MaHoa(giaTriLoai);
                 // 🌟 UPDATE duy nhất cột được chọn từ comboBox1_ChonThang
                 using (var cmdUpdate = cn.CreateCommand())
                 {
@@ -357,23 +319,18 @@ namespace PhanMemThiDua2026
                     cmdUpdate.Parameters.AddWithValue("@Val", giaTriMaHoa);
                     cmdUpdate.ExecuteNonQuery();
                 }
-
                 tran.Commit();
-
                 // Nạp lại dữ liệu lên DataGridView (hoặc UI)
                 TaiDuLieuVaoDataGridView(duongDanCSDLCu);
-
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     $"Cập nhật dữ liệu thi đua tập thể [{comboBox1_ChonThang.Text}: {giaTriLoai}] năm {itemChon.TenHienThi} thành công!",
                     DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
                 );
-
                 //MessageBox.Show($"Cập nhật kết quả [{giaTriLoai}] cho [{comboBox1_ChonThang.Text}] năm {itemChon.TenHienThi} thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // 🌟 Cập nhật thông báo lên ToolStripStatusLabel3 -> Delay 200ms -> Đếm số dòng DataGrid
                 string msg = $"Cập nhật dữ liệu thi đua {comboBox1_ChonThang.Text} của năm {itemChon.TenHienThi} thành công!";
                 await HienThiThongBaoTamThoiAsync(msg, 200);
-
             }
             catch (Exception ex)
             {
@@ -387,7 +344,6 @@ namespace PhanMemThiDua2026
         {
             int soDong = kryptonDataGridView1.Rows.Cast<DataGridViewRow>()
                             .Count(r => !r.IsNewRow); // Loại trừ dòng thêm mới (nếu có)
-
             toolStripStatusLabel3_ThongBao.Text = $"Tổng số dữ liệu: {soDong} bản ghi";
         }
         /// <summary>
@@ -397,10 +353,8 @@ namespace PhanMemThiDua2026
         {
             // 1. Hiển thị thông báo tác vụ thành công
             toolStripStatusLabel3_ThongBao.Text = noiDungThongBao;
-
             // 2. Tạm dừng bất đồng bộ mà không gây treo/đơ giao diện (UI)
             await Task.Delay(miliGiayDelay);
-
             // 3. Gọi lại hàm đếm dòng dữ liệu
             CapNhatSoLuongDongDataGrid();
         }
@@ -411,9 +365,7 @@ namespace PhanMemThiDua2026
         {
             if (comboBox1_ChonThang.SelectedItem == null)
                 return string.Empty;
-
             string thangChon = comboBox1_ChonThang.SelectedItem.ToString()!;
-
             return thangChon switch
             {
                 "Tháng 12 (Năm cũ)" => "Thang_12_Nam_Cu",
@@ -441,7 +393,6 @@ namespace PhanMemThiDua2026
                 XoaTrangCacTextBox();
                 return;
             }
-
             DataTable dt = new DataTable();
             dt.Columns.Add("ID", typeof(int));
             dt.Columns.Add("Thang_12_Nam_Cu", typeof(string));
@@ -458,36 +409,31 @@ namespace PhanMemThiDua2026
             dt.Columns.Add("Thang_10", typeof(string));
             dt.Columns.Add("Thang_11", typeof(string));
             dt.Columns.Add("TongKet_Nam", typeof(string));
-
             try
             {
                 using var cn = new SqliteConnection($"Data Source={duongDanCSDLCu}");
                 cn.Open();
-
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = @"
                     SELECT ID, Thang_12_Nam_Cu, Thang_1, Thang_2, Thang_3, Thang_4, Thang_5, 
                            Sau_Thang_Dau_Nam, Thang_6, Thang_7, Thang_8, Thang_9, Thang_10, Thang_11, TongKet_Nam 
                     FROM ThongKe_PhanLoaiTapThe 
                     LIMIT 1;";
-
                 using var reader = cmd.ExecuteReader();
                 if (reader.Read())
                 {
                     DataRow row = dt.NewRow();
                     row["ID"] = reader["ID"] != DBNull.Value ? Convert.ToInt32(reader["ID"]) : 1;
-
                     for (int i = 1; i < reader.FieldCount; i++)
                     {
                         string colName = reader.GetName(i);
                         object val = reader.GetValue(i);
-
                         if (val != DBNull.Value && !string.IsNullOrWhiteSpace(val.ToString()))
                         {
                             string chuoiGoc = val.ToString()!.Trim();
                             try
                             {
-                                string chuoiGiaiMa = BaoMatAES.GiaiMa(chuoiGoc);
+                                string chuoiGiaiMa = Module_BaoMatAES.GiaiMa(chuoiGoc);
                                 row[colName] = string.IsNullOrEmpty(chuoiGiaiMa) ? chuoiGoc : chuoiGiaiMa;
                             }
                             catch
@@ -502,10 +448,8 @@ namespace PhanMemThiDua2026
                     }
                     dt.Rows.Add(row);
                 }
-
                 kryptonDataGridView1.DataSource = dt;
                 DoiTenCotChuyenNghiep(kryptonDataGridView1);
-
                 if (kryptonDataGridView1.Rows.Count > 0)
                 {
                     kryptonDataGridView1_CellClick(kryptonDataGridView1, new DataGridViewCellEventArgs(0, 0));
@@ -523,10 +467,8 @@ namespace PhanMemThiDua2026
         private void DinhDangGiaoDienDataGridTongKetThang(KryptonDataGridView dgv)
         {
             if (dgv == null) return;
-
             typeof(DataGridView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
                 ?.SetValue(dgv, true, null);
-
             dgv.AllowUserToAddRows = false;
             dgv.AllowUserToDeleteRows = false;
             dgv.AllowUserToResizeRows = false;
@@ -537,44 +479,35 @@ namespace PhanMemThiDua2026
             dgv.ReadOnly = true;
             dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
             dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-
             dgv.GridStyles.Style = DataGridViewStyle.List;
             dgv.RowTemplate.Height = 36;
             dgv.ColumnHeadersHeight = 50;
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-
             string fontName = Module_HeThong.TenFontHeThong ?? "Segoe UI";
             Font fontBold9 = new Font(fontName, 9.5F, FontStyle.Bold);
             Font fontRegular9 = new Font(fontName, 9.5F, FontStyle.Regular);
-
             dgv.StateCommon.HeaderColumn.Content.Font = fontBold9;
             dgv.StateCommon.DataCell.Content.Font = fontRegular9;
             dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
             dgv.StateCommon.DataCell.Border.Color1 = Color.FromArgb(224, 224, 224);
             dgv.StateCommon.DataCell.Border.DrawBorders = PaletteDrawBorders.All;
             dgv.StateCommon.DataCell.Border.Width = 1;
             dgv.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
             dgv.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
-
             if (dgv.Columns.Count == 0) return;
-
             foreach (DataGridViewColumn col in dgv.Columns)
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;
-
             if (dgv.Columns["ID"] != null)
                 dgv.Columns["ID"].Visible = false;
         }
         private void DoiTenCotChuyenNghiep(KryptonDataGridView dgv)
         {
             if (dgv.Columns.Count == 0) return;
-
             dgv.SuspendLayout();
             try
             {
                 if (dgv.Columns.Contains("ID"))
                     dgv.Columns["ID"].Visible = false;
-
                 var mapTenCot = new Dictionary<string, string>
                 {
                     { "Thang_12_Nam_Cu", "Tháng 12 (Năm cũ)" },
@@ -592,7 +525,6 @@ namespace PhanMemThiDua2026
                     { "Thang_11", "Tháng 11" },
                     { "TongKet_Nam", "Tổng kết năm" }
                 };
-
                 foreach (var kvp in mapTenCot)
                 {
                     if (dgv.Columns.Contains(kvp.Key))
@@ -604,7 +536,6 @@ namespace PhanMemThiDua2026
                         col.SortMode = DataGridViewColumnSortMode.NotSortable;
                     }
                 }
-
                 dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             }
             finally
@@ -616,7 +547,6 @@ namespace PhanMemThiDua2026
         {
             comboBox1_ChonCscdThiDuaTapTheNamCu.BeginUpdate();
             comboBox1_ChonCscdThiDuaTapTheNamCu.Items.Clear();
-
             try
             {
                 if (Directory.Exists(_thuMucLichSuPath))
@@ -625,14 +555,12 @@ namespace PhanMemThiDua2026
                     {
                         var dsResult = new List<NamThiDuaTapTheItem>();
                         string[] cacFile = Directory.GetFiles(_thuMucLichSuPath, "ThiDua_CBCS_Nam*.db");
-
                         foreach (string file in cacFile)
                         {
                             if (KiemTraCoBangThongKeTapThe(file))
                             {
                                 string tenFile = Path.GetFileName(file);
                                 string tenNam = tenFile.Replace("ThiDua_CBCS_Nam", "").Replace(".db", "");
-
                                 dsResult.Add(new NamThiDuaTapTheItem
                                 {
                                     TenHienThi = tenNam,
@@ -641,15 +569,12 @@ namespace PhanMemThiDua2026
                                 });
                             }
                         }
-
                         return dsResult.OrderBy(x => x.TenHienThi).ToList();
                     });
-
                     foreach (var item in danhSachHople)
                     {
                         comboBox1_ChonCscdThiDuaTapTheNamCu.Items.Add(item);
                     }
-
                     if (comboBox1_ChonCscdThiDuaTapTheNamCu.Items.Count > 0)
                     {
                         comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedIndex = 0;
@@ -669,20 +594,17 @@ namespace PhanMemThiDua2026
                 comboBox1_ChonCscdThiDuaTapTheNamCu.EndUpdate();
             }
         }
-        private async void kryptonButton1_LamMoi_Click(object sender, EventArgs e)
+        private async void kryptonButton1_LamMoi_Click(object? sender, EventArgs e)
         {
             try
             {
                 Cursor.Current = Cursors.WaitCursor;
-
                 KhoiTaoDanhSachTextBox();
                 await TaiDanhSachCoSoDuLieuNamCuAsync();
-
                 if (comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedItem is NamThiDuaTapTheItem itemChon)
                 {
                     TaiDuLieuVaoDataGridView(itemChon.DuongDanCSDL);
                 }
-
                 DinhDangGiaoDienDataGridTongKetThang(kryptonDataGridView1);
                 // 🌟 Thông báo làm mới thành công -> Delay 200ms -> Hiện lại số dòng DataGrid
                 await HienThiThongBaoTamThoiAsync("Làm mới danh sách dữ liệu thành công!", 200);
@@ -696,35 +618,29 @@ namespace PhanMemThiDua2026
                 Cursor.Current = Cursors.Default;
             }
         }
-        private async void kryptonButton_XoaThiDuaTapThe_Click(object sender, EventArgs e)
+        private async void kryptonButton_XoaThiDuaTapThe_Click(object? sender, EventArgs e)
         {
             if (comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedItem is not NamThiDuaTapTheItem itemChon)
             {
                 MessageBox.Show("Vui lòng chọn cơ sở dữ liệu năm cũ trước khi thực hiện xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             var dialogResult = MessageBox.Show(
                 $"CẢNH BÁO: Thao tác này sẽ XÓA HẲN BẢNG 'ThongKe_PhanLoaiTapThe' khỏi CSDL năm {itemChon.TenHienThi}!\n\nBạn có chắc chắn muốn xóa không?",
                 "Xác nhận xóa BẢNG CSDL",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning
             );
-
             if (dialogResult != DialogResult.Yes) return;
-
             using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
             {
                 frmXacMinh.TopMost = true;
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
-
                 if (frmXacMinh.ShowDialog() != DialogResult.OK) return;
             }
-
             try
             {
                 string duongDanCSDLCu = itemChon.DuongDanCSDL;
-
                 using (var cn = new SqliteConnection($"Data Source={duongDanCSDLCu}"))
                 {
                     cn.Open();
@@ -732,18 +648,15 @@ namespace PhanMemThiDua2026
                     {
                         cmd.CommandText = @"DROP TABLE IF EXISTS ""ThongKe_PhanLoaiTapThe"";";
                         cmd.ExecuteNonQuery();
-
                         cmd.CommandText = "VACUUM;";
                         cmd.ExecuteNonQuery();
                     }
                 }
-
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     $"Xóa bảng thi đua tập thể năm {itemChon.TenHienThi} thành công!",
                     DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
                 );
-
                 // Dọn dẹp DataGridView
                 kryptonDataGridView1.DataSource = null;
                 // Xóa trắng các TextBox
@@ -774,10 +687,8 @@ namespace PhanMemThiDua2026
             // Đăng ký sự kiện chuyển đổi tháng
             this.comboBox1_ChonThang.SelectedIndexChanged -= comboBox1_ChonThang_SelectedIndexChanged;
             this.comboBox1_ChonThang.SelectedIndexChanged += comboBox1_ChonThang_SelectedIndexChanged;
-
             // Nạp danh sách 14 mốc thời gian
             NapDanhSachThang();
-
             // Tự động chọn Tháng hiện tại
             ChonThangHienTai();
         }
@@ -808,10 +719,8 @@ namespace PhanMemThiDua2026
         private void ChonThangHienTai()
         {
             if (comboBox1_ChonThang.Items.Count == 0) return;
-
             int thangHienTai = DateTime.Now.Month;
             string tenThangTimKiem = $"Tháng {thangHienTai}";
-
             int index = -1;
             for (int i = 0; i < comboBox1_ChonThang.Items.Count; i++)
             {
@@ -822,7 +731,6 @@ namespace PhanMemThiDua2026
                     break;
                 }
             }
-
             comboBox1_ChonThang.SelectedIndex = index >= 0 ? index : 0;
         }
         /// <summary>
@@ -831,7 +739,6 @@ namespace PhanMemThiDua2026
         public void CapNhatLabelThiDuaThang()
         {
             if (label9_ChonTenThiDuaThang == null) return;
-
             if (comboBox1_ChonThang.SelectedItem?.ToString()?.Equals("Tổng kết năm", StringComparison.OrdinalIgnoreCase) == true)
             {
                 label9_ChonTenThiDuaThang.Text = "Cập nhật danh hiệu thi đua tập thể:";
@@ -847,7 +754,6 @@ namespace PhanMemThiDua2026
         public string TenHienThi { get; set; } = string.Empty;
         public string TenFileGoc { get; set; } = string.Empty;
         public string DuongDanCSDL { get; set; } = string.Empty;
-
         // Hàm này rất quan trọng để ComboBox tự động hiển thị tên thay vì hiển thị kiểu dữ liệu
         public override string ToString()
         {

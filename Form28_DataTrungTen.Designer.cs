@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -332,7 +329,7 @@
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Name = "quayLaiTrangXuLyDuLieu_ToolStripMenuItem";
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Size = new Size(290, 28);
-            quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Text = "Quay lại Trang phân loại thi đua";
+            quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Text = "Đóng trang";
             quayLaiTrangXuLyDuLieu_ToolStripMenuItem.Click += quayLaiTrangXuLyDuLieu_ToolStripMenuItem_Click;
             // 
             // Form28_DataTrungTen
@@ -347,7 +344,7 @@
             Name = "Form28_DataTrungTen";
             ShowInTaskbar = false;
             Text = "Phân tích CBCS trùng tên";
-            Load += Form28_DataTrungTen_Load_1;
+            Load += Form28_DataTrungTen_Load;
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             tableLayoutPanel1.ResumeLayout(false);
@@ -363,9 +360,7 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
-
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
         private TableLayoutPanel tableLayoutPanel1;

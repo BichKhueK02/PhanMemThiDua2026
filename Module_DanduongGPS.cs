@@ -1,8 +1,7 @@
-﻿
-using Krypton.Toolkit;
+﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
-
+using System.Text;
 namespace PhanMemThiDua2026
 {
     internal static class Module_DanduongGPS
@@ -39,19 +38,16 @@ namespace PhanMemThiDua2026
         public static Action OnDatabaseChanged;
         private static readonly object _lock = new();
         private static string? _cachedToken;
+        // Khóa mã hóa cố định nội bộ - AES-256
         public static void XinTraLaiThoiGianNapKeyBase64()
         {
             if (!string.IsNullOrEmpty(ToiCanChuIVMeoCam1_KeyMaHoa)) return;
-
             lock (_lock)
             {
                 if (!string.IsNullOrEmpty(ToiCanChuIVMeoCam1_KeyMaHoa)) return;
-
                 try
                 {
-                    // ========================================================
                     // BỘ XỬ LÝ GIẢI MÃ NỘI BỘ (Chỉ tồn tại trong hàm này)
-                    // ========================================================
                     const byte SEED_KEY = 0x3F;
                     // Ma trận ĐÃ BỊ ĐẢO VỊ TRÍ (Swap) + MÃ HÓA XOR
                     // Kẻ tò mò nhìn vào sẽ không thể tìm thấy pattern chuỗi thẳng
@@ -71,15 +67,12 @@ namespace PhanMemThiDua2026
                     {
                         byte[] encodedBytes = keyMatrix[index];
                         char[] decodedChars = new char[encodedBytes.Length];
-
                         for (int i = 0; i < encodedBytes.Length; i++)
                         {
                             // Logic tráo đổi: index chẵn -> lấy lẻ, index lẻ -> lấy chẵn
                             int targetIndex = (i % 2 == 0) ? (i + 1) : (i - 1);
-
                             // Lớp khiên bảo vệ (phòng trường hợp mảng bị lệch độ dài lẻ)
                             if (targetIndex >= encodedBytes.Length) targetIndex = i;
-
                             decodedChars[i] = (char)(encodedBytes[targetIndex] ^ SEED_KEY);
                         }
                         return new string(decodedChars);
@@ -89,32 +82,27 @@ namespace PhanMemThiDua2026
                     string h2 = RetrieveKey(1);
                     string h3 = RetrieveKey(2);
                     string h4 = RetrieveKey(3);
-                    // ========================================================
                     // 2. VALIDATE VÀ GIẢI MÃ
-                    string k1 = BaoMatAES.KhoBaoTanVuongGiaiMaHex(BaoMatAES.TraLaiTenChoMeoCam(h1));
-                    string k2 = BaoMatAES.KhoBaoTanVuongGiaiMaHex(BaoMatAES.TraLaiTenChoMeoCam(h2));
-                    string k3 = BaoMatAES.KhoBaoTanVuongGiaiMaHex(BaoMatAES.TraLaiTenChoMeoCam(h3));
-                    string k4 = BaoMatAES.KhoBaoTanVuongGiaiMaHex(BaoMatAES.TraLaiTenChoMeoCam(h4));
-
+                    string k1 = Module_BaoMatAES.KhoBaoTanVuongGiaiMaHex(Module_BaoMatAES.TraLaiTenChoMeoCam(h1));
+                    string k2 = Module_BaoMatAES.KhoBaoTanVuongGiaiMaHex(Module_BaoMatAES.TraLaiTenChoMeoCam(h2));
+                    string k3 = Module_BaoMatAES.KhoBaoTanVuongGiaiMaHex(Module_BaoMatAES.TraLaiTenChoMeoCam(h3));
+                    string k4 = Module_BaoMatAES.KhoBaoTanVuongGiaiMaHex(Module_BaoMatAES.TraLaiTenChoMeoCam(h4));
                     if (string.IsNullOrEmpty(k1) || string.IsNullOrEmpty(k2) ||
                         string.IsNullOrEmpty(k3) || string.IsNullOrEmpty(k4))
                     {
                         throw new Exception("Key giải mã bị lỗi");
                     }
-
                     // CHỈ GÁN KHI DỮ LIỆU ĐÃ OK
                     ToiCanChuIVMeoCam1_KeyMaHoa = k1;
                     ToiCanChuIVMeoCam2_KeyMaHoa = k2;
                     ToiYeuMeoCam1_KeyMaHoa = k3;
                     ToiYeuMeoCam2_KeyMaHoa = k4;
-
                     // DỌN RAM ÉP BỘ THU GOM RÁC CỤC BỘ
                     h1 = h2 = h3 = h4 = null;
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine("[Lỗi KEY]: " + ex.Message);
-
                     // FAIL SAFE
                     ToiCanChuIVMeoCam1_KeyMaHoa = "";
                     ToiCanChuIVMeoCam2_KeyMaHoa = "";
@@ -127,15 +115,13 @@ namespace PhanMemThiDua2026
         {
             if (!string.IsNullOrEmpty(ToiCanChuIVMeoCam1_KeyMaHoa))
             {
-                ToiCanChuIVMeoCam1 = BaoMatAES.XuanVeOHokkaido(ToiCanChuIVMeoCam1_KeyMaHoa).Trim();
-                ToiCanChuIVMeoCam2 = BaoMatAES.XuanVeOHokkaido(ToiCanChuIVMeoCam2_KeyMaHoa).Trim();
-                ToiYeuMeoCam1 = BaoMatAES.XuanVeOHokkaido(ToiYeuMeoCam1_KeyMaHoa).Trim();
-                ToiYeuMeoCam2 = BaoMatAES.XuanVeOHokkaido(ToiYeuMeoCam2_KeyMaHoa).Trim();
+                ToiCanChuIVMeoCam1 = Module_BaoMatAES.XuanVeOHokkaido(ToiCanChuIVMeoCam1_KeyMaHoa).Trim();
+                ToiCanChuIVMeoCam2 = Module_BaoMatAES.XuanVeOHokkaido(ToiCanChuIVMeoCam2_KeyMaHoa).Trim();
+                ToiYeuMeoCam1 = Module_BaoMatAES.XuanVeOHokkaido(ToiYeuMeoCam1_KeyMaHoa).Trim();
+                ToiYeuMeoCam2 = Module_BaoMatAES.XuanVeOHokkaido(ToiYeuMeoCam2_KeyMaHoa).Trim();
             }
         }
-        // =========================================================================
         // 2. KHỞI TẠO ĐƯỜNG DẪN & DATABASE (CHUẨN HÓA)
-        // =========================================================================
         public static void DamBaoThuMucHuongDan()
         {
             if (!Directory.Exists(ThuMucHuongDan))
@@ -144,23 +130,19 @@ namespace PhanMemThiDua2026
         public static void DamBaoHuongDanIndex()
         {
             Directory.CreateDirectory(ThuMucHuongDan);
-
             if (File.Exists(FileHuongDanIndex))
                 return;
-
             string fileGoc = Path.Combine(
                 AppContext.BaseDirectory,
                 "Database Backup",
                 "HuongDanSuDung",
                 "HuongDanSuDung.html"
             );
-
             if (!File.Exists(fileGoc))
             {
                 Debug.WriteLine("Không tìm thấy file hướng dẫn gốc!");
                 return;
             }
-
             File.Copy(fileGoc, FileHuongDanIndex, true);
         }
         // THÊM 3 THÀNH PHẦN NÀY ĐỂ QUẢN LÝ CACHE TOÀN CỤC:
@@ -177,18 +159,14 @@ namespace PhanMemThiDua2026
         public static async Task HanhTrinhToiColombiaAsync()
         {
             TaoThuMucNeuChuaCo();
-
             await Module_KhoiTaoCSDL.BinhMinhOSantoriniAsync();
-
             DuongDanCSDL1 = ConDuongToLua("csdl1.db");
             DuongDanCSDL2 = ConDuongToLua("csdl2.db");
             DuongDanCSDL3 = ConDuongToLua("csdl3.db");
             DuongDanCSDL4 = ConDuongToLua("csdl4.db");
             DuongDanCSDL4ex = ConDuongToLua("csdlex.xlsx");
-
             DamBaoThuMucHuongDan();
             DamBaoHuongDanIndex();
-
             try
             {
                 if (KiemTraTrangThaiSanSangCuaHeThongCSDL())
@@ -222,9 +200,7 @@ namespace PhanMemThiDua2026
             string path = Path.Combine(ThuMucCoSoDuLieu, tenFile);
             return File.Exists(path) ? path : string.Empty;
         }
-        // =========================================================================
         // 3. XÁC THỰC FILE (Đã khôi phục logic FileShare.ReadWrite cực kỳ an toàn của bạn)
-        // =========================================================================
         public static bool TonTaiVaMoDuoc(string path)
         {
             try
@@ -270,7 +246,6 @@ namespace PhanMemThiDua2026
     }
     internal static class Module_TaiKhoan
     {
-
         public static string TenTaiKhoan_RAM = string.Empty;
         public static string MatKhau_RAM = string.Empty;
         public static bool NapTaiKhoanTuCSDL(int id = 1)
@@ -279,14 +254,11 @@ namespace PhanMemThiDua2026
             {
                 string dbPath = Module_DanduongGPS.DuongDanCSDL1;
                 if (string.IsNullOrWhiteSpace(dbPath)) return false;
-
                 using var conn = new SqliteConnection($"Data Source={dbPath}");
                 conn.Open();
-
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT TenTaiKhoan, MatKhau FROM Admin WHERE ID = @id LIMIT 1";
                 cmd.Parameters.AddWithValue("@id", id);
-
                 using var rd = cmd.ExecuteReader();
                 if (!rd.Read())
                 {
@@ -294,10 +266,8 @@ namespace PhanMemThiDua2026
                     MatKhau_RAM = string.Empty;
                     return false;
                 }
-
-                TenTaiKhoan_RAM = BaoMatAES.GiaiMa(rd.GetString(0));
-                MatKhau_RAM = BaoMatAES.GiaiMa(rd.GetString(1));
-
+                TenTaiKhoan_RAM = Module_BaoMatAES.GiaiMa(rd.GetString(0));
+                MatKhau_RAM = Module_BaoMatAES.GiaiMa(rd.GetString(1));
                 return true;
             }
             catch
@@ -315,7 +285,6 @@ namespace PhanMemThiDua2026
                 string ngayCapNhat = Module_PhienBan.NgayThangNamCapNhat;
                 string tokenGiaiMa = "Không xác định";
                 string csdlPath = Module_DanduongGPS.DuongDanCSDL1;
-
                 if (File.Exists(csdlPath))
                 {
                     using var conn = new SqliteConnection($"Data Source={csdlPath}");
@@ -323,7 +292,6 @@ namespace PhanMemThiDua2026
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = "SELECT Token FROM Admin WHERE ID = 1";
                     var result = cmd.ExecuteScalar();
-
                     if (result != null && result != DBNull.Value)
                     {
                         try { tokenGiaiMa = result.ToString(); }
@@ -332,9 +300,11 @@ namespace PhanMemThiDua2026
                     else { tokenGiaiMa = "Chưa thiết lập Token"; }
                 }
                 else { tokenGiaiMa = "Không tìm thấy cơ sở dữ liệu"; }
-
-                return "THÔNG TIN PHẦN MỀM\n\n" +
-                       $"Phiên bản: {phienBan}\n" +
+                return "THÔNG TIN PHẦN MỀM\n\n" +                
+                       $"Ngày khởi công: 07/11/2025\n" +
+                       $"Môi trường phát triển: Visual Studio 2022 + Visual Studio 2026\n" +
+                       $"Admin - Nhóm phát triển: TrungKien\n" +
+                       $"Phiên bản hiện tại số: {phienBan}\n" +
                        $"Ngày cập nhật: {ngayCapNhat}\n\n" +
                        "Bảo mật:\n" +
                        "- Dữ liệu được mã hóa khi lưu trữ.\n" +
@@ -349,27 +319,21 @@ namespace PhanMemThiDua2026
             {
                 string db = Module_DanduongGPS.DuongDanCSDL2;
                 if (string.IsNullOrWhiteSpace(db) || !File.Exists(db)) return "";
-
                 using var cn = new SqliteConnection($"Data Source={db}");
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = "SELECT DoiTuong FROM PhienBan_DoiTuong LIMIT 1";
                 object result = cmd.ExecuteScalar();
-
                 if (result == null || result == DBNull.Value) return "";
-
                 string chuoi = result.ToString()?.Trim();
                 if (string.IsNullOrEmpty(chuoi)) return "";
-
                 string doiTuong;
-                try { doiTuong = BaoMatAES.GiaiMa(chuoi).Trim(); }
+                try { doiTuong = Module_BaoMatAES.GiaiMa(chuoi).Trim(); }
                 catch { return ""; }
-
                 if (doiTuong.Equals("Phiên bản dành cho tân binh", StringComparison.OrdinalIgnoreCase))
                     return "Phần mềm: Phiên bản dành cho tân binh";
                 if (doiTuong.Equals("Phiên bản dành cho CBCS", StringComparison.OrdinalIgnoreCase))
                     return "Phần mềm: Phiên bản dành cho CBCS";
-
                 return "";
             }
             catch { return ""; }
@@ -378,7 +342,6 @@ namespace PhanMemThiDua2026
         {
             string dbPath = Module_DanduongGPS.DuongDanCSDL2;
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return "Không xác định";
-
             try
             {
                 using var conn = new SqliteConnection($"Data Source={dbPath}");
@@ -386,10 +349,9 @@ namespace PhanMemThiDua2026
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin WHERE ID=1";
                 var result = cmd.ExecuteScalar();
-
                 if (result != null && !string.IsNullOrWhiteSpace(result.ToString()))
                 {
-                    try { return BaoMatAES.GiaiMa(result.ToString().Trim()); }
+                    try { return Module_BaoMatAES.GiaiMa(result.ToString().Trim()); }
                     catch { return result.ToString().Trim(); }
                 }
                 return "Không xác định";
@@ -398,7 +360,6 @@ namespace PhanMemThiDua2026
         }
         /// <summary>
         public static event EventHandler? OnPhienBanThayDoi;
-
         // Hàm hỗ trợ kích hoạt sự kiện
         public static void ThongBaoPhienBanThayDoi()
         {

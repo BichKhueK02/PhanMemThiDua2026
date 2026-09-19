@@ -1,7 +1,6 @@
 ﻿using PdfiumViewer;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form32_HuongDanPDF : Form
@@ -31,7 +30,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("File PDF không tồn tại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
             try
             {
                 DisposePdf();
@@ -72,16 +70,13 @@ namespace PhanMemThiDua2026
         {
             if (_pdfiumResolverSet)
                 return;
-
             try
             {
                 // Phần mềm chỉ phát hành x64
                 const string dllName = "pdfium-x64.dll";
-
                 string pdfPath = Path.Combine(
                     Module_DanduongGPS.ThuMucHuongDan,
                     dllName);
-
                 // Kiểm tra thư viện trước khi đăng ký Resolver
                 if (!File.Exists(pdfPath))
                 {
@@ -91,10 +86,8 @@ namespace PhanMemThiDua2026
                         "Lỗi nghiêm trọng",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
-
                     return;
                 }
-
                 NativeLibrary.SetDllImportResolver(
                     typeof(PdfDocument).Assembly,
                     (name, assembly, path) =>
@@ -106,10 +99,8 @@ namespace PhanMemThiDua2026
                         {
                             return IntPtr.Zero;
                         }
-
                         return NativeLibrary.Load(pdfPath);
                     });
-
                 _pdfiumResolverSet = true;
             }
             catch (Exception ex)

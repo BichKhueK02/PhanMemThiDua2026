@@ -1,5 +1,4 @@
 ﻿using Krypton.Toolkit;
-
 namespace PhanMemThiDua2026
 {
     partial class Form2_FormCha
@@ -8,7 +7,6 @@ namespace PhanMemThiDua2026
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -21,9 +19,7 @@ namespace PhanMemThiDua2026
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -387,7 +383,7 @@ namespace PhanMemThiDua2026
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(2, 3, 2, 3);
             Name = "Form2_FormCha";
-            Text = "PHẦN MỀM PHÂN LOẠI THI ĐUA 'VÌ ANTQ'";
+            Text = "Phần mềm thi đua 2026";
             Load += Form2_Load;
             PanelLeft.ResumeLayout(false);
             PanelLeft.PerformLayout();
@@ -400,9 +396,7 @@ namespace PhanMemThiDua2026
             ((System.ComponentModel.ISupportInitialize)pictureBox3).EndInit();
             ResumeLayout(false);
         }
-
         #endregion
-
         internal Panel PanelLeft;
         internal PictureBox PictureBox1;
         internal Panel PanelTop;

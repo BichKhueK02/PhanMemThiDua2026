@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -85,6 +82,7 @@
             toolStripStatusLabel2_Loai3 = new ToolStripStatusLabel();
             toolStripStatusLabel2_Loai4 = new ToolStripStatusLabel();
             toolStripStatusLabel2_KhongPL = new ToolStripStatusLabel();
+            toolStripProgressBar1_LamMoi = new ToolStripProgressBar();
             contextMenuStrip1 = new ContextMenuStrip(components);
             lamMoiHeThong = new ToolStripMenuItem();
             kiemTraKetNoi = new ToolStripMenuItem();
@@ -376,7 +374,7 @@
             kryptonButton_RefershCSDL.TabIndex = 0;
             kryptonButton_RefershCSDL.Values.DropDownArrowColor = Color.Empty;
             kryptonButton_RefershCSDL.Values.Image = (Image)resources.GetObject("kryptonButton_RefershCSDL.Values.Image");
-            kryptonButton_RefershCSDL.Values.Text = "Refresh";
+            kryptonButton_RefershCSDL.Values.Text = "Làm mới";
             kryptonButton_RefershCSDL.Click += kryptonButton_RefershCSDL_Click;
             // 
             // kryptonDataGridView1
@@ -513,7 +511,7 @@
             textBox_CapBac.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             textBox_CapBac.DropDownStyle = ComboBoxStyle.DropDownList;
             textBox_CapBac.FormattingEnabled = true;
-            textBox_CapBac.Items.AddRange(new object[] { "T4", "T3", "T2", "T1", "U4", "U3", "U2", "U1", "H3", "H2", "H1", "B1", "B2" });
+            textBox_CapBac.Items.AddRange(new object[] { "", "T4", "T3", "T2", "T1", "U4", "U3", "U2", "U1", "H3", "H2", "H1", "B1", "B2" });
             textBox_CapBac.Location = new Point(250, 11);
             textBox_CapBac.Name = "textBox_CapBac";
             textBox_CapBac.Size = new Size(80, 23);
@@ -797,7 +795,7 @@
             // 
             statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2_Loai1, toolStripStatusLabel2_Loai2, toolStripStatusLabel2_Loai3, toolStripStatusLabel2_Loai4, toolStripStatusLabel2_KhongPL });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2_Loai1, toolStripStatusLabel2_Loai2, toolStripStatusLabel2_Loai3, toolStripStatusLabel2_Loai4, toolStripStatusLabel2_KhongPL, toolStripProgressBar1_LamMoi });
             statusStrip1.Location = new Point(0, 655);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 10, 0);
@@ -841,6 +839,11 @@
             toolStripStatusLabel2_KhongPL.Name = "toolStripStatusLabel2_KhongPL";
             toolStripStatusLabel2_KhongPL.Size = new Size(94, 21);
             toolStripStatusLabel2_KhongPL.Text = "Không phân loại";
+            // 
+            // toolStripProgressBar1_LamMoi
+            // 
+            toolStripProgressBar1_LamMoi.Name = "toolStripProgressBar1_LamMoi";
+            toolStripProgressBar1_LamMoi.Size = new Size(100, 20);
             // 
             // contextMenuStrip1
             // 
@@ -1009,7 +1012,6 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
         private TableLayoutPanel tableLayoutPanel1;
         private TableLayoutPanel tableLayoutPanel2;
@@ -1085,5 +1087,6 @@
         private ToolStripSeparator toolStripMenuItem4;
         private ToolStripMenuItem ToolStripMenuItem_QuanLyThiDuaBaNhat;
         private ToolStripMenuItem toolStripMenuItem_PhanTichQuanSo;
+        private ToolStripProgressBar toolStripProgressBar1_LamMoi;
     }
 }

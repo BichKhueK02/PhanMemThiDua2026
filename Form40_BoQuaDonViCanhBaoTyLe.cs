@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form40_BoQuaDonViCanhBaoTyLe : Form
@@ -16,17 +15,15 @@ namespace PhanMemThiDua2026
         public Form40_BoQuaDonViCanhBaoTyLe()
         {
             InitializeComponent();
-
             // Cấu hình UI chặn co dãn và căn giữa màn hình ngay từ hàm khởi tạo
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-
             // Đăng ký sự kiện tối ưu UX cải tiến trải nghiệm click 1 chạm
             checkedListBox1_ChonDonViBoQuaTyLe.SelectedIndexChanged += checkedListBox1_ChonDonViBoQuaTyLe_SelectedIndexChanged;
         }
-        private async void Form40_BoQuaDonViCanhBaoTyLe_Load(object sender, EventArgs e)
+        private async void Form40_BoQuaDonViCanhBaoTyLe_Load(object? sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path))
             {
@@ -34,15 +31,12 @@ namespace PhanMemThiDua2026
                 this.Close();
                 return;
             }
-
             try
             {
                 this.UseWaitCursor = true;
                 checkedListBox1_ChonDonViBoQuaTyLe.Enabled = false;
-
                 // 1. Tự động kiểm tra và tạo cấu hình bảng lưu trữ nếu chưa có
                 await KiemTraVaTaoBangDuLieuAsync();
-
                 // 2. Load song song dữ liệu từ cả 2 bảng (Sử dụng đối chiếu trên RAM)
                 await LoadSongSongDuLieuDonViAsync();
             }
@@ -59,15 +53,13 @@ namespace PhanMemThiDua2026
         /// <summary>
         /// GIẢI PHÁP UX ĐỈNH CAO: Người dùng chỉ cần click vào tên dòng chữ, checkbox tự động đảo trạng thái ngay lập tức
         /// </summary>
-        private void checkedListBox1_ChonDonViBoQuaTyLe_SelectedIndexChanged(object sender, EventArgs e)
+        private void checkedListBox1_ChonDonViBoQuaTyLe_SelectedIndexChanged(object? sender, EventArgs e)
         {
             int index = checkedListBox1_ChonDonViBoQuaTyLe.SelectedIndex;
             if (index == -1) return;
-
             // Đảo ngược trạng thái check hiện tại (Đang check -> uncheck và ngược lại)
             bool isChecked = checkedListBox1_ChonDonViBoQuaTyLe.GetItemChecked(index);
             checkedListBox1_ChonDonViBoQuaTyLe.SetItemChecked(index, !isChecked);
-
             // Xóa bôi xanh dòng (Clear Selection) để giao diện nhìn thanh thoát, chuyên nghiệp hơn
             checkedListBox1_ChonDonViBoQuaTyLe.ClearSelected();
         }
@@ -97,11 +89,9 @@ namespace PhanMemThiDua2026
         private async Task LoadSongSongDuLieuDonViAsync()
         {
             var danhSachNapUI = new List<Tuple<string, bool>>();
-
             using (var cn = new SqliteConnection($"Data Source={_csdl2Path}"))
             {
                 await cn.OpenAsync();
-
                 // 1. Tải danh sách các đơn vị ĐÃ LƯU TÍCH CHỌN lên RAM (Lưu dạng chữ thường)
                 var dsDonViDaTich = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 using (var cmdDaTich = cn.CreateCommand())
@@ -119,7 +109,6 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-
                 // 2. Tải danh sách GỐC (Lưu dạng mã hóa), giải mã và đối chiếu trạng thái
                 using (var cmdGoc = cn.CreateCommand())
                 {
@@ -130,14 +119,12 @@ namespace PhanMemThiDua2026
                         {
                             string tenDonViRaw = rd["Ten_DonVi"]?.ToString()?.Trim() ?? "";
                             if (string.IsNullOrWhiteSpace(tenDonViRaw)) continue;
-
                             string tenDonViGiaiMa = tenDonViRaw;
                             try
                             {
-                                tenDonViGiaiMa = BaoMatAES.GiaiMa(tenDonViRaw);
+                                tenDonViGiaiMa = Module_BaoMatAES.GiaiMa(tenDonViRaw);
                             }
                             catch { }
-
                             // 3. Đối chiếu: Kiểm tra xem tên đã giải mã có nằm trong danh sách đã tích hay không
                             bool isChecked = dsDonViDaTich.Contains(tenDonViGiaiMa);
                             danhSachNapUI.Add(new Tuple<string, bool>(tenDonViGiaiMa, isChecked));
@@ -145,10 +132,8 @@ namespace PhanMemThiDua2026
                     }
                 }
             }
-
             // Tạm thời gỡ bỏ sự kiện thay đổi Index để quá trình nạp Items ban đầu không kích hoạt nhầm tính năng đảo check
             checkedListBox1_ChonDonViBoQuaTyLe.SelectedIndexChanged -= checkedListBox1_ChonDonViBoQuaTyLe_SelectedIndexChanged;
-
             checkedListBox1_ChonDonViBoQuaTyLe.BeginUpdate();
             checkedListBox1_ChonDonViBoQuaTyLe.Items.Clear();
             foreach (var item in danhSachNapUI)
@@ -156,21 +141,19 @@ namespace PhanMemThiDua2026
                 checkedListBox1_ChonDonViBoQuaTyLe.Items.Add(item.Item1, item.Item2);
             }
             checkedListBox1_ChonDonViBoQuaTyLe.EndUpdate();
-
             // Khôi phục lại sự kiện sau khi nạp dữ liệu sạch hoàn tất
             checkedListBox1_ChonDonViBoQuaTyLe.SelectedIndexChanged += checkedListBox1_ChonDonViBoQuaTyLe_SelectedIndexChanged;
         }
         /// <summary>
         /// SỰ KIỆN: Click nút Đóng Form và Lưu cấu hình
         /// </summary>
-        private async void kryptonButton1_DongFrom_Click(object sender, EventArgs e)
+        private async void kryptonButton1_DongFrom_Click(object? sender, EventArgs e)
         {
             try
             {
                 // Đổi con trỏ chuột sang trạng thái chờ xử lý dữ liệu lớn
                 this.UseWaitCursor = true;
                 kryptonButton1_DongFrom.Enabled = false;
-
                 // 1. Quét giao diện thu thập toàn bộ các đơn vị ĐANG ĐƯỢC TÍCH CHỌN
                 var dsDonViDuocTich = new List<string>();
                 foreach (var item in checkedListBox1_ChonDonViBoQuaTyLe.CheckedItems)
@@ -181,18 +164,14 @@ namespace PhanMemThiDua2026
                         dsDonViDuocTich.Add(tenDonVi);
                     }
                 }
-
                 // 2. Thực thi ghi đè dữ liệu xuống SQLite một cách an toàn
                 await LuuDanhSachBoQuaVaoDbAsync(dsDonViDuocTich);
-
                 // 3. Tắt trạng thái chờ của chuột
                 this.UseWaitCursor = false;
-
                 // 4. Chuẩn bị chuỗi thông tin danh sách đơn vị để ghi vào log chuyên sâu
                 string chiTietDonVi = dsDonViDuocTich.Count > 0
                     ? string.Join(", ", dsDonViDuocTich)
                     : "Không chọn đơn vị nào (Trống)";
-
                 // 5. Khởi chạy tác vụ ghi nhật ký ngầm (Bất đồng bộ - Không block UI)
                 _ = Task.Run(() =>
                 {
@@ -202,7 +181,6 @@ namespace PhanMemThiDua2026
                         string taiKhoanHienTai = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
                             ? "Không xác định"
                             : Module_TaiKhoan.TenTaiKhoan_RAM;
-
                         Module_NhatKy.GhiNhatKy(
                             taiKhoan: taiKhoanHienTai,
                             hanhDong: $"Cập nhật cấu hình: Bỏ qua cảnh báo tỷ lệ cho {dsDonViDuocTich.Count} đơn vị.",
@@ -215,7 +193,6 @@ namespace PhanMemThiDua2026
                         System.Diagnostics.Debug.WriteLine($"Lỗi ghi log hệ thống: {ex.Message}");
                     }
                 });
-
                 // 6. Đóng cửa sổ biểu mẫu ngay lập tức
                 this.Close();
             }
@@ -234,7 +211,6 @@ namespace PhanMemThiDua2026
             using (var cn = new SqliteConnection($"Data Source={_csdl2Path}"))
             {
                 await cn.OpenAsync();
-
                 using (var trans = cn.BeginTransaction())
                 {
                     try
@@ -242,18 +218,14 @@ namespace PhanMemThiDua2026
                         using (var cmd = cn.CreateCommand())
                         {
                             cmd.Transaction = trans;
-
                             // Bước A: Làm sạch bảng lưu cấu hình cũ trước khi nạp bộ mới
                             cmd.CommandText = "DELETE FROM ChonDonVi_DeBoQuaCanhBao;";
                             await cmd.ExecuteNonQueryAsync();
-
                             // Bước B: Chèn toàn bộ danh sách đơn vị mới được tích vào DB
                             if (dsDonVi.Count > 0)
                             {
                                 cmd.CommandText = "INSERT INTO ChonDonVi_DeBoQuaCanhBao (Ten_DonViBoQuaCanhBaoTyLe) VALUES (@ten);";
-
                                 var paramTen = cmd.Parameters.Add("@ten", SqliteType.Text);
-
                                 foreach (var tenDonVi in dsDonVi)
                                 {
                                     paramTen.Value = tenDonVi;
@@ -261,7 +233,6 @@ namespace PhanMemThiDua2026
                                 }
                             }
                         }
-
                         await trans.CommitAsync();
                     }
                     catch
@@ -272,7 +243,7 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        private void pictureBox1_Click(object sender, EventArgs e)
+        private void pictureBox1_Click(object? sender, EventArgs e)
         {
             // Xây dựng nội dung thông điệp giới thiệu mục đích biểu mẫu
             var sb = new System.Text.StringBuilder();

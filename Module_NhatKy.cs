@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
-
+using static PhanMemThiDua2026.Form10_NhatKy;
 namespace PhanMemThiDua2026
 {
     internal static class Module_NhatKy
@@ -10,10 +10,11 @@ namespace PhanMemThiDua2026
         private static readonly ConcurrentQueue<LogItem> _logQueue = new();
         private static readonly CancellationTokenSource _cts = new();
         private static int _isFlushing = 0;
+        private const int MAX_BATCH_SIZE = 500;
+        private static long _flushCounter = 0;
         // 3) MACHINE ID (LƯU VÀO SQLITE, KHÔNG DÙNG FILE)
         private static readonly object _lockMachineId = new object();
         private static string? _cachedMachineId;
-
         // 1) CẤU HÌNH CSDL
         private static string DuongDanCSDL
         {
@@ -29,14 +30,12 @@ namespace PhanMemThiDua2026
         // 2) HÀNG ĐỢI GHI LOG (CHỐNG LAG UI)
         //Tối ưu hiệu năng
         private static readonly object _lockTaiKhoan = new();
-
         private static string? _cachedTaiKhoanAdmin;
-
         private static DateTime _lastTaiKhoanRefresh = DateTime.MinValue;
-
-        private static readonly TimeSpan _taiKhoanCacheTime =
-            TimeSpan.FromMinutes(10);
+        private static readonly TimeSpan _taiKhoanCacheTime =  TimeSpan.FromMinutes(10);
         private static int _backgroundWorkerStarted = 0;
+        private static System.Threading.Timer? _debounceTimer;
+        public static event Action? OnNhatKyDaThayDoi;
         private struct LogItem
         {
             public string ThoiGian;
@@ -44,27 +43,22 @@ namespace PhanMemThiDua2026
             public string HanhDong;
             public string GhiChu;
         }
-
         private static string GetMachineID()
         {
             if (!string.IsNullOrEmpty(_cachedMachineId))
                 return _cachedMachineId;
-
             lock (_lockMachineId)
             {
                 if (!string.IsNullOrEmpty(_cachedMachineId))
                     return _cachedMachineId;
-
                 try
                 {
                     using var conn = new SqliteConnection(ConnectionString);
                     conn.Open();
-
                     // Đọc từ CSDL
                     using var cmdGet = conn.CreateCommand();
                     cmdGet.CommandText = "SELECT Value FROM SystemInfo WHERE Key = 'MACHINE_ID' LIMIT 1;";
                     var result = cmdGet.ExecuteScalar();
-
                     if (result != null && result != DBNull.Value)
                     {
                         _cachedMachineId = result.ToString();
@@ -84,34 +78,9 @@ namespace PhanMemThiDua2026
                     // Fallback
                     _cachedMachineId = Guid.NewGuid().ToString();
                 }
-
                 return _cachedMachineId;
             }
         }
-        // =========================
-        // 4) MÃ HÓA CÓ TIỀN TỐ "AES:"
-        // =========================
-        private const string AES_PREFIX = "AES:";
-        private static string MaHoaAnToan(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return value;
-            if (value.StartsWith(AES_PREFIX)) return value;
-
-            return AES_PREFIX + BaoMatAES.MaHoa(value);
-        }
-        private static string GiaiMaAnToan(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return value;
-            if (value.StartsWith(AES_PREFIX))
-            {
-                string encodedPart = value.Substring(AES_PREFIX.Length);
-                return BaoMatAES.GiaiMa(encodedPart);
-            }
-            return value;
-        }
-        // =========================
-        // 5) KHỞI TẠO BẢNG & TỐI ƯU CSDL
-        // =========================
         public static void TaoBangNhatKy()
         {
             // Tạo thư mục nếu chưa có
@@ -120,10 +89,8 @@ namespace PhanMemThiDua2026
             {
                 Directory.CreateDirectory(dir);
             }
-
             using var conn = new SqliteConnection(ConnectionString);
             conn.Open();
-
             // BẬT TỐI ƯU HÓA SQLITE (RẤT QUAN TRỌNG)
             using var pragma = conn.CreateCommand();
             pragma.CommandText = @"
@@ -133,7 +100,6 @@ namespace PhanMemThiDua2026
                 PRAGMA busy_timeout=5000;
             ";
             pragma.ExecuteNonQuery();
-
             // Tạo bảng SystemInfo và NhatKyUngDung
             using var cmd = conn.CreateCommand();
             cmd.CommandText = @"
@@ -141,7 +107,6 @@ namespace PhanMemThiDua2026
                     Key TEXT PRIMARY KEY,
                     Value TEXT
                 );
-
                 CREATE TABLE IF NOT EXISTS NhatKyUngDung (
                     ID INTEGER PRIMARY KEY AUTOINCREMENT,
                     ThoiGian TEXT NOT NULL,
@@ -151,21 +116,17 @@ namespace PhanMemThiDua2026
                     HanhDong TEXT,
                     GhiChu TEXT
                 );
-                
                 CREATE INDEX IF NOT EXISTS IDX_NhatKy_ThoiGian ON NhatKyUngDung(ThoiGian);
                 CREATE INDEX IF NOT EXISTS IDX_NhatKy_TaiKhoan ON NhatKyUngDung(TaiKhoan);
             ";
             cmd.ExecuteNonQuery();
-
             // Khởi chạy tiến trình xả log ngầm
             if (Interlocked.Exchange(ref _backgroundWorkerStarted, 1) == 0)
             {
                 Task.Run(() => BackgroundFlushLoop(_cts.Token));
             }
         }
-        // =========================
         // 6) RESOLVE TÀI KHOẢN (GIỮ NGUYÊN)
-        // =========================
         private static string ResolveTaiKhoan(string taiKhoan)
         {
             if (!string.IsNullOrWhiteSpace(taiKhoan) &&
@@ -173,7 +134,6 @@ namespace PhanMemThiDua2026
             {
                 return taiKhoan;
             }
-
             try
             {
                 lock (_lockTaiKhoan)
@@ -183,39 +143,26 @@ namespace PhanMemThiDua2026
                         ||
                         (DateTime.UtcNow - _lastTaiKhoanRefresh) >
                         _taiKhoanCacheTime;
-
                     if (!needRefresh)
                     {
                         return _cachedTaiKhoanAdmin!;
                     }
-
                     string dbPath = Module_DanduongGPS.DuongDanCSDL1;
-
                     if (!File.Exists(dbPath))
                     {
                         return taiKhoan;
                     }
-
-                    using var conn =
-                        new SqliteConnection($"Data Source={dbPath}");
-
+                    using var conn = new SqliteConnection($"Data Source={dbPath}");
                     conn.Open();
-
                     using var cmd = conn.CreateCommand();
-
-                    cmd.CommandText =
-                        "SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1;";
-
+                    cmd.CommandText =  "SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1;";
                     object? result = cmd.ExecuteScalar();
-
                     if (result != null &&
                         result != DBNull.Value)
                     {
                         _cachedTaiKhoanAdmin =
-                            BaoMatAES.GiaiMa(result.ToString() ?? "");
-
+                            Module_BaoMatAES.GiaiMa(result.ToString() ?? "");
                         _lastTaiKhoanRefresh = DateTime.UtcNow;
-
                         return _cachedTaiKhoanAdmin;
                     }
                 }
@@ -223,7 +170,6 @@ namespace PhanMemThiDua2026
             catch
             {
             }
-
             return taiKhoan;
         }
         // 7) GHI NHẬT KÝ (ĐẨY VÀO HÀNG ĐỢI)
@@ -235,6 +181,11 @@ namespace PhanMemThiDua2026
                 TaiKhoan = taiKhoan,
                 HanhDong = hanhDong,
                 GhiChu = ghiChu
+            });
+            // 2. 🔴 BẮT BỘC: Gọi dòng này để kích hoạt tự động Load lại trên Form10
+            UIHelper.SafeInvoke(Application.OpenForms["Form10_NhatKy"], () =>
+            {
+                OnNhatKyDaThayDoi?.Invoke();
             });
         }
         // 8) XẢ LOG XUỐNG CSDL (BACKGROUND)
@@ -253,54 +204,39 @@ namespace PhanMemThiDua2026
                 catch (TaskCanceledException) { break; }
                 catch (Exception ex) { Debug.WriteLine("Lỗi vòng lặp Flush: " + ex); }
             }
-        }
-   
-        private const int MAX_BATCH_SIZE = 500;
-        private static long _flushCounter = 0;
+        }  
         public static void FlushQueueToDatabase()
         {
             if (Interlocked.CompareExchange(ref _isFlushing, 1, 0) != 0)
                 return;
-
             try
             {
                 while (!_logQueue.IsEmpty)
                 {
                     var logsToInsert = new List<LogItem>(MAX_BATCH_SIZE);
-
                     while (logsToInsert.Count < MAX_BATCH_SIZE &&
                            _logQueue.TryDequeue(out var item))
                     {
                         logsToInsert.Add(item);
                     }
-
                     if (logsToInsert.Count == 0)
                         break;
-
                     string currentMachine =
                         MaHoaAnToan(Environment.MachineName);
-
                     string currentCpu =
                         MaHoaAnToan(GetMachineID());
-
                     string resolvedSystemAccount =
                         ResolveTaiKhoan("SYSTEM");
-
                     using var conn =
                         new SqliteConnection(ConnectionString);
-
                     conn.Open();
-
                     using var transaction =
                         conn.BeginTransaction();
-
                     try
                     {
                         using var cmd =
                             conn.CreateCommand();
-
                         cmd.Transaction = transaction;
-
                         cmd.CommandText = @"
 INSERT INTO NhatKyUngDung
 (
@@ -320,31 +256,23 @@ VALUES
     $HanhDong,
     $GhiChu
 );";
-
                         var pThoiGian =
                             cmd.Parameters.Add("$ThoiGian", SqliteType.Text);
-
                         var pTenMay =
                             cmd.Parameters.Add("$TenMay", SqliteType.Text);
-
                         var pIdCpu =
                             cmd.Parameters.Add("$ID_CPU", SqliteType.Text);
-
                         var pTaiKhoan =
                             cmd.Parameters.Add("$TaiKhoan", SqliteType.Text);
-
                         var pHanhDong =
                             cmd.Parameters.Add("$HanhDong", SqliteType.Text);
-
                         var pGhiChu =
                             cmd.Parameters.Add("$GhiChu", SqliteType.Text);
-
                         foreach (var log in logsToInsert)
                         {
                             pThoiGian.Value = log.ThoiGian;
                             pTenMay.Value = currentMachine;
                             pIdCpu.Value = currentCpu;
-
                             string taiKhoanThucTe =
                                 string.IsNullOrWhiteSpace(log.TaiKhoan) ||
                                 log.TaiKhoan.Equals(
@@ -352,19 +280,14 @@ VALUES
                                     StringComparison.OrdinalIgnoreCase)
                                 ? resolvedSystemAccount
                                 : log.TaiKhoan;
-
                             pTaiKhoan.Value =
                                 MaHoaAnToan(taiKhoanThucTe);
-
                             pHanhDong.Value =
                                 MaHoaAnToan(log.HanhDong);
-
                             pGhiChu.Value =
                                 MaHoaAnToan(log.GhiChu);
-
                             cmd.ExecuteNonQuery();
                         }
-
                         transaction.Commit();
                     }
                     catch
@@ -376,13 +299,10 @@ VALUES
                         catch
                         {
                         }
-
                         throw;
                     }
-
                     long currentFlush =
                         Interlocked.Increment(ref _flushCounter);
-
                     if (currentFlush % 500 == 0)
                     {
                         CleanupOldLogs();
@@ -405,30 +325,21 @@ VALUES
             {
                 using var conn =
                     new SqliteConnection(ConnectionString);
-
                 conn.Open();
-
                 using var countCmd =
                     conn.CreateCommand();
-
                 countCmd.CommandText =
                     "SELECT COUNT(*) FROM NhatKyUngDung;";
-
                 long totalRows =
                     Convert.ToInt64(
                         countCmd.ExecuteScalar());
-
                 if (totalRows <= 50000)
                     return;
-
                 using var transaction =
                     conn.BeginTransaction();
-
                 using var cmd =
                     conn.CreateCommand();
-
                 cmd.Transaction = transaction;
-
                 cmd.CommandText = @"
 DELETE FROM NhatKyUngDung
 WHERE ID <
@@ -436,9 +347,7 @@ WHERE ID <
     SELECT MAX(ID) - 50000
     FROM NhatKyUngDung
 );";
-
                 cmd.ExecuteNonQuery();
-
                 transaction.Commit();
             }
             catch (Exception ex)
@@ -456,7 +365,6 @@ WHERE ID <
             cmd.CommandText = "SELECT * FROM NhatKyUngDung ORDER BY ID ASC;";
             using var reader = cmd.ExecuteReader();
             dt.Load(reader);
-
             // Giải mã dữ liệu trước khi trả về GridView
             foreach (DataRow row in dt.Rows)
             {
@@ -466,10 +374,68 @@ WHERE ID <
                 row["HanhDong"] = GiaiMaAnToan(row["HanhDong"].ToString() ?? "");
                 row["GhiChu"] = GiaiMaAnToan(row["GhiChu"].ToString() ?? "");
             }
-
             return dt;
         }
-        // 10) CÁC HÀM TIỆN ÍCH KHÁC
+        private const string PREFIX_AES_V4 = Module_BaoMatAES.PREFIX_STEALTH_V4; // "AES:v4|"
+        private const string PREFIX_AES_V2 = Module_BaoMatAES.PREFIX_STEALTH_V2; // "AES:v2|"
+        /// <summary>
+        /// Hàm mã hóa an toàn cho Nhật ký (Mặc định dùng V4 - AES-GCM)
+        /// </summary>
+        private static string MaHoaAnToan(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return value;
+            // Tránh mã hóa lặp (nếu đã mã hóa V4 hoặc V2 rồi thì giữ nguyên)
+            if (value.StartsWith(PREFIX_AES_V4, StringComparison.Ordinal) ||
+                value.StartsWith(PREFIX_AES_V2, StringComparison.Ordinal))
+            {
+                return value;
+            }
+            // Module_BaoMatAES.MaHoa_NhatKy đã tự gắn "AES:v4|" ở đầu
+            return Module_BaoMatAES.MaHoa_NhatKy(value);
+        }
+        /// <summary>
+        /// Hàm giải mã đa phiên bản (Nhận diện AES:v4|, AES:v2| và v2| chuẩn)
+        /// </summary>
+        private static string GiaiMaAnToan(string value)
+        {
+            // 1. Guard Clause: Rỗng/Khoảng trắng -> Trả về ngay
+            if (string.IsNullOrWhiteSpace(value)) return value;
+            try
+            {
+                string result = string.Empty;
+                // 2. PHÂN LUỒNG GIẢI MÃ
+                // --- TRƯỜNG HỢP 1: Chuẩn V4 (AES-GCM) ---
+                if (value.StartsWith(PREFIX_AES_V4, StringComparison.Ordinal))
+                {
+                    // Hàm GiaiMa_NhatKy tự bóc tách "AES:v4|" và giải mã GCM
+                    result = Module_BaoMatAES.GiaiMa_NhatKy(value);
+                }
+                // --- TRƯỜNG HỢP 2: Chuẩn V2 có bọc vỏ "AES:v2|" ---
+                else if (value.StartsWith(PREFIX_AES_V2, StringComparison.Ordinal))
+                {
+                    // Bóc chữ "AES:" ra, còn lại "v2|..." để truyền vào hàm GiaiMa gốc
+                    string v2Payload = value.Substring(4); // Cắt bỏ 4 ký tự "AES:"
+                    result = Module_BaoMatAES.GiaiMa(v2Payload);
+                }
+                // --- TRƯỜNG HỢP 3: Chuẩn V2 gốc "v2|..." hoặc Base64 thuần ---
+                else if (value.StartsWith("v2|", StringComparison.Ordinal))
+                {
+                    result = Module_BaoMatAES.GiaiMa(value);
+                }
+                else
+                {
+                    // Chuỗi thô chưa mã hóa (Plaintext) -> Trả về nguyên bản
+                    return value;
+                }
+                // 3. FAIL-SAFE: Nếu giải mã lỗi (trả về string.Empty), giữ lại chuỗi gốc để không mất dữ liệu
+                return string.IsNullOrEmpty(result) ? value : result;
+            }
+            catch
+            {
+                // Nuốt ngoại lệ an toàn, tránh crash UI khi gặp dữ liệu log bị rác
+                return value;
+            }
+        }
         public static void XoaTatCaNhatKy()
         {
             using var conn = new SqliteConnection(ConnectionString);
@@ -483,20 +449,16 @@ WHERE ID <
             var list = new List<string>();
             using var conn = new SqliteConnection(ConnectionString);
             conn.Open();
-
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT DISTINCT TaiKhoan FROM NhatKyUngDung WHERE TaiKhoan IS NOT NULL AND TaiKhoan <> '';";
-
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
                 string raw = reader.GetString(0);
                 list.Add(GiaiMaAnToan(raw));
             }
-
             return list;
         }
-
         public static void DocVaNapStatusLabelForm10()
         {
             // Chạy ngầm tác vụ đọc DB để không làm đơ UI của bất kỳ Form nào gọi tới nó
@@ -505,13 +467,9 @@ WHERE ID <
                 try
                 {
                     string luaChon = "Không xóa";
-
                     // Đảm bảo bảng cấu hình đã được khởi tạo
-
-
                     using var conn = new SqliteConnection(ConnectionString);
                     conn.Open();
-
                     using (var cmdSelect = conn.CreateCommand())
                     {
                         cmdSelect.CommandText = "SELECT Chọn_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1 LIMIT 1;";
@@ -519,7 +477,6 @@ WHERE ID <
                         if (result != null && result != DBNull.Value)
                             luaChon = result.ToString();
                     }
-
                     int soDongTuCsdl = luaChon switch
                     {
                         "1000 dòng xóa tự động" => 1000,
@@ -527,12 +484,10 @@ WHERE ID <
                         "10000 dòng xóa tự động" => 10000,
                         _ => 0
                     };
-
                     // Chuỗi định dạng hiển thị kết quả
                     string textHienThi = soDongTuCsdl > 0
                         ? $"Tài khoản: {Module_TaiKhoan.TenTaiKhoan_RAM} | Tự động xóa khi đạt {soDongTuCsdl} dòng"
                         : $"Tài khoản: {Module_TaiKhoan.TenTaiKhoan_RAM}";
-
                     // Tự động dò tìm Form10 trong danh sách các Form đang mở của ứng dụng
                     // Sử dụng đồng bộ luồng Invoke an toàn để nạp chuỗi văn bản lên UI
                     var f10 = System.Windows.Forms.Application.OpenForms["Form10_NhatKy"] as Form10_NhatKy;
@@ -551,6 +506,17 @@ WHERE ID <
                 }
             });
         }
-
+        public static void HienThiHuongDanFormNhatKy()
+        {
+            string msg = "HƯỚNG DẪN SỬ DỤNG NHẬT KÝ HỆ THỐNG\n\n" +
+                         "1. Chức năng chính:\n" +
+                         "- Theo dõi lịch sử thao tác & hành động trong hệ thống.\n" +
+                         "- Phân trang linh hoạt giúp tối ưu tốc độ tải dữ liệu.\n\n" +
+                         "2. Tùy chỉnh phân trang:\n" +
+                         "- Nhập số dòng hiển thị/trang (cho phép từ 1 đến 5000 dòng, mặc định 500 dòng).\n\n" +
+                         "3. Thanh trạng thái:\n" +
+                         "- Hiển thị trang hiện tại và số lượng: 'Hiển thị X / Y hành động'.";
+            MessageBox.Show(msg, "Hướng dẫn chức năng", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
     }
 }

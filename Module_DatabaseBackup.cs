@@ -1,14 +1,12 @@
 ﻿using Krypton.Toolkit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-
 namespace PhanMemThiDua2026
 {
     internal static class Module_DatabaseBackup
     {
         private const string TITLE_VN = "THÔNG TIN CHỨNG THƯ SỐ PHẦN MỀM";
         private const string TITLE_EN = "SOFTWARE DIGITAL CERTIFICATE INFORMATION";
-
         private static readonly Size SIZE_DA_KY = new Size(1000, 720);
         private static readonly Size SIZE_LOI_OR_HET_HAN = new Size(840, 640);
         // ===== HÀM HIỂN THỊ CHÍNH (TỔNG HỢP LOGIC) =====
@@ -16,16 +14,13 @@ namespace PhanMemThiDua2026
         {
             StringBuilder sb = new StringBuilder(2048);
             string exePath = Application.ExecutablePath;
-
             AppendHeader(sb);
-
             if (!File.Exists(exePath))
             {
                 AppendWarning(sb, "Không tìm thấy tệp chương trình.", "Application executable file not found.");
                 HienThiFormAoChung("CẢNH BÁO HỆ THỐNG", sb.ToString(), MessageBoxIcon.Warning, SIZE_LOI_OR_HET_HAN);
                 return;
             }
-
             try
             {
                 // TỐI ƯU BẢO MẬT & HIỆU SUẤT: Bọc chứng thư gốc vào khối using để giải phóng unmanaged resources ngay sau khi dùng
@@ -40,11 +35,9 @@ namespace PhanMemThiDua2026
                         HienThiFormAoChung("CẢNH BÁO BẢO MẬT", sb.ToString(), MessageBoxIcon.Warning, SIZE_LOI_OR_HET_HAN);
                         return;
                     }
-
                     using (var cert = new X509Certificate2(rawCert))
                     {
                         bool isExpired = DateTime.Now > cert.NotAfter;
-
                         AppendSection(sb, "TRẠNG THÁI / STATUS:");
                         if (isExpired)
                         {
@@ -54,14 +47,12 @@ namespace PhanMemThiDua2026
                         {
                             AppendSuccess(sb, "Phần mềm đã được ký số hợp lệ.", "The software is successfully digitally signed.");
                         }
-
                         AppendHorizontalLine(sb);
                         AppendSection(sb, "THÔNG TIN CHỨNG THƯ / CERTIFICATE DETAILS:");
                         AppendKeyValue(sb, "Nhà phát hành", "Publisher", SafeText(cert.Subject));
                         AppendKeyValue(sb, "Cá nhân ký số", "Issued by", SafeText(cert.Issuer));
                         AppendKeyValue(sb, "Hiệu lực từ", "Valid from", cert.NotBefore.ToString("dd/MM/yyyy HH:mm:ss"));
                         AppendKeyValue(sb, "Hiệu lực đến", "Valid until", cert.NotAfter.ToString("dd/MM/yyyy HH:mm:ss"));
-
                         AppendHorizontalLine(sb);
                         AppendSection(sb, "ĐÁNH GIÁ AN TOÀN / SECURITY ASSESSMENT:");
                         if (isExpired)
@@ -74,7 +65,6 @@ namespace PhanMemThiDua2026
                             AppendSuccess(sb, "Đảm bảo tính toàn vẹn của tệp (.exe)", "Software integrity guaranteed (.exe).");
                             AppendSuccess(sb, "Tệp thực thi (.exe) không bị chỉnh sửa.", "Executable file (.exe) not modified.");
                             AppendSuccess(sb, "Tương thích hệ điều hành Windows 7 đến Windows 11.", "Compatible Windows 7 -> 11.");
-
                             HienThiFormAoChung("CHỨNG THỰC AN TOÀN", sb.ToString(), MessageBoxIcon.Information, SIZE_DA_KY);
                         }
                     }
@@ -93,7 +83,6 @@ namespace PhanMemThiDua2026
         public static void HienThiFormAoChung(string tieuDe, string noiDung, MessageBoxIcon icon, Size formSize)
         {
             using KryptonForm formAo = new KryptonForm();
-
             formAo.Text = "Hệ thống xác thực";
             formAo.StartPosition = FormStartPosition.CenterScreen;
             formAo.Size = formSize;
@@ -101,17 +90,14 @@ namespace PhanMemThiDua2026
             formAo.MaximizeBox = false;
             formAo.MinimizeBox = false;
             formAo.BackColor = Color.FromArgb(250, 250, 250);
-
             formAo.GroupBackStyle = PaletteBackStyle.FormMain;
             formAo.GroupBorderStyle = PaletteBorderStyle.FormMain;
-
             Color themeColor = icon switch
             {
                 MessageBoxIcon.Error => Color.FromArgb(198, 40, 40),
                 MessageBoxIcon.Warning => Color.FromArgb(239, 108, 0),
                 _ => Color.FromArgb(21, 115, 71)
             };
-
             Panel panelTop = new() { Dock = DockStyle.Top, Height = 65, BackColor = Color.White };
             Label lblTitle = new()
             {
@@ -124,9 +110,7 @@ namespace PhanMemThiDua2026
                 Padding = new Padding(25, 0, 0, 0)
             };
             panelTop.Controls.Add(lblTitle);
-
             Panel line = new() { Dock = DockStyle.Top, Height = 1, BackColor = Color.FromArgb(225, 225, 225) };
-
             RichTextBox rtb = new()
             {
                 Dock = DockStyle.Fill,
@@ -137,14 +121,10 @@ namespace PhanMemThiDua2026
                 Margin = new Padding(0),
                 ScrollBars = RichTextBoxScrollBars.Vertical
             };
-
             Panel panelContent = new() { Dock = DockStyle.Fill, Padding = new Padding(30, 20, 30, 20), BackColor = Color.White };
             panelContent.Controls.Add(rtb);
-
             FormatRichText(rtb, noiDung);
-
             Panel panelBottom = new() { Dock = DockStyle.Bottom, Height = 70, BackColor = Color.FromArgb(245, 245, 245) };
-
             Button btnDong = new()
             {
                 Text = "XÁC NHẬN ĐÓNG",
@@ -158,29 +138,23 @@ namespace PhanMemThiDua2026
                 Font = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold)
             };
             btnDong.FlatAppearance.BorderSize = 0;
-
             Color hoverColor = Color.FromArgb(Math.Max(0, themeColor.R - 25), Math.Max(0, themeColor.G - 25), Math.Max(0, themeColor.B - 25));
             Color activeColor = Color.FromArgb(Math.Max(0, themeColor.R - 45), Math.Max(0, themeColor.G - 45), Math.Max(0, themeColor.B - 45));
             btnDong.FlatAppearance.MouseOverBackColor = hoverColor;
             btnDong.FlatAppearance.MouseDownBackColor = activeColor;
-
             TableLayoutPanel tlp = new() { Dock = DockStyle.Fill, ColumnCount = 3 };
             tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             tlp.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
             tlp.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-
             btnDong.Anchor = AnchorStyles.None;
             tlp.Controls.Add(btnDong, 1, 0);
             panelBottom.Controls.Add(tlp);
-
             formAo.Controls.Add(panelContent);
             formAo.Controls.Add(panelBottom);
             formAo.Controls.Add(line);
             formAo.Controls.Add(panelTop);
-
             formAo.AcceptButton = btnDong;
             formAo.CancelButton = btnDong;
-
             formAo.ShowDialog();
         }
         // ===== PARSER CHUYỂN ĐỔI ĐỊNH DẠNG MÀU SẮC =====
@@ -188,11 +162,9 @@ namespace PhanMemThiDua2026
         {
             rtb.Text = "";
             string[] lines = text.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
-
             // HIỆU SUẤT: Tính toán độ rộng hành lang một lần duy nhất ngoài vòng lặp
             int usableWidth = rtb.ClientSize.Width - 10;
             string dynamicDivider = string.Empty;
-
             using (Graphics g = rtb.CreateGraphics())
             {
                 float charWidth = g.MeasureString("─", rtb.Font).Width;
@@ -200,7 +172,6 @@ namespace PhanMemThiDua2026
                 if (repeatCount < 10) repeatCount = 60;
                 dynamicDivider = new string('─', repeatCount);
             }
-
             foreach (string line in lines)
             {
                 if (string.IsNullOrEmpty(line))
@@ -208,11 +179,9 @@ namespace PhanMemThiDua2026
                     rtb.AppendText("\n");
                     continue;
                 }
-
                 Color textColor = Color.FromArgb(55, 65, 81);
                 Font textFont = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular);
                 string trimmed = line.Trim();
-
                 if (trimmed.StartsWith("✔"))
                 {
                     textColor = Color.FromArgb(21, 115, 71);
@@ -237,9 +206,7 @@ namespace PhanMemThiDua2026
                     textColor = Color.FromArgb(17, 24, 39);
                     textFont = new Font(Module_HeThong.TenFontHeThong, 11F, FontStyle.Bold);
                 }
-
                 int startPos = rtb.TextLength;
-
                 if (trimmed == "---LINE---")
                 {
                     rtb.AppendText(dynamicDivider + "\n\n");
@@ -248,12 +215,10 @@ namespace PhanMemThiDua2026
                 {
                     rtb.AppendText(line + "\n");
                 }
-
                 rtb.Select(startPos, rtb.TextLength - startPos);
                 rtb.SelectionColor = textColor;
                 rtb.SelectionFont = textFont;
             }
-
             rtb.DeselectAll();
             rtb.SelectionStart = 0;
             rtb.SelectionLength = 0;

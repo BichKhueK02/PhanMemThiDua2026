@@ -1,8 +1,6 @@
-﻿
-using Krypton.Toolkit;                    // Thêm để dùng KryptonTextBox và các tính năng viền
+﻿using Krypton.Toolkit;                    // Thêm để dùng KryptonTextBox và các tính năng viền
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form9_GoCaiDat : Form
@@ -21,7 +19,7 @@ namespace PhanMemThiDua2026
             this.Load += Form9_Load;
         }
         // ĐỔI THÀNH async void ĐỂ TẢI DỮ LIỆU NGẦM, CHỐNG GIẬT FORM
-        private async void Form9_Load(object sender, EventArgs e)
+        private async void Form9_Load(object? sender, EventArgs e)
         {
             StartPosition = FormStartPosition.CenterScreen;
             MaximizeBox = false;
@@ -36,7 +34,7 @@ namespace PhanMemThiDua2026
             InitFocusEffects();
             Text_Password.Focus();
             // 🌟 CHẠY NGẦM HÀM LẤY TÊN ADMIN ĐỂ KHÔNG BLOCK UI
-            await ToQuoc_GoiTenAnhGiuaTroiThuongNhoAsync();
+            await GoiTenEmTrongDem_GoCaiDat();
         }
         // Lê Trung Kiên -  Yêu mèo cam
         // 🌟 HÀM TÔ MÀU VIỀN CHUẨN KỸ SƯ (CHỐNG MEMORY LEAK)
@@ -46,7 +44,6 @@ namespace PhanMemThiDua2026
             foreach (var ktb in controls)
             {
                 if (ktb == null) continue;
-
                 ktb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
                 ktb.StateCommon.Border.Color1 = NormalBorderColor;
                 ktb.StateCommon.Border.Width = NormalBorderWidth;
@@ -56,7 +53,7 @@ namespace PhanMemThiDua2026
                 ktb.Leave += Ktb_LeaveFocus;
             }
         }
-        private void Ktb_EnterFocus(object sender, EventArgs e)
+        private void Ktb_EnterFocus(object? sender, EventArgs e)
         {
             if (sender is KryptonTextBox ktb)
             {
@@ -65,7 +62,7 @@ namespace PhanMemThiDua2026
                 ktb.Refresh();
             }
         }
-        private void Ktb_LeaveFocus(object sender, EventArgs e)
+        private void Ktb_LeaveFocus(object? sender, EventArgs e)
         {
             if (sender is KryptonTextBox ktb)
             {
@@ -74,64 +71,53 @@ namespace PhanMemThiDua2026
                 ktb.Refresh();
             }
         }
-        // 🌟 CHUYỂN SANG BẤT ĐỒNG BỘ ĐỂ TRÁNH GIẬT/LAG LÚC MỞ FORM
-        private async Task ToQuoc_GoiTenAnhGiuaTroiThuongNhoAsync()
+        /// 🌟 CHUYỂN SANG BẤT ĐỒNG BỘ ĐỂ TRÁNH GIẬT/LAG LÚC MỞ FORM
+        private async Task GoiTenEmTrongDem_GoCaiDat()
         {
             try
             {
-                if (!File.Exists(_csdl1Path)) return;
-
-                // Offload xử lý AES và DB sang ThreadPool
-                string adminName = await Task.Run(async () =>
-                {
-                    using var conn = new SqliteConnection(ConnectionString);
-                    await conn.OpenAsync();
-                    string sqlAdmin = BaoMatAES.TraLaiTenChoMeoCam("1 TIMIL 1 = DI EREHW nimdA MORF naohKiaTneT TCELES");
-                    using var cmd = new SqliteCommand(sqlAdmin, conn);
-                    var result = await cmd.ExecuteScalarAsync();
-
-                    if (result != null)
-                    {
-                        string encrypted = result.ToString() ?? "";
-                        string decrypted = BaoMatAES.GiaiMa(encrypted);
-                        return string.IsNullOrWhiteSpace(decrypted) ? encrypted : decrypted;
-                    }
-                    return string.Empty;
-                });
-
+                if (!File.Exists(_csdl1Path))
+                    return;
+                using var conn = new SqliteConnection(ConnectionString);
+                await conn.OpenAsync();
+                string sqlAdmin = Module_BaoMatAES.TraLaiTenChoMeoCam("1 TIMIL 1 = DI EREHW nimdA MORF naohKiaTneT TCELES");
+                using var cmd = new SqliteCommand(sqlAdmin, conn);
+                var result = await cmd.ExecuteScalarAsync();
+                if (result == null)
+                    return;
+                string encrypted = result.ToString() ?? "";
+                string decrypted = Module_BaoMatAES.GiaiMa(encrypted);
+                string adminName = string.IsNullOrWhiteSpace(decrypted) ? encrypted : decrypted;
                 if (!string.IsNullOrEmpty(adminName))
-                {
                     Text_Admin.Text = adminName;
-                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không thể đọc tài khoản Admin:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Không thể đọc tài khoản Admin:\n" + ex.Message,
+                    "Lỗi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
-        // 🌟 KIỂM TRA MẬT KHẨU BẤT ĐỒNG BỘ
         private async Task<bool> KiemTraMatKhauAdminAsync(string matKhauNhap)
         {
             if (string.IsNullOrWhiteSpace(matKhauNhap)) return false;
-
             try
             {
                 return await Task.Run(async () =>
                 {
                     using var conn = new SqliteConnection(ConnectionString);
                     await conn.OpenAsync();
-                    string sqlPass = BaoMatAES.TraLaiTenChoMeoCam("1 TIMIL 1 = DI EREHW nimdA MORF uahKtaM TCELES");
+                    string sqlPass = Module_BaoMatAES.TraLaiTenChoMeoCam("1 TIMIL 1 = DI EREHW nimdA MORF uahKtaM TCELES");
                     using var cmd = new SqliteCommand(sqlPass, conn);
                     var result = await cmd.ExecuteScalarAsync();
-
                     if (result != null)
                     {
                         string mkTrongCSDL = result.ToString() ?? "";
-                        string mkGiaiMa = BaoMatAES.GiaiMa(mkTrongCSDL);
-
+                        string mkGiaiMa = Module_BaoMatAES.GiaiMa(mkTrongCSDL);
                         if (string.IsNullOrWhiteSpace(mkGiaiMa))
                             mkGiaiMa = mkTrongCSDL;
-
                         return SlowEquals(matKhauNhap, mkGiaiMa);
                     }
                     return false;
@@ -146,56 +132,47 @@ namespace PhanMemThiDua2026
         private bool SlowEquals(string a, string b)
         {
             if (a.Length != b.Length) return false;
-
             int diff = 0;
             for (int i = 0; i < a.Length; i++)
                 diff |= a[i] ^ b[i];
-
             return diff == 0;
         }
-        
         // ⭐ BƯỚC ĐỌC DB, GỠ BẪY VÀ GIẢI MÃ V2 (CÓ CHỐNG SPAM)
-        
         private async void Btn_GoCaiDat_Click(object sender, EventArgs e)
         {
             // 🌟 KHÓA NÚT BẤM CHỐNG SPAM CLICK
             Btn_GoCaiDat.Enabled = false;
-
             try
             {
                 // ---- KIỂM TRA MẬT KHẨU VÀ CHỐNG SPAM ----
                 bool isCorrect = await KiemTraMatKhauAdminAsync(Text_Password.Text.Trim());
-
                 if (!isCorrect)
                 {
                     _soLanSai++;
-
                     if (_soLanSai >= 3)
                     {
-                        MessageBox.Show("Bạn đã nhập sai quá 3 lần. Ứng dụng sẽ tự động đóng để bảo vệ an toàn!", "Khóa bảo mật", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(
+                            "Bạn đã nhập sai 3 lần. Ứng dụng sẽ tự động đóng để bảo vệ an toàn!",
+                            "Khóa bảo mật",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
                         Application.Exit();
                         return;
                     }
-
                     MessageBox.Show($"Mật khẩu không đúng!\nBạn đã nhập sai {_soLanSai}/3 lần.", "Từ chối truy cập", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
                     // 🌟 DÙNG TASK.DELAY THAY THẾ THREAD.SLEEP ĐỂ KHÔNG LÀM ĐƠ FORM
                     await Task.Delay(500 * _soLanSai);
-
                     Text_Password.Clear();
                     Text_Password.Focus();
                     return;
                 }
-
                 // Nếu nhập đúng thì reset số lần sai về 0
                 _soLanSai = 0;
-
                 // ---- ĐÚNG MẬT KHẨU → TẠO KHÓA & TIẾP TỤC ----
-                if (!BaoMatAES.DuongVaoTraiTimEm())
+                if (!Module_BaoMatAES.DuongVaoTraiTimEm())
                 {
                     return;
                 }
-
                 try
                 {
                     string uninstallExe = Path.Combine(AppContext.BaseDirectory, "Uninstall_PhanMemThiDua2026.exe");
@@ -204,14 +181,12 @@ namespace PhanMemThiDua2026
                         MessageBox.Show("Không tìm thấy file gỡ cài đặt!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
-
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = uninstallExe,
                         UseShellExecute = true,
                         WorkingDirectory = AppContext.BaseDirectory
                     });
-
                     Application.Exit();
                 }
                 catch (Exception ex)
@@ -232,16 +207,14 @@ namespace PhanMemThiDua2026
             Text_Password.UseSystemPasswordChar = !isChecked;
             Chex_HienMatKhau.ForeColor = isChecked ? Color.Green : Color.Red;
         }
-        private void Btn_Thoat_Click(object sender, EventArgs e)
+        private void Btn_Thoat_Click(object? sender, EventArgs e)
         {
             Close();
         }
-        private void Chex_HienMatKhau_CheckedChanged(object sender, EventArgs e)
+        private void Chex_HienMatKhau_CheckedChanged(object? sender, EventArgs e)
         {
             CapNhatTrangThaiHienMatKhau();
         }
-
-  
         // CỤM HÀM TƯƠNG THÍCH NGƯỢC VỚI UNINSTALL.EXE (CHUẨN V1)
     }
 }

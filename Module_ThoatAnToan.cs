@@ -7,9 +7,7 @@
         public static void KichHoatESC(Form frm)
         {
             if (frm == null) return;
-
             frm.KeyPreview = true; // Form nhận key trước các control
-
             // Chỉ thêm handler nếu chưa được thêm
             if (!isHandlerRegistered(frm))
             {
@@ -22,7 +20,6 @@
             if (e.KeyCode == Keys.Escape && !isExiting)
             {
                 isExiting = true;
-
                 try
                 {
                     DialogResult result = MessageBox.Show(
@@ -31,7 +28,6 @@
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Warning
                     );
-
                     if (result == DialogResult.Yes)
                     {
                         ThoatAnToan();

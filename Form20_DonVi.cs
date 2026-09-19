@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.Data;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form20_DonVi : Form
@@ -24,7 +23,6 @@ namespace PhanMemThiDua2026
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.AcceptButton = kryptonButton1_Them; // ✅ Enter = Thêm
-
             // ⭐ BỔ SUNG UX: Đổi tên Form để Admin khỏi bị nhầm lẫn
             bool laTanBinh = Module_DonVi.LayTenBangDonVi().Contains("TanBinh");
             this.Text = laTanBinh ? "Quản lý Danh sách Đơn vị (Dành cho Tân Binh)" : "Quản lý Danh sách Đơn vị";
@@ -54,30 +52,26 @@ namespace PhanMemThiDua2026
         private void TaoBangNeuChuaCo()
         {
             if (!File.Exists(_csdl2Path)) return;
-
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
             using var cmd = cn.CreateCommand();
-
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
-
             cmd.CommandText = $@"
-CREATE TABLE IF NOT EXISTS {tenBang} (
-    ID INTEGER PRIMARY KEY AUTOINCREMENT,
-    Ten_DonVi TEXT,
-    ThoiGian TEXT
-);";
-            cmd.ExecuteNonQuery();
+            CREATE TABLE IF NOT EXISTS {tenBang} (
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                Ten_DonVi TEXT,
+                ThoiGian TEXT
+            );";
+           cmd.ExecuteNonQuery();
         }
         private string TryGiaiMa(object value)
         {
             if (value == null || value == DBNull.Value) return string.Empty;
             string s = value.ToString()!.Trim();
             if (string.IsNullOrWhiteSpace(s)) return string.Empty;
-
             try
             {
-                string decoded = BaoMatAES.GiaiMa(s).Trim();
+                string decoded = Module_BaoMatAES.GiaiMa(s).Trim();
                 return string.IsNullOrEmpty(decoded) ? s : decoded;
             }
             catch
@@ -90,28 +84,21 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
             using var cmd = cn.CreateCommand();
-
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
             cmd.CommandText = $"SELECT ID, Ten_DonVi, ThoiGian FROM {tenBang} ORDER BY ID ASC";
-
             var dt = new DataTable();
             dt.Load(cmd.ExecuteReader());
-
             // Thêm cột STT
             if (!dt.Columns.Contains("STT"))
                 dt.Columns.Add("STT", typeof(string));
-
             // Tạm thời gỡ DataSource để tăng tốc độ nạp/giải mã (tránh Grid vẽ lại liên tục)
             kryptonDataGridView1_DanhSach_DonVi.DataSource = null;
-
             int stt = 1;
             foreach (DataRow row in dt.Rows)
             {
                 string tenDonVi = TryGiaiMa(row["Ten_DonVi"]);
                 row["Ten_DonVi"] = tenDonVi;
-
                 string thoiGian = TryGiaiMa(row["ThoiGian"]);
-
                 // MẸO: Thêm khoảng trắng đầu chuỗi để tự tạo khoảng trống cho Icon (Tránh bị lệch viền Grid)
                 if (DateTime.TryParse(thoiGian, out DateTime dtParsed))
                 {
@@ -121,7 +108,6 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
                 {
                     row["ThoiGian"] = "      " + thoiGian;
                 }
-
                 row["STT"] = stt++.ToString();
             }
             // Gán lại DataSource sau khi đã giải mã toàn bộ bảng
@@ -134,36 +120,28 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
         private void CauHinhGiaoDienGrid(int? selectID)
         {
             if (kryptonDataGridView1_DanhSach_DonVi.Columns.Count == 0) return;
-
             // ===== IN ĐẬM + CĂN GIỮA TIÊU ĐỀ =====
             var headerStyle = kryptonDataGridView1_DanhSach_DonVi.ColumnHeadersDefaultCellStyle;
             headerStyle.Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 10f, FontStyle.Bold);
             headerStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
             // ===== Fill và chia tỷ lệ thủ công =====
             kryptonDataGridView1_DanhSach_DonVi.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             kryptonDataGridView1_DanhSach_DonVi.DefaultCellStyle.Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 9f);
-
             kryptonDataGridView1_DanhSach_DonVi.Columns["STT"].FillWeight = 20;
             kryptonDataGridView1_DanhSach_DonVi.Columns["Ten_DonVi"].FillWeight = 50;
             kryptonDataGridView1_DanhSach_DonVi.Columns["ThoiGian"].FillWeight = 30;
-
             kryptonDataGridView1_DanhSach_DonVi.Columns["STT"].HeaderText = "STT";
             kryptonDataGridView1_DanhSach_DonVi.Columns["Ten_DonVi"].HeaderText = "Tên đơn vị";
             kryptonDataGridView1_DanhSach_DonVi.Columns["ThoiGian"].HeaderText = "Thời gian";
-
             // ===== Ẩn ID và set DisplayIndex =====
             if (kryptonDataGridView1_DanhSach_DonVi.Columns.Contains("ID"))
                 kryptonDataGridView1_DanhSach_DonVi.Columns["ID"].Visible = false;
-
             kryptonDataGridView1_DanhSach_DonVi.Columns["STT"].DisplayIndex = 0;
             kryptonDataGridView1_DanhSach_DonVi.Columns["Ten_DonVi"].DisplayIndex = 1;
             kryptonDataGridView1_DanhSach_DonVi.Columns["ThoiGian"].DisplayIndex = 2;
-
             kryptonDataGridView1_DanhSach_DonVi.AllowUserToAddRows = false;
             kryptonDataGridView1_DanhSach_DonVi.ReadOnly = true;
             kryptonDataGridView1_DanhSach_DonVi.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-
             // ===== Chọn dòng =====
             kryptonDataGridView1_DanhSach_DonVi.ClearSelection();
             if (selectID.HasValue)
@@ -185,16 +163,14 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
                 kryptonDataGridView1_DanhSach_DonVi.FirstDisplayedScrollingRowIndex = last;
             }
         }
-        private void kryptonDataGridView1_DanhSach_DonVi_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void kryptonDataGridView1_DanhSach_DonVi_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
             var row = kryptonDataGridView1_DanhSach_DonVi.Rows[e.RowIndex];
             _selectedID = Convert.ToInt32(row.Cells["ID"].Value);
-
             // Xóa đi các khoảng trắng ở đầu đã chèn vào lúc hiển thị trước khi gán lên ô nhập liệu
             string tenDonVi = row.Cells["Ten_DonVi"].Value?.ToString() ?? "";
             textBox_TenDonVi.Text = tenDonVi.Trim();
-
             textBox_TenDonVi.Focus();
             textBox_TenDonVi.SelectAll();
             kryptonButton1_Sua.Text = "Lưu";
@@ -209,7 +185,7 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
             isEditing = false;
             this.AcceptButton = kryptonButton1_Them; // ✅ Enter = Thêm
         }
-        private void kryptonButton1_Them_Click(object sender, EventArgs e)
+        private void kryptonButton1_Them_Click(object? sender, EventArgs e)
         {
             string tenDonVi = textBox_TenDonVi.Text.Trim();
             if (string.IsNullOrWhiteSpace(tenDonVi))
@@ -223,12 +199,9 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
                 textBox_TenDonVi.Focus();
                 return;
             }
-
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
-
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
-
             // Kiểm tra tồn tại
             using var check = cn.CreateCommand();
             check.CommandText = $"SELECT ID, Ten_DonVi, ThoiGian FROM {tenBang}";
@@ -250,38 +223,32 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
                 }
             }
             reader.Close();
-
             // Thêm mới
             using var cmd = cn.CreateCommand();
             cmd.CommandText = $"INSERT INTO {tenBang} (Ten_DonVi, ThoiGian) VALUES (@ten, @time)";
-            cmd.Parameters.AddWithValue("@ten", BaoMatAES.MaHoa(tenDonVi));
-            cmd.Parameters.AddWithValue("@time", BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+            cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenDonVi));
+            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
             cmd.ExecuteNonQuery();
-
             // Load lại dữ liệu và chọn dòng cuối
             LoadDanhSachDonVi();
             ResetInput();
         }
-        private void kryptonButton1_Sua_Click(object sender, EventArgs e)
+        private void kryptonButton1_Sua_Click(object? sender, EventArgs e)
         {
             if (!isEditing || _selectedID < 0)
             {
                 MessageBox.Show("Bạn chưa chọn đơn vị để sửa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             string tenDonViMoi = textBox_TenDonVi.Text.Trim();
             if (string.IsNullOrWhiteSpace(tenDonViMoi))
             {
                 MessageBox.Show("Chưa nhập tên đơn vị!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
-
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
-
             // Kiểm tra trùng tên
             using var check = cn.CreateCommand();
             check.CommandText = $"SELECT ID, Ten_DonVi FROM {tenBang} WHERE ID <> @id";
@@ -303,37 +270,31 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
                 }
             }
             reader.Close();
-
             // Cập nhật
             using var cmd = cn.CreateCommand();
             cmd.CommandText = $"UPDATE {tenBang} SET Ten_DonVi=@ten, ThoiGian=@time WHERE ID=@id";
-            cmd.Parameters.AddWithValue("@ten", BaoMatAES.MaHoa(tenDonViMoi));
-            cmd.Parameters.AddWithValue("@time", BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+            cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenDonViMoi));
+            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
             cmd.Parameters.AddWithValue("@id", _selectedID);
             cmd.ExecuteNonQuery();
-
             // Load lại dữ liệu, cập nhật label và reset input
             LoadDanhSachDonVi(_selectedID);
             ResetInput();
         }
-        private void kryptonButton1_Xoa_Click(object sender, EventArgs e)
+        private void kryptonButton1_Xoa_Click(object? sender, EventArgs e)
         {
             if (!isEditing || _selectedID < 0)
             {
                 MessageBox.Show("Bạn chưa chọn đơn vị để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
             cn.Open();
             using var cmd = cn.CreateCommand();
-
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
-
             cmd.CommandText = $"DELETE FROM {tenBang} WHERE ID=@id";
             cmd.Parameters.AddWithValue("@id", _selectedID);
             cmd.ExecuteNonQuery();
-
             LoadDanhSachDonVi();
             ResetInput();
         }
@@ -347,7 +308,6 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
                 {
                     tenTieuDoan = char.ToUpper(tenTieuDoan[0]) + tenTieuDoan.Substring(1).ToLower();
                 }
-
                 label_tongCongDonVi.Text = $"Tổng cộng đơn vị trực thuộc {tenTieuDoan}: {soLuong} đơn vị";
             }
             catch
@@ -356,37 +316,30 @@ CREATE TABLE IF NOT EXISTS {tenBang} (
             }
         }
         // XỬ LÝ VẼ IMAGE ĐỒNG HỒ VÀO CỘT THỜI GIAN (PHIÊN BẢN HOÀN HẢO CHO KRYPTON)
-        private void kryptonDataGridView1_DanhSach_DonVi_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        private void kryptonDataGridView1_DanhSach_DonVi_CellPainting(object? sender, DataGridViewCellPaintingEventArgs e)
         {
             var dgv = sender as DataGridView;
             if (dgv == null) return;
-
             // Chỉ bắt sự kiện vẽ đối với các hàng dữ liệu thuộc cột "ThoiGian"
             if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && dgv.Columns[e.ColumnIndex].Name == "ThoiGian")
             {
                 // Để Krypton TỰ ĐỘNG VẼ toàn bộ nền, viền và chữ như bình thường.
                 // Do ở LoadDanhSachDonVi ta đã thêm "      " (khoảng trắng) vào đầu chuỗi Thời Gian,
                 // nên Krypton sẽ tự đẩy chữ sang phải, để lại 1 khoảng trống phía bên trái.
-
                 // Nếu Icon chưa được nạp hoặc không có dữ liệu thì thoát luôn
                 if (_iconClock == null || e.Value == null || string.IsNullOrWhiteSpace(e.Value.ToString()))
                     return;
-
                 // TÍNH TOÁN TỌA ĐỘ VÀ ĐÓNG DẤU ICON VÀO KHOẢNG TRỐNG
                 int iconSize = 16;
                 int paddingLeft = 4; // Căn chỉnh lề trái cho mượt mắt
-
                 int yIcon = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
                 int xIcon = e.CellBounds.X + paddingLeft;
-
                 // In đè cái ảnh lên ô
                 e.Graphics.DrawImage(_iconClock, new Rectangle(xIcon, yIcon, iconSize, iconSize));
-
                 // ⚠️ QUAN TRỌNG TỐI CAO: TUYỆT ĐỐI KHÔNG DÙNG e.Handled = true; TẠI ĐÂY
                 // Nếu để e.Handled = true, Krypton sẽ tịt luôn, không vẽ viền 3D/Bo góc nữa gây ra lỗi gạch đứt nét.
                 // Để trống, Grid sẽ vẽ giao diện của nó TRƯỚC, rồi ta in Icon TRÙNG LÊN TRÊN. Hai bên hòa thuận!
             }
         }
-
     }
 }

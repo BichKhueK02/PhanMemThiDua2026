@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     partial class Form38_XuatExcelTinhToan
@@ -11,7 +10,6 @@ namespace PhanMemThiDua2026
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -24,9 +22,7 @@ namespace PhanMemThiDua2026
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -303,9 +299,7 @@ namespace PhanMemThiDua2026
             ((ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
         }
-
         #endregion
-
         private TableLayoutPanel tableLayoutPanel1;
         private TableLayoutPanel tableLayoutPanel2;
         private TableLayoutPanel tableLayoutPanel4;

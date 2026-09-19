@@ -1,5 +1,4 @@
 ﻿using Microsoft.Data.Sqlite;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form30_ChinhSuaDataTanBinh : Form
@@ -31,14 +30,13 @@ namespace PhanMemThiDua2026
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-
             _id = -1; // Cố tình để -1 để hàm LoadData biết đường rẽ nhánh
             _soHieuTimKiem = soHieu;
             _hoTenTimKiem = hoTen;
             _donVi = donVi;
             _isViewOnly = isViewOnly;
         }
-        private void Form30_ChinhSuaDataTanBinh_Load(object sender, EventArgs e)
+        private void Form30_ChinhSuaDataTanBinh_Load(object? sender, EventArgs e)
         {
             TaoDanhSachCombo();
             KhoiTaoGiaTriCombo();
@@ -48,7 +46,6 @@ namespace PhanMemThiDua2026
             if (_isViewOnly)
             {
                 kryptonButton1_CapNhat.Visible = false; // Tàng hình nút cập nhật
-
                 // Khóa tất cả ComboBox để tránh người dùng sửa màu
                 if (_cboMapping != null)
                 {
@@ -67,7 +64,6 @@ namespace PhanMemThiDua2026
             _soHieuTimKiem = soHieu;
             _hoTenTimKiem = hoTen;
             _donVi = donVi;
-
             // 2. Xóa trắng dữ liệu cũ trên các ComboBox
             if (_cboMapping != null)
             {
@@ -77,10 +73,8 @@ namespace PhanMemThiDua2026
                     SetComboBoxColor(c); // Đưa màu về mặc định (trắng)
                 }
             }
-
             // 3. Load lại dữ liệu từ DB lên giao diện
             LoadData();
-
             // 4. Cập nhật lại Tiêu đề form và Đơn vị
             this.Text = $"Hồ sơ thi đua - {hoTen}";
             label_DonVi.Text = "Đơn vị: " + _donVi;
@@ -94,19 +88,16 @@ namespace PhanMemThiDua2026
                 { "Tuan_3_T2", combobox_tuan_3_Thang2 },
                 { "Tuan_4_T2", combobox_tuan_4_Thang2 },
                 { "Thang_3", tk_Thang3 },
-
                 { "Tuan_1_T3", combobox_tuan_1_Thang3 },
                 { "Tuan_2_T3", combobox_tuan_2_Thang3 },
                 { "Tuan_3_T3", combobox_tuan_3_Thang3 },
                 { "Tuan_4_T3", combobox_tuan_4_Thang3 },
                 { "Thang_4", tk_Thang4 },
-
                 { "Tuan_1_T4", combobox_tuan_1_Thang4 },
                 { "Tuan_2_T4", combobox_tuan_2_Thang4 },
                 { "Tuan_3_T4", combobox_tuan_3_Thang4 },
                 { "Tuan_4_T4", combobox_tuan_4_Thang4 },
                 { "Thang_5", tk_Thang5 },
-
                 { "Tuan_1_T5", combobox_tuan_1_Thang5 },
                 { "Tuan_2_T5", combobox_tuan_2_Thang5 },
                 { "Tuan_3_T5", combobox_tuan_3_Thang5 },
@@ -117,7 +108,6 @@ namespace PhanMemThiDua2026
         private void KhoiTaoGiaTriCombo()
         {
             string[] loai = { "", Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4 };
-
             foreach (var c in _cboMapping.Values)
             {
                 c.Items.Clear();
@@ -128,7 +118,7 @@ namespace PhanMemThiDua2026
                 c.TextChanged += ComboBox_ThayDoiMauSac;
             }
         }
-        private void ComboBox_ThayDoiMauSac(object sender, EventArgs e)
+        private void ComboBox_ThayDoiMauSac(object? sender, EventArgs e)
         {
             if (sender is ComboBox cb) SetComboBoxColor(cb);
         }
@@ -140,7 +130,6 @@ namespace PhanMemThiDua2026
                 cb.ForeColor = SystemColors.WindowText;
                 return;
             }
-
             switch (cb.Text)
             {
                 case Module_HeThong.Loai_1:
@@ -171,14 +160,12 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
                 cn.Open();
-
                 // NHÁNH 1: Load bằng ID (Giữ nguyên logic cũ của bạn)
                 if (_id != -1)
                 {
                     using var cmd = new SqliteCommand("SELECT * FROM ThiDuaThang_TanBinh WHERE ID=@id", cn);
                     cmd.Parameters.AddWithValue("@id", _id);
                     using var reader = cmd.ExecuteReader();
-
                     if (reader.Read())
                     {
                         HienThiDuLieuLenForm(reader);
@@ -190,7 +177,6 @@ namespace PhanMemThiDua2026
                     using var cmd = new SqliteCommand("SELECT * FROM ThiDuaThang_TanBinh", cn);
                     using var reader = cmd.ExecuteReader();
                     bool daTimThay = false;
-
                     // Vì Số hiệu bị mã hóa nên phải lấy hết ra, giải mã rồi so sánh
                     while (reader.Read())
                     {
@@ -202,7 +188,6 @@ namespace PhanMemThiDua2026
                             break;
                         }
                     }
-
                     if (!daTimThay)
                     {
                         // Không hiện thông báo báo lỗi nữa, chỉ cần đổ thông tin cơ bản lên Label cho đẹp giao diện
@@ -223,7 +208,6 @@ namespace PhanMemThiDua2026
             string dbHoTen = GiaiMaSafe(reader["HoVaTen"]?.ToString());
             label1_HoVaTen.Text = $"{Module_HeThong.Tu_dong_chi}: " + (string.IsNullOrEmpty(dbHoTen) ? _hoTenTimKiem : dbHoTen);
             label1_ID_Tanbinh.Text = "Số hiệu: " + GiaiMaSafe(reader["SoHieu"]?.ToString());
-
             foreach (var item in _cboMapping)
             {
                 var val = reader[item.Key];
@@ -231,7 +215,6 @@ namespace PhanMemThiDua2026
                     item.Value.Text = "";
                 else
                     item.Value.Text = $"Loại {val}";
-
                 SetComboBoxColor(item.Value);
             }
         }
@@ -240,13 +223,13 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(input)) return "";
             try
             {
-                string result = BaoMatAES.GiaiMa(input);
+                string result = Module_BaoMatAES.GiaiMa(input);
                 return string.IsNullOrWhiteSpace(result) ? input : result;
             }
             catch { return input; }
         } 
         // HÀM LƯU DỮ LIỆU (KHÔNG BỊ TÁC ĐỘNG KHI CHẠY Ở CHẾ ĐỘ XEM) 
-        private void kryptonButton1_CapNhat_Click(object sender, EventArgs e)
+        private void kryptonButton1_CapNhat_Click(object? sender, EventArgs e)
         {
             if (LuuDanhGiaThiDua())
             {
@@ -260,17 +243,14 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
                 cn.Open();
-
                 List<string> setClauses = new();
                 foreach (var k in _cboMapping.Keys)
                 {
                     setClauses.Add($"{k}=@{k}");
                 }
-
                 string sql = $"UPDATE ThiDuaThang_TanBinh SET {string.Join(", ", setClauses)} WHERE ID=@id";
                 using var cmd = new SqliteCommand(sql, cn);
                 cmd.Parameters.AddWithValue("@id", _id);
-
                 foreach (var item in _cboMapping)
                 {
                     string txt = item.Value.Text;
@@ -287,7 +267,6 @@ namespace PhanMemThiDua2026
                             cmd.Parameters.AddWithValue("@" + item.Key, DBNull.Value);
                     }
                 }
-
                 cmd.ExecuteNonQuery();
                 return true;
             }

@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -409,7 +406,7 @@
             quayLaiTrangXuLyData_ToolStripMenuItem.Name = "quayLaiTrangXuLyData_ToolStripMenuItem";
             quayLaiTrangXuLyData_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
             quayLaiTrangXuLyData_ToolStripMenuItem.Size = new Size(290, 28);
-            quayLaiTrangXuLyData_ToolStripMenuItem.Text = "Quay lại Trang phân loại thi đua";
+            quayLaiTrangXuLyData_ToolStripMenuItem.Text = "Đóng trang";
             quayLaiTrangXuLyData_ToolStripMenuItem.Click += quayLaiTrangXuLyData_ToolStripMenuItem_Click;
             // 
             // statusStrip1
@@ -482,9 +479,7 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
-
         private ToolTip toolTip1;
         private ToolStripStatusLabel toolStripStatusLabel4;
         private TableLayoutPanel tableLayoutPanel2;

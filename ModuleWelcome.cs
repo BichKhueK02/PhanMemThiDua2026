@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-
 namespace PhanMemThiDua2026
 {
     public static class ModuleWelcome
@@ -31,13 +30,10 @@ namespace PhanMemThiDua2026
             {
                 // Lấy tên tài khoản hiện tại trong RAM phần mềm
                 string taiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM ?? "SYSTEM";
-
                 // Lấy tên máy tính
                 string tenMay = Environment.MachineName ?? "UNKNOWN_PC";
-
                 // Lấy tên người dùng Windows (Đổi User Windows cũng tính là người mới)
                 string userWindows = Environment.UserName ?? "UNKNOWN_USER";
-
                 // Lấy số định danh thư mục Windows (Đảm bảo tính duy nhất của hệ điều hành)
                 string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
                 long dirTicks = 0;
@@ -47,7 +43,6 @@ namespace PhanMemThiDua2026
                 }
                 // Gộp tất cả thành một chuỗi đặc trưng môi trường
                 string rawData = $"{taiKhoan}|{tenMay}|{userWindows}|{dirTicks}";
-
                 // Băm SHA-256 để tạo chuỗi bảo mật 64 ký tự (Antivirus hoàn toàn không soi hành vi này)
                 using (SHA256 sha256 = SHA256.Create())
                 {
@@ -71,12 +66,10 @@ namespace PhanMemThiDua2026
         {
             string dbPath = Csdl2Path;
             if (string.IsNullOrEmpty(dbPath) || !File.Exists(dbPath)) return;
-
             try
             {
                 using var conn = new SqliteConnection($"Data Source={dbPath};Pooling=True;");
                 conn.Open();
-
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
                     CREATE TABLE IF NOT EXISTS Welcome (
@@ -84,11 +77,9 @@ namespace PhanMemThiDua2026
                         TrangThai TEXT
                     );";
                 cmd.ExecuteNonQuery();
-
                 // Đảm bảo dòng ID = 1 luôn tồn tại
                 cmd.CommandText = "SELECT COUNT(*) FROM Welcome WHERE ID = 1;";
                 long count = (long)cmd.ExecuteScalar();
-
                 if (count == 0)
                 {
                     cmd.CommandText = "INSERT INTO Welcome (ID, TrangThai) VALUES (1, @val);";
@@ -106,19 +97,15 @@ namespace PhanMemThiDua2026
         {
             string dbPath = Csdl2Path;
             if (string.IsNullOrEmpty(dbPath) || !File.Exists(dbPath)) return string.Empty;
-
             try
             {
                 using var conn = new SqliteConnection($"Data Source={dbPath};Pooling=True;");
                 conn.Open();
-
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT TrangThai FROM Welcome WHERE ID = 1 LIMIT 1;";
                 object result = cmd.ExecuteScalar();
-
                 if (result == null || result == DBNull.Value)
                     return string.Empty;
-
                 return result.ToString().Trim();
             }
             catch (Exception ex)
@@ -132,18 +119,14 @@ namespace PhanMemThiDua2026
         {
             string dbPath = Csdl2Path;
             if (string.IsNullOrEmpty(dbPath) || !File.Exists(dbPath)) return;
-
             try
             {
                 string newFingerprint = GenerateCurrentFingerprint();
-
                 using var conn = new SqliteConnection($"Data Source={dbPath};Pooling=True;");
                 conn.Open();
-
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "UPDATE Welcome SET TrangThai = @val WHERE ID = 1;";
                 cmd.Parameters.AddWithValue("@val", newFingerprint);
-
                 cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
@@ -156,22 +139,18 @@ namespace PhanMemThiDua2026
         {
             // Kiểm tra đường dẫn CSDL trước khi làm việc
             if (string.IsNullOrEmpty(Csdl2Path) || !File.Exists(Csdl2Path)) return;
-
             try
             {
                 // Bước 1: Đảm bảo cấu trúc bảng ổn định
                 KhoiTaoBangWelcome();
-
                 // Bước 2: Lấy vân tay cũ và vân tay hiện tại để so sánh
                 string savedPrint = GetSavedFingerprintFromDB();
                 string currentPrint = GenerateCurrentFingerprint();
-
                 // Bước 3: Nếu phát hiện đổi người hoặc đổi máy (vân tay khác nhau)
                 if (savedPrint != currentPrint)
                 {
                     // Chạy Form hiển thị giới thiệu của bạn
                     using var frm = new FormWelcome();
-
                     // ShowDialog ép người dùng đọc xong, nếu họ đóng Form thành công
                     if (frm.ShowDialog() == DialogResult.OK || frm.DialogResult == DialogResult.Cancel)
                     {

@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -49,8 +46,6 @@
             toolStripMenuItem_MoSoVang = new ToolStripMenuItem();
             toolStripMenuItem3 = new ToolStripSeparator();
             toolStripMenuItem_XoaChonTatCa = new ToolStripMenuItem();
-            toolStripMenuItem2 = new ToolStripSeparator();
-            toolStripMenuItem_ThoatTrang = new ToolStripMenuItem();
             tableLayoutPanel1 = new TableLayoutPanel();
             tableLayoutPanel2 = new TableLayoutPanel();
             pictureBox1 = new PictureBox();
@@ -191,9 +186,9 @@
             // 
             contextMenuStrip1.Font = new Font("Segoe UI", 9F);
             contextMenuStrip1.ImageScalingSize = new Size(21, 21);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, toolStripMenuItem_ToTrinhBaNhat, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5_XuatDanhSachGoc, toolStripMenuItem_NhapDuLieu, toolStripMenuItem5, toolStripMenuItem_ThiDuaTapThe, toolStripMenuItem4, toolStripMenuItem_luuVaoSoVang, toolStripMenuItem_MoSoVang, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa, toolStripMenuItem2, toolStripMenuItem_ThoatTrang });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoiHeThong, xoaTimKiem, toolStripMenuItem1, toolStripMenuItem_ToTrinhBaNhat, ToolStripMenuItem_XuatDanhSach, toolStripMenuItem5_XuatDanhSachGoc, toolStripMenuItem_NhapDuLieu, toolStripMenuItem5, toolStripMenuItem_ThiDuaTapThe, toolStripMenuItem4, toolStripMenuItem_luuVaoSoVang, toolStripMenuItem_MoSoVang, toolStripMenuItem3, toolStripMenuItem_XoaChonTatCa });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(208, 342);
+            contextMenuStrip1.Size = new Size(208, 308);
             // 
             // toolStripMenuItem_ToTrinhBaNhat
             // 
@@ -265,19 +260,6 @@
             toolStripMenuItem_XoaChonTatCa.Size = new Size(207, 28);
             toolStripMenuItem_XoaChonTatCa.Text = "Xóa chọn tất cả";
             toolStripMenuItem_XoaChonTatCa.Click += toolStripMenuItem_XoaChonTatCa_Click;
-            // 
-            // toolStripMenuItem2
-            // 
-            toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(204, 6);
-            // 
-            // toolStripMenuItem_ThoatTrang
-            // 
-            toolStripMenuItem_ThoatTrang.Image = (Image)resources.GetObject("toolStripMenuItem_ThoatTrang.Image");
-            toolStripMenuItem_ThoatTrang.Name = "toolStripMenuItem_ThoatTrang";
-            toolStripMenuItem_ThoatTrang.Size = new Size(207, 28);
-            toolStripMenuItem_ThoatTrang.Text = "Thoát trang";
-            toolStripMenuItem_ThoatTrang.Click += toolStripMenuItem_ThoatTrang_Click;
             // 
             // tableLayoutPanel1
             // 
@@ -517,7 +499,7 @@
             kryptonButton_RefershCSDL.TabIndex = 0;
             kryptonButton_RefershCSDL.Values.DropDownArrowColor = Color.Empty;
             kryptonButton_RefershCSDL.Values.Image = (Image)resources.GetObject("kryptonButton_RefershCSDL.Values.Image");
-            kryptonButton_RefershCSDL.Values.Text = "Refresh";
+            kryptonButton_RefershCSDL.Values.Text = "Làm mới";
             kryptonButton_RefershCSDL.Click += kryptonButton_RefershCSDL_Click;
             // 
             // kryptonDataGridView1
@@ -1066,7 +1048,6 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
@@ -1124,8 +1105,6 @@
         private Label label16;
         private Label label2;
         private ToolStripMenuItem toolStripMenuItem_ThiDuaTapThe;
-        private ToolStripSeparator toolStripMenuItem2;
-        private ToolStripMenuItem toolStripMenuItem_ThoatTrang;
         private ToolStripMenuItem xóaChọnTấtCảToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItem_XoaChonTatCa;
         private ToolStripSeparator toolStripMenuItem3;

@@ -24,14 +24,13 @@ namespace PhanMemThiDua2026
             GanSuKien();
             InitToolTips();
         }
-        private void Form13_Load(object sender, EventArgs e)
+        private void Form13_Load(object? sender, EventArgs e)
         {
             MaximizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             StartPosition = FormStartPosition.CenterScreen;
             LoadDuLieu();
             KhoaChucVuNeuTrong();
-
         }
         private void KhoiTaoTextBox()
         {
@@ -40,13 +39,11 @@ namespace PhanMemThiDua2026
                 Text_hovaten1, Text_hovaten2, Text_hovaten3,
                 Text_hovaten4, Text_hovaten5, Text_hovaten6
             }.Where(x => x != null).ToArray();
-
             chucvuTextBoxes = new[]
             {
                 Text_chucvu1, Text_chucvu2, Text_chucvu3,
                 Text_chucvu4, Text_chucvu5, Text_chucvu6
             }.Where(x => x != null).ToArray();
-
             tatCaTextBoxes = hovatenTextBoxes
                 .Concat(chucvuTextBoxes)
                 .ToArray();
@@ -58,36 +55,12 @@ namespace PhanMemThiDua2026
                 tb.TextChanged -= XuLyInHoaChucVu;
                 tb.TextChanged += XuLyInHoaChucVu;
             }
-
             foreach (var tb in hovatenTextBoxes)
             {
                 tb.TextChanged -= Hovaten_TextChanged;
                 tb.TextChanged += Hovaten_TextChanged;
             }
-
-            foreach (var tb in tatCaTextBoxes)
-            {
-                // 🌟 Set mặc định chuẩn (Đồng bộ cả Color1 và Color2 để xóa Gradient)
-                tb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
-                tb.StateCommon.Border.Width = 1;
-                tb.StateCommon.Border.Color1 = _normalColor;
-                tb.StateCommon.Border.Color2 = _normalColor;
-                tb.StateCommon.Border.Rounding = 4;
-
-                // 🧹 Rút sự kiện cũ trước (Chống Memory Leak)
-                tb.Enter -= TextBox_Enter;
-                tb.Leave -= TextBox_Leave;
-                tb.MouseEnter -= TextBox_MouseEnter;
-                tb.MouseLeave -= TextBox_MouseLeave;
-                tb.KeyDown -= TextBox_KeyDown; // 🌟 BỔ SUNG DÒNG NÀY
-
-                // ⚡ Cắm sự kiện mới
-                tb.Enter += TextBox_Enter;
-                tb.Leave += TextBox_Leave;
-                tb.MouseEnter += TextBox_MouseEnter;
-                tb.MouseLeave += TextBox_MouseLeave;
-                tb.KeyDown += TextBox_KeyDown; // 🌟 BỔ SUNG DÒNG NÀY
-            }
+            InitFocusHighlightForm13();
             kryptonButton1_Btn_Capnhat.Click -= kryptonButton1_Btn_Capnhat_Click;
             kryptonButton1_Btn_Capnhat.Click += kryptonButton1_Btn_Capnhat_Click;
         }
@@ -145,16 +118,13 @@ namespace PhanMemThiDua2026
         {
             string csdl = _csdl2Path;
             if (!System.IO.File.Exists(csdl)) return;
-
             // ⭐ XÁC ĐỊNH BẢNG TỰ ĐỘNG THEO PHIÊN BẢN
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
-
             try
             {
                 using var conn = new SqliteConnection($"Data Source={csdl}");
                 conn.Open();
-
                 // 🛡️ BẢO VỆ CSDL: Tự động tạo bảng nếu chưa tồn tại (chống sập khi vừa cài đặt)
                 using (var cmdInit = conn.CreateCommand())
                 {
@@ -166,27 +136,22 @@ namespace PhanMemThiDua2026
                                     );";
                     cmdInit.ExecuteNonQuery();
                 }
-
                 var dtHienThi = new DataTable();
                 dtHienThi.Columns.Add("ID", typeof(int));
                 dtHienThi.Columns.Add("HoVaTen", typeof(string));
                 dtHienThi.Columns.Add("ChucVu", typeof(string));
-
                 using (var cmd = conn.CreateCommand())
                 {
                     // Trỏ thẳng vào biến tableChiHuy động
                     cmd.CommandText = $"SELECT ID, HoVaTen, ChucVu FROM [{tableChiHuy}] WHERE ID BETWEEN 1 AND 6 ORDER BY ID";
                     using var reader = cmd.ExecuteReader();
-
                     int i = 0;
                     while (reader.Read())
                     {
                         int id = reader.GetInt32(0);
                         string hoTen = GiaiMaSafe(reader["HoVaTen"]);
                         string chucVu = GiaiMaSafe(reader["ChucVu"]);
-
                         dtHienThi.Rows.Add(id, hoTen, chucVu);
-
                         if (i < hovatenTextBoxes.Length)
                         {
                             hovatenTextBoxes[i].Text = hoTen;
@@ -195,7 +160,6 @@ namespace PhanMemThiDua2026
                         i++;
                     }
                 }
-
                 kryptonDataGridView1.DataSource = dtHienThi;
                 DinhDangGrid();
             }
@@ -207,14 +171,11 @@ namespace PhanMemThiDua2026
         private async void kryptonButton1_Btn_Capnhat_Click(object? sender, EventArgs e)
         {
             if (!KiemTraHopLe()) return;
-
             string textBanDau = kryptonButton1_Btn_Capnhat.Values.Text;
             Image anhBanDau = kryptonButton1_Btn_Capnhat.Values.Image;
-
             // ⭐ XÁC ĐỊNH BẢNG LƯU DỮ LIỆU
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
-
             try
             {
                 kryptonButton1_Btn_Capnhat.Enabled = false;
@@ -222,25 +183,20 @@ namespace PhanMemThiDua2026
                 kryptonButton1_Btn_Capnhat.Values.Image = null;
                 label13.Text = "Đang mã hóa và lưu dữ liệu...";
                 label13.Visible = true;
-
                 await Task.Delay(100);
-
                 await Task.Run(() =>
                 {
                     using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                     conn.Open();
                     using var tran = conn.BeginTransaction();
-
                     try
                     {
                         for (int i = 0; i < hovatenTextBoxes.Length; i++)
                         {
                             string hoTenRaw = hovatenTextBoxes[i].Text.Trim();
                             string chucVuRaw = chucvuTextBoxes[i].Text.Trim();
-
-                            string hoTenMaHoa = string.IsNullOrEmpty(hoTenRaw) ? "" : BaoMatAES.MaHoa(hoTenRaw);
-                            string chucVuMaHoa = string.IsNullOrEmpty(chucVuRaw) ? "" : BaoMatAES.MaHoa(chucVuRaw);
-
+                            string hoTenMaHoa = string.IsNullOrEmpty(hoTenRaw) ? "" : Module_BaoMatAES.MaHoa(hoTenRaw);
+                            string chucVuMaHoa = string.IsNullOrEmpty(chucVuRaw) ? "" : Module_BaoMatAES.MaHoa(chucVuRaw);
                             using var cmd = conn.CreateCommand();
                             cmd.Transaction = tran;
                             // Ghi đè vào đúng bảng đã chọn
@@ -254,10 +210,8 @@ namespace PhanMemThiDua2026
                     }
                     catch { tran.Rollback(); throw; }
                 });
-
                 label13.ForeColor = Color.DarkGreen;
                 label13.Text = "✔ Đã bảo mật và lưu thành công.";
-
                 string danhXung = laTanBinh ? "Tân binh" : "CBCS";
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Cập nhật lãnh đạo ({danhXung})", "Thành công");
                 LoadDuLieu();
@@ -282,10 +236,8 @@ namespace PhanMemThiDua2026
         private void XuLyInHoaChucVu(object? sender, EventArgs e)
         {
             if (sender is not KryptonTextBox tb) return;
-
             int pos = tb.SelectionStart;
             string text = tb.Text.ToUpperInvariant();
-
             if (tb.Text != text)
             {
                 tb.Text = text;
@@ -298,13 +250,10 @@ namespace PhanMemThiDua2026
             {
                 bool dongTruocCoDuLieu =
                     i == 0 || !string.IsNullOrWhiteSpace(hovatenTextBoxes[i - 1].Text);
-
                 hovatenTextBoxes[i].Enabled = dongTruocCoDuLieu;
-
                 chucvuTextBoxes[i].TextChanged -= XuLyInHoaChucVu;
                 chucvuTextBoxes[i].Enabled =
                     !string.IsNullOrWhiteSpace(hovatenTextBoxes[i].Text);
-
                 if (!dongTruocCoDuLieu)
                 {
                     hovatenTextBoxes[i].Clear();
@@ -314,17 +263,14 @@ namespace PhanMemThiDua2026
                 {
                     chucvuTextBoxes[i].Clear();
                 }
-
                 chucvuTextBoxes[i].TextChanged += XuLyInHoaChucVu;
             }
         }
         private bool KiemTraHopLe()
         {
             if (dangKiemTra) return false;
-
             dangKiemTra = true;
             daBaoLoi = false;
-
             for (int i = 0; i < hovatenTextBoxes.Length; i++)
             {
                 if (!string.IsNullOrWhiteSpace(hovatenTextBoxes[i].Text) &&
@@ -337,31 +283,25 @@ namespace PhanMemThiDua2026
                          MessageBoxIcon.Error);
                         daBaoLoi = true;
                     }
-
                     dangKiemTra = false;
                     return false;
                 }
             }
-
             dangKiemTra = false;
             return true;
         }
         private void DinhDangGrid()
         {
             var grid = kryptonDataGridView1;
-
             // 🛑 TỐI ƯU 1: Khóa render trong lúc đang định dạng để chống chớp giật và vỡ khung
             grid.SuspendLayout();
-
             try
             {
                 // ===== CẤU HÌNH CHUNG =====
                 grid.Dock = DockStyle.Fill;
                 grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-
                 // 🛑 TỐI ƯU 2: Khóa chặt AutoSizeRowsMode về None để bảo vệ tuyệt đối thông số RowTemplate.Height
                 grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
-
                 grid.RowHeadersVisible = false;
                 grid.AllowUserToAddRows = false;
                 grid.AllowUserToResizeRows = false;
@@ -371,18 +311,15 @@ namespace PhanMemThiDua2026
                 grid.MultiSelect = false;
                 grid.ReadOnly = true;
                 grid.EnableHeadersVisualStyles = false;
-
                 // ===== THIẾT KẾ PHẲNG & HIỆN ĐẠI =====
                 grid.BackgroundColor = Color.White;
                 grid.BorderStyle = BorderStyle.None;
                 grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
                 grid.GridColor = Color.FromArgb(235, 235, 235);
-
                 // ===== STYLE HEADER =====
                 grid.ColumnHeadersHeight = 50;
                 grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
                 grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-
                 // Thay dòng: Font = new Font("Segoe UI", 10.5F, FontStyle.Bold),
                 grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -392,17 +329,14 @@ namespace PhanMemThiDua2026
                     ForeColor = Color.FromArgb(40, 40, 40),
                     SelectionBackColor = Color.FromArgb(240, 244, 248)
                 };
-
                 // ===== STYLE ROW =====
                 grid.RowTemplate.Height = 30; // Chiều cao mục tiêu
-
                 // 🛑 TỐI ƯU 3: Quét và ép lại chiều cao thực tế cho tất cả các dòng hiện có 
                 // (Vì đôi khi RowTemplate chỉ ăn vào những dòng được thêm mới sau này)
                 foreach (DataGridViewRow row in grid.Rows)
                 {
                     row.Height = 30;
                 }
-
                 grid.DefaultCellStyle = new DataGridViewCellStyle
                 {
                     Font = _fontGridCell,
@@ -411,14 +345,11 @@ namespace PhanMemThiDua2026
                     SelectionBackColor = Color.FromArgb(232, 244, 253),
                     SelectionForeColor = Color.FromArgb(0, 102, 204)
                 };
-
                 grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(252, 252, 252);
-
                 // ===== CẤU HÌNH CỘT =====
                 CauHinhCot("ID", "STT", 10, DataGridViewContentAlignment.MiddleCenter);
                 CauHinhCot("HoVaTen", "Cấp bậc - Họ và tên chỉ huy", 45, DataGridViewContentAlignment.MiddleLeft);
                 CauHinhCot("ChucVu", "Chức vụ", 45, DataGridViewContentAlignment.MiddleLeft);
-
                 // ===== TẮT SORT =====
                 foreach (DataGridViewColumn col in grid.Columns)
                 {
@@ -444,7 +375,7 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Gợi ý nhập liệu";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
             toolTip1.SetToolTip(
                 kryptonButton1_Btn_Capnhat,
@@ -457,7 +388,7 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(input)) return string.Empty;
             try
             {
-                string result = BaoMatAES.GiaiMa(input);
+                string result = Module_BaoMatAES.GiaiMa(input);
                 // Nếu giải mã ra rỗng (lỗi định dạng), trả về chính nó (dữ liệu thô cũ)
                 return string.IsNullOrEmpty(result) ? input : result;
             }
@@ -482,8 +413,29 @@ namespace PhanMemThiDua2026
                 }
             }
             catch { }
-
             base.OnFormClosed(e);
+        }
+        private void InitFocusHighlightForm13()
+        {
+            foreach (KryptonTextBox tb in tatCaTextBoxes)
+            {
+                // Viền mặc định
+                tb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
+                tb.StateCommon.Border.Width = 1;
+                tb.StateCommon.Border.Color1 = _normalColor;
+                tb.StateCommon.Border.Color2 = _normalColor;
+                tb.StateCommon.Border.Rounding = 4;
+                // Focus
+                tb.Enter -= TextBox_Enter;
+                tb.Leave -= TextBox_Leave;
+                tb.Enter += TextBox_Enter;
+                tb.Leave += TextBox_Leave;
+                // Hover
+                tb.MouseEnter -= TextBox_MouseEnter;
+                tb.MouseLeave -= TextBox_MouseLeave;
+                tb.MouseEnter += TextBox_MouseEnter;
+                tb.MouseLeave += TextBox_MouseLeave;
+            }
         }
     }
 }

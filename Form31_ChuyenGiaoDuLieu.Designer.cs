@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -71,8 +68,8 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 3;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 9.544787F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 60.20558F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 30.3964748F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 61.23348F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 29.368576F));
             tableLayoutPanel1.Size = new Size(1264, 681);
             tableLayoutPanel1.TabIndex = 0;
             // 
@@ -83,12 +80,12 @@
             tableLayoutPanel2.Controls.Add(tableLayoutPanel4, 0, 0);
             tableLayoutPanel2.Controls.Add(prb_TienTrinhChuyenGiao, 0, 1);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(3, 476);
+            tableLayoutPanel2.Location = new Point(3, 483);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 2;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 71.02804F));
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 28.971962F));
-            tableLayoutPanel2.Size = new Size(1258, 202);
+            tableLayoutPanel2.Size = new Size(1258, 195);
             tableLayoutPanel2.TabIndex = 2;
             // 
             // tableLayoutPanel4
@@ -115,7 +112,7 @@
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanel4.Size = new Size(1252, 137);
+            tableLayoutPanel4.Size = new Size(1252, 132);
             tableLayoutPanel4.TabIndex = 2;
             // 
             // label1_DuongDanCSDLDuocChon
@@ -124,7 +121,7 @@
             label1_DuongDanCSDLDuocChon.AutoSize = true;
             label1_DuongDanCSDLDuocChon.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label1_DuongDanCSDLDuocChon.ForeColor = Color.FromArgb(0, 0, 192);
-            label1_DuongDanCSDLDuocChon.Location = new Point(266, 14);
+            label1_DuongDanCSDLDuocChon.Location = new Point(266, 13);
             label1_DuongDanCSDLDuocChon.Margin = new Padding(2, 0, 2, 0);
             label1_DuongDanCSDLDuocChon.Name = "label1_DuongDanCSDLDuocChon";
             label1_DuongDanCSDLDuocChon.Size = new Size(13, 17);
@@ -138,7 +135,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.FromArgb(0, 0, 192);
-            label2.Location = new Point(150, 105);
+            label2.Location = new Point(150, 101);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(112, 17);
@@ -151,7 +148,7 @@
             cbo_ChonCSDL_Nguon.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             cbo_ChonCSDL_Nguon.DropDownStyle = ComboBoxStyle.DropDownList;
             cbo_ChonCSDL_Nguon.FormattingEnabled = true;
-            cbo_ChonCSDL_Nguon.Location = new Point(267, 102);
+            cbo_ChonCSDL_Nguon.Location = new Point(267, 98);
             cbo_ChonCSDL_Nguon.Name = "cbo_ChonCSDL_Nguon";
             cbo_ChonCSDL_Nguon.Size = new Size(556, 23);
             cbo_ChonCSDL_Nguon.TabIndex = 24;
@@ -162,7 +159,7 @@
             chk_BackupTruocKhiChuyen.AutoSize = true;
             chk_BackupTruocKhiChuyen.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             chk_BackupTruocKhiChuyen.ForeColor = Color.FromArgb(0, 0, 192);
-            chk_BackupTruocKhiChuyen.Location = new Point(3, 13);
+            chk_BackupTruocKhiChuyen.Location = new Point(3, 12);
             chk_BackupTruocKhiChuyen.Name = "chk_BackupTruocKhiChuyen";
             chk_BackupTruocKhiChuyen.Size = new Size(194, 19);
             chk_BackupTruocKhiChuyen.TabIndex = 0;
@@ -175,7 +172,7 @@
             chk_XoaDuLieuCu.AutoSize = true;
             chk_XoaDuLieuCu.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             chk_XoaDuLieuCu.ForeColor = Color.FromArgb(0, 0, 192);
-            chk_XoaDuLieuCu.Location = new Point(3, 58);
+            chk_XoaDuLieuCu.Location = new Point(3, 56);
             chk_XoaDuLieuCu.Name = "chk_XoaDuLieuCu";
             chk_XoaDuLieuCu.Size = new Size(100, 19);
             chk_XoaDuLieuCu.TabIndex = 1;
@@ -188,7 +185,7 @@
             lbl_TrangThaiHoatDong.AutoSize = true;
             lbl_TrangThaiHoatDong.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             lbl_TrangThaiHoatDong.ForeColor = Color.FromArgb(0, 0, 192);
-            lbl_TrangThaiHoatDong.Location = new Point(266, 59);
+            lbl_TrangThaiHoatDong.Location = new Point(266, 57);
             lbl_TrangThaiHoatDong.Margin = new Padding(2, 0, 2, 0);
             lbl_TrangThaiHoatDong.Name = "lbl_TrangThaiHoatDong";
             lbl_TrangThaiHoatDong.Size = new Size(13, 17);
@@ -199,8 +196,8 @@
             // kryptonButton2_MoThuMuc
             // 
             kryptonButton2_MoThuMuc.Anchor = AnchorStyles.None;
-            kryptonButton2_MoThuMuc.Location = new Point(1072, 52);
-            kryptonButton2_MoThuMuc.Margin = new Padding(2, 2, 2, 2);
+            kryptonButton2_MoThuMuc.Location = new Point(1072, 51);
+            kryptonButton2_MoThuMuc.Margin = new Padding(2);
             kryptonButton2_MoThuMuc.Name = "kryptonButton2_MoThuMuc";
             kryptonButton2_MoThuMuc.Size = new Size(146, 30);
             kryptonButton2_MoThuMuc.StateCommon.Border.Rounding = 4F;
@@ -212,8 +209,8 @@
             // btn_NhapDuLieuJson
             // 
             btn_NhapDuLieuJson.Anchor = AnchorStyles.None;
-            btn_NhapDuLieuJson.Location = new Point(859, 98);
-            btn_NhapDuLieuJson.Margin = new Padding(2, 2, 2, 2);
+            btn_NhapDuLieuJson.Location = new Point(859, 95);
+            btn_NhapDuLieuJson.Margin = new Padding(2);
             btn_NhapDuLieuJson.Name = "btn_NhapDuLieuJson";
             btn_NhapDuLieuJson.Size = new Size(146, 30);
             btn_NhapDuLieuJson.StateCommon.Border.Rounding = 4F;
@@ -225,8 +222,8 @@
             // btn_XuatDuLieuJson
             // 
             btn_XuatDuLieuJson.Anchor = AnchorStyles.None;
-            btn_XuatDuLieuJson.Location = new Point(1072, 98);
-            btn_XuatDuLieuJson.Margin = new Padding(2, 2, 2, 2);
+            btn_XuatDuLieuJson.Location = new Point(1072, 95);
+            btn_XuatDuLieuJson.Margin = new Padding(2);
             btn_XuatDuLieuJson.Name = "btn_XuatDuLieuJson";
             btn_XuatDuLieuJson.Size = new Size(146, 30);
             btn_XuatDuLieuJson.StateCommon.Border.Rounding = 4F;
@@ -238,8 +235,8 @@
             // btn_QuetTimKiem
             // 
             btn_QuetTimKiem.Anchor = AnchorStyles.None;
-            btn_QuetTimKiem.Location = new Point(860, 52);
-            btn_QuetTimKiem.Margin = new Padding(2, 2, 2, 2);
+            btn_QuetTimKiem.Location = new Point(860, 51);
+            btn_QuetTimKiem.Margin = new Padding(2);
             btn_QuetTimKiem.Name = "btn_QuetTimKiem";
             btn_QuetTimKiem.Size = new Size(144, 30);
             btn_QuetTimKiem.StateCommon.Border.Rounding = 4F;
@@ -251,7 +248,7 @@
             // prb_TienTrinhChuyenGiao
             // 
             prb_TienTrinhChuyenGiao.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            prb_TienTrinhChuyenGiao.Location = new Point(3, 162);
+            prb_TienTrinhChuyenGiao.Location = new Point(3, 156);
             prb_TienTrinhChuyenGiao.Name = "prb_TienTrinhChuyenGiao";
             prb_TienTrinhChuyenGiao.Size = new Size(1252, 21);
             prb_TienTrinhChuyenGiao.StateCommon.Back.Color1 = Color.Green;
@@ -286,7 +283,7 @@
             pictureBox1.Dock = DockStyle.Fill;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 2);
-            pictureBox1.Margin = new Padding(2, 2, 2, 2);
+            pictureBox1.Margin = new Padding(2);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(78, 54);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -318,7 +315,7 @@
             tableLayoutPanel5.Name = "tableLayoutPanel5";
             tableLayoutPanel5.RowCount = 1;
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel5.Size = new Size(1258, 403);
+            tableLayoutPanel5.Size = new Size(1258, 410);
             tableLayoutPanel5.TabIndex = 3;
             // 
             // richTextBox1_ThongTinDatabaseDuocChon
@@ -328,19 +325,19 @@
             richTextBox1_ThongTinDatabaseDuocChon.Location = new Point(505, 4);
             richTextBox1_ThongTinDatabaseDuocChon.Margin = new Padding(2, 4, 2, 4);
             richTextBox1_ThongTinDatabaseDuocChon.Name = "richTextBox1_ThongTinDatabaseDuocChon";
-            richTextBox1_ThongTinDatabaseDuocChon.Size = new Size(751, 395);
+            richTextBox1_ThongTinDatabaseDuocChon.Size = new Size(751, 402);
             richTextBox1_ThongTinDatabaseDuocChon.TabIndex = 27;
             richTextBox1_ThongTinDatabaseDuocChon.Text = "";
             // 
             // checkedListBox1_clb_DanhSachBang
             // 
-            checkedListBox1_clb_DanhSachBang.Dock = DockStyle.Fill;
+            checkedListBox1_clb_DanhSachBang.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             checkedListBox1_clb_DanhSachBang.Font = new Font("Segoe UI", 10.2F, FontStyle.Italic, GraphicsUnit.Point, 0);
             checkedListBox1_clb_DanhSachBang.ForeColor = Color.FromArgb(0, 0, 192);
             checkedListBox1_clb_DanhSachBang.FormattingEnabled = true;
             checkedListBox1_clb_DanhSachBang.Location = new Point(3, 3);
             checkedListBox1_clb_DanhSachBang.Name = "checkedListBox1_clb_DanhSachBang";
-            checkedListBox1_clb_DanhSachBang.Size = new Size(497, 397);
+            checkedListBox1_clb_DanhSachBang.Size = new Size(497, 403);
             checkedListBox1_clb_DanhSachBang.TabIndex = 28;
             // 
             // Form31_ChuyenGiaoDuLieu
@@ -361,9 +358,7 @@
             tableLayoutPanel5.ResumeLayout(false);
             ResumeLayout(false);
         }
-
         #endregion
-
         private TableLayoutPanel tableLayoutPanel1;
         private TableLayoutPanel tableLayoutPanel2;
         private TableLayoutPanel tableLayoutPanel3;

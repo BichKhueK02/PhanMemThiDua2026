@@ -2,7 +2,6 @@
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Diagnostics;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form38_XuatExcelTinhToan : Form
@@ -29,7 +28,6 @@ namespace PhanMemThiDua2026
             radioButton1_XuatTheoThuTuTrongBienChe.CheckedChanged += RadioGroup_CheckedChanged;
             radioButton1_XuatTheoPhanLoaiTangDan.CheckedChanged += RadioGroup_CheckedChanged;
             label_DuongDan.TextChanged += Label_DuongDan_TextChanged;
-
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             string tenDonViTieuDe = LayTenDonViTuCSDL();
             string cleanTenDonVi = string.IsNullOrEmpty(tenDonViTieuDe) ? "" : " - " + string.Join("_", tenDonViTieuDe.Split(Path.GetInvalidFileNameChars()));
@@ -54,7 +52,6 @@ namespace PhanMemThiDua2026
             string tenDonViTieuDe = LayTenDonViTuCSDL();
             string cleanTenDonVi = string.IsNullOrEmpty(tenDonViTieuDe) ? "" : " - " + string.Join("_", tenDonViTieuDe.Split(Path.GetInvalidFileNameChars()));
             string defaultFileName = $"THỐNG KÊ PHÂN LOẠI THI ĐUA THÁNG {DateTime.Now.Month} NĂM {DateTime.Now.Year}{cleanTenDonVi}.xlsx";
-
             using var sfd = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu file Excel thống kê",
@@ -62,7 +59,6 @@ namespace PhanMemThiDua2026
                 FileName = defaultFileName,
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
             };
-
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 label_DuongDan.Text = sfd.FileName;
@@ -75,33 +71,25 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"{Module_HeThong.Tu_dong_chi} vui lòng chọn đường dẫn trước khi xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             if (_dvHienThi == null || _dvHienThi.Count == 0) return;
             if (Interlocked.Exchange(ref _isProcessing, 1) == 1) return;
-
             // Recreate Token an toàn
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
-
             string originalText = kryptonButton_TaoTepExcel.Text;
             Image originalImage = kryptonButton_TaoTepExcel.Values.Image;
-
             kryptonButton_TaoTepExcel.Text = "Đang xử lý...";
             kryptonButton_TaoTepExcel.Enabled = false;
             kryptonButton_TaoTepExcel.Values.Image = null;
-
             Form_Loading frmLoad = new Form_Loading("Đang xuất dữ liệu Excel...");
             this.Enabled = false;
             frmLoad.Show(this);
-
             try
             {
                 string filePath = Path.GetFullPath(label_DuongDan.Text); // Validate Path
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? string.Empty);
-
                 string tenDonVi = LayTenDonViTuCSDL();
                 bool isSortNeeded = radioButton1_XuatTheoPhanLoaiTangDan.Checked;
-
                 // ⭐ KIẾN TRÚC STREAMING: Nối luồng dữ liệu lười biếng (Lazy Evaluation)
                 IEnumerable<Form38ExportModel> exportStream = StreamDataViewRows();
                 if (isSortNeeded)
@@ -112,7 +100,7 @@ namespace PhanMemThiDua2026
                 int totalCount = _dvHienThi.Count;
                 var token = _cts.Token;
                 // Giao toàn bộ việc xuất file cho luồng Background
-                string[] dynamicHeaders = { "STT", "Họ và tên", "Số hiệu", "Đơn vị", _h1, _h2, _h3, _h4, "Kết quả", "Ghi chú" };
+                string[] dynamicHeaders = {"STT", "Họ và tên", "Số hiệu", "Đơn vị", _h1, _h2, _h3, _h4, "Kết quả", "Ghi chú" };
                 await Task.Run(() => ExportToExcelTask(exportStream, totalCount, filePath, tenDonVi, dynamicHeaders, token), token);
                 try
                 {
@@ -146,17 +134,14 @@ namespace PhanMemThiDua2026
         private IEnumerable<Form38ExportModel> StreamDataViewRows()
         {
             if (_dvHienThi == null) yield break;
-
             string colKey1 = GetColumnKey(_h1);
             string colKey2 = GetColumnKey(_h2);
             string colKey3 = GetColumnKey(_h3);
             string colKey4 = GetColumnKey(_h4);
-
             foreach (DataRowView drv in _dvHienThi)
             {
                 string hoTen = drv["HoVaTen"]?.ToString() ?? "";
                 if (string.IsNullOrWhiteSpace(hoTen)) continue;
-
                 // Trả thẳng dữ liệu theo kiểu "nhỏ giọt" (Stream), KHÔNG tạo List trung gian
                 yield return new Form38ExportModel
                 {
@@ -192,68 +177,54 @@ namespace PhanMemThiDua2026
         {
             string dbPath = Module_DanduongGPS.DuongDanCSDL2;
             var dictGhiChu = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
             // BƯỚC A: TẢI GHI CHÚ BẰNG AES CACHE (Giới hạn bộ nhớ 50k)
             if (File.Exists(dbPath))
             {
                 var aesCache = new Dictionary<string, string>(50000, StringComparer.Ordinal);
                 string optConnStr = $"Data Source={dbPath};Mode=ReadOnly;Cache=Shared;Pooling=True;Default Timeout=15;";
-
                 using var conn = new SqliteConnection(optConnStr);
                 conn.Open();
-
                 using var cmdGC = new SqliteCommand("SELECT SoHieu, GhiChu FROM DanhSach WHERE LENGTH(TRIM(IFNULL(GhiChu, ''))) > 0", conn);
                 using var rd = cmdGC.ExecuteReader();
-
                 while (rd.Read())
                 {
                     token.ThrowIfCancellationRequested();
                     if (aesCache.Count > 50000) aesCache.Clear(); // Chống Memory Leak
-
                     try
                     {
                         string shRaw = rd.GetString(0);
                         string gcRaw = rd.GetString(1);
-
                         if (!aesCache.TryGetValue(shRaw, out string? shDec))
                         {
                             shDec = SafeDecrypt(shRaw);
                             aesCache[shRaw] = shDec;
                         }
-
                         if (!aesCache.TryGetValue(gcRaw, out string? gcDec))
                         {
                             gcDec = SafeDecrypt(gcRaw);
                             aesCache[gcRaw] = gcDec;
                         }
-
                         if (!string.IsNullOrEmpty(shDec)) dictGhiChu[shDec] = gcDec ?? "";
                     }
                     catch (Exception ex) { LogError("Lỗi đọc AES Loop", ex); }
                 }
                 aesCache.Clear();
             }
-
             token.ThrowIfCancellationRequested();
-
             using var wb = new XLWorkbook();
             var ws = wb.Worksheets.Add("ThongKe");
-
             var title1 = ws.Range("A1:J1").Merge();
             title1.Value = "DANH SÁCH";
             title1.Style.Font.Bold = true;
             title1.Style.Font.FontSize = 16;
             title1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
             var title2 = ws.Range("A2:J2").Merge();
             string suffixDonVi = !string.IsNullOrEmpty(tenDonVi) ? $" - {tenDonVi.ToUpperInvariant()}" : "";
             title2.Value = $"THỐNG KÊ PHÂN LOẠI THI ĐUA THÁNG {DateTime.Now.Month} NĂM {DateTime.Now.Year}{suffixDonVi}";
             title2.Style.Font.Bold = true;
             title2.Style.Font.FontSize = 13;
             title2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
             ws.Row(4).Height = 31.8;
-
             // string[] headers = { "STT", "Họ và tên", "Số hiệu", "Đơn vị", "Cột 1", "Cột 2", "Cột 3", "Cột 4", "Kết quả", "Ghi chú" };
             for (int i = 0; i < headers.Length; i++)
             {
@@ -265,17 +236,13 @@ namespace PhanMemThiDua2026
                 cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             }
-
             int rowIndex = 5;
             int stt = 1;
-
             // BƯỚC B: CHẠY STREAM DỮ LIỆU ĐỂ RÓT VÀO EXCEL MÀ KHÔNG LƯU RAM
             foreach (var item in exportStream)
             {
                 token.ThrowIfCancellationRequested();
-
                 string ghiChu = dictGhiChu.TryGetValue(item.SoHieu, out string? gc) ? gc : "";
-
                 ws.Cell(rowIndex, 1).Value = stt++;
                 ws.Cell(rowIndex, 2).Value = item.HoTen;
                 ws.Cell(rowIndex, 3).Value = item.SoHieu;
@@ -286,9 +253,7 @@ namespace PhanMemThiDua2026
                 ws.Cell(rowIndex, 8).Value = item.Cot4;
                 ws.Cell(rowIndex, 9).Value = item.KetQua;
                 ws.Cell(rowIndex, 10).Value = ghiChu;
-
                 rowIndex++;
-
                 // DỌN RÁC (COMPACTION) CHỦ ĐỘNG KHI GHI NHIỀU DÒNG
                 if (rowIndex % 5000 == 0)
                 {
@@ -296,24 +261,20 @@ namespace PhanMemThiDua2026
                     GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false, false);
                 }
             }
-
             // ĐỊNH DẠNG TỔNG THỂ DỮ LIỆU
             if (stt > 1)
             {
                 var dataRange = ws.Range(5, 1, rowIndex - 1, 10);
                 dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-
                 ws.Range(5, 3, rowIndex - 1, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 ws.Range(5, 3, rowIndex - 1, 9).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             }
-
             var totalRange = ws.Range(rowIndex, 1, rowIndex, 10).Merge();
             totalRange.Value = $"Tổng cộng: {totalCount} {Module_HeThong.Tu_dong_chi}/.";
             totalRange.Style.Font.Bold = true;
             totalRange.Style.Font.Italic = true;
             totalRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-
             // CHIỀU RỘNG TĨNH (Tối ưu CPU)
             ws.Column(1).Width = 6;
             ws.Column(2).Width = 24;
@@ -329,7 +290,6 @@ namespace PhanMemThiDua2026
             // BƯỚC C: SAFE SAVE CHỐNG HỎNG FILE
             string tempFile = filePath + ".temp.xlsx";
             wb.SaveAs(tempFile);
-
             try
             {
                 if (File.Exists(filePath)) File.Delete(filePath);
@@ -374,7 +334,7 @@ namespace PhanMemThiDua2026
             if (value == null || value == DBNull.Value) return "";
             string rawValue = value.ToString() ?? "";
             if (string.IsNullOrWhiteSpace(rawValue)) return "";
-            try { return BaoMatAES.GiaiMa(rawValue) ?? ""; }
+            try { return Module_BaoMatAES.GiaiMa(rawValue) ?? ""; }
             catch (Exception ex) { LogError("Lỗi AES", ex); return ""; }
         }
         private static void LogError(string context, Exception ex)
@@ -386,7 +346,6 @@ namespace PhanMemThiDua2026
             radioButton1_XuatTheoThuTuTrongBienChe.CheckedChanged -= RadioGroup_CheckedChanged;
             radioButton1_XuatTheoPhanLoaiTangDan.CheckedChanged -= RadioGroup_CheckedChanged;
             label_DuongDan.TextChanged -= Label_DuongDan_TextChanged;
-
             _cts?.Cancel();
             _cts?.Dispose();
             base.OnFormClosing(e);

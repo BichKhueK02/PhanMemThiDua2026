@@ -1,18 +1,15 @@
 ﻿using System.Globalization;
-
 namespace PhanMemThiDua2026
 {
     internal static class Module_PhienBan
     {
         // ================= VERSION =================
         public const string SoftwareVersion = "1.1.162.0";
-
         // ================= DATE (GIỮ NGUYÊN CHUỖI GỐC) =================
-        public const string NgayThangNamHeThong = "10/8/2026";
+        public const string NgayThangNamHeThong = "18/9/2026";
         public const string NgayThangNamCapNhat = "Cập nhật lần cuối ngày " + NgayThangNamHeThong;
         public const string NguoiPhatTrienPhanMem = "LeTrungKien và Nhóm phát triển";
         public const string TenPhanMem = "PhanMemThiDua2026";
-
         public const string NgayThangNam = NgayThangNamHeThong;
         // ================= PARSED DATE (THÊM MỚI - KHÔNG PHÁ CODE CŨ) =================
         public static readonly DateTime? NgayHeThong_DateTime = ParseDate(NgayThangNamHeThong);
@@ -20,7 +17,7 @@ namespace PhanMemThiDua2026
         {
             if (DateTime.TryParseExact(
                 input,
-                "d/M/yyyy",
+                "dd/MM/yyyy",
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.None,
                 out var result))
@@ -37,7 +34,6 @@ namespace PhanMemThiDua2026
             {
                 return ver.Build.ToString();
             }
-
             return SoftwareVersion; // fallback an toàn
         }
         // ================= BỔ SUNG (KHÔNG ẢNH HƯỞNG CODE CŨ) =================

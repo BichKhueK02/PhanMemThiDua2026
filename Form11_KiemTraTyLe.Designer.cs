@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -517,7 +514,6 @@
             tableLayoutPanel15.PerformLayout();
             ResumeLayout(false);
         }
-
         #endregion
         internal Label Label5;
         internal ComboBox com_Textphanloai;

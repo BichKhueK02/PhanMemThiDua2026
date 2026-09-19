@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form41_TyLeBCHD : Form
@@ -46,12 +45,10 @@ namespace PhanMemThiDua2026
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             this.ShowInTaskbar = false;
-
             if (label1_ThongBao != null)
             {
                 label1_ThongBao.Visible = false;
             }
-
             _timerThongBao = new System.Windows.Forms.Timer();
             _timerThongBao.Interval = 3000;
             _timerThongBao.Tick += _timerThongBao_Tick;
@@ -67,20 +64,17 @@ namespace PhanMemThiDua2026
         private void HienThiThongBao(string noiDung, Color mauChu)
         {
             if (label1_ThongBao == null) return;
-
             label1_ThongBao.AutoSize = true;
             string thoiGian = DateTime.Now.ToString("HH:mm:ss");
             label1_ThongBao.Text = $"[{thoiGian}] {noiDung}";
             label1_ThongBao.ForeColor = mauChu;
-
             label1_ThongBao.Visible = true;
             label1_ThongBao.BringToFront();
             label1_ThongBao.Refresh();
-
             _timerThongBao.Stop();
             _timerThongBao.Start();
         }
-        private async void Form41_TyLeBCHD_Load(object sender, EventArgs e)
+        private async void Form41_TyLeBCHD_Load(object? sender, EventArgs e)
         {
             InitTextBoxGrid();
             await LoadQuyDinhTyLeBCHAsync();
@@ -98,9 +92,7 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1.Alignment = ToolStripItemAlignment.Left;
                 toolStripStatusLabel2.Text = Module_PhienBan.NgayThangNamCapNhat;
                 toolStripStatusLabel2.Alignment = ToolStripItemAlignment.Right;
-
                 var springLabel = new ToolStripStatusLabel { Spring = true };
-
                 statusStrip1.SuspendLayout();
                 statusStrip1.Items.Clear();
                 statusStrip1.Items.Add(toolStripStatusLabel1);
@@ -116,38 +108,31 @@ namespace PhanMemThiDua2026
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Thao tác";
+            toolTip1.ToolTipTitle = Module_HeThong.Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
-
-            if (kryptonButton_LuuE29 != null)
+            if (kryptonButton_LuuTyLeBCHE09 != null)
             {
-                toolTip1.SetToolTip(kryptonButton_LuuE29, "Lưu quy định tỷ lệ BCH vào cơ sở dữ liệu");
+                toolTip1.SetToolTip(kryptonButton_LuuTyLeBCHE09, "Lưu quy định tỷ lệ BCH vào cơ sở dữ liệu");
             }
         }  
         // LOAD DỮ LIỆU: Bỏ hoàn toàn ký tự % khi nạp lên giao diện TextBox
         private async Task LoadQuyDinhTyLeBCHAsync()
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
-
             try
             {
                 using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                 await conn.OpenAsync();
-
                 DeNghiBCHMapping.Clear();
-
                 int rows = _txtGrid.GetLength(0);
                 int cols = _txtGrid.GetLength(1);
-
                 for (int id = 1; id <= rows; id++)
                 {
                     string[] values = new string[cols];
-
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = @"SELECT Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL 
                                         FROM QuyDinhTyLeBCH WHERE ID=@id";
                     cmd.Parameters.AddWithValue("@id", id);
-
                     using var reader = await cmd.ExecuteReaderAsync();
                     if (await reader.ReadAsync())
                     {
@@ -156,14 +141,12 @@ namespace PhanMemThiDua2026
                             // Đọc chuỗi và loại bỏ ký tự % ngay lập tức nếu CSDL lỡ có lưu trước đó
                             string val = reader.IsDBNull(i) ? "0" : reader.GetString(i).Replace("%", "").Trim();
                             values[i] = val;
-
                             if (_txtGrid[id - 1, i] != null)
                             {
                                 _txtGrid[id - 1, i]!.Text = val;
                             }
                         }
                     }
-
                     DeNghiBCHMapping[$"Loại {id}"] = values;
                 }
             }
@@ -177,47 +160,38 @@ namespace PhanMemThiDua2026
         private async Task SaveQuyDinhTyLeBCHAsync(CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
-
             using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
             await conn.OpenAsync(ct);
-
             using var tran = conn.BeginTransaction();
             try
             {
                 int rows = _txtGrid.GetLength(0);
                 int cols = _txtGrid.GetLength(1);
-
                 var tempMapping = new Dictionary<string, string[]>();
-
                 using var cmd = conn.CreateCommand();
                 cmd.Transaction = tran;
                 cmd.CommandText = @"UPDATE QuyDinhTyLeBCH 
                                     SET Loai_1=@l1, Loai_2=@l2, Loai_3=@l3, Loai_4=@l4, Khong_PL=@kpl
                                     WHERE ID=@id";
-
                 cmd.Parameters.Add("@l1", SqliteType.Text);
                 cmd.Parameters.Add("@l2", SqliteType.Text);
                 cmd.Parameters.Add("@l3", SqliteType.Text);
                 cmd.Parameters.Add("@l4", SqliteType.Text);
                 cmd.Parameters.Add("@kpl", SqliteType.Text);
                 cmd.Parameters.Add("@id", SqliteType.Integer);
-
                 const int COL_LOAI1 = 0;
                 const int COL_LOAI2 = 1;
                 const int COL_LOAI3 = 2;
                 const int COL_LOAI4 = 3;
                 const int COL_KHONGPL = 4;
-
                 for (int id = 1; id <= rows; id++)
                 {
                     ct.ThrowIfCancellationRequested();
-
                     string[] values = new string[cols];
                     for (int i = 0; i < cols; i++)
                     {
                         // Lấy chuỗi thô người dùng nhập, xóa sạch mọi ký tự % nếu họ vô tình gõ vào
                         string txtVal = _txtGrid[id - 1, i]?.Text?.Replace("%", "").Trim() ?? "0";
-
                         // Giới hạn giá trị nhập an toàn từ 0 đến 100
                         if (int.TryParse(txtVal, out int num))
                         {
@@ -227,21 +201,17 @@ namespace PhanMemThiDua2026
                         {
                             txtVal = "0"; // Mặc định về 0 nếu nhập chữ lỗi
                         }
-
                         values[i] = txtVal;
                     }
-
                     cmd.Parameters["@l1"].Value = values[COL_LOAI1];
                     cmd.Parameters["@l2"].Value = values[COL_LOAI2];
                     cmd.Parameters["@l3"].Value = values[COL_LOAI3];
                     cmd.Parameters["@l4"].Value = values[COL_LOAI4];
                     cmd.Parameters["@kpl"].Value = values[COL_KHONGPL];
                     cmd.Parameters["@id"].Value = id;
-
                     await cmd.ExecuteNonQueryAsync(ct);
                     tempMapping[$"Loại {id}"] = values;
                 }
-
                 tran.Commit();
                 DeNghiBCHMapping = tempMapping;
             }
@@ -265,49 +235,68 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
-        private async void kryptonButton_LuuE29_Click(object sender, EventArgs e)
+        private async void kryptonButton_LuuTyLeBCHE09_Click(object? sender, EventArgs e)
         {
-            if (!kryptonButton_LuuE29.Enabled) return;
-
+            if (!kryptonButton_LuuTyLeBCHE09.Enabled || IsDisposed || Disposing)
+                return;
+            // Hủy và dọn dẹp CancellationTokenSource cũ nếu có
+            _ctsLuuDuLieu?.Cancel();
             _ctsLuuDuLieu?.Dispose();
             _ctsLuuDuLieu = new CancellationTokenSource();
             var token = _ctsLuuDuLieu.Token;
-
-            string textBanDau = kryptonButton_LuuE29.Values.Text;
-            Image? anhBanDau = kryptonButton_LuuE29.Values.Image;
-
+            string textBanDau = kryptonButton_LuuTyLeBCHE09.Values.Text;
+            Image? anhBanDau = kryptonButton_LuuTyLeBCHE09.Values.Image;
             try
             {
-                kryptonButton_LuuE29.Enabled = false;
-                kryptonButton_LuuE29.Values.Text = "Đang lưu...";
-                kryptonButton_LuuE29.Values.Image = null;
-
+                // 1. Cập nhật trạng thái nút (Khóa tương tác chống bấm đúp)
+                kryptonButton_LuuTyLeBCHE09.Enabled = false;
+                kryptonButton_LuuTyLeBCHE09.Values.Text = "Đang lưu...";
+                kryptonButton_LuuTyLeBCHE09.Values.Image = null;
                 HienThiThongBao("Hệ thống đang thực hiện lưu quy định tỷ lệ BCH...", Color.Black);
-
-                await Task.Delay(250, token);
-
+                // 2. Thực thi lưu CSDL bất đồng bộ
                 await SaveQuyDinhTyLeBCHAsync(token);
-
+                token.ThrowIfCancellationRequested();
+                if (IsDisposed || Disposing)
+                    return;
+                // 3. Phát Event thông báo thay đổi dữ liệu
                 OnQuyDinhBCHChanged?.Invoke();
-
-                HienThiThongBao("✔ Đã lưu quy định tỷ lệ BCH thành công!", Color.DarkGreen);
+                const string thongBaoThanhCong = "Đã lưu quy định tỷ lệ BCH thành công!";
+                HienThiThongBao("✔ " + thongBaoThanhCong, Color.DarkGreen);
+                // 4. Ghi Nhật ký hệ thống (Audit Log)
+                Module_NhatKy.GhiNhatKy(
+                    taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                    hanhDong: thongBaoThanhCong,
+                    ghiChu: "Thành công");
+                // 5. Trì hoãn 300ms để người dùng kịp nhìn thông báo thành công trước khi đóng Form
+                await Task.Delay(300, token);
+                if (!IsDisposed && !Disposing)
+                {
+                    Close();
+                }
             }
             catch (OperationCanceledException)
             {
+                // Tác vụ bị hủy chủ động — Không xử lý lỗi UI
             }
             catch (Exception ex)
             {
+                if (IsDisposed || Disposing)
+                    return;
                 HienThiThongBao("✘ Lỗi lưu quy định tỷ lệ BCH!", Color.Red);
-                MessageBox.Show("Đã xảy ra lỗi khi lưu dữ liệu vào CSDL:\n\n" + ex.Message,
-                                "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    $"Đã xảy ra lỗi khi lưu dữ liệu vào CSDL:\n\n{ex.Message}",
+                    "Lỗi hệ thống",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
             finally
             {
-                if (!this.IsDisposed)
+                // Restore trạng thái nút bấm nếu Form chưa bị đóng (Trường hợp lưu thất bại)
+                if (!IsDisposed && !Disposing && kryptonButton_LuuTyLeBCHE09 != null && !kryptonButton_LuuTyLeBCHE09.IsDisposed)
                 {
-                    kryptonButton_LuuE29.Values.Text = textBanDau;
-                    kryptonButton_LuuE29.Values.Image = anhBanDau;
-                    kryptonButton_LuuE29.Enabled = true;
+                    kryptonButton_LuuTyLeBCHE09.Values.Text = textBanDau;
+                    kryptonButton_LuuTyLeBCHE09.Values.Image = anhBanDau;
+                    kryptonButton_LuuTyLeBCHE09.Enabled = true;
                 }
             }
         }

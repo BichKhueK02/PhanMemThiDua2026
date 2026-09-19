@@ -1,11 +1,11 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-
 namespace PhanMemThiDua2026
 {
-    public static class Module_BaoTriCSDL
+    public static class Module_BaoVeDuLieu
     {
+        //Đây giống như là Firewall - Lớp bảo vệ ở bên trong ứng dụng - Database Firewall
         // 🛡️ ANTI-RACE: Khóa luồng đồng bộ
         private static readonly SemaphoreSlim _khoaTienTrinh = new SemaphoreSlim(1, 1);
         private static readonly string _thuMucBackup = Path.Combine(Application.StartupPath, "CSDL_Backups");
@@ -22,7 +22,6 @@ namespace PhanMemThiDua2026
                 // Chỉ đẩy vào Queue RAM cực nhanh, tuyệt đối KHÔNG TẠO Task.Run (fire-and-forget) ở đây nữa.
                 _logFileQueue.Enqueue(thongDiep);
                 Debug.WriteLine($"[Trình Bảo Trì] {thongDiep}");
-
                 // Kích hoạt Worker xả Queue (chỉ 1 Worker chạy tại 1 thời điểm)
                 if (Interlocked.CompareExchange(ref _isFlushingLog, 1, 0) == 0)
                 {
@@ -37,9 +36,7 @@ namespace PhanMemThiDua2026
             {
                 if (!Directory.Exists(_thuMucBackup)) Directory.CreateDirectory(_thuMucBackup);
                 string filePath = Path.Combine(_thuMucBackup, "BaoTri_NhatKy.txt");
-
                 var batchThongDiep = new List<string>();
-
                 using (var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.Read, 4096, useAsync: true))
                 using (var writer = new StreamWriter(stream))
                 {
@@ -50,7 +47,6 @@ namespace PhanMemThiDua2026
                         await writer.WriteLineAsync($"[{DateTime.Now:dd/MM/yyyy HH:mm:ss}] {thongDiep}");
                     }
                 }
-
                 // Sau khi ghi file xong mới tiến hành ghi DB theo dạng Batch, tránh Lock kéo dài
                 foreach (var thongDiep in batchThongDiep)
                 {
@@ -58,7 +54,6 @@ namespace PhanMemThiDua2026
                     {
                         string tenNhap = "System (Trình Bảo Trì CSDL)";
                         string thongDiepNhatKy = thongDiep;
-
                         // 🔹 Đã sử dụng chính xác lệnh gọi mà bạn yêu cầu
                         Module_NhatKy.GhiNhatKy(
                              taiKhoan: tenNhap,
@@ -74,7 +69,6 @@ namespace PhanMemThiDua2026
             {
                 // Mở khóa Worker
                 Interlocked.Exchange(ref _isFlushingLog, 0);
-
                 // Double-Check Lock: Tránh sót log rơi vào queue đúng lúc mở khóa
                 if (!_logFileQueue.IsEmpty && Interlocked.CompareExchange(ref _isFlushingLog, 1, 0) == 0)
                 {
@@ -89,7 +83,6 @@ namespace PhanMemThiDua2026
             for (int i = 0; i < maxRetries; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-
                 try
                 {
                     return await action();
@@ -106,7 +99,6 @@ namespace PhanMemThiDua2026
                     {
                         throw new OperationCanceledException("Quá trình chờ bị hủy do hệ thống yêu cầu dừng.");
                     }
-
                     delayMs += 500; // Exponential Backoff
                 }
             }
@@ -127,7 +119,6 @@ namespace PhanMemThiDua2026
                     using var conn = new SqliteConnection(MoLoiChoEmTaoChuoiKetNoi(dbPath));
                     await conn.OpenAsync();
                     using var cmd = conn.CreateCommand();
-
                     // 🛡️ CHUẨN ENTERPRISE: Bổ sung wal_autocheckpoint để WAL không bị phình to
                     cmd.CommandText = @"
                         PRAGMA journal_mode = WAL;
@@ -145,13 +136,11 @@ namespace PhanMemThiDua2026
         public static async Task BaoTriNheHangNgayAsync(string dbPath)
         {
             if (!File.Exists(dbPath)) return;
-
             if (!await _khoaTienTrinh.WaitAsync(TimeSpan.FromSeconds(5)))
             {
                 ToQuocGoiTenAnhGhiLogBaoTri($"[Bảo Trì Nhẹ] Bỏ qua cho {Path.GetFileName(dbPath)} vì hệ thống đang bận.");
                 return;
             }
-
             try
             {
                 await ExecuteWithRetryAsync(async () =>
@@ -166,7 +155,6 @@ namespace PhanMemThiDua2026
                         await cmd.ExecuteNonQueryAsync();
                     }
                 }, maxRetries: 2);
-
                 ToQuocGoiTenAnhGhiLogBaoTri($"[Bảo Trì Nhẹ] Hoàn tất Optimize & Incremental Vacuum cho {Path.GetFileName(dbPath)}");
             }
             catch (Exception ex) { ToQuocGoiTenAnhGhiLogBaoTri($"[Lỗi Bảo trì nhẹ] {ex.Message}"); }
@@ -176,23 +164,18 @@ namespace PhanMemThiDua2026
         public static async Task TuDongBaoTriNangCuoiThangAsync(string duongDanDB, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(duongDanDB) || !File.Exists(duongDanDB)) return;
-
             string tenFile = Path.GetFileNameWithoutExtension(duongDanDB);
             string thangHienTai = DateTime.Now.ToString("yyyy_MM");
             string duongDanBackup = Path.Combine(_thuMucBackup, $"{tenFile}_Backup_{thangHienTai}.db");
-
             // Smart Check
             if (File.Exists(duongDanBackup)) return;
             if (DateTime.Now.Day < DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month) - 2) return;
-
             await _khoaTienTrinh.WaitAsync(cancellationToken);
             try
             {
                 if (File.Exists(duongDanBackup)) return;
                 if (!Directory.Exists(_thuMucBackup)) Directory.CreateDirectory(_thuMucBackup);
-
                 ToQuocGoiTenAnhGhiLogBaoTri($"[Bảo Trì Nặng] Đang xử lý: {tenFile}...");
-
                 // 1. INTEGRITY CHECK
                 bool isHealthy = await ExecuteWithRetryAsync(async () =>
                 {
@@ -203,22 +186,18 @@ namespace PhanMemThiDua2026
                     var result = await cmd.ExecuteScalarAsync(cancellationToken);
                     return result?.ToString()?.Equals("ok", StringComparison.OrdinalIgnoreCase) == true;
                 });
-
                 // 🛡️ CHUẨN ENTERPRISE: CORRUPTION RECOVERY (Auto-Restore)
                 if (!isHealthy)
                 {
                     ToQuocGoiTenAnhGhiLogBaoTri($"[NGUY HIỂM] {tenFile} bị Corrupt! Tiến hành cách ly và tự động phục hồi.");
-
                     // Cách ly file hỏng
                     string corruptPath = Path.Combine(_thuMucBackup, $"{tenFile}_CORRUPTED_{DateTime.Now:yyyyMMdd_HHmmss}.db");
                     File.Move(duongDanDB, corruptPath);
-
                     // Tìm bản backup an toàn gần nhất
                     var lastBackup = new DirectoryInfo(_thuMucBackup)
                         .GetFiles($"{tenFile}_Backup_*.db")
                         .OrderByDescending(f => f.CreationTime)
                         .FirstOrDefault();
-
                     if (lastBackup != null)
                     {
                         File.Copy(lastBackup.FullName, duongDanDB, true);
@@ -231,10 +210,8 @@ namespace PhanMemThiDua2026
                         return;
                     }
                 }
-
                 // 2. ONLINE BACKUP
                 bool backupThanhCong = await Task.Run(() => ThucThiBackupAnToan(duongDanDB, duongDanBackup, cancellationToken), cancellationToken);
-
                 // 3. FULL VACUUM (Chỉ làm khi DB khỏe và thực sự nhiều rác)
                 if (backupThanhCong && isHealthy)
                 {
@@ -245,17 +222,14 @@ namespace PhanMemThiDua2026
                         {
                             using var conn = new SqliteConnection(MoLoiChoEmTaoChuoiKetNoi(duongDanDB));
                             await conn.OpenAsync(cancellationToken);
-
                             using (var cmd = conn.CreateCommand())
                             {
                                 cmd.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
                                 await cmd.ExecuteNonQueryAsync(cancellationToken);
                             }
-
                             // 🛡️ CHUẨN ENTERPRISE: Timeout 10 phút riêng cho Vacuum để tránh kẹt
                             using var vacuumCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                             vacuumCts.CancelAfter(TimeSpan.FromMinutes(10));
-
                             using (var cmd = conn.CreateCommand())
                             {
                                 cmd.CommandText = "VACUUM;";
@@ -264,7 +238,6 @@ namespace PhanMemThiDua2026
                         });
                         ToQuocGoiTenAnhGhiLogBaoTri($"[Bảo Trì Nặng] Full VACUUM hoàn tất.");
                     }
-
                     // 4. CLEANUP (Giữ tối đa 3 bản VÀ dung lượng tổng dưới 2GB)
                     DondepBackupCu(tenFile, 3, maxSizeBytes: 2L * 1024 * 1024 * 1024);
                 }
@@ -294,13 +267,11 @@ namespace PhanMemThiDua2026
         private static async Task<bool> KiemTraCanFullVacuumAsync(string dbPath, CancellationToken token)
         {
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return false;
-
             return await ExecuteWithRetryAsync(async () =>
             {
                 token.ThrowIfCancellationRequested();
                 using var conn = new SqliteConnection(MoLoiChoEmTaoChuoiKetNoi(dbPath));
                 await conn.OpenAsync(token);
-
                 long pageCount;
                 using (var cmdPage = conn.CreateCommand())
                 {
@@ -310,7 +281,6 @@ namespace PhanMemThiDua2026
                     pageCount = Convert.ToInt64(result);
                 }
                 if (pageCount <= 0) return false;
-
                 long freeCount;
                 using (var cmdFree = conn.CreateCommand())
                 {
@@ -319,10 +289,8 @@ namespace PhanMemThiDua2026
                     if (result == null || result == DBNull.Value) return false;
                     freeCount = Convert.ToInt64(result);
                 }
-
                 double fragmentationPercent = (freeCount * 100.0) / pageCount;
                 ToQuocGoiTenAnhGhiLogBaoTri($"[Kiểm Tra Vacuum] PageCount={pageCount:N0}, FreeList={freeCount:N0}, Fragment={fragmentationPercent:F2}%");
-
                 return fragmentationPercent > 20.0;
             }, 3, token);
         }
@@ -335,16 +303,13 @@ namespace PhanMemThiDua2026
                     .GetFiles($"{tenFileGoc}_Backup_*.db")
                     .OrderByDescending(f => f.CreationTime)
                     .ToList();
-
                 long currentTotalSize = files.Sum(f => f.Length);
-
                 // Ưu tiên 1: Xóa các file cũ vượt quá số lượng cho phép (Ví dụ > 3 bản)
                 foreach (var file in files.Skip(soLuongGiuLai))
                 {
                     currentTotalSize -= file.Length;
                     file.Delete();
                 }
-
                 // Ưu tiên 2: Nếu 3 bản còn lại nhưng tổng dung lượng > 2GB -> Xóa dần từ file cũ nhất
                 var remainingFiles = files.Take(soLuongGiuLai).OrderBy(f => f.CreationTime).ToList();
                 foreach (var file in remainingFiles)
@@ -356,11 +321,10 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
-        // Thêm vào trong Module_BaoTriCSDL
+        // Thêm vào trong Module_BaoVeDuLieu
         public static async Task KiemTraVaVaccumTheoSoDongAsync(string dbPath)
         {
             if (!File.Exists(dbPath)) return;
-
             try
             {
                 int tongDong = 0;
@@ -371,7 +335,6 @@ namespace PhanMemThiDua2026
                     cmd.CommandText = "SELECT COUNT(*) FROM NhatKy"; // Hoặc tên bảng bạn cần kiểm tra
                     tongDong = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                 }
-
                 // Logic: Nếu tổng dòng là bội số của 1000 (1000, 2000, 3000...)
                 // Và phải lớn hơn 0 để tránh chạy lúc DB rỗng
                 if (tongDong > 0 && tongDong % 1000 == 0)

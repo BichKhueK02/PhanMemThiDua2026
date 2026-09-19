@@ -3,20 +3,13 @@ Sử dụng phần mềm Thi đua năm 2026
 (Tùy phiên bản nhưng cơ bản cấu trúc giống nhau)
 GIỚI THIỆU CHUNG
 Phần mềm Thi đua năm 2026 mã nguồn mở, được xây dựng nhằm hỗ trợ các đơn vị trong công tác quản lý, tổng hợp, phân loại và đánh giá kết quả thi đua của cán bộ, chiến sĩ theo đúng quy định.
-
 Phần mềm cho phép:
 Quản lý dữ liệu thi đua tập trung, an toàn.
-
 Tự động thống kê, tính toán tỷ lệ theo quy định.
-
 Phân loại thi đua theo tháng, năm.
-
 Xuất danh sách, báo cáo ra tệp Excel phục vụ ký duyệt, lưu trữ.
-
 Sao lưu và khôi phục dữ liệu khi cần thiết.
-
 Phần mềm được ký số và áp dụng cơ chế bảo vệ mã, kiểm tra tính toàn vẹn nhằm hạn chế việc can thiệp, chỉnh sửa trái phép.
-
 Giao diện được thiết kế trực quan – dễ sử dụng, phù hợp với cả người dùng không chuyên sâu về tin học................... 
 MỤC LỤC
 GIỚI THIỆU CHUNG	4
@@ -67,10 +60,6 @@ VII. YÊU CẦU CÀI ĐẶT & CẤU HÌNH HỆ THỐNG	27
 4. Cơ sở dữ liệu	27
 5. Yêu cầu khác	27
 6. Hình thức triển khai	27
-
-
-
-
  MỤC LỤC HÌNH ẢNH
 Hình 1. Logo phần mềm	4
 Hình 2. Giao diện đăng nhập	4
@@ -101,10 +90,8 @@ Hình 26. Khối điều khiển	21
 Hình 27. Giao diện Sao lưu	23
 Hình 28. Giao diện Khôi phục	24
 Hình 29. Giao diện Hướng dẫn sử dụng trong ứng dụng	26
-
  GIỚI THIỆU CHUNG
 Phần mềm Thi đua năm 2026 mã nguồn đóng, được xây dựng nhằm hỗ trợ các đơn vị trong công tác quản lý, tổng hợp, phân loại và đánh giá kết quả thi đua của cán bộ, chiến sĩ theo đúng quy định.
- 
 Hình 1. Logo phần mềm	Phần mềm cho phép:
 - Quản lý dữ liệu thi đua tập trung, an toàn.
 - Tự động thống kê, tính toán tỷ lệ theo quy định.
@@ -113,11 +100,8 @@ Hình 1. Logo phần mềm	Phần mềm cho phép:
 - Sao lưu và khôi phục dữ liệu khi cần thiết.
 - Phần mềm được ký số và áp dụng cơ chế bảo vệ mã, kiểm tra tính toàn vẹn nhằm hạn chế việc can thiệp, chỉnh sửa trái phép.
 - Giao diện được thiết kế trực quan – dễ sử dụng, phù hợp với cả người dùng không chuyên sâu về tin học.
-
-
 I. ĐĂNG KÝ TÀI KHOẢN & ĐĂNG NHẬP
 1. Đăng nhập hệ thống
- 
 Hình 2. Giao diện đăng nhập
 •	Khi khởi động phần mềm, màn hình Đăng nhập sẽ xuất hiện.
 •	Người dùng nhập:
@@ -130,40 +114,27 @@ Lưu ý:
 - Đăng ký tài khoản mới: Dành cho việc đăng nhập tài khoản lần đầu (Các lần sau phần mềm sẽ tự ẩn)
 2. Quên mật khẩu
 Chọn “Quên mật khẩu” và khai báo thông tin như đã đăng ký lần đầu
- 
 Hình 3. Đặt lại mật khẩu
- 
 II. CÀI ĐẶT, THIẾT LẬP
 Vào Cài đặt (Bên trái màn hình)
- 
 Hình 4. Thiết lập thông số
 1. Chọn các chức năng tương ứng
 •	Quên mật khẩu: Hỗ trợ khôi phục hoặc cấp lại mật khẩu cho người dùng.
- 
- 
 Hình 5. Quên mật khẩu
 •	Tạo tài khoản mới: Nhấn [Chạy] để mở form đăng ký tài khoản cho cán bộ, chiến sĩ mới.
- 
- 
 Hình 6. Tạo tài khoản mới
 •	Cập nhật danh sách chỉ huy: Nhấn [Thêm/Sửa/Xóa] để quản lý danh mục cán bộ lãnh đạo phê duyệt.
 •	Cấu hình CSDL: Thiết lập kết nối cơ sở dữ liệu (chỉ dành cho kỹ thuật).
 •	Gỡ cài đặt phần mềm: Xóa sạch dữ liệu và phần mềm khỏi máy tính.
 2. Thiết lập đơn vị & Báo cáo
 Tại tab Thiết lập, bạn thực hiện nhập các thông tin cơ bản:
- 
 Hình 7. Thiết lập đơn vị và báo cáo
 2.1. Trung đoàn: Tên đơn vị cấp trên (Mặc định: “TRUNG ĐOÀN CẢNH SÁT CƠ ĐỘNG” / “ĐÔNG NAM THÀNH PHỐ HỒ CHÍ MINH”. (Tương ứng với 2 dòng trong Cell file excel.
-
 2.2. Cấp Tiểu đoàn/Đại đội: Chọn đơn vị trực thuộc từ danh sách thả xuống (Ví dụ: TIỂU ĐOÀN 2), hoặc giá trị bạn tự nhập vào.
-
 2.3. Kèm theo báo cáo: Đây là nơi nhập nội dung tóm tắt thành tích hoặc tình hình đơn vị trong tháng, giá trị này sẽ xuất ra tệp excel sheet “BAO CAO TONG HOP”
-
 2.4. Lưu thông tin: Sau khi nhập xong, nhấn nút [Lưu thông tin] ở dưới cùng để hệ thống ghi nhận.
 3. Thiết lập đơn vị 
 Mục này cho phép người quản trị điều chỉnh các thông số hiển thị và định mức tỷ lệ phân loại thi đua theo quy định của đơn vị (E29).
- 
-
 Hình 8. Thiết lập thông tin cơ bản
 3.1. Thiết lập hiển thị và đăng nhập
 - Số lượng dòng cho phép hiển thị trên Thông báo (Trang chủ): Cho phép bạn chọn số lượng tin tức hoặc dòng thông báo sẽ xuất hiện tại màn hình chính. Bạn có thể chọn các mức (ví dụ: 20 dòng) để tối ưu không gian hiển thị.
@@ -179,25 +150,19 @@ Không phân loại: Mặc định các giá trị bằng 0 cho các trường h
 - Lưu dữ liệu: Sau khi thay đổi, bắt buộc phải nhấn nút [Lưu] (biểu tượng đĩa mềm ở cuối trang) để áp dụng các thiết lập mới cho toàn hệ thống.
 Lưu ý cho admin: Việc thay đổi tỷ lệ tại mục này sẽ ảnh hưởng trực tiếp đến kết quả tính toán tại mục Thống kê. Chỉ những cán bộ được giao nhiệm vụ quản trị hệ thống mới nên thay đổi các thông số này để đảm bảo tính khách quan và chính xác của dữ liệu thi đua.
 5. Cơ sở dữ liệu phần mềm
- 
 Hình 9. Cơ sở dữ liệu phần mềm
  6. Kiểm tra cấu hình máy tính
- 
 Hình 10. Kiểm tra cấu hình máy tính và xuất cấu hình máy tính
 7. Chứng thư số và thông tin nhóm phát triển
- 	 
 Hình 11. Chứng thư số
 Hình 12. Thông tin nhóm phát triển
-
  III. PHÂN LOẠI THI ĐUA & XUẤT TỆP
 Trang chủ:
 - Các chức năng thực hiện theo tên nút
 - Chọn thẻ > Dữ liệu
 * Hướng dẫn quản lý và xử lý dữ liệu cán bộ chiến sĩ (CBCS)
 Giao diện này là trung tâm điều hành chính để cập nhật thông tin cá nhân và phân loại thi đua cho từng cá nhân trong đơn vị.
-
 1. Tìm kiếm thông tin CBCS
- 
 Hình 13. Tìm kiếm thông tin CBCS
 Để nhanh chóng tìm một cá nhân hoặc lọc danh sách, sử dụng khu vực 
 "1. Tìm kiếm thông tin CBCS":
@@ -206,23 +171,15 @@ Họ và tên: Nhập tên cán bộ cần tìm để lọc nhanh trong danh sá
 Xếp loại: Lọc danh sách theo kết quả phân loại (Loại 1, Loại 2, Loại 3...).
 Nút X (màu đỏ): Nhấn để xóa nhanh các điều kiện lọc và quay về danh sách đầy đủ.
 2. Khối lệnh điều khiển hệ thống
- 
 Hình 14. Khối lệnh điều khiển
 Khu vực "2. Khối lệnh điều khiển" cung cấp các công cụ vận hành nhanh:
- 
 Phân tích: Biểu đồ cột minh họa dữ liệu, phân loại SQ, HSQ của từng đơn vị
- 
 Hình 15. Phân tích dữ liệu quân số
-
 Refresh (Làm mới): Tải lại toàn bộ danh sách để cập nhật các thay đổi mới nhất từ cơ sở dữ liệu.
 Xóa phân loại: 
 Công cụ hỗ trợ xóa nhanh toàn bộ kết quả xếp loại hiện tại để bắt đầu một kỳ phân loại mới.
- 
 Hình 16. Xóa phân loại
-
-
 3. Cập nhật và Quản lý thông tin (Thêm/Sửa/Xóa)
- 
 Hình 17. Cập nhật thông tin CBCS
 - Sử dụng khu vực "3. Cập nhật thông tin CBCS" để thay đổi dữ liệu:
 - Cách chỉnh sửa: Chọn một dòng bất kỳ trong bảng danh sách bên dưới, thông tin của CBCS đó sẽ tự động hiển thị lên các ô nhập liệu phía trên.
@@ -232,7 +189,6 @@ Hình 17. Cập nhật thông tin CBCS
 4. Theo dõi bảng danh sách và Thống kê nhanh 
 Lệnh tắt (Context Menu) giúp thao tác nhanh với cơ sở dữ liệu ngay tại bảng danh sách cán bộ chiến sĩ. Dưới đây là nội dung hướng dẫn sử dụng tương tự cho các chức năng này:
 HƯỚNG DẪN THAO TÁC NHANH (MENU CHUỘT PHẢI)
- 
 Hình 18. Context menu
 Tại form Xử lý dữ liệu, nhấn chuột phải vào bất kỳ vị trí nào trên bảng danh sách để gọi các lệnh thực thi nhanh sau:
 4.1. Quản lý hiển thị và tìm kiếm
@@ -242,16 +198,12 @@ Tại form Xử lý dữ liệu, nhấn chuột phải vào bất kỳ vị trí
 	Đây là các công cụ quan trọng để quản lý dữ liệu số lượng lớn:
 Thêm dữ liệu từ file Excel: Cho phép bạn nạp hàng loạt danh sách CBCS từ tệp Excel có sẵn vào phần mềm mà không cần nhập thủ công từng người. Đây là cách nạp chính dữ liệu cho phần mềm.
 Xuất dữ liệu ra tệp Excel: Trích xuất toàn bộ danh sách đang hiển thị ra định dạng file Excel để phục vụ lưu trữ, in ấn hoặc làm báo cáo ngoài phần mềm.
-
 4.3. Kết nối và Thống kê
 - Xuất dữ liệu sang thống kê: Chuyển toàn bộ kết quả phân loại đã xử lý sang bộ phận Thống kê để hệ thống tổng hợp biểu đồ và báo cáo tổng hợp cuối cùng.
- 
 Hình 19. Xuất dữ liệu sang thống kê từ Form Dữ liệu
 - Kiểm tra kết nối: Kiểm tra nhanh tình trạng đường truyền giữa phần mềm và các tệp cơ sở dữ liệu thi đua để đảm bảo quá trình lưu trữ không bị gián đoạn.
 Mẹo thao tác: Trước khi sử dụng lệnh "Xuất dữ liệu sang thống kê", bạn nên thực hiện lệnh "Làm mới" để đảm bảo dữ liệu được chuyển đi là bản mới nhất và chính xác nhất.
-
 4.4. Tùy chọn giữ lại dữ liệu khi làm mới hằng tháng
- 
 Hình 20. Xóa phân loại
 4.5. Giao diện hiển thị danh sách các mức phân loại hiện có. 
 Bạn có thể chủ động chọn lọc những nhóm đối tượng nào không bị ảnh hưởng bởi lệnh reset:
@@ -267,11 +219,9 @@ Ví dụ tình huống sử dụng: CBCS đang tham gia công tác A50, A80 (Ti�
 o	Tổng quân số.
 o	Số lượng cụ thể từng loại: Loại 1, Loại 2, Loại 3, Loại 4.
 o	Số lượng đồng chí chưa phân loại (Không PL).
- 
 Hình 21. Trang chủ
 IV. HƯỚNG DẪN QUẢN LÝ NHẬT KÝ PHẦN MỀM (LOG SYSTEM)
 Giao diện Nhật ký phần mềm cho phép admin theo dõi chi tiết lịch sử truy cập và các thao tác nghiệp vụ đã thực hiện trên hệ thống.
- 
 Hình 22. Giao diện nhật ký
 1. Các công cụ lọc và điều hướng
 Để kiểm tra dữ liệu nhật ký một cách hiệu quả, bạn sử dụng các công cụ ở thanh điều khiển phía trên:
@@ -291,11 +241,9 @@ Hệ thống tự động ghi lại các cột thông tin sau cho mỗi hành đ
 •	Tối ưu vận hành: Giám sát tần suất sử dụng các chức năng để có hướng nâng cấp phần mềm phù hợp.
 Lưu ý dành cho Quản trị viên: Nhật ký phần mềm là dữ liệu nhạy cảm và được lưu trữ tự động, không thể chỉnh sửa thủ công để đảm bảo tính khách quan. Bạn nên định kỳ kiểm tra nhật ký sau mỗi kỳ bình xét thi đua để đảm bảo quy trình diễn ra đúng quy định.
  V. QUẢN LÝ THỐNG KÊ KẾT QUẢ THI ĐUA NĂM
- 
 Hình 23. Giao diện Thống kê
 Giao diện Thống kê giúp chỉ huy và cán bộ quản lý có cái nhìn tổng thể về quá trình phấn đấu của CBCS trong suốt một năm làm việc.
 1. Công cụ tìm kiếm và lọc dữ liệu
- 
 Hình 24. Thanh tìm kiếm
 Để xem nhanh kết quả của một cá nhân hoặc đơn vị, bạn sử dụng thanh công cụ "Tìm kiếm thông tin CBCS":
 Họ và tên: Nhập tên để lọc nhanh dữ liệu của một cá nhân cụ thể.
@@ -308,42 +256,29 @@ Cột Tháng (1 - 12): Hiển thị mức xếp loại (1, 2, 3, 4) mà CBCS đ�
 Tổng số (TS Loại 1, 2, 3, 4): Hệ thống tự động cộng dồn số lần đạt được từng mức loại trong năm để đánh giá mức độ ổn định của CBCS.
 Thông tin định danh: Đi kèm Họ tên, Số hiệu, Đơn vị và Tình trạng để tránh nhầm lẫn dữ liệu.
 Nhấn đúp để sửa thông tin thi đua
- 
 Hình 25. Cập nhật thi đua
 3. Các chức năng điều khiển
- 
 Hình 26. Khối điều khiển
 Xuất dữ liệu: Trích xuất bảng thống kê năm ra tệp Excel để phục vụ việc in ấn báo cáo tổng kết năm của đơn vị.
 Dữ liệu thi đua tháng này được xuất từ Tab > Dữ liệu
-
 Lưu ý về cột Tình trạng: Khi một đồng chí "Chuyển công tác", thì phần mềm sẽ so sánh dữ liệu ở csdl phân loại tháng hiện tại (Thẻ Dữ liệu) > và dữ liệu cũ trong csdl (nếu ở tháng hiện tại đã không còn Dữ liệu liên quan CBCS > thì phần mềm sẽ xác định là CBCS đã chuyển công tác - phần mềm sẽ tự động cập nhật).
 Chỉnh sửa thông tin, cập nhật phân loại  - Đúp chuột vào Dòng thông tin (Tên của CBCS trong cột Họ và tên trên trang Thống kê) Form điều chỉnh sẽ hiện ra để điều chỉnh thông tin thi đua cũng như cập nhật kế quả khen thưởng trong năm.
-
-
  VI. SAO LƯU VÀ KHÔI PHỤC
 1. Sao lưu dữ liệu
  Vào Cài đặt > 2. Thiết lập thông số > Sao lưu
- 
 Hình 27. Giao diện Sao lưu
-
 - Hàng năm bạn có thể xuất tệp Thống kê sang dạng excel để lưu trữ theo năm.
 - CSDL hàng tháng thì nếu cần bạn có thể Xuất ra tệp excel dự phòng. (Tuy nhiên việc nạp dữ liệu vào thì phải đúng với mẫu bảng của CSDL. Nên nếu bạn muốn nạp dữ liệu vào CSDL thi đua tháng (Thẻ Dữ liệu) thì bạn cần xuất ra 1 tệp tin excel để làm mẫu và nhập thông tin tất cả CBCS sau đó vào giao diện (Thẻ Dữ liệu) chọn chuột phải > Thêm dữ liệu từ file excel
- 
 2. Khôi phục dữ liệu
 Vào Cài đặt > 2. Thiết lập thông số > Khôi phục
-
- 
 Hình 28. Giao diện Khôi phục
   VIII. FILE HƯỚNG DẪN SỬ DỤNG TRONG ỨNG DỤNG
- 
 Hình 29. Giao diện Hướng dẫn sử dụng trong ứng dụng
-
  VII. YÊU CẦU CÀI ĐẶT & CẤU HÌNH HỆ THỐNG
 1. Hệ điều hành hỗ trợ
  	Windows 7, 8 có thể dùng chỉ cần nếu máy tính đã có bộ máy ảo của Microsoft .NET Desktop Runtime 8 (Bạn có thể tải từ trang chủ của Microsoft https://dotnet.microsoft.com/en-us/download/dotnet/8.0) do để đáp ứng yêu cầu, cũng như cơ chế bảo mật trên nền tảng mới.
 Windows 10 (64-bit) – khuyến nghị
 Windows 11 (64-bit)
-
 2. Yêu cầu phần cứng tối thiểu
 •	CPU: Intel Core i3 hoặc tương đương trở lên
 •	RAM: Tối thiểu 4 GB (khuyến nghị 8 GB)

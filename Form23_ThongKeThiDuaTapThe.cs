@@ -3,7 +3,6 @@ using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Globalization;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form23_ThongKeThiDuaTapThe : Form
@@ -11,10 +10,10 @@ namespace PhanMemThiDua2026
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
         // 🌟 4 biến hằng số danh hiệu thi đua dùng chung toàn Form
-        public const string DanhHieu_Loai1 = "ĐVQT"; // "TĐ"
-        public const string DanhHieu_Loai2 = "ĐVTT"; // "ĐVTT"
-        public const string DanhHieu_Loai3 = "HTNV"; // "HTNV"
-        public const string DanhHieu_Loai4 = "KHTNV"; // "KHTNV"
+        public const string DanhHieu_Loai1 = Module_HeThong.XLDV_DVQT; // "TĐ"
+        public const string DanhHieu_Loai2 = Module_HeThong.XLDV_DVTT; // "ĐVTT"
+        public const string DanhHieu_Loai3 = Module_HeThong.XLDV_HTNV; // "HTNV"
+        public const string DanhHieu_Loai4 = Module_HeThong.XLDV_KHTNV; // "KHTNV"
         private static readonly Font _fontHeaderBangThongKe = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
         public Form23_ThongKeThiDuaTapThe()
         {
@@ -98,22 +97,20 @@ namespace PhanMemThiDua2026
         {
             // Luôn xóa sạch items cũ để nạp bộ danh mục mới
             comboBox1_ChonLoai.Items.Clear();
-
             if (comboBox1_ChonThangCanXuat.SelectedItem == null)
                 return;
-
             string thangChon = comboBox1_ChonThangCanXuat.SelectedItem.ToString() ?? string.Empty;
-
             if (thangChon.Equals("Tổng kết năm", StringComparison.OrdinalIgnoreCase))
             {
                 // Nạp danh hiệu thi đua tổng kết năm
                 comboBox1_ChonLoai.Items.AddRange(new object[]
                 {
-            DanhHieu_Loai1,            // "ĐVQT"
-            DanhHieu_Loai2,            // "ĐVTT"
-            DanhHieu_Loai3,            // "HTNV"
-            DanhHieu_Loai4,            // "KHTNV"
-            Module_HeThong.PL_KHONG_PL  // "Không PL"
+            "",
+            DanhHieu_Loai1,            // Module_HeThong.XLDV_DVQT
+            DanhHieu_Loai2,            // Module_HeThong.XLDV_DVTT
+            DanhHieu_Loai3,            // Module_HeThong.XLDV_HTNV
+            DanhHieu_Loai4,            // Module_HeThong.XLDV_KHTNV
+            Module_HeThong.PL_KHONG_PL
                 });
             }
             else
@@ -121,6 +118,7 @@ namespace PhanMemThiDua2026
                 // Nạp phân loại tháng/định kỳ thông thường
                 comboBox1_ChonLoai.Items.AddRange(new object[]
                 {
+            "",
             Module_HeThong.Loai_1,
             Module_HeThong.Loai_2,
             Module_HeThong.Loai_3,
@@ -128,14 +126,13 @@ namespace PhanMemThiDua2026
             Module_HeThong.PL_KHONG_PL
                 });
             }
-
             // Tự động chọn mục đầu tiên để tối ưu thao tác
             if (comboBox1_ChonLoai.Items.Count > 0)
             {
                 comboBox1_ChonLoai.SelectedIndex = 0;
             }
         }
-        private void kryptonButton_Dong_Click(object sender, EventArgs e)
+        private void kryptonButton_Dong_Click(object? sender, EventArgs e)
         {
             this.Close();
         }
@@ -195,13 +192,10 @@ namespace PhanMemThiDua2026
         private void LoadBangThongKe()
         {
             kryptonDataGridView1.DataSource = null;
-
             string dbPath = _csdl4Path;
             if (!File.Exists(dbPath)) return;
-
             using var cn = new SqliteConnection($"Data Source={dbPath}");
             cn.Open();
-
             // ===== 1. Lấy toàn bộ cột 1 lần duy nhất =====
             var tatCaCot = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using (var cmdPragma = cn.CreateCommand())
@@ -211,16 +205,13 @@ namespace PhanMemThiDua2026
                 while (rd.Read())
                     tatCaCot.Add(rd["name"].ToString()!);
             }
-
             var cotHopLe = new List<string> {
         "Thang_12_Nam_Cu","Thang_1","Thang_2","Thang_3","Thang_4","Thang_5",
         "Sau_Thang_Dau_Nam","Thang_6","Thang_7","Thang_8","Thang_9",
         "Thang_10","Thang_11","TongKet_Nam"
     };
-
             var cotTonTai = cotHopLe.Where(c => tatCaCot.Contains(c)).ToList();
             if (cotTonTai.Count == 0) return;
-
             string sql =
                 $"SELECT {string.Join(",", cotTonTai.Select(c => $"\"{c}\""))} " +
                 "FROM ThongKe_PhanLoaiTapThe WHERE ID = 1";
@@ -229,7 +220,6 @@ namespace PhanMemThiDua2026
             using var reader = cmd.ExecuteReader();
             DataTable dt = new();
             dt.Load(reader);
-
             // ===== 2. Giải mã an toàn =====
             foreach (DataRow row in dt.Rows)
             {
@@ -238,7 +228,6 @@ namespace PhanMemThiDua2026
                     row[col] = GiaiMaAnToan(row[col]);
                 }
             }
-
             kryptonDataGridView1.DataSource = dt;
             kryptonDataGridView1.ReadOnly = true;
             kryptonDataGridView1.AllowUserToAddRows = false;
@@ -259,13 +248,11 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
                 cn.Open();
-
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin WHERE ID = 1";
-
                 var kq = cmd.ExecuteScalar();
                 if (kq != null && kq != DBNull.Value)
-                    return BaoMatAES.GiaiMa(kq.ToString()!);
+                    return Module_BaoMatAES.GiaiMa(kq.ToString()!);
             }
             catch
             {
@@ -277,9 +264,7 @@ namespace PhanMemThiDua2026
         {
             if (comboBox1_ChonThangCanXuat.SelectedItem == null)
                 return string.Empty;
-
             string thangChon = comboBox1_ChonThangCanXuat.SelectedItem.ToString()!;
-
             return thangChon switch
             {
                 "Tháng 12 (Năm cũ)" => "Thang_12_Nam_Cu",
@@ -303,12 +288,9 @@ namespace PhanMemThiDua2026
         {
             if (comboBox1_ChonLoai.SelectedItem == null)
                 return string.Empty; // Chưa chọn → không xử lý
-
             string giaTriChon = comboBox1_ChonLoai.SelectedItem.ToString()!;
-
             if (string.IsNullOrWhiteSpace(giaTriChon))
                 return string.Empty;
-
             // Kiểm tra tính hợp lệ của giá trị (chấp nhận cả 2 bộ danh hiệu)
             if (giaTriChon == Module_HeThong.Loai_1 ||
                 giaTriChon == Module_HeThong.Loai_2 ||
@@ -322,7 +304,6 @@ namespace PhanMemThiDua2026
             {
                 return giaTriChon;
             }
-
             return string.Empty; // Giá trị không hợp lệ
         }
         private void DamBaoBangThongKeTonTai()
@@ -350,20 +331,18 @@ namespace PhanMemThiDua2026
             TongKet_Nam TEXT,
             PRIMARY KEY(ID AUTOINCREMENT)
         );
-
         INSERT OR IGNORE INTO ThongKe_PhanLoaiTapThe (ID)
         VALUES (1);
     ";
-
             command.ExecuteNonQuery();
         }
-        private string GiaiMaAnToan(object value)
+        private string GiaiMaAnToan(object? value)
         {
             try
             {
                 if (value == null || value == DBNull.Value) return "";
                 string s = value?.ToString() ?? "";
-                return string.IsNullOrWhiteSpace(s) ? "" : BaoMatAES.GiaiMa(s);
+                return string.IsNullOrWhiteSpace(s) ? "" : Module_BaoMatAES.GiaiMa(s);
             }
             catch
             {
@@ -384,21 +363,16 @@ namespace PhanMemThiDua2026
                     KryptonMessageBoxIcon.Warning);
                 return;
             }
-
             // ================== 2. THÔNG TIN CƠ BẢN ==================
             string tenDonVi = LayTenTieuDoan();
             if (string.IsNullOrWhiteSpace(tenDonVi))
                 tenDonVi = "ĐƠN VỊ";
-
             string tenHienThi =
                 char.ToUpperInvariant(tenDonVi[0]) +
                 tenDonVi.Substring(1).ToLowerInvariant();
-
             int nam = Module_HeThong.LayNamHeThong();
-
             string tenFile =
                 $"BẢNG THỐNG KÊ PHÂN LOẠI THI ĐUA TẬP THỂ {tenDonVi} NĂM {nam}_{DateTime.Now:HHmmss}.xlsx";
-
             using SaveFileDialog sfd = new()
             {
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
@@ -407,15 +381,12 @@ namespace PhanMemThiDua2026
                 AddExtension = true,
                 OverwritePrompt = false
             };
-
             if (sfd.ShowDialog() != DialogResult.OK)
                 return;
-
             try
             {
                 using var wb = new ClosedXML.Excel.XLWorkbook();
                 var ws = wb.Worksheets.Add("ThongKe");
-
                 // ================== 3. MAP NGHIỆP VỤ (DUY NHẤT 1 CHỖ) ==================
                 var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase){
                     [Module_HeThong.Loai_1] = DanhHieu_Loai1,
@@ -424,31 +395,25 @@ namespace PhanMemThiDua2026
                     [Module_HeThong.Loai_4] = DanhHieu_Loai4,
                     [Module_HeThong.PL_KHONG_PL] = string.Empty
                 };
-
                 // ================== 4. TÍNH TOÁN CỘT ==================
                 int soCotExcel = kryptonDataGridView1.Columns.Count + 1;
                 string cotCuoi = XLHelper.GetColumnLetterFromNumber(soCotExcel);
-
                 // ================== 5. TIÊU ĐỀ ==================
                 var titleRange = ws.Range($"A1:{cotCuoi}1");
                 titleRange.Merge();
                 titleRange.Value = $"KẾT QUẢ PHÂN LOẠI TẬP THỂ {tenDonVi} NĂM {nam}";
-
                 titleRange.Style.Font.Bold = true;
                 titleRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 titleRange.Style.Font.FontSize = 14;
                 titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 titleRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
                 // ================== 6. HEADER ==================
                 ws.Cell(3, 1).Value = "Đơn vị";
-
                 for (int i = 0; i < kryptonDataGridView1.Columns.Count; i++)
                 {
                     ws.Cell(3, i + 2).Value =
                         kryptonDataGridView1.Columns[i].HeaderText;
                 }
-
                 var headerRange = ws.Range($"A3:{cotCuoi}3");
                 headerRange.Style.Font.Bold = true;
                 headerRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
@@ -456,36 +421,28 @@ namespace PhanMemThiDua2026
                 headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 headerRange.Style.Fill.BackgroundColor = XLColor.FromArgb(217, 234, 211);
-
                 // ================== 7. DỮ LIỆU (CHỈ 1 DÒNG TỔNG) ==================
                 ws.Cell(4, 1).Value = tenHienThi;
-
                 DataGridViewRow rowNguon =
                     kryptonDataGridView1.Rows
                         .Cast<DataGridViewRow>()
                         .First(r => !r.IsNewRow);
-
                 for (int i = 0; i < kryptonDataGridView1.Columns.Count; i++)
                 {
                     string giaTriGoc =
                         rowNguon.Cells[i].Value?.ToString()?.Trim() ?? string.Empty;
-
                     bool laTongKetNam =
                         kryptonDataGridView1.Columns[i].HeaderText
                             .Contains("Tổng kết", StringComparison.OrdinalIgnoreCase);
-
                     string giaTriXuat =
                         laTongKetNam && mapTongKetNam.TryGetValue(giaTriGoc, out string danhHieu)
                             ? danhHieu
                             : giaTriGoc;
-
                     var cell = ws.Cell(4, i + 2);
                     cell.Value = giaTriXuat;
-
                     cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     cell.Style.Alignment.WrapText = true;
-
                     // Tô màu theo danh hiệu
                     if (giaTriXuat is DanhHieu_Loai1 or DanhHieu_Loai2)
                     {
@@ -498,20 +455,16 @@ namespace PhanMemThiDua2026
                         cell.Style.Font.FontColor = XLColor.DarkRed;
                     }
                 }
-
                 // ================== 8. A4 – GIÃN DÒNG – CĂN GIỮA TUYỆT ĐỐI ==================
                 ws.Row(4).Height = 36;
-
                 var row4Range = ws.Range($"A4:{cotCuoi}4");
                 row4Range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 row4Range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 row4Range.Style.Alignment.WrapText = true;
-
                 // ================== 9. ĐỊNH DẠNG CHUNG ==================
                 var allRange = ws.Range($"A1:{cotCuoi}4");
                 allRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
                 allRange.Style.Font.FontSize = 14;
-
                 allRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 ws.Range($"A3:{cotCuoi}4").Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 ws.Columns($"A:{cotCuoi}").AdjustToContents();
@@ -522,7 +475,6 @@ namespace PhanMemThiDua2026
                      Module_TaiKhoan.TenTaiKhoan_RAM,
                      "Xuất dữ liệu Excel",
                      $"Xuất Excel thành công | {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
-
                 if (File.Exists(sfd.FileName))
                 {
                     Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(sfd.FileName);
@@ -537,43 +489,35 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Error);
             }
         }
-        private void kryptonButton1_CapNhat_Click(object sender, EventArgs e)
+        private void kryptonButton1_CapNhat_Click(object? sender, EventArgs e)
         {
             string tenCot = LayTenCotTheoThang();
             string giaTri = LayGiaTriLoai();
-
             if (string.IsNullOrEmpty(tenCot))
             {
                 MessageBox.Show("Chưa chọn tháng.");
                 return;
             }
-
             if (comboBox1_ChonLoai.SelectedItem == null)
             {
                 MessageBox.Show("Chưa chọn loại phân loại.");
                 return;
             }
-
             using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
             cn.Open();
-
             using var tran = cn.BeginTransaction();
-
             try
             {
                 using var cmd = cn.CreateCommand();
                 cmd.Transaction = tran;
-
                 cmd.CommandText = $@"
 UPDATE ThongKe_PhanLoaiTapThe
 SET ""{tenCot}"" = @gt
 WHERE ID = 1";
-
                 cmd.Parameters.AddWithValue("@gt",
                     string.IsNullOrEmpty(giaTri)
                         ? DBNull.Value
-                        : BaoMatAES.MaHoa(giaTri));
-
+                        : Module_BaoMatAES.MaHoa(giaTri));
                 cmd.ExecuteNonQuery();
                 tran.Commit();
             }
@@ -592,7 +536,6 @@ WHERE ID = 1";
             // Lấy tháng hiện tại của hệ thống (1 -> 12)
             int thangHienTai = DateTime.Now.Month;
             string tenThangCanTim = $"Tháng {thangHienTai}";
-
             // Tìm index của "Tháng X" trong comboBox1_ChonThangCanXuat
             for (int i = 0; i < comboBox1_ChonThangCanXuat.Items.Count; i++)
             {
@@ -604,14 +547,13 @@ WHERE ID = 1";
                 }
             }
         }
-        private void kryptonButton1_XoaTatCaDataPhanLoaiTapThe_Click(object sender, EventArgs e)
+        private void kryptonButton1_XoaTatCaDataPhanLoaiTapThe_Click(object? sender, EventArgs e)
         {
             // 1. Xác minh quyền Admin
             using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
             {
                 frmXacMinh.TopMost = true;
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
-
                 if (frmXacMinh.ShowDialog() != DialogResult.OK)
                     return;
             }
@@ -625,7 +567,6 @@ WHERE ID = 1";
                 MessageBoxDefaultButton.Button2);
             if (confirm != DialogResult.Yes)
                 return;
-
             try
             {
                 // 3. Kiểm tra CSDL
@@ -637,7 +578,6 @@ WHERE ID = 1";
                         "Lỗi",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
-
                     return;
                 }
                 if (!File.Exists(dbPath))
@@ -647,16 +587,13 @@ WHERE ID = 1";
                         "Lỗi",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
-
                     return;
                 }
                 // 4. Xóa dữ liệu và tạo lại bản ghi ID = 1
                 using (var cn = new SqliteConnection($"Data Source={dbPath}"))
                 {
                     cn.Open();
-
                     using var transaction = cn.BeginTransaction();
-
                     try
                     {
                         // Xóa toàn bộ dữ liệu

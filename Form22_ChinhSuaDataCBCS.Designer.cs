@@ -6,7 +6,6 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         /// Required method for Designer support - do not modify
         /// the contents of this method with the code editor.
@@ -197,7 +194,7 @@
             comboBox_KQXepLoaiCBCS.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQXepLoaiCBCS.FormattingEnabled = true;
             comboBox_KQXepLoaiCBCS.Items.AddRange(new object[] { "", "HTXSNV", "HTTNV", "HTNV", "KHTNV" });
-            comboBox_KQXepLoaiCBCS.Location = new Point(224, 48);
+            comboBox_KQXepLoaiCBCS.Location = new Point(224, 47);
             comboBox_KQXepLoaiCBCS.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQXepLoaiCBCS.Name = "comboBox_KQXepLoaiCBCS";
             comboBox_KQXepLoaiCBCS.Size = new Size(104, 25);
@@ -235,7 +232,7 @@
             comboBox_QKXepLoaiThiDua.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_QKXepLoaiThiDua.FormattingEnabled = true;
             comboBox_QKXepLoaiThiDua.Items.AddRange(new object[] { "", "CSTĐ", "CSTT", "HTNV", "KHTNV" });
-            comboBox_QKXepLoaiThiDua.Location = new Point(560, 8);
+            comboBox_QKXepLoaiThiDua.Location = new Point(560, 7);
             comboBox_QKXepLoaiThiDua.Margin = new Padding(2, 3, 2, 3);
             comboBox_QKXepLoaiThiDua.Name = "comboBox_QKXepLoaiThiDua";
             comboBox_QKXepLoaiThiDua.Size = new Size(106, 25);
@@ -247,7 +244,7 @@
             comboBox_KQXepLoaiDangVien.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQXepLoaiDangVien.FormattingEnabled = true;
             comboBox_KQXepLoaiDangVien.Items.AddRange(new object[] { "", "HTXSNV", "HTTNV", "HTNV", "KHTNV" });
-            comboBox_KQXepLoaiDangVien.Location = new Point(560, 48);
+            comboBox_KQXepLoaiDangVien.Location = new Point(560, 47);
             comboBox_KQXepLoaiDangVien.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQXepLoaiDangVien.Name = "comboBox_KQXepLoaiDangVien";
             comboBox_KQXepLoaiDangVien.Size = new Size(106, 25);
@@ -378,7 +375,7 @@
             comboBox_KQPhanLoaiTongKet_Nam.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiTongKet_Nam.FormattingEnabled = true;
             comboBox_KQPhanLoaiTongKet_Nam.Items.AddRange(new object[] { "", "CSTĐ", "CSTT", "HTNV", "KHTNV" });
-            comboBox_KQPhanLoaiTongKet_Nam.Location = new Point(562, 219);
+            comboBox_KQPhanLoaiTongKet_Nam.Location = new Point(562, 218);
             comboBox_KQPhanLoaiTongKet_Nam.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiTongKet_Nam.Name = "comboBox_KQPhanLoaiTongKet_Nam";
             comboBox_KQPhanLoaiTongKet_Nam.Size = new Size(104, 25);
@@ -403,7 +400,7 @@
             comboBox_KQPhanLoaiThang_9.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_9.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_9.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_9.Location = new Point(562, 110);
+            comboBox_KQPhanLoaiThang_9.Location = new Point(562, 111);
             comboBox_KQPhanLoaiThang_9.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_9.Name = "comboBox_KQPhanLoaiThang_9";
             comboBox_KQPhanLoaiThang_9.Size = new Size(104, 25);
@@ -415,7 +412,7 @@
             comboBox_KQPhanLoaiThang_12_NamCu.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_12_NamCu.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_12_NamCu.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_12_NamCu.Location = new Point(225, 5);
+            comboBox_KQPhanLoaiThang_12_NamCu.Location = new Point(225, 6);
             comboBox_KQPhanLoaiThang_12_NamCu.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_12_NamCu.Name = "comboBox_KQPhanLoaiThang_12_NamCu";
             comboBox_KQPhanLoaiThang_12_NamCu.Size = new Size(102, 25);
@@ -427,7 +424,7 @@
             comboBox_KQPhanLoaiThang_1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_1.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_1.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_1.Location = new Point(225, 40);
+            comboBox_KQPhanLoaiThang_1.Location = new Point(225, 41);
             comboBox_KQPhanLoaiThang_1.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_1.Name = "comboBox_KQPhanLoaiThang_1";
             comboBox_KQPhanLoaiThang_1.Size = new Size(102, 25);
@@ -439,7 +436,7 @@
             comboBox_KQPhanLoaiThang_2.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_2.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_2.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_2.Location = new Point(225, 75);
+            comboBox_KQPhanLoaiThang_2.Location = new Point(225, 76);
             comboBox_KQPhanLoaiThang_2.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_2.Name = "comboBox_KQPhanLoaiThang_2";
             comboBox_KQPhanLoaiThang_2.Size = new Size(102, 25);
@@ -451,7 +448,7 @@
             comboBox_KQPhanLoaiThang_6.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_6.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_6.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_6.Location = new Point(562, 5);
+            comboBox_KQPhanLoaiThang_6.Location = new Point(562, 6);
             comboBox_KQPhanLoaiThang_6.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_6.Name = "comboBox_KQPhanLoaiThang_6";
             comboBox_KQPhanLoaiThang_6.Size = new Size(104, 25);
@@ -463,7 +460,7 @@
             comboBox_KQPhanLoaiThang_8.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_8.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_8.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_8.Location = new Point(562, 75);
+            comboBox_KQPhanLoaiThang_8.Location = new Point(562, 76);
             comboBox_KQPhanLoaiThang_8.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_8.Name = "comboBox_KQPhanLoaiThang_8";
             comboBox_KQPhanLoaiThang_8.Size = new Size(104, 25);
@@ -475,7 +472,7 @@
             comboBox_KQPhanLoaiThang_7.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_7.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_7.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_7.Location = new Point(562, 40);
+            comboBox_KQPhanLoaiThang_7.Location = new Point(562, 41);
             comboBox_KQPhanLoaiThang_7.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_7.Name = "comboBox_KQPhanLoaiThang_7";
             comboBox_KQPhanLoaiThang_7.Size = new Size(104, 25);
@@ -487,7 +484,7 @@
             comboBox_KQPhanLoaiThang_3.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_3.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_3.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_3.Location = new Point(225, 110);
+            comboBox_KQPhanLoaiThang_3.Location = new Point(225, 111);
             comboBox_KQPhanLoaiThang_3.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_3.Name = "comboBox_KQPhanLoaiThang_3";
             comboBox_KQPhanLoaiThang_3.Size = new Size(102, 25);
@@ -499,7 +496,7 @@
             comboBox_KQPhanLoaiThang_4.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_4.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_4.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_4.Location = new Point(225, 145);
+            comboBox_KQPhanLoaiThang_4.Location = new Point(225, 146);
             comboBox_KQPhanLoaiThang_4.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_4.Name = "comboBox_KQPhanLoaiThang_4";
             comboBox_KQPhanLoaiThang_4.Size = new Size(102, 25);
@@ -511,7 +508,7 @@
             comboBox_KQPhanLoaiThang_5.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_5.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_5.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_5.Location = new Point(225, 181);
+            comboBox_KQPhanLoaiThang_5.Location = new Point(225, 180);
             comboBox_KQPhanLoaiThang_5.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_5.Name = "comboBox_KQPhanLoaiThang_5";
             comboBox_KQPhanLoaiThang_5.Size = new Size(102, 25);
@@ -601,7 +598,7 @@
             comboBox_KQPhanLoaiThang_10.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_10.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_10.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_10.Location = new Point(562, 145);
+            comboBox_KQPhanLoaiThang_10.Location = new Point(562, 146);
             comboBox_KQPhanLoaiThang_10.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_10.Name = "comboBox_KQPhanLoaiThang_10";
             comboBox_KQPhanLoaiThang_10.Size = new Size(104, 25);
@@ -691,7 +688,7 @@
             comboBox_KQPhanLoaiThang_11.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoaiThang_11.FormattingEnabled = true;
             comboBox_KQPhanLoaiThang_11.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoaiThang_11.Location = new Point(562, 181);
+            comboBox_KQPhanLoaiThang_11.Location = new Point(562, 180);
             comboBox_KQPhanLoaiThang_11.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoaiThang_11.Name = "comboBox_KQPhanLoaiThang_11";
             comboBox_KQPhanLoaiThang_11.Size = new Size(104, 25);
@@ -716,7 +713,7 @@
             comboBox_KQPhanLoai6_Thang_Dau_Nam.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KQPhanLoai6_Thang_Dau_Nam.FormattingEnabled = true;
             comboBox_KQPhanLoai6_Thang_Dau_Nam.Items.AddRange(new object[] { "", "1", "2", "3", "4" });
-            comboBox_KQPhanLoai6_Thang_Dau_Nam.Location = new Point(225, 219);
+            comboBox_KQPhanLoai6_Thang_Dau_Nam.Location = new Point(225, 218);
             comboBox_KQPhanLoai6_Thang_Dau_Nam.Margin = new Padding(2, 3, 2, 3);
             comboBox_KQPhanLoai6_Thang_Dau_Nam.Name = "comboBox_KQPhanLoai6_Thang_Dau_Nam";
             comboBox_KQPhanLoai6_Thang_Dau_Nam.Size = new Size(102, 25);
@@ -763,7 +760,6 @@
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
         private ToolStrip toolStrip1;
         private TableLayoutPanel tableLayoutPanel1;

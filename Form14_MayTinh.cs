@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Text;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form14 : Form
@@ -14,9 +13,7 @@ namespace PhanMemThiDua2026
         // [PRO 2]: Lặp phép tính
         private char _lastOp = '\0';
         private double _lastRightOperand = 0;
-
-        private readonly Dictionary<char, int> _operators = new()
-        {
+        private readonly Dictionary<char, int> _operators = new(){
             { '+', 1 }, { '-', 1 }, { '*', 2 }, { '/', 2 }, { '%', 2 }, { '^', 3 }, { '√', 4 }
         };
         public Form14()
@@ -48,10 +45,9 @@ namespace PhanMemThiDua2026
         }
         //endregion
         //region ===== INPUT HANDLING =====
-        private void Button_Click(object sender, EventArgs e)
+        private void Button_Click(object? sender, EventArgs e)
         {
             if (sender is not Button btn) return;
-
             switch (btn.Name)
             {
                 case "Btn_phimdaubang": Calculate(); break;
@@ -60,10 +56,9 @@ namespace PhanMemThiDua2026
                 default: ProcessInput(btn.Text.Trim()); break;
             }
         }
-        private void Form_KeyPress(object sender, KeyPressEventArgs e)
+        private void Form_KeyPress(object? sender, KeyPressEventArgs e)
         {
             char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-
             if (char.IsDigit(e.KeyChar) || "+-*/()%^√".Contains(e.KeyChar))
             {
                 ProcessInput(e.KeyChar.ToString());
@@ -75,7 +70,7 @@ namespace PhanMemThiDua2026
                 e.Handled = true;
             }
         }
-        private void Form_KeyDown(object sender, KeyEventArgs e)
+        private void Form_KeyDown(object? sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
@@ -103,13 +98,10 @@ namespace PhanMemThiDua2026
             // [FIX 5]: Chống spam & Giới hạn độ dài
             if ((DateTime.Now - _lastInputTime).TotalMilliseconds < INPUT_DELAY) return;
             _lastInputTime = DateTime.Now;
-
             if (_expression.Length >= MAX_LENGTH) return;
             if (string.IsNullOrWhiteSpace(value)) return;
-
             value = value.Replace("×", "*").Replace("x", "*").Replace("X", "*").Replace("÷", "/");
             char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-
             // [PRO 1]: Auto thêm ngoặc cho căn bậc 2
             if (value == "√")
             {
@@ -118,13 +110,11 @@ namespace PhanMemThiDua2026
                 RefreshDisplay();
                 return;
             }
-
             if (_justCalculated && char.IsDigit(value[0]))
             {
                 _expression.Clear();
                 _justCalculated = false;
             }
-
             if (value.Length == 1 && _operators.ContainsKey(value[0]))
             {
                 _justCalculated = false; // Reset cờ để không bị lặp phép tính nhầm
@@ -133,7 +123,6 @@ namespace PhanMemThiDua2026
                     if (value[0] == '-') { _expression.Append(value); RefreshDisplay(); }
                     return;
                 }
-
                 if (_operators.ContainsKey(_expression[^1]) && _expression[^1] != '√')
                 {
                     _expression[^1] = value[0];
@@ -141,10 +130,8 @@ namespace PhanMemThiDua2026
                     return;
                 }
             }
-
             if (value.Length == 1 && value[0] == dec && GetCurrentNumber().Contains(dec))
                 return;
-
             _expression.Append(value);
             RefreshDisplay();
         }
@@ -153,7 +140,6 @@ namespace PhanMemThiDua2026
         private void Calculate()
         {
             if (_expression.Length == 0) return;
-
             try
             {
                 // [PRO 2]: Lặp phép tính nếu user vừa tính xong và ấn '=' tiếp
@@ -161,18 +147,14 @@ namespace PhanMemThiDua2026
                 {
                     _expression.Append(_lastOp).Append(_lastRightOperand.ToString(CultureInfo.InvariantCulture));
                 }
-
                 string rawExpression = _expression.ToString();
                 double result = Evaluate(rawExpression);
-
                 // Add expression
                 ListBox1.Items.Add(rawExpression + " =");
                 // Add result
                 ListBox1.Items.Add(result.ToString("G15", CultureInfo.CurrentCulture));
-
                 // [PRO 3]: Highlight kết quả và cuộn xuống
                 ListBox1.SelectedIndex = ListBox1.Items.Count - 1;
-
                 _expression.Clear();
                 _expression.Append(result.ToString(CultureInfo.CurrentCulture));
                 _justCalculated = true;
@@ -195,29 +177,24 @@ namespace PhanMemThiDua2026
             var tokens = new List<string>();
             var number = new StringBuilder();
             char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-
             for (int i = 0; i < expression.Length; i++)
             {
                 char c = expression[i];
-
                 if (char.IsDigit(c) || c == dec)
                 {
                     number.Append(c);
                     continue;
                 }
-
                 if (c == '-' && (i == 0 || _operators.ContainsKey(expression[i - 1]) || expression[i - 1] == '('))
                 {
                     number.Append(c);
                     continue;
                 }
-
                 if (number.Length > 0)
                 {
                     tokens.Add(number.ToString());
                     number.Clear();
                 }
-
                 tokens.Add(c.ToString());
             }
             if (number.Length > 0) tokens.Add(number.ToString());
@@ -229,7 +206,6 @@ namespace PhanMemThiDua2026
         {
             var output = new List<string>();
             var stack = new Stack<string>();
-
             foreach (var token in tokens)
             {
                 if (double.TryParse(token, NumberStyles.Float, CultureInfo.CurrentCulture, out _))
@@ -258,28 +234,22 @@ namespace PhanMemThiDua2026
                 {
                     while (stack.Count > 0 && stack.Peek() != "(")
                         output.Add(stack.Pop());
-
                     if (stack.Count == 0) throw new Exception("Ngoặc không cân");
                     stack.Pop();
                 }
             }
-
             while (stack.Count > 0)
             {
                 if (stack.Peek() == "(") throw new Exception("Ngoặc không cân");
                 output.Add(stack.Pop());
             }
-
             return output;
         }
-
         //endregion
         //region ===== POSTFIX EVALUATE =====
-
         private double EvaluatePostfix(List<string> postfix)
         {
             var values = new Stack<double>();
-
             foreach (var token in postfix)
             {
                 if (double.TryParse(token, NumberStyles.Float, CultureInfo.CurrentCulture, out double num))
@@ -297,15 +267,12 @@ namespace PhanMemThiDua2026
                         values.Push(Math.Sqrt(val));
                         continue;
                     }
-
                     if (values.Count < 2) throw new Exception("Thiếu toán hạng");
-
                     double b = values.Pop();
                     double a = values.Pop();
                     // [PRO 2]: Lưu vết toán tử cuối cùng để lặp phép tính
                     _lastOp = token[0];
                     _lastRightOperand = b;
-
                     values.Push(token[0] switch
                     {
                         '+' => a + b,
@@ -318,17 +285,14 @@ namespace PhanMemThiDua2026
                     });
                 }
             }
-
             if (values.Count != 1) throw new Exception("Sai biểu thức");
             return values.Pop();
         }
-
         //endregion
         //region ===== UTIL =====
         private string GetCurrentNumber()
         {
             if (_expression.Length == 0) return string.Empty;
-
             var sb = new StringBuilder();
             for (int i = _expression.Length - 1; i >= 0; i--)
             {
@@ -344,7 +308,6 @@ namespace PhanMemThiDua2026
             _expression.Remove(_expression.Length - 1, 1);
             RefreshDisplay();
         }
-
         private void ClearAll()
         {
             _expression.Clear();
@@ -362,7 +325,6 @@ namespace PhanMemThiDua2026
         private void RefreshDisplay()
         {
             string text = _expression.ToString();
-
             if (ListBox1.Items.Count == 0)
             {
                 ListBox1.Items.Add(text);
@@ -376,21 +338,17 @@ namespace PhanMemThiDua2026
             {
                 ListBox1.Items[ListBox1.Items.Count - 1] = text;
             }
-
             ListBox1.TopIndex = ListBox1.Items.Count - 1;
         }
-
         private void ShowError(string message)
         {
             ListBox1.Items.Add(_expression.ToString());
             ListBox1.Items.Add(message);
             ListBox1.SelectedIndex = ListBox1.Items.Count - 1;
-
             _expression.Clear();
             _justCalculated = false;
             _lastOp = '\0'; // Xóa cache lặp phép tính
         }
-
         private void CopyResult()
         {
             if (ListBox1.Items.Count > 0)

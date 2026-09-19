@@ -1,11 +1,9 @@
 ﻿using System.Diagnostics;
-
 namespace PhanMemThiDua2026
 {
     internal static class Module_KhoiDongTrangChu
     {
         private static Form2_FormCha? _form2Instance;
-
         /// <summary>
         /// Preload Form2_FormCha vào RAM
         /// </summary>
@@ -13,9 +11,7 @@ namespace PhanMemThiDua2026
         {
             if (_form2Instance != null && !_form2Instance.IsDisposed)
                 return;
-
             _form2Instance = new Form2_FormCha();
-
             _form2Instance.BeginInvoke(new Action(() =>
             {
                 try
@@ -30,7 +26,6 @@ namespace PhanMemThiDua2026
                     Debug.WriteLine("Lỗi preload Form2: " + ex.Message);
                 }
             }));
-
             // Preload form con Form15_ThongKeThiDua
             Task.Run(() =>
             {
@@ -50,7 +45,6 @@ namespace PhanMemThiDua2026
                 }
             });
         }
-
         /// <summary>
         /// Lấy instance Form2 đã preload
         /// </summary>
@@ -58,7 +52,6 @@ namespace PhanMemThiDua2026
         {
             if (_form2Instance == null || _form2Instance.IsDisposed)
                 PreloadForm2();
-
             return _form2Instance;
         }
         public static void KiemTraVaCanhBaoTyLeManHinh()
@@ -71,10 +64,8 @@ namespace PhanMemThiDua2026
                 {
                     dpiX = graphics.DpiX;
                 }
-
                 // Tính toán phần trăm Scale (100% = 96 DPI)
                 float scalePercentage = (dpiX / 96f) * 100f;
-
                 // Nếu tỷ lệ >= 150%
                 if (scalePercentage >= 150f)
                 {

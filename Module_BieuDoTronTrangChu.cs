@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     internal static class Module_BieuDoTronTrangChu
@@ -15,10 +14,8 @@ namespace PhanMemThiDua2026
             var frm4 = Application.OpenForms
                                   .OfType<Form4_TrangDauTien>()
                                   .FirstOrDefault();
-
             if (frm4 == null || frm4.IsDisposed)
                 return;
-
             await frm4.RefreshPieChartAsync();
         }
     }

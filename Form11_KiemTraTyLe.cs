@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form11_KiemTraTyLe : Form
@@ -15,41 +14,32 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             this.ShowInTaskbar = false;
-
             // 🖥️ Tương thích màn hình: Form luôn ra giữa, chống lệch trên màn scale
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MaximizeBox = false;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
-
             // 🎯 UX: Nhấn Enter ở bất kỳ đâu cũng sẽ kích hoạt nút Tính
             this.AcceptButton = btn_TextTinh;
-
             // 🎯 UX: Tự động bôi đen text khi ô quân số nhận tiêu điểm
             text_Texttongquanso.Enter += (s, e) => text_Texttongquanso.SelectAll();
             text_Texttongquanso.Click += (s, e) => text_Texttongquanso.SelectAll();
         }
-        private void Form11_Load(object sender, EventArgs e)
+        private void Form11_Load(object? sender, EventArgs e)
         {
             // Ép cỡ chữ của ListBox2 nhỏ lại để tiết kiệm diện tích (Size 10)
             ListBox2.Font = new Font(ListBox2.Font.FontFamily, 10f, FontStyle.Regular);
-
             InitToolTips();
-
             // Đọc DB 1 lần duy nhất khi mở Form
             TaiDuLieuTuSQLiteVaoCache();
-
             // Nạp dữ liệu ComboBox
             com_Textphanloai.Items.Clear();
             com_Textphanloai.Items.AddRange(GoiYPhanLoai);
             com_Textphanloai.SelectedIndexChanged -= Com_textphanloai_SelectedIndexChanged;
             com_Textphanloai.SelectedIndexChanged += Com_textphanloai_SelectedIndexChanged;
-
             _daTaiXong = true;
-
             // Tự động chọn Loại 2 làm mặc định (sẽ kích hoạt sự kiện SelectedIndexChanged)
             if (com_Textphanloai.Items.Count > 1)
                 com_Textphanloai.SelectedIndex = 1;
-
             if (string.IsNullOrWhiteSpace(text_Texttongquanso.Text))
             {
                 ListBox2.Items.Add($"⚠️ {Module_HeThong.Tu_Dong_Chi} hãy nhập Tổng quân số!");
@@ -61,11 +51,9 @@ namespace PhanMemThiDua2026
         {
             if (_toolTipInited) return;
             _toolTipInited = true;
-
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = "Chức năng";
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
-
             if (btn_TextTinh != null) toolTip1.SetToolTip(btn_TextTinh, "Nhấn Enter hoặc Click để tính toán");
             if (com_Textphanloai != null) toolTip1.SetToolTip(com_Textphanloai, "Chọn phân loại tập thể");
         }
@@ -73,20 +61,12 @@ namespace PhanMemThiDua2026
         private void TaiDuLieuTuSQLiteVaoCache()
         {
             _cacheTyLe.Clear();
-
-            // =====================================================
             // 1. KHỞI TẠO CACHE
-            // =====================================================
-
             foreach (string loai in GoiYPhanLoai)
             {
                 _cacheTyLe[loai] = new double[3];
             }
-
-            // =====================================================
             // 2. KIỂM TRA CSDL
-            // =====================================================
-
             if (string.IsNullOrWhiteSpace(_csdl2Path) ||
                 !File.Exists(_csdl2Path))
             {
@@ -95,23 +75,16 @@ namespace PhanMemThiDua2026
                     "Cảnh báo",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
-
                 return;
             }
-
             try
             {
-                // =================================================
                 // 3. XÁC ĐỊNH BẢNG THEO PHIÊN BẢN
-                // =================================================
-
                 bool laTanBinh = false;
-
                 try
                 {
                     string phienBan =
                         Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty;
-
                     laTanBinh = phienBan.Contains(
                         "tân binh",
                         StringComparison.OrdinalIgnoreCase);
@@ -121,22 +94,14 @@ namespace PhanMemThiDua2026
                     Debug.WriteLine(
                         $"[Form11] Không xác định được phiên bản: {ex.Message}");
                 }
-
                 string tableQuyDinh = laTanBinh
                     ? "QuyDinhTyLe_TanBinh"
                     : "QuyDinhTyLe";
-
-                // =================================================
                 // 4. ĐỌC CSDL
-                // =================================================
-
                 using var conn = new Microsoft.Data.Sqlite.SqliteConnection(
                     $"Data Source={_csdl2Path};Mode=ReadOnly;");
-
                 conn.Open();
-
                 using var cmd = conn.CreateCommand();
-
                 cmd.CommandText = $"""
             SELECT
                 ID,
@@ -147,43 +112,34 @@ namespace PhanMemThiDua2026
             FROM [{tableQuyDinh}]
             WHERE ID BETWEEN 1 AND 3;
             """;
-
                 using var reader = cmd.ExecuteReader();
-
                 // Lấy ordinal một lần thay vì tìm tên cột lặp lại
                 int ordinalId = reader.GetOrdinal("ID");
                 int ordinalLoai1 = reader.GetOrdinal(Module_HeThong.COL_LOAI_1);
                 int ordinalLoai2 = reader.GetOrdinal(Module_HeThong.COL_LOAI_2);
                 int ordinalLoai3 = reader.GetOrdinal(Module_HeThong.COL_LOAI_3);
                 int ordinalLoai4 = reader.GetOrdinal(Module_HeThong.COL_LOAI_4);
-
                 while (reader.Read())
                 {
                     int id = reader.GetInt32(ordinalId);
-
                     if (id < 1 || id > 3)
                         continue;
-
                     int index = id - 1;
-
                     _cacheTyLe[Module_HeThong.Loai_1][index] =
                         GiaiMaVaChuanHoa(
                             reader.IsDBNull(ordinalLoai1)
                                 ? null
                                 : reader.GetString(ordinalLoai1));
-
                     _cacheTyLe[Module_HeThong.Loai_2][index] =
                         GiaiMaVaChuanHoa(
                             reader.IsDBNull(ordinalLoai2)
                                 ? null
                                 : reader.GetString(ordinalLoai2));
-
                     _cacheTyLe[Module_HeThong.Loai_3][index] =
                         GiaiMaVaChuanHoa(
                             reader.IsDBNull(ordinalLoai3)
                                 ? null
                                 : reader.GetString(ordinalLoai3));
-
                     _cacheTyLe[Module_HeThong.Loai_4][index] =
                         GiaiMaVaChuanHoa(
                             reader.IsDBNull(ordinalLoai4)
@@ -195,7 +151,6 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine(
                     $"[Lỗi nạp CSDL Form 11]: {ex}");
-
                 MessageBox.Show(
                     $"Lỗi nạp CSDL Form 11:\n\n{ex.Message}",
                     "Lỗi Debug",
@@ -206,14 +161,11 @@ namespace PhanMemThiDua2026
         private double GiaiMaVaChuanHoa(string rawValue)
         {
             if (string.IsNullOrWhiteSpace(rawValue)) return 0;
-
-            string decryptedValue = BaoMatAES.GiaiMa(rawValue).Trim();
+            string decryptedValue = Module_BaoMatAES.GiaiMa(rawValue).Trim();
             if (string.IsNullOrWhiteSpace(decryptedValue))
                 decryptedValue = rawValue.Trim();
-
             decryptedValue = decryptedValue.Replace(",", ".");
             double.TryParse(decryptedValue, NumberStyles.Any, CultureInfo.InvariantCulture, out double giaTri);
-
             // Bảo mật dữ liệu: Ép tỷ lệ phải nằm trong khoảng logic 0 - 100%
             if (giaTri < 0) return 0;
             if (giaTri > 100) return 100;
@@ -224,7 +176,6 @@ namespace PhanMemThiDua2026
         {
             if (!_daTaiXong) return;
             string loaiDaChon = com_Textphanloai.SelectedItem?.ToString() ?? "";
-
             // Lấy dữ liệu siêu tốc từ RAM (Cache)
             if (_cacheTyLe.TryGetValue(loaiDaChon, out double[] tyLe))
             {
@@ -234,11 +185,9 @@ namespace PhanMemThiDua2026
             }
         }
         // ⚡ Hàm tính toán bất đồng bộ
-        private async void btn_texttinh_Click(object sender, EventArgs e)
+        private async void btn_texttinh_Click(object? sender, EventArgs e)
         {
-            // =================================================================
             // BƯỚC 1: KIỂM TRA DỮ LIỆU NGAY LẬP TỨC (KHÔNG CHẠY TIẾN TRÌNH NẾU LỖI)
-            // =================================================================
             string strTongQS = text_Texttongquanso.Text.Replace(",", ".");
             if (!double.TryParse(strTongQS, NumberStyles.Any, CultureInfo.InvariantCulture, out double tongQS) || tongQS <= 1 || tongQS > 1000000)
             {
@@ -248,11 +197,9 @@ namespace PhanMemThiDua2026
                 text_Texttongquanso.Focus();
                 return;
             }
-
             string strLoai1 = text_Textloai1.Text.Replace(",", ".");
             string strLoai2 = text_Textloai2.Text.Replace(",", ".");
             string strLoai3 = text_Textloai3.Text.Replace(",", ".");
-
             if (!double.TryParse(strLoai1, NumberStyles.Any, CultureInfo.InvariantCulture, out double pLoai1) ||
                 !double.TryParse(strLoai2, NumberStyles.Any, CultureInfo.InvariantCulture, out double pLoai2) ||
                 !double.TryParse(strLoai3, NumberStyles.Any, CultureInfo.InvariantCulture, out double pLoai3))
@@ -261,32 +208,23 @@ namespace PhanMemThiDua2026
                 ListBox2.Items.Add("⚠️ Dữ liệu tỷ lệ từ CSDL không hợp lệ!");
                 return; // ⚡ Chặn đứng tại đây
             }
-
-            // =================================================================
             // BƯỚC 2: DỮ LIỆU ĐÃ CHUẨN -> KHÓA UI VÀ CHẠY THANH TIẾN ĐỘ
-            // =================================================================
             try
             {
                 btn_TextTinh.Enabled = false;
                 ListBox2.Items.Clear();
-
                 tienDo_kryptonProgressBar1.Minimum = 0;
                 tienDo_kryptonProgressBar1.Maximum = 100;
                 tienDo_kryptonProgressBar1.Value = 0;
                 tienDo_kryptonProgressBar1.Visible = true;
-
                 for (int i = 0; i <= 100; i += 4)
                 {
                     tienDo_kryptonProgressBar1.Value = i;
                     tienDo_kryptonProgressBar1.Text = $"{i} %";
                     btn_TextTinh.Text = $"Đang xử lý... {i}%";
-
                     await Task.Delay(15);
                 }
-
-                // =================================================================
                 // BƯỚC 3: THỰC THI TÍNH TOÁN VÀ TRUYỀN SỐ LIỆU ĐÃ KIỂM TRA VÀO
-                // =================================================================
                 ThucThiTinhToan(tongQS, pLoai1, pLoai2, pLoai3);
                 System.Media.SystemSounds.Beep.Play();
             }
@@ -298,10 +236,8 @@ namespace PhanMemThiDua2026
             {
                 btn_TextTinh.Text = "Tính";
                 btn_TextTinh.Enabled = true;
-
                 tienDo_kryptonProgressBar1.Text = "Hoàn thành";
                 tienDo_kryptonProgressBar1.Value = 0;
-
                 text_Texttongquanso.Focus();
             }
         }
@@ -310,42 +246,31 @@ namespace PhanMemThiDua2026
         {
             // Chuyển % sang hệ số thập phân
             pLoai1 /= 100.0; pLoai2 /= 100.0; pLoai3 /= 100.0;
-
-            // =================================================================
             // 🌟 ĐỒNG BỘ LUẬT MỚI: TÍNH TOÁN QUÂN SỐ CƠ BẢN DÙNG MATH.FLOOR
-            // =================================================================
-
             // 1. Ép phần nguyên dưới để Loại 2 không vượt trần % quy định
             int qLoai2 = (int)Math.Floor(tongQS * pLoai2);
-
             // 2. ⚖️ CÂN BẰNG QUÂN SỐ: Loại 3 bắt buộc gánh toàn bộ phần dư để tổng L2 + L3 = Tổng QS
             int qLoai3 = (int)tongQS - qLoai2;
-
             // 3. Loại 1 là tập con của Loại 2 (Chiến sĩ TĐCS xét từ LĐTT)
             // Ép phần nguyên dưới để Loại 1 không vượt trần % quy định
             int qLoai1 = (int)Math.Floor(qLoai2 * pLoai1);
             if (qLoai1 > qLoai2) qLoai1 = qLoai2; // Rào chắn an toàn
-
             // TÍNH TOÁN LẠI TỶ LỆ THỰC TẾ ĐẠT ĐƯỢC SAU LÀM TRÒN
             double tlLoai1Thuc = qLoai2 == 0 ? 0 : Math.Round(qLoai1 * 100.0 / qLoai2, 2);
             double tlLoai2Thuc = Math.Round(qLoai2 * 100.0 / tongQS, 2);
             double tlLoai3Thuc = Math.Round(qLoai3 * 100.0 / tongQS, 2);
-
             // HIỂN THỊ KẾT QUẢ BÁO CÁO
             ListBox2.Items.Add("KẾT QUẢ TÍNH TOÁN THI ĐUA");
             ListBox2.Items.Add(new string('-', 30));
-
             ListBox2.Items.Add("1. Thông số theo quy định:");
             ListBox2.Items.Add($"   {Module_HeThong.Loai_1}: {text_Textloai1.Text}% (Tính trong {Module_HeThong.Loai_2})");
             ListBox2.Items.Add($"   {Module_HeThong.Loai_2}: {text_Textloai2.Text}% (Tính trong Tổng QS)");
             ListBox2.Items.Add($"   {Module_HeThong.Loai_3}: {text_Textloai3.Text}% (Tính trong Tổng QS)");
-
             ListBox2.Items.Add("");
             ListBox2.Items.Add($"2. Kết quả khi phân loại tập thể đạt [{com_Textphanloai.Text}]:");
             ListBox2.Items.Add($"   {Module_HeThong.Loai_1}: {qLoai1} đ/c (Đạt {tlLoai1Thuc.ToString(CultureInfo.InvariantCulture)}%)");
             ListBox2.Items.Add($"   {Module_HeThong.Loai_2}: {qLoai2} đ/c (Đạt {tlLoai2Thuc.ToString(CultureInfo.InvariantCulture)}%)");
             ListBox2.Items.Add($"   {Module_HeThong.Loai_3}: {qLoai3} đ/c (Đạt {tlLoai3Thuc.ToString(CultureInfo.InvariantCulture)}%)");
-
             ListBox2.Items.Add("");
             ListBox2.Items.Add("3. Trích xuất báo cáo nhanh:");
             ListBox2.Items.Add($"   + Số lượng L1/L2 : {qLoai1}/{qLoai2} = {tlLoai1Thuc.ToString(CultureInfo.InvariantCulture)}%");

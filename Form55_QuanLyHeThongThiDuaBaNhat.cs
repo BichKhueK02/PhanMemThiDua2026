@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form55_QuanLyHeThongThiDuaBaNhat : Form
@@ -22,16 +21,14 @@ namespace PhanMemThiDua2026
         }      
         // FORM LOAD
         private async void Form55_QuanLyHeThongThiDuaBaNhat_Load(
-            object sender,
+            object? sender,
             EventArgs e)
         {
             if (_dangDongForm)
                 return;
-
             try
             {
                 await MoForm42Async();
-
                 DaLoadDuLieu = true;
             }
             catch (Exception ex)
@@ -84,29 +81,22 @@ namespace PhanMemThiDua2026
             try
             {
                 TaoForm42NeuCan();
-
                 if (_frm44 != null &&
                     !_frm44.IsDisposed &&
                     _frm44.Visible)
                 {
                     _frm44.Hide();
                 }
-
                 if (_frm42 == null || _frm42.IsDisposed)
                     return;
-
                 _frm42.Show();
                 _frm42.BringToFront();
-
                 CapNhatTieuDeFormChinh(
                     $"Quản lý phong trào thi đua Ba Nhất năm {_namHeThong}");
-
                 await _frm42.DongBoDuLieuLoai1SangBaNhatAsync();
-
                 if (_dangDongForm ||
                     _frm42.IsDisposed)
                     return;
-
                 await _frm42.LoadDuLieuToanBoDanhSachBaNhatAsync();
             }
             finally
@@ -119,25 +109,20 @@ namespace PhanMemThiDua2026
         {
             if (_dangDongForm)
                 return;
-
             await _navigationLock.WaitAsync();
-
             try
             {
                 TaoForm44NeuCan();
-
                 if (_frm42 != null &&
                     !_frm42.IsDisposed &&
                     _frm42.Visible)
                 {
                     _frm42.Hide();
                 }
-
                 if (_frm44 == null || _frm44.IsDisposed)
                     return;
                 _frm44.Show();
                 _frm44.BringToFront();
-
                 CapNhatTieuDeFormChinh($"Sổ vàng vinh danh thi đua Ba Nhất năm {_namHeThong}");
                 await _frm44.LoadDuLieuSoVangBaNhatAsync();
             }
@@ -147,7 +132,7 @@ namespace PhanMemThiDua2026
             }
         }   
         // MENU - FORM 42
-        private async void quanLyThiDuaBaNhat_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void quanLyThiDuaBaNhat_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -159,7 +144,7 @@ namespace PhanMemThiDua2026
             }
         }      
         // MENU - FORM 44
-        private async void quanLySoVangThiDuaBaNhat_ToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void quanLySoVangThiDuaBaNhat_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -177,9 +162,7 @@ namespace PhanMemThiDua2026
         {
             if (_dangDongForm)
                 return;
-
             await _navigationLock.WaitAsync();
-
             try
             {
                 if (_frm42 != null &&
@@ -187,16 +170,13 @@ namespace PhanMemThiDua2026
                     _frm42.Visible)
                 {
                     await _frm42.DongBoDuLieuLoai1SangBaNhatAsync();
-
                     if (!_dangDongForm &&
                         !_frm42.IsDisposed)
                     {
                         await _frm42.LoadDuLieuToanBoDanhSachBaNhatAsync();
                     }
-
                     return;
                 }
-
                 if (_frm44 != null &&
                     !_frm44.IsDisposed &&
                     _frm44.Visible)
@@ -214,17 +194,14 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrWhiteSpace(tieuDe))
                 return;
-
             var frmChinh = Application.OpenForms
                 .OfType<Form2_FormCha>()
                 .FirstOrDefault();
-
             if (frmChinh == null ||
                 frmChinh.IsDisposed)
             {
                 return;
             }
-
             frmChinh.CapNhatTieuDe(tieuDe);
         }        
         // XỬ LÝ LỖI TẬP TRUNG
@@ -234,7 +211,6 @@ namespace PhanMemThiDua2026
         {
             if (_dangDongForm)
                 return;
-
             MessageBox.Show(
                 this,
                 thongBao + "\n\n" + ex.Message,
@@ -246,7 +222,6 @@ namespace PhanMemThiDua2026
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _dangDongForm = true;
-
             try
             {
                 // Hủy các tác vụ đang chờ vào lock.
@@ -256,25 +231,20 @@ namespace PhanMemThiDua2026
                 {
                     if (!_frm42.IsDisposed)
                         _frm42.Dispose();
-
                     _frm42 = null;
                 }
-
                 if (_frm44 != null)
                 {
                     if (!_frm44.IsDisposed)
                         _frm44.Dispose();
-
                     _frm44 = null;
                 }
-
                 _navigationLock.Dispose();
             }
             catch
             {
                 // Không để lỗi dọn dẹp chặn quá trình đóng Form.
             }
-
             base.OnFormClosing(e);
         }
     }

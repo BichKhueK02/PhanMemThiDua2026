@@ -6,7 +6,6 @@
         ///  Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         ///  Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         /// <summary>
         ///  Required method for Designer support - do not modify
         ///  the contents of this method with the code editor.
@@ -135,10 +132,10 @@
             // 
             PictureBox1.Anchor = AnchorStyles.None;
             PictureBox1.Image = (Image)resources.GetObject("PictureBox1.Image");
-            PictureBox1.Location = new Point(25, 82);
+            PictureBox1.Location = new Point(12, 83);
             PictureBox1.Margin = new Padding(4, 2, 4, 2);
             PictureBox1.Name = "PictureBox1";
-            PictureBox1.Size = new Size(239, 177);
+            PictureBox1.Size = new Size(264, 174);
             PictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             PictureBox1.TabIndex = 0;
             PictureBox1.TabStop = false;
@@ -169,11 +166,11 @@
             label3_HienThiTenPhanMem.AutoSize = true;
             label3_HienThiTenPhanMem.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label3_HienThiTenPhanMem.ForeColor = Color.FromArgb(0, 0, 192);
-            label3_HienThiTenPhanMem.Location = new Point(93, 47);
+            label3_HienThiTenPhanMem.Location = new Point(128, 47);
             label3_HienThiTenPhanMem.Name = "label3_HienThiTenPhanMem";
-            label3_HienThiTenPhanMem.Size = new Size(249, 21);
+            label3_HienThiTenPhanMem.Size = new Size(180, 21);
             label3_HienThiTenPhanMem.TabIndex = 13;
-            label3_HienThiTenPhanMem.Text = "Phần mềm Phân loại thi đua 2026";
+            label3_HienThiTenPhanMem.Text = "Phần mềm thi đua 2026";
             // 
             // TableLayoutPanel3
             // 
@@ -377,7 +374,6 @@
             TableLayoutPanel2.PerformLayout();
             ResumeLayout(false);
         }
-
         #endregion
         private ToolTip toolTip1;
         private Panel panel1;
