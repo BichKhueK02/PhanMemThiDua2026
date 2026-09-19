@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Runtime.InteropServices;
@@ -67,39 +68,65 @@ namespace PhanMemThiDua2026
             }
         }
         // Lê Trung Kiên -  Yêu mèo cam
+        // Cache Font dùng cho trạng thái "tải thành công" - tránh tạo mới đối tượng Font
+        // (giữ GDI handle) mỗi lần Load chạy lại, chỉ tạo 1 lần và tái sử dụng.
+        private Font _fontTrangThaiThanhCong;
         private async void Form29_CBCSTrongDienQuanLy_Load(object? sender, EventArgs e)
         {
             if (Interlocked.Exchange(ref _isLoading, 1) == 1)
                 return;
             try
             {
+                // BƯỚC 1 — UI THUẦN, KHÔNG phụ thuộc dữ liệu (_dataGoc).
+                // Chạy ngay lập tức, đồng bộ, rẻ -> form phản hồi nhanh nhất có thể
+                // ngay khi Load, thay vì phải đợi hết chuỗi xử lý phía sau.
+                // (Giả định TaoCotChoGridView() chỉ định nghĩa cấu trúc cột cố định,
+                // KHÔNG phụ thuộc nội dung dữ liệu thực tế - nếu không đúng, dời lại
+                // xuống sau BƯỚC 2.)
                 Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
+                InitPlaceHolder();
+                InitSearchTimer();
+                TaoCotChoGridView();
                 toolStripStatusLabel4.Text = "Đang tải dữ liệu...";
+                // BƯỚC 2 — TẢI DỮ LIỆU (I/O, tốn thời gian). Chỉ tải khi cache rỗng.
                 if (_dataGoc.Count == 0)
                 {
                     _dataGoc = await LoadDanhSachAsync(_cts.Token);
+                    // Thoát sớm nếu form đã đóng / bị hủy trong lúc chờ - tránh
+                    // thao tác trên control đã Dispose (ObjectDisposedException).
                     if (IsDisposed || _cts.IsCancellationRequested)
                         return;
                 }
-                TaoCotChoGridView();
-                LoadComboDonVi();
-                LoadComboPhanLoai();
-                LoadComboGhiChu();
-                InitSearchTimer();
-                InitPlaceHolder();
-                InitFilters();
-                ApplyFilter_Virtual();
-                int tongSo = _dataGoc?.Count ?? 0;
+                // BƯỚC 3 — CÁC THAO TÁC PHỤ THUỘC DỮ LIỆU, phải chạy SAU await,
+                // đúng thứ tự phụ thuộc: Combo (cần _dataGoc) -> Filter (cần Combo)
+                // -> ApplyFilter_Virtual (render, phải chạy SAU CÙNG và chỉ 1 lần).
+                //
+                // Gom trong SuspendLayout/ResumeLayout để tránh grid vẽ lại nhiều
+                // lần khi vừa nạp combo vừa bind dữ liệu -> mượt hơn, đỡ giật/nháy.
+                kryptonDataGridView2.SuspendLayout();
+                try
+                {
+                    LoadComboDonVi();
+                    LoadComboPhanLoai();
+                    LoadComboGhiChu();
+                    InitFilters();
+                    ApplyFilter_Virtual();
+                }
+                finally
+                {
+                    kryptonDataGridView2.ResumeLayout();
+                }
+                // BƯỚC 4 — CẬP NHẬT LABEL THỐNG KÊ, thực hiện SAU CÙNG vì phụ
+                // thuộc kết quả cuối (tongSo) sau khi đã lọc/hiển thị xong.
+                int tongSo = _dataGoc.Count; // bỏ "?." thừa: _dataGoc đã được đảm bảo non-null ở BƯỚC 2
                 toolStripStatusLabel4.Visible = tongSo > 0;
                 if (tongSo > 0)
                 {
-                    toolStripStatusLabel4.Text =
-                        $"Tổng cộng {tongSo:N0} {Module_HeThong.Tu_dong_chi}";
+                    toolStripStatusLabel4.Text = $"Tổng cộng {tongSo:N0} {Module_HeThong.Tu_dong_chi}";
                 }
-                toolStripStatusLabel4.ForeColor =
-                    Color.FromArgb(25, 135, 84); // xanh lá đẹp
-                toolStripStatusLabel4.Font =
-                    new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
+                toolStripStatusLabel4.ForeColor = Color.FromArgb(25, 135, 84); // xanh lá đẹp
+                _fontTrangThaiThanhCong ??= new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
+                toolStripStatusLabel4.Font = _fontTrangThaiThanhCong;
             }
             catch (OperationCanceledException)
             {
@@ -118,6 +145,8 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _isLoading, 0);
             }
         }
+        // Trong Dispose(bool disposing) của Form, nhớ thêm:
+        // if (disposing) _fontTrangThaiThanhCong?.Dispose();
         // ⭐ LÕI DỮ LIỆU DATA ACCESS (CACHE AES VÀ STRING POOL)
         private async Task<List<CBCSQuanLyModel>> LoadDanhSachAsync(CancellationToken token)
         {
@@ -517,9 +546,7 @@ namespace PhanMemThiDua2026
             try
             {
                 grid.Columns.Clear();
-                // ====================================================================
                 // 🌟 1. ÁP DỤNG PHONG CÁCH "WEB DESIGN": KHOẢNG TRẮNG, MÀU SẮC, FONT
-                // ====================================================================
                 // 1.1 Chiều cao và khoảng trống (Whitespace)
                 grid.RowTemplate.Height = 36; // Dòng cao thoáng đãng
                 grid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None; // Tối ưu cuộn
@@ -548,9 +575,7 @@ namespace PhanMemThiDua2026
                 grid.ScrollBars = ScrollBars.Vertical;
                 // Padding đáy nếu cần không gian thừa
                 grid.Margin = new Padding(0, 0, 0, 30);
-                // ====================================================================
                 // 🌟 2. TẠO CỘT VÀ TỐI ƯU VỊ TRÍ
-                // ====================================================================
                 // Cột STT
                 var colSTT = new DataGridViewTextBoxColumn
                 {
@@ -591,9 +616,7 @@ namespace PhanMemThiDua2026
                     col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
                     grid.Columns.Add(col);
                 }
-                // =====================================================================
                 // 🌟 3. KHÓA CHẶT THỨ TỰ HIỂN THỊ (DISPLAYINDEX)
-                // =====================================================================
                 string[] columnOrder = {
             "STT", "HoVaTen", "SoHieu", "NamSinh", "QueQuan",
             "NgayVaoCAND", "CapBac", "ChucVu", "DonVi", "PhanLoai", "GhiChu"

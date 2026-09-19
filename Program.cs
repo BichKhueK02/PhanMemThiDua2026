@@ -13,12 +13,12 @@ namespace PhanMemThiDua2026
         [STAThread]
         static void Main()
         {
-            // 1. Tối ưu hóa phản hồi hệ thống (Ưu tiên hàng đầu)
+            // 1. THIẾT LẬP NỀN TẢNG WINFORMS
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             SetBrowserFeatureControl();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            // Tăng độ ưu tiên cho Process giúp app mượt hơn
+            // 2. TĂNG ĐỘ ƯU TIÊN TIẾN TRÌNH
             using (Process p = Process.GetCurrentProcess())
             {
                 p.PriorityClass = ProcessPriorityClass.AboveNormal;
@@ -26,7 +26,7 @@ namespace PhanMemThiDua2026
             bool isPrimaryInstance = false;
             try
             {
-                // 2. Kiểm soát Single Instance
+                // 3. KIỂM SOÁT SINGLE INSTANCE
                 try
                 {
                     _appMutex = new Mutex(true, AppMutexName, out isPrimaryInstance);
@@ -40,18 +40,20 @@ namespace PhanMemThiDua2026
                     ShowSingleInstanceMessage();
                     return;
                 }
-                // 3. Khởi tạo cấu hình WinForms mặc định
+                // 4. KHỞI TẠO CẤU HÌNH WINFORMS
                 ApplicationConfiguration.Initialize();
-                // 🌟 THÊM MỚI Ở ĐÂY: Kiểm tra tỷ lệ màn hình ngay sau khi init cấu hình WinForms
-                Module_KhoiDongTrangChu.KiemTraVaCanhBaoTyLeManHinh();
-                // 4. Thiết lập bẫy lỗi toàn cục
+                // 5. ĐĂNG KÝ BẪY LỖI TOÀN CỤC
                 ConfigureGlobalExceptionHandlers();
-                // 5. Khởi tạo hệ thống lõi (Khởi tạo DB, giải mã đường dẫn)
-                if (!KiemTraTrangThaiKhoiDong()) // Đã đổi tên từ NewMethod
-                {
-                    return; // Dừng khởi động nếu lõi có vấn đề
-                }
-                // 6. ĐỒNG BỘ DỮ LIỆU
+                // 6. KIỂM TRA TỶ LỆ MÀN HÌNH
+                Module_KhoiDongTrangChu.KiemTraVaCanhBaoTyLeManHinh();
+                // 7. KHỞI TẠO HỆ THỐNG LÕI + CSDL
+                if (!KiemTraTrangThaiKhoiDong())
+                    return;
+                // 🌟 THÊM DÒNG NÀY VÀO ĐÂY: Đọc cấu hình màu từ CSDL lên RAM sau khi CSDL đã sẵn sàng
+                //Module_GiaoDien.KhoiDongDocTheme();
+                // 🌟 NẠP MÀU TỪ CSDL CHO MENU CHUỘT PHẢI NGAY KHI CSDL ĐÃ SẴN SÀNG
+                Module_MenuChuotPhai.KhoiTaoMauTuCSDL(Module_DanduongGPS.DuongDanCSDL2);
+                // 8. ĐỒNG BỘ DỮ LIỆU KHÔNG BẮT BUỘC
                 try
                 {
                     Module_HuongDanSuDung.SyncMasterVersion();
@@ -59,14 +61,15 @@ namespace PhanMemThiDua2026
                 }
                 catch (Exception ex)
                 {
-                    SafeLog("SYSTEM", "Sync Error", $"Lỗi đồng bộ Hướng dẫn sử dụng: {ex.Message}");
+                    SafeLog(
+                        "SYSTEM",
+                        "Sync Error",
+                        $"Lỗi đồng bộ Hướng dẫn sử dụng: {ex.Message}");
                 }
-                // 7. Gom cụm Tác vụ nền (Preload & Bảo vệ) vào chung 1 Task để tối ưu ThreadPool
+                // 9. TÁC VỤ NỀN SAU KHI CORE ĐÃ SẴN SÀNG
                 Task.Run(() =>
                 {
-                    // Chạy preload
                     PreloadBackgroundTasks();
-                    // Chạy bảo vệ hệ thống
                     try
                     {
                         Module_KhoiTaoCSDL.TuongLuaBaoVeHeThong(AppContext.BaseDirectory);
@@ -77,7 +80,7 @@ namespace PhanMemThiDua2026
                         Debug.WriteLine("Lỗi tự vệ hệ thống ngầm: " + ex.Message);
                     }
                 });
-                // 8. Khởi chạy giao diện chính
+                // 10. KHỞI CHẠY GIAO DIỆN CHÍNH
                 Application.Run(new Form1());
             }
             catch (Exception ex)
@@ -86,6 +89,7 @@ namespace PhanMemThiDua2026
             }
             finally
             {
+                // 11. GIẢI PHÓNG TÀI NGUYÊN KHI ỨNG DỤNG KẾT THÚC
                 CleanupResources(isPrimaryInstance);
             }
         }

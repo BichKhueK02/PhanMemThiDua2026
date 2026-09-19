@@ -121,10 +121,8 @@ namespace PhanMemThiDua2026
                 int stt = 1;
                 foreach (DataRow row in dt.Rows)
                 {
-                    // =
                     // TÊN TỈNH / THÀNH PHỐ
                     // LẤY ĐÚNG TỪ CSDL, KHÔNG LẤY TỪ TEXTBOX
-                    // =
                     string tenTinhVaThanhPho =
                         row["TenTinhVaThanhPho"]?
                             .ToString()?
@@ -132,9 +130,7 @@ namespace PhanMemThiDua2026
                         ?? string.Empty;
                     row["TenTinhVaThanhPho"] =
                         ChuanHoaTenTinh(tenTinhVaThanhPho);
-                    // =
                     // THỜI GIAN
-                    // =
                     string thoiGian =
                         row["ThoiGian"]?
                             .ToString()?
@@ -152,9 +148,7 @@ namespace PhanMemThiDua2026
                     {
                         row["ThoiGian"] = thoiGian;
                     }
-                    // =
                     // STT
-                    // =
                     row["STT"] = stt++;
                 }
                 // GÁN DỮ LIỆU CHO GRID

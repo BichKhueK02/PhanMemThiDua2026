@@ -17,7 +17,7 @@ namespace PhanMemThiDua2026
     {
         // Đường dẫn cơ sở dữ liệu csdl2.db của hệ thống
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private readonly int _namHeThong = Module_HeThong.LayNamHeThong();
+    //    private readonly int _namHeThong = Module_HeThong.LayNamHeThong();
         // 2 Instance con được gắn cố định vào panelContent của Form55
         private const float RichText_MinFontSize = 7f;
         private const float RichText_MaxFontSize = 30f;
@@ -234,29 +234,61 @@ namespace PhanMemThiDua2026
         {
             int tongCong = 0;
             int soDeNghi = 0;
-            // Kiểm tra nếu lưới có dữ liệu thì mới tiến hành đếm
-            if (kryptonDataGridView1 != null && kryptonDataGridView1.Rows.Count > 0)
+            // TỐI ƯU: Đếm trực tiếp trên DataTable (nguồn dữ liệu gốc) thay vì
+            // lặp qua DataGridViewRow của lưới.
+            //
+            // Lý do nhanh hơn & tiết kiệm RAM hơn:
+            //  - Duyệt DataGridViewRow/DataGridViewCell tốn overhead vì đây là
+            //    các đối tượng UI (có style, formatting, trạng thái paint...),
+            //    trong khi duyệt DataRow là truy cập dữ liệu thô, nhẹ hơn nhiều.
+            //  - row.Cells["DeNghi"] tra cứu cột theo TÊN CHUỖI mỗi vòng lặp
+            //    (tìm kiếm tuyến tính trong danh sách cột) -> chậm khi số dòng lớn.
+            //  - DataTable.Compute đẩy việc đếm xuống tầng ADO.NET (được cài đặt
+            //    tối ưu sẵn), không cần vòng lặp managed code, không boxing,
+            //    không gọi ToString()/Trim() thủ công cho từng ô.
+            if (kryptonDataGridView1?.DataSource is DataTable dt && dt.Rows.Count > 0)
             {
-                tongCong = kryptonDataGridView1.Rows.Count;
-                // Quét từng dòng để đếm số lượng người được đề nghị (có chữ "X")
-                foreach (DataGridViewRow row in kryptonDataGridView1.Rows)
+                tongCong = dt.Rows.Count;
+                if (dt.Columns.Contains("DeNghi") && dt.Columns.Contains("ID"))
                 {
-                    string giaTriDeNghi = row.Cells["DeNghi"].Value?.ToString() ?? "";
-                    if (giaTriDeNghi.Trim().Equals("X", StringComparison.OrdinalIgnoreCase))
+                    // Lọc + đếm trong 1 lệnh duy nhất, không tạo mảng DataRow trung gian
+                    object result = dt.Compute("Count(ID)", "TRIM(DeNghi) = 'X'");
+                    soDeNghi = result == DBNull.Value ? 0 : Convert.ToInt32(result);
+                }
+            }
+            else if (kryptonDataGridView1 != null && kryptonDataGridView1.Rows.Count > 0)
+            {
+                // Fallback: chỉ dùng khi DataSource KHÔNG phải DataTable
+                // (ví dụ bind tay từng dòng). Vẫn tối ưu bằng cách lấy index cột
+                // MỘT LẦN duy nhất trước vòng lặp, thay vì tra theo tên mỗi dòng.
+                tongCong = kryptonDataGridView1.Rows.Count;
+                int colIndex = kryptonDataGridView1.Columns.Contains("DeNghi")
+                    ? kryptonDataGridView1.Columns["DeNghi"].Index
+                    : -1;
+                if (colIndex >= 0)
+                {
+                    foreach (DataGridViewRow row in kryptonDataGridView1.Rows)
                     {
-                        soDeNghi++;
+                        string giaTriDeNghi = row.Cells[colIndex].Value?.ToString();
+                        if (!string.IsNullOrEmpty(giaTriDeNghi) &&
+                            giaTriDeNghi.Trim().Equals("X", StringComparison.OrdinalIgnoreCase))
+                        {
+                            soDeNghi++;
+                        }
                     }
                 }
             }
             // ⭐ XỬ LÝ LOGIC HIỂN THỊ CÂU THỐNG KÊ
-            string cauThongKe;
-            if (soDeNghi > 0)
+            string cauThongKe = soDeNghi > 0
+                ? $"Tổng cộng: {tongCong} {Module_HeThong.Tu_dong_chi}, được đề nghị biểu dương {soDeNghi} {Module_HeThong.Tu_dong_chi}."
+                : $"Tổng cộng: {tongCong} {Module_HeThong.Tu_dong_chi}.";
+            // TODO (BUG trong code gốc): cauThongKe đang được tính nhưng chưa gán
+            // vào control hiển thị nào. Gán vào label/status bar thực tế của bạn, ví dụ:
+            // label_ThongKe.Text = cauThongKe;
+            if (hienThongBaoLamMoi)
             {
-                cauThongKe = $"Tổng cộng: {tongCong} {Module_HeThong.Tu_dong_chi}, được đề nghị biểu dương {soDeNghi} {Module_HeThong.Tu_dong_chi}.";
-            }
-            else
-            {
-                cauThongKe = $"Tổng cộng: {tongCong} {Module_HeThong.Tu_dong_chi}.";
+                // TODO: nếu cần hiển thị thông báo "vừa làm mới dữ liệu", xử lý tại đây, ví dụ:
+                // ShowToast(cauThongKe);
             }
         }
         private void KhoaCacTextBox()
@@ -414,36 +446,41 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine("Lỗi đồng bộ chuyển bảng dữ liệu Ba Nhất: " + ex.Message);
             }
         }
-        public async Task LoadDuLieuToanBoDanhSachBaNhatAsync()
+        // Field cấp lớp: dùng để tự hủy lần load cũ khi có lần gọi mới (tránh race condition
+        // khi hàm bị gọi liên tiếp - ví dụ người dùng bấm "Làm mới" nhiều lần liên tục).
+        private CancellationTokenSource _ctsLoadDanhSachBaNhat;
+        public async Task LoadDuLieuToanBoDanhSachBaNhatAsync(CancellationToken externalToken = default)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+            // AN TOÀN: chặn SQL injection nếu TenBangDanhSachBaNhat từng có khả năng
+            // đến từ nguồn không hoàn toàn tin cậy (cấu hình, import...). Chỉ chấp nhận
+            // tên bảng gồm chữ/số/gạch dưới thay vì tin tưởng tuyệt đối vào dấu ngoặc [].
+            if (!IsValidIdentifier(TenBangDanhSachBaNhat))
+            {
+                System.Diagnostics.Debug.WriteLine($"Tên bảng không hợp lệ: {TenBangDanhSachBaNhat}");
+                return;
+            }
+            // AN TOÀN: hủy lần load trước đó (nếu còn đang chạy) trước khi bắt đầu lần mới,
+            // đảm bảo chỉ có 1 kết quả "thắng" và ghi vào lưới.
+            _ctsLoadDanhSachBaNhat?.Cancel();
+            _ctsLoadDanhSachBaNhat?.Dispose();
+            _ctsLoadDanhSachBaNhat = CancellationTokenSource.CreateLinkedTokenSource(externalToken);
+            CancellationToken token = _ctsLoadDanhSachBaNhat.Token;
             try
             {
-                if (kryptonDataGridView1 != null) kryptonDataGridView1.DataSource = null;
-                DataTable dtBaNhat = new DataTable();
+                if (kryptonDataGridView1 != null && !kryptonDataGridView1.IsDisposed)
+                    kryptonDataGridView1.DataSource = null;
+                DataTable dtBaNhat = TaoSchemaDanhSachBaNhat();
+                int tongQuanSoGoc = 0;
                 await using (var conn = new SqliteConnection($"Data Source={_csdl2Path}"))
                 {
-                    await conn.OpenAsync();
+                    await conn.OpenAsync(token);
                     await using var cmd = conn.CreateCommand();
-                    // ⭐ MỚI: Thêm TinhTrang vào câu SELECT
-                    cmd.CommandText = $"SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich, TinhTrang FROM [{TenBangDanhSachBaNhat}] ORDER BY STT ASC;";
-                    await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess);
-                    dtBaNhat.Columns.Add("ID", typeof(int));
-                    dtBaNhat.Columns.Add("STT", typeof(int));
-                    dtBaNhat.Columns.Add("HoVaTen", typeof(string));
-                    dtBaNhat.Columns.Add("SoHieu", typeof(string));
-                    dtBaNhat.Columns.Add("NamSinh", typeof(string));
-                    dtBaNhat.Columns.Add("QueQuan", typeof(string));
-                    dtBaNhat.Columns.Add("NgayVaoCAND", typeof(string));
-                    dtBaNhat.Columns.Add("CapBac", typeof(string));
-                    dtBaNhat.Columns.Add("ChucVu", typeof(string));
-                    dtBaNhat.Columns.Add("DonVi", typeof(string));
-                    dtBaNhat.Columns.Add("PhanLoai", typeof(string));
-                    dtBaNhat.Columns.Add("GhiChu", typeof(string));
-                    dtBaNhat.Columns.Add("DeNghi", typeof(string));
-                    dtBaNhat.Columns.Add("ThanhTich", typeof(string));
-                    dtBaNhat.Columns.Add("TinhTrang", typeof(string)); // ⭐ MỚI
-                    dtBaNhat.BeginLoadData();
+                    cmd.CommandText =
+                        $"SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, " +
+                        $"ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich, TinhTrang " +
+                        $"FROM [{TenBangDanhSachBaNhat}] ORDER BY STT ASC;";
+                    await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, token);
                     int idxID = reader.GetOrdinal("ID");
                     int idxHoTen = reader.GetOrdinal("HoVaTen");
                     int idxSoHieu = reader.GetOrdinal("SoHieu");
@@ -457,48 +494,102 @@ namespace PhanMemThiDua2026
                     int idxGhiChu = reader.GetOrdinal("GhiChu");
                     int idxDeNghi = reader.GetOrdinal("DeNghi");
                     int idxThanhTich = reader.GetOrdinal("ThanhTich");
-                    int idxTinhTrang = reader.GetOrdinal("TinhTrang"); // ⭐ MỚI
+                    int idxTinhTrang = reader.GetOrdinal("TinhTrang");
+                    // Đọc chuỗi an toàn (null nếu DBNull) rồi giải mã - gom logic lặp lại
+                    // 12 lần trong bản gốc thành 1 hàm cục bộ (dễ đọc, JIT vẫn inline được).
+                    string ReadSafe(int idx) => SafeGiaiMa(reader.IsDBNull(idx) ? null : reader.GetString(idx));
+                    dtBaNhat.BeginLoadData();
+                    // TỐI ƯU BỘ NHỚ: tái sử dụng 1 mảng buffer duy nhất cho mọi dòng thay vì
+                    // cấp phát mảng object[15] mới ở mỗi vòng lặp. DataRowCollection.Add(object[])
+                    // sao chép giá trị vào DataRow ngay lập tức nên tái sử dụng mảng là an toàn.
+                    var rowBuffer = new object[dtBaNhat.Columns.Count];
                     int sttTuDong = 1;
-                    while (await reader.ReadAsync())
+                    while (await reader.ReadAsync(token))
                     {
-                        object[] row =
-                        {
-                    reader.GetInt32(idxID),
-                    sttTuDong++,
-                    SafeGiaiMa(reader.IsDBNull(idxHoTen) ? null : reader.GetString(idxHoTen)),
-                    SafeGiaiMa(reader.IsDBNull(idxSoHieu) ? null : reader.GetString(idxSoHieu)),
-                    SafeGiaiMa(reader.IsDBNull(idxNamSinh) ? null : reader.GetString(idxNamSinh)),
-                    SafeGiaiMa(reader.IsDBNull(idxQueQuan) ? null : reader.GetString(idxQueQuan)),
-                    SafeGiaiMa(reader.IsDBNull(idxNgayVao) ? null : reader.GetString(idxNgayVao)),
-                    SafeGiaiMa(reader.IsDBNull(idxCapBac) ? null : reader.GetString(idxCapBac)),
-                    SafeGiaiMa(reader.IsDBNull(idxChucVu) ? null : reader.GetString(idxChucVu)),
-                    SafeGiaiMa(reader.IsDBNull(idxDonVi) ? null : reader.GetString(idxDonVi)),
-                    SafeGiaiMa(reader.IsDBNull(idxPhanLoai) ? null : reader.GetString(idxPhanLoai)),
-                    SafeGiaiMa(reader.IsDBNull(idxGhiChu) ? null : reader.GetString(idxGhiChu)),
-                    SafeGiaiMa(reader.IsDBNull(idxDeNghi) ? null : reader.GetString(idxDeNghi)),
-                    SafeGiaiMa(reader.IsDBNull(idxThanhTich) ? null : reader.GetString(idxThanhTich)),
-                    SafeGiaiMa(reader.IsDBNull(idxTinhTrang) ? null : reader.GetString(idxTinhTrang)) // ⭐ MỚI
-                };
-                        dtBaNhat.Rows.Add(row);
+                        int id = reader.GetInt32(idxID);
+                        rowBuffer[0] = id;
+                        rowBuffer[1] = sttTuDong++;
+                        rowBuffer[2] = ReadSafe(idxHoTen);
+                        rowBuffer[3] = ReadSafe(idxSoHieu);
+                        rowBuffer[4] = ReadSafe(idxNamSinh);
+                        rowBuffer[5] = ReadSafe(idxQueQuan);
+                        rowBuffer[6] = ReadSafe(idxNgayVao);
+                        rowBuffer[7] = ReadSafe(idxCapBac);
+                        rowBuffer[8] = ReadSafe(idxChucVu);
+                        rowBuffer[9] = ReadSafe(idxDonVi);
+                        rowBuffer[10] = ReadSafe(idxPhanLoai);
+                        rowBuffer[11] = ReadSafe(idxGhiChu);
+                        rowBuffer[12] = ReadSafe(idxDeNghi);
+                        rowBuffer[13] = ReadSafe(idxThanhTich);
+                        rowBuffer[14] = ReadSafe(idxTinhTrang);
+                        dtBaNhat.Rows.Add(rowBuffer);
+                        // TỐI ƯU HIỆU SUẤT: đếm _tongQuanSoGoc ngay trong vòng lặp đọc dữ liệu,
+                        // tránh phải quét lại toàn bộ DataTable thêm 1 lần nữa (AsEnumerable().Count(...)).
+                        if (id != -1) tongQuanSoGoc++;
                     }
                     dtBaNhat.EndLoadData();
                 }
+                token.ThrowIfCancellationRequested();
                 if (kryptonDataGridView1 != null && !kryptonDataGridView1.IsDisposed)
                 {
                     kryptonDataGridView1.SuspendLayout();
-                    kryptonDataGridView1.DataSource = dtBaNhat;
-                    DinhDangGiaoDienDataGridBaNhat();
-                    NapDuLieuBoLoc(dtBaNhat);
-                    ThongKeSoLuongBaNhat(false);
-                    _tongQuanSoGoc = dtBaNhat.AsEnumerable().Count(r => r["ID"] != DBNull.Value && Convert.ToInt32(r["ID"]) != -1);
-                    kryptonDataGridView1.ResumeLayout();
+                    try
+                    {
+                        kryptonDataGridView1.DataSource = dtBaNhat;
+                        DinhDangGiaoDienDataGridBaNhat();
+                        NapDuLieuBoLoc(dtBaNhat);
+                        ThongKeSoLuongBaNhat(false);
+                        _tongQuanSoGoc = tongQuanSoGoc;
+                    }
+                    finally
+                    {
+                        kryptonDataGridView1.ResumeLayout();
+                    }
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                // Lần load này bị hủy vì có lần gọi mới hơn -> bỏ qua im lặng, không phải lỗi.
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Lỗi nạp [{TenBangDanhSachBaNhat}]: {ex}");
             }
         }
+        /// <summary>
+        /// Tạo schema DataTable cho danh sách bằng khen (tách riêng để dễ tái sử dụng/bảo trì,
+        /// tránh lặp lại 15 dòng Columns.Add mỗi khi cần tạo bảng cùng cấu trúc).
+        /// </summary>
+        private static DataTable TaoSchemaDanhSachBaNhat()
+        {
+            var dt = new DataTable
+            {
+                Locale = System.Globalization.CultureInfo.InvariantCulture // hành vi so sánh/sắp xếp nhất quán, không phụ thuộc locale máy
+            };
+            dt.Columns.Add("ID", typeof(int));
+            dt.Columns.Add("STT", typeof(int));
+            dt.Columns.Add("HoVaTen", typeof(string));
+            dt.Columns.Add("SoHieu", typeof(string));
+            dt.Columns.Add("NamSinh", typeof(string));
+            dt.Columns.Add("QueQuan", typeof(string));
+            dt.Columns.Add("NgayVaoCAND", typeof(string));
+            dt.Columns.Add("CapBac", typeof(string));
+            dt.Columns.Add("ChucVu", typeof(string));
+            dt.Columns.Add("DonVi", typeof(string));
+            dt.Columns.Add("PhanLoai", typeof(string));
+            dt.Columns.Add("GhiChu", typeof(string));
+            dt.Columns.Add("DeNghi", typeof(string));
+            dt.Columns.Add("ThanhTich", typeof(string));
+            dt.Columns.Add("TinhTrang", typeof(string));
+            return dt;
+        }
+        /// <summary>
+        /// Kiểm tra tên định danh (tên bảng) chỉ gồm chữ cái, số, gạch dưới -
+        /// phòng ngừa SQL injection khi tên bảng được nội suy trực tiếp vào câu SQL.
+        /// </summary>
+        private static bool IsValidIdentifier(string name) =>
+            !string.IsNullOrWhiteSpace(name) &&
+            System.Text.RegularExpressions.Regex.IsMatch(name, @"^[A-Za-z0-9_]+$");
         private string SafeGiaiMa(string cipherText)
         {
             if (string.IsNullOrWhiteSpace(cipherText)) return "";

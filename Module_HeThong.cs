@@ -61,7 +61,6 @@ namespace PhanMemThiDua2026
         public static readonly object[] DanhSach_PhanLoai_TatCa = {
             "Tất cả", PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV, PL_KHONG_PL
         };
-        // ==========================================
         // ⭐ WINDOWS SHELL API VÀ QUẢN LÝ GDI HANDLE
         [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
@@ -146,9 +145,7 @@ namespace PhanMemThiDua2026
                     DestroyIcon(hIcon);
             }
         }
-        // ==========================================
         // 1. Lấy năm hệ thống
-        // ==========================================
         public static int LayNamHeThong()
         {
             try

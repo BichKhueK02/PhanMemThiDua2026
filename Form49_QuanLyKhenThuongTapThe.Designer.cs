@@ -976,7 +976,7 @@
         private ToolStripSeparator toolStripMenuItem1;
         private ComboBox comboBox1_HinhThucKT;
         private Label label8;
-        private ToolStripMenuItem toolStripMenuItem_QuayLaiTrangTruoc;
+       // private ToolStripMenuItem toolStripMenuItem_QuayLaiTrangTruoc;
         private ToolStripSeparator toolStripMenuItem2;
         private ToolTip toolTip1;
     }

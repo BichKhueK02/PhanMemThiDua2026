@@ -1281,19 +1281,6 @@ namespace PhanMemThiDua2026
             }
             catch { return input; }
         }
-        private static string GiaiMaAnToan(object? value)
-        {
-            if (value == null || value == DBNull.Value) return string.Empty;
-            string s = value.ToString() ?? "";
-            if (string.IsNullOrWhiteSpace(s)) return string.Empty;
-            try
-            {
-                string result = Module_BaoMatAES.GiaiMa(s);
-                // ⭐ Trả về chuỗi gốc nếu giải mã thất bại
-                return string.IsNullOrEmpty(result) ? s : result;
-            }
-            catch { return s; }
-        }
         private static string GetSafe(SqliteDataReader reader, string name)
         {
             try

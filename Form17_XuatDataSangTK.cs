@@ -346,14 +346,6 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
         }
         // Thống kê tập thể 
         // Tổng loại tân binh (giữ nguyên SQL gốc)
-        private void CapNhatTongLoaiTanBinh(SqliteConnection cn, SqliteTransaction tr)
-        {
-            string sql = @"YOUR_REAL_SQL_HERE";
-            if (string.IsNullOrWhiteSpace(sql))
-                return;
-            using var cmd = new SqliteCommand(sql, cn, tr);
-            cmd.ExecuteNonQuery();
-        }
         // Cấu hình ToolTip (Gợi ý giao diện) chuẩn UX
         private void InitToolTips()
         {
@@ -448,19 +440,6 @@ VALUES(@hvt,@sh,@dv,@gt)", cn, tr);
             }
             // Các tháng khác và 6 tháng đầu năm giữ nguyên giá trị gốc ("Loại 1", "Loại 2",...)
             return strInput;
-        }
-        private string XacDinhCotThongKe(string thang, string nam)
-        {
-            string digitsOnly = System.Text.RegularExpressions.Regex.Replace(thang ?? "", @"\D", "");
-            if (int.TryParse(digitsOnly, out int numThang) && numThang >= 1 && numThang <= 11)
-            {
-                return $"Thang_{numThang}";
-            }
-            if (numThang == 12)
-            {
-                return "Thang_12_Nam_Cu";
-            }
-            return "TongKet_Nam";
         }
         // Model dữ liệu (Đã cấu trúc lại để chứa song song 2 bản Mật/Rõ)
         class RecordCBCS

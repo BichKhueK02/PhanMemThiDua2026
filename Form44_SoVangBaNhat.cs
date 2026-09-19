@@ -121,9 +121,7 @@ namespace PhanMemThiDua2026
             if (kryptonDataGridView1.Columns.Count == 0) return;
             foreach (DataGridViewColumn col in kryptonDataGridView1.Columns)
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;
-            // ==========================================
             // ĐỊNH DẠNG CHI TIẾT TỪNG CỘT
-            // ==========================================
             if (kryptonDataGridView1.Columns["ID"] != null)
                 kryptonDataGridView1.Columns["ID"].Visible = false;
             if (kryptonDataGridView1.Columns["STT"] != null)

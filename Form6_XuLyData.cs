@@ -949,21 +949,6 @@ namespace PhanMemThiDua2026
             //// Cuộn xuống dòng cuối
             //dgv.FirstDisplayedScrollingRowIndex = dgv.Rows.Count - 1;
         }
-        //private void NapDanhSachDonVi()
-        //{
-        //    var dsDonVi = Module_DonVi.GetDanhSachDonVi(); // Giả sử trả về List<string>
-        //    var thuTuUuTien = Module_DonVi.LayDanhSachDonViUuTienArray();
-        //    // Sắp xếp dsDonVi dựa trên vị trí của nó trong thuTuUuTien
-        //    var sortedList = dsDonVi.OrderBy(item =>
-        //    {
-        //        int index = Array.IndexOf(thuTuUuTien, item);
-        //        return index == -1 ? int.MaxValue : index;
-        //    }).ToList();
-        //    var currentValue = textBox_DonVi.Text;
-        //    textBox_DonVi.DataSource = null;
-        //    textBox_DonVi.DataSource = sortedList;
-        //    textBox_DonVi.Text = sortedList.Contains(currentValue) ? currentValue : "";
-        //}
         private void NapDanhSachDonVi()
         {
             var dsDonVi = Module_DonVi.GetDanhSachDonVi(); // List<string>
@@ -1395,9 +1380,7 @@ namespace PhanMemThiDua2026
                 if (kryptonDataGridView1.IsDisposed)
                     return;
                 SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null);
-                // =========================
                 // KIỂM TRA CỘT BẮT BUỘC
-                // =========================
                 string[] requiredColumns = { "HoVaTen", "DonVi", "PhanLoai" };
                 foreach (string col in requiredColumns)
                 {
@@ -1417,24 +1400,18 @@ namespace PhanMemThiDua2026
                 string donViFilter = comboBox_TimKiemDonVi?.Text?.Trim() ?? "";
                 string phanLoaiFilter = comboBox_XepLoaiThiDua?.Text?.Trim() ?? "";
                 List<string> filters = new();
-                // =========================
                 // HỌ VÀ TÊN
-                // =========================
                 if (!string.IsNullOrWhiteSpace(tenFilter))
                 {
                     filters.Add($"Convert(HoVaTen,'System.String') LIKE '%{tenFilter}%'");
                 }
-                // =========================
                 // ĐƠN VỊ
-                // =========================
                 if (!string.IsNullOrWhiteSpace(donViFilter) &&
                     !donViFilter.Equals(Module_HeThong.Tat_Ca, StringComparison.OrdinalIgnoreCase))
                 {
                     filters.Add($"Convert(DonVi,'System.String') = '{donViFilter.Replace("'", "''")}'");
                 }
-                // =========================
                 // PHÂN LOẠI (XỬ LÝ ÁNH XẠ NGHƯỢC VỀ DỮ LIỆU THỰC TẾ)
-                // =========================
                 if (!string.IsNullOrWhiteSpace(phanLoaiFilter) &&
                     !phanLoaiFilter.Equals(Module_HeThong.Tat_Ca, StringComparison.OrdinalIgnoreCase))
                 {
@@ -3651,9 +3628,7 @@ namespace PhanMemThiDua2026
                     textBox_CapBac.Text = GetCellValue("CapBac");
                     textBox_DonVi.Text = GetCellValue("DonVi");
                     textBox_GhiChu.Text = GetCellValue("GhiChu");
-                    // ==========================================
                     // 5. XỬ LÝ COMBOBOX CHỨC VỤ & PHÂN LOẠI
-                    // ==========================================
                     // Xử lý Chức Vụ
                     string chucVuGrid = GetCellValue("ChucVu");
                     if (!string.IsNullOrEmpty(chucVuGrid))

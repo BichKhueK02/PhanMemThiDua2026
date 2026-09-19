@@ -184,9 +184,7 @@ namespace PhanMemThiDua2026
         {
             string[] folders = { THU_MUC_CONG_CU, THU_MUC_HUONG_DAN };
             List<string> log = new List<string>();
-            // ============
             // 1. SYNC 2 CHIỀU
-            // ============
             foreach (string folder in folders)
             {
                 string A = Path.Combine(srcDir, folder);
@@ -196,9 +194,7 @@ namespace PhanMemThiDua2026
                 SyncFolder(A, B, log);
                 SyncFolder(B, A, log);
             }
-            // ============
             // 2. SELF HEAL LOOP (2 lần)
-            // ============
             for (int i = 0; i < 2; i++)
             {
                 foreach (string folder in folders)
@@ -209,9 +205,7 @@ namespace PhanMemThiDua2026
                     SyncFolder(B, A, log);
                 }
             }
-            // ============
             // 3. VERIFY LOOP (100% MATCH CHECK)
-            // ============
             foreach (string folder in folders)
             {
                 string A = Path.Combine(srcDir, folder);

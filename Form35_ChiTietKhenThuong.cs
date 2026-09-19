@@ -766,47 +766,6 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
-        private void CapNhatSoLuongB2(SqliteConnection conn, SqliteTransaction tran, string soHieu, int valueChange)
-        {
-            string sqlSelect = "SELECT rowid, SoHieu, SoLuong_Khen FROM ThongKeCBCS_DuocKhenThuong";
-            long targetRowId = -1;
-            int slHienTai = 0;
-            using (var cmdSelect = new SqliteCommand(sqlSelect, conn, tran))
-            using (var reader = cmdSelect.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    string shMaHoa = reader.IsDBNull(1) ? "" : reader.GetString(1);
-                    if (string.Equals(SafeDecrypt(shMaHoa), soHieu, StringComparison.OrdinalIgnoreCase))
-                    {
-                        targetRowId = reader.GetInt64(0);
-                        string slStr = reader.IsDBNull(2) ? "0" : reader.GetString(2);
-                        int.TryParse(slStr, out slHienTai);
-                        break;
-                    }
-                }
-            }
-            int slMoi = slHienTai + valueChange;
-            if (slMoi < 0) slMoi = 0;
-            if (targetRowId != -1)
-            {
-                string sqlUp = "UPDATE ThongKeCBCS_DuocKhenThuong SET SoLuong_Khen = @SL WHERE rowid = @RowId";
-                using var cmdUp = new SqliteCommand(sqlUp, conn, tran);
-                cmdUp.Parameters.AddWithValue("@SL", slMoi.ToString());
-                cmdUp.Parameters.AddWithValue("@RowId", targetRowId);
-                cmdUp.ExecuteNonQuery();
-            }
-            else if (valueChange > 0)
-            {
-                string sqlIn = "INSERT INTO ThongKeCBCS_DuocKhenThuong (HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen) VALUES (@HT, @SH, @DV, @TT, '1')";
-                using var cmdIn = new SqliteCommand(sqlIn, conn, tran);
-                cmdIn.Parameters.AddWithValue("@HT", Module_BaoMatAES.MaHoa(_currentHoTen));
-                cmdIn.Parameters.AddWithValue("@SH", Module_BaoMatAES.MaHoa(_currentSoHieu));
-                cmdIn.Parameters.AddWithValue("@DV", Module_BaoMatAES.MaHoa(_currentDonVi));
-                cmdIn.Parameters.AddWithValue("@TT", _currentTinhTrang);
-                cmdIn.ExecuteNonQuery();
-            }
-        }
         private bool KiemTraDuLieuDauVao()
         {
             if (string.IsNullOrWhiteSpace(_currentSoHieu))
@@ -834,56 +793,5 @@ namespace PhanMemThiDua2026
             }
             return true;
         }
-        private void DongBoSoLuongVeBangTong(string soHieu)
-        {
-            if (string.IsNullOrWhiteSpace(soHieu)) return;
-            try
-            {
-                using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
-                conn.Open();
-                int soLuongThucTe = 0;
-                using (var cmdCount = new SqliteCommand("SELECT SoHieu FROM ThongKe_GiayKhen", conn))
-                using (var reader = cmdCount.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string shGiaiMa = reader.IsDBNull(0) ? "" : SafeDecrypt(reader.GetString(0));
-                        if (string.Equals(shGiaiMa, soHieu, StringComparison.OrdinalIgnoreCase))
-                        {
-                            soLuongThucTe++;
-                        }
-                    }
-                }
-                long targetRowId = -1;
-                using (var cmdSelect = new SqliteCommand("SELECT rowid, SoHieu FROM ThongKeCBCS_DuocKhenThuong", conn))
-                using (var reader = cmdSelect.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string shGiaiMa2 = reader.IsDBNull(1) ? "" : SafeDecrypt(reader.GetString(1));
-                        if (string.Equals(shGiaiMa2, soHieu, StringComparison.OrdinalIgnoreCase))
-                        {
-                            targetRowId = reader.GetInt64(0);
-                            break;
-                        }
-                    }
-                }
-                if (targetRowId != -1)
-                {
-                    string sqlUpdate = "UPDATE ThongKeCBCS_DuocKhenThuong SET SoLuong_Khen = @SL WHERE rowid = @RowId";
-                    using (var cmdUpdate = new SqliteCommand(sqlUpdate, conn))
-                    {
-                        cmdUpdate.Parameters.AddWithValue("@SL", soLuongThucTe.ToString());
-                        cmdUpdate.Parameters.AddWithValue("@RowId", targetRowId);
-                        cmdUpdate.ExecuteNonQuery();
-                    }
-                    System.Diagnostics.Debug.WriteLine($"Đã đồng bộ: {soHieu} có {soLuongThucTe} giấy khen.");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Lỗi đồng bộ: " + ex.Message);
-            }
-        }   
     }
 }

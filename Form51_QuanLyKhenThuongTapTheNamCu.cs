@@ -1290,24 +1290,47 @@ namespace PhanMemThiDua2026
             kryptonButton_LamMoiCacOTimKiem.PerformClick();
         }
         // ⭐ HÀM HELPER: GOM TOÀN BỘ LOGIC MÃ HÓA VÀ GÁN THAM SỐ VÀO 1 CHỖ DUY NHẤT
-
+        // using Microsoft.Data.Sqlite;  <-- cần có using này để dùng SqliteType
         private void GanThamSoVaMaHoaKhenThuong(SqliteCommand cmd, string tienThuongStr, int? newStt = null)
-                {
-                    if (newStt.HasValue)
-                        cmd.Parameters.AddWithValue("@STT", newStt.Value);
-
-                    cmd.Parameters.AddWithValue("@TenTapThe", SafeEncrypt(kryptonTextBox_TenTapThe.Text));
-                    cmd.Parameters.AddWithValue("@HinhThuc_KhenThuong", SafeEncrypt(comboBox_HinhThucKhenThuong?.Text));
-                    cmd.Parameters.AddWithValue("@DonVi_CapKhenThuong", SafeEncrypt(comboBox_DonViKhenThuong?.Text));
-                    cmd.Parameters.AddWithValue("@SoQuyetDinh", SafeEncrypt(kryptonTextBox_SoQuyetDinh?.Text));
-                    cmd.Parameters.AddWithValue("@NgayQuyetDinh", SafeEncrypt(kryptonTextBox_NgayQuyetDinh?.Text));
-                    cmd.Parameters.AddWithValue("@NguoiKy", SafeEncrypt(kryptonTextBox_NguoiKy?.Text));
-                    cmd.Parameters.AddWithValue("@NoiDung_KhenThuong", SafeEncrypt(richTextBox1_NoiDungKhenThuong?.Text));
-                    cmd.Parameters.AddWithValue("@TienThuong", SafeEncrypt(tienThuongStr));
-                    cmd.Parameters.AddWithValue("@NgayCapPhat", SafeEncrypt(kryptonTextBox_NgayCapPhat?.Text));
-                    cmd.Parameters.AddWithValue("@CanBoCapPhat", SafeEncrypt(kryptonTextBox_CanBoCapPhat?.Text));
-                    cmd.Parameters.AddWithValue("@NguoiDaiDienNhan", SafeEncrypt(kryptonTextBox_NguoiDaiDienNhan?.Text));
-                    cmd.Parameters.AddWithValue("@GhiChu", SafeEncrypt(kryptonTextBox_GhiChu?.Text));
-                }
+        {
+            if (cmd == null) throw new ArgumentNullException(nameof(cmd));
+            // AN TOÀN: đảm bảo không còn tham số cũ sót lại nếu cmd bị tái sử dụng
+            // giữa nhiều lần gọi (tránh lỗi "parameter count mismatch" khó debug).
+            cmd.Parameters.Clear();
+            if (newStt.HasValue)
+                AddParam(cmd, "@STT", SqliteType.Integer, newStt.Value);
+            // Dùng "?? string.Empty" trước khi truyền vào SafeEncrypt:
+            //  - Hết cảnh báo CS8604 (possible null reference argument) khi bật nullable reference types.
+            //  - An toàn thực sự: không phụ thuộc việc SafeEncrypt có tự xử lý null hay không.
+            AddParam(cmd, "@TenTapThe", SqliteType.Text, SafeEncrypt(kryptonTextBox_TenTapThe?.Text ?? string.Empty));
+            AddParam(cmd, "@HinhThuc_KhenThuong", SqliteType.Text, SafeEncrypt(comboBox_HinhThucKhenThuong?.Text ?? string.Empty));
+            AddParam(cmd, "@DonVi_CapKhenThuong", SqliteType.Text, SafeEncrypt(comboBox_DonViKhenThuong?.Text ?? string.Empty));
+            AddParam(cmd, "@SoQuyetDinh", SqliteType.Text, SafeEncrypt(kryptonTextBox_SoQuyetDinh?.Text ?? string.Empty));
+            AddParam(cmd, "@NgayQuyetDinh", SqliteType.Text, SafeEncrypt(kryptonTextBox_NgayQuyetDinh?.Text ?? string.Empty));
+            AddParam(cmd, "@NguoiKy", SqliteType.Text, SafeEncrypt(kryptonTextBox_NguoiKy?.Text ?? string.Empty));
+            AddParam(cmd, "@NoiDung_KhenThuong", SqliteType.Text, SafeEncrypt(richTextBox1_NoiDungKhenThuong?.Text ?? string.Empty));
+            AddParam(cmd, "@TienThuong", SqliteType.Text, SafeEncrypt(tienThuongStr ?? string.Empty));
+            AddParam(cmd, "@NgayCapPhat", SqliteType.Text, SafeEncrypt(kryptonTextBox_NgayCapPhat?.Text ?? string.Empty));
+            AddParam(cmd, "@CanBoCapPhat", SqliteType.Text, SafeEncrypt(kryptonTextBox_CanBoCapPhat?.Text ?? string.Empty));
+            AddParam(cmd, "@NguoiDaiDienNhan", SqliteType.Text, SafeEncrypt(kryptonTextBox_NguoiDaiDienNhan?.Text ?? string.Empty));
+            AddParam(cmd, "@GhiChu", SqliteType.Text, SafeEncrypt(kryptonTextBox_GhiChu?.Text ?? string.Empty));
+        }
+        /// <summary>
+        /// Thêm 1 tham số vào SqliteCommand với KIỂU DỮ LIỆU TƯỜNG MINH thay vì để
+        /// AddWithValue tự suy luận từ runtime type. Lợi ích:
+        ///  - Hiệu suất: không tốn thời gian phản chiếu/kiểm tra kiểu CLR ở mỗi lần bind.
+        ///  - An toàn/nhất quán: giá trị luôn được ghi vào cột đúng kiểu SQLite (TEXT/INTEGER...),
+        ///    không phụ thuộc việc SafeEncrypt trả về string hay kiểu nào khác trong tương lai.
+        ///  - Null CLR luôn được ánh xạ tường minh sang DBNull.Value, tránh hành vi mập mờ
+        ///    tùy theo provider khi truyền thẳng null vào AddWithValue.
+        /// </summary>
+        private static void AddParam(SqliteCommand cmd, string name, SqliteType type, object value)
+        {
+            var p = cmd.CreateParameter();
+            p.ParameterName = name;
+            p.SqliteType = type;
+            p.Value = value ?? DBNull.Value;
+            cmd.Parameters.Add(p);
+        }
     }
 }

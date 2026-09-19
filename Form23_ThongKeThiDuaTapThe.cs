@@ -54,16 +54,10 @@ namespace PhanMemThiDua2026
         }
         private void CapNhatTieuDeGroupBox()
         {
-            // Lấy tên đơn vị từ Module_HeThong
             string tenDonVi = Module_HeThong.LayTenDonViChuan();
-            if (!string.IsNullOrWhiteSpace(tenDonVi))
-            {
-                groupBox1.Text = $"1. Cập nhật phân loại/danh hiệu thi đua {tenDonVi}";
-            }
-            else
-            {
-                groupBox1.Text = "1. Cập nhật phân loại/danh hiệu thi đua";
-            }
+            groupBox1.Text = string.IsNullOrWhiteSpace(tenDonVi)
+                ? "1. Cập nhật phân loại/danh hiệu thi đua"
+                : $"1. Cập nhật phân loại/danh hiệu thi đua {tenDonVi}";
         }
         protected override void OnFormClosed(FormClosedEventArgs e)
         {

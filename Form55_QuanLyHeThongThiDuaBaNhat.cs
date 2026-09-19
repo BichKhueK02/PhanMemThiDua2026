@@ -43,7 +43,7 @@ namespace PhanMemThiDua2026
             }
         }  
         // TẠO FORM 42 - LAZY INITIALIZATION
-       private void TaoForm42NeuCan()
+        private void TaoForm42NeuCan()
         {
             if (_frm42 != null && !_frm42.IsDisposed)
                 return;

@@ -68,36 +68,72 @@ namespace PhanMemThiDua2026
         public Form34_ThongKeKhenThuong()
         {
             InitializeComponent();
-            this.DoubleBuffered = true;
+            // Giảm nhấp nháy khi vẽ lại control (grid, label...) - đặt sớm nhất có thể.
+            DoubleBuffered = true;
+            DangKyBoLoc();
+            DangKySuKienGrid();
+            KhoiTaoTimerTimKiem();
+            // Gọi hiệu ứng UI CUỐI CÙNG, sau khi mọi control/sự kiện đã sẵn sàng.
+            DangKyHieuUngVienTextBox();
+        }
+        /// <summary>
+        /// Đăng ký sự kiện cho các control lọc/tìm kiếm.
+        /// LƯU Ý: "x?.Event += Handler;" (null-conditional assignment) chỉ có từ
+        /// C# 14 trở lên. Với C# 12, phải dùng "if (x != null) x.Event += ...;".
+        /// </summary>
+        private void DangKyBoLoc()
+        {
             if (textBox_TimKiemTheoTen != null)
-            {
                 textBox_TimKiemTheoTen.TextChanged += TextBox_TimKiemTheoTen_TextChanged;
-            }
             if (comboBox_TimKiemDonVi != null)
                 comboBox_TimKiemDonVi.SelectedIndexChanged += BoLoc_ValueChanged;
             if (comboBox_TinhTrangCongTac != null)
                 comboBox_TinhTrangCongTac.SelectedIndexChanged += BoLoc_ValueChanged;
             if (comboBox1_DonViKhenThuong != null)
                 comboBox1_DonViKhenThuong.SelectedIndexChanged += BoLoc_ValueChanged;
-            if (kryptonDataGridView1_DanhSachCBCS != null)
-            {
-                kryptonDataGridView1_DanhSachCBCS.CellClick += KryptonDataGridView1_DanhSachCBCS_CellClick;
-                kryptonDataGridView1_DanhSachCBCS.RowPostPaint += KryptonDataGridView1_DanhSachCBCS_RowPostPaint;
-                kryptonDataGridView1_DanhSachCBCS.CellDoubleClick += KryptonDataGridView1_DanhSachCBCS_CellDoubleClick;
-                // ⭐ THÊM MỚI 1: Gán ContextMenuStrip vào DataGridView
-                kryptonDataGridView1_DanhSachCBCS.ContextMenuStrip = contextMenuStrip1;
-                // ⭐ THÊM MỚI 2: Đăng ký sự kiện MouseDown để tự động chọn dòng khi Click chuột phải
-                kryptonDataGridView1_DanhSachCBCS.MouseDown += KryptonDataGridView1_DanhSachCBCS_MouseDown;
-                // 🔥 THÊM SỰ KIỆN VẼ CELL Ở ĐÂY ĐỂ HIỂN THỊ ICON
-                kryptonDataGridView1_DanhSachCBCS.CellPainting -= KryptonDataGridView1_DanhSachCBCS_CellPainting;
-                kryptonDataGridView1_DanhSachCBCS.CellPainting += KryptonDataGridView1_DanhSachCBCS_CellPainting;
-            }
-            timKiemTimer = new System.Windows.Forms.Timer();
-            timKiemTimer.Interval = 300;
-            timKiemTimer.Tick += TimKiemTimer_Tick;
-            // ⭐ GỌI HÀM HIỆU ỨNG TẠI ĐÂY (Ở CUỐI CÙNG LÀ TỐT NHẤT)
-            DangKyHieuUngVienTextBox();
         }
+        /// <summary>
+        /// Đăng ký toàn bộ sự kiện + cấu hình liên quan tới DataGridView chính.
+        /// Tách riêng để dễ đọc, dễ bảo trì khi cần thêm/bớt sự kiện của grid.
+        /// </summary>
+        private void DangKySuKienGrid()
+        {
+            var grid = kryptonDataGridView1_DanhSachCBCS;
+            if (grid == null) return;
+            grid.CellClick += KryptonDataGridView1_DanhSachCBCS_CellClick;
+            grid.RowPostPaint += KryptonDataGridView1_DanhSachCBCS_RowPostPaint;
+            grid.CellDoubleClick += KryptonDataGridView1_DanhSachCBCS_CellDoubleClick;
+            grid.ContextMenuStrip = contextMenuStrip1;
+            grid.MouseDown += KryptonDataGridView1_DanhSachCBCS_MouseDown;
+            // Đã bỏ dòng "-=" trước "+=" của bản gốc: trong constructor, sự kiện
+            // CellPainting CHƯA TỪNG được đăng ký, nên "-=" là code chết, không
+            // có tác dụng gì ngoài gây hiểu nhầm khi đọc lại code.
+            grid.CellPainting += KryptonDataGridView1_DanhSachCBCS_CellPainting;
+        }
+        /// <summary>
+        /// Khởi tạo timer debounce cho ô tìm kiếm.
+        /// </summary>
+        // Trong Dispose(bool disposing) của Form, nhớ giải phóng Timer để tránh rò rỉ handle:
+        // if (disposing) timKiemTimer?.Dispose();
+        /// <summary>
+        /// Đăng ký sự kiện cho các control lọc/tìm kiếm.
+        /// Dùng "?." thay cho "if (x != null) x.Event += ...;" - ngắn gọn hơn,
+        /// cùng ngữ nghĩa null-safe (chỉ đăng ký nếu control tồn tại).
+        /// </summary>
+        /// <summary>
+        /// Đăng ký toàn bộ sự kiện + cấu hình liên quan tới DataGridView chính.
+        /// Tách riêng để dễ đọc, dễ bảo trì khi cần thêm/bớt sự kiện của grid.
+        /// </summary>
+        /// <summary>
+        /// Khởi tạo timer debounce cho ô tìm kiếm.
+        /// </summary>
+        private void KhoiTaoTimerTimKiem()
+        {
+            timKiemTimer = new System.Windows.Forms.Timer { Interval = 300 };
+            timKiemTimer.Tick += TimKiemTimer_Tick;
+        }
+        // Trong Dispose(bool disposing) của Form, nhớ giải phóng Timer để tránh rò rỉ handle:
+        // if (disposing) timKiemTimer?.Dispose();
         private void TextBox_TimKiemTheoTen_TextChanged(object? sender, EventArgs e)
         {
             // Reset lại timer mỗi khi người dùng gõ phím

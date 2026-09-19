@@ -106,9 +106,7 @@ namespace PhanMemThiDua2026
         }
         private void InitToolTips()
         {
-            // ============================================================
             // KHỞI TẠO TOOLTIP - ỔN ĐỊNH CHO HỆ THỐNG NỘI BỘ
-            // ============================================================
             // 1. Kiểm tra ToolTip
             if (toolTip1 == null)
                 return;
@@ -1239,9 +1237,7 @@ namespace PhanMemThiDua2026
                 grid.StateCommon.Background.Color1 = System.Drawing.Color.White;
                 grid.StateCommon.DataCell.Content.Font = _fontGrid10Regular;
                 grid.StateCommon.HeaderColumn.Content.Font = _fontGrid10Bold;
-                // =========================================================
                 // ⭐ TỐI ƯU CHIỀU CAO: DÒNG TIÊU ĐỀ & DÒNG DỮ LIỆU
-                // =========================================================
                 // 1. Tăng chiều cao dòng TIÊU ĐỀ (Header) lên 45px để rộng rãi, rõ nét
                 grid.ColumnHeadersHeight = 45;
                 grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing; // Khóa cứng, không cho user kéo làm hỏng UI
@@ -1249,9 +1245,7 @@ namespace PhanMemThiDua2026
                 grid.StateCommon.HeaderColumn.Content.Padding = new Padding(3, 5, 3, 5);
                 // 3. Tăng chiều cao dòng DỮ LIỆU (Row) lên 36px cho thoáng mắt
                 grid.RowTemplate.Height = 36;
-                // =========================================================
                 // ⭐ CẤU HÌNH TỶ LỆ 04 CỘT (CHỐNG CẮT CHỮ TUYỆT ĐỐI)
-                // =========================================================
                 grid.Columns.Add("STT", "STT");
                 grid.Columns.Add("TenTaiNguyen", "Tên tài nguyên");
                 grid.Columns.Add("DungLuong", "Dung lượng");

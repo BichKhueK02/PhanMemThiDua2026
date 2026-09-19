@@ -117,37 +117,68 @@ namespace PhanMemThiDua2026
             comboBox_DiaDiem.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox_DiaDiem.AutoCompleteSource = AutoCompleteSource.ListItems;
         }
+        //private async void Form4_Load(object? sender, EventArgs e)
+        //        {
+        //            if (_hasLoaded) return;
+        //            _hasLoaded = true;
+        //            try
+        //            {
+        //                // 1. NẠP CẤU HÌNH NHẸ
+        //                LoadSettings();
+        //                LoadCheckBoxTuDongChonNgayThang();
+        //                Module_QuyDinhTyLe.LoadE29(this.Controls);
+        //                loai1 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai1_TapThe");
+        //                loai2 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai2_TapThe");
+        //                loai3 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai3_TapThe");
+        //                // 2. ĐĂNG KÝ EVENT NGAY SAU KHI KHỞI TẠO FORM
+        //                Module_DanduongGPS.OnDatabaseChanged -= SuKien_DatabaseChanged;
+        //                Module_DanduongGPS.OnDatabaseChanged += SuKien_DatabaseChanged;
+        //                label11.TextChanged += (s, e) => DieuChinhCoChuLabel11();
+        //                // 3. ĐẢM BẢO BẢNG CHẾ ĐỘ XÉT THI ĐUA ĐÃ TỒN TẠI
+        //                using (var conn = TaoKetNoiCSDL2(readOnly: false))
+        //                {
+        //                    await conn.OpenAsync();
+        //                    await TaoBangCheDoXetThiDuaNamNeuChuaCoAsync(conn, null);
+        //                }
+        //                // 4. NẠP DỮ LIỆU CHÍNH SAU KHI CSDL ĐÃ SẴN SÀNG
+        //                await ReloadDuLieuAsync();
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Debug.WriteLine("Lỗi trong Form4_Load: " + ex.Message);
+        //            }
+        //        }
         private async void Form4_Load(object? sender, EventArgs e)
+        {
+            if (_hasLoaded) return;
+            _hasLoaded = true;
+            try
+            {
+                // 1. Đăng ký sự kiện trước
+                Module_DanduongGPS.OnDatabaseChanged -= SuKien_DatabaseChanged;
+                Module_DanduongGPS.OnDatabaseChanged += SuKien_DatabaseChanged;
+                label11.TextChanged += (s, e) => DieuChinhCoChuLabel11();
+                // 2. Nạp cấu hình và dữ liệu nhẹ
+                LoadSettings();
+                LoadCheckBoxTuDongChonNgayThang();
+                Module_QuyDinhTyLe.LoadE29(this.Controls);
+                loai1 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai1_TapThe");
+                loai2 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai2_TapThe");
+                loai3 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai3_TapThe");
+                // 3. Đảm bảo CSDL sẵn sàng
+                using (var conn = TaoKetNoiCSDL2(readOnly: false))
                 {
-                    if (_hasLoaded) return;
-                    _hasLoaded = true;
-                    try
-                    {
-                        // 1. NẠP CẤU HÌNH NHẸ
-                        LoadSettings();
-                        LoadCheckBoxTuDongChonNgayThang();
-                        Module_QuyDinhTyLe.LoadE29(this.Controls);
-                        loai1 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai1_TapThe");
-                        loai2 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai2_TapThe");
-                        loai3 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai3_TapThe");
-                        // 2. ĐĂNG KÝ EVENT NGAY SAU KHI KHỞI TẠO FORM
-                        Module_DanduongGPS.OnDatabaseChanged -= SuKien_DatabaseChanged;
-                        Module_DanduongGPS.OnDatabaseChanged += SuKien_DatabaseChanged;
-                        label11.TextChanged += (s, e) => DieuChinhCoChuLabel11();
-                        // 3. ĐẢM BẢO BẢNG CHẾ ĐỘ XÉT THI ĐUA ĐÃ TỒN TẠI
-                        using (var conn = TaoKetNoiCSDL2(readOnly: false))
-                        {
-                            await conn.OpenAsync();
-                            await TaoBangCheDoXetThiDuaNamNeuChuaCoAsync(conn, null);
-                        }
-                        // 4. NẠP DỮ LIỆU CHÍNH SAU KHI CSDL ĐÃ SẴN SÀNG
-                        await ReloadDuLieuAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("Lỗi trong Form4_Load: " + ex.Message);
-                    }
+                    await conn.OpenAsync();
+                    await TaoBangCheDoXetThiDuaNamNeuChuaCoAsync(conn, null);
                 }
+                // 4. Nạp dữ liệu chính cuối cùng
+                await ReloadDuLieuAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi trong Form4_Load: " + ex.Message);
+            }
+        }
         private void comboBox1_CheDoXetThiDua_SelectedIndexChanged(object? sender, EventArgs e)
         {
             // Đồng bộ lại dữ liệu vào Module_HeThong nếu cần

@@ -17,9 +17,7 @@ namespace PhanMemThiDua2026
         private const float RichText_FontStep = 1f;
         private bool _daLoadDuLieuThanhCong;
         private bool _dangLuu;
-        // ============================================================
         // CĂN ĐỀU ĐOẠN VĂN CHO RICHTEXTBOX (WIN32 API)
-        // ============================================================
         private const int WM_USER = 0x0400;
         private const int EM_SETPARAFORMAT = WM_USER + 71;
         private const uint PFM_ALIGNMENT = 0x00000008;

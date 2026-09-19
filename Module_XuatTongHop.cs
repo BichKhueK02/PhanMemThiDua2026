@@ -271,7 +271,6 @@ namespace PhanMemThiDua2026
                     cellA3.Value = "";
                     cellA3.Style.Font.Bold = false;
                 }
-                //========================
                 var cellH4 = ws.Cell("H4");
                 cellH4.Value = $"{diaDiem}, ngày {ngay} tháng {thang} năm {nam}";
                 cellH4.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;

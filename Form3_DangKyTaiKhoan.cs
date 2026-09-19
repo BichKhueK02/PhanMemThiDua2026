@@ -545,9 +545,7 @@ namespace PhanMemThiDua2026
             }
         }
         // Đặt 3 dòng này ở phía trên cùng của class Form3_DangKyTaiKhoan
-        // ==========================================================
         // FONT DÙNG CHUNG
-        // ==========================================================
         private void pictureBox2_ThongTin_DKTK_Click(object? sender, EventArgs e)
         {
             const string tieuDe = "         Hướng dẫn";

@@ -1423,10 +1423,6 @@ namespace PhanMemThiDua2026
                 ws.Row(11).Height = 36;
             }
         }
-        private static double cboFormatQuyDoi(double input)
-        {
-            return input <= 0 ? 0 : input;
-        }
         public static void XuatTrinhKyTanBinh(string duongDanLuu, bool xoaXinYKien = false)
         {
             try

@@ -247,7 +247,7 @@ namespace PhanMemThiDua2026
         {
             int namHienTai = Module_HeThong.LayNamHeThong();
             OpenChildForm<Form4_TrangDauTien>(
-                $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
+                $"PHẦN MỀM THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
             // 🚀 TỐI ƯU UX: ẨN NÚT KHEN THƯỞNG NẾU LÀ TÂN BINH
             try
             {
@@ -439,7 +439,7 @@ namespace PhanMemThiDua2026
             //}
             int namHienTai = Module_HeThong.LayNamHeThong();
             OpenChildForm<Form4_TrangDauTien>(
-                $"PHẦN MỀM PHÂN LOẠI THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
+                $"PHẦN MỀM THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
             // 🔹 Load lại dữ liệu (ĐÃ NÂNG CẤP CHUẨN ASYNC)
             if (_forms.TryGetValue(typeof(Form4_TrangDauTien), out var f))
             {
@@ -467,31 +467,31 @@ namespace PhanMemThiDua2026
             HighlightNavButton((KryptonButton)sender);
             OpenChildForm<Form12>("Trang Cài đặt");
         }
-        private void SafeReload(Form6_XuLyData frm)
-        {
-            if (frm == null) return;
-            if (frm.IsDisposed) return;
-            if (!frm.IsHandleCreated) return;
-            try
-            {
-                // 🔥 tránh block UI + chống giật
-                frm.BeginInvoke(new Action(() =>
-                {
-                    try
-                    {
-                        frm.ReloadDuLieu();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("Reload Form6 lỗi: " + ex.Message);
-                    }
-                }));
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("SafeReload lỗi: " + ex.Message);
-            }
-        }
+        ///private void SafeReload(Form6_XuLyData frm)
+        //{
+        //    if (frm == null) return;
+        //    if (frm.IsDisposed) return;
+        //    if (!frm.IsHandleCreated) return;
+        //    try
+        //    {
+        //        // 🔥 tránh block UI + chống giật
+        //        frm.BeginInvoke(new Action(() =>
+        //        {
+        //            try
+        //            {
+        //                frm.ReloadDuLieu();
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Debug.WriteLine("Reload Form6 lỗi: " + ex.Message);
+        //            }
+        //        }));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine("SafeReload lỗi: " + ex.Message);
+        //    }
+        //}
         // Cache form trên RAM
         //private Form39_ThongTinNguoiDung _formThongTinNguoiDung;
         private void Label2_Click(object? sender, EventArgs e)

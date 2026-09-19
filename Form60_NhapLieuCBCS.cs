@@ -591,9 +591,7 @@ namespace PhanMemThiDua2026
         private void textBox_SoHieu_Leave(object sender, EventArgs e)
         {
             string soHieuNhap = textBox_SoHieu.Text.Trim();
-            // ==========================================
             // CHẾ ĐỘ 1: TÂN BINH (Cấp phát & kiểm tra qua CSDL2 - Mã hóa AES)
-            // ==========================================
             if (KiemTraLaTanBinh())
             {
                 // 1. Nếu để trống, tự động sinh mã ID tiếp theo
@@ -651,9 +649,7 @@ namespace PhanMemThiDua2026
                 }
                 return;
             }
-            // ==========================================
             // CHẾ ĐỘ 2: CBCS (Kiểm tra dữ liệu trên RAM)
-            // ==========================================
             // Làm sạch chuỗi (trường hợp người dùng Paste dữ liệu vào)
             soHieuNhap = ChuoiSoHieuChuan(textBox_SoHieu.Text);
             textBox_SoHieu.Text = soHieuNhap;
@@ -898,7 +894,6 @@ namespace PhanMemThiDua2026
             try
             {
                 // ⭐ BỔ SUNG 3 DÒNG KHÓA TÍNH NĂNG TẠI ĐÂY
-                // =========================================================
                 dgv.AllowUserToOrderColumns = false; // Không cho kéo thả đổi vị trí cột
                 dgv.AllowUserToResizeColumns = false; // Không cho kéo dãn độ rộng cột
                 dgv.ReadOnly = true;                 // Khóa không cho đúp chuột sửa dữ liệu

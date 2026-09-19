@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 namespace PhanMemThiDua2026
 {
     public partial class Form40_BoQuaDonViCanhBaoTyLe : Form
@@ -52,7 +53,6 @@ namespace PhanMemThiDua2026
         }
         /// <summary>
         /// GIẢI PHÁP UX ĐỈNH CAO: Người dùng chỉ cần click vào tên dòng chữ, checkbox tự động đảo trạng thái ngay lập tức
-        /// </summary>
         private void checkedListBox1_ChonDonViBoQuaTyLe_SelectedIndexChanged(object? sender, EventArgs e)
         {
             int index = checkedListBox1_ChonDonViBoQuaTyLe.SelectedIndex;

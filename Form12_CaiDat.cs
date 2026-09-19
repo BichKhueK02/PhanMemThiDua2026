@@ -95,53 +95,41 @@ namespace PhanMemThiDua2026
         {
             if (_hasLoaded) return;
             _isLoading = true;
-            // 1. TỐI ƯU UX VÀ CHUẨN BỊ GIAO DIỆN
-            await Task.Delay(30); // Nhường luồng cho UI
-            if (label1_ThongBaoThanhCong != null) label1_ThongBaoThanhCong.Visible = false;
+            if (label1_ThongBaoThanhCong != null)
+                label1_ThongBaoThanhCong.Visible = false;
             if (toolStripStatusLabel1 != null)
             {
                 toolStripStatusLabel1.Text = string.Empty;
                 toolStripStatusLabel1.Visible = false;
             }
+            await Task.Yield();
             Module_DonVi.KhoiTao();
             InitToolTips();
-            // 2. NẠP CÁC DANH SÁCH (Items) CHO COMBOBOX TRƯỚC
-            // (Phải có danh sách trước thì lúc load cấu hình mới có cái để SelectedItem)
             LoadComboBoxCauHinh();
             LoadComboBoxTuDongXoa();
             NapDanhSachNam();
             NapDanhSachKyHieuChung();
             LoadDanhSachDonViVaKyHieu();
-            // ⭐ 3. NẠP CẤU HÌNH TỔNG LỰC (SIÊU TỐC)           
-            // Hàm này ĐÃ BAO GỒM việc load: Năm, Chế độ hướng dẫn, Màu Menu, Sự kiện thoát, Ký hiệu đơn vị
             LoadTatCaCauHinhTuCSDL2();
             InitFocusHighlightForm12();
-            // 4. NẠP DỮ LIỆU BẢNG THÔNG TIN CHÍNH
             LoadFromSQLite();
             Load_DonViBanHanhToTrinh();
-            // Nạp cấu hình thời gian chuyển ảnh (Thuộc module riêng)
             if (comboBox1_ThoiGianThayDoiAnh != null)
             {
                 if (comboBox1_ThoiGianThayDoiAnh.Items.Count == 0)
-                {
-                    comboBox1_ThoiGianThayDoiAnh.Items.AddRange(new string[] { "Mặc định", "15 giây", "30 giây", "1 phút" });
-                }
+                    comboBox1_ThoiGianThayDoiAnh.Items.AddRange(["Mặc định", "15 giây", "30 giây", "1 phút"]);
                 comboBox1_ThoiGianThayDoiAnh.Text = Module_HinhAnhTrangChu.DocCauHinhThoiGian();
             }
-            // 5. GẮN SỰ KIỆN VÀ TÙY CHỈNH UI CUỐI CÙNG
             GanSuKien();
-            // Trị dứt điểm Highlight (Bôi đen chữ) của ComboBox
-            this.BeginInvoke(new Action(() =>
+            BeginInvoke(() =>
             {
-                if (kryptonButton_LuuThongTin != null && kryptonButton_LuuThongTin.CanFocus)
-                {
-                    kryptonButton_LuuThongTin.Focus(); // Chuyển focus ra nút Lưu
-                }
+                if (kryptonButton_LuuThongTin?.CanFocus == true)
+                    kryptonButton_LuuThongTin.Focus();
                 comboBox_KyHieu_TenTrungDoan.SelectionLength = 0;
                 comboBox_KyHieu_TenTieuDoan.SelectionLength = 0;
                 if (comboBox_TenTieuDoan != null) comboBox_TenTieuDoan.SelectionLength = 0;
                 if (comboBox1_NamHienTai != null) comboBox1_NamHienTai.SelectionLength = 0;
-            }));
+            });
             _isLoading = false;
             _hasLoaded = true;
         }
