@@ -761,8 +761,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                string tk = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System" : Module_TaiKhoan.TenTaiKhoan_RAM;
-                Module_NhatKy.GhiNhatKy(tk, hanhDong, $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, hanhDong, $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
             }
             catch { }
         }

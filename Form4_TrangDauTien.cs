@@ -117,37 +117,6 @@ namespace PhanMemThiDua2026
             comboBox_DiaDiem.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             comboBox_DiaDiem.AutoCompleteSource = AutoCompleteSource.ListItems;
         }
-        //private async void Form4_Load(object? sender, EventArgs e)
-        //        {
-        //            if (_hasLoaded) return;
-        //            _hasLoaded = true;
-        //            try
-        //            {
-        //                // 1. NẠP CẤU HÌNH NHẸ
-        //                LoadSettings();
-        //                LoadCheckBoxTuDongChonNgayThang();
-        //                Module_QuyDinhTyLe.LoadE29(this.Controls);
-        //                loai1 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai1_TapThe");
-        //                loai2 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai2_TapThe");
-        //                loai3 = Module_QuyDinhTyLe.GetLoaiTapThe("Loai3_TapThe");
-        //                // 2. ĐĂNG KÝ EVENT NGAY SAU KHI KHỞI TẠO FORM
-        //                Module_DanduongGPS.OnDatabaseChanged -= SuKien_DatabaseChanged;
-        //                Module_DanduongGPS.OnDatabaseChanged += SuKien_DatabaseChanged;
-        //                label11.TextChanged += (s, e) => DieuChinhCoChuLabel11();
-        //                // 3. ĐẢM BẢO BẢNG CHẾ ĐỘ XÉT THI ĐUA ĐÃ TỒN TẠI
-        //                using (var conn = TaoKetNoiCSDL2(readOnly: false))
-        //                {
-        //                    await conn.OpenAsync();
-        //                    await TaoBangCheDoXetThiDuaNamNeuChuaCoAsync(conn, null);
-        //                }
-        //                // 4. NẠP DỮ LIỆU CHÍNH SAU KHI CSDL ĐÃ SẴN SÀNG
-        //                await ReloadDuLieuAsync();
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Debug.WriteLine("Lỗi trong Form4_Load: " + ex.Message);
-        //            }
-        //        }
         private async void Form4_Load(object? sender, EventArgs e)
         {
             if (_hasLoaded) return;
@@ -208,22 +177,16 @@ namespace PhanMemThiDua2026
             switch (textDeNghi)
             {
                 case Module_HeThong.Loai_1:
-                case Module_HeThong.XLDV_DVQT:
-                    mau = Color.Green;
-                    break;
+                case Module_HeThong.XLDV_DVQT: mau = Color.Green; break;
                 case Module_HeThong.Loai_2:
-                case Module_HeThong.XLDV_DVTT:
-                    mau = Color.Purple;
-                    break;
+                case Module_HeThong.XLDV_DVTT: mau = Color.Purple; break;
                 case Module_HeThong.Loai_3:
                 case Module_HeThong.Loai_4:
                 case Module_HeThong.XLDV_HTNV:
                 case Module_HeThong.XLDV_KHTNV:
                 case "Không phân loại":
                 case Module_HeThong.PL_KHONG_PL:
-                default:
-                    mau = Color.Red;
-                    break;
+                default: mau = Color.Red; break;
             }
             // 3. Áp dụng màu
             label__PhanTramLoai1.ForeColor = mau;
@@ -511,11 +474,7 @@ namespace PhanMemThiDua2026
                     }
                     Progress_Step(15);
                     Module_ThongBao.ThanhCong("Đã lưu thông tin vào CSDL!");
-                    Module_NhatKy.GhiNhatKy(
-                        taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-                        hanhDong: "Lưu thông tin khai báo thành công vào CSDL",
-                        ghiChu: $"Thời gian: {SessionInfo.ThoiGianDangNhap:dd-MM-yyyy HH:mm:ss}"
-                    );
+                    Module_NhatKy.GhiNhatKy(taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM, hanhDong: "Lưu thông tin khai báo thành công vào CSDL", ghiChu: $"Thời gian: {SessionInfo.ThoiGianDangNhap:dd-MM-yyyy HH:mm:ss}");
                     Progress_End();
                     // Cập nhật ListBox ngay lập tức
                     Module_ThongBao.CapNhatThongTin();
@@ -668,26 +627,11 @@ namespace PhanMemThiDua2026
                             tk.TongQS++;
                             switch (phanloai)
                             {
-                                case Module_HeThong.Loai_1:
-                                    tk.Loai1++;
-                                    l1_pie++;
-                                    break;
-                                case Module_HeThong.Loai_2:
-                                    tk.Loai2++;
-                                    l2_pie++;
-                                    break;
-                                case Module_HeThong.Loai_3:
-                                    tk.Loai3++;
-                                    l3_pie++;
-                                    break;
-                                case Module_HeThong.Loai_4:
-                                    tk.Loai4++;
-                                    l4_pie++;
-                                    break;
-                                default:
-                                    tk.KhongPL++;
-                                    kpl_pie++;
-                                    break;
+                                case Module_HeThong.Loai_1: tk.Loai1++; l1_pie++; break;
+                                case Module_HeThong.Loai_2: tk.Loai2++; l2_pie++; break;
+                                case Module_HeThong.Loai_3: tk.Loai3++; l3_pie++; break;
+                                case Module_HeThong.Loai_4: tk.Loai4++; l4_pie++; break;
+                                default: tk.KhongPL++; kpl_pie++; break;
                             }
                         }
                     }
@@ -1062,7 +1006,7 @@ namespace PhanMemThiDua2026
             string tenL2 = laXetNam ? Module_HeThong.PL_CSTT : Module_HeThong.Loai_2;
             string tenL3 = laXetNam ? Module_HeThong.PL_HTNV : Module_HeThong.Loai_3;
             string tenL4 = laXetNam ? Module_HeThong.PL_KHTNV : Module_HeThong.Loai_4;
-            string tenKPL = laXetNam ? "Không PL" : Module_HeThong.PL_KHONG_PL;
+            string tenKPL = laXetNam ? Module_HeThong.PL_KHONG_PL : Module_HeThong.PL_KHONG_PL;
             // 1. Ánh xạ Header cho Bảng 1
             if (kryptonDataGridView1?.DataSource != null)
             {
@@ -1282,18 +1226,12 @@ namespace PhanMemThiDua2026
                 }
                 // 1. LẤY DỮ LIỆU
                 int tongQS = Convert.ToInt32(row.Cells["TongQS"].Value ?? 0);
-                int l1 = Convert.ToInt32(
-                    row.Cells[Module_HeThong.COL_LOAI_1].Value ?? 0);
-                int l2 = Convert.ToInt32(
-                    row.Cells[Module_HeThong.COL_LOAI_2].Value ?? 0);
-                int l3 = Convert.ToInt32(
-                    row.Cells[Module_HeThong.COL_LOAI_3].Value ?? 0);
-                int l4 = Convert.ToInt32(
-                    row.Cells[Module_HeThong.COL_LOAI_4].Value ?? 0);
-                int kpl = Convert.ToInt32(
-                    row.Cells["Khong_PL"].Value ?? 0);
-                if (tongQS <= 0)
-                    return;
+                int l1 = Convert.ToInt32(row.Cells[Module_HeThong.COL_LOAI_1].Value ?? 0);
+                int l2 = Convert.ToInt32(row.Cells[Module_HeThong.COL_LOAI_2].Value ?? 0);
+                int l3 = Convert.ToInt32(row.Cells[Module_HeThong.COL_LOAI_3].Value ?? 0);
+                int l4 = Convert.ToInt32(row.Cells[Module_HeThong.COL_LOAI_4].Value ?? 0);
+                int kpl = Convert.ToInt32(row.Cells["Khong_PL"].Value ?? 0);
+                if (tongQS <= 0) return;
                 // 2. KHỞI TẠO CHỈ TIÊU CẦN ĐẠT
                 int kqCanDat_L1 = 0;
                 int kqCanDat_L2_Thuan = 0;
@@ -1340,9 +1278,7 @@ namespace PhanMemThiDua2026
                 }
                 else
                 {
-                    // ==
                     // ĐƠN VỊ THÔNG THƯỜNG
-                    // ==
                     double rateL1 = phanTramLoai1 / 100.0;
                     double rateL2 = phanTramLoai2 / 100.0;
                     int kqCanDat_L2_Tong =
@@ -1951,7 +1887,7 @@ namespace PhanMemThiDua2026
                 // 5. Phân nhánh UI triệt để cho 3 ComboBox báo cáo
                 if (!laTanBinh)
                 {
-                    // == CHẾ ĐỘ CBCS ==
+ //CHẾ ĐỘ CBCS ==
                     // Ẩn hoàn toàn khỏi giao diện
                     comboBox2_ChonSoThang.Visible = false;
                     comboBox1_ChonLoaiBaoCao.Visible = false;
@@ -1961,7 +1897,7 @@ namespace PhanMemThiDua2026
                 }
                 else
                 {
-                    // == CHẾ ĐỘ TÂN BINH ==
+ //CHẾ ĐỘ TÂN BINH ==
                     // Hiện các Control
                     comboBox2_ChonSoThang.Visible = true;
                     comboBox1_ChonLoaiBaoCao.Visible = true;
@@ -2197,7 +2133,7 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel2.Spring = true;      // chiếm phần còn lại
                 toolStripStatusLabel2.TextAlign = ContentAlignment.MiddleRight;
                 // Hiển thị ở toolStripStatusLabel2, căn phải
-                toolStripStatusLabel2.Text = $"Phần mềm: {doiTuong}";
+                toolStripStatusLabel2.Text = $"Phần mềm: {doiTuong} - Phiên bản " + Module_PhienBan.SoftwareVersion;
                 toolStripStatusLabel2.TextAlign = ContentAlignment.MiddleRight;
             }
             catch
@@ -2341,12 +2277,12 @@ WHERE ID = 1", conn);
                 // Triệt tiêu chi phí băm (Hashing Overhead) và dọn sạch Heap Allocation.
                 (Control? control, string noiDung)[] danhSachToolTip = new (Control?, string)[]
                 {
-                    // == LƯU / KIỂM TRA ==
+ //LƯU / KIỂM TRA ==
                     (kryptonButton_LuuThongTin,        "Lưu toàn bộ thông tin đã nhập"),
                     (kryptonButton_Refresh,            "Làm mới dữ liệu và nhập lại từ đầu"),
                     (kryptonButton_KiemTraTLvaQS,      "Kiểm tra quân số và tỷ lệ theo dữ liệu hiện có"),
                     (kryptonButton_MayTinh,            "Mở công cụ máy tính hỗ trợ tính toán nhanh"),
-                    // == XUẤT TỆP ==
+ //XUẤT TỆP ==
                     (kryptonButton_ChonDuongDanLuu,    "Chọn đường dẫn để lưu tệp xuất ra"),
                     (Check_MoThuMuc,                   "Tự động mở thư mục chứa tệp sau khi xuất"),
                     (comboBox1_ChonLoaiDeXuat,         "Chọn loại dữ liệu cần xuất ra Excel"),
@@ -2877,11 +2813,11 @@ WHERE ID = 1", conn);
                 }
                 return new Dictionary<string, int>
         {
-            { "Loại 1", l1 },
-            { "Loại 2", l2 },
-            { "Loại 3", l3 },
-            { "Loại 4", l4 },
-            { "Không PL", kpl }
+            {Module_HeThong.Loai_1, l1 },
+            {Module_HeThong.Loai_2, l2 },
+            {Module_HeThong.Loai_3, l3 },
+            {Module_HeThong.Loai_4, l4 },
+            {Module_HeThong.PL_KHONG_PL, kpl }
         };
             });
             if (piePanel != null && !piePanel.IsDisposed)
@@ -3361,8 +3297,8 @@ WHERE ID = 1", conn);
                     string fileXuat = Path.Combine(fullThuMuc, fileName);
                     Module_XuatPhanLoai.XuatTatCaPhanLoai(fileXuat);
                     Module_XuatPhanLoai.LinkDanTep = fileXuat;
+                    //vị trí cập nhật chế độ xét thi đua tháng hoặc năm
                     Module_XuatTongHop.XuatBaoCaoTongHop(fileXuat);
-                    // == MỞ THƯ MỤC ==
                     try
                     {
                         string csdlPath = _csdl2Path;
@@ -4246,18 +4182,14 @@ WHERE ID = 1", conn);
                     "phong trào Vì ANTQ...");
                 toolStripStatusLabel1?.Owner?.Invalidate();
                 toolStripStatusLabel1?.Owner?.Update();
-                // ==
                 // 5. TẠO FORM56
-                // ==
                 using var newForm =
                     new Form56_TomTatThanhTichTapTheHangThang
                     {
                         ShowInTaskbar = false,
                         StartPosition = FormStartPosition.CenterScreen
                     };
-                // ==
                 // 6. MỞ MODAL
-                // ==
                 newForm.ShowDialog(this);
             }
             catch (Exception ex)
@@ -4271,9 +4203,7 @@ WHERE ID = 1", conn);
             }
             finally
             {
-                // ==
                 // 7. LUÔN KHÔI PHỤC NÚT
-                // ==
                 if (!IsDisposed &&
                     !Disposing &&
                     kryptonButton1_TomTatThanhTich != null &&
@@ -4283,9 +4213,7 @@ WHERE ID = 1", conn);
                         _textGocNutTomTatThanhTich ?? "Thành tích";
                     kryptonButton1_TomTatThanhTich.Enabled = true;
                 }
-                // ==
                 // 8. CẬP NHẬT LẠI STATUS CSDL
-                // ==
                 Module_TrangThaiHeThong.CapNhatStatusCSDL(
                     statusStrip1,
                     toolStripStatusLabel1);

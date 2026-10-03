@@ -177,12 +177,8 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        // Lấy tên tài khoản từ RAM hoặc gán mặc định nếu trống
-                        string taiKhoanHienTai = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
-                            ? "Không xác định"
-                            : Module_TaiKhoan.TenTaiKhoan_RAM;
                         Module_NhatKy.GhiNhatKy(
-                            taiKhoan: taiKhoanHienTai,
+                            taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                             hanhDong: $"Cập nhật cấu hình: Bỏ qua cảnh báo tỷ lệ cho {dsDonViDuocTich.Count} đơn vị.",
                             ghiChu: $"Chi tiết đơn vị: {chiTietDonVi} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
                         );

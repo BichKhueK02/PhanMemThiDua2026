@@ -39,7 +39,7 @@ namespace PhanMemThiDua2026
                 {
                     string tenMayTinh = string.IsNullOrWhiteSpace(Environment.MachineName)? "Không xác định": Environment.MachineName;
                     string userMayTinh = string.IsNullOrWhiteSpace(Environment.UserName)? "Không xác định": Environment.UserName;
-                    string tenTaiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)? "Không xác định": Module_TaiKhoan.TenTaiKhoan_RAM;
+                    string tenTaiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM;
                     DateTime thoiGianTao = DateTime.Now;
                     // Tải dữ liệu từ CSDL vào danh sách DTO
                     var listCBCS = LayDanhSachCBCS();
@@ -54,7 +54,7 @@ namespace PhanMemThiDua2026
                         wsInfo.Cell(2, 1).Value = $"Thời gian tạo: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
                         wsInfo.Cell(3, 1).Value = "Ghi chú: Dữ liệu hệ thống đã được lưu trữ an toàn trong tệp này.";
                         wsInfo.Cell(4, 1).Value = "Ghi chú: Đồng chí không nên tác động vào tệp gốc - Lỗi dữ liệu.";
-                        wsInfo.Cell(5, 1).Value = "Tên người dùng: " + (string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM);
+                        wsInfo.Cell(5, 1).Value = "Tên người dùng: " + Module_TaiKhoan.TenTaiKhoan_RAM;
                         wsInfo.Cell(6, 1).Value = "Tên máy tính: " + tenMayTinh;
                         wsInfo.Cell(7, 1).Value = "User máy tính: " + userMayTinh;
                         wsInfo.Columns().AdjustToContents();
@@ -199,12 +199,8 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Information);
                 // Ghi nhật ký
                 Module_NhatKy.GhiNhatKy(
-                    taiKhoan:
-                        string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
-                            ? "Không xác định"
-                            : Module_TaiKhoan.TenTaiKhoan_RAM,
-                    hanhDong:
-                        "Khôi phục dữ liệu khen thưởng từ tệp .mdf thành công!",
+                    taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
+                    hanhDong: "Khôi phục dữ liệu khen thưởng từ tệp .mdf thành công!",
                     ghiChu:
                         $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss} - " +
                         $"Nguồn máy tính: {tenMayTinhNguon} - " +

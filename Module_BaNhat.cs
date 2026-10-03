@@ -1052,7 +1052,7 @@ public static class Module_BaNhat
                 }
             });
             Module_NhatKy.GhiNhatKy(
-                taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                 hanhDong: "Xuất tệp excel toàn bộ CSDL gốc Ba Nhất",
                 ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
             );
@@ -1344,7 +1344,7 @@ public static class Module_BaNhat
                 }
             });
             Module_NhatKy.GhiNhatKy(
-                taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                 hanhDong: "Xuất tệp excel báo cáo thi đua Ba Nhất",
                 ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
             );
@@ -1995,7 +1995,7 @@ public static class Module_BaNhat
             });
             // 3. GHI NHẬT KÝ VÀ MỞ FILE
             Module_NhatKy.GhiNhatKy(
-                taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                 hanhDong: $"Xuất tệp excel dữ liệu gốc Sổ Vàng ({tenBang})",
                 ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
             );

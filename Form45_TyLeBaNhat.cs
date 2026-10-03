@@ -74,6 +74,8 @@ namespace PhanMemThiDua2026
                 MessageBox.Show(ex.Message, "Không thể đọc dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+        // Lê Trung Kiên -  Yêu mèo cam
+
         private async void btnLuu_Click(object? sender, EventArgs e)
         {
             string text = textBoxKrypton_TyLePhanTramBaNhat.Text.Trim();

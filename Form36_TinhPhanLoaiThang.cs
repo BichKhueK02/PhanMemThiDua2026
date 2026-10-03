@@ -402,6 +402,8 @@ namespace PhanMemThiDua2026
             return tcs.Task;
         }
         // Stub để dùng trong try (không cần implement gì)
+        // Lê Trung Kiên -  Yêu mèo cam
+
         private void OnColumnChanged_SuppressNotify(object? s, DataColumnChangeEventArgs e) { }
         private string SafeDecrypt(object? value)
         {
@@ -483,8 +485,7 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        string logText = $"Dựa trên: [{combos[0]}], [{combos[1]}], [{combos[2]}], [{combos[3]}]. Quân số: {rowCount}.";
-                        Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin", "Tính toán phân loại", logText);
+                        Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Tính toán phân loại", $"Dựa trên: [{combos[0]}], [{combos[1]}], [{combos[2]}], [{combos[3]}]. Quân số: {rowCount}.");
                     }
                     catch { }
                 });

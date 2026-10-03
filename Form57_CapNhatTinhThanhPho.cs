@@ -108,10 +108,10 @@ namespace PhanMemThiDua2026
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = """
-            SELECT ID, TenTinhVaThanhPho, ThoiGian
-            FROM TinhVaThanhPho
-            ORDER BY ID ASC;
-            """;
+                SELECT ID, TenTinhVaThanhPho, ThoiGian
+                FROM TinhVaThanhPho
+                ORDER BY ID ASC;
+                """;
                 var dt = new DataTable();
                 using var reader = cmd.ExecuteReader();
                 dt.Load(reader);
@@ -123,26 +123,13 @@ namespace PhanMemThiDua2026
                 {
                     // TÊN TỈNH / THÀNH PHỐ
                     // LẤY ĐÚNG TỪ CSDL, KHÔNG LẤY TỪ TEXTBOX
-                    string tenTinhVaThanhPho =
-                        row["TenTinhVaThanhPho"]?
-                            .ToString()?
-                            .Trim()
-                        ?? string.Empty;
-                    row["TenTinhVaThanhPho"] =
-                        ChuanHoaTenTinh(tenTinhVaThanhPho);
+                    string tenTinhVaThanhPho = row["TenTinhVaThanhPho"]?.ToString()?.Trim() ?? string.Empty;
+                    row["TenTinhVaThanhPho"] = ChuanHoaTenTinh(tenTinhVaThanhPho);
                     // THỜI GIAN
-                    string thoiGian =
-                        row["ThoiGian"]?
-                            .ToString()?
-                            .Trim()
-                        ?? string.Empty;
-                    if (DateTime.TryParse(
-                            thoiGian,
-                            out DateTime dtParsed))
+                    string thoiGian = row["ThoiGian"]?.ToString()?.Trim() ?? string.Empty;
+                    if (DateTime.TryParse(thoiGian, out DateTime dtParsed))
                     {
-                        row["ThoiGian"] =
-                            dtParsed.ToString(
-                                "dd-MM-yyyy HH:mm:ss");
+                        row["ThoiGian"] = dtParsed.ToString("dd-MM-yyyy HH:mm:ss");
                     }
                     else
                     {
@@ -193,42 +180,30 @@ namespace PhanMemThiDua2026
                 dgv.DefaultCellStyle.Font = _fontData;
                 var headerStyle = dgv.ColumnHeadersDefaultCellStyle;
                 headerStyle.Font = _fontHeader;
-                headerStyle.Alignment =
-                    DataGridViewContentAlignment.MiddleCenter;
+                headerStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 // 3. NỀN CHÍNH - SÁNG NHƯ WEB
                 dgv.StateCommon.Background.Color1 = Color.White;
                 dgv.StateCommon.DataCell.Back.Color1 = Color.White;
                 // 4. Ô DỮ LIỆU - VIỀN XÁM RẤT NHẸ
-                dgv.StateCommon.DataCell.Border.Color1 =
-                    Color.FromArgb(235, 238, 242);
+                dgv.StateCommon.DataCell.Border.Color1 = Color.FromArgb(235, 238, 242);
                 dgv.StateCommon.DataCell.Border.Width = 1;
-                dgv.StateCommon.DataCell.Border.DrawBorders =
-                    Krypton.Toolkit.PaletteDrawBorders.All;
+                dgv.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
                 // 5. HEADER - XANH SÁNG, KIỂU WEB
-                dgv.StateCommon.HeaderColumn.Back.Color1 =
-                    Color.FromArgb(180, 210, 240);
-                dgv.StateCommon.HeaderColumn.Back.Color2 =
-                    Color.FromArgb(180, 210, 240);
-                dgv.StateCommon.HeaderColumn.Content.Color1 =
-                    Color.FromArgb(30, 30, 30);
-                dgv.StateCommon.HeaderColumn.Border.Color1 =
-                    Color.FromArgb(150, 180, 210);
+                dgv.StateCommon.HeaderColumn.Back.Color1 = Color.FromArgb(180, 210, 240);
+                dgv.StateCommon.HeaderColumn.Back.Color2 = Color.FromArgb(180, 210, 240);
+                dgv.StateCommon.HeaderColumn.Content.Color1 = Color.FromArgb(30, 30, 30);
+                dgv.StateCommon.HeaderColumn.Border.Color1 = Color.FromArgb(150, 180, 210);
                 dgv.StateCommon.HeaderColumn.Border.Width = 1;
                 // 6. DÒNG ĐƯỢC CHỌN
-                dgv.StateSelected.DataCell.Back.Color1 =
-                    Color.FromArgb(232, 244, 253);
-                dgv.StateSelected.DataCell.Back.Color2 =
-                    Color.FromArgb(232, 244, 253);
-                dgv.StateSelected.DataCell.Content.Color1 =
-                    Color.FromArgb(0, 102, 204);
+                dgv.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
+                dgv.StateSelected.DataCell.Back.Color2 = Color.FromArgb(232, 244, 253);
+                dgv.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
                 // 7. CẤU HÌNH CHUNG
-                dgv.AutoSizeColumnsMode =
-                    DataGridViewAutoSizeColumnsMode.Fill;
+                dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 dgv.AllowUserToAddRows = false;
                 dgv.AllowUserToResizeRows = false;
                 dgv.ReadOnly = true;
-                dgv.SelectionMode =
-                    DataGridViewSelectionMode.FullRowSelect;
+                dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
                 dgv.MultiSelect = false;
                 dgv.RowHeadersVisible = false;
                 dgv.EnableHeadersVisualStyles = false;
@@ -358,9 +333,7 @@ namespace PhanMemThiDua2026
                 dgv.ResumeLayout();
             }
         }
-        private void kryptonDataGridView1_SelectionChanged(
-     object? sender,
-     EventArgs e)
+        private void kryptonDataGridView1_SelectionChanged( object? sender,  EventArgs e)
         {
             var dgv = kryptonDataGridView1;
             if (dgv.CurrentRow == null ||
@@ -919,12 +892,7 @@ namespace PhanMemThiDua2026
                 catch (IOException ioEx)
                 {
                     // Thường gặp khi tệp đích đang được mở bởi Excel hoặc chương trình khác.
-                    MessageBox.Show(
-                        "Không thể ghi tệp Excel. Tệp có thể đang được mở bởi chương trình khác.\n\n" +
-                        $"Chi tiết: {ioEx.Message}",
-                        "Lỗi ghi tệp",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
+                    MessageBox.Show("Không thể ghi tệp Excel. Tệp có thể đang được mở bởi chương trình khác.\n\n" + $"Chi tiết: {ioEx.Message}", "Lỗi ghi tệp", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 // Xác nhận file thực sự đã được tạo ra sau khi SaveAs hoàn tất.
@@ -944,17 +912,11 @@ namespace PhanMemThiDua2026
                 catch
                 {
                 }
-                Module_ThongBao.ThanhCong(
-                    $"Xuất Excel thành công! Đã xuất {danhSachDto.Count:N0} Tỉnh / Thành phố.");
+                Module_ThongBao.ThanhCong($"Xuất Excel thành công! Đã xuất {danhSachDto.Count:N0} Tỉnh / Thành phố.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "Không thể xuất dữ liệu ra Excel.\n\n" +
-                    $"Chi tiết: {ex.Message}",
-                    "Lỗi xuất dữ liệu",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                MessageBox.Show("Không thể xuất dữ liệu ra Excel.\n\n" + $"Chi tiết: {ex.Message}", "Lỗi xuất dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

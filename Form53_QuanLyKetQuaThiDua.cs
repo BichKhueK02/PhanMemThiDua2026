@@ -24,6 +24,11 @@ namespace PhanMemThiDua2026
         }
         private async void Form53_QuanLyKetQuaThiDua_Load(object? sender, EventArgs e)
         {
+            // 1. LẮNG NGHE SỰ KIỆN TỪ MODULE_TAIKHOAN
+            Module_TaiKhoan.OnPhienBanThayDoi += OnPhienBanThayDoiHandler;
+            // 2. CẬP NHẬT GIAO DIỆN LẦN ĐẦU KHI MỞ FORM
+            CapNhatGiaoDienTheoPhienBan();
+            // 3. CẬP NHẬT TIÊU ĐỀ NĂM HỆ THỐNG
             if (quanLyThiDuaNamHienTai_ToolStripMenuItem != null)
             {
                 quanLyThiDuaNamHienTai_ToolStripMenuItem.Text = $"Quản lý thi đua năm {_namHeThong}";
@@ -32,6 +37,65 @@ namespace PhanMemThiDua2026
             {
                 string tieuDeMacDinh = $"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {_namHeThong}";
                 await OpenSubFormAsync<Form15_ThongKeThiDua>(tieuDeMacDinh);
+            }
+        }
+        /// Hàm xử lý khi nhận sự kiện OnPhienBanThayDoi
+        /// </summary>
+        private void OnPhienBanThayDoiHandler(object? sender, EventArgs e)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(CapNhatGiaoDienTheoPhienBan));
+            }
+            else
+            {
+                CapNhatGiaoDienTheoPhienBan();
+            }
+        }
+        /// <summary>
+        /// Cập nhật ẩn/hiện menu tập thể theo phiên bản hiện tại
+        /// </summary>
+        private void CapNhatGiaoDienTheoPhienBan()
+        {
+            bool laCBCS = Module_HoTroLuuDataTheoNamCu.LaPhienBanCBCS();
+            if (quanLyThiDuaTapThe_ToolStripMenuItem != null)
+            {
+                quanLyThiDuaTapThe_ToolStripMenuItem.Available = laCBCS;
+            }
+            if (quanLyThiDuaTapTheNamCu_ToolStripMenuItem != null)
+            {
+                quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Available = laCBCS;
+            }
+        }
+        // HỦY ĐĂNG KÝ SỰ KIỆN VÀ DỌN DẸP BỘ NHỚ KHI ĐÓNG FORM
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            // 1. Hủy đăng ký sự kiện để tránh leak memory
+            Module_TaiKhoan.OnPhienBanThayDoi -= OnPhienBanThayDoiHandler;
+            _isClosing = true;
+            try
+            {
+                _activeSubForm = null;
+                // 2. Xóa và Dispose toàn bộ các Form con đang lưu trên RAM Cache
+                foreach (var kvp in _subFormCache)
+                {
+                    Form subForm = kvp.Value;
+                    if (subForm != null && !subForm.IsDisposed)
+                    {
+                        if (panelContent != null && !panelContent.IsDisposed && panelContent.Controls.Contains(subForm))
+                        {
+                            panelContent.Controls.Remove(subForm);
+                        }
+                        subForm.Close();
+                        subForm.Dispose();
+                    }
+                }
+                _subFormCache.Clear();
+                _switchLock.Dispose();
+            }
+            finally
+            {
+                base.OnFormClosing(e);
             }
         }
         // 🟢 HÀM MỞ FORM SIÊU TỐC TỪ RAM (O(1) Access Time)
@@ -140,34 +204,6 @@ namespace PhanMemThiDua2026
             }
         }
         // DỌN DẸP SẠCH RAM KHI ĐÓNG FORM CHA
-        protected override void OnFormClosing(FormClosingEventArgs e)
-        {
-            _isClosing = true;
-            try
-            {
-                _activeSubForm = null;
-                // Xóa và Dispose toàn bộ các Form con đang lưu trên RAM Cache
-                foreach (var kvp in _subFormCache)
-                {
-                    Form subForm = kvp.Value;
-                    if (subForm != null && !subForm.IsDisposed)
-                    {
-                        if (panelContent != null && !panelContent.IsDisposed && panelContent.Controls.Contains(subForm))
-                        {
-                            panelContent.Controls.Remove(subForm);
-                        }
-                        subForm.Close();
-                        subForm.Dispose();
-                    }
-                }
-                _subFormCache.Clear();
-                _switchLock.Dispose();
-            }
-            finally
-            {
-                base.OnFormClosing(e);
-            }
-        }
         private async void quanLyThiDuaCBCS_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             if (_isClosing) return;

@@ -20,6 +20,7 @@ namespace PhanMemThiDua2026
             InitializeComponent();
             // Chỉ đăng ký sự kiện CellClick ở đây
             this.kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
+            InitThangMapping();
         }
         private async void Form59_QuanLyThiDuaTapTheNamCu_Load(object? sender, EventArgs e)
         {
@@ -148,28 +149,59 @@ namespace PhanMemThiDua2026
                 this.ResumeLayout(true);
             }
         }
+        //private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
+        //{
+        //    if (e.RowIndex < 0 || kryptonDataGridView1 == null) return;
+        //    DataGridViewRow row = kryptonDataGridView1.Rows[e.RowIndex];
+        //    if (kryptonDataGridView1.Columns.Contains("ID"))
+        //    {
+        //        KryptonTextBox_Thang12NamCu.Tag = row.Cells["ID"].Value;
+        //    }
+        //    SetTextBoxText(KryptonTextBox_Thang12NamCu, row, "Thang_12_Nam_Cu");
+        //    SetTextBoxText(KryptonTextBox_Thang1, row, "Thang_1");
+        //    SetTextBoxText(KryptonTextBox_Thang2, row, "Thang_2");
+        //    SetTextBoxText(KryptonTextBox_Thang3, row, "Thang_3");
+        //    SetTextBoxText(KryptonTextBox_Thang4, row, "Thang_4");
+        //    SetTextBoxText(KryptonTextBox_Thang5, row, "Thang_5");
+        //    SetTextBoxText(KryptonTextBox_6ThangDauNam, row, "Sau_Thang_Dau_Nam");
+        //    SetTextBoxText(KryptonTextBox_Thang6, row, "Thang_6");
+        //    SetTextBoxText(KryptonTextBox_Thang7, row, "Thang_7");
+        //    SetTextBoxText(KryptonTextBox_Thang8, row, "Thang_8");
+        //    SetTextBoxText(KryptonTextBox_Thang9, row, "Thang_9");
+        //    SetTextBoxText(KryptonTextBox_Thang10, row, "Thang_10");
+        //    SetTextBoxText(KryptonTextBox_Thang11, row, "Thang_11");
+        //    SetTextBoxText(KryptonTextBox_TongKetNam, row, "TongKet_Nam");
+        //}
+        // Khai báo ở cấp class, tạo 1 lần duy nhất
+        private (KryptonTextBox TextBox, string Column)[] _thangMapping = null!;
+        private void InitThangMapping()
+        {
+            _thangMapping = new (KryptonTextBox, string)[]
+            {
+        (KryptonTextBox_Thang12NamCu, "Thang_12_Nam_Cu"),
+        (KryptonTextBox_Thang1,       "Thang_1"),
+        (KryptonTextBox_Thang2,       "Thang_2"),
+        (KryptonTextBox_Thang3,       "Thang_3"),
+        (KryptonTextBox_Thang4,       "Thang_4"),
+        (KryptonTextBox_Thang5,       "Thang_5"),
+        (KryptonTextBox_6ThangDauNam, "Sau_Thang_Dau_Nam"),
+        (KryptonTextBox_Thang6,       "Thang_6"),
+        (KryptonTextBox_Thang7,       "Thang_7"),
+        (KryptonTextBox_Thang8,       "Thang_8"),
+        (KryptonTextBox_Thang9,       "Thang_9"),
+        (KryptonTextBox_Thang10,      "Thang_10"),
+        (KryptonTextBox_Thang11,      "Thang_11"),
+        (KryptonTextBox_TongKetNam,   "TongKet_Nam"),
+            };
+        }
         private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0 || kryptonDataGridView1 == null) return;
-            DataGridViewRow row = kryptonDataGridView1.Rows[e.RowIndex];
+            var row = kryptonDataGridView1.Rows[e.RowIndex];
             if (kryptonDataGridView1.Columns.Contains("ID"))
-            {
                 KryptonTextBox_Thang12NamCu.Tag = row.Cells["ID"].Value;
-            }
-            SetTextBoxText(KryptonTextBox_Thang12NamCu, row, "Thang_12_Nam_Cu");
-            SetTextBoxText(KryptonTextBox_Thang1, row, "Thang_1");
-            SetTextBoxText(KryptonTextBox_Thang2, row, "Thang_2");
-            SetTextBoxText(KryptonTextBox_Thang3, row, "Thang_3");
-            SetTextBoxText(KryptonTextBox_Thang4, row, "Thang_4");
-            SetTextBoxText(KryptonTextBox_Thang5, row, "Thang_5");
-            SetTextBoxText(KryptonTextBox_6ThangDauNam, row, "Sau_Thang_Dau_Nam");
-            SetTextBoxText(KryptonTextBox_Thang6, row, "Thang_6");
-            SetTextBoxText(KryptonTextBox_Thang7, row, "Thang_7");
-            SetTextBoxText(KryptonTextBox_Thang8, row, "Thang_8");
-            SetTextBoxText(KryptonTextBox_Thang9, row, "Thang_9");
-            SetTextBoxText(KryptonTextBox_Thang10, row, "Thang_10");
-            SetTextBoxText(KryptonTextBox_Thang11, row, "Thang_11");
-            SetTextBoxText(KryptonTextBox_TongKetNam, row, "TongKet_Nam");
+            foreach (var (textBox, column) in _thangMapping)
+                SetTextBoxText(textBox, row, column);
         }
         private void SetTextBoxText(KryptonTextBox txt, DataGridViewRow row, string columnName)
         {

@@ -129,7 +129,7 @@
             groupBox1.Controls.Add(kryptonDataGridView1);
             groupBox1.Dock = DockStyle.Fill;
             groupBox1.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            groupBox1.ForeColor = Color.Red;
+            groupBox1.ForeColor = Color.FromArgb(0, 0, 192);
             groupBox1.Location = new Point(3, 297);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(1258, 348);
@@ -152,7 +152,7 @@
             groupBox3_ThongTinCBCS.Controls.Add(tableLayoutPanel3);
             groupBox3_ThongTinCBCS.Dock = DockStyle.Fill;
             groupBox3_ThongTinCBCS.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            groupBox3_ThongTinCBCS.ForeColor = Color.Red;
+            groupBox3_ThongTinCBCS.ForeColor = Color.FromArgb(0, 0, 192);
             groupBox3_ThongTinCBCS.Location = new Point(3, 85);
             groupBox3_ThongTinCBCS.Name = "groupBox3_ThongTinCBCS";
             groupBox3_ThongTinCBCS.Size = new Size(1258, 206);
@@ -583,7 +583,7 @@
             groupBox1_TimKiemThongTinCBCS.Controls.Add(tableLayoutPanel5);
             groupBox1_TimKiemThongTinCBCS.Dock = DockStyle.Fill;
             groupBox1_TimKiemThongTinCBCS.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            groupBox1_TimKiemThongTinCBCS.ForeColor = Color.Red;
+            groupBox1_TimKiemThongTinCBCS.ForeColor = Color.FromArgb(0, 0, 192);
             groupBox1_TimKiemThongTinCBCS.Location = new Point(101, 3);
             groupBox1_TimKiemThongTinCBCS.Name = "groupBox1_TimKiemThongTinCBCS";
             groupBox1_TimKiemThongTinCBCS.Size = new Size(746, 70);
@@ -678,7 +678,7 @@
             groupBox2_KhoiLenhDieuKhien.Controls.Add(tableLayoutPanel6);
             groupBox2_KhoiLenhDieuKhien.Dock = DockStyle.Fill;
             groupBox2_KhoiLenhDieuKhien.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            groupBox2_KhoiLenhDieuKhien.ForeColor = Color.Red;
+            groupBox2_KhoiLenhDieuKhien.ForeColor = Color.FromArgb(0, 0, 192);
             groupBox2_KhoiLenhDieuKhien.Location = new Point(853, 3);
             groupBox2_KhoiLenhDieuKhien.Name = "groupBox2_KhoiLenhDieuKhien";
             groupBox2_KhoiLenhDieuKhien.Size = new Size(402, 70);

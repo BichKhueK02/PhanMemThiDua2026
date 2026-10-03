@@ -633,7 +633,7 @@ namespace PhanMemThiDua2026
             {
                 // ================= CẤU HÌNH CHUNG =================
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Chức năng";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
                 // UX: Phản hồi nhanh – không gây khó chịu khi rê chuột qua
                 toolTip1.InitialDelay = 300;

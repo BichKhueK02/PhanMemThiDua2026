@@ -76,32 +76,25 @@ namespace PhanMemThiDua2026
             InitToolTips();
         }
         //Mèo cam ----- Ngoài luồng
-        private void GanToolTipAnToan(Control control, string noiDung)
+        private void GanToolTipAnToan(Control? control, string? noiDung)
         {
-            // 1. Control không tồn tại
-            if (control == null)
+            if (control is null || toolTip1 is null)
                 return;
-            // 2. Control đã được giải phóng hoặc đang giải phóng
             if (control.IsDisposed || control.Disposing)
                 return;
-            // 3. Nội dung Tooltip không hợp lệ
             if (string.IsNullOrWhiteSpace(noiDung))
-                return;
-            // 4. ToolTip chưa được khởi tạo
-            if (toolTip1 == null)
                 return;
             try
             {
-                // 5. Gán Tooltip
                 toolTip1.SetToolTip(control, noiDung);
             }
             catch (ObjectDisposedException)
             {
-                // Control đã bị giải phóng đúng thời điểm thao tác.
+                // Control hoặc ToolTip vừa bị giải phóng trong lúc thao tác.
             }
             catch (InvalidOperationException)
             {
-                // Control đang ở trạng thái không phù hợp.
+                // Control không còn ở trạng thái hợp lệ để gán ToolTip.
             }
         }
         private void InitToolTips()

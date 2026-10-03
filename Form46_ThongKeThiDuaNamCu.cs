@@ -829,20 +829,7 @@ namespace PhanMemThiDua2026
                 await Task.Delay(50);
                 string tenTieuDoan = XacDinhTenTieuDoan();
                 // 5. KÍCH HOẠT TIẾN TRÌNH LUỒNG NỀN
-                await Task.Run(() =>
-                {
-                    Module_HoTroLuuDataTheoNamCu.XuatExcelLichSuCore(
-                        targetExcelPath,
-                        selectedFile.LaTanBinh,
-                        _isDataMaxMode,
-                        columnsMeta,
-                        _filteredIndexes,
-                        _dtHienTai,
-                        _dataCacheCBCS,
-                        _dataCacheTanBinh,
-                        tenTieuDoan
-                    );
-                });
+                await Task.Run(() => Module_HoTroLuuDataTheoNamCu.XuatExcelLichSuCore(targetExcelPath, selectedFile.LaTanBinh, _isDataMaxMode, columnsMeta, _filteredIndexes, _dtHienTai, _dataCacheCBCS, _dataCacheTanBinh, tenTieuDoan));
                 // 6. GHI LOG
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất Excel năm cũ", $"Tệp lịch sử: {Path.GetFileName(selectedFile.DuongDan)} | Số dòng: {_filteredIndexes.Count}");
                 if (isLoadShown) { frmLoad.Close(); this.Enabled = true; isLoadShown = false; }

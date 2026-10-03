@@ -8,7 +8,6 @@ namespace PhanMemThiDua2026
     public partial class Form2_FormCha : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
         private Form? _currentChild;
         private DateTime _lastClick = DateTime.MinValue;
         private SemaphoreSlim _huongDanLock = new(1, 1);
@@ -247,7 +246,7 @@ namespace PhanMemThiDua2026
         {
             int namHienTai = Module_HeThong.LayNamHeThong();
             OpenChildForm<Form4_TrangDauTien>(
-                $"PHẦN MỀM THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
+                $"PHẦN MỀM THI ĐUA NĂM {namHienTai}");
             // 🚀 TỐI ƯU UX: ẨN NÚT KHEN THƯỞNG NẾU LÀ TÂN BINH
             try
             {
@@ -439,7 +438,7 @@ namespace PhanMemThiDua2026
             //}
             int namHienTai = Module_HeThong.LayNamHeThong();
             OpenChildForm<Form4_TrangDauTien>(
-                $"PHẦN MỀM THI ĐUA \"VÌ ANTQ\" NĂM {namHienTai}");
+                $"PHẦN MỀM THI ĐUA NĂM {namHienTai}");
             // 🔹 Load lại dữ liệu (ĐÃ NÂNG CẤP CHUẨN ASYNC)
             if (_forms.TryGetValue(typeof(Form4_TrangDauTien), out var f))
             {
@@ -467,33 +466,6 @@ namespace PhanMemThiDua2026
             HighlightNavButton((KryptonButton)sender);
             OpenChildForm<Form12>("Trang Cài đặt");
         }
-        ///private void SafeReload(Form6_XuLyData frm)
-        //{
-        //    if (frm == null) return;
-        //    if (frm.IsDisposed) return;
-        //    if (!frm.IsHandleCreated) return;
-        //    try
-        //    {
-        //        // 🔥 tránh block UI + chống giật
-        //        frm.BeginInvoke(new Action(() =>
-        //        {
-        //            try
-        //            {
-        //                frm.ReloadDuLieu();
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Debug.WriteLine("Reload Form6 lỗi: " + ex.Message);
-        //            }
-        //        }));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Debug.WriteLine("SafeReload lỗi: " + ex.Message);
-        //    }
-        //}
-        // Cache form trên RAM
-        //private Form39_ThongTinNguoiDung _formThongTinNguoiDung;
         private void Label2_Click(object? sender, EventArgs e)
         {
             try
@@ -544,25 +516,34 @@ namespace PhanMemThiDua2026
         private async void kryptonButton_ThongKe_Click(object? sender, EventArgs e)
         {
             DongToanBoHuongDanSuDung();
-            if (!AllowSwitch()) return;
-            HighlightNavButton(kryptonButton1_ThongKe); // Đảm bảo tên biến nút này đúng với tên nút của bạn
-            if (_namHienTaiCache == -1) _namHienTaiCache = Module_HeThong.LayNamHeThong();
-            // Tiêu đề này chỉ là hiển thị tạm trong tíc tắc, ngay sau đó Form 53 sẽ tự "hét" lên tiêu đề chính thức của Form 15
+            if (!AllowSwitch())
+                return;
+            HighlightNavButton(kryptonButton1_ThongKe);
+            if (_namHienTaiCache == -1)
+                _namHienTaiCache = Module_HeThong.LayNamHeThong();
             string tieuDeForm = $"Trang Quản lý kết quả thi đua năm {_namHienTaiCache}";
             try
             {
-                // 🌟 CHUẨN KỸ SƯ: Mở Form Container 53, bỏ hoàn toàn Form_Loading và logic đếm DB
-                // Hàm OpenChildForm của bạn (với ConcurrentDictionary) đã tự lo việc lấy từ RAM hay tạo mới!
                 OpenChildForm<Form53_QuanLyKetQuaThiDua>(tieuDeForm);
-                // Kích hoạt load dữ liệu ngầm nếu Form 53 mới tinh và chưa nạp data
                 if (_currentChild is Form53_QuanLyKetQuaThiDua frm && !frm.DaLoadDuLieu)
                 {
                     await frm.ReloadDuLieu();
+                    if (Application.OpenForms
+                        .OfType<Form15_ThongKeThiDua>()
+                        .FirstOrDefault() is Form15_ThongKeThiDua frm15 &&
+                        !frm15.IsDisposed)
+                    {
+                        await frm15.LamMoiDuLieuAsync();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khởi tạo trang Quản lý Thi đua: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Lỗi khởi tạo trang Quản lý Thi đua: " + ex.Message,
+                    "Lỗi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
         private async void Btn_XuLyData_Click(object? sender, EventArgs e)
@@ -1128,7 +1109,7 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                Label1.Text = "Hướng dẫn sử dụng Phần mềm Thi đua 2026";
+                Label1.Text = "Trang Hướng dẫn sử dụng Phần mềm Thi đua 2026";
             }
         }
         public void CapNhatTieuDe(string text)

@@ -1,5 +1,9 @@
 ﻿using Krypton.Toolkit;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
+
+
+// ==== HẰNG SỐ DÙNG CHUNG (TRÁNH MAGIC STRING RẢI RÁC) ====
 namespace PhanMemThiDua2026
 {
     public partial class Form7_ThongTinAdmin : Form
@@ -44,103 +48,167 @@ namespace PhanMemThiDua2026
             }
         }
         #region Thông tin chữ ký số (Textbox + màu)
-        private void HienThiThongTinChuKySo()
+
+    private const string PLACEHOLDER = "—";
+    private const string DATE_FORMAT = "dd/MM/yyyy";
+
+    /// <summary>
+    /// Timeout tối đa cho việc kiểm tra thu hồi chứng chỉ (revocation check) qua mạng.
+    /// Tránh treo UI vô thời hạn khi máy không có Internet hoặc CRL server không phản hồi.
+    /// </summary>
+    private static readonly TimeSpan ChainRevocationTimeout = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Kết quả xác thực chữ ký số — tách biệt hoàn toàn khỏi tầng hiển thị (UI),
+    /// giúp hàm kiểm tra có thể unit-test độc lập, không phụ thuộc Form/Control.
+    /// </summary>
+    private sealed record KetQuaChuKySo(string TrangThai, string NguoiKyHoacNhaPhatHanh, string ThoiHanHieuLuc, string Thumbprint, string GhiChu,  Color MauHienThi);
+    /// <summary>
+    /// Hiển thị thông tin chữ ký số của file thực thi hiện tại lên giao diện.
+    /// Chạy bất đồng bộ để không chặn luồng UI trong lúc kiểm tra revocation qua mạng.
+    /// </summary>
+    private async void HienThiThongTinChuKySo()
+    {
+        string exePath = Application.ExecutablePath;
+        textBox_TenPhanMem.Text = Module_PhienBan.TenPhanMem;
+        textBox_PhienBan.Text = Module_PhienBan.SoftwareVersion;
+        // Trạng thái khởi tạo trong lúc chờ kiểm tra
+        SetTrangThai("Unknown", "Unknown", PLACEHOLDER, PLACEHOLDER,
+            "Software integrity has not been evaluated", Color.DimGray);
+
+        if (!File.Exists(exePath))
         {
-            string exePath = Application.ExecutablePath;
-            textBox_TenPhanMem.Text = Module_PhienBan.TenPhanMem;
-            //Application.ProductName;
-            textBox_PhienBan.Text = Module_PhienBan.SoftwareVersion;
-            SetTrangThai(
-                "Unknown",
-                "Unknown",
-                "—",
-                "—",
-                "Software integrity has not been evaluated",
-                Color.DimGray
-            );
-            if (!File.Exists(exePath))
-            {
-                SetTrangThai(
-                    "Executable file not found",
-                    "—",
-                    "—",
-                    "—",
-                    "⚠ The application executable file does not exist",
-                    Color.Red
-                );
-                return;
-            }
-            try
-            {
-                X509Certificate2 cert = new X509Certificate2(
-                    X509Certificate.CreateFromSignedFile(exePath)
-                );
-                if (cert == null)
-                {
-                    SetTrangThai(
-                        "Not digitally signed",
-                        "—",
-                        "—",
-                        "—",
-                        "⚠ The software origin cannot be verified",
-                        Color.Red
-                    );
-                    return;
-                }
-                // ✅ 1. Kiểm tra hết hạn
-                if (DateTime.Now < cert.NotBefore || DateTime.Now > cert.NotAfter)
-                {
-                    SetTrangThai(
-                        "Digital signature expired",
-                        LayTenNhaPhatHanh(cert),
-                        $"{cert.NotBefore:dd/MM/yyyy}  →  {cert.NotAfter:dd/MM/yyyy}",
-                        cert.Thumbprint,
-                        "⚠ The digital certificate is no longer valid",
-                        Color.OrangeRed
-                    );
-                    return;
-                }
-                // ✅ 2. Kiểm tra chain hợp lệ
-                X509Chain chain = new X509Chain();
-                chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
-                chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
-                chain.ChainPolicy.VerificationFlags = X509VerificationFlags.NoFlag;
-                bool isValid = chain.Build(cert);
-                if (!isValid)
-                {
-                    SetTrangThai(
-                        "Invalid digital signature",
-                        LayTenNhaPhatHanh(cert),
-                        $"{cert.NotBefore:dd/MM/yyyy}  →  {cert.NotAfter:dd/MM/yyyy}",
-                        cert.Thumbprint,
-                        "⚠ Certificate chain validation failed",
-                        Color.Red
-                    );
-                    return;
-                }
-                // ✅ 3. Hợp lệ hoàn toàn
-                SetTrangThai(
-                    "Digitally signed – Verified",
-                    LayNguoiKy(cert),
-                    $"{cert.NotBefore:dd/MM/yyyy}  →  {cert.NotAfter:dd/MM/yyyy}",
-                    cert.Thumbprint,
-                    "✔ Software integrity verified. Certificate chain valid.",
-                    Color.Green
-                );
-            }
-            catch
-            {
-                SetTrangThai(
-                    "Unable to read digital signature",
-                    "—",
-                    "—",
-                    "—",
-                    "⚠ Digital signature verification failed",
-                    Color.Red
-                );
-            }
+            SetTrangThai("Executable file not found", PLACEHOLDER, PLACEHOLDER, PLACEHOLDER,
+                "⚠ The application executable file does not exist", Color.Red);
+            return;
         }
-        private void SetTrangThai(
+
+        // 🌟 CHẠY KIỂM TRA CHỮ KÝ SỐ TRÊN THREAD POOL, TRÁNH GIẬT/ĐƠ FORM
+        KetQuaChuKySo ketQua;
+        using (var cts = new CancellationTokenSource(ChainRevocationTimeout + TimeSpan.FromSeconds(2)))
+        {
+            ketQua = await Task.Run(() => KiemTraChuKySo(exePath, cts.Token), cts.Token)
+                               .ConfigureAwait(true); // true: quay lại UI thread để cập nhật control
+        }
+
+        SetTrangThai(
+            ketQua.TrangThai,
+            ketQua.NguoiKyHoacNhaPhatHanh,
+            ketQua.ThoiHanHieuLuc,
+            ketQua.Thumbprint,
+            ketQua.GhiChu,
+            ketQua.MauHienThi);
+    }
+
+    /// <summary>
+    /// Logic thuần túy kiểm tra chữ ký số của file thực thi — KHÔNG đụng tới UI.
+    /// Tách riêng để có thể unit-test và tái sử dụng ở nơi khác (log hệ thống, CLI, v.v).
+    /// </summary>
+    /// <param name="exePath">Đường dẫn file cần kiểm tra.</param>
+    /// <param name="cancellationToken">Cho phép hủy nếu kiểm tra revocation quá lâu.</param>
+    private KetQuaChuKySo KiemTraChuKySo(string exePath, CancellationToken cancellationToken)
+    {
+        X509Certificate2? cert = null;
+        X509Chain? chain = null;
+
+        try
+        {
+            // Bước 1: Đọc chữ ký số nhúng trong file (ném CryptographicException nếu chưa ký)
+            cert = new X509Certificate2(X509Certificate.CreateFromSignedFile(exePath));
+            string thoiHan = $"{cert.NotBefore:dd/MM/yyyy HH:mm:ss} → {cert.NotAfter:dd/MM/yyyy HH:mm:ss}";
+                // Bước 2: Kiểm tra hết hạn chứng chỉ
+            DateTime now = DateTime.Now;
+            if (now < cert.NotBefore || now > cert.NotAfter)
+            {
+                return new KetQuaChuKySo(
+                    "Digital signature expired",
+                    LayTenNhaPhatHanh(cert),
+                    thoiHan,
+                    cert.Thumbprint,
+                    "⚠ The digital certificate is no longer valid",
+                    Color.OrangeRed);
+            }
+            // Bước 3: Kiểm tra chuỗi chứng chỉ (chain) — có timeout để không treo khi mất mạng
+            chain = new X509Chain
+            {
+                ChainPolicy =
+            {
+                RevocationMode = X509RevocationMode.Online,
+                RevocationFlag = X509RevocationFlag.EntireChain,
+                VerificationFlags = X509VerificationFlags.NoFlag,
+                UrlRetrievalTimeout = ChainRevocationTimeout
+            }
+            };
+
+            bool isValid = chain.Build(cert);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!isValid)
+            {
+                // Gom lý do cụ thể để hỗ trợ chẩn đoán (hết hạn CA, không rõ nguồn gốc, bị thu hồi...)
+                string lyDo = string.Join("; ",
+                    chain.ChainStatus.Select(s => s.StatusInformation.Trim()));
+
+                return new KetQuaChuKySo(
+                    "Invalid digital signature",
+                    LayTenNhaPhatHanh(cert),
+                    thoiHan,
+                    cert.Thumbprint,
+                    $"⚠ Certificate chain validation failed: {lyDo}",
+                    Color.Red);
+            }
+
+            // Bước 4: Hợp lệ hoàn toàn
+            return new KetQuaChuKySo(
+                "Digitally signed – Verified",
+                LayNguoiKy(cert),
+                thoiHan,
+                cert.Thumbprint,
+                "✔ Software integrity verified. Certificate chain valid.",
+                Color.Green);
+        }
+        catch (CryptographicException)
+        {
+            // File tồn tại nhưng KHÔNG có chữ ký số nhúng — phân biệt rõ với lỗi đọc file
+            return new KetQuaChuKySo(
+                "Not digitally signed",
+                PLACEHOLDER, PLACEHOLDER, PLACEHOLDER,
+                "⚠ The software origin cannot be verified",
+                Color.Red);
+        }
+        catch (OperationCanceledException)
+        {
+            return new KetQuaChuKySo(
+                "Verification timed out",
+                LayTenNhaPhatHanhAnToan(cert), PLACEHOLDER, cert?.Thumbprint ?? PLACEHOLDER,
+                "⚠ Revocation check timed out (no network or slow CRL server)",
+                Color.OrangeRed);
+        }
+        catch (Exception ex)
+        {
+            // Lỗi không lường trước (I/O, quyền truy cập...) — ghi log để chẩn đoán sau này
+            Module_NhatKy.GhiNhatKy("System", "Kiểm tra chữ ký số",
+                $"Lỗi không xác định khi kiểm tra chữ ký số: {ex.Message}");
+
+            return new KetQuaChuKySo(
+                "Unable to read digital signature",
+                PLACEHOLDER, PLACEHOLDER, PLACEHOLDER,
+                "⚠ Digital signature verification failed",
+                Color.Red);
+        }
+        finally
+        {
+            // 🌟 GIẢI PHÓNG TÀI NGUYÊN NATIVE — TRÁNH RÒ RỈ HANDLE
+            chain?.Dispose();
+            cert?.Dispose();
+        }
+    }
+
+    /// <summary>Lấy tên nhà phát hành một cách an toàn, không ném lỗi nếu cert null.</summary>
+    private string LayTenNhaPhatHanhAnToan(X509Certificate2? cert)
+        => cert == null ? PLACEHOLDER : LayTenNhaPhatHanh(cert);
+
+    private void SetTrangThai(
                     string trangThai,
                     string nhaPhatHanh,
                     string thoiGianKy,

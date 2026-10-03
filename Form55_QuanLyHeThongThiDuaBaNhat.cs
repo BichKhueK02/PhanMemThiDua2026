@@ -18,14 +18,11 @@ namespace PhanMemThiDua2026
         public Form55_QuanLyHeThongThiDuaBaNhat()
         {
             InitializeComponent();
-        }      
+        }
         // FORM LOAD
-        private async void Form55_QuanLyHeThongThiDuaBaNhat_Load(
-            object? sender,
-            EventArgs e)
+        private async void Form55_QuanLyHeThongThiDuaBaNhat_Load(object? sender, EventArgs e)
         {
-            if (_dangDongForm)
-                return;
+            if (_dangDongForm) return;
             try
             {
                 await MoForm42Async();
@@ -33,15 +30,9 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    this,
-                    "Không thể khởi tạo dữ liệu thi đua Ba Nhất.\n\n" +
-                    ex.Message,
-                    "Lỗi khởi tạo",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                MessageBox.Show(this, "Không thể khởi tạo dữ liệu thi đua Ba Nhất.\n\n" + ex.Message, "Lỗi khởi tạo", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }  
+        }
         // TẠO FORM 42 - LAZY INITIALIZATION
         private void TaoForm42NeuCan()
         {

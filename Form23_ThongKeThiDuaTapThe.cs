@@ -3,6 +3,7 @@ using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Globalization;
+using System.Reflection;
 namespace PhanMemThiDua2026
 {
     public partial class Form23_ThongKeThiDuaTapThe : Form
@@ -151,14 +152,10 @@ namespace PhanMemThiDua2026
             toolStripLabel2.Text =
                 $"Phiên bản phần mềm {Module_PhienBan.SoftwareVersion} {Module_PhienBan.NgayThangNamCapNhat}";
         }
-        private void ChinhTieuDeBangThongKe()
-        {
-            var dgv = kryptonDataGridView1;
-            dgv.AllowUserToResizeColumns = false;
-            dgv.EnableHeadersVisualStyles = false;
-            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dgv.ColumnHeadersDefaultCellStyle.Font = _fontHeaderBangThongKe;
-            var map = new Dictionary<string, string>{
+        // Đặt ở cấp class, chỉ tạo 1 lần duy nhất trong vòng đời ứng dụng
+        private static readonly IReadOnlyDictionary<string, string> _headerMapBangThongKe =
+            new Dictionary<string, string>
+            {
                 ["Thang_12_Nam_Cu"] = "Tháng 12 (Năm cũ)",
                 ["Thang_1"] = "Tháng 1",
                 ["Thang_2"] = "Tháng 2",
@@ -174,14 +171,53 @@ namespace PhanMemThiDua2026
                 ["Thang_11"] = "Tháng 11",
                 ["TongKet_Nam"] = "Tổng kết năm"
             };
-            foreach (var kv in map)
-                if (dgv.Columns.Contains(kv.Key))
-                    dgv.Columns[kv.Key].HeaderText = kv.Value;
-            foreach (DataGridViewColumn col in dgv.Columns)
+        private void ChinhTieuDeBangThongKe()
+        {
+            var dgv = kryptonDataGridView1;
+            if (dgv == null || dgv.IsDisposed) return;
+            dgv.SuspendLayout();
+            try
             {
-                col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                // --- Header ---
+                dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+                dgv.ColumnHeadersHeight = 82;
+                dgv.EnableHeadersVisualStyles = false;
+                dgv.AllowUserToResizeColumns = false;
+                dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                if (_fontHeaderBangThongKe != null)
+                    dgv.ColumnHeadersDefaultCellStyle.Font = _fontHeaderBangThongKe;
+                // --- Chiều cao dòng ---
+                // Set RowTemplate TRƯỚC khi bind DataSource để áp dụng cho mọi dòng mới sinh ra,
+                // tránh phải foreach toàn bộ Rows (rất chậm với databound grid nhiều dòng).
+                const int rowHeight = 62;
+                dgv.RowTemplate.Height = rowHeight;
+                // Chỉ set lại height cho các dòng ĐÃ tồn tại nếu thật sự cần
+                // (ví dụ hàm này gọi SAU khi đã có data). Bỏ qua nếu gọi trước khi bind.
+                if (dgv.Rows.Count > 0 && dgv.RowCount < 2000) // ngưỡng an toàn, tránh treo UI với data quá lớn
+                {
+                    foreach (DataGridViewRow row in dgv.Rows)
+                        if (row.Height != rowHeight)
+                            row.Height = rowHeight;
+                }
+                // --- Đổi tên cột + căn giữa + fill ---
+                foreach (DataGridViewColumn col in dgv.Columns)
+                {
+                    if (_headerMapBangThongKe.TryGetValue(col.Name, out var text))
+                        col.HeaderText = text;
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                }
             }
+            finally
+            {
+                dgv.ResumeLayout(performLayout: true);
+            }
+        }
+        private static void EnableDoubleBuffer(DataGridView dgv)
+        {
+            typeof(DataGridView)
+                .GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.SetValue(dgv, true, null);
         }
         private void LoadBangThongKe()
         {
@@ -449,7 +485,7 @@ namespace PhanMemThiDua2026
                         cell.Style.Font.FontColor = XLColor.DarkRed;
                     }
                 }
-                // ================== 8. A4 – GIÃN DÒNG – CĂN GIỮA TUYỆT ĐỐI ==================
+                // /================== 8. A4 – GIÃN DÒNG – CĂN GIỮA TUYỆT ĐỐI ==================
                 ws.Row(4).Height = 36;
                 var row4Range = ws.Range($"A4:{cotCuoi}4");
                 row4Range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;

@@ -152,11 +152,7 @@ namespace PhanMemThiDua2026
                     }
                 });
                 // 5. Ghi Log
-                Module_NhatKy.GhiNhatKy(
-                    Module_TaiKhoan.TenTaiKhoan_RAM,
-                    "Xóa nâng cao",
-                    $"{thongBaoLog} ({rowsAffected} dòng)"
-                );
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa nâng cao", $"{thongBaoLog} ({rowsAffected} dòng)");
                 // 6. Cập nhật và Đóng
                 if (_formCha != null && !_formCha.IsDisposed)
                 {

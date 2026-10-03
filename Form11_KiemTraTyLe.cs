@@ -122,29 +122,12 @@ namespace PhanMemThiDua2026
                 while (reader.Read())
                 {
                     int id = reader.GetInt32(ordinalId);
-                    if (id < 1 || id > 3)
-                        continue;
+                    if (id < 1 || id > 3) continue;
                     int index = id - 1;
-                    _cacheTyLe[Module_HeThong.Loai_1][index] =
-                        GiaiMaVaChuanHoa(
-                            reader.IsDBNull(ordinalLoai1)
-                                ? null
-                                : reader.GetString(ordinalLoai1));
-                    _cacheTyLe[Module_HeThong.Loai_2][index] =
-                        GiaiMaVaChuanHoa(
-                            reader.IsDBNull(ordinalLoai2)
-                                ? null
-                                : reader.GetString(ordinalLoai2));
-                    _cacheTyLe[Module_HeThong.Loai_3][index] =
-                        GiaiMaVaChuanHoa(
-                            reader.IsDBNull(ordinalLoai3)
-                                ? null
-                                : reader.GetString(ordinalLoai3));
-                    _cacheTyLe[Module_HeThong.Loai_4][index] =
-                        GiaiMaVaChuanHoa(
-                            reader.IsDBNull(ordinalLoai4)
-                                ? null
-                                : reader.GetString(ordinalLoai4));
+                    _cacheTyLe[Module_HeThong.Loai_1][index] = GiaiMaVaChuanHoa(reader.IsDBNull(ordinalLoai1) ? null : reader.GetString(ordinalLoai1));
+                    _cacheTyLe[Module_HeThong.Loai_2][index] = GiaiMaVaChuanHoa(reader.IsDBNull(ordinalLoai2) ? null : reader.GetString(ordinalLoai2));
+                    _cacheTyLe[Module_HeThong.Loai_3][index] = GiaiMaVaChuanHoa(reader.IsDBNull(ordinalLoai3) ? null : reader.GetString(ordinalLoai3));
+                    _cacheTyLe[Module_HeThong.Loai_4][index] = GiaiMaVaChuanHoa(reader.IsDBNull(ordinalLoai4) ? null : reader.GetString(ordinalLoai4));
                 }
             }
             catch (Exception ex)

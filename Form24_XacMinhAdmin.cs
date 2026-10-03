@@ -12,7 +12,7 @@ namespace PhanMemThiDua2026
 {
     public partial class Form24_XacMinhAdmin : Form
     {
-        // 1. CONFIG & STATE 
+        /// 1. CONFIG & STATE 
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
         // [CẬP NHẬT]: Thêm đường dẫn CSDL2 để đọc bảng cấu hình (ThongTin)
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;

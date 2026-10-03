@@ -311,11 +311,7 @@ namespace PhanMemThiDua2026
                         ["PhanLoai"] = "Phân loại",
                         ["GhiChu"] = "Ghi chú"
                     };
-                    Font fontTieuDe = new Font(
-                        Module_HeThong.TenFontHeThong,
-                        9.75F,
-                        FontStyle.Bold,
-                        GraphicsUnit.Point);
+                    Font fontTieuDe = new Font(Module_HeThong.TenFontHeThong, 9.75F, FontStyle.Bold, GraphicsUnit.Point);
                     foreach (var item in tieuDeCot)
                     {
                         if (dgv.Columns[item.Key] != null)
@@ -664,12 +660,12 @@ namespace PhanMemThiDua2026
                 });
                 if (!isTrung)
                 {
-                    SetComboBoxPhanLoaiMacDinh("Loại 2");
+                    SetComboBoxPhanLoaiMacDinh(Module_HeThong.Loai_2);
                 }
             }
             else
             {
-                SetComboBoxPhanLoaiMacDinh("Loại 2");
+                SetComboBoxPhanLoaiMacDinh(Module_HeThong.Loai_2);
             }
         }
         private void SetComboBoxPhanLoaiMacDinh(string giaTriMacDinh)
@@ -957,46 +953,16 @@ namespace PhanMemThiDua2026
                 {
                     col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                     string header = col.HeaderText.Trim();
-                    switch (header)
+                    if (ColumnSettings.TryGetValue(header, out var setting))
                     {
-                        case "Họ và tên":
-                            col.Width = 210;
-                            break;
-                        case "Số hiệu":
-                            col.Width = 105; // Tăng từ 95 -> 105
+                        col.Width = setting.Width;
+                        if (setting.Center)
                             col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            break;
-                        case "Năm sinh":
-                            col.Width = 95; // Tăng từ 80 -> 95
-                            col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            break;
-                        case "Quê quán":
-                            col.Width = 250; // Tăng từ 210 -> 250
-                            break;
-                        case "Vào CAND":
-                            col.Width = 125; // Tăng từ 115 -> 125
-                            col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            break;
-                        case "Cấp bậc":
-                            col.Width = 95; // Tăng từ 70 -> 95
-                            col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            break;
-                        case "Chức vụ":
-                            col.Width = 105; // Tăng từ 75 -> 105
-                            col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            break;
-                        case "Đơn vị":
-                            col.Width = 110; // Tăng từ 80 -> 110
-                            col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            break;
-                        case "Phân loại":
-                            col.Width = 110; // Tăng từ 80 -> 110
-                            col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            break;
-                        case "Ghi chú":
-                            col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                            col.MinimumWidth = 120;
-                            break;
+                    }
+                    else if (header.Equals("Ghi chú", StringComparison.Ordinal))
+                    {
+                        col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                        col.MinimumWidth = 120;
                     }
                 }
             }
@@ -1005,6 +971,19 @@ namespace PhanMemThiDua2026
                 dgv.ResumeLayout();
             }
         }
+        private static readonly Dictionary<string, (int Width, bool Center)> ColumnSettings =
+    new(StringComparer.Ordinal)
+    {
+        ["Họ và tên"] = (210, false),
+        ["Số hiệu"] = (105, true),
+        ["Năm sinh"] = (95, true),
+        ["Quê quán"] = (250, false),
+        ["Vào CAND"] = (125, true),
+        ["Cấp bậc"] = (95, true),
+        ["Chức vụ"] = (105, true),
+        ["Đơn vị"] = (110, true),
+        ["Phân loại"] = (110, true)
+    };
         private void ChonDongVuaThemTheoSoHieu(string soHieu)
         {
             if (string.IsNullOrWhiteSpace(soHieu) || kryptonDataGridView1.Rows.Count == 0)
@@ -1468,7 +1447,7 @@ namespace PhanMemThiDua2026
                 // 🔥 GỌI HÀM XUẤT FILE EXCEL MẪU (sử dụng biến _dtGoc chuẩn của Form)
                 // Tham số thứ 2 là 'true' để ép xuất ra file mẫu
                 Module_XuatNhapDuLieuThiDua.ThucThiXuatExcel(this, true, _dtGoc);
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin", "Thêm dữ liệu cán bộ", $"Vào lúc {DateTime.Now:HH:mm:ss}");
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Thêm dữ liệu cán bộ", $"Vào lúc {DateTime.Now:HH:mm:ss}");
             }
             catch (Exception ex)
             {

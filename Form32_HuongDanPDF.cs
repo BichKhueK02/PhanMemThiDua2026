@@ -10,7 +10,7 @@ namespace PhanMemThiDua2026
         public Form32_HuongDanPDF()
         {
             InitializeComponent();
-            // Chỉ nạp DLL 1 lần duy nhất cho vòng đời ứng dụng
+            /// Chỉ nạp DLL 1 lần duy nhất cho vòng đời ứng dụng
             LoadPdfiumDll();
             InitViewer();
             this.FormClosed += (s, e) => DisposePdf();

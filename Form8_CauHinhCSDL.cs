@@ -308,22 +308,14 @@ namespace PhanMemThiDua2026
                 Module_TaiKhoan.TenTaiKhoan_RAM = ten;
                 SessionInfo.TenTaiKhoan = ten;
                 SessionInfo.ThoiGianDangNhap = DateTime.Now;
-                Module_NhatKy.GhiNhatKy(
-                    taiKhoan: ten,
-                    hanhDong: "Truy cập phần mềm quản lý cơ sở dữ liệu",
-                    ghiChu: $"Thời gian: {SessionInfo.ThoiGianDangNhap:dd-MM-yyyy HH:mm:ss}"
-                );
+                Module_NhatKy.GhiNhatKy(taiKhoan: ten, hanhDong: "Truy cập phần mềm quản lý cơ sở dữ liệu", ghiChu: $"Thời gian: {SessionInfo.ThoiGianDangNhap:dd-MM-yyyy HH:mm:ss}");
                 // Gõ cửa trái tim giờ sẽ chạy bất đồng bộ
                 GoCuaTraiTim_MoChucNangSQLite();
             }
             else
             {
                 LamLoMotCuocTinh_ThongBaoSaiMatKhau();
-                Module_NhatKy.GhiNhatKy(
-                    taiKhoan: ten,
-                    hanhDong: "Truy cập phần mềm quản lý cơ sở dữ liệu",
-                    ghiChu: "Thất bại!"
-                );
+                Module_NhatKy.GhiNhatKy(taiKhoan: ten, hanhDong: "Truy cập phần mềm quản lý cơ sở dữ liệu", ghiChu: "Thất bại!");
             }
             // Mở khóa lại nút sau khi xử lý xong
             btn_DangNhap.Enabled = true;

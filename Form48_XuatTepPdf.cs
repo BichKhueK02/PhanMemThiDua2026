@@ -26,6 +26,15 @@ namespace PhanMemThiDua2026
         [DllImport("user32.dll", SetLastError = true)]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
         // CLASS LƯU TRỮ TRẠNG THÁI ÁNH XẠ
+        private string _textGocNutXuatPdf = "Xuất tệp (*.pdf)";
+        private string _tenDonVi = "";
+        private string _thang = "";
+        private string _nam = "";
+        private Dictionary<string, string> _mapQuyDinhTenPdf;
+        private bool _dangXuatFile = false;
+        private int _soFileDaXong = 0;
+        private int _tongSoFile = 0;
+        // HÀM TẠO HIỆU ỨNG TĂNG DẦN ĐỀU (CHẠY NGẦM SONG SONG)
         public class SheetExportItem
         {
             public string OriginalSheetName { get; set; }
@@ -48,15 +57,6 @@ namespace PhanMemThiDua2026
                 return $"[{OriginalSheetName}] ➔ {TargetPdfName}.pdf";
             }
         }
-        private string _textGocNutXuatPdf = "Xuất tệp (*.pdf)";
-        private string _tenDonVi = "";
-        private string _thang = "";
-        private string _nam = "";
-        private Dictionary<string, string> _mapQuyDinhTenPdf;
-        private bool _dangXuatFile = false;
-        private int _soFileDaXong = 0;
-        private int _tongSoFile = 0;
-        // HÀM TẠO HIỆU ỨNG TĂNG DẦN ĐỀU (CHẠY NGẦM SONG SONG)
         public Form48_XuatTepPdf()
         {
             InitializeComponent();

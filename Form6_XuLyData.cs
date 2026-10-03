@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.Media;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -1179,11 +1180,11 @@ namespace PhanMemThiDua2026
                     {
                         e.Value = rawValue switch
                         {
-                            "Loại 1" => Module_HeThong.PL_CSTD,
-                            "Loại 2" => Module_HeThong.PL_CSTT,
-                            "Loại 3" => Module_HeThong.PL_HTNV,
-                            "Loại 4" => Module_HeThong.PL_KHTNV,
-                            "Không PL" => "Không PL",
+                            Module_HeThong.Loai_1 => Module_HeThong.PL_CSTD,
+                            Module_HeThong.Loai_2 => Module_HeThong.PL_CSTT,
+                            Module_HeThong.Loai_3 => Module_HeThong.PL_HTNV,
+                            Module_HeThong.Loai_4 => Module_HeThong.PL_KHTNV,
+                            Module_HeThong.PL_KHONG_PL => Module_HeThong.PL_KHONG_PL,
                             _ => rawValue
                         };
                     }
@@ -1633,78 +1634,108 @@ namespace PhanMemThiDua2026
         {
             // ===== 1. CHỐNG SPAM VÀ VALIDATE UI (Chạy trên UI Thread) =====
             if (_dangXuLyXoa) return;
-            if (string.IsNullOrWhiteSpace(textBox_STT.Text) || !int.TryParse(textBox_STT.Text.Trim(), out int stt))
+            if (string.IsNullOrWhiteSpace(textBox_STT.Text) ||
+                !int.TryParse(textBox_STT.Text.Trim(), out int stt))
             {
-                MessageBox.Show("Chưa xác định được dữ liệu dòng cần xử lý.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Chưa xác định được dữ liệu dòng cần xử lý.", "Thông báo",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             string hoTen = string.IsNullOrWhiteSpace(textBox_HoVaTen.Text) ? "[Không rõ]" : textBox_HoVaTen.Text.Trim();
             string soHieu = string.IsNullOrWhiteSpace(textBox_SoHieu.Text) ? "[Không rõ]" : textBox_SoHieu.Text.Trim();
             string donVi = string.IsNullOrWhiteSpace(textBox_DonVi.Text) ? "[Không rõ]" : textBox_DonVi.Text.Trim();
-            string thongBao = $"Bạn có chắc chắn muốn xóa thông tin của {Module_HeThong.Tu_dong_chi}:\n\n" +
-                              $"Họ và tên: {hoTen}\n" +
-                              $"Số hiệu: {soHieu}\n" +
-                              $"Đơn vị: {donVi}\n\n" +
-                              $"Lưu ý: Hành động này không thể hoàn tác!";
+            string thongBao =
+                $"Bạn có chắc chắn muốn xóa thông tin của {Module_HeThong.Tu_dong_chi}:\n\n" +
+                $"Họ và tên: {hoTen}\n" +
+                $"Số hiệu: {soHieu}\n" +
+                $"Đơn vị: {donVi}\n\n" +
+                $"Lưu ý: Hành động này không thể hoàn tác!";
             if (MessageBox.Show(thongBao, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
                 return;
-            string csdlPath = _csdl2Path;
+            string? csdlPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))
             {
-                MessageBox.Show("Không thể truy cập dữ liệu hệ thống.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không thể truy cập dữ liệu hệ thống.", "Lỗi",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             _dangXuLyXoa = true;
             toolStripStatusLabel1.Text = "Đang xử lý xóa dữ liệu...";
             this.Cursor = Cursors.WaitCursor;
+            // Cờ đánh dấu Grid có đang bị tạm dừng vẽ hay không -> đảm bảo LUÔN được bật lại
+            bool redrawSuspended = false;
             try
             {
                 // ===== 2. THỰC THI DATABASE TRÊN LUỒNG NGẦM (Không làm đơ Form) =====
                 bool dbSuccess = await Task.Run(() => ThucThiXoaDatabase(csdlPath, stt));
+                // Sau await, Form có thể đã bị đóng -> luôn kiểm tra trước khi đụng vào UI
+                if (this.IsDisposed || !this.IsHandleCreated) return;
                 if (!dbSuccess)
                 {
-                    MessageBox.Show("Dữ liệu không tồn tại hoặc đã bị thay đổi bởi người khác.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Dữ liệu không tồn tại hoặc đã bị thay đổi bởi người khác.", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
-                // ===== 3. GHI NHẬT KÝ (Fire and Forget - Không block luồng chính) =====
-                Task.Run(() =>
+                // ===== 3. GHI NHẬT KÝ (Fire and Forget - không được để lỗi văng ra ngoài) =====
+                _ = Task.Run(() =>
                 {
                     try
                     {
                         Module_NhatKy.GhiNhatKy(
-                            taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                            taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                             hanhDong: $"Xóa dữ liệu: {hoTen} (Số hiệu: {soHieu})",
                             ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
                         );
                     }
-                    catch (Exception ex) { Debug.WriteLine($"Lỗi ghi log: {ex.Message}"); }
-                });
-                // ===== 4. ĐỒNG BỘ RAM (Tối ưu cực độ - Không gọi ReloadDuLieu) =====
-                if (dtDanhSachGoc != null)
-                {
-                    // Tạm dừng vẽ Grid
-                    SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null);
-                    // 4.1 Xóa dòng khỏi bộ nhớ
-                    var rowToDelete = dtDanhSachGoc.AsEnumerable().FirstOrDefault(r => r["STT"].ToString() == stt.ToString());
-                    if (rowToDelete != null)
+                    catch (Exception ex)
                     {
-                        dtDanhSachGoc.Rows.Remove(rowToDelete);
+                        Debug.WriteLine($"Lỗi ghi log: {ex.Message}");
                     }
-                    // 4.2 Đánh lại STT trực tiếp trên RAM để khớp với Database
-                    int newStt = 1;
-                    foreach (DataRow row in dtDanhSachGoc.Rows)
+                });
+                // ===== 4. ĐỒNG BỘ RAM (Tối ưu, không gọi ReloadDuLieu) =====
+                if (dtDanhSachGoc != null &&
+                    kryptonDataGridView1.IsHandleCreated &&
+                    !kryptonDataGridView1.IsDisposed)
+                {
+                    try
                     {
-                        // Bỏ qua dòng ảo dưới cùng (nếu có)
-                        if (!string.IsNullOrWhiteSpace(row["HoVaTen"]?.ToString()))
+                        // Tạm dừng vẽ Grid (0 = tắt redraw)
+                        SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null!);
+                        redrawSuspended = true;
+                        // 4.1 Xóa dòng khỏi bộ nhớ — so sánh an toàn với DBNull
+                        string sttText = stt.ToString(CultureInfo.InvariantCulture);
+                        var rowToDelete = dtDanhSachGoc.AsEnumerable()
+                            .FirstOrDefault(r => string.Equals(
+                                Convert.ToString(r["STT"], CultureInfo.InvariantCulture),
+                                sttText, StringComparison.Ordinal));
+                        if (rowToDelete != null)
                         {
-                            row["STT"] = newStt++;
+                            dtDanhSachGoc.Rows.Remove(rowToDelete);
+                        }
+                        // 4.2 Đánh lại STT trực tiếp trên RAM để khớp với Database
+                        int newStt = 1;
+                        foreach (DataRow row in dtDanhSachGoc.Rows)
+                        {
+                            // Bỏ qua dòng ảo dưới cùng (nếu có), tránh lỗi khi cột chưa có giá trị
+                            string hoVaTenRow = Convert.ToString(row["HoVaTen"], CultureInfo.InvariantCulture) ?? string.Empty;
+                            if (!string.IsNullOrWhiteSpace(hoVaTenRow))
+                            {
+                                row["STT"] = newStt++;
+                            }
+                        }
+                        dtDanhSachGoc.AcceptChanges();
+                        // 4.3 Cập nhật hiển thị
+                        kryptonDataGridView1.RowCount = dtDanhSachGoc.DefaultView.Count;
+                    }
+                    finally
+                    {
+                        // Luôn bật lại redraw dù có lỗi ở trên hay không -> Grid không bao giờ bị đơ vĩnh viễn
+                        if (redrawSuspended && kryptonDataGridView1.IsHandleCreated && !kryptonDataGridView1.IsDisposed)
+                        {
+                            SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 1, null!);
+                            kryptonDataGridView1.Invalidate();
                         }
                     }
-                    dtDanhSachGoc.AcceptChanges();
-                    // 4.3 Cập nhật hiển thị
-                    kryptonDataGridView1.RowCount = dtDanhSachGoc.DefaultView.Count;
-                    SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 1, null);
-                    kryptonDataGridView1.Invalidate();
                 }
                 // ===== 5. LÀM SẠCH UI VÀ THỐNG KÊ =====
                 ClearThongTin();
@@ -1718,12 +1749,20 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Có lỗi xảy ra trong quá trình xử lý dữ liệu.\nChi tiết: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.WriteLine($"Lỗi xóa dữ liệu CBCS: {ex}");
+                if (!this.IsDisposed && this.IsHandleCreated)
+                {
+                    MessageBox.Show("Có lỗi xảy ra trong quá trình xử lý dữ liệu.\nChi tiết: " + ex.Message,
+                        "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             finally
             {
                 _dangXuLyXoa = false;
-                this.Cursor = Cursors.Default;
+                if (!this.IsDisposed && this.IsHandleCreated)
+                {
+                    this.Cursor = Cursors.Default;
+                }
             }
         }
         // Hàm xử lý DB cô lập hoàn toàn khỏi UI
@@ -2369,7 +2408,7 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1.Text = "Lỗi kiểm tra CSDL!";
                 //// Ghi nhật ký thành công
                 Module_NhatKy.GhiNhatKy(
-                    taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Hệ thống" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                    taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                     hanhDong: "Kiểm tra kết nối CSDL 1 và CSDL 2 thất bại",
                     ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
                 System.Diagnostics.Debug.WriteLine($"[kiemTraKetNoi_Click Lỗi] {ex.Message}");
@@ -2738,67 +2777,6 @@ namespace PhanMemThiDua2026
         /// Dựng Form ảo chuyên hiển thị hộp thoại Xác Nhận Yes/No (Màu Xanh Navy).
         /// Trả về True nếu Đồng ý, False nếu Hủy.
         /// </summary>
-        private bool HienThiFormAo_XacNhan(string tieuDe, string noiDung)
-        {
-            string noiDungChuan = noiDung.Replace("\n", Environment.NewLine);
-            bool ketQuaDongY = false;
-            using (var formAo = new FormAoBase())
-            {
-                formAo.Text = "Xác nhận thao tác";
-                formAo.Size = new System.Drawing.Size(1000, 500);
-                formAo.FormBorderStyle = FormBorderStyle.FixedDialog;
-                formAo.MaximizeBox = false; formAo.MinimizeBox = false; formAo.ShowIcon = false;
-                formAo.ShowInTaskbar = false;
-                var panelTop = new Krypton.Toolkit.KryptonPanel { Dock = DockStyle.Top, Height = 70, Padding = new Padding(30, 25, 20, 5) };
-                panelTop.StateCommon.Color1 = System.Drawing.Color.White;
-                var lblTitle = new Krypton.Toolkit.KryptonLabel { Text = tieuDe.ToUpper(), Dock = DockStyle.Fill, AutoSize = false };
-                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 13F, System.Drawing.FontStyle.Bold);
-                lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(0, 82, 155);
-                panelTop.Controls.Add(lblTitle);
-                var separator = new Label { Height = 1, Dock = DockStyle.Top, BackColor = System.Drawing.Color.FromArgb(200, 220, 240), Margin = new Padding(0, 5, 0, 10) };
-                var panelContent = new Krypton.Toolkit.KryptonPanel { Dock = DockStyle.Fill, Padding = new Padding(25, 15, 30, 20) };
-                panelContent.StateCommon.Color1 = System.Drawing.Color.White;
-                var picIcon = new PictureBox { Image = System.Drawing.SystemIcons.Question.ToBitmap(), SizeMode = PictureBoxSizeMode.CenterImage, Size = new System.Drawing.Size(50, 50), Location = new System.Drawing.Point(25, 15) };
-                var txtContent = new Krypton.Toolkit.KryptonTextBox
-                {
-                    Text = noiDungChuan,
-                    ReadOnly = true,
-                    Multiline = true,
-                    WordWrap = true,
-                    ScrollBars = ScrollBars.Vertical,
-                    Location = new System.Drawing.Point(90, 15),
-                    Width = formAo.Width - 130,
-                    Height = panelContent.Height - 35,
-                    Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
-                };
-                txtContent.StateCommon.Back.Color1 = System.Drawing.Color.White;
-                txtContent.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.None;
-                txtContent.StateCommon.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 11.5F, System.Drawing.FontStyle.Regular);
-                txtContent.StateCommon.Content.Color1 = System.Drawing.Color.FromArgb(40, 40, 40);
-                txtContent.StateCommon.Content.Padding = new Padding(0);
-                var panelBottom = new Panel { Dock = DockStyle.Bottom, Height = 75, BackColor = System.Drawing.Color.WhiteSmoke };
-                var btnNo = new Krypton.Toolkit.KryptonButton { Text = "Hủy bỏ", Width = 140, Height = 42, DialogResult = DialogResult.No };
-                btnNo.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Bold);
-                btnNo.StateCommon.Border.Rounding = 6;
-                btnNo.Click += (s, ev) => ketQuaDongY = false;
-                var btnYes = new Krypton.Toolkit.KryptonButton { Text = "Đồng ý", Width = 140, Height = 42, DialogResult = DialogResult.Yes };
-                btnYes.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Bold);
-                btnYes.StateCommon.Border.Rounding = 6;
-                btnYes.Click += (s, ev) => ketQuaDongY = true;
-                int totalWidth = btnYes.Width + 20 + btnNo.Width;
-                int startX = (formAo.Width - totalWidth) / 2;
-                btnYes.Location = new System.Drawing.Point(startX, 16);
-                btnNo.Location = new System.Drawing.Point(startX + btnYes.Width + 20, 16);
-                panelBottom.Controls.Add(btnYes); panelBottom.Controls.Add(btnNo);
-                panelContent.Controls.Add(picIcon); panelContent.Controls.Add(txtContent); panelContent.Controls.Add(separator);
-                txtContent.BringToFront(); picIcon.BringToFront(); separator.SendToBack();
-                formAo.Controls.Add(panelContent); formAo.Controls.Add(panelTop); formAo.Controls.Add(panelBottom);
-                formAo.AcceptButton = btnYes; formAo.CancelButton = btnNo;
-                formAo.Shown += (s, ev) => btnNo.Focus(); // An toàn: Focus Hủy bỏ
-                formAo.ShowDialog(this);
-            }
-            return ketQuaDongY;
-        }
         /// <summary>
         /// Dựng Form ảo chuyên hiển thị Cảnh Báo Validation (Màu Cam Đất).
         /// </summary>

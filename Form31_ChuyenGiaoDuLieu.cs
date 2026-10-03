@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+
 namespace PhanMemThiDua2026
 {
     public partial class Form31_ChuyenGiaoDuLieu : Form
@@ -23,6 +25,24 @@ namespace PhanMemThiDua2026
             { "csdl4", "Database_4 (Dữ liệu nghiệp vụ Thi đua)" }
         };
         private int _dangTaiDuLieuFlag = 0;
+        // ==== WIN32 API — CHỈ DÙNG RIÊNG CHO FORM NÀY ====
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWnd);
+        private const int SW_RESTORE = 9;
+        // ==== HẰNG SỐ DÙNG CHUNG (TRÁNH MAGIC STRING) ====
+        private const string LUA_CHON_TAT_CA = Module_HeThong.Tat_Ca;
+        private static readonly Color MauTieuDe = Color.Red;
+        private static readonly Color MauGiaTri = Color.Green;
+        // ==== KHÓA/ MỞ VẼ LẠI CONTROL (WM_SETREDRAW) — GIẢM FLICKER & TĂNG HIỆU SUẤT ====
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, bool wParam, IntPtr lParam);
+        private const int WM_SETREDRAW = 0x000B;
         public Form31_ChuyenGiaoDuLieu()
         {
             InitializeComponent();
@@ -48,13 +68,13 @@ namespace PhanMemThiDua2026
             toolTip1.ReshowDelay = 100;
             toolTip1.ShowAlways = true;
             var tips = new Dictionary<Control, string>
-{
-    { btn_XuatDuLieuJson, "Xuất dữ liệu hệ thống ra tệp định dạng JSON" },
-    { kryptonButton2_MoThuMuc, "Mở thư mục chứa các tệp dữ liệu" },
-    { btn_NhapDuLieuJson, "Nhập (Import) dữ liệu từ tệp JSON vào hệ thống" },
-    { kryptonButton_Dong, "Đóng cửa sổ làm việc này" },
-    { btn_QuetTimKiem, "Quét và tìm kiếm tệp dữ liệu trong thư mục" }
-};
+            {
+                { btn_XuatDuLieuJson, "Xuất dữ liệu hệ thống ra tệp định dạng JSON" },
+                { kryptonButton2_MoThuMuc, "Mở thư mục chứa các tệp dữ liệu" },
+                { btn_NhapDuLieuJson, "Nhập (Import) dữ liệu từ tệp JSON vào hệ thống" },
+                { kryptonButton_Dong, "Đóng cửa sổ làm việc này" },
+                { btn_QuetTimKiem, "Quét và tìm kiếm tệp dữ liệu trong thư mục" }
+            };
             foreach (var tip in tips)
             {
                 if (tip.Key != null) toolTip1.SetToolTip(tip.Key, tip.Value);
@@ -151,10 +171,46 @@ namespace PhanMemThiDua2026
             kryptonButton2_MoThuMuc.Click += kryptonButton2_MoThuMuc_Click;
             chk_BackupTruocKhiChuyen.CheckedChanged += CheckBox_ThayDoiTrangThai;
             chk_XoaDuLieuCu.CheckedChanged += CheckBox_ThayDoiTrangThai;
-            // CHECKED LIST ENGINE - CẬP NHẬT ĐĂNG KÝ SỰ KIỆN UX MỚI
-            // Thay thế sự kiện MouseDown cũ bằng sự kiện thay đổi lựa chọn dòng chữ
+
+            // Bổ sung đăng ký sự kiện cho CheckBox Chọn Tất Cả
+            checkBox1_ChonTatCaCacCSDL.CheckedChanged += CheckBox1_ChonTatCaCacCSDL_CheckedChanged;
+
             checkedListBox1_clb_DanhSachBang.SelectedIndexChanged += checkedListBox1_clb_DanhSachBang_SelectedIndexChanged;
             checkedListBox1_clb_DanhSachBang.ItemCheck += checkedListBox1_clb_DanhSachBang_ItemCheck;
+        }
+        private void CheckBox1_ChonTatCaCacCSDL_CheckedChanged(object? sender, EventArgs e)
+        {
+            // Ngắt kết nối sự kiện ComboBox để tránh kích hoạt sự kiện chéo (Cascading Events)
+            cbo_ChonCSDL_Nguon.SelectedIndexChanged -= Cbo_ChonCSDL_Nguon_SelectedIndexChanged;
+            try
+            {
+                if (checkBox1_ChonTatCaCacCSDL.Checked)
+                {
+                    if (!cbo_ChonCSDL_Nguon.Items.Contains("Tất cả"))
+                    {
+                        cbo_ChonCSDL_Nguon.Items.Insert(0, "Tất cả");
+                    }
+                    cbo_ChonCSDL_Nguon.SelectedIndex = 0;
+                }
+                else
+                {
+                    if (cbo_ChonCSDL_Nguon.Items.Contains("Tất cả"))
+                    {
+                        cbo_ChonCSDL_Nguon.Items.Remove("Tất cả");
+                    }
+
+                    if (cbo_ChonCSDL_Nguon.Items.Count > 0)
+                    {
+                        cbo_ChonCSDL_Nguon.SelectedIndex = 0;
+                    }
+                }
+            }
+            finally
+            {
+                // Khôi phục sự kiện và tự động kích hoạt cập nhật giao diện
+                cbo_ChonCSDL_Nguon.SelectedIndexChanged += Cbo_ChonCSDL_Nguon_SelectedIndexChanged;
+                Cbo_ChonCSDL_Nguon_SelectedIndexChanged(cbo_ChonCSDL_Nguon, EventArgs.Empty);
+            }
         }
         private async Task TaiDuLieuNenAsync()
         {
@@ -243,12 +299,20 @@ namespace PhanMemThiDua2026
         {
             await Task.Yield();
             if (IsDisposed) return;
+
             cbo_ChonCSDL_Nguon.BeginUpdate();
             try
             {
                 cbo_ChonCSDL_Nguon.SelectedIndexChanged -= Cbo_ChonCSDL_Nguon_SelectedIndexChanged;
                 cbo_ChonCSDL_Nguon.Items.Clear();
                 _danhSachDuongDanThucTe.Clear();
+
+                // 🛡️ ĐỒNG BỘ: Nếu CheckBox Chọn tất cả đang active, nạp lại item "Tất cả" ở đầu
+                if (checkBox1_ChonTatCaCacCSDL.Checked)
+                {
+                    cbo_ChonCSDL_Nguon.Items.Add("Tất cả");
+                }
+
                 foreach (string duongDan in danhSach)
                 {
                     token.ThrowIfCancellationRequested();
@@ -257,6 +321,7 @@ namespace PhanMemThiDua2026
                     cbo_ChonCSDL_Nguon.Items.Add(tenHienThi);
                     _danhSachDuongDanThucTe.Add(duongDan);
                 }
+
                 if (cbo_ChonCSDL_Nguon.Items.Count > 0)
                 {
                     cbo_ChonCSDL_Nguon.SelectedIndex = 0;
@@ -271,11 +336,108 @@ namespace PhanMemThiDua2026
         private async void btn_XuatDuLieuJson_Click(object? sender, EventArgs e)
         {
             if (_dangXuLyMigration || _dangTaiDuLieu) return;
+
+            // Trường hợp 1: Chọn tất cả CSDL
+            if (checkBox1_ChonTatCaCacCSDL.Checked)
+            {
+                if (_danhSachDuongDanThucTe.Count == 0)
+                {
+                    MessageBox.Show("Không tìm thấy cơ sở dữ liệu nào để xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                _dangXuLyMigration = true;
+                ThietLapTrangThaiTuongTacUI(false);
+                try
+                {
+                    string duongDanDesktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                    string thuMucTong = Path.Combine(duongDanDesktop, "Database-PhanMemThiDua2026");
+
+                    HienThiThanhTienTrinh(_danhSachDuongDanThucTe.Count);
+                    int demCSDL = 0;
+                    List<string> danhSachLoiTongHop = new();
+
+                    foreach (string duongDanCSDL in _danhSachDuongDanThucTe)
+                    {
+                        demCSDL++;
+                        string tenThuMucRieng = Path.GetFileNameWithoutExtension(duongDanCSDL);
+                        string thuMucGoiCon = Path.Combine(thuMucTong, tenThuMucRieng);
+
+                        CapNhatTrangThaiHoatDong($"[{demCSDL}/{_danhSachDuongDanThucTe.Count}] Đang nạp danh sách bảng của: {tenThuMucRieng}...");
+
+                        List<string> danhSachBang = await Task.Run(() => Module_ChuyenGiaoDuLieu.LayDanhSachBang(duongDanCSDL));
+
+                        foreach (string tenBang in danhSachBang)
+                        {
+                            try
+                            {
+                                await Task.Run(() => Module_ChuyenGiaoDuLieu.XuatDuLieuRaJson(duongDanCSDL, tenBang, thuMucGoiCon));
+                            }
+                            catch (Exception exBang)
+                            {
+                                danhSachLoiTongHop.Add($"- CSDL [{tenThuMucRieng}] - Bảng [{tenBang}]: {exBang.Message}");
+                            }
+                        }
+
+                        prb_TienTrinhChuyenGiao.Value = demCSDL;
+                    }
+
+                    if (danhSachLoiTongHop.Count == 0)
+                    {
+                        CapNhatTrangThaiHoatDong("100% | Xuất tất cả CSDL thành công!");
+
+                        // ⭐ Ghi nhật ký: Xuất tất cả CSDL thành công
+                        Module_NhatKy.GhiNhatKy(
+                            taiKhoan: SessionInfo.TenTaiKhoan,
+                            hanhDong: "Xuất tất cả CSDL ra JSON",
+                            ghiChu: $"Đã xuất thành công toàn bộ {_danhSachDuongDanThucTe.Count} cơ sở dữ liệu | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                        );
+
+                        MessageBox.Show($"Đã xuất thành công toàn bộ {_danhSachDuongDanThucTe.Count} cơ sở dữ liệu vào thư mục:\nDesktop\\Database-PhanMemThiDua2026", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        CapNhatTrangThaiHoatDong("Hoàn tất với một số cảnh báo.");
+
+                        // ⭐ Ghi nhật ký: Xuất tất cả CSDL có cảnh báo lỗi
+                        Module_NhatKy.GhiNhatKy(
+                            taiKhoan: SessionInfo.TenTaiKhoan,
+                            hanhDong: "Xuất tất cả CSDL ra JSON (Có cảnh báo)",
+                            ghiChu: $"Hoàn tất với {danhSachLoiTongHop.Count} lỗi phát sinh | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                        );
+
+                        string tbLoi = $"Kết xuất hoàn tất.\n\nCác lỗi ghi nhận:\n" + string.Join("\n", danhSachLoiTongHop);
+                        MessageBox.Show(tbLoi, "Báo cáo Kết xuất Dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // ⭐ Ghi nhật ký: Lỗi nghiêm trọng khi xuất tất cả CSDL
+                    Module_NhatKy.GhiNhatKy(
+                        taiKhoan: SessionInfo.TenTaiKhoan,
+                        hanhDong: "Lỗi xuất tất cả CSDL ra JSON",
+                        ghiChu: $"Sự cố: {ex.Message} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                    );
+
+                    MessageBox.Show($"Sự cố nghiêm trọng khi đóng gói tất cả CSDL:\n{ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    CapNhatTrangThaiHoatDong("Xuất bản lỗi toàn cục.");
+                }
+                finally
+                {
+                    _dangXuLyMigration = false;
+                    ThietLapTrangThaiTuongTacUI(true);
+                    await AnThanhTienTrinhAsync();
+                }
+                return;
+            }
+
+            // Trường hợp 2: Xuất CSDL đơn lẻ hiện tại được chọn (Giữ nguyên logic cũ của bạn)
             if (checkedListBox1_clb_DanhSachBang.CheckedItems.Count == 0)
             {
                 MessageBox.Show("Vui lòng tích chọn các bảng cần xuất!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
             _dangXuLyMigration = true;
             ThietLapTrangThaiTuongTacUI(false);
             try
@@ -288,11 +450,11 @@ namespace PhanMemThiDua2026
                 HienThiThanhTienTrinh(tongSoBang);
                 int chiSoTienTrinh = 0;
                 int soBangThanhCong = 0;
-                List<string> danhSachLoi = new(); // Bộ nhớ lưu trữ lỗi cục bộ
+                List<string> danhSachLoi = new();
+
                 foreach (var item in checkedListBox1_clb_DanhSachBang.CheckedItems)
                 {
                     string tenBang = item.ToString()!;
-                    // Tính % hiện tại
                     int phanTram = (int)Math.Round((double)chiSoTienTrinh / tongSoBang * 100);
                     CapNhatTrangThaiHoatDong($"{phanTram}% | Đang kết xuất cấu trúc bảng: {tenBang}...");
                     try
@@ -302,27 +464,49 @@ namespace PhanMemThiDua2026
                     }
                     catch (Exception exLoiCucBo)
                     {
-                        // Nếu bảng này lỗi, ghi nhận lại và ĐI TIẾP bảng sau, không crash ứng dụng
                         danhSachLoi.Add($"- Bảng [{tenBang}]: {exLoiCucBo.Message}");
                     }
                     chiSoTienTrinh++;
                     prb_TienTrinhChuyenGiao.Value = chiSoTienTrinh;
                 }
-                // BÁO CÁO TỔNG HỢP SAU KHI CHẠY XONG VÒNG LẶP
+
                 if (danhSachLoi.Count == 0)
                 {
                     CapNhatTrangThaiHoatDong("100% | Xuất dữ liệu an toàn thành công!");
+
+                    // ⭐ Ghi nhật ký: Xuất CSDL đơn lẻ thành công
+                    Module_NhatKy.GhiNhatKy(
+                        taiKhoan: SessionInfo.TenTaiKhoan,
+                        hanhDong: "Xuất dữ liệu ra JSON",
+                        ghiChu: $"Đã xuất thành công {soBangThanhCong}/{tongSoBang} bảng từ CSDL: {tenThuMucRieng} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                    );
+
                     MessageBox.Show($"Đã xuất thành công {soBangThanhCong}/{tongSoBang} bảng vào thư mục:\nDesktop\\Database-PhanMemThiDua2026\\{tenThuMucRieng}", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
                     CapNhatTrangThaiHoatDong("Hoàn tất với một số cảnh báo.");
+
+                    // ⭐ Ghi nhật ký: Xuất CSDL đơn lẻ có cảnh báo
+                    Module_NhatKy.GhiNhatKy(
+                        taiKhoan: SessionInfo.TenTaiKhoan,
+                        hanhDong: "Xuất dữ liệu ra JSON (Có cảnh báo)",
+                        ghiChu: $"Hoàn tất một phần ({soBangThanhCong}/{tongSoBang} bảng) từ CSDL: {tenThuMucRieng} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                    );
+
                     string tbLoi = $"Kết xuất hoàn tất một phần.\nThành công: {soBangThanhCong}/{tongSoBang} bảng.\n\nCác bảng sau bị lỗi (đã được bỏ qua):\n" + string.Join("\n", danhSachLoi);
                     MessageBox.Show(tbLoi, "Báo cáo Kết xuất Dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
             catch (Exception ex)
             {
+                // ⭐ Ghi nhật ký: Lỗi nghiêm trọng khi xuất CSDL đơn lẻ
+                Module_NhatKy.GhiNhatKy(
+                    taiKhoan: SessionInfo.TenTaiKhoan,
+                    hanhDong: "Lỗi xuất dữ liệu ra JSON",
+                    ghiChu: $"Sự cố: {ex.Message} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                );
+
                 MessageBox.Show($"Sự cố nghiêm trọng khi đóng gói dữ liệu:\n{ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 CapNhatTrangThaiHoatDong("Xuất bản lỗi toàn cục.");
             }
@@ -441,6 +625,14 @@ namespace PhanMemThiDua2026
                 {
                     CapNhatTrangThaiHoatDong(
                         "Nạp dữ liệu thành công.");
+
+                    // ⭐ BỔ SUNG GHI NHẬT KÝ KHI NẠP DỮ LIỆU THÀNH CÔNG
+                    Module_NhatKy.GhiNhatKy(
+                        taiKhoan: SessionInfo.TenTaiKhoan,
+                        hanhDong: "Nhập dữ liệu JSON",
+                        ghiChu: $"Đã nạp thành công {soBangThanhCong}/{tongSoBang} bảng vào CSDL: {Path.GetFileName(_duongDanCSDL_Nguon)} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                    );
+
                     MessageBox.Show(
                         $"Đã nạp thành công {soBangThanhCong}/{tongSoBang} bảng.",
                         "Hoàn tất",
@@ -451,6 +643,14 @@ namespace PhanMemThiDua2026
                 {
                     CapNhatTrangThaiHoatDong(
                         "Hoàn tất với một số lỗi.");
+
+                    // ⭐ BỔ SUNG GHI NHẬT KÝ KHI NẠP DỮ LIỆU CÓ CẢNH BÁO/LỖI
+                    Module_NhatKy.GhiNhatKy(
+                        taiKhoan: SessionInfo.TenTaiKhoan,
+                        hanhDong: "Nhập dữ liệu JSON (Có lỗi)",
+                        ghiChu: $"Nạp hoàn tất một phần ({soBangThanhCong}/{tongSoBang} bảng) vào CSDL: {Path.GetFileName(_duongDanCSDL_Nguon)} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                    );
+
                     MessageBox.Show(
                         $"Đã nạp thành công {soBangThanhCong}/{tongSoBang} bảng.\n\n" +
                         string.Join(Environment.NewLine, danhSachLoi),
@@ -462,8 +662,13 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                CapNhatTrangThaiHoatDong(
-                    "Tiến trình bị hủy do lỗi.");
+                CapNhatTrangThaiHoatDong( "Tiến trình bị hủy do lỗi.");
+                // ⭐ BỔ SUNG GHI NHẬT KÝ KHI XẢY RA SỰ CỐ NGHIÊM TRỌNG
+                Module_NhatKy.GhiNhatKy(
+                    taiKhoan: SessionInfo.TenTaiKhoan,
+                    hanhDong: "Lỗi Nhập dữ liệu JSON",
+                    ghiChu: $"Sự cố: {ex.Message} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                );
                 MessageBox.Show(
                     ex.Message,
                     "Lỗi Di Trú",
@@ -477,38 +682,134 @@ namespace PhanMemThiDua2026
                 await AnThanhTienTrinhAsync();
             }
         }
+        /// <summary>
+        /// Hiển thị khối thông tin tóm tắt khi người dùng chọn gộp "Tất cả" CSDL.
+        /// Dùng WM_SETREDRAW để khóa vẽ lại trong lúc ghi nhiều dòng màu,
+        /// tránh flicker và giảm số lần layout/repaint của RichTextBox.
+        /// </summary>
+        private void HienThiThongTinChonTatCa()
+        {
+            var rtb = richTextBox1_ThongTinDatabaseDuocChon;
+
+            rtb.Clear();
+            SuspendDrawing(rtb);
+            try
+            {
+                AppendDongThongTin(rtb, "Tên tài khoản: ", $"{Module_TaiKhoan.TenTaiKhoan_RAM}\n");
+                AppendDongThongTin(rtb, "Hành động: ", "Đang chọn tất cả cơ sở dữ liệu...\n");
+                AppendDongThongTin(rtb, "Tổng số tệp CSDL: ", $"{_danhSachDuongDanThucTe.Count}\n");
+
+                // Dòng thông báo đơn (không có tiêu đề) -> chữ xanh lá
+                rtb.SelectionColor = MauGiaTri;
+                rtb.AppendText("Khi xuất dữ liệu, hệ thống sẽ tự động duyệt qua và xuất toàn bộ các CSDL trong danh sách.\n");
+
+                // Trả lại màu chữ mặc định cho phần nhập tiếp theo (nếu có)
+                rtb.SelectionColor = rtb.ForeColor;
+            }
+            finally
+            {
+                ResumeDrawing(rtb);
+            }
+        }
+        /// <summary>
+        /// Ghi một dòng "Tiêu đề: Giá trị" vào RichTextBox với 2 màu riêng biệt
+        /// (tiêu đề màu đỏ, giá trị màu xanh lá) — dùng chung cho mọi màn hình hiển thị thông tin CSDL.
+        /// </summary>
+        private static void AppendDongThongTin(RichTextBox rtb, string tieuDe, string giaTri)
+        {
+            rtb.SelectionColor = MauTieuDe;
+            rtb.AppendText(tieuDe);
+            rtb.SelectionColor = MauGiaTri;
+            rtb.AppendText(giaTri);
+        }
+        /// <summary>
+        /// Thực hiện thao tác cập nhật <see cref="checkedListBox1_clb_DanhSachBang"/> một cách an toàn:
+        /// tạm ngắt sự kiện SelectedIndexChanged + khóa vẽ lại (BeginUpdate/EndUpdate),
+        /// tránh vòng lặp sự kiện (event loop) và giảm nháy hình khi thao tác hàng loạt item.
+        /// </summary>
+        private void LamMoiCheckedListBoxAnToan(Action thaoTac)
+        {
+            var clb = checkedListBox1_clb_DanhSachBang;
+
+            _dangCapNhatCheckedListBox = true;
+            clb.SelectedIndexChanged -= checkedListBox1_clb_DanhSachBang_SelectedIndexChanged;
+            clb.BeginUpdate();
+            try
+            {
+                thaoTac();
+            }
+            finally
+            {
+                clb.EndUpdate();
+                clb.SelectedIndexChanged += checkedListBox1_clb_DanhSachBang_SelectedIndexChanged;
+                _dangCapNhatCheckedListBox = false;
+            }
+        }
+        private static void SuspendDrawing(Control control) =>
+            SendMessage(control.Handle, WM_SETREDRAW, false, IntPtr.Zero);
+        private static void ResumeDrawing(Control control)
+        {
+            SendMessage(control.Handle, WM_SETREDRAW, true, IntPtr.Zero);
+            control.Invalidate(); // Vẽ lại một lần duy nhất sau khi hoàn tất toàn bộ thao tác
+        }
+        // ==== HẰNG SỐ DÙNG CHUNG (ĐẶT Ở ĐẦU CLASS, NGOÀI HÀM NÀY) ====
+        // private const string LUA_CHON_TAT_CA = "Tất cả";
+        // private static readonly Color MauTieuDe = Color.Red;
+        // private static readonly Color MauGiaTri = Color.Green;
         private async void Cbo_ChonCSDL_Nguon_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (_dangXuLyMigration)
                 return;
+
             int index = cbo_ChonCSDL_Nguon.SelectedIndex;
             if (index < 0)
                 return;
-            if (index >= _danhSachDuongDanThucTe.Count)
+
+            string itemChon = cbo_ChonCSDL_Nguon.SelectedItem?.ToString() ?? "";
+
+            // 🔄 TỰ ĐỘNG ĐỒNG BỘ NGUỢC LẠI CHECKBOX
+            checkBox1_ChonTatCaCacCSDL.CheckedChanged -= CheckBox1_ChonTatCaCacCSDL_CheckedChanged;
+            try
+            {
+                checkBox1_ChonTatCaCacCSDL.Checked = (itemChon == LUA_CHON_TAT_CA);
+            }
+            finally
+            {
+                checkBox1_ChonTatCaCacCSDL.CheckedChanged += CheckBox1_ChonTatCaCacCSDL_CheckedChanged;
+            }
+
+            // 1. Nếu item được chọn là "Tất cả"
+            if (itemChon == LUA_CHON_TAT_CA)
+            {
+                HienThiThongTinChonTatCa();
+                LamMoiCheckedListBoxAnToan(() => checkedListBox1_clb_DanhSachBang.Items.Clear());
+                CapNhatTrangThaiHoatDong("Đã chọn tất cả cơ sở dữ liệu.");
                 return;
-            string duongDanFile = _danhSachDuongDanThucTe[index];
+            }
+
+            // 2. Nếu chọn cơ sở dữ liệu đơn lẻ: Tính toán index thực tế trong _danhSachDuongDanThucTe
+            bool coItemTatCa = cbo_ChonCSDL_Nguon.Items.Contains(LUA_CHON_TAT_CA);
+            int indexThucTe = coItemTatCa ? index - 1 : index;
+
+            if (indexThucTe < 0 || indexThucTe >= _danhSachDuongDanThucTe.Count)
+                return;
+
+            string duongDanFile = _danhSachDuongDanThucTe[indexThucTe];
             _duongDanCSDL_Nguon = duongDanFile;
             int version = Interlocked.Increment(ref _phienTaiDuLieu);
+
             try
             {
                 ThietLapTrangThaiTuongTacUI(false);
                 CapNhatTrangThaiHoatDong("Đang phân tích cơ sở dữ liệu...");
                 richTextBox1_ThongTinDatabaseDuocChon.Clear();
-                List<string> danhSachBang =
-                    await Task.Run(() =>
-                    {
-                        return Module_ChuyenGiaoDuLieu
-                            .LayDanhSachBang(duongDanFile);
-                    });
-                if (version != _phienTaiDuLieu)
+
+                List<string> danhSachBang = await Task.Run(() => Module_ChuyenGiaoDuLieu.LayDanhSachBang(duongDanFile));
+
+                if (version != _phienTaiDuLieu || IsDisposed || Disposing)
                     return;
-                if (IsDisposed || Disposing)
-                    return;
-                // 🔒 TRẠM AN TOÀN HỆ THỐNG: Ngắt liên kết sự kiện trước khi làm sạch danh sách
-                _dangCapNhatCheckedListBox = true;
-                checkedListBox1_clb_DanhSachBang.SelectedIndexChanged -= checkedListBox1_clb_DanhSachBang_SelectedIndexChanged;
-                checkedListBox1_clb_DanhSachBang.BeginUpdate(); // Chặn Windows vẽ lại giao diện liên tục gây nhấp nháy
-                try
+
+                LamMoiCheckedListBoxAnToan(() =>
                 {
                     checkedListBox1_clb_DanhSachBang.Items.Clear();
                     foreach (string tenBang in danhSachBang)
@@ -516,19 +817,12 @@ namespace PhanMemThiDua2026
                         int idx = checkedListBox1_clb_DanhSachBang.Items.Add(tenBang);
                         checkedListBox1_clb_DanhSachBang.SetItemChecked(idx, true);
                     }
-                }
-                finally
-                {
-                    checkedListBox1_clb_DanhSachBang.EndUpdate(); // Cho phép giao diện vẽ lại một lần duy nhất
-                    // Khôi phục lại liên kết sự kiện sau khi nạp dữ liệu sạch hoàn tất
-                    checkedListBox1_clb_DanhSachBang.SelectedIndexChanged += checkedListBox1_clb_DanhSachBang_SelectedIndexChanged;
-                    _dangCapNhatCheckedListBox = false;
-                }
-                Module_ChuyenGiaoDuLieu
-                    .InThongTinDatabaseLenRichTextBox(
-                        richTextBox1_ThongTinDatabaseDuocChon,
-                        duongDanFile,
-                        danhSachBang);
+                });
+
+                Module_ChuyenGiaoDuLieu.InThongTinDatabaseLenRichTextBox(
+                    richTextBox1_ThongTinDatabaseDuocChon,
+                    duongDanFile,
+                    danhSachBang);
                 CapNhatTrangThaiHoatDong("Đã nạp thông tin phân vùng dữ liệu.");
             }
             catch (Exception ex)
@@ -536,11 +830,10 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("[Database Load] " + ex);
                 if (!IsDisposed && !Disposing)
                 {
-                    Module_ChuyenGiaoDuLieu
-                        .InThongTinDatabaseLenRichTextBox(
-                            richTextBox1_ThongTinDatabaseDuocChon,
-                            duongDanFile,
-                            ex.Message);
+                    Module_ChuyenGiaoDuLieu.InThongTinDatabaseLenRichTextBox(
+                        richTextBox1_ThongTinDatabaseDuocChon,
+                        duongDanFile,
+                        ex.Message);
                     CapNhatTrangThaiHoatDong("Không thể phân tích dữ liệu.");
                 }
             }
@@ -552,43 +845,141 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        // ⭐ SỬA LỖI BIÊN DỊCH VÀ ĐỒNG BỘ HIỂN THỊ
         private async void kryptonButton2_MoThuMuc_Click(object? sender, EventArgs e)
         {
             if (_dangTaiDuLieu || _dangXuLyMigration) return;
+
             try
             {
                 kryptonButton2_MoThuMuc.Enabled = false;
-                CapNhatTrangThaiHoatDong("Đang khởi động Windows Explorer...");
-                await Task.Yield();
-                string thuMucTong = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "Database-PhanMemThiDua2026");
-                if (!Directory.Exists(thuMucTong)) Directory.CreateDirectory(thuMucTong);
-                await Task.Run(() =>
+                CapNhatTrangThaiHoatDong("Đang kiểm tra cửa sổ thư mục...");
+                await Task.Yield(); // Nhường UI cập nhật trạng thái trước khi xử lý
+
+                string thuMucTong = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                    "Database-PhanMemThiDua2026");
+
+                if (!Directory.Exists(thuMucTong))
                 {
-                    try
-                    {
-                        ProcessStartInfo thongTinTienTrinh = new()
-                        {
-                            FileName = "explorer.exe",
-                            Arguments = $"\"{thuMucTong}\"",
-                            UseShellExecute = true,
-                            ErrorDialog = false
-                        };
-                        Process.Start(thongTinTienTrinh);
-                    }
-                    catch (Exception ex) { Debug.WriteLine("[Explorer Error]: " + ex.Message); }
-                });
-                CapNhatTrangThaiHoatDong("Sẵn sàng.");
+                    Directory.CreateDirectory(thuMucTong);
+                }
+
+                // ⭐ BƯỚC 1: DÒ XEM ĐÃ CÓ CỬA SỔ EXPLORER NÀO MỞ SẴN THƯ MỤC NÀY CHƯA
+                // (Chạy trên UI thread vì Shell.Application là COM STA, tránh lỗi marshal xuyên luồng)
+                bool daKichHoatCuaSoCu = KichHoatCuaSoDaMoNeuCo(thuMucTong);
+
+                if (daKichHoatCuaSoCu)
+                {
+                    CapNhatTrangThaiHoatDong("Đã có cửa sổ thư mục đang mở — đưa lên trên.");
+                }
+                else
+                {
+                    // ⭐ BƯỚC 2: KHÔNG TÌM THẤY -> MỞ CỬA SỔ MỚI (chạy nền để không chặn UI)
+                    CapNhatTrangThaiHoatDong("Đang mở thư mục...");
+                    await Task.Run(() => MoThuMucMoiTrongExplorer(thuMucTong));
+                    CapNhatTrangThaiHoatDong("Sẵn sàng.");
+                }
             }
             finally
             {
                 kryptonButton2_MoThuMuc.Enabled = true;
             }
         }
-        private void btn_QuetTimKiem_Click(object? sender, EventArgs e)
+        /// <summary>
+        /// Dò trong danh sách cửa sổ Explorer đang mở (qua COM Shell.Application).
+        /// Nếu tìm thấy cửa sổ đang trỏ ĐÚNG thư mục cần mở, đưa cửa sổ đó lên foreground
+        /// (khôi phục nếu đang thu nhỏ) thay vì mở thêm cửa sổ mới.
+        /// </summary>
+        /// <returns>true nếu tìm thấy và đã kích hoạt thành công; false nếu chưa có cửa sổ nào.</returns>
+        private bool KichHoatCuaSoDaMoNeuCo(string duongDanThuMuc)
         {
-            _ = TaiDuLieuNenAsync();
+            dynamic? shellApp = null;
+            dynamic? danhSachCuaSo = null;
+
+            try
+            {
+                Type? shellType = Type.GetTypeFromProgID("Shell.Application");
+                if (shellType == null) return false;
+
+                shellApp = Activator.CreateInstance(shellType);
+                if (shellApp == null) return false;
+
+                danhSachCuaSo = shellApp.Windows();
+                string duongDanCanTim = ChuanHoaDuongDan(duongDanThuMuc);
+
+                foreach (dynamic cuaSo in danhSachCuaSo)
+                {
+                    try
+                    {
+                        string? locationUrl = cuaSo.LocationURL as string;
+                        if (string.IsNullOrEmpty(locationUrl)) continue;
+
+                        string duongDanCuaSoNay = ChuanHoaDuongDan(
+                            Uri.UnescapeDataString(new Uri(locationUrl).LocalPath));
+
+                        if (!string.Equals(duongDanCuaSoNay, duongDanCanTim, StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        IntPtr hwnd = new IntPtr((long)cuaSo.HWND);
+                        if (hwnd == IntPtr.Zero) continue;
+
+                        if (IsIconic(hwnd))
+                            ShowWindowAsync(hwnd, SW_RESTORE);
+
+                        SetForegroundWindow(hwnd);
+                        return true;
+                    }
+                    catch
+                    {
+                        // Cửa sổ này không phải Explorer hợp lệ (VD: IE, hoặc vừa bị đóng) -> bỏ qua
+                    }
+                    finally
+                    {
+                        if (cuaSo != null) Marshal.ReleaseComObject(cuaSo);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // COM có thể bị chặn bởi Group Policy hoặc không khả dụng -> âm thầm fallback mở cửa sổ mới
+                Debug.WriteLine("[Shell COM Error]: " + ex.Message);
+            }
+            finally
+            {
+                if (danhSachCuaSo != null) Marshal.ReleaseComObject(danhSachCuaSo);
+                if (shellApp != null) Marshal.ReleaseComObject(shellApp);
+            }
+
+            return false;
         }
+        /// <summary>Chuẩn hóa đường dẫn để so sánh chính xác (bỏ dấu "/" cuối, quy về full path).</summary>
+        private static string ChuanHoaDuongDan(string duongDan) => Path.TrimEndingDirectorySeparator(Path.GetFullPath(duongDan));
+        /// <summary>
+        /// Mở một cửa sổ Explorer MỚI trỏ đúng vào thư mục tổng.
+        /// Chỉ gọi khi đã xác nhận KHÔNG có cửa sổ nào đang mở sẵn thư mục này.
+        /// </summary>
+        private static void MoThuMucMoiTrongExplorer(string duongDanThuMuc)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"\"{duongDanThuMuc}\"",
+                    UseShellExecute = true,
+                    ErrorDialog = false
+                };
+                Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[Explorer Error]: " + ex.Message);
+            }
+        }
+        private void btn_QuetTimKiem_Click(object? sender, EventArgs e)
+            {
+                _ = TaiDuLieuNenAsync();
+            }
         private void CapNhatTrangThaiHoatDong(string text)
         {
             if (IsDisposed) return;

@@ -193,35 +193,27 @@ namespace PhanMemThiDua2026
                         DataGridViewColumnSortMode.NotSortable;
                     col.DefaultCellStyle.Font = CellFont;
                 }
-                // CẤU HÌNH CỘT
                 if (grid.Columns.Contains("STT"))
                 {
                     var col = grid.Columns["STT"];
                     col.Width = 60;
                     col.MinimumWidth = 60;
-                    col.AutoSizeMode =
-                        DataGridViewAutoSizeColumnMode.None;
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                     col.HeaderText = "STT";
                 }
                 if (grid.Columns.Contains("DonVi"))
                 {
                     grid.Columns["DonVi"].HeaderText = "Đơn vị";
-                    grid.Columns["DonVi"]
-                        .DefaultCellStyle.Alignment =
-                        DataGridViewContentAlignment.MiddleLeft;
+                    grid.Columns["DonVi"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
                 }
                 if (grid.Columns.Contains("TongQuanSo"))
-                    grid.Columns["TongQuanSo"].HeaderText =
-                        "Tổng quân số";
+                    grid.Columns["TongQuanSo"].HeaderText = "Tổng quân số";
                 if (grid.Columns.Contains("SyQuan"))
-                    grid.Columns["SyQuan"].HeaderText =
-                        Module_HeThong. Sy_Quan;
+                    grid.Columns["SyQuan"].HeaderText = Module_HeThong.Sy_Quan;
                 if (grid.Columns.Contains("HaSyQuan"))
-                    grid.Columns["HaSyQuan"].HeaderText =
-                        Module_HeThong.Ha_Sy_Quan;
+                    grid.Columns["HaSyQuan"].HeaderText = Module_HeThong.Ha_Sy_Quan;
                 if (grid.Columns.Contains("ChienSiNghiaVu"))
-                    grid.Columns["ChienSiNghiaVu"].HeaderText =
-                        Module_HeThong.Chien_Sy_Nghia_Vu;
+                    grid.Columns["ChienSiNghiaVu"].HeaderText = Module_HeThong.Chien_Sy_Nghia_Vu;                // CẤU HÌNH CỘT
             }
             finally
             {

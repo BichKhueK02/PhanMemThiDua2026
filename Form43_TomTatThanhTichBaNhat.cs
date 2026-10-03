@@ -311,7 +311,7 @@ VALUES
                     throw new InvalidOperationException("Không thể xác nhận dữ liệu đã được lưu đúng.");
                 }
                 Module_NhatKy.GhiNhatKy(
-                    taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                  Module_TaiKhoan.TenTaiKhoan_RAM,
                     hanhDong: $"Cập nhật thành tích tập thể phong trào Ba Nhất ({TenBangHienTai})",
                     ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
                 );

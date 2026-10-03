@@ -365,5 +365,6 @@ namespace PhanMemThiDua2026
         {
             OnPhienBanThayDoi?.Invoke(null, EventArgs.Empty);
         }
+        public static event Action OnDoiTuongPhanMemChanged;
     }
 }

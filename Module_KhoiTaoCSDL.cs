@@ -394,7 +394,7 @@ namespace PhanMemThiDua2026
             }
             List<string> chiTiet = new List<string>();
             int fCount = 0, dCount = 0;
-            string tenTaiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM;
+            string tenTaiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM;
             // XỬ LÝ TỆP
             try
             {
@@ -1204,13 +1204,8 @@ namespace PhanMemThiDua2026
                     soTepHong > 0 ||
                     soCanhBao > 0)
                 {
-                    string taiKhoan =
-                        string.IsNullOrWhiteSpace(
-                            Module_TaiKhoan.TenTaiKhoan_RAM)
-                        ? "System"
-                        : Module_TaiKhoan.TenTaiKhoan_RAM;
-                    string hanhDong =
-                        "Bảo vệ Core Repository (Tự động)";
+                    string taiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM;                 
+                    string hanhDong = "Bảo vệ Core Repository (Tự động)";
                     string ghiChu =
                         $"Hệ thống đã tiêu diệt {soTepBiXoa} tệp lạ, " +
                         $"khôi phục {soTepDuocCuu} tệp, " +

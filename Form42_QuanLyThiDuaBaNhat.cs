@@ -50,6 +50,8 @@ namespace PhanMemThiDua2026
         public Form42_QuanLyThiDuaBaNhat()
         {
             InitializeComponent();
+            // Đăng ký sự kiện Shown cho Form42_QuanLyThiDuaBaNhat
+            this.Shown += Form42_QuanLyThiDuaBaNhat_Shown;
             StartPosition = FormStartPosition.CenterScreen;
             // ⭐ GÁN BỘ VẼ CLASSIC CHO CONTEXT MENU TẠI ĐÂY
             // ⭐ SỬA TẠI ĐÂY: Gộp chung gọi 2 hàm khi nội dung thay đổi
@@ -98,6 +100,11 @@ namespace PhanMemThiDua2026
                     CapNhatTrangThaiDuoiNen();
                     CapNhatSoLuongKyTu();
                 }
+        private void Form42_QuanLyThiDuaBaNhat_Shown(object? sender, EventArgs e)
+        {
+            textBox_TimKiemTheoTen.Focus();
+        }
+
         // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
         private void InitToolTips()
         {
@@ -1341,11 +1348,7 @@ namespace PhanMemThiDua2026
                 CapNhatTrangThaiDuoiNen();
                 //MessageBox.Show("Đã xóa và đồng bộ lại dữ liệu thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // 5. Ghi nhật ký hành động xóa
-                Module_NhatKy.GhiNhatKy(
-                    taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
-                    hanhDong: "Xóa toàn bộ dữ liệu bảng Danh sách Ba Nhất",
-                    ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
-                );
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa toàn bộ dữ liệu bảng Danh sách Ba Nhất", $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
                 lamMoiHeThong.PerformClick();
             }
             catch (Exception ex)
@@ -2248,7 +2251,7 @@ namespace PhanMemThiDua2026
                 {
                     Module_BaNhat.MoTepExcelThiDuaPhongTrao3Nhat(filePathLuu);
                 }
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Hệ thống", "Xuất tờ trình biểu dương Ba Nhất", $"Thành công. Thời gian: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất tờ trình biểu dương Ba Nhất", $"Thành công. Thời gian: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
             }
             catch (Exception ex)
             {

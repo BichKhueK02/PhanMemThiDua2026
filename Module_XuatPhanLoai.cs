@@ -173,10 +173,21 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-                // 2. XỬ LÝ SHEET "BAO CAO TONG HOP" (Chỉ chạy khi xuất tất cả, không chạy khi xuất lẻ)
-                if (string.IsNullOrEmpty(singlePhanLoai) && wb.Worksheets.Contains("BAO CAO TONG HOP"))
+                //// 2. XỬ LÝ SHEET "BAO CAO TONG HOP" (Chỉ chạy khi xuất tất cả, không chạy khi xuất lẻ)
+                //if (string.IsNullOrEmpty(singlePhanLoai) && wb.Worksheets.Contains("BAO CAO TONG HOP"))
+                //{
+                //    var wsTongHop = wb.Worksheet("BAO CAO TONG HOP");
+                //    wsTongHop.Cell("E10").SetValue(Module_HeThong.PL_CSTD);
+                //    wsTongHop.Cell("F10").SetValue(Module_HeThong.PL_CSTT);
+                //    wsTongHop.Cell("G10").SetValue(Module_HeThong.PL_HTNV);
+                //    wsTongHop.Cell("H10").SetValue(Module_HeThong.PL_KHTNV);
+                //}
+                // 2. XỬ LÝ SHEET TỔNG HỢP (Chỉ chạy khi xuất tất cả, không chạy khi xuất lẻ)
+                string tenSheetTongHop = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
+
+                if (string.IsNullOrEmpty(singlePhanLoai) && wb.Worksheets.Contains(tenSheetTongHop))
                 {
-                    var wsTongHop = wb.Worksheet("BAO CAO TONG HOP");
+                    var wsTongHop = wb.Worksheet(tenSheetTongHop);
                     wsTongHop.Cell("E10").SetValue(Module_HeThong.PL_CSTD);
                     wsTongHop.Cell("F10").SetValue(Module_HeThong.PL_CSTT);
                     wsTongHop.Cell("G10").SetValue(Module_HeThong.PL_HTNV);
@@ -2337,10 +2348,21 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-                // 2. XỬ LÝ SHEET "BAO CAO TONG HOP" (ĐỔI TIÊU ĐỀ HÀNG 10)
-                if (wb.Worksheets.Contains("BAO CAO TONG HOP"))
+                //// 2. XỬ LÝ SHEET "BAO CAO TONG HOP" (ĐỔI TIÊU ĐỀ HÀNG 10)
+                //if (wb.Worksheets.Contains("BAO CAO TONG HOP"))
+                //{
+                //    var wsTongHop = wb.Worksheet("BAO CAO TONG HOP");
+                //    wsTongHop.Cell("E10").SetValue(Module_HeThong.PL_CSTD);
+                //    wsTongHop.Cell("F10").SetValue(Module_HeThong.PL_CSTT);
+                //    wsTongHop.Cell("G10").SetValue(Module_HeThong.PL_HTNV);
+                //    wsTongHop.Cell("H10").SetValue(Module_HeThong.PL_KHTNV);
+                //}
+                // 2. XỬ LÝ SHEET TỔNG HỢP (ĐỔI TIÊU ĐỀ HÀNG 10)
+                string tenSheetTongHop = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
+
+                if (wb.Worksheets.Contains(tenSheetTongHop))
                 {
-                    var wsTongHop = wb.Worksheet("BAO CAO TONG HOP");
+                    var wsTongHop = wb.Worksheet(tenSheetTongHop);
                     wsTongHop.Cell("E10").SetValue(Module_HeThong.PL_CSTD);
                     wsTongHop.Cell("F10").SetValue(Module_HeThong.PL_CSTT);
                     wsTongHop.Cell("G10").SetValue(Module_HeThong.PL_HTNV);
@@ -2396,9 +2418,24 @@ namespace PhanMemThiDua2026
                             ghiChuTomTat = Module_BaoMatAES.GiaiMa(result.ToString()) ?? "";
                     }
                 }
-                if (wb.Worksheets.Contains("BAO CAO TONG HOP"))
+
+                //if (wb.Worksheets.Contains("BAO CAO TONG HOP"))
+                //{
+                //    var wsTongHop = wb.Worksheet("BAO CAO TONG HOP");
+                //    var range = wsTongHop.Range("L11:L12");
+                //    if (!range.IsMerged())
+                //        range.Merge();
+                //    var cell = wsTongHop.Cell("L11");
+                //    cell.Value = ghiChuTomTat;
+                //    cell.Style.NumberFormat.Format = "@";
+                //    cell.Style.Alignment.WrapText = true;
+                //    cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
+                //}
+                string tenSheetTongHop = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
+
+                if (wb.Worksheets.Contains(tenSheetTongHop))
                 {
-                    var wsTongHop = wb.Worksheet("BAO CAO TONG HOP");
+                    var wsTongHop = wb.Worksheet(tenSheetTongHop);
                     var range = wsTongHop.Range("L11:L12");
                     if (!range.IsMerged())
                         range.Merge();
@@ -2445,15 +2482,19 @@ namespace PhanMemThiDua2026
                 }
                 AnhXaTenCheDoCBCSVaNam(wb);
                 // ================== XÓA SHEET KHÔNG DÙNG ==================
+                string tenSheetTongHopSuDung = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
+
                 var sheetsToDelete = wb.Worksheets
                     .Where(ws =>
                         !usedSheets.Contains(ws.Name) &&
-                        ws.Name != "BAO CAO TONG HOP" &&
+                        ws.Name != tenSheetTongHopSuDung &&
                         ws.Name != "GIOI_THIEU"
                     )
                     .ToList();
+
                 foreach (var ws in sheetsToDelete)
                     wb.Worksheets.Delete(ws.Name); // <-- dùng ws.Name thay vì ws
+
                 Module_BanQuyen.DongDauExcel(wb);
                 // Lưu file xuất ra
                 wb.SaveAs(fileDich);

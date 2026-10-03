@@ -125,17 +125,9 @@ namespace PhanMemThiDua2026
             frmChinh?.CapNhatTieuDe(tieuDe);
         }
         // CÁC SỰ KIỆN CLICK MENU
-        private void toolStripMenuItem_KhenThuongCBCSNamHienTai_Click(object? sender, EventArgs e) =>
-     OpenSubForm<Form34_ThongKeKhenThuong>(
-         $"Quản lý khen thưởng CBCS năm {_namHeThong}");
-        private void toolStripMenuItem_KhenThuongTapTheNamHienTai_Click(object? sender, EventArgs e) =>
-            OpenSubForm<Form49_QuanLyKhenThuongTapThe>(
-                $"Quản lý khen thưởng tập thể năm {_namHeThong}");
-        private void toolStripMenuItem_QuanLyKhenThuongCBCSNamCu_Click(object? sender, EventArgs e) =>
-            OpenSubForm<Form50_QuanLyKhenThuongNamCu>(
-                "Quản lý khen thưởng CBCS năm cũ");
-        private void toolStripMenuItem_QuanLyKhenThuongTapTheNamCu_Click(object? sender, EventArgs e) =>
-            OpenSubForm<Form51_QuanLyKhenThuongTapTheNamCu>(
-                "Quản lý khen thưởng tập thể năm cũ");
+        private void toolStripMenuItem_KhenThuongCBCSNamHienTai_Click(object? sender, EventArgs e) => OpenSubForm<Form34_ThongKeKhenThuong>($"Quản lý khen thưởng CBCS năm {_namHeThong}");
+        private void toolStripMenuItem_KhenThuongTapTheNamHienTai_Click(object? sender, EventArgs e) => OpenSubForm<Form49_QuanLyKhenThuongTapThe>($"Quản lý khen thưởng tập thể năm {_namHeThong}");
+        private void toolStripMenuItem_QuanLyKhenThuongCBCSNamCu_Click(object? sender, EventArgs e) => OpenSubForm<Form50_QuanLyKhenThuongNamCu>("Quản lý khen thưởng CBCS năm cũ");
+        private void toolStripMenuItem_QuanLyKhenThuongTapTheNamCu_Click(object? sender, EventArgs e) => OpenSubForm<Form51_QuanLyKhenThuongTapTheNamCu>("Quản lý khen thưởng tập thể năm cũ");
     }
 }

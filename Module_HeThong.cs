@@ -215,6 +215,31 @@ namespace PhanMemThiDua2026
             }
             return ds;
         }
+                    /// <summary>
+                    /// Cập nhật trạng thái hiển thị của Menu Item dựa trên phiên bản phần mềm (Tân binh / CBCS)
+                    /// </summary>
+            // 1. Khai báo Event thông báo khi phiên bản/chế độ thay đổi
+            public static event EventHandler OnPhienBanChanged;
+            // 2. Hàm kích hoạt Event này (gọi từ Form 12 khi lưu cài đặt)
+            public static void ThongBaoThayDoiPhienBan()
+            {
+                OnPhienBanChanged?.Invoke(null, EventArgs.Empty);
+            }
+            /// <summary>
+            /// Hàm kiểm tra và ẩn/hiện ToolStripMenuItem dựa trên phiên bản phần mềm
+            /// </summary>
+            /// <param name="menuItem">ToolStripMenuItem cần ẩn/hiện</param>
+            public static void CapNhatMenuPhanLoaiThang(ToolStripMenuItem menuItem)
+            {
+                if (menuItem == null) return;
+                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty;
+                bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                // Tân binh -> Hiện (true), CBCS -> Ẩn (false)
+                menuItem.Visible = laTanBinh;
+            }
+        /// <summary>
+        /// ============================ QUẢN LÝ TÊN ĐƠN VỊ HIỆN TẠI =========================
+        /// </summary>
         public static string TenDonViHienTai { get; private set; } = string.Empty;
         public static event Action SuKienThayDoiTenDonVi;
         public static string LayTenDonViChuan(bool lamMoiTuCSDL = false)

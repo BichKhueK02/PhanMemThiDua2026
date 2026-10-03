@@ -56,7 +56,7 @@
             TableLayoutPanel1.Controls.Add(TableLayoutPanel2, 0, 0);
             TableLayoutPanel1.Controls.Add(Chex_HienMatKhau, 0, 1);
             TableLayoutPanel1.Dock = DockStyle.Fill;
-            TableLayoutPanel1.Location = new Point(174, 2);
+            TableLayoutPanel1.Location = new Point(173, 2);
             TableLayoutPanel1.Margin = new Padding(3, 2, 3, 2);
             TableLayoutPanel1.Name = "TableLayoutPanel1";
             TableLayoutPanel1.RowCount = 4;
@@ -65,7 +65,7 @@
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 24.7572823F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 3.883495F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            TableLayoutPanel1.Size = new Size(419, 206);
+            TableLayoutPanel1.Size = new Size(419, 237);
             TableLayoutPanel1.TabIndex = 9;
             // 
             // TableLayoutPanel3
@@ -76,19 +76,19 @@
             TableLayoutPanel3.Controls.Add(btn_DangNhap, 1, 0);
             TableLayoutPanel3.Controls.Add(btn_Thoat, 0, 0);
             TableLayoutPanel3.Dock = DockStyle.Fill;
-            TableLayoutPanel3.Location = new Point(3, 149);
+            TableLayoutPanel3.Location = new Point(3, 170);
             TableLayoutPanel3.Margin = new Padding(3, 2, 3, 2);
             TableLayoutPanel3.Name = "TableLayoutPanel3";
             TableLayoutPanel3.RowCount = 1;
             TableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             TableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
-            TableLayoutPanel3.Size = new Size(413, 47);
+            TableLayoutPanel3.Size = new Size(413, 54);
             TableLayoutPanel3.TabIndex = 10;
             // 
             // btn_DangNhap
             // 
             btn_DangNhap.Anchor = AnchorStyles.None;
-            btn_DangNhap.Location = new Point(251, 7);
+            btn_DangNhap.Location = new Point(251, 11);
             btn_DangNhap.Margin = new Padding(3, 2, 3, 2);
             btn_DangNhap.Name = "btn_DangNhap";
             btn_DangNhap.Size = new Size(114, 32);
@@ -102,7 +102,7 @@
             // btn_Thoat
             // 
             btn_Thoat.Anchor = AnchorStyles.None;
-            btn_Thoat.Location = new Point(45, 7);
+            btn_Thoat.Location = new Point(45, 11);
             btn_Thoat.Margin = new Padding(3, 2, 3, 2);
             btn_Thoat.Name = "btn_Thoat";
             btn_Thoat.Size = new Size(114, 32);
@@ -130,13 +130,13 @@
             TableLayoutPanel2.RowCount = 2;
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            TableLayoutPanel2.Size = new Size(413, 101);
+            TableLayoutPanel2.Size = new Size(413, 116);
             TableLayoutPanel2.TabIndex = 0;
             // 
             // Text_Password
             // 
             Text_Password.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_Password.Location = new Point(132, 61);
+            Text_Password.Location = new Point(132, 72);
             Text_Password.Margin = new Padding(3, 2, 3, 2);
             Text_Password.Name = "Text_Password";
             Text_Password.Size = new Size(262, 29);
@@ -150,7 +150,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label2.ForeColor = Color.Blue;
-            label2.Location = new Point(57, 65);
+            label2.Location = new Point(57, 77);
             label2.Name = "label2";
             label2.Size = new Size(69, 20);
             label2.TabIndex = 25;
@@ -162,7 +162,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
             label1.ForeColor = Color.Blue;
-            label1.Location = new Point(22, 15);
+            label1.Location = new Point(22, 19);
             label1.Name = "label1";
             label1.Size = new Size(104, 20);
             label1.TabIndex = 25;
@@ -171,7 +171,7 @@
             // Text_Admin
             // 
             Text_Admin.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_Admin.Location = new Point(132, 10);
+            Text_Admin.Location = new Point(132, 14);
             Text_Admin.Margin = new Padding(3, 2, 3, 2);
             Text_Admin.Name = "Text_Admin";
             Text_Admin.Size = new Size(262, 29);
@@ -185,7 +185,7 @@
             Chex_HienMatKhau.AutoSize = true;
             Chex_HienMatKhau.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic, GraphicsUnit.Point, 0);
             Chex_HienMatKhau.ForeColor = Color.Red;
-            Chex_HienMatKhau.Location = new Point(148, 114);
+            Chex_HienMatKhau.Location = new Point(148, 132);
             Chex_HienMatKhau.Margin = new Padding(3, 2, 3, 2);
             Chex_HienMatKhau.Name = "Chex_HienMatKhau";
             Chex_HienMatKhau.Size = new Size(123, 24);
@@ -220,17 +220,17 @@
             TableLayoutPanel5.Name = "TableLayoutPanel5";
             TableLayoutPanel5.RowCount = 1;
             TableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            TableLayoutPanel5.Size = new Size(596, 210);
+            TableLayoutPanel5.Size = new Size(595, 241);
             TableLayoutPanel5.TabIndex = 12;
             // 
             // PictureBox3
             // 
             PictureBox3.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             PictureBox3.Image = (Image)resources.GetObject("PictureBox3.Image");
-            PictureBox3.Location = new Point(3, 32);
+            PictureBox3.Location = new Point(3, 48);
             PictureBox3.Margin = new Padding(3, 2, 3, 2);
             PictureBox3.Name = "PictureBox3";
-            PictureBox3.Size = new Size(165, 145);
+            PictureBox3.Size = new Size(164, 145);
             PictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
             PictureBox3.TabIndex = 13;
             PictureBox3.TabStop = false;
@@ -239,7 +239,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(596, 210);
+            ClientSize = new Size(595, 241);
             Controls.Add(TableLayoutPanel5);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(3, 2, 3, 2);

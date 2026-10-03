@@ -682,7 +682,7 @@ namespace PhanMemThiDua2026
         // HÀM TIỆN ÍCH DÙNG CHUNG (Để code gọn hơn)
         private static void GhiNhatKyVaMoThuMuc(int soLuong, string path, string doiTuong, bool isExport)
         {
-            string taiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM;
+            string taiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM;
             string hanhDong = isExport
                 ? $"Xuất danh sách {soLuong} {doiTuong} theo đường dẫn {path}"
                 : $"Nạp danh sách {soLuong} {doiTuong} từ file {Path.GetFileName(path)}";

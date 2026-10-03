@@ -7,7 +7,7 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
         private string ConnectionString => $"Data Source={_csdl1Path}";
-        private int _soLanSai = 0;       
+        private int _soLanSai = 0;
         // 🌟 KHAI BÁO CẤU HÌNH VIỀN UI/UX (CHUẨN WINDOWS 11)       
         private static readonly Color FocusBorderColor = Color.FromArgb(0, 120, 215);
         private static readonly Color NormalBorderColor = Color.Silver;
@@ -28,15 +28,36 @@ namespace PhanMemThiDua2026
             AcceptButton = Btn_GoCaiDat;
             Chex_HienMatKhau.Checked = false;
             CapNhatTrangThaiHienMatKhau();
-            Btn_GoCaiDat.Height = Text_Admin.Height + 12;
-            Btn_Thoat.Height = Text_Admin.Height + 12;
-            // 🌟 KÍCH HOẠT TÍNH NĂNG TÔ MÀU VIỀN TỰ ĐỘNG
             InitFocusEffects();
+            InitToolTips();
             Text_Password.Focus();
             // 🌟 CHẠY NGẦM HÀM LẤY TÊN ADMIN ĐỂ KHÔNG BLOCK UI
             await GoiTenEmTrongDem_GoCaiDat();
         }
         // Lê Trung Kiên -  Yêu mèo cam
+        private void InitToolTips()
+        {
+            toolTip1.IsBalloon = true;
+            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
+            toolTip1.ToolTipIcon = ToolTipIcon.Info;
+            toolTip1.InitialDelay = 300;
+            toolTip1.AutoPopDelay = 2500;
+            toolTip1.ReshowDelay = 100;
+            toolTip1.ShowAlways = true;
+
+            var tips = new Dictionary<Control, string>
+    {
+        { Btn_GoCaiDat, "Xác thực mật khẩu và tiến hành gỡ cài đặt phần mềm" },
+        { kryptonButton_HuongDanToi, "Xem hướng dẫn sử dụng chức năng gỡ cài đặt" },
+        { Btn_Thoat, "Đóng cửa sổ này, không gỡ cài đặt" }
+    };
+
+            foreach (var tip in tips)
+            {
+                if (tip.Key != null && !tip.Key.IsDisposed)
+                    toolTip1.SetToolTip(tip.Key, tip.Value);
+            }
+        }
         // 🌟 HÀM TÔ MÀU VIỀN CHUẨN KỸ SƯ (CHỐNG MEMORY LEAK)
         private void InitFocusEffects()
         {
@@ -71,7 +92,7 @@ namespace PhanMemThiDua2026
                 ktb.Refresh();
             }
         }
-        /// 🌟 CHUYỂN SANG BẤT ĐỒNG BỘ ĐỂ TRÁNH GIẬT/LAG LÚC MỞ FORM
+        /// /🌟 CHUYỂN SANG BẤT ĐỒNG BỘ ĐỂ TRÁNH GIẬT/LAG LÚC MỞ FORM
         private async Task GoiTenEmTrongDem_GoCaiDat()
         {
             try
@@ -214,6 +235,30 @@ namespace PhanMemThiDua2026
         private void Chex_HienMatKhau_CheckedChanged(object? sender, EventArgs e)
         {
             CapNhatTrangThaiHienMatKhau();
+        }
+        private void kryptonButton_HuongDanToi_Click(object sender, EventArgs e)
+        {
+            string noiDungHuongDan =
+                "📌 HƯỚNG DẪN SỬ DỤNG CHỨC NĂNG GỠ CÀI ĐẶT\n\n" +
+                "1️. Tài khoản Admin:\n" +
+                "    - Ô này hiển thị tên tài khoản Admin hiện tại (tự động tải từ cơ sở dữ liệu).\n\n" +
+                "2️. Mật khẩu:\n" +
+                "    - Nhập đúng mật khẩu Admin để xác thực quyền gỡ cài đặt.\n" +
+                "    - Tick vào ô \"Hiện mật khẩu\" nếu muốn xem lại mật khẩu vừa nhập.\n\n" +
+                "3️. Nút \"Gỡ cài đặt\":\n" +
+                "    - Sau khi xác thực mật khẩu thành công, phần mềm sẽ khởi chạy trình gỡ cài đặt " +
+                "(Uninstall_PhanMemThiDua2026.exe) và tự động thoát ứng dụng chính.\n\n" +
+                "4️. Nút \"Thoát\":\n" +
+                "    - Đóng cửa sổ này và quay lại phần mềm mà không gỡ cài đặt.\n\n" +
+                "⚠️ Lưu ý bảo mật:\n" +
+                "    - Nếu nhập sai mật khẩu 3 lần liên tiếp, ứng dụng sẽ tự động đóng để bảo vệ an toàn.\n" +
+                "    - Chỉ những người có quyền Admin mới nên thực hiện thao tác gỡ cài đặt.";
+
+            MessageBox.Show(
+                noiDungHuongDan,
+                "Hướng dẫn sử dụng",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
         }
         // CỤM HÀM TƯƠNG THÍCH NGƯỢC VỚI UNINSTALL.EXE (CHUẨN V1)
     }

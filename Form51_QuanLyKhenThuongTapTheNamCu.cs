@@ -425,81 +425,138 @@ namespace PhanMemThiDua2026
             catch (TaskCanceledException) { }
         }
         // TẢI DỮ LIỆU XUỐNG GRID CHÍNH
-        public async Task LoadDataToGridAsync(System.Threading.CancellationToken token = default)
+        /// <summary>
+        /// Nạp dữ liệu bảng khen thưởng tập thể lên grid theo các bộ lọc hiện tại
+        /// (tên tập thể, đơn vị, hình thức khen thưởng).
+        /// </summary>
+        public async Task LoadDataToGridAsync(CancellationToken token = default)
         {
-            if (string.IsNullOrEmpty(_currentDbPath) || !File.Exists(_currentDbPath)) return;
-            string keywordTen = combobox1_TimKiemTheoTen?.Text.Trim().ToLower() ?? "";
-            string keywordDonVi = comboBox_TimKiemDonViKhenThuong?.Text.Trim().ToLower() ?? "";
-            string keywordHinhThuc = comboBox1_HinhThucKT?.Text.Trim().ToLower() ?? "";
-            await BuildGlobalCacheAsync();
-            if (_globalCache == null) return;
+            if (string.IsNullOrEmpty(_currentDbPath) || !File.Exists(_currentDbPath))
+                return;
+            string keywordTen = combobox1_TimKiemTheoTen?.Text.Trim().ToLowerInvariant() ?? string.Empty;
+            string keywordDonVi = comboBox_TimKiemDonViKhenThuong?.Text.Trim().ToLowerInvariant() ?? string.Empty;
+            string keywordHinhThuc = comboBox1_HinhThucKT?.Text.Trim().ToLowerInvariant() ?? string.Empty;
+            await BuildGlobalCacheAsync().ConfigureAwait(true);
+            if (_globalCache == null)
+                return;
             try
             {
-                DataTable dtThuTu = await Task.Run(async () =>
+                // Bước 1: Lọc trong bộ nhớ (đồng bộ, nhanh) để lấy danh sách ứng viên theo ID.
+                // Viết trực tiếp (không tách hàm riêng) để trình biên dịch tự suy ra đúng kiểu
+                // phần tử thật sự của _globalCache mà ta không cần biết/gõ tên lớp đó ra.
+                var query = _globalCache.AsEnumerable();
+                if (!string.IsNullOrEmpty(keywordTen))
+                    query = query.Where(x => x.TenTapThe.Contains(keywordTen, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrEmpty(keywordDonVi))
+                    query = query.Where(x => x.DonVi.Contains(keywordDonVi, StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrEmpty(keywordHinhThuc))
+                    query = query.Where(x => x.HinhThucKhenThuong.Contains(keywordHinhThuc, StringComparison.OrdinalIgnoreCase));
+                var matchedItems = query.Take(500).ToDictionary(x => x.ID, x => x);
+                if (matchedItems.Count == 0)
                 {
-                    if (token.IsCancellationRequested) return null;
-                    var query = _globalCache.AsEnumerable();
-                    if (!string.IsNullOrEmpty(keywordTen)) query = query.Where(x => x.TenTapThe.ToLower().Contains(keywordTen));
-                    if (!string.IsNullOrEmpty(keywordDonVi)) query = query.Where(x => x.DonVi.ToLower().Contains(keywordDonVi));
-                    if (!string.IsNullOrEmpty(keywordHinhThuc)) query = query.Where(x => x.HinhThucKhenThuong.ToLower().Contains(keywordHinhThuc));
-                    var matchedItems = query.Take(500).ToDictionary(x => x.ID, x => x);
-                    if (matchedItems.Count == 0 || token.IsCancellationRequested) return CreateDataTableSchema();
-                    DataTable dt = CreateDataTableSchema();
-                    string connectionString = $@"Data Source={_currentDbPath};";
-                    using (SqliteConnection conn = new SqliteConnection(connectionString))
-                    {
-                        await conn.OpenAsync(token);
-                        string inClause = string.Join(",", matchedItems.Keys);
-                        string queryFull = $@"SELECT ID, STT, HinhThuc_KhenThuong, SoQuyetDinh, 
-             NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, 
-             TienThuong, NgayCapPhat, CanBoCapPhat, 
-             NguoiDaiDienNhan, GhiChu 
-              FROM ThongKe_KhenThuongTapThe 
-              WHERE ID IN ({inClause}) ORDER BY STT ASC";
-                        using (SqliteCommand cmdFull = new SqliteCommand(queryFull, conn))
-                        using (SqliteDataReader reader = await cmdFull.ExecuteReaderAsync(token))
-                        {
-                            while (await reader.ReadAsync(token))
-                            {
-                                if (token.IsCancellationRequested) return null;
-                                int id = Convert.ToInt32(reader["ID"]);
-                                var cacheItem = matchedItems[id];
-                                string tienThuongStr = SafeDecrypt(reader["TienThuong"]);
-                                long.TryParse(tienThuongStr.Replace(".", "").Replace(",", ""), out long tien);
-                                dt.Rows.Add(
-                            id,
-                            reader["STT"] != DBNull.Value ? Convert.ToInt32(reader["STT"]) : 0,
-                            cacheItem.TenTapThe,
-                            cacheItem.HinhThucKhenThuong,
-                            cacheItem.DonVi,
-                            SafeDecrypt(reader["SoQuyetDinh"]),
-                            SafeDecrypt(reader["NgayQuyetDinh"]),
-                            SafeDecrypt(reader["NguoiKy"]),
-                            SafeDecrypt(reader["NoiDung_KhenThuong"]),
-                            tien,
-                            SafeDecrypt(reader["NgayCapPhat"]),
-                            SafeDecrypt(reader["CanBoCapPhat"]),
-                            SafeDecrypt(reader["NguoiDaiDienNhan"]),
-                            SafeDecrypt(reader["GhiChu"])
-                        );
-                            }
-                        }
-                    }
-                    return dt;
-                }, token);
-                if (dtThuTu != null && !token.IsCancellationRequested)
-                {
-                    kryptonDataGridView1.DataSource = dtThuTu;
+                    kryptonDataGridView1.DataSource = CreateDataTableSchema();
                     CapNhatNhanTongSo();
-                    // ⭐ BỔ SUNG DÒNG NÀY ĐỂ CẬP NHẬT TRẠNG THÁI ẨN/HIỆN NÚT THEO LƯỚI
                     CapNhatTrangThaiNutThaoTac();
+                    return;
                 }
+                // Bước 2: Truy vấn DB bất đồng bộ thật sự (không bọc trong Task.Run),
+                // dùng tham số hoá cho mệnh đề IN thay vì nối chuỗi trực tiếp.
+                // matchedItems được truyền vào kèm 3 hàm "lấy giá trị hiển thị" — nhờ đó
+                // LoadRowsFromDatabaseAsync là generic và không cần biết tên lớp cache thật.
+                DataTable dtThuTu = await LoadRowsFromDatabaseAsync(
+                    matchedItems,
+                    getTenTapThe: x => x.TenTapThe,
+                    getHinhThucKhenThuong: x => x.HinhThucKhenThuong,
+                    getDonVi: x => x.DonVi,
+                    token).ConfigureAwait(true);
+                if (token.IsCancellationRequested)
+                    return;
+                kryptonDataGridView1.DataSource = dtThuTu;
+                CapNhatNhanTongSo();
+                CapNhatTrangThaiNutThaoTac();
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                // Người dùng huỷ thao tác (đổi bộ lọc liên tục) — bỏ qua, không phải lỗi.
+            }
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+        /// <summary>
+        /// Truy vấn chi tiết từ SQLite cho tập ID đã lọc, dùng tham số hoá an toàn
+        /// và cache ordinal cột để tăng tốc đọc dữ liệu.
+        /// Generic theo TItem nên không cần khai báo tên lớp cache thật (tránh lỗi biên dịch
+        /// nếu tên lớp trong dự án của bạn khác với ví dụ này).
+        /// </summary>
+        private async Task<DataTable> LoadRowsFromDatabaseAsync<TItem>(
+            Dictionary<int, TItem> matchedItems,
+            Func<TItem, string> getTenTapThe,
+            Func<TItem, string> getHinhThucKhenThuong,
+            Func<TItem, string> getDonVi,
+            CancellationToken token)
+        {
+            DataTable dt = CreateDataTableSchema();
+            string connectionString = $"Data Source={_currentDbPath};";
+            var idList = matchedItems.Keys.ToList();
+            var paramNames = new string[idList.Count];
+            for (int i = 0; i < idList.Count; i++)
+                paramNames[i] = "@id" + i;
+            using var conn = new SqliteConnection(connectionString);
+            await conn.OpenAsync(token).ConfigureAwait(false);
+            // Mệnh đề IN có tham số hoá: (@id0, @id1, ...) — tránh nối chuỗi trực tiếp vào SQL.
+            string queryFull = $@"SELECT ID, STT, SoQuyetDinh, NgayQuyetDinh, NguoiKy,
+                                  NoiDung_KhenThuong, TienThuong, NgayCapPhat,
+                                  CanBoCapPhat, NguoiDaiDienNhan, GhiChu
+                           FROM ThongKe_KhenThuongTapThe
+                           WHERE ID IN ({string.Join(",", paramNames)})
+                           ORDER BY STT ASC";
+            using var cmd = new SqliteCommand(queryFull, conn);
+            for (int i = 0; i < idList.Count; i++)
+                cmd.Parameters.AddWithValue(paramNames[i], idList[i]);
+            using SqliteDataReader reader = await cmd.ExecuteReaderAsync(token).ConfigureAwait(false);
+            // Lấy ordinal một lần, tránh tra cứu theo tên cột lặp lại trong vòng lặp.
+            int ordId = reader.GetOrdinal("ID");
+            int ordStt = reader.GetOrdinal("STT");
+            int ordSoQuyetDinh = reader.GetOrdinal("SoQuyetDinh");
+            int ordNgayQuyetDinh = reader.GetOrdinal("NgayQuyetDinh");
+            int ordNguoiKy = reader.GetOrdinal("NguoiKy");
+            int ordNoiDung = reader.GetOrdinal("NoiDung_KhenThuong");
+            int ordTienThuong = reader.GetOrdinal("TienThuong");
+            int ordNgayCapPhat = reader.GetOrdinal("NgayCapPhat");
+            int ordCanBo = reader.GetOrdinal("CanBoCapPhat");
+            int ordNguoiNhan = reader.GetOrdinal("NguoiDaiDienNhan");
+            int ordGhiChu = reader.GetOrdinal("GhiChu");
+            while (await reader.ReadAsync(token).ConfigureAwait(false))
+            {
+                int id = reader.GetInt32(ordId);
+                // Bảo vệ: nếu dữ liệu DB và cache lệch nhau (hiếm khi xảy ra), bỏ qua dòng
+                // thay vì để ném KeyNotFoundException làm hỏng cả thao tác tải dữ liệu.
+                if (!matchedItems.TryGetValue(id, out TItem cacheItem))
+                    continue;
+                string tienThuongStr = SafeDecrypt(reader.IsDBNull(ordTienThuong) ? null : reader.GetValue(ordTienThuong));
+                long.TryParse(
+                    tienThuongStr.Replace(".", string.Empty).Replace(",", string.Empty),
+                    out long tien);
+                dt.Rows.Add(
+                    id,
+                    reader.IsDBNull(ordStt) ? 0 : reader.GetInt32(ordStt),
+                    getTenTapThe(cacheItem),
+                    getHinhThucKhenThuong(cacheItem),
+                    getDonVi(cacheItem),
+                    SafeDecrypt(reader.GetValue(ordSoQuyetDinh)),
+                    SafeDecrypt(reader.GetValue(ordNgayQuyetDinh)),
+                    SafeDecrypt(reader.GetValue(ordNguoiKy)),
+                    SafeDecrypt(reader.GetValue(ordNoiDung)),
+                    tien,
+                    SafeDecrypt(reader.GetValue(ordNgayCapPhat)),
+                    SafeDecrypt(reader.GetValue(ordCanBo)),
+                    SafeDecrypt(reader.GetValue(ordNguoiNhan)),
+                    SafeDecrypt(reader.GetValue(ordGhiChu))
+                );
+            }
+            return dt;
         }
         private DataTable CreateDataTableSchema()
         {

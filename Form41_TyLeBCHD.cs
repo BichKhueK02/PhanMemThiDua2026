@@ -263,10 +263,7 @@ namespace PhanMemThiDua2026
                 const string thongBaoThanhCong = "Đã lưu quy định tỷ lệ BCH thành công!";
                 HienThiThongBao("✔ " + thongBaoThanhCong, Color.DarkGreen);
                 // 4. Ghi Nhật ký hệ thống (Audit Log)
-                Module_NhatKy.GhiNhatKy(
-                    taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System" : Module_TaiKhoan.TenTaiKhoan_RAM,
-                    hanhDong: thongBaoThanhCong,
-                    ghiChu: "Thành công");
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, thongBaoThanhCong, $"Thành công. Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
                 // 5. Trì hoãn 300ms để người dùng kịp nhìn thông báo thành công trước khi đóng Form
                 await Task.Delay(300, token);
                 if (!IsDisposed && !Disposing)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using SQLitePCL;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
@@ -82,7 +83,7 @@ namespace PhanMemThiDua2026
                     var map = new Dictionary<string, (DateTime LanDau, DateTime LanCuoi, int SoLuot)>(StringComparer.OrdinalIgnoreCase);
                     int errorCount = 0;
                     const int MAX_ERROR_LOG = 10;
-                    // ⭐ 1. KHAI BÁO MẢNG ĐỊNH DẠNG NGÀY GIỜ ĐỂ TRÁNH LỖI PARSE
+                    // ⭐ KHAI BÁO MẢNG ĐỊNH DẠNG NGÀY GIỜ ĐỂ TRÁNH LỖI PARSE
                     string[] cacDinhDangNgay = { "yyyy-MM-dd HH:mm:ss", "dd-MM-yyyy HH:mm:ss", "dd/MM/yyyy HH:mm:ss", "dd-MM-yyyy", "dd/MM/yyyy", "M/d/yyyy h:mm:ss tt" };
                     var builder = new SqliteConnectionStringBuilder
                     {
@@ -102,28 +103,35 @@ namespace PhanMemThiDua2026
                     {
                         try
                         {
-                            string raw = rd["TaiKhoan"]?.ToString()?.Trim();
+                            string raw = rd["TaiKhoan"]?.ToString()?.Trim() ?? string.Empty;
                             if (string.IsNullOrWhiteSpace(raw)) continue;
-                            string userDisplay = "";
+                            string userDisplay = string.Empty;
+                            // ⭐ 1. XỬ LÝ GIẢI MÃ (HỖ TRỢ chuẩn V4 VÀ TƯƠNG THÍCH NGUỢC)
                             try
                             {
-                                // ⭐ 2. KIỂM TRA VÀ CẮT BỎ TIỀN TỐ "AES:" TRƯỚC KHI GIẢI MÃ (NẾU CÓ)
-                                if (raw.StartsWith("AES:"))
+                                // Thử giải mã trực tiếp bằng chuẩn V4
+                                userDisplay = Module_BaoMatAES.GiaiMa_NhatKy(raw)?.Trim() ?? string.Empty;
+                                if (string.IsNullOrWhiteSpace(userDisplay))
                                 {
-                                    userDisplay = Module_BaoMatAES.GiaiMa(raw.Substring(4))?.Trim();
-                                }
-                                else
-                                {
-                                    userDisplay = Module_BaoMatAES.GiaiMa(raw)?.Trim();
+                                    // Nếu không có tiền tố "AES:" -> Xem như dữ liệu chưa mã hóa (Plaintext)
+                                    if (!raw.StartsWith("AES:", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        userDisplay = raw;
+                                    }
+                                    else
+                                    {
+                                        // Không thể giải mã dữ liệu mã hóa cũ/lỗi -> Bỏ qua
+                                        continue;
+                                    }
                                 }
                             }
                             catch
                             {
-                                continue; // Nếu giải mã lỗi, bỏ qua
+                                continue; // Lỗi giải mã -> Bỏ qua dòng này
                             }
                             if (string.IsNullOrWhiteSpace(userDisplay)) continue;
-                            // ⭐ 3. ÉP KIỂU NGÀY THÁNG ĐA ĐỊNH DẠNG (Khắc phục hoàn toàn lỗi mất data)
-                            string thoiGianRaw = rd["ThoiGian"]?.ToString()?.Trim();
+                            // ⭐ 2. ÉP KIỂU NGÀY THÁNG ĐA ĐỊNH DẠNG
+                            string thoiGianRaw = rd["ThoiGian"]?.ToString()?.Trim() ?? string.Empty;
                             DateTime time;
                             if (!DateTime.TryParseExact(thoiGianRaw, cacDinhDangNgay, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out time))
                             {
@@ -132,7 +140,7 @@ namespace PhanMemThiDua2026
                                     continue; // Bỏ qua nếu hoàn toàn không đọc được ngày
                                 }
                             }
-                            // Tích lũy số liệu
+                            // ⭐ 3. TÍCH LŨY SỐ LIỆU TÀI KHOẢN
                             if (!map.TryGetValue(userDisplay, out var existing))
                             {
                                 map[userDisplay] = (time, time, 1);
@@ -154,6 +162,7 @@ namespace PhanMemThiDua2026
                             continue;
                         }
                     }
+                    // ⭐ 4. CHUYỂN ĐỔI MAP SANG DẠNG LIST DÙNG CHO VIRTUAL MODE
                     var list = new List<ThongKeTaiKhoanModel>(map.Count);
                     int stt = 1;
                     foreach (var item in map.OrderByDescending(x => x.Value.LanCuoi))
@@ -233,43 +242,26 @@ namespace PhanMemThiDua2026
             dgv.EnableHeadersVisualStyles = false;
             dgv.DoubleBuffered(true);
             // HEADER
-            dgv.ColumnHeadersHeight = 42;
-            dgv.ColumnHeadersHeightSizeMode =
-                DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            dgv.ColumnHeadersBorderStyle =
-                DataGridViewHeaderBorderStyle.Single;
-            dgv.ColumnHeadersDefaultCellStyle.BackColor =
-                _headerBackColor;
-            dgv.ColumnHeadersDefaultCellStyle.ForeColor =
-                _headerForeColor;
-            dgv.ColumnHeadersDefaultCellStyle.Font =
-                _headerFont;
-            dgv.ColumnHeadersDefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleCenter;
-            dgv.ColumnHeadersDefaultCellStyle.WrapMode =
-                DataGridViewTriState.False;
+            dgv.ColumnHeadersHeight = 58;
+            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            dgv.ColumnHeadersDefaultCellStyle.BackColor = _headerBackColor;
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor = _headerForeColor;
+            dgv.ColumnHeadersDefaultCellStyle.Font = _headerFont;
+            dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgv.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
             // CELL STYLE
-            dgv.DefaultCellStyle.Font =
-                _cellFont;
-            dgv.DefaultCellStyle.BackColor =
-                Color.White;
-            dgv.DefaultCellStyle.ForeColor =
-                Color.Black;
-            dgv.DefaultCellStyle.SelectionBackColor =
-                _selectionBackColor;
-            dgv.DefaultCellStyle.SelectionForeColor =
-                _selectionForeColor;
-            dgv.DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleLeft;
-            dgv.DefaultCellStyle.Padding =
-                new Padding(4, 0, 4, 0);
-            dgv.AlternatingRowsDefaultCellStyle.BackColor =
-                _alternateRowColor;
-            dgv.RowTemplate.Height = 34;
+            dgv.DefaultCellStyle.Font = _cellFont;
+            dgv.DefaultCellStyle.BackColor = Color.White;
+            dgv.DefaultCellStyle.ForeColor = Color.Black;
+            dgv.DefaultCellStyle.SelectionBackColor = _selectionBackColor;
+            dgv.DefaultCellStyle.SelectionForeColor = _selectionForeColor;
+            dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgv.DefaultCellStyle.Padding = new Padding(4, 0, 4, 0);
+            dgv.AlternatingRowsDefaultCellStyle.BackColor = _alternateRowColor;
+            dgv.RowTemplate.Height = 38;
             // AUTO SIZE
-            dgv.AutoSizeColumnsMode =
-                DataGridViewAutoSizeColumnsMode.Fill;
-            // TẠO CỘT
+            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;            // TẠO CỘT
             dgv.Columns.Add("STT", "STT");
             dgv.Columns.Add("TenTaiKhoan", "Tên tài khoản");
             dgv.Columns.Add("ThoiGianLanDau", "Sử dụng lần đầu");
@@ -284,45 +276,42 @@ namespace PhanMemThiDua2026
             dgv.Columns["SoLuotHanhDong"].FillWeight = 90;
             dgv.Columns["TinhTrang"].FillWeight = 90;
             // CĂN GIỮA
-            dgv.Columns["STT"].DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleCenter;
-            dgv.Columns["ThoiGianLanDau"].DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleCenter;
-            dgv.Columns["ThoiGianLanCuoi"].DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleCenter;
-            dgv.Columns["SoLuotHanhDong"].DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleCenter;
-            dgv.Columns["TinhTrang"].DefaultCellStyle.Alignment =
-                DataGridViewContentAlignment.MiddleCenter;
+            dgv.Columns["STT"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgv.Columns["ThoiGianLanDau"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgv.Columns["ThoiGianLanCuoi"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgv.Columns["SoLuotHanhDong"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dgv.Columns["TinhTrang"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             // FORMAT NGÀY GIỜ
-            dgv.Columns["ThoiGianLanDau"].DefaultCellStyle.Format =
-                "dd/MM/yyyy HH:mm:ss";
-            dgv.Columns["ThoiGianLanCuoi"].DefaultCellStyle.Format =
-                "dd/MM/yyyy HH:mm:ss";
+            dgv.Columns["ThoiGianLanDau"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm:ss";
+            dgv.Columns["ThoiGianLanCuoi"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm:ss";
             // FONT ĐẬM CHO CỘT QUAN TRỌNG
-            dgv.Columns["TinhTrang"].DefaultCellStyle.Font =
-                _cellBoldFont;
-            dgv.Columns["SoLuotHanhDong"].DefaultCellStyle.Font =
-                _cellBoldFont;
+            dgv.Columns["TinhTrang"].DefaultCellStyle.Font = _cellBoldFont;
+            dgv.Columns["SoLuotHanhDong"].DefaultCellStyle.Font = _cellBoldFont;
             dgv.ResumeLayout();
             _gridInitialized = true;
         }
         private void SetupStatusStrip()
         {
-            if (statusStrip1 == null)
-                return;
+            if (statusStrip1 == null) return;
             statusStrip1.SuspendLayout();
             statusStrip1.SizingGrip = false;
             statusStrip1.AutoSize = false;
-            toolStripStatusLabel1.Spring = true;
-            toolStripStatusLabel1.TextAlign =
-                ContentAlignment.MiddleLeft;
-            toolStripStatusLabel2.TextAlign =
-                ContentAlignment.MiddleRight;
-            toolStripStatusLabel1.Text =
-                $"Phiên bản: {Module_PhienBan.SoftwareVersion}";
-            toolStripStatusLabel2.Text =
-                Module_PhienBan.NgayThangNamCapNhat;
+            // 1. Tắt chế độ Spring để Label không tự động co giãn đẩy Label 2 sang phải
+            toolStripStatusLabel1.Spring = false;
+            toolStripStatusLabel2.Spring = false;
+            // 2. Căn chữ và Icon (nếu có) về sát bên trái
+            toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleLeft;
+            toolStripStatusLabel1.ImageAlign = ContentAlignment.MiddleLeft;
+            toolStripStatusLabel1.TextImageRelation = TextImageRelation.ImageBeforeText;
+            toolStripStatusLabel2.TextAlign = ContentAlignment.MiddleLeft;
+            toolStripStatusLabel2.ImageAlign = ContentAlignment.MiddleLeft;
+            toolStripStatusLabel2.TextImageRelation = TextImageRelation.ImageBeforeText;
+            // 3. (Tùy chọn) Thêm khoảng cách lề giữa 2 label cho đẹp mắt (VD: cách nhau 15px)
+            toolStripStatusLabel1.Margin = new Padding(0, 3, 15, 2);
+            toolStripStatusLabel2.Margin = new Padding(0, 3, 0, 2);
+            // Gán dữ liệu
+            toolStripStatusLabel1.Text = $"Phiên bản: {Module_PhienBan.SoftwareVersion}";
+            toolStripStatusLabel2.Text = $"                                            " + Module_PhienBan.NgayThangNamCapNhat;
             statusStrip1.ResumeLayout();
         }
         private void KryptonDataGridView1_CellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)

@@ -227,10 +227,14 @@ namespace PhanMemThiDua2026
                     await cmd.ExecuteNonQueryAsync();
                 }
                 // Ghi nhật ký
+                var (cheDo, thang, nam) = await Module_HeThong.LayThongTinThoiGianAsync(_csdl2Path);
+                string thoiGianThiDua = cheDo.Equals("Năm", StringComparison.OrdinalIgnoreCase)
+                    ? $"năm {nam}"
+                    : $"tháng {(int.TryParse(thang, out int soThang) ? soThang.ToString("D2") : thang)}/{nam}";
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
-                    hanhDong: "Cập nhật thành tích tập thể phong trào thi đua Vì ANTQ",
-                    ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+                    $"Cập nhật thành tích tập thể phong trào thi đua Vì ANTQ {thoiGianThiDua}",
+                    $"Thời điểm thực hiện hệ thống ghi là: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
                 );
                 // Thông báo thành công và đóng form
                 await HienThongBaoLuuThanhCongAsync();

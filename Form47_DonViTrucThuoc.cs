@@ -75,48 +75,24 @@ namespace PhanMemThiDua2026
                 if (tip.Key != null && !tip.Key.IsDisposed) toolTip1.SetToolTip(tip.Key, tip.Value);
             }
         }
-        // ⭐ 4. HÀM CUNG CẤP DỮ LIỆU ĐỘNG CHO LƯỚI
-        //private void KryptonDataGridView1_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
-        //{
-        //    // Kiểm tra an toàn
-        //    if (e.RowIndex < 0 || e.RowIndex >= _danhSachDonVi.Count) return;
-        //    var item = _danhSachDonVi[e.RowIndex];
-        //    string colName = kryptonDataGridView1.Columns[e.ColumnIndex].Name;
-        //    switch (colName)
-        //    {
-        //        case "ID": e.Value = item.ID; break;
-        //        case "STT": e.Value = item.STT; break;
-        //        case "TenDonVi": e.Value = item.TenDonVi; break;
-        //        case "KyHieu": e.Value = item.KyHieu; break;
-        //        case "ThoiGian": e.Value = item.ThoiGian; break;
-        //    }
-        //}
-        //```csharp
+        /// ⭐ 4. HÀM CUNG CẤP DỮ LIỆU ĐỘNG CHO LƯỚI
+        ///         // Lê Trung Kiên -  Yêu mèo cam
+
         private void KryptonDataGridView1_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
                 {
                     if (e.RowIndex < 0 || e.RowIndex >= _danhSachDonVi.Count)
                         return;
                     var item = _danhSachDonVi[e.RowIndex];
                     string colName = kryptonDataGridView1.Columns[e.ColumnIndex].Name;
-                    switch (colName)
-                    {
-                        case "ID":
-                            e.Value = item.ID;
-                            break;
-                        case "STT":
-                            e.Value = e.RowIndex + 1;
-                            break;
-                        case "TenDonVi":
-                            e.Value = item.TenDonVi;
-                            break;
-                        case "KyHieu":
-                            e.Value = item.KyHieu;
-                            break;
-                        case "ThoiGian":
-                            e.Value = item.ThoiGian;
-                            break;
-                    }
-                }
+            switch (colName)
+            {
+                case "ID": e.Value = item.ID; break;
+                case "STT": e.Value = e.RowIndex + 1; break;
+                case "TenDonVi": e.Value = item.TenDonVi; break;
+                case "KyHieu": e.Value = item.KyHieu; break;
+                case "ThoiGian": e.Value = item.ThoiGian; break;
+            }
+        }
         private async Task LoadDuLieuLenGridAsync()
         {
             if (!File.Exists(_csdl2Path)) return;
@@ -390,24 +366,6 @@ namespace PhanMemThiDua2026
             }
         }
         /// 1. TỐI ƯU HÀM CHỌN DÒNG
-        //private void KryptonDataGridView1_SelectionChanged(object sender, EventArgs e)
-        //{
-        //    if (kryptonDataGridView1.CurrentRow != null && kryptonDataGridView1.CurrentRow.Index >= 0)
-        //    {
-        //        int idx = kryptonDataGridView1.CurrentRow.Index;
-        //        if (idx < _danhSachDonVi.Count) // Truy xuất trực tiếp từ RAM
-        //        {
-        //            var item = _danhSachDonVi[idx];
-        //            _selectedId = item.ID;
-        //            textBox_TenDonVi.Text = item.TenDonVi;
-        //            kryptonTextBox_KyHieuDonVi.Text = item.KyHieu;
-        //            DoiTenNutSua(laDangChonSua: true);
-        //            return;
-        //        }
-        //    }
-        //    XoaTrangOInput();
-        //}
-        // 2. TỐI ƯU HÀM KIỂM TRA TRÙNG LẶP (Chạy trong chớp mắt vì quét trên RAM)
         private void KryptonDataGridView1_SelectionChanged(object sender, EventArgs e)
         {
             if (kryptonDataGridView1.CurrentRow != null &&

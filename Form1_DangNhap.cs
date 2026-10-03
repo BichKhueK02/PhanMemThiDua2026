@@ -63,6 +63,7 @@ namespace PhanMemThiDua2026
                 {
                     label1_ThongBaoPhienBan.Visible = false;
                 }
+                SetTableLayoutPanelColor_ChinhSach(TableLayoutPanel6, phienBan);
                 PictureBox1.Click -= PictureBox1_Click;
                 PictureBox1.Click += PictureBox1_Click;
                 InitFocusEffects(); // Khởi tạo viền Focus
@@ -72,6 +73,13 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("Lỗi khởi tạo UI Form1: " + ex.Message);
             }
         }
+        private void SetTableLayoutPanelColor_ChinhSach(TableLayoutPanel panel, string phienBan)
+        {
+            bool laTanBinh = !string.IsNullOrWhiteSpace(phienBan) &&
+                              phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            panel.BackColor = laTanBinh ? Color.LightGreen : Color.FromArgb(192, 192, 255);
+        }
+        // HÀM MỚI: Đ1ộng cơ xử lý ngầm chuẩn kỹ sư
         private void Form1_Show(object? sender, EventArgs e)
         {
             // 1. Ép trỏ chuột Focus ngay lập tức để người dùng có thể gõ phím tức thì

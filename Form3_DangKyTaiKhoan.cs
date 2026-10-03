@@ -204,25 +204,40 @@ namespace PhanMemThiDua2026
                         oldToken = Module_BaoMatAES.GiaiMa(rd.IsDBNull(2) ? "" : rd.GetString(2));
                     }
                 }
+                /// Truy vấn câu hỏi bảo mật
+                //using (var cmd = new SqliteCommand("SELECT ID, CauHoi, CauTraLoi FROM CauHoiBaoMat WHERE ID IN (1, 2)", conn))
+                //using (var rd = cmd.ExecuteReader())
+                //{
+                //    while (rd.Read())
+                //    {
+                //        int id = rd.GetInt32(0);
+                //        if (id == 1)
+                //        {
+                //            oldCh1 = Module_BaoMatAES.GiaiMa(rd.IsDBNull(1) ? "" : rd.GetString(1));
+                //            oldTl1 = Module_BaoMatAES.GiaiMa(rd.IsDBNull(2) ? "" : rd.GetString(2));
+                //        }
+                //        else
+                //        {
+                //            oldCh2 = Module_BaoMatAES.GiaiMa(rd.IsDBNull(1) ? "" : rd.GetString(1));
+                //            oldTl2 = Module_BaoMatAES.GiaiMa(rd.IsDBNull(2) ? "" : rd.GetString(2));
+                //        }
+                //    }
+                //}
                 // Truy vấn câu hỏi bảo mật
+                var baoMatData = new Dictionary<int, (string CauHoi, string TraLoi)>();
                 using (var cmd = new SqliteCommand("SELECT ID, CauHoi, CauTraLoi FROM CauHoiBaoMat WHERE ID IN (1, 2)", conn))
                 using (var rd = cmd.ExecuteReader())
                 {
                     while (rd.Read())
                     {
                         int id = rd.GetInt32(0);
-                        if (id == 1)
-                        {
-                            oldCh1 = Module_BaoMatAES.GiaiMa(rd.IsDBNull(1) ? "" : rd.GetString(1));
-                            oldTl1 = Module_BaoMatAES.GiaiMa(rd.IsDBNull(2) ? "" : rd.GetString(2));
-                        }
-                        else
-                        {
-                            oldCh2 = Module_BaoMatAES.GiaiMa(rd.IsDBNull(1) ? "" : rd.GetString(1));
-                            oldTl2 = Module_BaoMatAES.GiaiMa(rd.IsDBNull(2) ? "" : rd.GetString(2));
-                        }
+                        string cauHoi = Module_BaoMatAES.GiaiMa(rd.IsDBNull(1) ? "" : rd.GetString(1));
+                        string traLoi = Module_BaoMatAES.GiaiMa(rd.IsDBNull(2) ? "" : rd.GetString(2));
+                        baoMatData[id] = (cauHoi, traLoi);
                     }
                 }
+                if (baoMatData.TryGetValue(1, out var d1)) { oldCh1 = d1.CauHoi; oldTl1 = d1.TraLoi; }
+                if (baoMatData.TryGetValue(2, out var d2)) { oldCh2 = d2.CauHoi; oldTl2 = d2.TraLoi; }
                 // KIỂM TRA XEM TẤT CẢ CÓ GIỐNG HỆT CŨ KHÔNG (Bao gồm cả ảnh nếu bạn muốn)
                 // Ở đây ta so sánh các trường văn bản quan trọng nhất
                 bool thongTinAdminGiongHeu = taiKhoanMoi.Equals(oldTk) && matKhauMoi == oldMk && token == oldToken;
@@ -609,7 +624,7 @@ Lưu ý: Thông tin bạn nhập đều được mã hóa bằng thuật toán
                     BackColor = Color.White,
                     ScrollBars = RichTextBoxScrollBars.Vertical
                 };
-                // Thuật toán đổ dữ liệu và tô màu
+                //Thuật toán đổ dữ liệu và tô màu
                 var lines = noiDung.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
                 foreach (var line in lines)
                 {

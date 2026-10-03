@@ -64,9 +64,9 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 3;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 8.222222F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 55.5555573F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 36F));
-            tableLayoutPanel1.Size = new Size(800, 450);
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 57.2368431F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 34.6491241F));
+            tableLayoutPanel1.Size = new Size(802, 456);
             tableLayoutPanel1.TabIndex = 1;
             // 
             // kryptonDataGridView1
@@ -78,7 +78,7 @@
             kryptonDataGridView1.Margin = new Padding(2, 3, 2, 3);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(796, 244);
+            kryptonDataGridView1.Size = new Size(798, 254);
             kryptonDataGridView1.TabIndex = 0;
             // 
             // tableLayoutPanel2
@@ -88,12 +88,12 @@
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 16F));
             tableLayoutPanel2.Controls.Add(tableLayoutPanel3, 0, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(2, 290);
+            tableLayoutPanel2.Location = new Point(2, 300);
             tableLayoutPanel2.Margin = new Padding(2, 3, 2, 3);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel2.Size = new Size(796, 157);
+            tableLayoutPanel2.Size = new Size(798, 153);
             tableLayoutPanel2.TabIndex = 1;
             // 
             // tableLayoutPanel3
@@ -111,7 +111,7 @@
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 25.51724F));
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 36.5517235F));
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 37.24138F));
-            tableLayoutPanel3.Size = new Size(792, 151);
+            tableLayoutPanel3.Size = new Size(794, 147);
             tableLayoutPanel3.TabIndex = 0;
             // 
             // label_tongCongTinhThanhPho
@@ -120,7 +120,7 @@
             label_tongCongTinhThanhPho.AutoSize = true;
             label_tongCongTinhThanhPho.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             label_tongCongTinhThanhPho.ForeColor = Color.FromArgb(0, 0, 192);
-            label_tongCongTinhThanhPho.Location = new Point(323, 11);
+            label_tongCongTinhThanhPho.Location = new Point(324, 11);
             label_tongCongTinhThanhPho.Margin = new Padding(2, 0, 2, 0);
             label_tongCongTinhThanhPho.Name = "label_tongCongTinhThanhPho";
             label_tongCongTinhThanhPho.Size = new Size(145, 15);
@@ -141,18 +141,18 @@
             tableLayoutPanel5.Controls.Add(kryptonButton1_Sua, 3, 0);
             tableLayoutPanel5.Controls.Add(kryptonButton1_Xoa, 2, 0);
             tableLayoutPanel5.Dock = DockStyle.Fill;
-            tableLayoutPanel5.Location = new Point(2, 96);
+            tableLayoutPanel5.Location = new Point(2, 94);
             tableLayoutPanel5.Margin = new Padding(2, 3, 2, 3);
             tableLayoutPanel5.Name = "tableLayoutPanel5";
             tableLayoutPanel5.RowCount = 1;
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel5.Size = new Size(788, 52);
+            tableLayoutPanel5.Size = new Size(790, 50);
             tableLayoutPanel5.TabIndex = 0;
             // 
             // kryptonButton1_XuatData
             // 
             kryptonButton1_XuatData.Anchor = AnchorStyles.None;
-            kryptonButton1_XuatData.Location = new Point(175, 10);
+            kryptonButton1_XuatData.Location = new Point(175, 9);
             kryptonButton1_XuatData.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_XuatData.Name = "kryptonButton1_XuatData";
             kryptonButton1_XuatData.Size = new Size(124, 32);
@@ -166,7 +166,7 @@
             // kryptonButton1_NhapData
             // 
             kryptonButton1_NhapData.Anchor = AnchorStyles.None;
-            kryptonButton1_NhapData.Location = new Point(17, 10);
+            kryptonButton1_NhapData.Location = new Point(17, 9);
             kryptonButton1_NhapData.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_NhapData.Name = "kryptonButton1_NhapData";
             kryptonButton1_NhapData.Size = new Size(124, 32);
@@ -180,7 +180,7 @@
             // kryptonButton1_Them
             // 
             kryptonButton1_Them.Anchor = AnchorStyles.None;
-            kryptonButton1_Them.Location = new Point(647, 10);
+            kryptonButton1_Them.Location = new Point(648, 9);
             kryptonButton1_Them.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_Them.Name = "kryptonButton1_Them";
             kryptonButton1_Them.Size = new Size(124, 32);
@@ -194,7 +194,7 @@
             // kryptonButton1_Sua
             // 
             kryptonButton1_Sua.Anchor = AnchorStyles.None;
-            kryptonButton1_Sua.Location = new Point(490, 10);
+            kryptonButton1_Sua.Location = new Point(490, 9);
             kryptonButton1_Sua.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_Sua.Name = "kryptonButton1_Sua";
             kryptonButton1_Sua.Size = new Size(124, 32);
@@ -208,7 +208,7 @@
             // kryptonButton1_Xoa
             // 
             kryptonButton1_Xoa.Anchor = AnchorStyles.None;
-            kryptonButton1_Xoa.Location = new Point(333, 10);
+            kryptonButton1_Xoa.Location = new Point(333, 9);
             kryptonButton1_Xoa.Margin = new Padding(2, 3, 2, 3);
             kryptonButton1_Xoa.Name = "kryptonButton1_Xoa";
             kryptonButton1_Xoa.Size = new Size(124, 32);
@@ -227,12 +227,12 @@
             tableLayoutPanel4.Controls.Add(label2, 0, 0);
             tableLayoutPanel4.Controls.Add(textBox_TenTinhThanhPho, 1, 0);
             tableLayoutPanel4.Dock = DockStyle.Fill;
-            tableLayoutPanel4.Location = new Point(2, 41);
+            tableLayoutPanel4.Location = new Point(2, 40);
             tableLayoutPanel4.Margin = new Padding(2, 3, 2, 3);
             tableLayoutPanel4.Name = "tableLayoutPanel4";
             tableLayoutPanel4.RowCount = 1;
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel4.Size = new Size(788, 49);
+            tableLayoutPanel4.Size = new Size(790, 48);
             tableLayoutPanel4.TabIndex = 3;
             // 
             // label2
@@ -241,7 +241,7 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold);
             label2.ForeColor = Color.FromArgb(0, 0, 192);
-            label2.Location = new Point(36, 16);
+            label2.Location = new Point(36, 15);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
             label2.Size = new Size(130, 17);
@@ -251,10 +251,10 @@
             // textBox_TenTinhThanhPho
             // 
             textBox_TenTinhThanhPho.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_TenTinhThanhPho.Location = new Point(204, 10);
+            textBox_TenTinhThanhPho.Location = new Point(204, 9);
             textBox_TenTinhThanhPho.Margin = new Padding(2, 3, 2, 3);
             textBox_TenTinhThanhPho.Name = "textBox_TenTinhThanhPho";
-            textBox_TenTinhThanhPho.Size = new Size(582, 29);
+            textBox_TenTinhThanhPho.Size = new Size(584, 29);
             textBox_TenTinhThanhPho.StateCommon.Border.Rounding = 8F;
             textBox_TenTinhThanhPho.StateCommon.Border.Width = 1;
             textBox_TenTinhThanhPho.TabIndex = 4;
@@ -265,7 +265,7 @@
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 10.9439993F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.ForeColor = Color.Green;
-            label1.Location = new Point(248, 8);
+            label1.Location = new Point(249, 8);
             label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
             label1.Size = new Size(303, 20);
@@ -276,7 +276,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(802, 456);
             Controls.Add(tableLayoutPanel1);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form57_CapNhatTinhThanhPho";

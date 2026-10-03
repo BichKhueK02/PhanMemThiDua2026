@@ -75,6 +75,8 @@ namespace PhanMemThiDua2026
             KhoiTaoTimerTimKiem();
             // Gọi hiệu ứng UI CUỐI CÙNG, sau khi mọi control/sự kiện đã sẵn sàng.
             DangKyHieuUngVienTextBox();
+            // Đăng ký sự kiện Shown tại đây
+            this.Shown += Form34_ThongKeKhenThuong_Shown;
         }
         /// <summary>
         /// Đăng ký sự kiện cho các control lọc/tìm kiếm.
@@ -110,23 +112,6 @@ namespace PhanMemThiDua2026
             // có tác dụng gì ngoài gây hiểu nhầm khi đọc lại code.
             grid.CellPainting += KryptonDataGridView1_DanhSachCBCS_CellPainting;
         }
-        /// <summary>
-        /// Khởi tạo timer debounce cho ô tìm kiếm.
-        /// </summary>
-        // Trong Dispose(bool disposing) của Form, nhớ giải phóng Timer để tránh rò rỉ handle:
-        // if (disposing) timKiemTimer?.Dispose();
-        /// <summary>
-        /// Đăng ký sự kiện cho các control lọc/tìm kiếm.
-        /// Dùng "?." thay cho "if (x != null) x.Event += ...;" - ngắn gọn hơn,
-        /// cùng ngữ nghĩa null-safe (chỉ đăng ký nếu control tồn tại).
-        /// </summary>
-        /// <summary>
-        /// Đăng ký toàn bộ sự kiện + cấu hình liên quan tới DataGridView chính.
-        /// Tách riêng để dễ đọc, dễ bảo trì khi cần thêm/bớt sự kiện của grid.
-        /// </summary>
-        /// <summary>
-        /// Khởi tạo timer debounce cho ô tìm kiếm.
-        /// </summary>
         private void KhoiTaoTimerTimKiem()
         {
             timKiemTimer = new System.Windows.Forms.Timer { Interval = 300 };
@@ -158,6 +143,10 @@ namespace PhanMemThiDua2026
             // Gọi hàm load dữ liệu ở đây
             await ReloadDuLieu();
             InitToolTips();
+        }
+        private void Form34_ThongKeKhenThuong_Shown(object? sender, EventArgs e)
+        {
+            textBox_TimKiemTheoTen.Focus();
         }
         private void InitToolTips()
         {
@@ -1410,9 +1399,7 @@ namespace PhanMemThiDua2026
                 // 5. GHI NHẬT KÝ
                 try
                 {
-                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin",
-                        "Xóa sạch dữ liệu khen thưởng",
-                        $"Xóa {soDongXoa_ThongKe} dòng Thống kê & {soDongXoa_ChiTiet} dòng Chi tiết lúc {DateTime.Now:HH:mm:ss}");
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa sạch dữ liệu khen thưởng", $"Xóa {soDongXoa_ThongKe} dòng Thống kê & {soDongXoa_ChiTiet} dòng Chi tiết lúc {DateTime.Now:HH:mm:ss}");
                 }
                 catch { }
                 // 6. LÀM MỚI GIAO DIỆN (YÊU MÈO CAM)

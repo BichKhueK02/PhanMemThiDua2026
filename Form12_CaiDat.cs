@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Text;
+
 namespace PhanMemThiDua2026
 {
     public partial class Form12 : Form
@@ -284,7 +285,7 @@ namespace PhanMemThiDua2026
             {
                 // ================= CẤU HÌNH CHUNG =================
                 toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = "Chức năng";
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
                 // ================= DANH SÁCH TOOLTIP =================
                 // Dùng mảng tuple thay vì Dictionary:
@@ -306,6 +307,7 @@ namespace PhanMemThiDua2026
                     (kryptonButton_TyLePhanTramBaNhat,               "Cập nhật tỷ lệ % của phong trào thi đua Ba Nhất"),
                     (kryptonButton1_CaiDatTyLePhanTramBCH,           "Cập nhật tỷ lệ % của BCH"),
                     (kryptonButton1_CaiDatTyLePhanTramE29,           "Cập nhật tỷ lệ % của CBCS"),
+                    (kryptonButton1_TyLePhanTramXetThiDuaNam,        "Cập nhật tỷ lệ % của CBCS xét thi đua năm")
                 };
                 // ================= GÁN TOOLTIP AN TOÀN =================
                 int soLoi = 0;
@@ -743,28 +745,14 @@ PRAGMA busy_timeout=15000;
                 using (var cmd = cn.CreateCommand())
                 {
                     cmd.Transaction = tran;
-                    cmd.CommandText = @"INSERT INTO ThongTin(    ID,    TenTrungDoan,    TenTieuDoan,    SoLanChoPhepHienThi,    ChoPhepGoiYMatKhau,    ChoPhepDupChuotVaoAnh_GoiYMatKhau,    textBox1_TenTrungDoanDong1,    KyHieuBaoCao)VALUES(    1,    @TenTrungDoan,    @TenTieuDoan,    @SoLan,    @GoiYPass,    @GoiYAnh,    @TenTDDong1,    @KyHieuBC)ON CONFLICT(ID) DO UPDATE SET    TenTrungDoan = excluded.TenTrungDoan,    TenTieuDoan = excluded.TenTieuDoan,    SoLanChoPhepHienThi = excluded.SoLanChoPhepHienThi,    ChoPhepGoiYMatKhau = excluded.ChoPhepGoiYMatKhau,    ChoPhepDupChuotVaoAnh_GoiYMatKhau =        excluded.ChoPhepDupChuotVaoAnh_GoiYMatKhau,    textBox1_TenTrungDoanDong1 =        excluded.textBox1_TenTrungDoanDong1,    KyHieuBaoCao = excluded.KyHieuBaoCao;";
-                    cmd.Parameters.AddWithValue(
-                        "@TenTrungDoan",
-                        SafeEncrypt(uiData.TenTrungDoan));
-                    cmd.Parameters.AddWithValue(
-                        "@TenTieuDoan",
-                        SafeEncrypt(uiData.TenTieuDoan));
-                    cmd.Parameters.AddWithValue(
-                        "@SoLan",
-                        SafeEncrypt(uiData.SoLanChoPhepHienThi));
-                    cmd.Parameters.AddWithValue(
-                        "@GoiYPass",
-                        SafeEncrypt(uiData.ChoPhepGoiYMatKhau));
-                    cmd.Parameters.AddWithValue(
-                        "@GoiYAnh",
-                        SafeEncrypt(uiData.ChoPhepDupChuotVaoAnh));
-                    cmd.Parameters.AddWithValue(
-                        "@TenTDDong1",
-                        SafeEncrypt(uiData.TenTrungDoanDong1));
-                    cmd.Parameters.AddWithValue(
-                        "@KyHieuBC",
-                        SafeEncrypt(uiData.KyHieuBaoCao));
+                    cmd.CommandText = @"INSERT INTO ThongTin(ID, TenTrungDoan, TenTieuDoan, SoLanChoPhepHienThi, ChoPhepGoiYMatKhau, ChoPhepDupChuotVaoAnh_GoiYMatKhau, textBox1_TenTrungDoanDong1, KyHieuBaoCao) VALUES(1, @TenTrungDoan, @TenTieuDoan, @SoLan, @GoiYPass, @GoiYAnh, @TenTDDong1, @KyHieuBC) ON CONFLICT(ID) DO UPDATE SET TenTrungDoan = excluded.TenTrungDoan, TenTieuDoan = excluded.TenTieuDoan, SoLanChoPhepHienThi = excluded.SoLanChoPhepHienThi, ChoPhepGoiYMatKhau = excluded.ChoPhepGoiYMatKhau, ChoPhepDupChuotVaoAnh_GoiYMatKhau = excluded.ChoPhepDupChuotVaoAnh_GoiYMatKhau, textBox1_TenTrungDoanDong1 = excluded.textBox1_TenTrungDoanDong1, KyHieuBaoCao = excluded.KyHieuBaoCao;";
+                    cmd.Parameters.AddWithValue("@TenTrungDoan", SafeEncrypt(uiData.TenTrungDoan));
+                    cmd.Parameters.AddWithValue("@TenTieuDoan", SafeEncrypt(uiData.TenTieuDoan));
+                    cmd.Parameters.AddWithValue("@SoLan", SafeEncrypt(uiData.SoLanChoPhepHienThi));
+                    cmd.Parameters.AddWithValue("@GoiYPass", SafeEncrypt(uiData.ChoPhepGoiYMatKhau));
+                    cmd.Parameters.AddWithValue("@GoiYAnh", SafeEncrypt(uiData.ChoPhepDupChuotVaoAnh));
+                    cmd.Parameters.AddWithValue("@TenTDDong1", SafeEncrypt(uiData.TenTrungDoanDong1));
+                    cmd.Parameters.AddWithValue("@KyHieuBC", SafeEncrypt(uiData.KyHieuBaoCao));
                     cmd.ExecuteNonQuery();
                 }
                 // 2. GOM NHÓM CÁC BẢNG CẤU HÌNH NHỎ VÀO CHUNG GIAO DỊCH
@@ -772,83 +760,44 @@ PRAGMA busy_timeout=15000;
                 {
                     cmdBatch.Transaction = tran;
                     StringBuilder sqlBatch = new StringBuilder();
+
                     // Đối tượng phần mềm
-                    sqlBatch.AppendLine(
-                        "INSERT INTO PhienBan_DoiTuong " +
-                        "(ID, DoiTuong) " +
-                        "VALUES (1, @DoiTuong) " +
-                        "ON CONFLICT(ID) DO UPDATE SET " +
-                        "DoiTuong = excluded.DoiTuong;");
-                    cmdBatch.Parameters.AddWithValue(
-                        "@DoiTuong",
-                        SafeEncrypt(uiData.DoiTuongPhanMem));
+                    sqlBatch.AppendLine("INSERT INTO PhienBan_DoiTuong (ID, DoiTuong) VALUES (1, @DoiTuong) ON CONFLICT(ID) DO UPDATE SET DoiTuong = excluded.DoiTuong;");
+                    cmdBatch.Parameters.AddWithValue("@DoiTuong", SafeEncrypt(uiData.DoiTuongPhanMem));
+
                     // Ký hiệu đơn vị
-                    sqlBatch.AppendLine(
-                        "UPDATE KyHieu_DonVi " +
-                        "SET KyHieu_TrungDoan = @k1, " +
-                        "KyHieu_TieuDoan = @k2 " +
-                        "WHERE ID = 1;");
-                    cmdBatch.Parameters.AddWithValue(
-                        "@k1",
-                        SafeEncrypt(uiData.KyHieuTrungDoan));
-                    cmdBatch.Parameters.AddWithValue(
-                        "@k2",
-                        SafeEncrypt(uiData.KyHieuTieuDoan));
+                    sqlBatch.AppendLine("UPDATE KyHieu_DonVi SET KyHieu_TrungDoan = @k1, KyHieu_TieuDoan = @k2 WHERE ID = 1;");
+                    cmdBatch.Parameters.AddWithValue("@k1", SafeEncrypt(uiData.KyHieuTrungDoan));
+                    cmdBatch.Parameters.AddWithValue("@k2", SafeEncrypt(uiData.KyHieuTieuDoan));
+
                     // Năm hệ thống
-                    if (int.TryParse(
-                        uiData.NamHeThong,
-                        out int namParsed))
+                    if (int.TryParse(uiData.NamHeThong, out int namParsed))
                     {
-                        sqlBatch.AppendLine(
-                            "UPDATE NamHeThong " +
-                            "SET NAM = @nam " +
-                            "WHERE ID = 1;");
-                        cmdBatch.Parameters.AddWithValue(
-                            "@nam",
-                            namParsed);
+                        sqlBatch.AppendLine("UPDATE NamHeThong SET NAM = @nam WHERE ID = 1;");
+                        cmdBatch.Parameters.AddWithValue("@nam", namParsed);
                     }
+
                     // Chế độ xem hướng dẫn
-                    sqlBatch.AppendLine(
-                        "UPDATE CheDo_XemHuongDan " +
-                        "SET CheDoXem_HuongDanSD = @cheDo " +
-                        "WHERE ID = 1;");
-                    cmdBatch.Parameters.AddWithValue(
-                        "@cheDo",
-                        uiData.CheDoXemHuongDan);
+                    sqlBatch.AppendLine("UPDATE CheDo_XemHuongDan SET CheDoXem_HuongDanSD = @cheDo WHERE ID = 1;");
+                    cmdBatch.Parameters.AddWithValue("@cheDo", uiData.CheDoXemHuongDan);
+
                     // Sự kiện thoát
-                    sqlBatch.AppendLine(
-                        "UPDATE SuKien_ThoatPhanMem " +
-                        "SET SuKien_DuọcChon = @suKien " +
-                        "WHERE ID = 1;");
-                    cmdBatch.Parameters.AddWithValue(
-                        "@suKien",
-                        Module_BaoMatAES.MaHoa(
-                            uiData.SuKienThoatPhanMem));
+                    sqlBatch.AppendLine("UPDATE SuKien_ThoatPhanMem SET SuKien_DuọcChon = @suKien WHERE ID = 1;");
+                    cmdBatch.Parameters.AddWithValue("@suKien", Module_BaoMatAES.MaHoa(uiData.SuKienThoatPhanMem));
+
                     // Màu sắc Menu
-                    sqlBatch.AppendLine(
-                        "INSERT INTO MauSacMenuHeThong " +
-                        "(ID, MauSacNguoiDungChon) " +
-                        "VALUES (1, @mauMenu) " +
-                        "ON CONFLICT(ID) DO UPDATE SET " +
-                        "MauSacNguoiDungChon = excluded.MauSacNguoiDungChon;");
-                    cmdBatch.Parameters.AddWithValue(
-                        "@mauMenu",
-                        uiData.MauSacMenu);
+                    sqlBatch.AppendLine("INSERT INTO MauSacMenuHeThong (ID, MauSacNguoiDungChon) VALUES (1, @mauMenu) ON CONFLICT(ID) DO UPDATE SET MauSacNguoiDungChon = excluded.MauSacNguoiDungChon;");
+                    cmdBatch.Parameters.AddWithValue("@mauMenu", uiData.MauSacMenu);
+
                     // BỔ SUNG: LƯU ĐƠN VỊ BAN HÀNH TỜ TRÌNH (ID = 1, CÓ MÃ HÓA AES)
-                    sqlBatch.AppendLine(
-                        "INSERT INTO DanhSach_DonViBanHanhToTrinh " +
-                        "(ID, TenDonVi) " +
-                        "VALUES (1, @TenDonViBanHanh) " +
-                        "ON CONFLICT(ID) DO UPDATE SET " +
-                        "TenDonVi = excluded.TenDonVi;");
+                    sqlBatch.AppendLine("INSERT INTO DanhSach_DonViBanHanhToTrinh (ID, TenDonVi) VALUES (1, @TenDonViBanHanh) ON CONFLICT(ID) DO UPDATE SET TenDonVi = excluded.TenDonVi;");
+
                     // Lấy dữ liệu từ TextBox và thực hiện mã hóa AES
                     string textGoc = kryptonTextBox1_DonViBanHanhToTrinh.Text ?? string.Empty;
                     string textDaMaHoa = Module_BaoMatAES.MaHoa(textGoc);
-                    cmdBatch.Parameters.AddWithValue(
-                        "@TenDonViBanHanh",
-                        textDaMaHoa);
-                    cmdBatch.CommandText =
-                        sqlBatch.ToString();
+                    cmdBatch.Parameters.AddWithValue("@TenDonViBanHanh", textDaMaHoa);
+
+                    cmdBatch.CommandText = sqlBatch.ToString();
                     cmdBatch.ExecuteNonQuery();
                 }
                 // 3. COMMIT
@@ -977,8 +926,7 @@ PRAGMA busy_timeout=15000;
                     CapNhatTenNutCaiDatTyLe();
                     if (isDoiTuongChanged)
                     {
-                        Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Hệ thống", "Đổi đối tượng phần mềm", $"Chuyển đổi chế độ: {doiTuongMoi}");
-                        formCha?.CapNhatGiaoDienTheoPhienBan();
+                        Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Đổi đối tượng phần mềm", $"Chuyển đổi chế độ: {doiTuongMoi}"); formCha?.CapNhatGiaoDienTheoPhienBan();
                         Module_TaiKhoan.ThongBaoPhienBanThayDoi();
                         // 2. Tự động kiểm tra lại và ẩn/hiện nút đồng bộ mỗi khi mở Menu chuột phải
                         var result = MessageBox.Show("Đã đổi đối tượng phần mềm thành công.\nBạn có muốn cập nhật danh sách đơn vị trực thuộc ngay không?", "Cập nhật danh sách", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -996,9 +944,20 @@ PRAGMA busy_timeout=15000;
             catch (Exception ex)
             {
                 Debug.WriteLine($"[Lỗi kryptonButton_LuuCauHinh_Click] {ex}");
-                try { Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Hệ thống", "Lỗi nghiêm trọng khi lưu cấu hình", ex.Message); } catch { }
+                try
+                {
+                    Module_NhatKy.GhiNhatKy(
+                        Module_TaiKhoan.TenTaiKhoan_RAM,
+                        "Lỗi nghiêm trọng khi lưu cấu hình",
+                        ex.Message);
+                }
+                catch { }
                 HienThongBaoStatus("✘ Lỗi hệ thống!", Color.Red, 3000);
-                MessageBox.Show("Lỗi hệ thống: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Lỗi hệ thống: " + ex.Message,
+                    "Lỗi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
             finally
             {
@@ -1077,6 +1036,8 @@ PRAGMA busy_timeout=15000;
             CapNhatTenNutCaiDatTyLe();
             // (debug nếu cần)
             // Debug.WriteLine("Đối tượng thay đổi: " + currentValue);
+            // Phát tín hiệu thông báo phiên bản đã thay đổi tới toàn bộ hệ thống
+            Module_TaiKhoan.ThongBaoPhienBanThayDoi();
         }
         private string CheckboxFlag(CheckBox cb) => cb.Checked ? "TRUE" : "FALSE";
         //Nút o trang 2
@@ -2596,6 +2557,12 @@ PRAGMA busy_timeout=15000;
             {
                 kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Visible = !laTanBinh;
             }
+            // Tự động ẩn/hiện nút "Bỏ qua kiểm tra tỷ lệ"
+            if (kryptonButton1_TyLePhanTramXetThiDuaNam != null)
+            {
+                kryptonButton1_TyLePhanTramXetThiDuaNam.Visible = !laTanBinh;
+            }
+
         }
         private void kryptonButton1_CapNhatTinhThanhPho_Click(object? sender, EventArgs e)
         {
@@ -2633,7 +2600,7 @@ PRAGMA busy_timeout=15000;
         }
         private void Load_DonViBanHanhToTrinh()
         {
-           KhoiTaoBang_DonViBanHanhToTrinh(); // Đảm bảo bảng đã tồn tại trước khi thao tác
+            KhoiTaoBang_DonViBanHanhToTrinh(); // Đảm bảo bảng đã tồn tại trước khi thao tác
             string connectionString = $"Data Source={_csdl2Path};";
             using (var conn = new SqliteConnection(connectionString))
             {
@@ -2716,6 +2683,11 @@ PRAGMA busy_timeout=15000;
                     "LỖI XỬ LÝ",
                     $"Đã xảy ra lỗi trong quá trình kiểm tra năm hệ thống:\n{ex.Message}");
             }
+        }
+
+        private void kryptonButton1_TyLePhanTramXetThiDuaNam_Click(object sender, EventArgs e)
+        {
+            FormManager.OpenModal<Form61_TyLeXetThiDuaNam>(this);
         }
     }
 }//Ngoài luồng

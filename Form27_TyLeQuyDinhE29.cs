@@ -1,5 +1,8 @@
 ﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
+using System.Diagnostics;   // Cho Debug.WriteLine
+using System.Data;          // Cho CommandBehavior
+
 namespace PhanMemThiDua2026
 {
     public partial class Form27_TyLeQuyDinhE29 : Form
@@ -137,65 +140,240 @@ namespace PhanMemThiDua2026
                     : "QuyDinhTyLe";
             }
         }
-        private async Task LoadQuyDinhTyLeAsync()
+        //private async Task LoadQuyDinhTyLeAsync()
+        //{
+        //    if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+        //    try
+        //    {
+        //        using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
+        //        await conn.OpenAsync();
+        //        string tableName = TenBangHienTai;
+        //        // Tự động tạo bảng chống lỗi văng form
+        //        using (var cmdCreate = conn.CreateCommand())
+        //        {
+        //            cmdCreate.CommandText = $@"
+        //CREATE TABLE IF NOT EXISTS [{tableName}] (
+        //    ID INTEGER NOT NULL,
+        //    TenLoaiTapThe TEXT,
+        //    Loai_1 TEXT,
+        //    Loai_2 TEXT,
+        //    Loai_3 TEXT,
+        //    Loai_4 TEXT,
+        //    Khong_PL TEXT,
+        //    PRIMARY KEY(ID AUTOINCREMENT)
+        //);
+        //INSERT OR IGNORE INTO [{tableName}] (ID, TenLoaiTapThe, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL)
+        //VALUES
+        //(1, '{Module_HeThong.Loai_1}', '0', '0', '0', '0', '0'),
+        //(2, '{Module_HeThong.Loai_2}', '0', '0', '0', '0', '0'),
+        //(3, '{Module_HeThong.Loai_3}', '0', '0', '0', '0', '0');";
+
+        //            await cmdCreate.ExecuteNonQueryAsync();
+        //        }
+        //        DeNghiMapping.Clear();
+        //        int rows = _txtGrid.GetLength(0);
+        //        int cols = _txtGrid.GetLength(1);
+        //        for (int id = 1; id <= rows; id++)
+        //        {
+        //            int[] values = new int[cols];
+        //            using var cmd = conn.CreateCommand();
+        //            cmd.CommandText = $@"SELECT Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL 
+        //                        FROM [{tableName}] WHERE ID=@id";
+        //            cmd.Parameters.AddWithValue("@id", id);
+        //            using var reader = await cmd.ExecuteReaderAsync();
+        //            if (await reader.ReadAsync())
+        //            {
+        //                for (int i = 0; i < cols; i++)
+        //                {
+        //                    string valStr = reader[i]?.ToString() ?? "0";
+        //                    values[i] = int.TryParse(valStr, out int parsed) ? parsed : 0;
+        //                    _txtGrid[id - 1, i].Text = values[i].ToString();
+        //                }
+        //            }
+        //            DeNghiMapping[$"Loại {id}"] = values;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Lỗi khi load dữ liệu tỷ lệ!\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //        System.Diagnostics.Debug.WriteLine(ex);
+        //    }
+        //}
+        private static readonly string[] CotDuLieuTyLe = { "Loai_1", "Loai_2", "Loai_3", "Loai_4", "Khong_PL" };
+        private static readonly System.Text.RegularExpressions.Regex QuyTacTenBangHopLe =
+            new(@"^[A-Za-z0-9_]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        /// <summary>
+        /// Tải quy định tỷ lệ phân loại tập thể từ CSDL2 lên lưới nhập liệu (_txtGrid).
+        /// Tự động khởi tạo bảng + dữ liệu mặc định nếu chưa tồn tại.
+        /// An toàn giao dịch (transaction), chống SQL Injection, và tối ưu 1 lần truy vấn duy nhất.
+        /// </summary>
+        private async Task LoadQuyDinhTyLeAsync(CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path))
+                return;
+
+            string tableName = TenBangHienTai;
+
+            // ⭐ CHỐNG SQL INJECTION QUA TÊN BẢNG (tên bảng không thể tham số hóa trong SQL)
+            if (!QuyTacTenBangHopLe.IsMatch(tableName))
+            {
+                Debug.WriteLine($"[LoadQuyDinhTyLeAsync] Tên bảng không hợp lệ: '{tableName}'");
+                MessageBox.Show("Tên bảng dữ liệu không hợp lệ, không thể tải quy định tỷ lệ.",
+                    "Lỗi cấu hình", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (_txtGrid == null || _txtGrid.GetLength(1) != CotDuLieuTyLe.Length)
+            {
+                Debug.WriteLine("[LoadQuyDinhTyLeAsync] Lưới _txtGrid chưa khởi tạo hoặc sai số cột.");
+                return;
+            }
+
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
-                await conn.OpenAsync();
-                string tableName = TenBangHienTai;
-                // Tự động tạo bảng chống lỗi văng form
-                using (var cmdCreate = conn.CreateCommand())
+                await using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
+                await conn.OpenAsync(cancellationToken);
+
+                // 🌟 GỘP TẠO BẢNG + ĐỌC DỮ LIỆU TRONG 1 TRANSACTION DUY NHẤT
+                // -> Đảm bảo tính toàn vẹn: nếu lỗi giữa chừng, không để lại trạng thái nửa vời
+                await using var transaction = (SqliteTransaction)await conn.BeginTransactionAsync(cancellationToken);
+
+                try
                 {
-                    cmdCreate.CommandText = $@"
-                    CREATE TABLE IF NOT EXISTS [{tableName}] (
-                        ID INTEGER NOT NULL,
-                        TenLoaiTapThe TEXT,
-                        Loai_1 TEXT,
-                        Loai_2 TEXT,
-                        Loai_3 TEXT,
-                        Loai_4 TEXT,
-                        Khong_PL TEXT,
-                        PRIMARY KEY(ID AUTOINCREMENT)
-                    );
-                    INSERT OR IGNORE INTO [{tableName}] (ID, TenLoaiTapThe, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL) 
-                    VALUES 
-                    (1, 'Loại 1', '0', '0', '0', '0', '0'),
-                    (2, 'Loại 2', '0', '0', '0', '0', '0'),
-                    (3, 'Loại 3', '0', '0', '0', '0', '0');";
-                    await cmdCreate.ExecuteNonQueryAsync();
+                    await TaoBangQuyDinhTyLeNeuChuaCoAsync(conn, transaction, tableName, cancellationToken);
+
+                    int soHang = _txtGrid.GetLength(0);
+                    var duLieuDoc = await DocDuLieuTyLeAsync(conn, transaction, tableName, soHang, cancellationToken);
+
+                    await transaction.CommitAsync(cancellationToken);
+
+                    // ⭐ CHỈ CẬP NHẬT UI SAU KHI ĐỌC + COMMIT THÀNH CÔNG HOÀN TOÀN
+                    ApDungDuLieuTyLeLenGiaoDien(duLieuDoc, soHang);
                 }
-                DeNghiMapping.Clear();
-                int rows = _txtGrid.GetLength(0);
-                int cols = _txtGrid.GetLength(1);
-                for (int id = 1; id <= rows; id++)
+                catch
                 {
-                    int[] values = new int[cols];
-                    using var cmd = conn.CreateCommand();
-                    cmd.CommandText = $@"SELECT Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL 
-                                FROM [{tableName}] WHERE ID=@id";
-                    cmd.Parameters.AddWithValue("@id", id);
-                    using var reader = await cmd.ExecuteReaderAsync();
-                    if (await reader.ReadAsync())
-                    {
-                        for (int i = 0; i < cols; i++)
-                        {
-                            string valStr = reader[i]?.ToString() ?? "0";
-                            values[i] = int.TryParse(valStr, out int parsed) ? parsed : 0;
-                            _txtGrid[id - 1, i].Text = values[i].ToString();
-                        }
-                    }
-                    DeNghiMapping[$"Loại {id}"] = values;
+                    await transaction.RollbackAsync(cancellationToken);
+                    throw;
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("[LoadQuyDinhTyLeAsync] Thao tác bị hủy.");
+            }
+            catch (SqliteException sqlEx)
+            {
+                Debug.WriteLine("[LoadQuyDinhTyLeAsync] Lỗi SQLite: " + sqlEx);
+                MessageBox.Show("Lỗi truy vấn cơ sở dữ liệu tỷ lệ!\n" + sqlEx.Message,
+                    "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi load dữ liệu tỷ lệ!\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                System.Diagnostics.Debug.WriteLine(ex);
+                Debug.WriteLine("[LoadQuyDinhTyLeAsync] Lỗi không xác định: " + ex);
+                MessageBox.Show("Lỗi khi load dữ liệu tỷ lệ!\n" + ex.Message,
+                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        // Hàm Save dữ liệu từ TextBox về SQLite, chuẩn async + transaction + tối ưu
+
+        /// <summary>
+        /// Tạo bảng quy định tỷ lệ nếu chưa tồn tại, và chèn 3 dòng mặc định (bỏ qua nếu đã có).
+        /// Dùng tham số hóa hoàn toàn cho phần giá trị để tránh lỗi cú pháp / SQL Injection.
+        /// </summary>
+        private static async Task TaoBangQuyDinhTyLeNeuChuaCoAsync(
+            SqliteConnection conn, SqliteTransaction transaction, string tableName, CancellationToken cancellationToken)
+        {
+            using var cmdCreate = conn.CreateCommand();
+            cmdCreate.Transaction = transaction;
+            cmdCreate.CommandText = $@"
+CREATE TABLE IF NOT EXISTS [{tableName}] (
+    ID INTEGER NOT NULL,
+    TenLoaiTapThe TEXT,
+    Loai_1 TEXT,
+    Loai_2 TEXT,
+    Loai_3 TEXT,
+    Loai_4 TEXT,
+    Khong_PL TEXT,
+    PRIMARY KEY(ID AUTOINCREMENT)
+);
+INSERT OR IGNORE INTO [{tableName}] (ID, TenLoaiTapThe, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL)
+VALUES
+(1, @tenLoai1, '0', '0', '0', '0', '0'),
+(2, @tenLoai2, '0', '0', '0', '0', '0'),
+(3, @tenLoai3, '0', '0', '0', '0', '0');";
+
+            cmdCreate.Parameters.AddWithValue("@tenLoai1", Module_HeThong.Loai_1);
+            cmdCreate.Parameters.AddWithValue("@tenLoai2", Module_HeThong.Loai_2);
+            cmdCreate.Parameters.AddWithValue("@tenLoai3", Module_HeThong.Loai_3);
+
+            await cmdCreate.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Đọc toàn bộ dữ liệu tỷ lệ cho các ID từ 1..soHang bằng DUY NHẤT 1 câu truy vấn
+        /// (tránh vấn đề N+1 query gây chậm khi soHang lớn).
+        /// Dùng tên cột (GetOrdinal) thay vì vị trí số, tránh lỗi ngầm nếu đổi thứ tự SELECT sau này.
+        /// </summary>
+        /// <returns>Dictionary: ID -> mảng giá trị theo đúng thứ tự CotDuLieuTyLe.</returns>
+        private static async Task<Dictionary<int, int[]>> DocDuLieuTyLeAsync(
+            SqliteConnection conn, SqliteTransaction transaction, string tableName, int soHang,
+            CancellationToken cancellationToken)
+        {
+            var ketQua = new Dictionary<int, int[]>(soHang);
+
+            using var cmd = conn.CreateCommand();
+            cmd.Transaction = transaction;
+            cmd.CommandText = $@"
+SELECT ID, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL
+FROM [{tableName}]
+WHERE ID BETWEEN 1 AND @soHang";
+            cmd.Parameters.AddWithValue("@soHang", soHang);
+
+            using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+
+            int idxId = reader.GetOrdinal("ID");
+            int[] idxCot = CotDuLieuTyLe.Select(reader.GetOrdinal).ToArray();
+
+            while (await reader.ReadAsync(cancellationToken))
+            {
+                int id = reader.GetInt32(idxId);
+                var values = new int[CotDuLieuTyLe.Length];
+
+                for (int i = 0; i < idxCot.Length; i++)
+                {
+                    string valStr = reader.IsDBNull(idxCot[i]) ? "0" : reader.GetString(idxCot[i]);
+                    values[i] = int.TryParse(valStr, out int parsed) ? parsed : 0;
+                }
+
+                ketQua[id] = values;
+            }
+
+            return ketQua;
+        }
+
+        /// <summary>
+        /// Ghi dữ liệu đã đọc lên lưới _txtGrid và cập nhật DeNghiMapping.
+        /// Với các ID không có trong CSDL (dữ liệu thiếu), điền mặc định toàn 0 để tránh lỗi NullReference.
+        /// </summary>
+        private void ApDungDuLieuTyLeLenGiaoDien(Dictionary<int, int[]> duLieuDoc, int soHang)
+        {
+            DeNghiMapping.Clear();
+
+            for (int id = 1; id <= soHang; id++)
+            {
+                int[] values = duLieuDoc.TryGetValue(id, out var gia_tri)
+                    ? gia_tri
+                    : new int[CotDuLieuTyLe.Length]; // Mặc định toàn 0 nếu thiếu dòng dữ liệu
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    _txtGrid[id - 1, i].Text = values[i].ToString();
+                }
+
+                DeNghiMapping[$"Loại {id}"] = values;
+            }
+        }
+
+        /// Hàm Save dữ liệu từ TextBox về SQLite, chuẩn async + transaction + tối ưu
         // Truyền CancellationToken vào hàm
         private async Task SaveQuyDinhTyLeAsync(CancellationToken ct)
         {
@@ -299,11 +477,10 @@ namespace PhanMemThiDua2026
                 OnQuyDinhChanged?.Invoke();
                 const string thongBao = "✔ Đã lưu quy định tỷ lệ thành công!";
                 HienThiThongBao(thongBao, Color.DarkGreen);
-                // 4. Ghi Audit Log
                 Module_NhatKy.GhiNhatKy(
-                    taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System" : Module_TaiKhoan.TenTaiKhoan_RAM,
-                    hanhDong: thongBao,
-                    ghiChu: "Thành công");
+                 taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
+                 hanhDong: thongBao,
+                 ghiChu: "Thành công");
                 // 5. Delay 300ms trải nghiệm người dùng (UX) trước khi đóng Form
                 await Task.Delay(300, token);
                 if (!IsDisposed && !Disposing)

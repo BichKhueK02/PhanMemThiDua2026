@@ -37,6 +37,8 @@ namespace PhanMemThiDua2026
         public Form49_QuanLyKhenThuongTapThe()
         {
             InitializeComponent();
+            // Đăng ký sự kiện Shown
+            this.Shown += Form49_QuanLyKhenThuongTapThe_Shown;
         }
         private async void Form49_QuanLyThiDuaTapThe_Load(object? sender, EventArgs e)
         {
@@ -87,6 +89,10 @@ namespace PhanMemThiDua2026
             CapNhatTrangThaiNutThaoTac();
             InitToolTips();
             Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
+        }
+        private void Form49_QuanLyKhenThuongTapThe_Shown(object? sender, EventArgs e)
+        {
+            textBox_TimKiemTheoTen.Focus();
         }
         private void richTextBox1_NoiDungKhenThuong_TextChanged(object? sender, EventArgs e)
         {
@@ -1039,7 +1045,7 @@ namespace PhanMemThiDua2026
                 try
                 {
                     Module_NhatKy.GhiNhatKy(
-                        string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                        Module_TaiKhoan.TenTaiKhoan_RAM,
                         "Xóa TOÀN BỘ dữ liệu khen thưởng Tập thể",
                         $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
                     );
@@ -1113,10 +1119,7 @@ namespace PhanMemThiDua2026
                 }
                 try
                 {
-                    Module_NhatKy.GhiNhatKy(
-                        string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "Không xác định" : Module_TaiKhoan.TenTaiKhoan_RAM,
-                        "Xuất Excel bảng thống kê khen thưởng Tập thể",
-                        $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất Excel bảng thống kê khen thưởng Tập thể", $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
                 }
                 catch { }
                 await Task.Run(() =>

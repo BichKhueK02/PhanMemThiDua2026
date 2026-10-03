@@ -32,7 +32,6 @@
             tableLayoutPanel4 = new TableLayoutPanel();
             label1_DuongDanCSDLDuocChon = new Label();
             label2 = new Label();
-            cbo_ChonCSDL_Nguon = new ComboBox();
             chk_BackupTruocKhiChuyen = new CheckBox();
             chk_XoaDuLieuCu = new CheckBox();
             lbl_TrangThaiHoatDong = new Label();
@@ -40,6 +39,9 @@
             btn_NhapDuLieuJson = new Krypton.Toolkit.KryptonButton();
             btn_XuatDuLieuJson = new Krypton.Toolkit.KryptonButton();
             btn_QuetTimKiem = new Krypton.Toolkit.KryptonButton();
+            tableLayoutPanel6 = new TableLayoutPanel();
+            checkBox1_ChonTatCaCacCSDL = new CheckBox();
+            cbo_ChonCSDL_Nguon = new ComboBox();
             prb_TienTrinhChuyenGiao = new Krypton.Toolkit.KryptonProgressBar();
             tableLayoutPanel3 = new TableLayoutPanel();
             pictureBox1 = new PictureBox();
@@ -51,6 +53,7 @@
             tableLayoutPanel1.SuspendLayout();
             tableLayoutPanel2.SuspendLayout();
             tableLayoutPanel4.SuspendLayout();
+            tableLayoutPanel6.SuspendLayout();
             tableLayoutPanel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             tableLayoutPanel5.SuspendLayout();
@@ -97,7 +100,6 @@
             tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.9464436F));
             tableLayoutPanel4.Controls.Add(label1_DuongDanCSDLDuocChon, 1, 0);
             tableLayoutPanel4.Controls.Add(label2, 0, 2);
-            tableLayoutPanel4.Controls.Add(cbo_ChonCSDL_Nguon, 1, 2);
             tableLayoutPanel4.Controls.Add(chk_BackupTruocKhiChuyen, 0, 0);
             tableLayoutPanel4.Controls.Add(chk_XoaDuLieuCu, 0, 1);
             tableLayoutPanel4.Controls.Add(lbl_TrangThaiHoatDong, 1, 1);
@@ -105,6 +107,7 @@
             tableLayoutPanel4.Controls.Add(btn_NhapDuLieuJson, 2, 2);
             tableLayoutPanel4.Controls.Add(btn_XuatDuLieuJson, 3, 2);
             tableLayoutPanel4.Controls.Add(btn_QuetTimKiem, 2, 1);
+            tableLayoutPanel4.Controls.Add(tableLayoutPanel6, 1, 2);
             tableLayoutPanel4.Dock = DockStyle.Fill;
             tableLayoutPanel4.Location = new Point(3, 3);
             tableLayoutPanel4.Name = "tableLayoutPanel4";
@@ -124,9 +127,8 @@
             label1_DuongDanCSDLDuocChon.Location = new Point(266, 13);
             label1_DuongDanCSDLDuocChon.Margin = new Padding(2, 0, 2, 0);
             label1_DuongDanCSDLDuocChon.Name = "label1_DuongDanCSDLDuocChon";
-            label1_DuongDanCSDLDuocChon.Size = new Size(13, 17);
+            label1_DuongDanCSDLDuocChon.Size = new Size(0, 17);
             label1_DuongDanCSDLDuocChon.TabIndex = 28;
-            label1_DuongDanCSDLDuocChon.Text = "*";
             label1_DuongDanCSDLDuocChon.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // label2
@@ -142,16 +144,6 @@
             label2.TabIndex = 25;
             label2.Text = "Chọn cơ sở dữ liệu";
             label2.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // cbo_ChonCSDL_Nguon
-            // 
-            cbo_ChonCSDL_Nguon.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            cbo_ChonCSDL_Nguon.DropDownStyle = ComboBoxStyle.DropDownList;
-            cbo_ChonCSDL_Nguon.FormattingEnabled = true;
-            cbo_ChonCSDL_Nguon.Location = new Point(267, 98);
-            cbo_ChonCSDL_Nguon.Name = "cbo_ChonCSDL_Nguon";
-            cbo_ChonCSDL_Nguon.Size = new Size(556, 23);
-            cbo_ChonCSDL_Nguon.TabIndex = 24;
             // 
             // chk_BackupTruocKhiChuyen
             // 
@@ -205,6 +197,7 @@
             kryptonButton2_MoThuMuc.Values.DropDownArrowColor = Color.Empty;
             kryptonButton2_MoThuMuc.Values.Image = (Image)resources.GetObject("kryptonButton2_MoThuMuc.Values.Image");
             kryptonButton2_MoThuMuc.Values.Text = "Mở thư mục";
+            kryptonButton2_MoThuMuc.Click += kryptonButton2_MoThuMuc_Click;
             // 
             // btn_NhapDuLieuJson
             // 
@@ -218,6 +211,7 @@
             btn_NhapDuLieuJson.Values.DropDownArrowColor = Color.Empty;
             btn_NhapDuLieuJson.Values.Image = (Image)resources.GetObject("btn_NhapDuLieuJson.Values.Image");
             btn_NhapDuLieuJson.Values.Text = "Nhập dữ liệu";
+            btn_NhapDuLieuJson.Click += btn_NhapDuLieuJson_Click;
             // 
             // btn_XuatDuLieuJson
             // 
@@ -231,6 +225,7 @@
             btn_XuatDuLieuJson.Values.DropDownArrowColor = Color.Empty;
             btn_XuatDuLieuJson.Values.Image = (Image)resources.GetObject("btn_XuatDuLieuJson.Values.Image");
             btn_XuatDuLieuJson.Values.Text = "Xuất dữ liệu";
+            btn_XuatDuLieuJson.Click += btn_XuatDuLieuJson_Click;
             // 
             // btn_QuetTimKiem
             // 
@@ -244,6 +239,44 @@
             btn_QuetTimKiem.Values.DropDownArrowColor = Color.Empty;
             btn_QuetTimKiem.Values.Image = (Image)resources.GetObject("btn_QuetTimKiem.Values.Image");
             btn_QuetTimKiem.Values.Text = "Quét tìm kiếm";
+            // 
+            // tableLayoutPanel6
+            // 
+            tableLayoutPanel6.ColumnCount = 2;
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 68.34532F));
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 31.6546764F));
+            tableLayoutPanel6.Controls.Add(checkBox1_ChonTatCaCacCSDL, 1, 0);
+            tableLayoutPanel6.Controls.Add(cbo_ChonCSDL_Nguon, 0, 0);
+            tableLayoutPanel6.Dock = DockStyle.Fill;
+            tableLayoutPanel6.Location = new Point(267, 91);
+            tableLayoutPanel6.Name = "tableLayoutPanel6";
+            tableLayoutPanel6.RowCount = 1;
+            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
+            tableLayoutPanel6.Size = new Size(556, 38);
+            tableLayoutPanel6.TabIndex = 30;
+            // 
+            // checkBox1_ChonTatCaCacCSDL
+            // 
+            checkBox1_ChonTatCaCacCSDL.Anchor = AnchorStyles.Left;
+            checkBox1_ChonTatCaCacCSDL.AutoSize = true;
+            checkBox1_ChonTatCaCacCSDL.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            checkBox1_ChonTatCaCacCSDL.ForeColor = Color.FromArgb(0, 0, 192);
+            checkBox1_ChonTatCaCacCSDL.Location = new Point(383, 9);
+            checkBox1_ChonTatCaCacCSDL.Name = "checkBox1_ChonTatCaCacCSDL";
+            checkBox1_ChonTatCaCacCSDL.Size = new Size(87, 19);
+            checkBox1_ChonTatCaCacCSDL.TabIndex = 25;
+            checkBox1_ChonTatCaCacCSDL.Text = "Chọn tất cả";
+            checkBox1_ChonTatCaCacCSDL.UseVisualStyleBackColor = true;
+            // 
+            // cbo_ChonCSDL_Nguon
+            // 
+            cbo_ChonCSDL_Nguon.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            cbo_ChonCSDL_Nguon.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbo_ChonCSDL_Nguon.FormattingEnabled = true;
+            cbo_ChonCSDL_Nguon.Location = new Point(3, 7);
+            cbo_ChonCSDL_Nguon.Name = "cbo_ChonCSDL_Nguon";
+            cbo_ChonCSDL_Nguon.Size = new Size(374, 23);
+            cbo_ChonCSDL_Nguon.TabIndex = 24;
             // 
             // prb_TienTrinhChuyenGiao
             // 
@@ -353,6 +386,8 @@
             tableLayoutPanel2.ResumeLayout(false);
             tableLayoutPanel4.ResumeLayout(false);
             tableLayoutPanel4.PerformLayout();
+            tableLayoutPanel6.ResumeLayout(false);
+            tableLayoutPanel6.PerformLayout();
             tableLayoutPanel3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             tableLayoutPanel5.ResumeLayout(false);
@@ -384,5 +419,7 @@
         private RichTextBox richTextBox1_ThongTinDatabaseDuocChon;
         private ToolTip toolTip1;
         private CheckedListBox checkedListBox1_clb_DanhSachBang;
+        private TableLayoutPanel tableLayoutPanel6;
+        private CheckBox checkBox1_ChonTatCaCacCSDL;
     }
 }

@@ -309,13 +309,11 @@ namespace PhanMemThiDua2026
                     "Kết quả",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
-                Form15_ThongKeThiDua frm15 =
-                    Application.OpenForms
-                        .OfType<Form15_ThongKeThiDua>()
-                        .FirstOrDefault();
+                // --- ĐOẠN ĐƯỢC SỬA LẠI TẠI ĐÂY ---
+                Form15_ThongKeThiDua frm15 = Application.OpenForms.OfType<Form15_ThongKeThiDua>().FirstOrDefault();
                 if (frm15 != null && !frm15.IsDisposed)
                 {
-                    frm15.lamMoi_ToolStripMenuItem_Click(null, null);
+                    await frm15.LamMoiDuLieuAsync();
                 }
             }
             catch (Exception ex)

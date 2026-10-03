@@ -71,7 +71,7 @@
             Label8.AutoSize = true;
             Label8.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label8.ForeColor = Color.FromArgb(0, 0, 192);
-            Label8.Location = new Point(430, 126);
+            Label8.Location = new Point(430, 129);
             Label8.Margin = new Padding(2, 0, 2, 0);
             Label8.Name = "Label8";
             Label8.Size = new Size(66, 21);
@@ -84,7 +84,7 @@
             Label7.AutoSize = true;
             Label7.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label7.ForeColor = Color.FromArgb(0, 0, 192);
-            Label7.Location = new Point(47, 126);
+            Label7.Location = new Point(47, 129);
             Label7.Margin = new Padding(2, 0, 2, 0);
             Label7.Name = "Label7";
             Label7.Size = new Size(88, 21);
@@ -94,7 +94,7 @@
             // Text_chucvu3
             // 
             Text_chucvu3.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_chucvu3.Location = new Point(500, 83);
+            Text_chucvu3.Location = new Point(500, 85);
             Text_chucvu3.Margin = new Padding(2, 3, 2, 3);
             Text_chucvu3.Name = "Text_chucvu3";
             Text_chucvu3.Size = new Size(309, 29);
@@ -105,7 +105,7 @@
             // Text_hovaten3
             // 
             Text_hovaten3.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_hovaten3.Location = new Point(139, 83);
+            Text_hovaten3.Location = new Point(139, 85);
             Text_hovaten3.Margin = new Padding(2, 3, 2, 3);
             Text_hovaten3.Name = "Text_hovaten3";
             Text_hovaten3.Size = new Size(246, 29);
@@ -119,7 +119,7 @@
             Label5.AutoSize = true;
             Label5.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label5.ForeColor = Color.FromArgb(0, 0, 192);
-            Label5.Location = new Point(47, 87);
+            Label5.Location = new Point(47, 89);
             Label5.Margin = new Padding(2, 0, 2, 0);
             Label5.Name = "Label5";
             Label5.Size = new Size(88, 21);
@@ -132,7 +132,7 @@
             Label6.AutoSize = true;
             Label6.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label6.ForeColor = Color.FromArgb(0, 0, 192);
-            Label6.Location = new Point(430, 87);
+            Label6.Location = new Point(430, 89);
             Label6.Margin = new Padding(2, 0, 2, 0);
             Label6.Name = "Label6";
             Label6.Size = new Size(66, 21);
@@ -145,7 +145,7 @@
             Label9.AutoSize = true;
             Label9.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label9.ForeColor = Color.FromArgb(0, 0, 192);
-            Label9.Location = new Point(47, 165);
+            Label9.Location = new Point(47, 169);
             Label9.Margin = new Padding(2, 0, 2, 0);
             Label9.Name = "Label9";
             Label9.Size = new Size(88, 21);
@@ -158,7 +158,7 @@
             Label10.AutoSize = true;
             Label10.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label10.ForeColor = Color.FromArgb(0, 0, 192);
-            Label10.Location = new Point(430, 165);
+            Label10.Location = new Point(430, 169);
             Label10.Margin = new Padding(2, 0, 2, 0);
             Label10.Name = "Label10";
             Label10.Size = new Size(66, 21);
@@ -171,7 +171,7 @@
             Label11.AutoSize = true;
             Label11.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label11.ForeColor = Color.FromArgb(0, 0, 192);
-            Label11.Location = new Point(47, 206);
+            Label11.Location = new Point(47, 212);
             Label11.Margin = new Padding(2, 0, 2, 0);
             Label11.Name = "Label11";
             Label11.Size = new Size(88, 21);
@@ -184,7 +184,7 @@
             Label12.AutoSize = true;
             Label12.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label12.ForeColor = Color.FromArgb(0, 0, 192);
-            Label12.Location = new Point(430, 206);
+            Label12.Location = new Point(430, 212);
             Label12.Margin = new Padding(2, 0, 2, 0);
             Label12.Name = "Label12";
             Label12.Size = new Size(66, 21);
@@ -223,7 +223,7 @@
             TableLayoutPanel2.Controls.Add(Label1, 0, 0);
             TableLayoutPanel2.Controls.Add(Label2, 2, 0);
             TableLayoutPanel2.Dock = DockStyle.Fill;
-            TableLayoutPanel2.Location = new Point(2, 210);
+            TableLayoutPanel2.Location = new Point(2, 203);
             TableLayoutPanel2.Margin = new Padding(2, 3, 2, 3);
             TableLayoutPanel2.Name = "TableLayoutPanel2";
             TableLayoutPanel2.RowCount = 6;
@@ -233,13 +233,13 @@
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.666666F));
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.666666F));
             TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 16.666666F));
-            TableLayoutPanel2.Size = new Size(811, 238);
+            TableLayoutPanel2.Size = new Size(811, 245);
             TableLayoutPanel2.TabIndex = 1;
             // 
             // Text_chucvu6
             // 
             Text_chucvu6.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_chucvu6.Location = new Point(500, 202);
+            Text_chucvu6.Location = new Point(500, 208);
             Text_chucvu6.Margin = new Padding(2, 3, 2, 3);
             Text_chucvu6.Name = "Text_chucvu6";
             Text_chucvu6.Size = new Size(309, 29);
@@ -250,7 +250,7 @@
             // Text_chucvu5
             // 
             Text_chucvu5.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_chucvu5.Location = new Point(500, 161);
+            Text_chucvu5.Location = new Point(500, 165);
             Text_chucvu5.Margin = new Padding(2, 3, 2, 3);
             Text_chucvu5.Name = "Text_chucvu5";
             Text_chucvu5.Size = new Size(309, 29);
@@ -261,7 +261,7 @@
             // Text_chucvu4
             // 
             Text_chucvu4.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_chucvu4.Location = new Point(500, 122);
+            Text_chucvu4.Location = new Point(500, 125);
             Text_chucvu4.Margin = new Padding(2, 3, 2, 3);
             Text_chucvu4.Name = "Text_chucvu4";
             Text_chucvu4.Size = new Size(309, 29);
@@ -272,7 +272,7 @@
             // Text_chucvu2
             // 
             Text_chucvu2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_chucvu2.Location = new Point(500, 44);
+            Text_chucvu2.Location = new Point(500, 45);
             Text_chucvu2.Margin = new Padding(2, 3, 2, 3);
             Text_chucvu2.Name = "Text_chucvu2";
             Text_chucvu2.Size = new Size(309, 29);
@@ -283,7 +283,7 @@
             // Text_hovaten6
             // 
             Text_hovaten6.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_hovaten6.Location = new Point(139, 202);
+            Text_hovaten6.Location = new Point(139, 208);
             Text_hovaten6.Margin = new Padding(2, 3, 2, 3);
             Text_hovaten6.Name = "Text_hovaten6";
             Text_hovaten6.Size = new Size(246, 29);
@@ -294,7 +294,7 @@
             // Text_hovaten5
             // 
             Text_hovaten5.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_hovaten5.Location = new Point(139, 161);
+            Text_hovaten5.Location = new Point(139, 165);
             Text_hovaten5.Margin = new Padding(2, 3, 2, 3);
             Text_hovaten5.Name = "Text_hovaten5";
             Text_hovaten5.Size = new Size(246, 29);
@@ -305,7 +305,7 @@
             // Text_hovaten4
             // 
             Text_hovaten4.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_hovaten4.Location = new Point(139, 122);
+            Text_hovaten4.Location = new Point(139, 125);
             Text_hovaten4.Margin = new Padding(2, 3, 2, 3);
             Text_hovaten4.Name = "Text_hovaten4";
             Text_hovaten4.Size = new Size(246, 29);
@@ -330,7 +330,7 @@
             Label4.AutoSize = true;
             Label4.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label4.ForeColor = Color.FromArgb(0, 0, 192);
-            Label4.Location = new Point(430, 48);
+            Label4.Location = new Point(430, 49);
             Label4.Margin = new Padding(2, 0, 2, 0);
             Label4.Name = "Label4";
             Label4.Size = new Size(66, 21);
@@ -340,7 +340,7 @@
             // Text_hovaten2
             // 
             Text_hovaten2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_hovaten2.Location = new Point(139, 44);
+            Text_hovaten2.Location = new Point(139, 45);
             Text_hovaten2.Margin = new Padding(2, 3, 2, 3);
             Text_hovaten2.Name = "Text_hovaten2";
             Text_hovaten2.Size = new Size(246, 29);
@@ -365,7 +365,7 @@
             Label3.AutoSize = true;
             Label3.Font = new Font("Segoe UI", 12F, FontStyle.Italic);
             Label3.ForeColor = Color.FromArgb(0, 0, 192);
-            Label3.Location = new Point(47, 48);
+            Label3.Location = new Point(47, 49);
             Label3.Margin = new Padding(2, 0, 2, 0);
             Label3.Name = "Label3";
             Label3.Size = new Size(88, 21);
@@ -410,8 +410,8 @@
             TableLayoutPanel1.Margin = new Padding(2, 3, 2, 3);
             TableLayoutPanel1.Name = "TableLayoutPanel1";
             TableLayoutPanel1.RowCount = 3;
-            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 41.3173637F));
-            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 48.7025948F));
+            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 39.92016F));
+            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 50.0998F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 9.856263F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 15F));
             TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 15F));
@@ -430,7 +430,7 @@
             kryptonDataGridView1.Margin = new Padding(2, 3, 2, 3);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(811, 201);
+            kryptonDataGridView1.Size = new Size(811, 194);
             kryptonDataGridView1.TabIndex = 8;
             // 
             // tableLayoutPanel8

@@ -152,10 +152,9 @@ namespace PhanMemThiDua2026
         {
             var list = new List<CBCSQuanLyModel>(5000);
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return list;
-            const string sql = @"
-                SELECT HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu 
-                FROM DanhSach 
-                WHERE LENGTH(TRIM(IFNULL(GhiChu, ''))) > 0";
+            const string sql = @"SELECT HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu
+                         FROM DanhSach
+                         WHERE LENGTH(TRIM(IFNULL(GhiChu, ''))) > 0";
             var aesCache = new Dictionary<string, string>(10000, StringComparer.Ordinal);
             var stringPool = new Dictionary<string, string>(5000, StringComparer.Ordinal);
             await using var conn = new SqliteConnection(_connStr);
@@ -239,7 +238,7 @@ namespace PhanMemThiDua2026
                 if (!string.IsNullOrWhiteSpace(phanLoai) &&
                     phanLoai != Module_HeThong.Tat_Ca)
                 {
-                    if (phanLoai == "Không PL")
+                    if (phanLoai == Module_HeThong.PL_KHONG_PL)
                     {
                         query = query.Where(x =>
                             string.IsNullOrWhiteSpace(x.PhanLoai));

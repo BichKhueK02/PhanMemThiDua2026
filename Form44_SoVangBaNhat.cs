@@ -35,6 +35,8 @@ namespace PhanMemThiDua2026
         public Form44_SoVangBaNhat()
         {
             InitializeComponent();
+            // Đăng ký sự kiện Shown cho Form44_SoVangBaNhat
+            this.Shown += Form44_SoVangBaNhat_Shown;
             // Trong sự kiện Load hoặc Constructor
             kryptonTextBox1_TimKiemTheoTen.TextChanged += (s, e) => LocDuLieu();
             comboBox_TimKiemDonVi.SelectedIndexChanged += (s, e) => LocDuLieu();
@@ -64,8 +66,7 @@ namespace PhanMemThiDua2026
             DinhDangGiaoDienDataGridSoVang();
             // 6. ĐĂNG KÝ THEO DÕI THAY ĐỔI KÍCH THƯỚC
             this.SizeChanged += Form44_ResizeOrSizeChanged;
-            kryptonDataGridView1.SizeChanged +=
-                Form44_ResizeOrSizeChanged;
+            kryptonDataGridView1.SizeChanged += Form44_ResizeOrSizeChanged;
             // 7. CẬP NHẬT CÁC CONTROL PHỤ THUỘC DỮ LIỆU
             CapNhatDanhSachDonVi();
             CapNhatThongKeSoLuong();
@@ -85,6 +86,10 @@ namespace PhanMemThiDua2026
             {
                 DinhDangGiaoDienDataGridSoVang();
             }));
+        }
+        private void Form44_SoVangBaNhat_Shown(object? sender, EventArgs e)
+        {
+            kryptonTextBox1_TimKiemTheoTen.Focus();
         }
         private void DinhDangGiaoDienDataGridSoVang()
         {
@@ -348,47 +353,6 @@ namespace PhanMemThiDua2026
                 {
                     kryptonDataGridView1.DataSource = null;
                 }
-                //DataTable dtSoVang = await Task.Run(async () =>
-                //{
-                //    DataTable dt = new DataTable();
-                //    dt.Columns.Add("ID", typeof(int)); dt.Columns.Add("STT", typeof(int));
-                //    dt.Columns.Add("HoVaTen", typeof(string)); dt.Columns.Add("SoHieu", typeof(string));
-                //    dt.Columns.Add("NamSinh", typeof(string)); dt.Columns.Add("QueQuan", typeof(string));
-                //    dt.Columns.Add("NgayVaoCAND", typeof(string)); dt.Columns.Add("CapBac", typeof(string));
-                //    dt.Columns.Add("ChucVu", typeof(string)); dt.Columns.Add("DonVi", typeof(string));
-                //    dt.Columns.Add("PhanLoai", typeof(string)); dt.Columns.Add("GhiChu", typeof(string));
-                //    dt.Columns.Add("ThanhTich", typeof(string)); dt.Columns.Add("ThongBaoTrungDoan", typeof(string));
-                //    dt.Columns.Add("SoTTTrongSo", typeof(string)); dt.Columns.Add("ThangCongNhan", typeof(string));
-                //    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-                //    await conn.OpenAsync();
-                //    using var cmd = conn.CreateCommand();
-                //    // 🌟 SỬA: Chuyển sang nạp bảng động TenBangHienTai
-                //    cmd.CommandText = $"SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan FROM [{TenBangHienTai}] ORDER BY STT ASC";
-                //    using var reader = await cmd.ExecuteReaderAsync();
-                //    int sttTuDong = 1;
-                //    while (await reader.ReadAsync())
-                //    {
-                //        dt.Rows.Add(
-                //            reader.GetInt32(0),
-                //            sttTuDong++,
-                //            SafeGiaiMa(reader["HoVaTen"]?.ToString()),
-                //            SafeGiaiMa(reader["SoHieu"]?.ToString()),
-                //            SafeGiaiMa(reader["NamSinh"]?.ToString()),
-                //            SafeGiaiMa(reader["QueQuan"]?.ToString()),
-                //            SafeGiaiMa(reader["NgayVaoCAND"]?.ToString()),
-                //            SafeGiaiMa(reader["CapBac"]?.ToString()),
-                //            SafeGiaiMa(reader["ChucVu"]?.ToString()),
-                //            SafeGiaiMa(reader["DonVi"]?.ToString()),
-                //            SafeGiaiMa(reader["PhanLoai"]?.ToString()),
-                //            SafeGiaiMa(reader["GhiChu"]?.ToString()),
-                //            SafeGiaiMa(reader["ThanhTich"]?.ToString()),
-                //            SafeGiaiMa(reader["ThongBaoTrungDoan"]?.ToString()),
-                //            SafeGiaiMa(reader["SoTTTrongSo"]?.ToString()),
-                //            SafeGiaiMa(reader["ThangCongNhan"]?.ToString())
-                //        );
-                //    }
-                //    return dt;
-                //});
                 using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
                 await conn.OpenAsync();
                 using var cmd = conn.CreateCommand();
@@ -970,9 +934,7 @@ namespace PhanMemThiDua2026
                 ToolStripMenuItem_XuatDanhSach.Image = null;
                 // Gọi thẳng hàm xuất đã được đóng gói trong Module
                 await Module_BaNhat.XuatDanhSachSoVangToExcelAsync(this, filePath, TenBangHienTai, kyHieuTrungDoan);
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM,
-                    $"Đã xuất file sổ vàng thành công tại: {filePath}",
-                    DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Đã xuất file sổ vàng thành công tại: {filePath}", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
                 // ⭐ BỔ SUNG GỌI HÀM UX THÔNG BÁO Ở ĐÂY
                 await ShowTemporaryStatus($"Đã xuất file sổ vàng thành công tại: {filePath}", 2000);
             }
@@ -1012,17 +974,22 @@ namespace PhanMemThiDua2026
                             this,
                             ofd.FileName,
                             _csdl2Path);
-                        if (soDongThanhCong > 0)
-                        {
-                            await ShowTemporaryStatus(
-                                $"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào Sổ Vàng hệ thống!",
-                                2500);
-                            Module_NhatKy.GhiNhatKy(
-                                Module_TaiKhoan.TenTaiKhoan_RAM,
-                                $"Nạp Excel Sổ Vàng bảng {TenBangHienTai} ({soDongThanhCong} dòng)",
-                                DateTime.Now.ToString());
-                        }
-                        await LoadDuLieuSoVangBaNhatAsync();
+                //if (soDongThanhCong > 0)
+                //{
+                //    await ShowTemporaryStatus(
+                //        $"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào Sổ Vàng hệ thống!",
+                //        2500);
+                //    Module_NhatKy.GhiNhatKy(
+                //        Module_TaiKhoan.TenTaiKhoan_RAM,
+                //        $"Nạp Excel Sổ Vàng bảng {TenBangHienTai} ({soDongThanhCong} dòng)",
+                //        DateTime.Now.ToString());
+                //}
+                if (soDongThanhCong > 0)
+                {
+                    await ShowTemporaryStatus($"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào Sổ Vàng hệ thống!", 2500);
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Nạp Excel Sổ Vàng bảng {TenBangHienTai} ({soDongThanhCong} dòng)", DateTime.Now.ToString());
+                }
+                await LoadDuLieuSoVangBaNhatAsync();
                         CapNhatDanhSachDonVi();
                         CapNhatThongKeSoLuong();
                         await Module_BaNhat.CapNhatTinhTrangSoVangAsync();

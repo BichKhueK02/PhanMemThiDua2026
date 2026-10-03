@@ -261,8 +261,7 @@ namespace PhanMemThiDua2026
                     return;
                 }
                 // ĐÃ XÓA HÀM HIỂN THỊ BÁO CÁO CHI TIẾT TẠI ĐÂY ĐỂ TRÁNH PHIỀN PHỨC
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin", "Reset Phân Loại", $"Số lượng: {soDong} CBCS thuộc {danhSachChon.Count} đơn vị");
-                if (Form6_XuLyData.Instance != null && !Form6_XuLyData.Instance.IsDisposed)
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Reset Phân Loại", $"Số lượng: {soDong} CBCS thuộc {danhSachChon.Count} đơn vị"); if (Form6_XuLyData.Instance != null && !Form6_XuLyData.Instance.IsDisposed)
                 {
                     Form6_XuLyData.Instance.BeginInvoke(new Action(() => Form6_XuLyData.Instance.RefreshCSDL()));
                 }

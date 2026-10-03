@@ -67,6 +67,8 @@ namespace PhanMemThiDua2026
             InitializeComponent();
             this.Load += Form15_ThongKeThiDua_Load;
             this.FormClosed += Form15_ThongKeThiDua_FormClosed;
+            // 1. Đăng ký nhận sự kiện khi Form15 khởi tạo
+            Module_TaiKhoan.OnPhienBanThayDoi += Module_TaiKhoan_OnPhienBanThayDoi;
             this.KeyPreview = true;
             InitToolTips();
         }
@@ -76,18 +78,13 @@ namespace PhanMemThiDua2026
             DinhDangDataGirdView_HienThi();
             toolStripProgressBar1_LamMoi.Visible = false;
             toolStripProgressBar1_LamMoi.Enabled = false;
-            // 1. KIỂM TRA PHIÊN BẢN VÀ ẨN/HIỆN CÁC MENU
-            bool laCBCS = Module_HoTroLuuDataTheoNamCu.LaPhienBanCBCS();
-            if (xemThongKeThiDuaTapThe != null)
-                xemThongKeThiDuaTapThe.Available = laCBCS; // Hiện ở CBCS, ẩn ở Tân binh
-            if (tinhPhanLoaiThang_ToolStripMenuItem != null)
-                tinhPhanLoaiThang_ToolStripMenuItem.Available = !laCBCS; // Ẩn ở CBCS, hiện ở Tân binh
             // Cập nhật ẩn/hiện nút Menu Đồng Bộ Kết Quả Năm Cũ
             Module_HoTroLuuDataTheoNamCu.CapNhatAnHienMenuDongBo(dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem);
             // 2. TÍCH HỢP GIAO DIỆN CONTEXT MENu
             // Lắng nghe tín hiệu đổi phiên bản từ Form12
             Module_TaiKhoan.OnPhienBanThayDoi += KhiPhienBanThayDoi;
             Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
+            CapNhatQuyenMenuTheoPhienBan();
             _isInitialized = true;
             // 3. ÉP FOCUS CHUẨN KỸ SƯ (Con trỏ nhấp nháy vào ô tìm kiếm)
             this.BeginInvoke(new Action(() =>
@@ -130,6 +127,45 @@ namespace PhanMemThiDua2026
             // ⭐ THÊM 2 DÒNG NÀY VÀO:
             _dataCacheCBCS?.Clear();
             _dataCacheTanBinh?.Clear();
+        }
+        // 2. Sự kiện lắng nghe khi Form12 (hoặc bất kỳ đâu) kích hoạt ThongBaoPhienBanThayDoi()
+        private async void Module_TaiKhoan_OnPhienBanThayDoi(object? sender, EventArgs e)
+        {
+            // Kiểm tra an toàn xem Form15 có đang mở và hợp lệ không
+            if (this.IsDisposed || !this.IsHandleCreated) return;
+            // Đảm bảo chạy trên luồng Giao diện (UI Thread) để tránh lỗi Cross-thread
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new MethodInvoker(async () =>
+                {
+                    CapNhatQuyenMenuTheoPhienBan();
+                    await LamMoiDuLieuAsync();
+                }));
+            }
+            else
+            {
+                CapNhatQuyenMenuTheoPhienBan();
+                await LamMoiDuLieuAsync();
+            }
+        }
+        // 3. Hàm kiểm tra phiên bản và Ẩn/Hiện Menu Item
+        private void CapNhatQuyenMenuTheoPhienBan()
+        {
+            // Xác định phiên bản phần mềm
+            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem();
+            bool laTanBinh = !string.IsNullOrWhiteSpace(phienBan) &&
+                             phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            // Chỉ hiển thị MenuItem khi ở chế độ "tân binh", các chế độ khác sẽ bị ẩn
+            if (tinhPhanLoaiThang_ToolStripMenuItem != null)
+            {
+                tinhPhanLoaiThang_ToolStripMenuItem.Visible = laTanBinh;
+            }
+        }
+        // 5. Hủy đăng ký sự kiện khi đóng Form15 để tránh rò rỉ bộ nhớ (Memory Leak)
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            Module_TaiKhoan.OnPhienBanThayDoi -= Module_TaiKhoan_OnPhienBanThayDoi;
+            base.OnFormClosed(e);
         }
         private void contextMenuStrip1_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -978,7 +1014,7 @@ namespace PhanMemThiDua2026
             if (toolTip1 == null) return;
             try
             {
-                // = CẤU HÌNH CHUNG =
+                //CẤU HÌNH CHUNG =
                 toolTip1.IsBalloon = true;
                 toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
                 toolTip1.ToolTipIcon = ToolTipIcon.Info;
@@ -991,11 +1027,11 @@ namespace PhanMemThiDua2026
                 // Triệt tiêu chi phí băm (Hashing Overhead) và dọn sạch Heap Allocation.
                 (System.Windows.Forms.Control? control, string noiDung)[] danhSachToolTip = new (System.Windows.Forms.Control?, string)[]
                 {
-                    // = TÌM KIẾM =
+         //TÌM KIẾM =
                     (textBox_TimKiemTheoTen,             "Gõ tên cần tìm (không phân biệt chữ hoa / thường)"),
                     (comboBox_TimKiemDonVi,              "Chọn đơn vị để tìm kiếm tự động"),
                     (comboBox1_TinhTrang,                "Chọn tình trạng công tác để tìm kiếm tự động"),
-                    // = THAO TÁC =
+         //THAO TÁC =
                     (kryptonButton_LamMoiCacOTimKiem,    "Xóa toàn bộ các trường tìm kiếm (F5)"),
                     (kryptonButton_CapNhat,              "Đồng bộ cơ sở dữ liệu (F6)"),
                     (kryptonButton_XuatData,             "Xuất dữ liệu ra tệp (Ctrl + E)")
@@ -1313,7 +1349,6 @@ namespace PhanMemThiDua2026
                     string safeDv = dv?.Replace(" ", "").ToLower() ?? "";
                     return $"NAME_{safeHt}|{safeDv}";
                 }
-                //// ===
                 //// BƯỚC 1: Lấy CSDL2 (Gốc) - GIẢI MÃ RA PLAINTEXT LÀM CHUẨN
                 var dictGocCSDL2 = new Dictionary<string, (string encHt, string encSh, string encDv)>();
                 var listCsdl2 = new List<(string Key, string encHt, string encSh, string encDv)>();
@@ -1340,7 +1375,6 @@ namespace PhanMemThiDua2026
                     }
                 }
                 // BƯỚC 2: Lấy CSDL4 (Đích) - GIẢI MÃ VÀ ĐỐI CHIẾU
-                // ===
                 var hashDichCSDL4 = new HashSet<string>();
                 var idChuyenCongTac = new List<int>();
                 var idDangCongTac = new List<int>();
@@ -1388,10 +1422,8 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-                // ===
                 // BƯỚC 3: Xử lý danh sách cần Thêm Mới
                 // (Có trong CSDL2 nhưng chưa hề tồn tại trong CSDL4)
-                // ===
                 var danhSachCanThem = new List<(string encHt, string encSh, string encDv)>();
                 foreach (var item in listCsdl2)
                 {
@@ -1400,9 +1432,7 @@ namespace PhanMemThiDua2026
                         danhSachCanThem.Add((item.encHt, item.encSh, item.encDv));
                     }
                 }
-                // ===
                 // BƯỚC 4: Thực thi UPDATE và INSERT vào CSDL4 (Transaction)
-                // ===
                 using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path}"))
                 {
                     cn4.Open();
@@ -1477,7 +1507,6 @@ namespace PhanMemThiDua2026
                         }
                         catch { tran.Rollback(); throw; }
                     }
-                    // ===
                     // BƯỚC 5: Tính lại Tổng loại (Giữ nguyên)
                     // SỬA LẠI ĐOẠN CỐI CỦA BƯỚC 5 TRONG HÀM CapNhatThongKe():
                     using (var cmdLayID = new SqliteCommand($"SELECT ID FROM {tableDich}", cn4))
@@ -1656,9 +1685,7 @@ namespace PhanMemThiDua2026
                     if (grid.Columns.Contains("Tuan_3_T6")) grid.Columns["Tuan_3_T6"].Visible = false;
                     if (grid.Columns.Contains("Tuan_4_T6")) grid.Columns["Tuan_4_T6"].Visible = false;
                 }
-                // ==
                 // ⭐ ÁP DỤNG GIAO DIỆN HIỆN ĐẠI (FLUENT DESIGN)
-                // ==
                 grid.BackgroundColor = Color.White;
                 grid.BorderStyle = BorderStyle.None;
                 grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal; // Lưới kẻ ngang
@@ -1689,7 +1716,6 @@ namespace PhanMemThiDua2026
                     Padding = new Padding(2, 0, 2, 0)
                 };
                 grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(252, 252, 252);
-                // ==
                 // ⭐ BỔ SUNG 2 DÒNG CODE VÀO ĐÂY ⭐
                 grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
                 grid.MultiSelect = false;
@@ -1817,7 +1843,7 @@ namespace PhanMemThiDua2026
                 this.Enabled = false;
                 frmLoad.Show(this);
                 // Nhịp nghỉ UX để UI vẽ kịp Form Loading trước khi vào vòng lặp nặng
-               await Task.Delay(100);
+                await Task.Delay(100);
                 // BẮT ĐẦU: XỬ LÝ NGẦM
                 bool laTanBinh = false;
                 await Task.Run(() =>
@@ -1836,15 +1862,17 @@ namespace PhanMemThiDua2026
                 LoadComboBoxDonVi();
                 // Ép lưới chạy thuật toán lọc
                 ApplyFilter();
-                try {   
+                try
+                {
                     string noiDungTB_MeoCamYeuCa = "Đồng bộ dữ liệu từ DanhSach csdl2 sang bảng ở csdl4 - Thống kê thành công!";
                     Module_ThongBao.ThanhCong(noiDungTB_MeoCamYeuCa);
                     Module_NhatKy.GhiNhatKy(
                         Module_TaiKhoan.TenTaiKhoan_RAM,
-                        noiDungTB_MeoCamYeuCa ,
+                        noiDungTB_MeoCamYeuCa,
                         DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
                     );
-                } catch { }
+                }
+                catch { }
             }
             catch (Exception ex)
             {
@@ -2041,9 +2069,7 @@ namespace PhanMemThiDua2026
                         frm.Owner = this;
                         frm.ShowInTaskbar = false;
                         frm.ShowDialog();
-                        // ----------------------------------------------------
                         // CẬP NHẬT SAU KHI SỬA THÀNH CÔNG
-                        // ----------------------------------------------------
                         if (frm.DialogResult == DialogResult.OK)
                         {
                             using (var cn =
@@ -2062,9 +2088,7 @@ namespace PhanMemThiDua2026
                     using (var frm22 =
                         new Form22_ChinhSuaDataCBCS())
                     {
-                        // ----------------------------------------------------
                         // TRUYỀN DỮ LIỆU SANG FORM CBCS
-                        // ----------------------------------------------------
                         frm22.ID_CBCS = idInt;
                         frm22.HoVaTen = hoTen;
                         frm22.SoHieu = soHieu;
@@ -2073,9 +2097,7 @@ namespace PhanMemThiDua2026
                         frm22.Owner = this;
                         frm22.ShowInTaskbar = false;
                         frm22.ShowDialog();
-                        // ----------------------------------------------------
                         // CẬP NHẬT SAU KHI SỬA THÀNH CÔNG
-                        // ----------------------------------------------------
                         if (frm22.DialogResult == DialogResult.OK)
                         {
                             using (var cn =
@@ -2203,15 +2225,13 @@ namespace PhanMemThiDua2026
         {
             // 1. Chống Click đúp
             if (_dangMoThongKeTapThe) return;
-            // 2. Chốt chặn an toàn (SỬ DỤNG .Available THAY VÌ .Visible)
-            if (!xemThongKeThiDuaTapThe.Available) return;
             _dangMoThongKeTapThe = true;
             try
             {
-                // = KHOÁ CONTEXT MENU =
+                //KHOÁ CONTEXT MENU =
                 var ctxBackup = kryptonDataGridView1.ContextMenuStrip;
                 kryptonDataGridView1.ContextMenuStrip = null;
-                // = MỞ FORM =
+                //MỞ FORM =
                 var f = new Form23_ThongKeThiDuaTapThe
                 {
                     StartPosition = FormStartPosition.CenterScreen
@@ -2233,9 +2253,7 @@ namespace PhanMemThiDua2026
         }
         private void xoaCot_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
-            //==
             // XÁC ĐỊNH PHIÊN BẢN
-            //==
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem();
             bool laTanBinh =
                 !string.IsNullOrWhiteSpace(phienBan) &&
@@ -2243,9 +2261,7 @@ namespace PhanMemThiDua2026
             string tenBang = laTanBinh
                 ? "ThiDuaThang_TanBinh"
                 : "ThiDuaThang";
-            //==
             // DANH SÁCH CỘT CẤM XÓA
-            //==
             string[] cotCamXoaCBCS =
             {
         "ID","HoVaTen","SoHieu","DonVi","TinhTrang",
@@ -2265,18 +2281,14 @@ namespace PhanMemThiDua2026
         "TS_Loai1","TS_Loai2","TS_Loai3","TS_Loai4"
     };
             var cotCamXoa = laTanBinh ? cotCamXoaTanBinh : cotCamXoaCBCS;
-            //==
             // KIỂM TRA CSDL
-            //==
             if (!File.Exists(_csdl4Path))
             {
                 MessageBox.Show("Không tìm thấy CSDL!",
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            //==
             // LẤY CỘT ĐANG CHỌN
-            //==
             if (kryptonDataGridView1.CurrentCell == null)
             {
                 MessageBox.Show("Vui lòng chọn cột cần xóa.",
@@ -2286,9 +2298,7 @@ namespace PhanMemThiDua2026
             string tenCot = kryptonDataGridView1
                 .Columns[kryptonDataGridView1.CurrentCell.ColumnIndex]
                 .Name;
-            //==
             // KIỂM TRA CỘT HỆ THỐNG
-            //==
             if (cotCamXoa.Contains(tenCot, StringComparer.OrdinalIgnoreCase))
             {
                 MessageBox.Show($"Không được xóa cột hệ thống: {tenCot}",
@@ -2297,9 +2307,7 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Warning);
                 return;
             }
-            //==
             // XÁC NHẬN
-            //==
             if (MessageBox.Show(
                 $"Bạn có chắc chắn muốn xóa cột:\n\n👉 {tenCot}\n\nHành động này không thể khôi phục!",
                 "Xác nhận xóa cột",
@@ -2314,17 +2322,13 @@ namespace PhanMemThiDua2026
                     $"ALTER TABLE {tenBang} DROP COLUMN [{tenCot}]",
                     cn);
                 cmd.ExecuteNonQuery();
-                //==
                 // NHẬT KÝ
-                //==
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     "Xóa cột CSDL",
                     $"Đã xóa cột: {tenCot} trong bảng {tenBang}"
                 );
-                //==
                 // RELOAD ĐÚNG BẢNG
-                //==
                 if (laTanBinh)
                 {
                     LoadThongKe_TanBinh();
@@ -2406,9 +2410,7 @@ namespace PhanMemThiDua2026
         }
         private void xoaDuLieu_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
-            // =
             // 1. LẤY ID BẢN GHI
-            // =
             if (!TryGetSelectedRecordId(out int recordId))
             {
                 MessageBox.Show(
@@ -2425,9 +2427,7 @@ namespace PhanMemThiDua2026
                 ? "ThiDuaThang_TanBinh"
                 : "ThiDuaThang";
             string hoVaTen = "(không xác định)";
-            // =
             // 2. LẤY HỌ TÊN TỪ DATABASE
-            // =
             try
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
@@ -2451,9 +2451,7 @@ namespace PhanMemThiDua2026
                     "Lỗi lấy HoVaTen khi xóa",
                     ex.Message);
             }
-            // =
             // 3. XÁC NHẬN NGƯỜI DÙNG
-            // =
             var confirm = MessageBox.Show(
                 $"Bạn có chắc chắn muốn xóa {Module_HeThong.Tu_dong_chi}:\n\n👉 {hoVaTen}\n\nThao tác này không thể hoàn tác.",
                 "Xác nhận xóa",
@@ -2461,9 +2459,7 @@ namespace PhanMemThiDua2026
                 MessageBoxIcon.Warning);
             if (confirm != DialogResult.Yes)
                 return;
-            // =
             // 4. XÁC MINH ADMIN
-            // =
             DialogResult kq;
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
@@ -2473,9 +2469,7 @@ namespace PhanMemThiDua2026
             }
             if (kq != DialogResult.OK)
                 return;
-            // =
             // 5. XÓA TRONG DATABASE
-            // =
             try
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
@@ -2502,9 +2496,7 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Error);
                 return;
             }
-            // =
             // 6. LOAD LẠI DỮ LIỆU
-            // =
             if (laTanBinh)
                 LoadThongKe_TanBinh();
             else
@@ -2517,9 +2509,7 @@ namespace PhanMemThiDua2026
                 System.Media.SystemSounds.Exclamation.Play();
             }
             catch { }
-            // =
             // 7. GHI NHẬT KÝ
-            // =
             Module_NhatKy.GhiNhatKy(
                 Module_TaiKhoan.TenTaiKhoan_RAM,
                 "Xóa dòng thống kê",
@@ -2704,9 +2694,7 @@ namespace PhanMemThiDua2026
         }
         private async void kryptonButton_XuatData_Click(object? sender, EventArgs e)
         {
-            // =
             // LỚP VỎ UX: LƯU TRẠNG THÁI GỐC CỦA NÚT
-            // =
             string textBanDau = kryptonButton_XuatData.Values.Text;
             Image anhBanDau = kryptonButton_XuatData.Values.Image;
             Form_Loading frmLoad = new Form_Loading("Đang tạo tệp excel, vui lòng đợi...");
@@ -3299,9 +3287,7 @@ namespace PhanMemThiDua2026
         }
         private async void xoaTatCaDuLieu_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
-            // =
             // 0. KIỂM TRA CÓ DỮ LIỆU ĐỂ XÓA HAY KHÔNG TRƯỚC KHI GỌI FORM
-            // =
             try
             {
                 if (!System.IO.File.Exists(_csdl4Path))
@@ -3333,18 +3319,14 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"Lỗi kiểm tra dữ liệu trước khi xóa: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            // =
             // 1. Xác minh quyền Admin (Giữ nguyên lớp bảo vệ này)
-            // =
             using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
             {
                 frmXacMinh.TopMost = true;
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
                 if (frmXacMinh.ShowDialog() != DialogResult.OK) return;
             }
-            // =
             // 2. Khởi tạo Form Xóa Nâng Cao (Form 37)
-            // =
             // Truyền chính Form15 (this) vào để Form 37 có thể gọi các hàm ReloadData, ApplyFilter...
             using (Form37_XoaThongKeNangCao frm37 = new Form37_XoaThongKeNangCao(this))
             {
@@ -3414,7 +3396,11 @@ namespace PhanMemThiDua2026
             return laTanBinh;
         }
         // 5. BỘ ĐIỀU PHỐI (Controller)
-        public async void lamMoi_ToolStripMenuItem_Click(object? sender, EventArgs e)
+        private async void lamMoi_ToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            await LamMoiDuLieuAsync();
+        }
+        public async Task LamMoiDuLieuAsync()
         {
             if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1) return;
             try
@@ -3423,11 +3409,9 @@ namespace PhanMemThiDua2026
                 toolStripProgressBar1_LamMoi.Minimum = 0;
                 toolStripProgressBar1_LamMoi.Maximum = 100;
                 toolStripProgressBar1_LamMoi.Value = 0;
-                // ⭐ ÉP KÍCH THƯỚC CỐ ĐỊNH TRƯỚC KHI HIỂN THỊ (CHỐNG PHÌNH TO)
+                // ÉP KÍCH THƯỚC CỐ ĐỊNH TRƯỚC KHI HIỂN THỊ
                 toolStripProgressBar1_LamMoi.AutoSize = false;
-                toolStripProgressBar1_LamMoi.Size = new Size(150, 18); // Cố định chiều rộng 150px, cao 18px (tùy chỉnh cho vừa mắt)
-                // Nếu ProgressBar nằm trên StatusStrip và muốn nó nằm gọn gàng, có thể dùng thêm Margin
-                // toolStripProgressBar1_LamMoi.Margin = new Padding(1, 2, 1, 1); 
+                toolStripProgressBar1_LamMoi.Size = new Size(150, 18);
                 toolStripProgressBar1_LamMoi.Visible = true;
                 this.UseWaitCursor = true;
                 toolStripStatusLabel1.Text = "Đang làm mới dữ liệu...";
@@ -3439,24 +3423,28 @@ namespace PhanMemThiDua2026
                     toolStripProgressBar1_LamMoi.Value = Math.Max(0, Math.Min(100, percent));
                 });
                 progressReporter.Report(5);
+                // Làm mới bộ lọc
                 LamMoiBoLocCore();
-                // Lấy Data
+                // Lấy dữ liệu
                 bool laTanBinh = await DongBoVaTaiDuLieuCoreAsync(progressReporter);
                 // Vẽ UI
                 await TangTienDoAsync(progressReporter, 70, 100);
                 await DieuPhoiLoadDuLieuAsync(laTanBinh);
                 LoadComboBoxDonVi();
-                // Hoàn tất
-                ApplyFilter(); // ⭐ ĐỒNG CHÍ THÊM DÒNG NÀY VÀO NHÉ (Nó báo cho Grid biết để cập nhật số lượng dòng)
+                // Cập nhật Grid theo dữ liệu mới
+                ApplyFilter();
                 await TangTienDoAsync(progressReporter, 85, 100);
-                toolStripStatusLabel1.Text = $"Tổng cộng: {_filteredIndexes?.Count ?? 0} {Module_HeThong.Tu_dong_chi}";
-                // Giảm delay chốt hạ từ 300ms xuống 150ms để user không cảm thấy bị "kẹt" ở lúc xong
+                toolStripStatusLabel1.Text =
+                    $"Tổng cộng: {_filteredIndexes?.Count ?? 0} {Module_HeThong.Tu_dong_chi}";
                 await Task.Delay(150);
             }
             catch (Exception ex)
             {
                 toolStripProgressBar1_LamMoi.Value = 0;
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi Làm mới (F5)", ex.ToString());
+                Module_NhatKy.GhiNhatKy(
+                    Module_TaiKhoan.TenTaiKhoan_RAM,
+                    "Lỗi Làm mới (F5)",
+                    ex.ToString());
                 MessageBox.Show(
                     "Đã xảy ra lỗi hệ thống khi làm mới dữ liệu!\nChi tiết đã được ghi vào Nhật ký.",
                     "Lỗi",
