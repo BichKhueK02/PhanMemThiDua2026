@@ -20,10 +20,7 @@ namespace PhanMemThiDua2026
         private readonly string[] _tenFilePhu = { "Thư mục Công Cụ", "Tệp nhúng (EX)", "Thư mục (Hướng dẫn SD)" };
         private readonly string[] _pathCSDL;
         private readonly string[] _pathsFilePhu;
-        public static readonly string ThuMucCoSoDuLieu = Path.Combine(
-            AppContext.BaseDirectory,
-            "Database",
-            "HuongDanSuDung");
+        public static readonly string ThuMucCoSoDuLieu = Path.Combine(AppContext.BaseDirectory, "Database", "HuongDanSuDung");
         // ⭐ CHUẨN KỸ SƯ: Sử dụng ConcurrentDictionary để chống Crash khi chạy Đa luồng
         private readonly ConcurrentDictionary<string, string> _cacheDungLuongOTrang = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Image _iconSafe = Properties.Resources._true;
@@ -40,21 +37,21 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             this.Shown += Form33_KiemTraSucKhoeCSDL_Shown;
-            _pathCSDL = new[] {
+
+            _pathCSDL = new[]
+            {
                 Module_DanduongGPS.DuongDanCSDL1,
                 Module_DanduongGPS.DuongDanCSDL2,
                 Module_DanduongGPS.DuongDanCSDL3,
                 Module_DanduongGPS.DuongDanCSDL4
             };
-            _pathsFilePhu = new[]
-           {
-    Path.Combine(
-        AppContext.BaseDirectory,
-        "Database Backup",
-        "CongCuQuanLyCSDL"),
-    Module_DanduongGPS.DuongDanCSDL4ex,
-    ThuMucCoSoDuLieu
-};
+                    _pathsFilePhu = new[]
+                    {
+                Path.Combine(AppContext.BaseDirectory, "Database Backup", "CongCuQuanLyCSDL"),
+                Module_DanduongGPS.DuongDanCSDL4ex,
+                ThuMucCoSoDuLieu
+            };
+
             kryptonDataGridView1.CellPainting += KryptonDataGridView_CellPainting_CanhBao;
             kryptonDataGridView2.CellPainting += KryptonDataGridView_CellPainting_CanhBao;
         }

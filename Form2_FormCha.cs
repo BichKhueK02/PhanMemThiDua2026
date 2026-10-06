@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using static UIHelper;
+
 namespace PhanMemThiDua2026
 {
     public partial class Form2_FormCha : Form
@@ -36,6 +37,14 @@ namespace PhanMemThiDua2026
         public Form2_FormCha()
         {
             InitializeComponent();
+            // 🎨 BO TRÒN GIAO DIỆN: áp cho form cha và tự động cho mọi form con (kể cả control tạo sau)
+            // Sidebar kiểu web hiện đại (viên thuốc bo tròn, hover sáng, mục đang chọn màu trắng)
+            Module_SidebarHienDai.KhoiTao(PanelLeft,
+                kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
+                kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
+                kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
+            checkBox1_TuDongAnMenu.ForeColor = Module_SidebarHienDai.ChuThuong;
+            Module_GiaoDienBoTron.ApDung(this);
             // === THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ICON TASKBAR ===
             // 🌟 ĐĂNG KÝ SỰ KIỆN: Cứ mỗi khi chữ của Label1 bị đổi, lập tức chạy hàm kiểm tra màu
             Label1.TextChanged += (s, e) => TuDongDoiMauLabelTieuDe();
@@ -90,36 +99,36 @@ namespace PhanMemThiDua2026
             }
         }
         private async Task Form2_LoadCore()
+        {
+            if (_loadExecuted) return;
+            _loadExecuted = true;
+            // 1. KHỞI TẠO DỮ LIỆU NGƯỜI DÙNG
+            KhoiTaoDuLieuNguoiDung();
+            // 2. KHỞI TẠO GIAO DIỆN
+            KhoiTaoGiaoDien();
+            // 3. THIẾT LẬP TRẠNG THÁI MENU
+            checkBox1_TuDongAnMenu.Checked = AppRuntime.TuDongAnMenu;
+            // 4. KHỞI TẠO TIMER VÀ EVENT
+            KhoiTaoTimerTuDongAnMenu();
+            DangKySuKienTuDongAnMenu();
+            EnsureSuKienThoatTonTai();
+            // 5. CẬP NHẬT UI BAN ĐẦU
+            CapNhatMuiTenGiaoDien();
+            // 6. PRELOAD DỮ LIỆU CSDL Ở NỀN
+            await Task.Run(() =>
+            {
+                try
                 {
-                    if (_loadExecuted) return;
-                    _loadExecuted = true;
-                    // 1. KHỞI TẠO DỮ LIỆU NGƯỜI DÙNG
-                    KhoiTaoDuLieuNguoiDung();
-                    // 2. KHỞI TẠO GIAO DIỆN
-                    KhoiTaoGiaoDien();
-                    // 3. THIẾT LẬP TRẠNG THÁI MENU
-                    checkBox1_TuDongAnMenu.Checked = AppRuntime.TuDongAnMenu;
-                    // 4. KHỞI TẠO TIMER VÀ EVENT
-                    KhoiTaoTimerTuDongAnMenu();
-                    DangKySuKienTuDongAnMenu();
-                    EnsureSuKienThoatTonTai();
-                    // 5. CẬP NHẬT UI BAN ĐẦU
-                    CapNhatMuiTenGiaoDien();
-                    // 6. PRELOAD DỮ LIỆU CSDL Ở NỀN
-                    await Task.Run(() =>
-                    {
-                        try
-                        {
-                            DataLoader.PreloadDanhSach(_csdl2Path);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine(ex);
-                        }
-                    });
-                    // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT
-                    isLoaded = true;
+                    DataLoader.PreloadDanhSach(_csdl2Path);
                 }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
+            });
+            // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT
+            isLoaded = true;
+        }
         // 🌟 BƯỚC 1: Khai báo biến đệm (Cache) lưu trữ năm ở ngoài hàm
         // 🌟 BƯỚC 2: Cập nhật lại hàm xử lý
         private void TuDongDoiMauLabelTieuDe()
@@ -591,11 +600,7 @@ namespace PhanMemThiDua2026
                     }
                 }
             }
-            Module_NhatKy.GhiNhatKy(
-                SessionInfo.TenTaiKhoan,
-                "Mở Trang nhật ký phần mềm",
-                "Người dùng mở form nhật ký từ Trang chủ"
-            );
+            Module_NhatKy.GhiNhatKy(SessionInfo.TenTaiKhoan, "Mở trang nhật ký phần mềm", "Người dùng mở form nhật ký từ Trang chủ");
         }
         private void kryptonButton_ThoatPhanMem_Click(object? sender, EventArgs e)
         {
@@ -804,7 +809,7 @@ namespace PhanMemThiDua2026
                 lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 12F, System.Drawing.FontStyle.Bold);
                 lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(198, 40, 40);
                 // --- 2. ĐƯỜNG KẺ NGANG (Separator) ---
-                var separator = new Label
+                var separator = new System.Windows.Forms.Label
                 {
                     Height = 1,
                     Dock = DockStyle.Top,
@@ -1140,23 +1145,13 @@ namespace PhanMemThiDua2026
         private void ApplyHighlightColor(KryptonButton btn)
         {
             if (btn == null || btn.IsDisposed) return;
-            Color highlightColor = Color.FromArgb(11, 199, 1);
-            btn.StateCommon.Back.Color1 = highlightColor;
-            btn.StateCommon.Back.Color2 = highlightColor;
-            btn.OverrideDefault.Back.Color1 = highlightColor;
-            btn.OverrideDefault.Back.Color2 = highlightColor;
-            // 🌟 Thay Refresh (ép vẽ đồng bộ) thành Invalidate (xếp hàng vẽ bất đồng bộ)
-            btn.Invalidate();
+            // Mục đang chọn: viên trắng, chữ chàm đậm (xem Module_SidebarHienDai)
+            Module_SidebarHienDai.DatTrangThai(btn, true);
         }
         private void ResetKryptonButton(KryptonButton btn)
         {
             if (btn == null || btn.IsDisposed) return;
-            btn.StateCommon.Back.Color1 = Color.Empty;
-            btn.StateCommon.Back.Color2 = Color.Empty;
-            btn.OverrideDefault.Back.Color1 = Color.Empty;
-            btn.OverrideDefault.Back.Color2 = Color.Empty;
-            // 🌟 Thay Refresh thành Invalidate
-            btn.Invalidate();
+            Module_SidebarHienDai.DatTrangThai(btn, false);
         }
     }
 }

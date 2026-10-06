@@ -46,51 +46,35 @@ namespace PhanMemThiDua2026
         }
         private async void Form44_SoVangBaNhat_Load(object? sender, EventArgs e)
         {
-            // 1. CẤU HÌNH CÁC CONTROL CHỈ HIỂN THỊ
             CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_SoHieu);
             CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_PhanLoai);
-            // 2. CẤU HÌNH SỰ KIỆN DATAGRIDVIEW
-            kryptonDataGridView1.CellFormatting +=
-                kryptonDataGridView1_CellFormatting;
-            kryptonDataGridView1.ContextMenuStrip =
-                contextMenuStrip1;
-            kryptonDataGridView1.CellMouseClick +=
-                kryptonDataGridView1_CellMouseClick;
-            kryptonDataGridView1.CellClick +=
-                kryptonDataGridView1_CellClick;
-            // 3. DATAGRIDVIEW CHIẾM TOÀN BỘ VÙNG CHỨA
+
+            kryptonDataGridView1.CellFormatting += kryptonDataGridView1_CellFormatting;
+            kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
+            kryptonDataGridView1.CellMouseClick += kryptonDataGridView1_CellMouseClick;
+            kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
             kryptonDataGridView1.Dock = DockStyle.Fill;
-            // 4. LOAD DỮ LIỆU
+
             await LoadDuLieuSoVangBaNhatAsync();
-            // 5. ⭐ ĐỊNH DẠNG GRID NGAY SAU KHI CÓ CỘT + DỮ LIỆU
             DinhDangGiaoDienDataGridSoVang();
-            // 6. ĐĂNG KÝ THEO DÕI THAY ĐỔI KÍCH THƯỚC
+
             this.SizeChanged += Form44_ResizeOrSizeChanged;
             kryptonDataGridView1.SizeChanged += Form44_ResizeOrSizeChanged;
-            // 7. CẬP NHẬT CÁC CONTROL PHỤ THUỘC DỮ LIỆU
+
             CapNhatDanhSachDonVi();
             CapNhatThongKeSoLuong();
             CapNhatTrangThaiNut();
-            // 8. CÁC TIỆN ÍCH GIAO DIỆN
-            Module_MenuChuotPhai.TichHopGiaoDien(
-                contextMenuStrip1);
+
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             InitToolTips();
         }
         private void Form44_ResizeOrSizeChanged(object? sender, EventArgs e)
         {
-            if (this.IsDisposed || kryptonDataGridView1 == null || kryptonDataGridView1.IsDisposed)
-                return;
-            // Đưa lệnh tính toán vào hàng chờ Message Loop.
-            // Điều này bắt buộc WinForms phải vẽ lại giao diện hoàn chỉnh rồi mới chạy hàm tính cột.
-            this.BeginInvoke(new Action(() =>
-            {
-                DinhDangGiaoDienDataGridSoVang();
-            }));
+            if (this.IsDisposed || kryptonDataGridView1 == null || kryptonDataGridView1.IsDisposed) return;
+
+            this.BeginInvoke(new Action(() => DinhDangGiaoDienDataGridSoVang()));
         }
-        private void Form44_SoVangBaNhat_Shown(object? sender, EventArgs e)
-        {
-            kryptonTextBox1_TimKiemTheoTen.Focus();
-        }
+        private void Form44_SoVangBaNhat_Shown(object? sender, EventArgs e) => kryptonTextBox1_TimKiemTheoTen.Focus();
         private void DinhDangGiaoDienDataGridSoVang()
         {
             if (kryptonDataGridView1 == null) return;
@@ -783,18 +767,11 @@ namespace PhanMemThiDua2026
                 kryptonButton_RefershCSDL.Text = originalText;
             }
         }
-        private void lamMoiHeThong_Click(object? sender, EventArgs e)
-        {
-            kryptonButton_RefershCSDL.PerformClick();
-        }
-        private void xoaTimKiem_Click(object? sender, EventArgs e)
-        {
-            kryptonButton_LamMoiCacOTimKiem.PerformClick();
-        }
-        private void toolStripMenuItem_ThoatTrang_Click(object? sender, EventArgs e)
-        {
-            kryptonButton1_Thoat.PerformClick();
-        }
+        private void lamMoiHeThong_Click(object? sender, EventArgs e) => kryptonButton_RefershCSDL.PerformClick();
+
+        private void xoaTimKiem_Click(object? sender, EventArgs e) => kryptonButton_LamMoiCacOTimKiem.PerformClick();
+
+        private void toolStripMenuItem_ThoatTrang_Click(object? sender, EventArgs e) => kryptonButton1_Thoat.PerformClick();
         private async void toolStripMenuItem_XoaChonTatCa_Click(object? sender, EventArgs e)
         {
             // 1. Kiểm tra đường dẫn CSDL
@@ -974,16 +951,6 @@ namespace PhanMemThiDua2026
                             this,
                             ofd.FileName,
                             _csdl2Path);
-                //if (soDongThanhCong > 0)
-                //{
-                //    await ShowTemporaryStatus(
-                //        $"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào Sổ Vàng hệ thống!",
-                //        2500);
-                //    Module_NhatKy.GhiNhatKy(
-                //        Module_TaiKhoan.TenTaiKhoan_RAM,
-                //        $"Nạp Excel Sổ Vàng bảng {TenBangHienTai} ({soDongThanhCong} dòng)",
-                //        DateTime.Now.ToString());
-                //}
                 if (soDongThanhCong > 0)
                 {
                     await ShowTemporaryStatus($"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào Sổ Vàng hệ thống!", 2500);

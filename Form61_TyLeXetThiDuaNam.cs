@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Windows.Forms;
+using System.Drawing;
 namespace PhanMemThiDua2026
 {
     //Tham số xxxyyyy
@@ -31,6 +32,8 @@ namespace PhanMemThiDua2026
                 _giaTriHopLeTruocDo[textBox] = "";
                 textBox.KeyPress += TyLe_KeyPress;
                 textBox.TextChanged += TyLe_TextChanged;
+                textBox.Enter += TyLeTextBox_Enter;
+                textBox.Leave += TyLeTextBox_Leave;
             }
         }
         private void Form61_TyLeXetThiDuaNam_Load(object sender, EventArgs e)
@@ -97,6 +100,30 @@ namespace PhanMemThiDua2026
             {
                 _dangXuLyThayDoiTyLe = false;
             }
+        }
+        private static readonly Color MauLabelTyLe = Color.FromArgb(0, 0, 192);
+        private static readonly Color MauLabelDo = Color.Red;
+        private void TyLeTextBox_Enter(object? sender, EventArgs e)
+        {
+            if (sender is not KryptonTextBox textBox) return;
+            textBox.StateCommon.Border.Color1 = Color.DodgerBlue;
+            if (textBox == kryptonTextBox1_TyLeXetCSTD)
+                label1_TyLeXetCSTD.ForeColor = MauLabelDo;
+            else if (textBox == kryptonTextBox1_TyLeXetCSTT)
+                label1_TyLeXetCSTT.ForeColor = MauLabelDo;
+            else if (textBox == kryptonTextBox1_TyLeXetHTNV)
+                label1_TyLeXetHTNV.ForeColor = MauLabelDo;
+        }
+        private void TyLeTextBox_Leave(object? sender, EventArgs e)
+        {
+            if (sender is not KryptonTextBox textBox) return;
+            textBox.StateCommon.Border.Color1 = Color.Silver;
+            if (textBox == kryptonTextBox1_TyLeXetCSTD)
+                label1_TyLeXetCSTD.ForeColor = MauLabelTyLe;
+            else if (textBox == kryptonTextBox1_TyLeXetCSTT)
+                label1_TyLeXetCSTT.ForeColor = MauLabelTyLe;
+            else if (textBox == kryptonTextBox1_TyLeXetHTNV)
+                label1_TyLeXetHTNV.ForeColor = MauLabelTyLe;
         }
         #endregion
         #region CSDL

@@ -588,7 +588,10 @@ namespace PhanMemThiDua2026
                 };
                 grid.Columns.Add(colSTT);
                 // Danh sách cột canh trái
-                var leftAlignCols = new HashSet<string>(StringComparer.Ordinal) { "HoVaTen", "QueQuan", "GhiChu", "DonVi", "ChucVu" };
+                //var leftAlignCols = new HashSet<string>(StringComparer.Ordinal) { "HoVaTen", "QueQuan", "GhiChu", "DonVi", "ChucVu" };
+                // SAU: chỉ giữ 3 cột nội dung dài ở căn trái
+                var leftAlignCols = new HashSet<string>(StringComparer.Ordinal) { "HoVaTen", "QueQuan", "GhiChu" };
+
                 foreach (var kvp in _tenCotTiengViet)
                 {
                     var col = new DataGridViewTextBoxColumn

@@ -45,13 +45,17 @@ namespace PhanMemThiDua2026
             MaximizeBox = false;
             MinimizeBox = false;
             CancelButton = btn_Thoat;
-            text_MatKhau.UseSystemPasswordChar = true;
+           // text_MatKhau.UseSystemPasswordChar = true;
         }
         // 4. QUẢN LÝ SỰ KIỆN
         private void RegisterEvents()
         {
             this.Load += Form24_XacMinhAdmin_Load;
-            check_HienMatKhau.CheckedChanged += (s, e) => text_MatKhau.UseSystemPasswordChar = !check_HienMatKhau.Checked;
+
+            // Thêm 2 dòng này để đăng ký sự kiện ẩn/hiện mật khẩu
+            check_HienMatKhau.CheckedChanged -= check_HienMatKhau_CheckedChanged;
+            check_HienMatKhau.CheckedChanged += check_HienMatKhau_CheckedChanged;
+
             btn_XacThuc.Click -= btn_XacThuc_Click;
             btn_XacThuc.Click += btn_XacThuc_Click;
             btn_Thoat.Click -= btn_Thoat_Click;
@@ -60,11 +64,9 @@ namespace PhanMemThiDua2026
             PictureBox1.Click += PictureBox1_Click;
             text_TenDangNhap.KeyDown += Text_TenDangNhap_KeyDown;
             text_MatKhau.KeyDown += Text_MatKhau_KeyDown;
-            // [CẬP NHẬT]: Đăng ký sự kiện nháy đúp chuột để gợi ý tài khoản
             text_TenDangNhap.DoubleClick -= Text_TenDangNhap_DoubleClick;
             text_TenDangNhap.DoubleClick += Text_TenDangNhap_DoubleClick;
         }
-        // 5. FORM LOAD
         // 1. CHUYỂN SỰ KIỆN LOAD THÀNH ASYNC ĐỂ CHẠY BẤT ĐỒNG BỘ
         private async void Form24_XacMinhAdmin_Load(object? sender, EventArgs e)
         {
@@ -347,6 +349,20 @@ namespace PhanMemThiDua2026
             foreach (var tip in tips)
             {
                 if (tip.Key != null) toolTip1.SetToolTip(tip.Key, tip.Value);
+            }
+        }
+
+        private void check_HienMatKhau_CheckedChanged(object sender, EventArgs e)
+        {
+            if (check_HienMatKhau.Checked)
+            {
+                // Khi tích chọn -> Xóa ký tự che để hiện mật khẩu
+                text_MatKhau.PasswordChar = '\0';
+            }
+            else
+            {
+                // Khi bỏ chọn -> Che lại bằng dấu chấm đen
+                text_MatKhau.PasswordChar = '●';
             }
         }
     }

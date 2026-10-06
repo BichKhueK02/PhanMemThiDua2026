@@ -15,6 +15,11 @@ namespace PhanMemThiDua2026
         private readonly SemaphoreSlim _navigationLock = new SemaphoreSlim(1, 1);
         private bool _dangDongForm;
         public bool DaLoadDuLieu { get; private set; }
+        private bool _daNapLanDau;
+        private bool _canNapLai;
+        public void DanhDauCanNapLai() => _canNapLai = true;   // gọi khi dữ liệu nguồn thay đổi
+
+
         public Form55_QuanLyHeThongThiDuaBaNhat()
         {
             InitializeComponent();
@@ -82,13 +87,15 @@ namespace PhanMemThiDua2026
                     return;
                 _frm42.Show();
                 _frm42.BringToFront();
-                CapNhatTieuDeFormChinh(
-                    $"Quản lý phong trào thi đua Ba Nhất năm {_namHeThong}");
-                await _frm42.DongBoDuLieuLoai1SangBaNhatAsync();
-                if (_dangDongForm ||
-                    _frm42.IsDisposed)
-                    return;
-                await _frm42.LoadDuLieuToanBoDanhSachBaNhatAsync();
+                CapNhatTieuDeFormChinh( $"Quản lý phong trào thi đua Ba Nhất năm {_namHeThong}");
+                if (!_daNapLanDau || _canNapLai)
+                {
+                    await _frm42.DongBoDuLieuLoai1SangBaNhatAsync();
+                    if (_dangDongForm || _frm42.IsDisposed) return;
+                    await _frm42.LoadDuLieuToanBoDanhSachBaNhatAsync();
+                    _daNapLanDau = true;
+                    _canNapLai = false;
+                }
             }
             finally
             {

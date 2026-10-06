@@ -263,6 +263,7 @@ namespace PhanMemThiDua2026
             // 
             // TableLayoutPanel1
             // 
+            TableLayoutPanel1.BackColor = Color.FromArgb(192, 192, 255);
             TableLayoutPanel1.ColumnCount = 4;
             TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 11.5689383F));
             TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 54.51664F));

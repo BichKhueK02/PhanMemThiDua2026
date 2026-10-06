@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.Runtime.InteropServices; // Thêm để dùng SendMessage
+
 namespace PhanMemThiDua2026
 {
     public partial class Form22_ChinhSuaDataCBCS : Form
@@ -174,7 +175,7 @@ namespace PhanMemThiDua2026
                 var namHienTai = Module_HeThong.LayNamHeThong();
                 var namThiDuaTruoc = namHienTai - 1;
                 groupBox1_ThongTinNamCu.Text = $"1. Thông tin thi đua năm cũ (Năm {namThiDuaTruoc})";
-                groupBox2_ThongTinThiDuaKhenThuongNamHienTai.Text = $"2. Thông tin thi đua - khen thưởng năm {namHienTai}";
+                groupBox2_ThongTinThiDuaKhenThuongNamHienTai.Text = $"2. Thông tin kết quả xét thi đua năm {namHienTai}";
                 if (!string.IsNullOrWhiteSpace(TinhTrang) &&
                     TinhTrang.Equals(Module_HeThong.TT_CHUYEN_CONG_TAC, StringComparison.OrdinalIgnoreCase))
                 {

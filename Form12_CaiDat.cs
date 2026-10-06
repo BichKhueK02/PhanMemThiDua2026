@@ -1039,7 +1039,6 @@ PRAGMA busy_timeout=15000;
             // Phát tín hiệu thông báo phiên bản đã thay đổi tới toàn bộ hệ thống
             Module_TaiKhoan.ThongBaoPhienBanThayDoi();
         }
-        private string CheckboxFlag(CheckBox cb) => cb.Checked ? "TRUE" : "FALSE";
         //Nút o trang 2
         private void LoadComboBoxCauHinh()
         {
@@ -1113,42 +1112,16 @@ PRAGMA busy_timeout=15000;
         private bool KiemTraDayDuCSDL(out string thongBaoThieu)
         {
             thongBaoThieu = string.Empty;
-            string baseDir = AppContext.BaseDirectory;
-            string thuMucDatabase = Path.Combine(baseDir, "Database");
-            string[] tepBatBuoc =
-            {
-        "csdl1.db",
-        "csdl2.db",
-        "csdl3.db",
-        "csdl4.db"
-    };
-            if (!Directory.Exists(thuMucDatabase))
-            {
-                thongBaoThieu = "Không tìm thấy thư mục Database.";
-                return false;
-            }
+            string thuMucDatabase = Path.Combine(AppContext.BaseDirectory, "Database");
+            string[] tepBatBuoc = { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db" };
+            if (!Directory.Exists(thuMucDatabase)) { thongBaoThieu = "Không tìm thấy thư mục Database."; return false; }
+
             var danhSachThieu = new StringBuilder();
-            foreach (var tep in tepBatBuoc)
-            {
-                string duongDan = Path.Combine(thuMucDatabase, tep);
-                if (!File.Exists(duongDan))
-                    danhSachThieu.AppendLine("- " + tep);
-            }
-            if (danhSachThieu.Length > 0)
-            {
-                thongBaoThieu = "Hiện CSDL đang thiếu các tệp:\n\n" + danhSachThieu;
-                return false;
-            }
+            foreach (var tep in tepBatBuoc) if (!File.Exists(Path.Combine(thuMucDatabase, tep))) danhSachThieu.AppendLine("- " + tep);
+            if (danhSachThieu.Length > 0) { thongBaoThieu = "Hiện CSDL đang thiếu các tệp:\n\n" + danhSachThieu; return false; }
             return true;
         }
-        private void goCaiDat_ToolStripMenuItem_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form9_GoCaiDat>(this);
-        }
-        private void chuKySo_ToolStripMenuItem_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form7_ThongTinAdmin>(this);
-        }
+
         private void NapDanhSachNam()
         {
             int namMay = DateTime.Now.Year;
@@ -1394,34 +1367,16 @@ PRAGMA busy_timeout=15000;
                     }
                     System.Threading.Thread.Sleep(500);
                 }
-                // = MỞ FILE =
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = path,
-                    UseShellExecute = true
-                });
-                // = LOG =
-                Module_NhatKy.GhiNhatKy(
-                    Module_TaiKhoan.TenTaiKhoan_RAM,
-                    "Mở file Excel cấu hình",
-                    $"File: {Path.GetFileName(path)} | {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
-                );
+                Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true });
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Mở file Excel cấu hình", $"File: {Path.GetFileName(path)} | {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
             }
             catch (Win32Exception)
             {
-                MessageBox.Show(
-                    "Không có ứng dụng mở file Excel (.xlsx).",
-                    "Thiếu phần mềm",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
+                MessageBox.Show("Không có ứng dụng mở file Excel (.xlsx).", "Thiếu phần mềm", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "Không thể mở tệp Excel\n" + ex.Message,
-                    "Lỗi",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                MessageBox.Show("Không thể mở tệp Excel\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         public static class FormManager
@@ -1540,7 +1495,7 @@ PRAGMA busy_timeout=15000;
                 // Làm sạch danh sách
                 comboBox_KyHieu_TenTrungDoan.Items.Clear();
                 // 2. NẠP DANH SÁCH CỨNG
-                string[] danhSachKyHieuCung = { "E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E09", "E10" };
+                string[] danhSachKyHieuCung = {"E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E09", "E10" };
                 foreach (string kh in danhSachKyHieuCung)
                 {
                     comboBox_KyHieu_TenTrungDoan.Items.Add(kh);
@@ -1618,10 +1573,6 @@ PRAGMA busy_timeout=15000;
             {
                 Application.Exit(); // Thoát khẩn cấp nếu sai quá 3 lần
             }
-        }
-        private void taoTaiKhoan_ToolStripMenuItem_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form3_DangKyTaiKhoan>(this);
         }
         private void TuDongNhungFormKiemTraCSDL()
         {
@@ -2098,25 +2049,22 @@ PRAGMA busy_timeout=15000;
             catch { }
             base.OnFormClosing(e);
         }
-        private void kryptonButton1_CapNhatDanhSachDonVi_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form20_DonVi>(this);
-        }
-        private void kryptonButton1_CaiDatTyLePhanTramE29_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form27_TyLeQuyDinhE29>(this);
-        }
-        private void kryptonButton1_CapNhatChucVu_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form21_ChucVu>(this);
-        }
-        private void kryptonButton_CapNhatDanhSachChiHuyD_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form13_DSChiHuy>(this);
-        }
+        private void kryptonButton1_CapNhatDanhSachDonVi_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form20_DonVi>(this);
+        private void kryptonButton1_CaiDatTyLePhanTramE29_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form27_TyLeQuyDinhE29>(this);
+        private void kryptonButton1_CapNhatChucVu_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form21_ChucVu>(this);
+        private void kryptonButton_CapNhatDanhSachChiHuyD_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form13_DSChiHuy>(this);
+        private void kryptonButton1_TyLePhanTramXetThiDuaNam_Click(object sender, EventArgs e) => FormManager.OpenModal<Form61_TyLeXetThiDuaNam>(this);
+        private void kryptonButton1_CaiDatTyLePhanTramBCH_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form41_TyLeBCHD>(this);
+        private void kryptonButton_TyLePhanTramBaNhat_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form45_TyLeBaNhat>(this);
+        private void kryptonButton_CapNhat_Click(object? sender, EventArgs e) { FormManager.OpenModal<Form47_DonViTrucThuoc>(this); LoadDanhSachDonViVaKyHieu(); }
+        private void taoTaiKhoan_ToolStripMenuItem_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form3_DangKyTaiKhoan>(this);
+        private void kryptonButton1_CapNhatTinhThanhPho_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form57_CapNhatTinhThanhPho>(this);
+        private void goCaiDat_ToolStripMenuItem_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form9_GoCaiDat>(this);
+        private void chuKySo_ToolStripMenuItem_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form7_ThongTinAdmin>(this);
+
+
         // ⭐ HÀM DÙNG CHUNG MỞ FORM CACHE RAM
-        private T ShowCachedForm<T>(T cachedForm)
-     where T : Form, new()
+        private T ShowCachedForm<T>(T cachedForm) where T : Form, new()
         {
             try
             {
@@ -2164,8 +2112,7 @@ PRAGMA busy_timeout=15000;
             try
             {
                 const string tieuDe = "SAO LƯU DỮ LIỆU HỆ THỐNG";
-                string noiDung =
-                    "Hệ thống sẽ thực hiện sao lưu toàn bộ cơ sở dữ liệu hiện tại.\n\n" +
+                string noiDung = "Hệ thống sẽ thực hiện sao lưu toàn bộ cơ sở dữ liệu hiện tại.\n\n" +
                     "Trong quá trình này:\n" +
                     "  • Phần mềm sẽ tự động đóng tạm thời.\n" +
                     "  • Chương trình sao lưu riêng sẽ được kích hoạt.\n" +
@@ -2175,98 +2122,52 @@ PRAGMA busy_timeout=15000;
                     "  • Không chạy nhiều phiên bản phần mềm cùng lúc.\n" +
                     "  • Đảm bảo ổ đĩa còn đủ dung lượng.\n\n" +
                     $"{Module_HeThong.Tu_Dong_Chi} có muốn tiếp tục không?";
-                if (!HienThiFormAo_XacNhan(tieuDe, noiDung))
-                    return;
-                // KIỂM TRA DATABASE
-                string thuMucDatabase = Path.Combine(
-                    AppContext.BaseDirectory,
-                    "Database");
+                if (!HienThiFormAo_XacNhan(tieuDe, noiDung)) return;
+
+                string thuMucDatabase = Path.Combine(AppContext.BaseDirectory, "Database");
                 if (!Directory.Exists(thuMucDatabase))
                 {
-                    HienThiFormAo_CanhBao(
-                        "KHÔNG TÌM THẤY DỮ LIỆU",
-                        "Hệ thống không tìm thấy thư mục Database.\n\n" +
-                        "Vui lòng kiểm tra lại cấu trúc cài đặt.");
+                    HienThiFormAo_CanhBao("KHÔNG TÌM THẤY DỮ LIỆU", "Hệ thống không tìm thấy thư mục Database.\n\nVui lòng kiểm tra lại cấu trúc cài đặt.");
                     return;
                 }
-                string[] dsBatBuoc =
-                {
-            "csdl1.db",
-            "csdl2.db",
-            "csdl3.db",
-            "csdl4.db",
-            "csdlex.xlsx"
-        };
-                var dsThieu = dsBatBuoc
-                    .Where(f => !File.Exists(
-                        Path.Combine(thuMucDatabase, f)))
-                    .ToList();
+
+                string[] dsBatBuoc = { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx" };
+                var dsThieu = dsBatBuoc.Where(f => !File.Exists(Path.Combine(thuMucDatabase, f))).ToList();
                 if (dsThieu.Count > 0)
                 {
-                    HienThiFormAo_CanhBao(
-                        "CƠ SỞ DỮ LIỆU KHÔNG ĐẦY ĐỦ",
-                        "Hệ thống phát hiện thiếu các tệp dữ liệu sau:\n\n- " +
-                        string.Join("\n- ", dsThieu) +
-                        "\n\nVui lòng kiểm tra lại bộ cài hoặc dữ liệu hệ thống.");
+                    HienThiFormAo_CanhBao("CƠ SỞ DỮ LIỆU KHÔNG ĐẦY ĐỦ", "Hệ thống phát hiện thiếu các tệp dữ liệu sau:\n\n- " +
+                        string.Join("\n- ", dsThieu) + "\n\nVui lòng kiểm tra lại bộ cài hoặc dữ liệu hệ thống.");
                     return;
                 }
-                // KIỂM TRA FILE SAO LƯU
-                string exeSaoLuu = Path.Combine(
-                    AppContext.BaseDirectory,
-                    "ServiceBackup.exe");
+
+                string exeSaoLuu = Path.Combine(AppContext.BaseDirectory, "ServiceBackup.exe");
                 if (!File.Exists(exeSaoLuu))
                 {
-                    HienThiFormAo_Loi(
-                        "KHÔNG TÌM THẤY DỊCH VỤ SAO LƯU",
-                        "Hệ thống không tìm thấy tệp:\n\n" +
-                        "ServiceBackup.exe\n\n" +
-                        "Vui lòng kiểm tra lại thư mục cài đặt.");
+                    HienThiFormAo_Loi("KHÔNG TÌM THẤY DỊCH VỤ SAO LƯU", "Hệ thống không tìm thấy tệp:\n\nServiceBackup.exe\n\nVui lòng kiểm tra lại thư mục cài đặt.");
                     return;
                 }
-                // KHỞI CHẠY SERVICE SAO LƯU
-                var psi = new ProcessStartInfo
-                {
-                    FileName = exeSaoLuu,
-                    WorkingDirectory = AppContext.BaseDirectory,
-                    UseShellExecute = true
-                };
+
+                var psi = new ProcessStartInfo { FileName = exeSaoLuu, WorkingDirectory = AppContext.BaseDirectory, UseShellExecute = true };
                 try
                 {
-                    // Cấp quyền cho ServiceBackup
-                    string thuMucBackup = Path.Combine(
-                        AppContext.BaseDirectory,
-                        "Database",
-                        "Bansaoluu"
-                    );
+                    string thuMucBackup = Path.Combine(AppContext.BaseDirectory, "Database", "Bansaoluu");
                     Directory.CreateDirectory(thuMucBackup);
-                    string licPath = Path.Combine(
-                        thuMucBackup,
-                        "GiayPhepCapQuyen_ServiceBackup.dat"
-                    );
-                    Module_CapQuyenService.TaoGiayPhep(
-                        "ServiceBackup",
-                        licPath
-                    );
+                    string licPath = Path.Combine(thuMucBackup, "GiayPhepCapQuyen_ServiceBackup.dat");
+                    Module_CapQuyenService.TaoGiayPhep("ServiceBackup", licPath);
                 }
                 catch (Exception ex)
                 {
-                    HienThiFormAo_Loi(
-                        "LỖI CẤP QUYỀN",
-                        "Không thể tạo file xác thực: " + ex.Message
-                    );
+                    HienThiFormAo_Loi("LỖI CẤP QUYỀN", "Không thể tạo file xác thực: " + ex.Message);
                     return;
                 }
+
                 Process.Start(psi);
                 Application.Exit();
-                // ĐÓNG HỆ THỐNG CHÍNH
             }
             catch (Exception ex)
             {
-                HienThiFormAo_Loi(
-                    "LỖI SAO LƯU DỮ LIỆU",
-                    ex.Message);
-                System.Diagnostics.Debug.WriteLine(
-                    $"[BACKUP_ERROR] {ex}");
+                HienThiFormAo_Loi("LỖI SAO LƯU DỮ LIỆU", ex.Message);
+                System.Diagnostics.Debug.WriteLine($"[BACKUP_ERROR] {ex}");
             }
         }
         // KHÔI PHỤC DỮ LIỆU - CHUẨN HÓA HỆ THỐNG
@@ -2280,8 +2181,7 @@ PRAGMA busy_timeout=15000;
             try
             {
                 const string tieuDe = "KHÔI PHỤC DỮ LIỆU HỆ THỐNG";
-                string noiDung =
-                    "Hệ thống sẽ tiến hành khôi phục dữ liệu từ bản sao lưu.\n\n" +
+                string noiDung = "Hệ thống sẽ tiến hành khôi phục dữ liệu từ bản sao lưu.\n\n" +
                     "Trong quá trình này:\n" +
                     "  • Phần mềm hiện tại sẽ tự động đóng.\n" +
                     "  • Dịch vụ khôi phục dữ liệu sẽ được kích hoạt.\n" +
@@ -2291,98 +2191,56 @@ PRAGMA busy_timeout=15000;
                     "  • Chỉ khôi phục từ nguồn dữ liệu tin cậy.\n" +
                     "  • Nên sao lưu dữ liệu hiện tại trước khi tiếp tục.\n\n" +
                     $"{Module_HeThong.Tu_Dong_Chi} có muốn tiếp tục không?";
-                if (!HienThiFormAo_XacNhan(tieuDe, noiDung))
-                    return;
-                // KIỂM TRA CSDL HIỆN TẠI
+                if (!HienThiFormAo_XacNhan(tieuDe, noiDung)) return;
+
                 if (!KiemTraDayDuCSDL(out string thongBaoThieu))
                 {
-                    HienThiFormAo_CanhBao(
-                        "CƠ SỞ DỮ LIỆU KHÔNG HỢP LỆ",
-                        thongBaoThieu);
+                    HienThiFormAo_CanhBao("CƠ SỞ DỮ LIỆU KHÔNG HỢP LỆ", thongBaoThieu);
                     return;
                 }
-                // KIỂM TRA FILE SERVICE KHÔI PHỤC
-                string exeKhoiPhuc = Path.Combine(
-                    AppContext.BaseDirectory,
-                    "ServiceRestore.exe");
+
+                string exeKhoiPhuc = Path.Combine(AppContext.BaseDirectory, "ServiceRestore.exe");
                 if (!File.Exists(exeKhoiPhuc))
                 {
-                    HienThiFormAo_Loi(
-                        "KHÔNG TÌM THẤY DỊCH VỤ KHÔI PHỤC",
-                        "Hệ thống không tìm thấy tệp:\n\n" +
-                        "ServiceRestore.exe\n\n" +
-                        "Vui lòng kiểm tra lại thư mục cài đặt.");
+                    HienThiFormAo_Loi("KHÔNG TÌM THẤY DỊCH VỤ KHÔI PHỤC", "Hệ thống không tìm thấy tệp:\n\nServiceRestore.exe\n\nVui lòng kiểm tra lại thư mục cài đặt.");
                     return;
                 }
-                // KHỞI ĐỘNG DỊCH VỤ KHÔI PHỤC
-                var psi = new ProcessStartInfo
-                {
-                    FileName = exeKhoiPhuc,
-                    WorkingDirectory = AppContext.BaseDirectory,
-                    UseShellExecute = true
-                };
+
+                var psi = new ProcessStartInfo { FileName = exeKhoiPhuc, WorkingDirectory = AppContext.BaseDirectory, UseShellExecute = true };
                 try
                 {
-                    // Cấp quyền cho ServiceRestore
-                    string thuMucBackup = Path.Combine(
-                        AppContext.BaseDirectory,
-                        "Database",
-                        "Bansaoluu"
-                    );
+                    string thuMucBackup = Path.Combine(AppContext.BaseDirectory, "Database", "Bansaoluu");
                     Directory.CreateDirectory(thuMucBackup);
-                    string licPath = Path.Combine(
-                        thuMucBackup,
-                        "GiayPhepCapQuyen_ServiceRestore.dat"
-                    );
-                    Module_CapQuyenService.TaoGiayPhep(
-                        "ServiceRestore",
-                        licPath
-                    );
+                    string licPath = Path.Combine(thuMucBackup, "GiayPhepCapQuyen_ServiceRestore.dat");
+                    Module_CapQuyenService.TaoGiayPhep("ServiceRestore", licPath);
                 }
                 catch (Exception ex)
                 {
-                    HienThiFormAo_Loi(
-                        "LỖI CẤP QUYỀN",
-                        "Không thể tạo file xác thực: " + ex.Message
-                    );
+                    HienThiFormAo_Loi("LỖI CẤP QUYỀN", "Không thể tạo file xác thực: " + ex.Message);
                     return;
                 }
+
                 Process.Start(psi);
-                // THOÁT PHẦN MỀM CHÍNH
                 Application.Exit();
             }
             catch (Exception ex)
             {
-                HienThiFormAo_Loi(
-                    "LỖI KHÔI PHỤC DỮ LIỆU",
-                    ex.Message);
-                System.Diagnostics.Debug.WriteLine(
-                    $"[RESTORE_ERROR] {ex}");
+                HienThiFormAo_Loi("LỖI KHÔI PHỤC DỮ LIỆU", ex.Message);
+                System.Diagnostics.Debug.WriteLine($"[RESTORE_ERROR] {ex}");
             }
         }
-        private void kryptonButton2_ChuyenGiaoDuLieu_Click(
-    object sender,
-    EventArgs e)
+        private void kryptonButton2_ChuyenGiaoDuLieu_Click(object? sender, EventArgs e)
         {
             try
             {
-                var formCha = Application.OpenForms
-                    .OfType<Form2_FormCha>()
-                    .FirstOrDefault();
-                if (formCha == null)
-                    return;
-                formCha.OpenChildForm<Form31_ChuyenGiaoDuLieu>(
-                    "Chuyển giao dữ liệu");
+                var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+                if (formCha == null) return;
+                formCha.OpenChildForm<Form31_ChuyenGiaoDuLieu>("Chuyển giao dữ liệu");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
-                MessageBox.Show(
-                    "Không thể mở trang Chuyển giao dữ liệu.\n"
-                    + ex.Message,
-                    "Thông báo",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
+                MessageBox.Show("Không thể mở trang Chuyển giao dữ liệu.\n" + ex.Message, "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
         private void kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet_Click(object? sender, EventArgs e)
@@ -2411,21 +2269,7 @@ PRAGMA busy_timeout=15000;
             {
                 System.Diagnostics.Debug.WriteLine($"Lỗi khi gọi Form40: {ex.Message}");
             }
-        }
-        private void kryptonButton1_CaiDatTyLePhanTramBCH_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form41_TyLeBCHD>(this);
-        }
-        private void kryptonButton_TyLePhanTramBaNhat_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form45_TyLeBaNhat>(this);
-        }
-        private void kryptonButton_CapNhat_Click(object? sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form47_DonViTrucThuoc>(this);
-            // ⭐ CHẠY NGAY TỨC THÌ KHI FORM 47 VỪA ĐÓNG LẠI
-            LoadDanhSachDonViVaKyHieu();
-        }
+        }  
         private void LoadDanhSachDonViVaKyHieu()
         {
             if (comboBox_TenTieuDoan == null || comboBox_KyHieu_TenTieuDoan == null) return;
@@ -2564,11 +2408,6 @@ PRAGMA busy_timeout=15000;
             }
 
         }
-        private void kryptonButton1_CapNhatTinhThanhPho_Click(object? sender, EventArgs e)
-        {
-            //kryptonButton1_CapNhatTinhThanhPho
-            FormManager.OpenModal<Form57_CapNhatTinhThanhPho>(this);
-        }
         private void KhoiTaoBang_DonViBanHanhToTrinh()
         {
             string connectionString = $"Data Source={_csdl2Path};";
@@ -2637,57 +2476,22 @@ PRAGMA busy_timeout=15000;
                 }
             }
         }
-        private void pictureBox9_Click(object sender, EventArgs e)
+        private void pictureBox9_Click(object? sender, EventArgs e)
         {
             try
             {
-                // Kiểm tra control
-                if (comboBox1_NamHienTai == null)
-                {
-                    HienThiFormAo_Loi(
-                        "LỖI HỆ THỐNG",
-                        "Không tìm thấy ô chọn năm hệ thống.");
-                    return;
-                }
-                // Kiểm tra dữ liệu rỗng
-                if (string.IsNullOrWhiteSpace(comboBox1_NamHienTai.Text))
-                {
-                    HienThiFormAo_CanhBao(
-                        "THIẾU THÔNG TIN",
-                        $"{Module_HeThong.Tu_Dong_Chi} vui lòng chọn năm hệ thống trước khi sử dụng.");
-                    comboBox1_NamHienTai.Focus();
-                    return;
-                }
-                // Kiểm tra dữ liệu số
-                if (!int.TryParse(comboBox1_NamHienTai.Text.Trim(), out int namHeThong))
-                {
-                    HienThiFormAo_CanhBao(
-                        "DỮ LIỆU KHÔNG HỢP LỆ",
-                        $"Giá trị [{comboBox1_NamHienTai.Text}] không phải là một năm hợp lệ.");
-                    comboBox1_NamHienTai.Focus();
-                    return;
-                }
-                string message =
-                    $"Năm hệ thống hiện tại: {namHeThong}\n\n" +
-                    $"  • Đây là năm được sử dụng chung cho toàn bộ phần mềm.\n" +
-                    $"  • Đồng chí chỉ cần cài đặt một lần để đảm bảo dữ liệu đồng bộ.\n\n" +
-                    $"Lưu ý: Nếu máy tính bị sai ngày giờ (do cạn pin CMOS), đồng chí\n" +
-                    $"có thể chủ động chỉnh lại năm tại đây để hệ thống kết xuất chuẩn xác.";
-                HienThiFormAo_ThongTin(
-                    "THÔNG TIN NĂM HỆ THỐNG",
-                    message);
-            }
-            catch (Exception ex)
-            {
-                HienThiFormAo_Loi(
-                    "LỖI XỬ LÝ",
-                    $"Đã xảy ra lỗi trong quá trình kiểm tra năm hệ thống:\n{ex.Message}");
-            }
-        }
+                if (comboBox1_NamHienTai == null) { HienThiFormAo_Loi("LỖI HỆ THỐNG", "Không tìm thấy ô chọn năm hệ thống."); return; }
+                if (string.IsNullOrWhiteSpace(comboBox1_NamHienTai.Text)) { HienThiFormAo_CanhBao("THIẾU THÔNG TIN", $"{Module_HeThong.Tu_Dong_Chi} vui lòng chọn năm hệ thống trước khi sử dụng."); comboBox1_NamHienTai.Focus(); return; }
+                if (!int.TryParse(comboBox1_NamHienTai.Text.Trim(), out int namHeThong)) { HienThiFormAo_CanhBao("DỮ LIỆU KHÔNG HỢP LỆ", $"Giá trị [{comboBox1_NamHienTai.Text}] không phải là một năm hợp lệ."); comboBox1_NamHienTai.Focus(); return; }
 
-        private void kryptonButton1_TyLePhanTramXetThiDuaNam_Click(object sender, EventArgs e)
-        {
-            FormManager.OpenModal<Form61_TyLeXetThiDuaNam>(this);
+                string message = $"Năm hệ thống hiện tại: {namHeThong}\n\n" +
+                                 $"  • Đây là năm được sử dụng chung cho toàn bộ phần mềm.\n" +
+                                 $"  • Đồng chí chỉ cần cài đặt một lần để đảm bảo dữ liệu đồng bộ.\n\n" +
+                                 $"Lưu ý: Nếu máy tính bị sai ngày giờ (do cạn pin CMOS), đồng chí\n" +
+                                 $"có thể chủ động chỉnh lại năm tại đây để hệ thống kết xuất chuẩn xác.";
+                HienThiFormAo_ThongTin("THÔNG TIN NĂM HỆ THỐNG", message);
+            }
+            catch (Exception ex) { HienThiFormAo_Loi("LỖI XỬ LÝ", $"Đã xảy ra lỗi trong quá trình kiểm tra năm hệ thống:\n{ex.Message}"); }
         }
     }
 }//Ngoài luồng

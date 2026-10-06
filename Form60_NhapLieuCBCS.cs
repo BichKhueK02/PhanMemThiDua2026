@@ -355,7 +355,7 @@ namespace PhanMemThiDua2026
             // Đặt chuỗi STT tự động từ 1
             string sttText = (e.RowIndex + 1).ToString();
             // Font chữ và cọ vẽ STT
-            Font fontStt = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            Font fontStt = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
             Brush brushText = SystemBrushes.ControlText;
             // Căn chỉnh chữ nằm giữa Row Header
             StringFormat sf = new StringFormat

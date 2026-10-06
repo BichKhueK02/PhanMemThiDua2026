@@ -2,7 +2,6 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
 
-
 // ==== HẰNG SỐ DÙNG CHUNG (TRÁNH MAGIC STRING RẢI RÁC) ====
 namespace PhanMemThiDua2026
 {

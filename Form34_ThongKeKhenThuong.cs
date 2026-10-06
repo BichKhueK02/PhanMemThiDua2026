@@ -1185,6 +1185,7 @@ namespace PhanMemThiDua2026
                     ws.Column(2).Width = 45;
                     ws.Column(3).Width = 15;
                     ws.Column(4).Width = 60;
+                    Module_BanQuyen.DongDauExcel(wb);
                     wb.SaveAs(filePath);
                 }
                 else

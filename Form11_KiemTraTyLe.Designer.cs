@@ -467,6 +467,7 @@
             text_Texttongquanso.StateCommon.Border.Rounding = 8F;
             text_Texttongquanso.StateCommon.Border.Width = 1;
             text_Texttongquanso.TabIndex = 42;
+            text_Texttongquanso.TextAlign = HorizontalAlignment.Center;
             // 
             // btn_TextTinh
             // 

@@ -1257,21 +1257,19 @@
   </metadata>
   <data name="xuatNhatKy_ToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAALfSURBVDhPldNfbFNVAMfx36v6xpNPJvAwYzRZwug2
-        Eea2dltinFMjECP+fRtgBCkjAeyYLIIFC3TVtcNINWpwEBKNiaJIUBdZBqO3t1S6rl1hg40/MwYXx9qu
-        /ZJ7y+pevckn9+Tk/H733JN7ZQadfxuB1UT8K23WONrbcM0MOh83g67lZtBVVRZyVcVCrppYX5Nifc02
-        WQHmU3A3UZIbZdjn4OLhJ8uli1nrzWDjrXJBxP8U3I2Tjb7BnPEmhdvfw+wIzCVLspbR0j2XhGLGLomF
-        mhz/FcwOkY23k41vIntpA9lL1rid3J8byCc2Mj+ykULS0g6FJEbPKvp3VlfeL1gFM2fJj2wmn9xKPuku
-        GXVTGOsg9U0b5/dXM3zA4mD4wAouHqq9/yrOk4r4V8PMjxQz2yle2Unx6i6wjL9H+viL3PxpLeTSkB+D
-        XAayKcgmoJDCCNShSE8dzH7H2IkXGPI6bOct+2uYPvMqjL4LKTdPeMQ7YdEZfhgmPiI/fpLfvCsHZXxc
-        z1z6EImwC+bTpYPKp6F4HcY9ML4Hru/D0SWiV9xs+VJ099cwM7CXYx2OzYp+0sitgS1Mnt4E//xMMdMB
-        Ex7e/+oRKjvF8k7Z4epOEZ/o4tfEOrb2C7d3CZKWKNrrJH1iLf8mffDXFzDZDdM+Kj0iPR3AnHoWc6qN
-        6GQrl2/00Pu7GMi8xo5vRZ1Xx2SGXBiBpyF/HGaOwJ0AzH5GVZcYnnqb0KDKes+J4KDoGxIXJt+i+UMh
-        I9h0xww6MQL1RPx1RP31pAIt1H4gzt5oIHxZtqNx8alRcjQmuk4Jp0e/SFLljpcfe33bmor17jUV67e9
-        VPGK+/lH19V69IP1hJZ9onmvaNwjPh8R4YTYfVo07NIpSctK37P0kKQHF3lA0lJJVQusoq+vid1nyuGl
-        bQel8l+1IN7XoqtHWtXgk1oPStai53zSM17R/YcdtrZth+2C/3Et7GbZ4sl7G+JV0nCi5tYAAAAASUVO
-        RK5CYII=
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAZdEVYdFNvZnR3YXJlAEFkb2JlIEltYWdlUmVhZHlxyWU8AAACZ0lEQVQ4T42T204TURSG96OY
+        GIMYIyeLVZRAkdYLiEhMJPHCB/DCUAOKwAW2Tdr4BF7ghUqxM7Pn0HbaQlttonghLwGeagt2OPSARfnN
+        XrQD3LGSP3vnXzvfrLX2bDYYcLKQMVfsn3PA4++BJ9AD13MHpsKPMBJ0IxFbAtd0yKoKrmlQdV0xYjEW
+        M00Sc/kcMgBMpEYwmxkjTaRuCwv9wYu0Ho9CoQBFVRebEDbod2IydYeSztlWXJk5T3uvOYSBYBs289tY
+        W/tK3uuFBVp/5fNQNI0gzBO4jpn0GNwvOuyvPJUeYjI1CneoE9sbFXz/9oP8t+Ew6vv7tBeViHYIMJ2+
+        h7svnTbAnxjHZHIUg6FOlK09/MwXyP+yukqQZiViJuymz4nHiWEy7r+5igfhXtqPm0NwBdtQ26mjWNyw
+        4cdDDJYN+LpPmF5zmPoX0RtoRW13H5u/LRSKmygUN2wRgHMw10x3rm+uE87ZC3BMt+DysxZ0TZ1D25Mz
+        mF70olauY8vahlWyYJW2UCpZJBvAGDvLGOsSSpu5E9XgL7C39wflSgWVahXVWg3VWhXlaoXSimjhVvAa
+        6/N3sA/LH5lhxCnBJQVRrsNQNCiSjH8HB5ClCDiXSFLk3RHghu8Syy1/YonEEhNTFaHJHPPrGcyvZ2Hw
+        hqcpyK7UkVmpE4QA4hbSqfcsmVxisbjJhGED1jJ4tZ5FVNWhcg5d58h+bgCUyBEgbibpl4zG4zZAjkgE
+        EVIk5fCwfFg+tSA1WhCA5qMQAFXXKXHaEOdtgJBmGDvCFLMQdJKqHqnhNV4lxHlxjcejvXmlp1T7fzA4
+        2+hupllbAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="trangTiepTheo_ToolStripMenuItem.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">

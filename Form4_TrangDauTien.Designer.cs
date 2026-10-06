@@ -475,7 +475,7 @@
             comboBox2_ChonSoThang.ForeColor = Color.Black;
             comboBox2_ChonSoThang.FormattingEnabled = true;
             comboBox2_ChonSoThang.Items.AddRange(new object[] { "01", "02", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" });
-            comboBox2_ChonSoThang.Location = new Point(367, 6);
+            comboBox2_ChonSoThang.Location = new Point(367, 5);
             comboBox2_ChonSoThang.Margin = new Padding(2, 3, 2, 3);
             comboBox2_ChonSoThang.Name = "comboBox2_ChonSoThang";
             comboBox2_ChonSoThang.RightToLeft = RightToLeft.No;
@@ -490,7 +490,7 @@
             comboBox2_ChonSoTuan.ForeColor = Color.Black;
             comboBox2_ChonSoTuan.FormattingEnabled = true;
             comboBox2_ChonSoTuan.Items.AddRange(new object[] { "Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4" });
-            comboBox2_ChonSoTuan.Location = new Point(570, 6);
+            comboBox2_ChonSoTuan.Location = new Point(570, 5);
             comboBox2_ChonSoTuan.Margin = new Padding(2, 3, 2, 3);
             comboBox2_ChonSoTuan.Name = "comboBox2_ChonSoTuan";
             comboBox2_ChonSoTuan.RightToLeft = RightToLeft.No;
@@ -505,7 +505,7 @@
             comboBox1_ChonLoaiBaoCao.ForeColor = Color.Black;
             comboBox1_ChonLoaiBaoCao.FormattingEnabled = true;
             comboBox1_ChonLoaiBaoCao.Items.AddRange(new object[] { "Tháng", "Tuần" });
-            comboBox1_ChonLoaiBaoCao.Location = new Point(154, 6);
+            comboBox1_ChonLoaiBaoCao.Location = new Point(154, 5);
             comboBox1_ChonLoaiBaoCao.Margin = new Padding(2, 3, 2, 3);
             comboBox1_ChonLoaiBaoCao.Name = "comboBox1_ChonLoaiBaoCao";
             comboBox1_ChonLoaiBaoCao.RightToLeft = RightToLeft.No;
@@ -540,7 +540,7 @@
             comboBox1_CheDoXetThiDua.ForeColor = Color.Black;
             comboBox1_CheDoXetThiDua.FormattingEnabled = true;
             comboBox1_CheDoXetThiDua.Items.AddRange(new object[] { "Tháng", "Năm" });
-            comboBox1_CheDoXetThiDua.Location = new Point(571, 5);
+            comboBox1_CheDoXetThiDua.Location = new Point(571, 4);
             comboBox1_CheDoXetThiDua.Margin = new Padding(2, 3, 2, 3);
             comboBox1_CheDoXetThiDua.Name = "comboBox1_CheDoXetThiDua";
             comboBox1_CheDoXetThiDua.RightToLeft = RightToLeft.No;
@@ -569,7 +569,7 @@
             comboBox_ChiHuyD.Font = new Font("Segoe UI", 9.216F);
             comboBox_ChiHuyD.ForeColor = Color.Black;
             comboBox_ChiHuyD.FormattingEnabled = true;
-            comboBox_ChiHuyD.Location = new Point(155, 4);
+            comboBox_ChiHuyD.Location = new Point(155, 5);
             comboBox_ChiHuyD.Margin = new Padding(2, 3, 2, 3);
             comboBox_ChiHuyD.Name = "comboBox_ChiHuyD";
             comboBox_ChiHuyD.RightToLeft = RightToLeft.No;
@@ -681,7 +681,7 @@
             com_DeNghi.ForeColor = Color.Black;
             com_DeNghi.FormattingEnabled = true;
             com_DeNghi.Items.AddRange(new object[] { "Loại 1", "Loại 2", "Loại 3", "Loại 4", "Không phân loại" });
-            com_DeNghi.Location = new Point(157, 4);
+            com_DeNghi.Location = new Point(157, 5);
             com_DeNghi.Margin = new Padding(2, 3, 2, 3);
             com_DeNghi.Name = "com_DeNghi";
             com_DeNghi.RightToLeft = RightToLeft.No;
@@ -754,7 +754,7 @@
             comboBox_Nam.Font = new Font("Segoe UI", 9.216F);
             comboBox_Nam.ForeColor = Color.Black;
             comboBox_Nam.FormattingEnabled = true;
-            comboBox_Nam.Location = new Point(466, 6);
+            comboBox_Nam.Location = new Point(466, 5);
             comboBox_Nam.Margin = new Padding(2, 3, 2, 3);
             comboBox_Nam.Name = "comboBox_Nam";
             comboBox_Nam.RightToLeft = RightToLeft.No;
@@ -799,7 +799,7 @@
             comboBox_Thang.ForeColor = Color.Black;
             comboBox_Thang.FormattingEnabled = true;
             comboBox_Thang.Items.AddRange(new object[] { "01", "02", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" });
-            comboBox_Thang.Location = new Point(400, 6);
+            comboBox_Thang.Location = new Point(400, 5);
             comboBox_Thang.Margin = new Padding(2, 3, 2, 3);
             comboBox_Thang.Name = "comboBox_Thang";
             comboBox_Thang.RightToLeft = RightToLeft.No;
@@ -829,7 +829,7 @@
             comboBox_Ngay.ForeColor = Color.Black;
             comboBox_Ngay.FormattingEnabled = true;
             comboBox_Ngay.Items.AddRange(new object[] { "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31" });
-            comboBox_Ngay.Location = new Point(338, 6);
+            comboBox_Ngay.Location = new Point(338, 5);
             comboBox_Ngay.Margin = new Padding(2, 3, 2, 3);
             comboBox_Ngay.Name = "comboBox_Ngay";
             comboBox_Ngay.RightToLeft = RightToLeft.No;
@@ -857,7 +857,7 @@
             comboBox_DiaDiem.Font = new Font("Segoe UI", 9.216F);
             comboBox_DiaDiem.ForeColor = Color.Black;
             comboBox_DiaDiem.FormattingEnabled = true;
-            comboBox_DiaDiem.Location = new Point(157, 6);
+            comboBox_DiaDiem.Location = new Point(157, 5);
             comboBox_DiaDiem.Margin = new Padding(2, 3, 2, 3);
             comboBox_DiaDiem.Name = "comboBox_DiaDiem";
             comboBox_DiaDiem.RightToLeft = RightToLeft.No;
@@ -1202,7 +1202,7 @@
             comboBox1_ChonLoaiDeXuat.Font = new Font("Segoe UI", 9.216F);
             comboBox1_ChonLoaiDeXuat.ForeColor = Color.Black;
             comboBox1_ChonLoaiDeXuat.FormattingEnabled = true;
-            comboBox1_ChonLoaiDeXuat.Location = new Point(120, 10);
+            comboBox1_ChonLoaiDeXuat.Location = new Point(120, 9);
             comboBox1_ChonLoaiDeXuat.Margin = new Padding(2, 3, 2, 3);
             comboBox1_ChonLoaiDeXuat.Name = "comboBox1_ChonLoaiDeXuat";
             comboBox1_ChonLoaiDeXuat.RightToLeft = RightToLeft.No;

@@ -317,7 +317,7 @@
             groupBox2_ThongTinThiDuaKhenThuongNamHienTai.Size = new Size(672, 275);
             groupBox2_ThongTinThiDuaKhenThuongNamHienTai.TabIndex = 2;
             groupBox2_ThongTinThiDuaKhenThuongNamHienTai.TabStop = false;
-            groupBox2_ThongTinThiDuaKhenThuongNamHienTai.Text = "2. Thông tin thi đua - khen thưởng";
+            groupBox2_ThongTinThiDuaKhenThuongNamHienTai.Text = "2. Thông tin kết quả xét thi đua";
             // 
             // tableLayoutPanel3
             // 
