@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.VariantTypes;
+﻿
 using System.Diagnostics;
 using System.Globalization;
 
@@ -29,11 +29,11 @@ namespace PhanMemThiDua2026
                 text_Texttongquanso.Focus();
             };
         }
-        private void Form11_KiemTraTyLe_Shown(object? sender, EventArgs e)
-        {
-            // Đặt con trỏ vào ô nhập quân số và bôi đen toàn bộ văn bản ngay khi Form hiện lên
-            text_Texttongquanso.Focus();
-        }
+        //private void Form11_KiemTraTyLe_Shown(object? sender, EventArgs e)
+        //{
+        //    // Đặt con trỏ vào ô nhập quân số và bôi đen toàn bộ văn bản ngay khi Form hiện lên
+        //    text_Texttongquanso.Focus();
+        //}
         private void ConfigureForm()
         {
             // 2. Cài đặt thuộc tính hiển thị Form
@@ -42,7 +42,7 @@ namespace PhanMemThiDua2026
             this.MaximizeBox = false;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             AcceptButton = btn_TextTinh;
-            CancelButton = btn_TextTinh; // nếu có
+            //CancelButton = btn_TextTinh; // nếu có
         }
 
         private void WireEvents()
@@ -52,10 +52,8 @@ namespace PhanMemThiDua2026
 
         private void TextTongQuanSo_GotFocus(object? sender, EventArgs e)
         {
-            if (sender is not TextBox tb) return;
-
-            // BeginInvoke để SelectAll chạy sau khi hành vi click mặc định hoàn tất
-            tb.BeginInvoke(() => tb.SelectAll());
+            if (sender is not Krypton.Toolkit.KryptonTextBox ktb) return;
+            ktb.BeginInvoke(() => ktb.SelectAll());
         }
         // Hàm cập nhật biến và tải lại dữ liệu nếu Form11 đang mở sẵn hoặc gọi từ bên ngoài
         public void CapNhatCheDoXet(string cheDo)
@@ -65,16 +63,14 @@ namespace PhanMemThiDua2026
             // Nếu Form đã load xong giao diện thì nạp lại Cache & cập nhật ComboBox khi chế độ xét thay đổi
             if (_daTaiXong)
             {
-                TaiDuLieuTuSQLiteVaoCache();
+                if (InvokeRequired) { Invoke(() => CapNhatCheDoXet(cheDo)); return; }
                 Com_textphanloai_SelectedIndexChanged(null, EventArgs.Empty);
             }
         }
 
         private void Form11_Load(object? sender, EventArgs e)
         {
-
             ListBox2.Font = new Font(ListBox2.Font.FontFamily, 10f, FontStyle.Regular);
-
             // 🟢 CÀI ĐẶT MÀU SẮC CUSTOM CHO LISTBOX2
             ListBox2.DrawMode = DrawMode.OwnerDrawFixed;
             ListBox2.DrawItem -= ListBox2_DrawItem; // Tránh trùng lặp sự kiện
@@ -101,7 +97,7 @@ namespace PhanMemThiDua2026
                 ListBox2.Items.Add($"⚠️ {Module_HeThong.Tu_Dong_Chi} hãy nhập Tổng quân số!");
                 ListBox2.Items.Add("Để thực hiện phép tính số lượng đạt tỷ lệ %");
             }
-            text_Texttongquanso.Focus();
+          //  text_Texttongquanso.Focus();
         }
 
         // Màu chọn dùng chung, tránh tạo mới ở mỗi lần vẽ
@@ -373,10 +369,11 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                btn_TextTinh.Text = "Tính";
+                btn_TextTinh.Values.Text = "TÍNH KẾT QUẢ";
                 btn_TextTinh.Enabled = true;
                 tienDo_kryptonProgressBar1.Text = "Hoàn thành";
                 tienDo_kryptonProgressBar1.Value = 0;
+                tienDo_kryptonProgressBar1.Visible = false;
                 text_Texttongquanso.Focus();
             }
         }
@@ -419,6 +416,11 @@ namespace PhanMemThiDua2026
             ListBox2.Items.Add($"   + Số lượng L1/L2 : {qLoai1}/{qLoai2} = {tlLoai1Thuc.ToString(CultureInfo.InvariantCulture)}%");
             ListBox2.Items.Add($"   + Số lượng L2/Tổng: {qLoai2}/{(int)tongQS} = {tlLoai2Thuc.ToString(CultureInfo.InvariantCulture)}%");
             ListBox2.Items.Add($"   + Số lượng L3/Tổng: {qLoai3}/{(int)tongQS} = {tlLoai3Thuc.ToString(CultureInfo.InvariantCulture)}%");
+        }
+
+        private void Label5_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

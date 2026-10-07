@@ -1659,3 +1659,4 @@
         internal Krypton.Toolkit.KryptonButton kryptonButton1_TyLePhanTramXetThiDuaNam;
     }
 }
+    

@@ -71,6 +71,7 @@
     <EditorConfigFiles Remove="E:\PhanMemThiDua2026\.editorconfig" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".github\copilot-instructions.md" />
     <None Include="E:\PhanMemThiDua2026\.editorconfig" />
     <None Include="Module_BaoMatAES.cs" />
   </ItemGroup>
