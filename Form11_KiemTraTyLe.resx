@@ -117,13 +117,48 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
   <metadata name="ContextMenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>115, 17</value>
   </metadata>
-  <metadata name="$this.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
+  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
   </metadata>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>25</value>
+  </metadata>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAEAGBgAAAEACADIBgAAFgAAACgAAAAYAAAAMAAAAAEACAAAAAAAoAIAAAAAAAAAAAAAAAEAAAAA
+        AAA2wWQANb9iACqGMgArbCgAa9qmAC6ROQAraCgALJI3ADzBXQAlZCAAKWEiAEmVTQAuaSkAZ9GRAKfo
+        zQA1vmUAZ92tAGfcqwBu1JsALHIrAELFdQA7vlsAMYc2ADSgSQAvgjMAbNadADi9YwA5ul0AN75mADm3
+        VwA5ulsAbNagACpmJQBr26gAb9WeADCmRwBkuXYAcNWeADm4WgBDmkoAM5VAAD2sUQA6uVgAKmMkACpl
+        JQArdCsALHQsAGvWoABu05kAOr1gAGvYogBp1Z4ALqRFADW+ZgBv1ZwAQcVyADa+ZgAxn0MAa9mlAHHV
+        nwAueSwAOblbAHnfsgBx1ZwAOL9jADi/ZAAqaiYAiOCyAHLZnwBk26kAiuO5ADa3VwBv2aYAN7ZVAFPK
+        gQA4wmYAitmsAGjVmgA3p0oAMIw6AECgTQA3uV8ANsJpAJTmyABlzZIAScd4AHnIkQBz0ZcAk+a/AGbG
+        fwA0tVIAgdCdAJDoyACX1q0AObhfAIzmxAA8lUQAbdWdADi1VwAzvWQAMncxAGW8eQA5m0YAMsBmACtl
+        JgBu2ZoAbNulAGrZpABJnlQAXs2JAD6OQQAoZiUApufLAD2dSABo0pUAN79nADq+XgA1tlQAMpU+AGrX
+        oQA2q1AAPKlRAChrJAAqaSgANKhMAHXFhQA4uFoAPKxPADjBZQA5wWYASqdaAEW0XgA5ulgAsOrOADq7
+        WQCm7dYAMYk1AGbcpwA4hzoAOIo7AChlIwBav3YAOLRRAD3EcQBu3KoAbt6tAJHlwQBo1Z8AVsqBAHDU
+        nwA/rVMAOadNALHz3wAuhzIALoM2AC+ENQA2uVoAK5g+ADC9XgB316UAkuC8AGPQjgCV4r8AMphAAHba
+        ogCQ3rAAMptEADSzVwBp2qcAN5BAAGrYoQAyl0QAY8+EAC+cQACQ2a4AOrteAHHXoABgwXsAOsBhAG7g
+        rwA4tVUAoujFAHTgsgA6t1cAXa9qACmROAA7wm0ALpU7AIfpxABox4UApObFAJjkvACA2JkAL4s4AIDb
+        ngCn374AadijACRoIgBp16EAb9qfAAAAAABv2qYASKJVAGrTmgBbrGUAbdSYADm9WAA6vVoAbtqiAFnN
+        iQBAxmgAN6pLAEnIegBewX4AUsVyACpnJwBQyn8ANLlXACx0KwCE0p8AMXkuAGzTlAA5vVwAOr1dAHHd
+        qwA6vV8AULVmAE+vYQBr1Z8ANZA+AJjjuQCZ4bsAa9ehAGfbqgA1rlMANHsyADd+NgA/q1MAOr5gAClp
+        JwAqbygAN6pOADe7XABzw4QAp+LDADm7XACF5rwAM51DAAAAAAA4v2cALnovAGvZowA7qk8AOL5jADm7
+        XgD///8AyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyCAgDCAgKwbIyMiMCgorLCzIyMjIyMjI72ja
+        wfdOCHbXyG/M0s6OowMMyMjIyMjIjH0VhCq3hhYGyHvrwFodKgibyMjIyMjI7wvWSR0dzyvIyMgJ83Ud
+        HRUTyMjIyMjIyOysRyYmdEJ7AwMMg34mPbQGyMjIyMjIyMXC2R4e9WKmKCh43h4e3xfwyMjIyMjIyHpZ
+        nBsbG/7hMTGvGxsb7k/IyMjIyC0tLvCx8v7+/v7+/v7+/v7+spouExPIPIKnqxhe/RoaGhoaGhoaGhoa
+        gRj66lFkPGmeAIBB/f39/f39/f39/f39QEtLAVLcC+YNlLpjDzU4HBxz+RwcHDgPDzVVbaRsbr9yzRLd
+        odjUNxRSZ48UN0rRDT8wMESKFoVDpV3nyzYiIiU7OyUlIjY2YVe+sMeLyCcniJm1TRkZGRkZGRkZGRkZ
+        0Mq4w1YCyMjIyOVYMx8fLy/od5Mz5B8fSOMCqWDIyMjIyIJGxjL74EwkJPQOyaoyatUFyMjIyMjIu2U+
+        azqQ4wUHB7kkksQ6BJUHyMjIyMjInVuJISGzccjIyMhm9qghIZFQyMjIyMjIOQ5TtkUQVK3IyBefEekR
+        ELyNyMjIyMjIOe29rnCHoJfIyPyYXF+i2+J5yMjIyMjIyMg0NJZ/03zIyPEpfykjIyPIyMjIyMjIyMjI
+        yMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjI////APAcDwDgCAcA4AgHAOAc
+        BwDwAAcA8AAHAPAADwCAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAA8AABAPAABwDgAAcA4DwHAOAY
+        BwDgGAcA+BgPAP///wD///8A
+</value>
+  </data>
 </root>

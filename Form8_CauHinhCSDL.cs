@@ -285,10 +285,24 @@ namespace PhanMemThiDua2026
             }
         }
         // --- KẾT THÚC KHU VỰC GIA CỐ ---
+        //private void CapNhatTrangThaiHienMatKhau()
+        //{
+        //    bool isChecked = Chex_HienMatKhau.Checked;
+        //    Text_Password.UseSystemPasswordChar = !isChecked;
+        //    Chex_HienMatKhau.ForeColor = isChecked ? Color.Green : Color.Red;
+        //}
         private void CapNhatTrangThaiHienMatKhau()
         {
             bool isChecked = Chex_HienMatKhau.Checked;
+
+            // Nếu CheckBox được chọn -> Hiện mật khẩu (xóa ký tự che PasswordChar)
+            // Nếu CheckBox không chọn -> Ẩn mật khẩu (gán lại ký tự '●')
+            Text_Password.PasswordChar = isChecked ? '\0' : '●';
+
+            // (Tùy chọn) Vẫn giữ UseSystemPasswordChar để đồng bộ với OS
             Text_Password.UseSystemPasswordChar = !isChecked;
+
+            // Đổi màu chữ CheckBox theo trạng thái
             Chex_HienMatKhau.ForeColor = isChecked ? Color.Green : Color.Red;
         }
         // Thay đổi thành async để đợi Gõ Cửa Trái Tim

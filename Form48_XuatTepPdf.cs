@@ -66,6 +66,7 @@ namespace PhanMemThiDua2026
             this.ShowInTaskbar = false;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            Module_HeThong.BocBoTronGiaoDien(checkedListBox1_LietKeTenCacSheet);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.AcceptButton = kryptonButton_XuatTepPdf;
             // Đăng ký sự kiện

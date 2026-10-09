@@ -39,6 +39,7 @@ namespace PhanMemThiDua2026
         public Form51_QuanLyKhenThuongTapTheNamCu()
         {
             InitializeComponent();
+            Module_HeThong.BocBoTronGiaoDien(richTextBox1_NoiDungKhenThuong);
         }
         private async void Form51_QuanLyKhenThuongTapTheNamCu_Load(object? sender, EventArgs e)
                 {

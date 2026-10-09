@@ -38,6 +38,7 @@ namespace PhanMemThiDua2026
         public Form49_QuanLyKhenThuongTapThe()
         {
             InitializeComponent();
+            Module_HeThong.BocBoTronGiaoDien(richTextBox1_NoiDungKhenThuong);
             // Đăng ký sự kiện Shown
             this.Shown += Form49_QuanLyKhenThuongTapThe_Shown;
         }

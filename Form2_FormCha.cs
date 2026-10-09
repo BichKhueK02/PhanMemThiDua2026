@@ -1153,6 +1153,8 @@ namespace PhanMemThiDua2026
             if (btn == null || btn.IsDisposed) return;
             Module_SidebarHienDai.DatTrangThai(btn, false);
         }
+
+      
     }
 }
 public static class UIHelper

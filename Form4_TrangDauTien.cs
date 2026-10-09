@@ -64,6 +64,7 @@ namespace PhanMemThiDua2026
         public Form4_TrangDauTien()
         {
             InitializeComponent();
+            Module_HeThong.BocBoTronGiaoDien(listBox1);
             BatDoubleBuffer(kryptonDataGridView1);
             BatDoubleBuffer(kryptonDataGridView2);
             try

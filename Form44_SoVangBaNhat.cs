@@ -35,6 +35,7 @@ namespace PhanMemThiDua2026
         public Form44_SoVangBaNhat()
         {
             InitializeComponent();
+            Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
             // Đăng ký sự kiện Shown cho Form44_SoVangBaNhat
             this.Shown += Form44_SoVangBaNhat_Shown;
             // Trong sự kiện Load hoặc Constructor

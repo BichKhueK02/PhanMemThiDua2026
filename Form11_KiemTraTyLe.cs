@@ -20,6 +20,7 @@ namespace PhanMemThiDua2026
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(cheDo);
             InitializeComponent();
+            Module_HeThong.BocBoTronGiaoDien(ListBox2);
             CheDoXet = cheDo;
             ConfigureForm();
             WireEvents();
@@ -369,7 +370,7 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                btn_TextTinh.Values.Text = "TÍNH KẾT QUẢ";
+                btn_TextTinh.Text = "TÍNH KẾT QUẢ";
                 btn_TextTinh.Enabled = true;
                 tienDo_kryptonProgressBar1.Text = "Hoàn thành";
                 tienDo_kryptonProgressBar1.Value = 0;

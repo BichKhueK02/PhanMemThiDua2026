@@ -19,6 +19,7 @@ namespace PhanMemThiDua2026
         public Form14()
         {
             InitializeComponent();
+            Module_HeThong.BocBoTronGiaoDien(ListBox1);
             InitializeForm();
         }
         //region ===== INITIALIZE =====

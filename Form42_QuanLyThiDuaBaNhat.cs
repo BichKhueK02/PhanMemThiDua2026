@@ -56,6 +56,7 @@ namespace PhanMemThiDua2026
         public Form42_QuanLyThiDuaBaNhat()
         {
             InitializeComponent();
+            Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
             // Đăng ký sự kiện Shown cho Form42_QuanLyThiDuaBaNhat
             this.Shown += Form42_QuanLyThiDuaBaNhat_Shown;
             StartPosition = FormStartPosition.CenterScreen;
