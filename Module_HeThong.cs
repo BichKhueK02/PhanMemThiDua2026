@@ -544,5 +544,14 @@ namespace PhanMemThiDua2026
             parent.Controls.SetChildIndex(host, idx);
             parent.ResumeLayout();
         }
+
+    
+            public static event Action? SuKienThayDoiDanhSachPhanLoai;
+
+            public static void ThongBaoThayDoiPhanLoai()
+            {
+                SuKienThayDoiDanhSachPhanLoai?.Invoke();
+            }
+        
     } 
 }

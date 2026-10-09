@@ -99,20 +99,66 @@
             // 
             // kryptonButton_XuatTepPdf
             // 
+
             kryptonButton_XuatTepPdf.Anchor = AnchorStyles.None;
+            kryptonButton_XuatTepPdf.Cursor = Cursors.Hand;
             kryptonButton_XuatTepPdf.Location = new Point(612, 10);
             kryptonButton_XuatTepPdf.Margin = new Padding(3, 2, 3, 2);
             kryptonButton_XuatTepPdf.Name = "kryptonButton_XuatTepPdf";
+
+            kryptonButton_XuatTepPdf.OverrideDefault.Back.Color1 = Color.FromArgb(22, 163, 74);
+            kryptonButton_XuatTepPdf.OverrideDefault.Back.Color2 = Color.FromArgb(22, 163, 74);
+            kryptonButton_XuatTepPdf.OverrideDefault.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            kryptonButton_XuatTepPdf.OverrideDefault.Border.Color1 = Color.FromArgb(22, 163, 74);
+            kryptonButton_XuatTepPdf.OverrideDefault.Border.Color2 = Color.FromArgb(22, 163, 74);
+            kryptonButton_XuatTepPdf.OverrideDefault.Border.DrawBorders =
+                Krypton.Toolkit.PaletteDrawBorders.Top |
+                Krypton.Toolkit.PaletteDrawBorders.Bottom |
+                Krypton.Toolkit.PaletteDrawBorders.Left |
+                Krypton.Toolkit.PaletteDrawBorders.Right;
+            kryptonButton_XuatTepPdf.OverrideDefault.Border.Rounding = 8F;
+            kryptonButton_XuatTepPdf.OverrideDefault.Border.Width = 1;
+            kryptonButton_XuatTepPdf.OverrideDefault.Content.ShortText.Color1 = Color.White;
+            kryptonButton_XuatTepPdf.OverrideDefault.Content.ShortText.Color2 = Color.White;
+            kryptonButton_XuatTepPdf.OverrideDefault.Content.ShortText.Font =
+                new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
+
             kryptonButton_XuatTepPdf.Size = new Size(232, 35);
-            kryptonButton_XuatTepPdf.StateCommon.Border.Rounding = 16F;
-            kryptonButton_XuatTepPdf.StateTracking.Back.Color1 = Color.FromArgb(128, 255, 128);
-            kryptonButton_XuatTepPdf.StateTracking.Back.Color2 = Color.FromArgb(128, 255, 128);
+
+            kryptonButton_XuatTepPdf.StateCommon.Back.Color1 = Color.FromArgb(22, 163, 74);
+            kryptonButton_XuatTepPdf.StateCommon.Back.Color2 = Color.FromArgb(22, 163, 74);
+            kryptonButton_XuatTepPdf.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            kryptonButton_XuatTepPdf.StateCommon.Border.Color1 = Color.FromArgb(22, 163, 74);
+            kryptonButton_XuatTepPdf.StateCommon.Border.Color2 = Color.FromArgb(22, 163, 74);
+            kryptonButton_XuatTepPdf.StateCommon.Border.DrawBorders =
+                Krypton.Toolkit.PaletteDrawBorders.Top |
+                Krypton.Toolkit.PaletteDrawBorders.Bottom |
+                Krypton.Toolkit.PaletteDrawBorders.Left |
+                Krypton.Toolkit.PaletteDrawBorders.Right;
+            kryptonButton_XuatTepPdf.StateCommon.Border.Rounding = 8F;
+            kryptonButton_XuatTepPdf.StateCommon.Border.Width = 1;
+            kryptonButton_XuatTepPdf.StateCommon.Content.ShortText.Color1 = Color.White;
+            kryptonButton_XuatTepPdf.StateCommon.Content.ShortText.Color2 = Color.White;
+            kryptonButton_XuatTepPdf.StateCommon.Content.ShortText.Font =
+                new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
+
+            kryptonButton_XuatTepPdf.StateTracking.Back.Color1 = Color.FromArgb(21, 128, 61);
+            kryptonButton_XuatTepPdf.StateTracking.Back.Color2 = Color.FromArgb(21, 128, 61);
+            kryptonButton_XuatTepPdf.StateTracking.Border.Color1 = Color.FromArgb(21, 128, 61);
+            kryptonButton_XuatTepPdf.StateTracking.Border.Color2 = Color.FromArgb(21, 128, 61);
+
+            kryptonButton_XuatTepPdf.StatePressed.Back.Color1 = Color.FromArgb(20, 83, 45);
+            kryptonButton_XuatTepPdf.StatePressed.Back.Color2 = Color.FromArgb(20, 83, 45);
+            kryptonButton_XuatTepPdf.StatePressed.Border.Color1 = Color.FromArgb(20, 83, 45);
+            kryptonButton_XuatTepPdf.StatePressed.Border.Color2 = Color.FromArgb(20, 83, 45);
+
             kryptonButton_XuatTepPdf.TabIndex = 0;
             kryptonButton_XuatTepPdf.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatTepPdf.Values.Image = (Image)resources.GetObject("kryptonButton_XuatTepPdf.Values.Image");
+            kryptonButton_XuatTepPdf.Values.Image =
+                (Image)resources.GetObject("kryptonButton_XuatTepPdf.Values.Image");
             kryptonButton_XuatTepPdf.Values.Text = "Tạo tệp (*.pdf)";
             kryptonButton_XuatTepPdf.Click += kryptonButton_XuatTepPdf_Click;
-            // 
+
             // checkBox1_ChonTatCa
             // 
             checkBox1_ChonTatCa.AutoSize = true;

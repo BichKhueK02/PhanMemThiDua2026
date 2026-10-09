@@ -543,7 +543,7 @@ namespace PhanMemThiDua2026
                     while (rd.Read())
                     {
                         string plEnc = rd.IsDBNull(9) ? "" : rd.GetString(9);
-                        if (!Module_BaoMatAES.GiaiMa(plEnc).Trim().Equals("Loại 1", StringComparison.OrdinalIgnoreCase))
+                        if (!Module_BaoMatAES.GiaiMa(plEnc).Trim().Equals(Module_HeThong.Loai_1, StringComparison.OrdinalIgnoreCase))
                             continue;
 
                         string sh = rd.IsDBNull(1) ? "" : rd.GetString(1);

@@ -148,6 +148,19 @@ namespace PhanMemThiDua2026
         {
             LoadQuyDinhTheoDeNghi();
         }
+        private void OnPhanLoaiThayDoi()
+        {
+            if (this.IsDisposed || !this.IsHandleCreated) return;
+
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(CapNhatDanhSachPhanLoaiDeXuat));
+            }
+            else
+            {
+                CapNhatDanhSachPhanLoaiDeXuat();
+            }
+        }
         private void CapNhatLabelPhanTram()
         {
             // 1. Xác định nhãn hiển thị tương ứng (Nếu là Năm thì dùng CSTĐ, CSTT; nếu Tháng dùng Loại 1, Loại 2)
@@ -401,6 +414,23 @@ namespace PhanMemThiDua2026
                 kryptonButton_LuuThongTin.Enabled = true;
                 _isSaving = false; // Mở khóa sau khi hoàn tất hoàn toàn
             }
+        }
+        private void Form4_FormClosed(object? sender, FormClosedEventArgs e)
+        {
+            // 1. Hủy đăng ký sự kiện tùy chỉnh hệ thống để tránh Memory Leak
+            Module_HeThong.SuKienThayDoiDanhSachPhanLoai -= OnPhanLoaiThayDoi;
+
+
+            // 2. Dọn dẹp Timer / CancellationToken (nếu có trong Form4)
+            // if (timerReload != null)
+            // {
+            //     timerReload.Stop();
+            //     timerReload.Dispose();
+            //     timerReload = null;
+            // }
+
+            // 3. Đặt Instance về null nếu bạn dùng Singleton pattern
+            // Instance = null;
         }
         private bool KiemTraCoDuLieuDanhSach()
         {

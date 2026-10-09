@@ -46,11 +46,53 @@ namespace PhanMemThiDua2026
             //CancelButton = btn_TextTinh; // nếu có
         }
 
+
         private void WireEvents()
         {
+            text_Texttongquanso.GotFocus -= TextTongQuanSo_GotFocus;
             text_Texttongquanso.GotFocus += TextTongQuanSo_GotFocus;
+
+            text_Texttongquanso.KeyPress -= TextTongQuanSo_KeyPress;
+            text_Texttongquanso.KeyPress += TextTongQuanSo_KeyPress;
+
+            text_Texttongquanso.TextChanged -= TextTongQuanSo_TextChanged;
+            text_Texttongquanso.TextChanged += TextTongQuanSo_TextChanged;
         }
 
+
+        private void TextTongQuanSo_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            // Cho phép phím điều khiển: Backspace, Ctrl+A, Ctrl+C...
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            // Chỉ cho phép chữ số ASCII từ 0 đến 9
+            if (e.KeyChar < '0' || e.KeyChar > '9')
+                e.Handled = true;
+        }
+
+        private void TextTongQuanSo_TextChanged(object? sender, EventArgs e)
+        {
+            if (sender is not Krypton.Toolkit.KryptonTextBox textBox)
+                return;
+
+            string text = textBox.Text;
+            if (text.Length == 0)
+                return;
+
+            // Chặn ký tự không phải số khi dán văn bản hoặc thay đổi nội dung
+            string textHopLe = string.Concat(text.Where(c => c >= '0' && c <= '9'));
+
+            if (!string.Equals(text, textHopLe, StringComparison.Ordinal))
+            {
+                int viTriConTro = textBox.SelectionStart;
+
+                textBox.TextChanged -= TextTongQuanSo_TextChanged;
+                textBox.Text = textHopLe;
+                textBox.SelectionStart = Math.Min(viTriConTro, textBox.TextLength);
+                textBox.TextChanged += TextTongQuanSo_TextChanged;
+            }
+        }
         private void TextTongQuanSo_GotFocus(object? sender, EventArgs e)
         {
             if (sender is not Krypton.Toolkit.KryptonTextBox ktb) return;

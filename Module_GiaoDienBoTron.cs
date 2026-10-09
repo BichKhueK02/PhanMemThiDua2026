@@ -15,9 +15,9 @@ namespace PhanMemThiDua2026
     /// Tự xử lý đệ quy mọi control con, kể cả control được thêm vào sau (ControlAdded).
     ///
     /// Đối tượng được bo:
-    ///  - GroupBox                         : khung bo tròn, tiêu đề vẫn nằm trên viền
+    ///  - GroupBox                         : khung bo tròn, viền liền mạch, tiêu đề nằm trên viền
     ///  - Panel / TableLayoutPanel "thẻ"   : Dock = None, có viền hoặc nền khác nền cha
-    ///  - DataGridView, ListView, TreeView, RichTextBox, ListBox : cắt góc tròn
+    ///  - DataGridView, ListView, TreeView, RichTextBox, ListBox : cắt góc tròn + viền bo do control cha vẽ
     ///  - Mọi control Krypton (nút, ô nhập, group...) : đặt StateCommon.Border.Rounding
     ///
     /// Muốn một control KHÔNG bị bo: đặt Tag = "KhongBoGoc".
@@ -28,11 +28,20 @@ namespace PhanMemThiDua2026
         public static int BanKinhThe { get; set; } = 12;          // GroupBox, Panel thẻ (px ở 96 DPI)
         public static int BanKinhLuoi { get; set; } = 8;          // DataGridView, ListView...
         public static float BanKinhKrypton { get; set; } = 8f;    // KryptonButton, KryptonTextBox...
-        public static Color MauVien { get; set; } = Color.FromArgb(176, 188, 210);
+        public static Color MauVien { get; set; } = Color.FromArgb(176, 188, 210);   // viền Panel thẻ
         public const string TheKhongBoGoc = "KhongBoGoc";
 
-        public static Color MauVienGroupBox { get; set; } = Color.FromArgb(192, 192, 255); // xanh lá
-        public static float DoDayVienGroupBox { get; set; } = 0.5f;                      // px ở 96 DPI (mỏng hơn: 1f, đậm hơn: 2f)
+        // GroupBox (độ dày < 1px sẽ bị mờ/đứt nét nên code tự nâng lên tối thiểu 1px)
+        public static Color MauVienGroupBox { get; set; } = Color.FromArgb(192, 192, 255); // xanh lá: Color.FromArgb(46, 160, 67)
+        public static float DoDayVienGroupBox { get; set; } = 1f;                         // px ở 96 DPI
+
+        // DataGridView, ListView, TreeView...
+        public static Color MauVienLuoi { get; set; } = Color.FromArgb(176, 188, 210);
+        public static float DoDayVienLuoi { get; set; } = 1.25f;                           // px ở 96 DPI
+
+        // Control Dock sát mép Panel/TabPage: tự chừa lề 3px để có chỗ vẽ viền bo
+        public static bool ChenLeChoLuoiDock { get; set; } = true;
+
         private static readonly ConditionalWeakTable<Control, object> _daXuLy = new();
 
         public static void ApDung(Control? goc)
@@ -110,8 +119,12 @@ namespace PhanMemThiDua2026
 
         // ------------------------------------------------------------------
         //  GROUPBOX
+        //  Không dùng Region. Mỗi lần Paint:
+        //   1) xóa chữ tiêu đề cũ + viền "khắc nổi" 2px do Windows vẽ (nguyên nhân gây đứt nét ở góc)
+        //   2) tô phần ngoài đường cong bằng màu nền cha (khử răng cưa)
+        //   3) vẽ viền bo liền mạch, chừa khoảng hở đúng chỗ tiêu đề
+        //   4) vẽ lại tiêu đề, dời ra sau đoạn góc bo
         // ------------------------------------------------------------------
-
         private static Size DoTieuDe(GroupBox gb)
         {
             if (string.IsNullOrEmpty(gb.Text)) return Size.Empty;
@@ -119,33 +132,18 @@ namespace PhanMemThiDua2026
                 TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
         }
 
-        private static Rectangle RectTieuDe(GroupBox gb, Size sz)
-            => new Rectangle(Px(gb, 4), 0, sz.Width + Px(gb, 14), sz.Height + 1);
-
-
-        private static void CapNhatRegionGroupBox(GroupBox gb)
-        {
-            if (gb.Width < 12 || gb.Height < 12) return;
-
-            Size sz = DoTieuDe(gb);
-            int top = sz.Height / 2;
-            using var path = TaoDuong(new RectangleF(0, top, gb.Width, gb.Height - top), Px(gb, BanKinhThe));
-
-            var region = new Region(path);
-            if (sz.Height > 0) region.Union(RectTieuDe(gb, sz));
-            gb.Region = region;
-        }
-
         private static void BoGocGroupBox(GroupBox gb)
         {
             if (gb.FlatStyle == FlatStyle.System) gb.FlatStyle = FlatStyle.Standard;
             BatDoubleBuffer(gb);
-
-            gb.Region = null; // không dùng Region nữa, tránh cắt cụt góc
+            gb.Region = null;
 
             gb.SizeChanged += (s, e) => gb.Invalidate();
             gb.TextChanged += (s, e) => gb.Invalidate();
             gb.FontChanged += (s, e) => gb.Invalidate();
+            gb.BackColorChanged += (s, e) => gb.Invalidate();
+            gb.ParentChanged += (s, e) => gb.Invalidate();
+            gb.EnabledChanged += (s, e) => gb.Invalidate();
             gb.Paint += VeVienGroupBox;
             gb.Invalidate();
         }
@@ -155,26 +153,27 @@ namespace PhanMemThiDua2026
             var gb = (GroupBox)sender!;
             if (gb.Width < 12 || gb.Height < 12) return;
 
-            Size sz = DoTieuDe(gb);
-            int top = sz.Height / 2;
-
-            float w = DoDayVienGroupBox * gb.DeviceDpi / 86f;   // độ dày nét
-            float inset = w / 2f;
-            float radius = Px(gb, BanKinhThe);
-
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
+            float scale = gb.DeviceDpi / 96f;
+            float w = Math.Max(1f, DoDayVienGroupBox * scale);   // tối thiểu 1px, mỏng hơn sẽ bị mờ/đứt
+            float inset = w / 2f;
+            float radius = Px(gb, BanKinhThe);
+
+            Size sz = DoTieuDe(gb);
+            int top = sz.Height / 2;
+
             Color nenCha = MauNenCha(gb);
             Color nenTrong = gb.BackColor.A == 255 ? gb.BackColor : nenCha;
 
-            // Tiêu đề được dời ra sau đoạn góc bo để không cắt mất cung tròn
+            // Tiêu đề dời ra sau đoạn góc bo để không cắt mất cung tròn
             int textX = Px(gb, BanKinhThe) + Px(gb, 6);
             Rectangle khoangHo = sz.Height > 0
                 ? new Rectangle(textX - Px(gb, 4), 0, sz.Width + Px(gb, 8), sz.Height + 1)
                 : Rectangle.Empty;
-            // Vùng chữ tiêu đề cũ do Windows vẽ (x ~ 8px) -> xóa đi
+            // Vùng chữ tiêu đề cũ do Windows vẽ (x ~ 8px)
             Rectangle chuCu = sz.Height > 0
                 ? new Rectangle(0, 0, Px(gb, 8) + sz.Width + Px(gb, 10), sz.Height + 2)
                 : Rectangle.Empty;
@@ -183,29 +182,34 @@ namespace PhanMemThiDua2026
             using var duong = TaoDuong(rect, radius);
 
             using var khung = new GraphicsPath(FillMode.Alternate);
-            khung.AddRectangle(new RectangleF(0, 0, gb.Width, gb.Height));
+            khung.AddRectangle(new RectangleF(-1, -1, gb.Width + 2, gb.Height + 2));
             khung.AddPath(duong, false);
 
             using var brushTrong = new SolidBrush(nenTrong);
             using var brushCha = new SolidBrush(nenCha);
+            // Nét dày ~8px đè lên viền hệ thống 2px chạy dọc các cạnh thẳng
+            using var penXoa = new Pen(nenTrong, 8f * scale) { LineJoin = LineJoin.Round };
             using var pen = new Pen(MauVienGroupBox, w) { LineJoin = LineJoin.Round };
 
-            // 1) Xóa chữ cũ
+            // 1) Xóa chữ cũ và viền hệ thống
             if (!chuCu.IsEmpty) g.FillRectangle(brushTrong, chuCu);
+            g.DrawPath(penXoa, duong);
 
-            // 2) Tô phần ngoài đường cong bằng màu nền cha (xóa viền vuông gốc)
+            // 2) Tô phần ngoài đường cong bằng màu nền cha
             g.FillPath(brushCha, khung);
 
-            // 3) Vẽ viền xanh lá, chừa khoảng hở đúng chỗ tiêu đề
+            // 3) Viền liền mạch, chừa khoảng hở cho tiêu đề
             GraphicsState st = g.Save();
             if (!khoangHo.IsEmpty) g.SetClip(khoangHo, CombineMode.Exclude);
             g.DrawPath(pen, duong);
             g.Restore(st);
 
-            // 4) Vẽ lại tiêu đề ở vị trí mới
+            // 4) Tiêu đề
             if (sz.Height > 0)
             {
-                TextRenderer.DrawText(g, gb.Text, gb.Font, new Point(textX, 0), gb.ForeColor,
+                g.FillRectangle(brushTrong, khoangHo);
+                TextRenderer.DrawText(g, gb.Text, gb.Font, new Point(textX, 0),
+                    gb.Enabled ? gb.ForeColor : SystemColors.GrayText,
                     TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
             }
         }
@@ -244,31 +248,51 @@ namespace PhanMemThiDua2026
         }
 
         // ------------------------------------------------------------------
-        //  BẢNG / DANH SÁCH / Ô NHẬP LIỆU: cắt góc + VIỀN BO TRÒN ÔM THEO
-        //  Viền cũ (vuông) được tắt, control cha vẽ lại viền bo tròn khử răng cưa
-        //  nằm sát mép ngoài control -> giống khung input/table trên web.
+        //  BẢNG / DANH SÁCH / Ô NHẬP LIỆU
+        //  - Control: tắt viền vuông gốc, cắt góc bằng Region.
+        //  - Viền bo tròn do CONTROL CHA vẽ ngay sát mép ngoài control
+        //    (không vẽ lên bề mặt control nên cuộn dòng không để lại vệt).
+        //  - Áp dụng cả control Dock: chừa lề cho cha để có chỗ vẽ viền.
         // ------------------------------------------------------------------
         private static readonly ConditionalWeakTable<Control, List<Control>> _vienCon = new();
 
         private static void BoGocCoVien(Control c)
         {
-            bool dock = c.Dock != DockStyle.None;
-
-            // Control dock sát mép cha thì không có chỗ vẽ viền ngoài -> giữ viền gốc
-            if (!dock)
+            switch (c)
             {
-                switch (c)
-                {
-                    case DataGridView d: d.BorderStyle = BorderStyle.None; break;
-                    case ListView lv: lv.BorderStyle = BorderStyle.None; break;
-                    case TreeView tv: tv.BorderStyle = BorderStyle.None; break;
-                    case RichTextBox rt: rt.BorderStyle = BorderStyle.None; break;
-                    case ListBox lb: lb.BorderStyle = BorderStyle.None; break;
-                }
+                case DataGridView d: d.BorderStyle = BorderStyle.None; break;
+                case ListView lv: lv.BorderStyle = BorderStyle.None; break;
+                case TreeView tv: tv.BorderStyle = BorderStyle.None; break;
+                case RichTextBox rt: rt.BorderStyle = BorderStyle.None; break;
+                case ListBox lb: lb.BorderStyle = BorderStyle.None; break;
             }
 
+            DamBaoKhoangTrong(c);
             BoGocRegion(c, () => BanKinhLuoi);
-            if (!dock) GanVienNgoai(c);
+            GanVienNgoai(c);
+        }
+
+        /// <summary>Control Dock sát mép Panel/TabPage thì nới Padding của cha để có chỗ vẽ viền.</summary>
+        private static void DamBaoKhoangTrong(Control c)
+        {
+            if (!ChenLeChoLuoiDock || c.Dock == DockStyle.None) return;
+
+            void Lam()
+            {
+                Control? p = c.Parent;
+                if (p == null) return;
+                if (p is TableLayoutPanel or FlowLayoutPanel) return;   // các loại này dùng Margin của control
+                if (p is not (Panel or TabPage or UserControl)) return; // GroupBox đã có lề 3px sẵn
+
+                int can = Px(p, 3);
+                Padding pd = p.Padding;
+                var np = new Padding(Math.Max(pd.Left, can), Math.Max(pd.Top, can),
+                                     Math.Max(pd.Right, can), Math.Max(pd.Bottom, can));
+                if (np != pd) p.Padding = np;
+            }
+
+            c.ParentChanged += (s, e) => Lam();
+            Lam();
         }
 
         private static void GanVienNgoai(Control c)
@@ -291,7 +315,7 @@ namespace PhanMemThiDua2026
                     _vienCon.Add(parent, ds);
                     parent.Paint += VeVienCon;
                 }
-                ds.Add(c);
+                if (!ds.Contains(c)) ds.Add(c);
                 parent.Invalidate();
             }
 
@@ -311,18 +335,18 @@ namespace PhanMemThiDua2026
 
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             foreach (Control c in list.ToArray())
             {
                 if (c.IsDisposed || !c.Visible) continue;
                 Rectangle b = c.Bounds;
-                if (!e.ClipRectangle.IntersectsWith(Rectangle.Inflate(b, 3, 3))) continue;
+                if (!e.ClipRectangle.IntersectsWith(Rectangle.Inflate(b, 6, 6))) continue;
 
-                float w = Math.Max(1f, c.DeviceDpi / 96f);
-                // Nét vẽ nằm ngay sát ngoài mép control, đồng tâm với góc đã cắt
-                var rf = new RectangleF(b.X - w / 2f, b.Y - w / 2f, b.Width + w, b.Height + w);
-                using var path = TaoDuong(rf, Px(c, BanKinhLuoi) + w / 2f);
-                using var pen = new Pen(MauVien, w);
+                float w = Math.Max(1f, DoDayVienLuoi * c.DeviceDpi / 96f);   // độ dày nhìn thấy
+                // Nét vẽ nằm trên đúng mép Region: nửa trong bị control che, nửa ngoài lộ ra
+                using var path = TaoDuong(new RectangleF(b.X, b.Y, b.Width, b.Height), Px(c, BanKinhLuoi));
+                using var pen = new Pen(MauVienLuoi, w * 2f) { LineJoin = LineJoin.Round };
                 g.DrawPath(pen, path);
             }
         }

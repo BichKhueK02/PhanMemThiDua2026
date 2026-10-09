@@ -31,6 +31,7 @@ namespace PhanMemThiDua2026
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.ShowInTaskbar = false;
+            Module_HeThong.BocBoTronGiaoDien(checkedListBox1_ChonDonViDeReset);
             // Bật tính năng Click 1 chạm chuẩn của WinForms
             checkedListBox1_ChonDonViDeReset.CheckOnClick = true;
             // ⭐ BỔ SUNG CODE KÍCH HOẠT CHẾ ĐỘ ĐỔI MÀU ĐỘNG CHO CHECKEDLISTBOX
