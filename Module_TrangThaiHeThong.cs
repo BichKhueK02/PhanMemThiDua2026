@@ -595,7 +595,7 @@ namespace PhanMemThiDua2026
                 {
                     Text = "Tổng quan hệ thống",
                     Font = new Font(FontUI, 16F, FontStyle.Bold),
-                    ForeColor = MauChu,
+                    ForeColor = Color.FromArgb(140, 140, 215),
                     AutoSize = true,
                     Location = new Point(0, 0)
                 };
