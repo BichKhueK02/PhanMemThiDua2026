@@ -896,7 +896,6 @@
 //        }
 //    }
 //}
-
 ///Phiên bản 2
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 //using Krypton.Toolkit;
@@ -1675,13 +1674,11 @@
 //            EnableDoubleBuffer(panelDangNhap);
 //            EnableDoubleBuffer(TableLayoutPanel6);
 //        }
-
 //        private static void EnableDoubleBuffer(Control c)
 //        {
 //            typeof(Control).GetProperty("DoubleBuffered",
 //                BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(c, true);
 //        }
-
 //        /// <summary>Cập nhật UI an toàn, không chặn luồng nền (thay cho Invoke đồng bộ).</summary>
 //        private void UiThread(Action action)
 //        {
@@ -1694,7 +1691,6 @@
 //            catch (ObjectDisposedException) { }
 //            catch (InvalidOperationException) { }
 //        }
-
 //        protected override void OnFormClosed(FormClosedEventArgs e)
 //        {
 //            try
@@ -1825,7 +1821,6 @@
 //        }
 //    }
 //}
-
 ///Phiên bản 3
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
@@ -2595,13 +2590,11 @@ namespace PhanMemThiDua2026
             EnableDoubleBuffer(panelDangNhap);
             EnableDoubleBuffer(TableLayoutPanel6);
         }
-
         private static void EnableDoubleBuffer(Control c)
         {
             typeof(Control).GetProperty("DoubleBuffered",
                 BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(c, true);
         }
-
         /// <summary>Cập nhật UI an toàn, không chặn luồng nền (thay cho Invoke đồng bộ).</summary>
         private void UiThread(Action action)
         {
@@ -2614,7 +2607,6 @@ namespace PhanMemThiDua2026
             catch (ObjectDisposedException) { }
             catch (InvalidOperationException) { }
         }
-
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             try

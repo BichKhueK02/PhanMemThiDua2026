@@ -1,6 +1,4 @@
-﻿
-
-using ClosedXML.Excel;
+﻿using ClosedXML.Excel;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;

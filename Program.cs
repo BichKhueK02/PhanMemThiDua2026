@@ -296,14 +296,16 @@ namespace PhanMemThiDua2026
         // =====================================================================
         //  HẰNG SỐ & CẤU HÌNH
         // =====================================================================
-        // Mã thoát tiến trình (hữu ích cho script / giám sát / debug)
+        private const string DeveloperComputerName = "MEOCAM";
+        private const int MaxInstancesOnDeveloper = 3;
+        private const int MaxInstancesOnClient = 1;
         private const int ExitOk = 0;
         private const int ExitFatal = 1;
         private const int ExitAlreadyRunning = 2;
         private const int ExitInitFailed = 3;
         private const string AdminContact = "Admin TrungKien: 0975.287.973";
         private const string LogFolderName = "PhanMemThiDua2026";
-        private const int MaxInstancesInBuildOutput = 2; // chạy từ bin\Debug|Release
+       // private const int MaxInstancesInBuildOutput = 2; // chạy từ bin\Debug|Release
         private const int MaxInstancesInstalled = 1;     // bản cài đặt cho người dùng cuối
         private const int IeEmulationMode = 11001;       // IE11 edge mode cho WebBrowser
         private const int SlowStartupThresholdMs = 1500; // ngưỡng ghi log "khởi động chậm"
@@ -511,45 +513,93 @@ namespace PhanMemThiDua2026
         /// Giới hạn số instance chạy đồng thời:
         /// chạy từ thư mục build -> tối đa 2; bản cài đặt/publish -> đúng 1.
         /// </summary>
+        ///private static bool AcquireInstanceLock()
+        //{
+        //    int maxInstances = IsRunningFromBuildOutput(Environment.ProcessPath ?? Application.ExecutablePath)
+        //        ? MaxInstancesInBuildOutput
+        //        : MaxInstancesInstalled;
+        //    for (int slot = 1; slot <= maxInstances; slot++)
+        //    {
+        //        Mutex? mutex = null;
+        //        try
+        //        {
+        //            // Tạo mutex KHÔNG sở hữu, rồi xin quyền riêng bằng WaitOne: luôn giữ được
+        //            // tham chiếu để giải phóng đúng, kể cả khi gặp AbandonedMutexException.
+        //            mutex = new Mutex(initiallyOwned: false, name: $"{AppMutexName}_Slot{slot}");
+        //            bool acquired;
+        //            try
+        //            {
+        //                acquired = mutex.WaitOne(0);
+        //            }
+        //            catch (AbandonedMutexException)
+        //            {
+        //                // Tiến trình giữ slot trước đó đã crash -> quyền sở hữu chuyển sang ta.
+        //                acquired = true;
+        //            }
+        //            if (acquired)
+        //            {
+        //                _appMutex = mutex;
+        //                return true;
+        //            }
+        //        }
+        //        catch (UnauthorizedAccessException)
+        //        {
+        //            // Slot đang do tiến trình khác quyền giữ (vd: bản chạy Run as Admin,
+        //            // bản này chạy thường) -> coi như slot đã bị chiếm, KHÔNG được crash.
+        //        }
+        //        mutex?.Dispose(); // slot bận, thử slot kế tiếp
+        //    }
+        //    return false;
+        //}
         private static bool AcquireInstanceLock()
-        {
-            int maxInstances = IsRunningFromBuildOutput(Environment.ProcessPath ?? Application.ExecutablePath)
-                ? MaxInstancesInBuildOutput
-                : MaxInstancesInstalled;
-            for (int slot = 1; slot <= maxInstances; slot++)
-            {
-                Mutex? mutex = null;
-                try
                 {
-                    // Tạo mutex KHÔNG sở hữu, rồi xin quyền riêng bằng WaitOne: luôn giữ được
-                    // tham chiếu để giải phóng đúng, kể cả khi gặp AbandonedMutexException.
-                    mutex = new Mutex(initiallyOwned: false, name: $"{AppMutexName}_Slot{slot}");
-                    bool acquired;
-                    try
+                    bool isDeveloper = string.Equals(
+                        Environment.MachineName,
+                        DeveloperComputerName,
+                        StringComparison.OrdinalIgnoreCase);
+                    int maxInstances = isDeveloper
+                        ? MaxInstancesOnDeveloper
+                        : MaxInstancesOnClient;
+                    for (int slot = 1; slot <= maxInstances; slot++)
                     {
-                        acquired = mutex.WaitOne(0);
+                        Mutex? mutex = null;
+                        try
+                        {
+                            mutex = new Mutex(
+                                initiallyOwned: false,
+                                name: $"{AppMutexName}_Slot{slot}");
+                            bool acquired;
+                            try
+                            {
+                                acquired = mutex.WaitOne(0);
+                            }
+                            catch (AbandonedMutexException)
+                            {
+                                acquired = true;
+                            }
+                            if (acquired)
+                            {
+                                _appMutex = mutex;
+                                return true;
+                            }
+                        }
+                        catch (UnauthorizedAccessException ex)
+                        {
+                            WriteFallbackLog(
+                                "Không thể truy cập Mutex phiên bản",
+                                ex.ToString());
+                        }
+                        catch (Exception ex)
+                        {
+                            WriteFallbackLog(
+                                "Lỗi kiểm soát phiên bản",
+                                ex.ToString());
+                        }
+                        mutex?.Dispose();
                     }
-                    catch (AbandonedMutexException)
-                    {
-                        // Tiến trình giữ slot trước đó đã crash -> quyền sở hữu chuyển sang ta.
-                        acquired = true;
-                    }
-                    if (acquired)
-                    {
-                        _appMutex = mutex;
-                        return true;
-                    }
+                    return false;
                 }
-                catch (UnauthorizedAccessException)
-                {
-                    // Slot đang do tiến trình khác quyền giữ (vd: bản chạy Run as Admin,
-                    // bản này chạy thường) -> coi như slot đã bị chiếm, KHÔNG được crash.
-                }
-                mutex?.Dispose(); // slot bận, thử slot kế tiếp
-            }
-            return false;
-        }
-        /// <summary>
+        // <summary>
         /// Nhận diện chạy trực tiếp từ thư mục build (bin\Debug|Release, kể cả khi có thư mục
         /// TFM xen giữa như net8.0-windows). Thư mục "publish" luôn bị loại trừ vì đó là bản
         /// phát hành, không phải bản dev.

@@ -1,7 +1,4 @@
-﻿
-
-
-using Krypton.Toolkit;
+﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Data;

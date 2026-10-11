@@ -1,6 +1,5 @@
 ﻿/////TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 ///Phiên bản 1
-
 //using Krypton.Toolkit;
 //using System.Collections.Concurrent;
 //using System.Diagnostics;
@@ -1159,14 +1158,11 @@
 //            if (btn == null || btn.IsDisposed) return;
 //            Module_SidebarHienDai.DatTrangThai(btn, false);
 //        }
-
 //        /// <summary>
 //        /// Tận dụng sức mạnh GPU
 //        /// </summary>
-
 //        // ---------- 1. Để Windows (DWM) composite cửa sổ trên GPU, giảm nháy ----------
 //        private const int WS_EX_COMPOSITED = 0x02000000;
-
 //        protected override CreateParams CreateParams
 //        {
 //            get
@@ -1179,7 +1175,6 @@
 //                return cp;
 //            }
 //        }
-
 //        // ---------- 2. Double buffer cho các container ----------
 //        private void ApplyPerformanceTuning()
 //        {
@@ -1187,25 +1182,21 @@
 //                     ControlStyles.AllPaintingInWmPaint |
 //                     ControlStyles.UserPaint, true);
 //            UpdateStyles();
-
 //            EnableDoubleBuffer(PanelLeft);
 //            EnableDoubleBuffer(PanelTop);
 //            EnableDoubleBuffer(PanelContainer);
 //            EnableDoubleBuffer(TableLayoutPanel1);
 //            EnableDoubleBuffer(TableLayoutPanel2);
-
 //            // Ảnh đang StretchImage mỗi lần vẽ -> co sẵn 1 lần theo kích thước thật
 //            PreScaleImage(PictureBox1);
 //            PreScaleImage(PictureBox2);
 //            PreScaleImage(pictureBox3);
 //        }
-
 //        private static void EnableDoubleBuffer(Control c)
 //        {
 //            typeof(Control).GetProperty("DoubleBuffered",
 //                BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(c, true);
 //        }
-
 //        /// <summary>
 //        /// Co ảnh về đúng kích thước hiển thị (theo DPI) một lần duy nhất,
 //        /// sau đó PictureBox vẽ 1:1 thay vì scale lại mỗi lần repaint.
@@ -1213,12 +1204,10 @@
 //        private void PreScaleImage(PictureBox pb)
 //        {
 //            if (pb.Image == null || pb.Width <= 0 || pb.Height <= 0) return;
-
 //            float scale = DeviceDpi / 96f;
 //            int w = Math.Max(1, (int)(pb.Width * scale));
 //            int h = Math.Max(1, (int)(pb.Height * scale));
 //            if (pb.Image.Width == w && pb.Image.Height == h) return;
-
 //            var bmp = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
 //            using (var g = Graphics.FromImage(bmp))
 //            {
@@ -1231,26 +1220,21 @@
 //            pb.SizeMode = PictureBoxSizeMode.Zoom;
 //            pb.Image = bmp;
 //        }
-
 //        // ---------- 3. Chặn vẽ lại khi đổi form con / ẩn-hiện menu ----------
 //        private const int WM_SETREDRAW = 0x000B;
-
 //        [DllImport("user32.dll")]
 //        private static extern int SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
-
 //        private static void BeginBulkUpdate(Control c)
 //        {
 //            SendMessage(c.Handle, WM_SETREDRAW, 0, 0);
 //            c.SuspendLayout();
 //        }
-
 //        private static void EndBulkUpdate(Control c)
 //        {
 //            c.ResumeLayout(true);
 //            SendMessage(c.Handle, WM_SETREDRAW, 1, 0);
 //            c.Invalidate(true);
 //        }
-
 //        /// <summary>
 //        /// Dùng thay cho cách nạp form con hiện tại vào PanelContainer.
 //        /// Nên cache form con (tạo 1 lần, Show/Hide) thay vì new mỗi lần bấm menu.
@@ -1261,7 +1245,6 @@
 //            try
 //            {
 //                foreach (Control c in PanelContainer.Controls) c.Visible = false;
-
 //                if (formCon.Parent != PanelContainer)
 //                {
 //                    formCon.TopLevel = false;
@@ -1277,7 +1260,6 @@
 //                EndBulkUpdate(PanelContainer);
 //            }
 //        }
-
 //        /// <summary>
 //        /// Dùng trong MoMenuPhanMem_Click / Timer1_Tick khi ẩn-hiện PanelLeft.
 //        /// </summary>
@@ -1287,10 +1269,6 @@
 //            try { PanelLeft.Width = rongMoi; }
 //            finally { EndBulkUpdate(this); }
 //        }
-
-
-
-
 //    }
 //}
 //public static class UIHelper
@@ -1317,8 +1295,6 @@
 //        public static bool TuDongAnMenu = false;
 //    }
 //}
-
-
 ///Phiên bản 2
 //////TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 //using Krypton.Toolkit;
@@ -2484,7 +2460,6 @@
 //            if (btn == null || btn.IsDisposed) return;
 //            Module_SidebarHienDai.DatTrangThai(btn, false);
 //        }
-
 //        // ================= TỐI ƯU HIỂN THỊ (chống chớp) =================
 //        // Lưu ý: KHÔNG dùng WS_EX_COMPOSITED / UserPaint cho form chứa Krypton + form con,
 //        // vì nó khiến cả cây control bị vẽ lại liên tục -> nhấp nháy, nhức mắt.
@@ -2497,13 +2472,11 @@
 //            EnableDoubleBuffer(TableLayoutPanel1);
 //            EnableDoubleBuffer(TableLayoutPanel2);
 //        }
-
 //        private static void EnableDoubleBuffer(Control c)
 //        {
 //            typeof(Control).GetProperty("DoubleBuffered",
 //                BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(c, true);
 //        }
-
 //        /// <summary>Ẩn/hiện menu trái: gom thành 1 lần layout thay vì nhiều lần.</summary>
 //        private void DoiRongMenu(int rongMoi)
 //        {
@@ -2538,7 +2511,6 @@
 //        public static bool TuDongAnMenu = false;
 //    }
 //}
-
 ///Phiên bản 3
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 //using Krypton.Toolkit;
@@ -3714,25 +3686,21 @@
 //            if (btn == null || btn.IsDisposed) return;
 //            Module_SidebarHienDai.DatTrangThai(btn, false);
 //        }
-
 //        // ================= PRELOAD AN TOÀN (gọi từ Form2Preloader, trên luồng UI) =================
 //        internal Task<bool>? TacVuPreloadDuLieu;
 //        private const bool NapTruocFormConTrangChu = true;  // đặt false nếu Form4 có đọc dữ liệu theo tài khoản ngay trong constructor
 //        private const bool NapTruocVeThuGiaoDien = true;    // vẽ thử vào bitmap để "làm nóng" Krypton/font/ảnh
-
 //        internal async Task NapTruocGiaoDienAsync(Func<bool> huy)
 //        {
 //            bool Dung() => huy() || IsDisposed || Visible;
 //            if (Dung()) return;
 //            var sw = Stopwatch.StartNew();
-
 //            // B1: tạo handle cửa sổ + toàn bộ control con (form vẫn ẩn, Form2_Load CHƯA chạy)
 //            _ = Handle;
 //            TaoHandleDeQuy(this);
 //            Debug.WriteLine($"[Preload] handle Form2: {sw.ElapsedMilliseconds} ms");
 //            await Task.Delay(15);
 //            if (Dung()) return;
-
 //            // B2: tạo sẵn trang chủ (Form4), cho vào cache _forms để OpenChildForm dùng lại
 //            Form? trangChu = null;
 //            if (NapTruocFormConTrangChu)
@@ -3743,7 +3711,6 @@
 //            Debug.WriteLine($"[Preload] Form4: {sw.ElapsedMilliseconds} ms");
 //            await Task.Delay(15);
 //            if (Dung()) return;
-
 //            // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh) để lần hiện thật không bị giật
 //            if (NapTruocVeThuGiaoDien)
 //            {
@@ -3752,7 +3719,6 @@
 //            }
 //            Debug.WriteLine($"[Preload] vẽ thử: {sw.ElapsedMilliseconds} ms");
 //        }
-
 //        private T NapTruocFormCon<T>() where T : Form, new()
 //        {
 //            var type = typeof(T);
@@ -3766,7 +3732,6 @@
 //            TaoHandleDeQuy(f);
 //            return f;
 //        }
-
 //        private static void TaoHandleDeQuy(Control c)
 //        {
 //            string ten = c.GetType().FullName ?? "";
@@ -3774,7 +3739,6 @@
 //            try { _ = c.Handle; } catch { return; }
 //            foreach (Control con in c.Controls) TaoHandleDeQuy(con);
 //        }
-
 //        private static void VeThu(Control c)
 //        {
 //            try
@@ -3785,7 +3749,6 @@
 //            }
 //            catch (Exception ex) { Debug.WriteLine("[Preload] VeThu: " + ex.Message); }
 //        }
-
 //        /// <summary>
 //        /// Gọi ngay trước khi hiện Form2 sau đăng nhập.
 //        /// Lần đầu: không cần làm gì (Form2_Load chạy lúc Show và đọc SessionInfo mới nhất).
@@ -3799,7 +3762,6 @@
 //            if (!sidebarExpanded && rongMenuTruoc > 0) sidebarWidth = rongMenuTruoc; // tránh ghi đè bằng 0 khi menu đang ẩn
 //            Btn_Trangchu_Click(kryptonButton1_Trangchu, EventArgs.Empty);
 //        }
-
 //        // ================= TỐI ƯU HIỂN THỊ (chống chớp) =================
 //        // Lưu ý: KHÔNG dùng WS_EX_COMPOSITED / UserPaint cho form chứa Krypton + form con,
 //        // vì nó khiến cả cây control bị vẽ lại liên tục -> nhấp nháy, nhức mắt.
@@ -3812,13 +3774,11 @@
 //            EnableDoubleBuffer(TableLayoutPanel1);
 //            EnableDoubleBuffer(TableLayoutPanel2);
 //        }
-
 //        private static void EnableDoubleBuffer(Control c)
 //        {
 //            typeof(Control).GetProperty("DoubleBuffered",
 //                BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(c, true);
 //        }
-
 //        /// <summary>Ẩn/hiện menu trái: gom thành 1 lần layout thay vì nhiều lần.</summary>
 //        private void DoiRongMenu(int rongMoi)
 //        {
@@ -3853,7 +3813,6 @@
 //        public static bool TuDongAnMenu = false;
 //    }
 //}
-
 ///Phiên bản 4
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
@@ -5029,25 +4988,21 @@ namespace PhanMemThiDua2026
             if (btn == null || btn.IsDisposed) return;
             Module_SidebarHienDai.DatTrangThai(btn, false);
         }
-
         // ================= PRELOAD AN TOÀN (gọi từ Form2Preloader, trên luồng UI) =================
         internal Task<bool>? TacVuPreloadDuLieu;
         private const bool NapTruocFormConTrangChu = true;  // đặt false nếu Form4 có đọc dữ liệu theo tài khoản ngay trong constructor
         private const bool NapTruocVeThuGiaoDien = true;    // vẽ thử vào bitmap để "làm nóng" Krypton/font/ảnh
-
         internal async Task NapTruocGiaoDienAsync(Func<bool> huy)
         {
             bool Dung() => huy() || IsDisposed || Visible;
             if (Dung()) return;
             var sw = Stopwatch.StartNew();
-
             // B1: tạo handle cửa sổ + toàn bộ control con (form vẫn ẩn, Form2_Load CHƯA chạy)
             _ = Handle;
             TaoHandleDeQuy(this);
             Debug.WriteLine($"[Preload] handle Form2: {sw.ElapsedMilliseconds} ms");
             await Task.Delay(15);
             if (Dung()) return;
-
             // B2: tạo sẵn trang chủ (Form4), cho vào cache _forms để OpenChildForm dùng lại
             Form? trangChu = null;
             if (NapTruocFormConTrangChu)
@@ -5059,7 +5014,6 @@ namespace PhanMemThiDua2026
             Debug.WriteLine($"[Preload] Form4: {sw.ElapsedMilliseconds} ms");
             await Task.Delay(15);
             if (Dung()) return;
-
             // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh) để lần hiện thật không bị giật
             if (NapTruocVeThuGiaoDien)
             {
@@ -5068,7 +5022,6 @@ namespace PhanMemThiDua2026
             }
             Debug.WriteLine($"[Preload] vẽ thử: {sw.ElapsedMilliseconds} ms");
         }
-
         private T NapTruocFormCon<T>() where T : Form, new()
         {
             var type = typeof(T);
@@ -5082,7 +5035,6 @@ namespace PhanMemThiDua2026
             TaoHandleDeQuy(f);
             return f;
         }
-
         private static void TaoHandleDeQuy(Control c)
         {
             string ten = c.GetType().FullName ?? "";
@@ -5090,7 +5042,6 @@ namespace PhanMemThiDua2026
             try { _ = c.Handle; } catch { return; }
             foreach (Control con in c.Controls) TaoHandleDeQuy(con);
         }
-
         private static void VeThu(Control c)
         {
             try
@@ -5101,7 +5052,6 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex) { Debug.WriteLine("[Preload] VeThu: " + ex.Message); }
         }
-
         /// <summary>
         /// Gọi ngay trước khi hiện Form2 sau đăng nhập.
         /// Lần đầu: không cần làm gì (Form2_Load chạy lúc Show và đọc SessionInfo mới nhất).
@@ -5115,7 +5065,6 @@ namespace PhanMemThiDua2026
             if (!sidebarExpanded && rongMenuTruoc > 0) sidebarWidth = rongMenuTruoc; // tránh ghi đè bằng 0 khi menu đang ẩn
             Btn_Trangchu_Click(kryptonButton1_Trangchu, EventArgs.Empty);
         }
-
         // ================= TỐI ƯU HIỂN THỊ (chống chớp) =================
         // Lưu ý: KHÔNG dùng WS_EX_COMPOSITED / UserPaint cho form chứa Krypton + form con,
         // vì nó khiến cả cây control bị vẽ lại liên tục -> nhấp nháy, nhức mắt.
@@ -5128,13 +5077,11 @@ namespace PhanMemThiDua2026
             EnableDoubleBuffer(TableLayoutPanel1);
             EnableDoubleBuffer(TableLayoutPanel2);
         }
-
         private static void EnableDoubleBuffer(Control c)
         {
             typeof(Control).GetProperty("DoubleBuffered",
                 BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(c, true);
         }
-
         /// <summary>Ẩn/hiện menu trái: gom thành 1 lần layout thay vì nhiều lần.</summary>
         private void DoiRongMenu(int rongMoi)
         {

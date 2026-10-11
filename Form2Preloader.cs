@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-
 namespace PhanMemThiDua2026
 {
     /// <summary>
@@ -14,7 +13,6 @@ namespace PhanMemThiDua2026
         private static Form2_FormCha? _form2;
         private static bool _dangNap;
         private static bool _daDung;   // form đã được lấy ra dùng -> dừng các bước nạp trước
-
         /// <summary>Gọi từ luồng UI (vd. Form1 sau khi hiện). An toàn khi gọi nhiều lần.</summary>
         public static async Task NapTruocAsync(Func<bool> nguoiDungDaRoi)
         {
@@ -27,14 +25,12 @@ namespace PhanMemThiDua2026
                 // Cho form đăng nhập hiện ra và người dùng bắt đầu gõ trước đã
                 await Task.Delay(400);
                 if (Het()) return;
-
                 // 1. Nền: nạp danh sách CSDL (không đụng UI)
                 var taskDuLieu = Task.Run(() =>
                 {
                     try { DataLoader.PreloadDanhSach(Module_DanduongGPS.DuongDanCSDL2); return true; }
                     catch (Exception ex) { Debug.WriteLine("[Preload] DataLoader: " + ex.Message); return false; }
                 });
-
                 // 2. UI: tạo instance Form2 (trên luồng UI)
                 var f = new Form2_FormCha();
                 f.TacVuPreloadDuLieu = taskDuLieu;
@@ -42,7 +38,6 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"[Preload] new Form2: {sw.ElapsedMilliseconds} ms");
                 await Task.Delay(30);
                 if (Het()) return;
-
                 // 3. UI: handle + trang chủ + vẽ thử (từng bước nhỏ, tự dừng nếu người dùng đã đăng nhập)
                 await f.NapTruocGiaoDienAsync(Het);
                 Debug.WriteLine($"[Preload] xong giao diện: {sw.ElapsedMilliseconds} ms");
@@ -62,7 +57,6 @@ namespace PhanMemThiDua2026
                 _dangNap = false;
             }
         }
-
         /// <summary>Lấy Form2 để hiển thị (dùng bản đã nạp trước nếu có, nếu chưa thì tạo mới). Gọi trên luồng UI.</summary>
         public static Form2_FormCha Lay()
         {

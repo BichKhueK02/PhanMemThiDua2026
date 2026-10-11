@@ -120,13 +120,11 @@ namespace PhanMemThiDua2026
             // một lượt gửi WM_STYLECHANGED / vẽ lại toàn form.
         }
         // ------------------------------- 3. FORM LOAD ------------------------------------------
-
         // ------------------------------- 3. FORM LOAD ------------------------------------------
         private async void Form12_Load(object? sender, EventArgs e)
         {
             if (_hasLoaded) return;
             _isLoading = true;
-
             if (label1_ThongBaoThanhCong != null)
                 label1_ThongBaoThanhCong.Visible = false;
             if (toolStripStatusLabel1 != null)
@@ -134,11 +132,9 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1.Text = string.Empty;
                 toolStripStatusLabel1.Visible = false;
             }
-
 #if DEBUG
     var sw = Stopwatch.StartNew();
 #endif
-
             // ---- (A) Phần giao diện nhẹ, KHÔNG đụng CSDL: làm ngay trên UI ----
             InitToolTips();
             LoadComboBoxCauHinh();
@@ -151,16 +147,12 @@ namespace PhanMemThiDua2026
         "10000 dòng xóa tự động"
             });
             NapDanhSachNam();
-
             // ---- (B) Toàn bộ I/O + giải mã AES: chạy NGẦM, UI vẫn vẽ & phản hồi bình thường ----
             DuLieuKhoiTao d = await Task.Run(DocDuLieuKhoiTao);
-
             if (IsDisposed) return;
-
 #if DEBUG
     Debug.WriteLine($"[Form12] Đọc CSDL ngầm xong sau {sw.ElapsedMilliseconds} ms");
 #endif
-
             // ---- (C) Đổ dữ liệu lên giao diện – ĐÚNG THỨ TỰ của code gốc ----
             comboBox1_TuDongXoaNhatKy.SelectedItem = d.TuDongXoa;   // gốc: LoadComboBoxTuDongXoa
             ApDanhSachKyHieuChung(d);                               // gốc: NapDanhSachKyHieuChung
@@ -170,16 +162,13 @@ namespace PhanMemThiDua2026
             ApThongTinTuCSDL(d);                                    // gốc: LoadFromSQLite
             if (d.CoDonViBanHanh)                                   // gốc: Load_DonViBanHanhToTrinh
                 kryptonTextBox1_DonViBanHanhToTrinh.Text = d.DonViBanHanh;
-
             if (comboBox1_ThoiGianThayDoiAnh != null)
             {
                 if (comboBox1_ThoiGianThayDoiAnh.Items.Count == 0)
                     comboBox1_ThoiGianThayDoiAnh.Items.AddRange(["Mặc định", "15 giây", "30 giây", "1 phút"]);
                 comboBox1_ThoiGianThayDoiAnh.Text = Module_HinhAnhTrangChu.DocCauHinhThoiGian();
             }
-
             GanSuKien();
-
             BeginInvoke(() =>
             {
                 if (kryptonButton_LuuThongTin?.CanFocus == true)
@@ -189,16 +178,12 @@ namespace PhanMemThiDua2026
                 if (comboBox_TenTieuDoan != null) comboBox_TenTieuDoan.SelectionLength = 0;
                 if (comboBox1_NamHienTai != null) comboBox1_NamHienTai.SelectionLength = 0;
             });
-
             _isLoading = false;
             _hasLoaded = true;
-
 #if DEBUG
     Debug.WriteLine($"[Form12] Load xong tổng cộng {sw.ElapsedMilliseconds} ms");
 #endif
         }
-
-
         /// <summary>
         ///        private async void Form12_Load(object? sender, EventArgs e)
         /// </summary>
@@ -399,7 +384,6 @@ namespace PhanMemThiDua2026
         {
             try
             {
-
                 long count;
                 using (var checkCmd = cn.CreateCommand())
                 {
@@ -456,11 +440,9 @@ namespace PhanMemThiDua2026
         //    }
         //    KhoiTaoBang_DonViBanHanhToTrinh();
         //}
-
         private async void Form12_Shown(object? sender, EventArgs e)
         {
             kryptonButton_CapNhatDanhSachChiHuyD.AutoSize = false;
-
             if (kryptonButton_LuuThongTin != null && kryptonButton_LuuThongTin.CanFocus)
             {
                 kryptonButton_LuuThongTin.Focus();
@@ -470,7 +452,6 @@ namespace PhanMemThiDua2026
                 this.ActiveControl = null;
             }
             KhoiTaoBang_DonViBanHanhToTrinh();
-
             // 🔥 TỰ ĐỘNG LOAD DỮ LIỆU TAB 2 DƯỚI NỀN SAU KHI FORM ĐÃ HIỆN LÊN
             await Task.Run(() =>
             {
@@ -500,7 +481,6 @@ namespace PhanMemThiDua2026
             }
             return d;
         }
-
         // --- HÀM 2: Đọc và nạp dữ liệu cho Tab 2 chạy ngầm dưới nền ---
         private void DocVaTaiDuLieuTab2Ngam()
         {
@@ -510,11 +490,9 @@ namespace PhanMemThiDua2026
                 var dTab2 = new DuLieuKhoiTao();
                 string csdl2Path = _csdl2Path;
                 if (!File.Exists(csdl2Path)) return;
-
                 using var cn = new SqliteConnection(BuildConnectionString(csdl2Path));
                 cn.Open();
                 DocCauHinhChung(cn, dTab2);
-
                 // Đổ dữ liệu lên các Control của Tab 2 một cách an toàn thông qua BeginInvoke
                 if (IsDisposed || !IsHandleCreated) return;
                 BeginInvoke(new Action(() =>
@@ -523,7 +501,6 @@ namespace PhanMemThiDua2026
                     LoadComboBoxCauHinh();
                     comboBox1_TuDongXoaNhatKy.SelectedItem = LoadTuDongXoaTuCSDL();
                     ApCauHinhChung(dTab2);
-
                     if (comboBox1_ThoiGianThayDoiAnh != null)
                     {
                         if (comboBox1_ThoiGianThayDoiAnh.Items.Count == 0)
@@ -537,13 +514,11 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"[DocVaTaiDuLieuTab2Ngam] Lỗi: {ex.Message}");
             }
         }
-
         // --- HÀM 3: Gán dữ liệu riêng cho Tab 1 ---
         private void ApThongTinTab1TuCSDL(DuLieuKhoiTao d)
         {
             if (!d.CoThongTin) return;
             if (IsDisposed || !IsHandleCreated) return;
-
             textBox_TrungDoanCSCD.Text = d.TenTD;
             comboBox_TenTieuDoan.Text = d.TenTieuD;
             if (textBox1_TenTrungDoanDong1 != null) textBox1_TenTrungDoanDong1.Text = d.TenTDDong1;
@@ -2917,7 +2892,6 @@ PRAGMA busy_timeout=15000;
             }
             catch (Exception ex) { HienThiFormAo_Loi("LỖI XỬ LÝ", $"Đã xảy ra lỗi trong quá trình kiểm tra năm hệ thống:\n{ex.Message}"); }
         }
-
         //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     }
 }//Ngoài luồng

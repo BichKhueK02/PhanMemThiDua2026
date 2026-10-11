@@ -96,11 +96,7 @@
             tableLayoutPanel17 = new TableLayoutPanel();
             kryptonButton_CapNhatDanhSachChiHuyD = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_CapNhatChucVu = new Krypton.Toolkit.KryptonButton();
-            pictureBox4 = new PictureBox();
-            pictureBox5 = new PictureBox();
             kryptonButton1_CapNhatDanhSachDonVi = new Krypton.Toolkit.KryptonButton();
-            pictureBox6 = new PictureBox();
-            pictureBox13 = new PictureBox();
             kryptonButton1_Khoiphuc = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_SaoLuu = new Krypton.Toolkit.KryptonButton();
             kryptonButton1_CapNhatTinhThanhPho = new Krypton.Toolkit.KryptonButton();
@@ -144,10 +140,6 @@
             tableLayoutPanel8.SuspendLayout();
             groupBox3.SuspendLayout();
             tableLayoutPanel17.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox5).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox6).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox13).BeginInit();
             statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -394,7 +386,7 @@
             comboBox1_NamHienTai.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox1_NamHienTai.FormattingEnabled = true;
             comboBox1_NamHienTai.Items.AddRange(new object[] { "TIỂU ĐOÀN 1", "TIỂU ĐOÀN 2", "TIỂU ĐOÀN 3", "TIỂU ĐOÀN BVMT BVHĐB", "ĐỘI ĐẶC NHIỆM", "ĐẠI ĐỘI NGHI LỄ", "ĐẠI ĐỘI 1", "ĐẠI ĐỘI 2", "ĐẠI ĐỘI 3", "ĐẠI ĐỘI 4", "ĐẠI ĐỘI CƠ GIỚI", "TỔ THAM MƯU", "TỔ CHÍNH TRỊ", "TỔ HẬU CẦN", "TỔ THAM MƯU CHÍNH TRỊ" });
-            comboBox1_NamHienTai.Location = new Point(240, 12);
+            comboBox1_NamHienTai.Location = new Point(240, 13);
             comboBox1_NamHienTai.Margin = new Padding(2, 4, 2, 4);
             comboBox1_NamHienTai.Name = "comboBox1_NamHienTai";
             comboBox1_NamHienTai.Size = new Size(607, 23);
@@ -485,7 +477,7 @@
             comboBox_TenTieuDoan.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_TenTieuDoan.FormattingEnabled = true;
             comboBox_TenTieuDoan.Items.AddRange(new object[] { "TIỂU ĐOÀN 1", "TIỂU ĐOÀN 2", "TIỂU ĐOÀN 3", "TIỂU ĐOÀN BVMT BVHĐB", "TIỂU ĐOÀN HUẤN LUYỆN 1", "TIỂU ĐOÀN HUẤN LUYỆN 2", "ĐỘI ĐẶC NHIỆM", "ĐẠI ĐỘI NGHI LỄ", "ĐẠI ĐỘI 1", "ĐẠI ĐỘI 2", "ĐẠI ĐỘI 3", "ĐẠI ĐỘI 4", "ĐẠI ĐỘI 5", "ĐẠI ĐỘI 6", "ĐẠI ĐỘI CƠ GIỚI", "TỔ THAM MƯU", "TỔ CHÍNH TRỊ", "TỔ HẬU CẦN", "TỔ THAM MƯU CHÍNH TRỊ", "BAN THAM MƯU", "BAN HUẤN LUYỆN", "BAN CHÍNH TRỊ", "BAN HẬU CẦN", "BỆNH XÁ" });
-            comboBox_TenTieuDoan.Location = new Point(241, 10);
+            comboBox_TenTieuDoan.Location = new Point(241, 11);
             comboBox_TenTieuDoan.Margin = new Padding(2, 4, 2, 4);
             comboBox_TenTieuDoan.Name = "comboBox_TenTieuDoan";
             comboBox_TenTieuDoan.Size = new Size(263, 23);
@@ -510,7 +502,7 @@
             comboBox_KyHieu_TenTieuDoan.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KyHieu_TenTieuDoan.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_KyHieu_TenTieuDoan.FormattingEnabled = true;
-            comboBox_KyHieu_TenTieuDoan.Location = new Point(849, 10);
+            comboBox_KyHieu_TenTieuDoan.Location = new Point(849, 11);
             comboBox_KyHieu_TenTieuDoan.Margin = new Padding(2, 4, 2, 4);
             comboBox_KyHieu_TenTieuDoan.Name = "comboBox_KyHieu_TenTieuDoan";
             comboBox_KyHieu_TenTieuDoan.Size = new Size(106, 23);
@@ -620,7 +612,7 @@
             comboBox_KyHieu_TenTrungDoan.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox_KyHieu_TenTrungDoan.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_KyHieu_TenTrungDoan.FormattingEnabled = true;
-            comboBox_KyHieu_TenTrungDoan.Location = new Point(1159, 12);
+            comboBox_KyHieu_TenTrungDoan.Location = new Point(1159, 13);
             comboBox_KyHieu_TenTrungDoan.Margin = new Padding(2, 4, 2, 4);
             comboBox_KyHieu_TenTrungDoan.Name = "comboBox_KyHieu_TenTrungDoan";
             comboBox_KyHieu_TenTrungDoan.Size = new Size(75, 23);
@@ -1104,28 +1096,24 @@
             // 
             // tableLayoutPanel17
             // 
-            tableLayoutPanel17.ColumnCount = 4;
-            tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.4137936F));
-            tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29.3103447F));
-            tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28.62069F));
-            tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29.6551723F));
-            tableLayoutPanel17.Controls.Add(kryptonButton_CapNhatDanhSachChiHuyD, 3, 0);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_CapNhatChucVu, 2, 0);
-            tableLayoutPanel17.Controls.Add(pictureBox4, 0, 1);
-            tableLayoutPanel17.Controls.Add(pictureBox5, 0, 0);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_CapNhatDanhSachDonVi, 1, 0);
-            tableLayoutPanel17.Controls.Add(pictureBox6, 0, 2);
-            tableLayoutPanel17.Controls.Add(pictureBox13, 0, 3);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_Khoiphuc, 3, 1);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_SaoLuu, 2, 1);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_CapNhatTinhThanhPho, 1, 1);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet, 3, 2);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatFileExcel, 2, 2);
-            tableLayoutPanel17.Controls.Add(kryptonButton2_ChuyenGiaoDuLieu, 1, 2);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatTyLePhanTramBCH, 1, 3);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatTyLePhanTramE29, 2, 3);
-            tableLayoutPanel17.Controls.Add(kryptonButton_TyLePhanTramBaNhat, 3, 3);
-            tableLayoutPanel17.Controls.Add(kryptonButton1_TyLePhanTramXetThiDuaNam, 1, 4);
+            tableLayoutPanel17.ColumnCount = 3;
+            tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.4645653F));
+            tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32.677166F));
+            tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.85827F));
+            tableLayoutPanel17.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel17.Controls.Add(kryptonButton_CapNhatDanhSachChiHuyD, 2, 0);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_CapNhatChucVu, 1, 0);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_CapNhatDanhSachDonVi, 0, 0);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_Khoiphuc, 2, 1);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_SaoLuu, 1, 1);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_CapNhatTinhThanhPho, 0, 1);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet, 2, 2);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatFileExcel, 1, 2);
+            tableLayoutPanel17.Controls.Add(kryptonButton2_ChuyenGiaoDuLieu, 0, 2);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatTyLePhanTramBCH, 0, 3);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_CaiDatTyLePhanTramE29, 1, 3);
+            tableLayoutPanel17.Controls.Add(kryptonButton_TyLePhanTramBaNhat, 2, 3);
+            tableLayoutPanel17.Controls.Add(kryptonButton1_TyLePhanTramXetThiDuaNam, 0, 4);
             tableLayoutPanel17.Dock = DockStyle.Fill;
             tableLayoutPanel17.Location = new Point(2, 22);
             tableLayoutPanel17.Margin = new Padding(2, 4, 2, 4);
@@ -1142,7 +1130,7 @@
             // kryptonButton_CapNhatDanhSachChiHuyD
             // 
             kryptonButton_CapNhatDanhSachChiHuyD.Anchor = AnchorStyles.None;
-            kryptonButton_CapNhatDanhSachChiHuyD.Location = new Point(398, 26);
+            kryptonButton_CapNhatDanhSachChiHuyD.Location = new Point(387, 26);
             kryptonButton_CapNhatDanhSachChiHuyD.Margin = new Padding(2, 4, 2, 4);
             kryptonButton_CapNhatDanhSachChiHuyD.Name = "kryptonButton_CapNhatDanhSachChiHuyD";
             kryptonButton_CapNhatDanhSachChiHuyD.Size = new Size(154, 30);
@@ -1156,7 +1144,7 @@
             // kryptonButton1_CapNhatChucVu
             // 
             kryptonButton1_CapNhatChucVu.Anchor = AnchorStyles.None;
-            kryptonButton1_CapNhatChucVu.Location = new Point(234, 26);
+            kryptonButton1_CapNhatChucVu.Location = new Point(201, 26);
             kryptonButton1_CapNhatChucVu.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_CapNhatChucVu.Name = "kryptonButton1_CapNhatChucVu";
             kryptonButton1_CapNhatChucVu.Size = new Size(154, 30);
@@ -1167,34 +1155,10 @@
             kryptonButton1_CapNhatChucVu.Values.Text = "Cập nhật chức vụ";
             kryptonButton1_CapNhatChucVu.Click += kryptonButton1_CapNhatChucVu_Click;
             // 
-            // pictureBox4
-            // 
-            pictureBox4.Anchor = AnchorStyles.None;
-            pictureBox4.Image = (Image)resources.GetObject("pictureBox4.Image");
-            pictureBox4.Location = new Point(6, 100);
-            pictureBox4.Margin = new Padding(2, 4, 2, 4);
-            pictureBox4.Name = "pictureBox4";
-            pictureBox4.Size = new Size(56, 46);
-            pictureBox4.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox4.TabIndex = 3;
-            pictureBox4.TabStop = false;
-            // 
-            // pictureBox5
-            // 
-            pictureBox5.Anchor = AnchorStyles.None;
-            pictureBox5.Image = (Image)resources.GetObject("pictureBox5.Image");
-            pictureBox5.Location = new Point(6, 18);
-            pictureBox5.Margin = new Padding(2, 4, 2, 4);
-            pictureBox5.Name = "pictureBox5";
-            pictureBox5.Size = new Size(56, 46);
-            pictureBox5.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox5.TabIndex = 3;
-            pictureBox5.TabStop = false;
-            // 
             // kryptonButton1_CapNhatDanhSachDonVi
             // 
             kryptonButton1_CapNhatDanhSachDonVi.Anchor = AnchorStyles.None;
-            kryptonButton1_CapNhatDanhSachDonVi.Location = new Point(73, 26);
+            kryptonButton1_CapNhatDanhSachDonVi.Location = new Point(16, 26);
             kryptonButton1_CapNhatDanhSachDonVi.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_CapNhatDanhSachDonVi.Name = "kryptonButton1_CapNhatDanhSachDonVi";
             kryptonButton1_CapNhatDanhSachDonVi.Size = new Size(154, 30);
@@ -1205,34 +1169,10 @@
             kryptonButton1_CapNhatDanhSachDonVi.Values.Text = "Cập nhật đơn vị";
             kryptonButton1_CapNhatDanhSachDonVi.Click += kryptonButton1_CapNhatDanhSachDonVi_Click;
             // 
-            // pictureBox6
-            // 
-            pictureBox6.Anchor = AnchorStyles.None;
-            pictureBox6.Image = (Image)resources.GetObject("pictureBox6.Image");
-            pictureBox6.Location = new Point(6, 182);
-            pictureBox6.Margin = new Padding(2, 4, 2, 4);
-            pictureBox6.Name = "pictureBox6";
-            pictureBox6.Size = new Size(56, 46);
-            pictureBox6.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox6.TabIndex = 46;
-            pictureBox6.TabStop = false;
-            // 
-            // pictureBox13
-            // 
-            pictureBox13.Anchor = AnchorStyles.None;
-            pictureBox13.Image = (Image)resources.GetObject("pictureBox13.Image");
-            pictureBox13.Location = new Point(2, 259);
-            pictureBox13.Margin = new Padding(2, 4, 2, 4);
-            pictureBox13.Name = "pictureBox13";
-            pictureBox13.Size = new Size(65, 56);
-            pictureBox13.SizeMode = PictureBoxSizeMode.StretchImage;
-            pictureBox13.TabIndex = 51;
-            pictureBox13.TabStop = false;
-            // 
             // kryptonButton1_Khoiphuc
             // 
             kryptonButton1_Khoiphuc.Anchor = AnchorStyles.None;
-            kryptonButton1_Khoiphuc.Location = new Point(398, 108);
+            kryptonButton1_Khoiphuc.Location = new Point(387, 108);
             kryptonButton1_Khoiphuc.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_Khoiphuc.Name = "kryptonButton1_Khoiphuc";
             kryptonButton1_Khoiphuc.Size = new Size(154, 30);
@@ -1246,7 +1186,7 @@
             // kryptonButton1_SaoLuu
             // 
             kryptonButton1_SaoLuu.Anchor = AnchorStyles.None;
-            kryptonButton1_SaoLuu.Location = new Point(234, 108);
+            kryptonButton1_SaoLuu.Location = new Point(201, 108);
             kryptonButton1_SaoLuu.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_SaoLuu.Name = "kryptonButton1_SaoLuu";
             kryptonButton1_SaoLuu.Size = new Size(154, 30);
@@ -1260,7 +1200,7 @@
             // kryptonButton1_CapNhatTinhThanhPho
             // 
             kryptonButton1_CapNhatTinhThanhPho.Anchor = AnchorStyles.None;
-            kryptonButton1_CapNhatTinhThanhPho.Location = new Point(73, 108);
+            kryptonButton1_CapNhatTinhThanhPho.Location = new Point(16, 108);
             kryptonButton1_CapNhatTinhThanhPho.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_CapNhatTinhThanhPho.Name = "kryptonButton1_CapNhatTinhThanhPho";
             kryptonButton1_CapNhatTinhThanhPho.Size = new Size(154, 30);
@@ -1274,7 +1214,7 @@
             // kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet
             // 
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Anchor = AnchorStyles.None;
-            kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Location = new Point(398, 190);
+            kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Location = new Point(387, 190);
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Name = "kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet";
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Size = new Size(154, 30);
@@ -1288,7 +1228,7 @@
             // kryptonButton1_CaiDatFileExcel
             // 
             kryptonButton1_CaiDatFileExcel.Anchor = AnchorStyles.None;
-            kryptonButton1_CaiDatFileExcel.Location = new Point(234, 190);
+            kryptonButton1_CaiDatFileExcel.Location = new Point(201, 190);
             kryptonButton1_CaiDatFileExcel.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_CaiDatFileExcel.Name = "kryptonButton1_CaiDatFileExcel";
             kryptonButton1_CaiDatFileExcel.Size = new Size(154, 30);
@@ -1302,7 +1242,7 @@
             // kryptonButton2_ChuyenGiaoDuLieu
             // 
             kryptonButton2_ChuyenGiaoDuLieu.Anchor = AnchorStyles.None;
-            kryptonButton2_ChuyenGiaoDuLieu.Location = new Point(73, 190);
+            kryptonButton2_ChuyenGiaoDuLieu.Location = new Point(16, 190);
             kryptonButton2_ChuyenGiaoDuLieu.Margin = new Padding(2, 4, 2, 4);
             kryptonButton2_ChuyenGiaoDuLieu.Name = "kryptonButton2_ChuyenGiaoDuLieu";
             kryptonButton2_ChuyenGiaoDuLieu.Size = new Size(154, 30);
@@ -1316,7 +1256,7 @@
             // kryptonButton1_CaiDatTyLePhanTramBCH
             // 
             kryptonButton1_CaiDatTyLePhanTramBCH.Anchor = AnchorStyles.None;
-            kryptonButton1_CaiDatTyLePhanTramBCH.Location = new Point(73, 272);
+            kryptonButton1_CaiDatTyLePhanTramBCH.Location = new Point(16, 272);
             kryptonButton1_CaiDatTyLePhanTramBCH.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_CaiDatTyLePhanTramBCH.Name = "kryptonButton1_CaiDatTyLePhanTramBCH";
             kryptonButton1_CaiDatTyLePhanTramBCH.Size = new Size(154, 30);
@@ -1330,7 +1270,7 @@
             // kryptonButton1_CaiDatTyLePhanTramE29
             // 
             kryptonButton1_CaiDatTyLePhanTramE29.Anchor = AnchorStyles.None;
-            kryptonButton1_CaiDatTyLePhanTramE29.Location = new Point(234, 272);
+            kryptonButton1_CaiDatTyLePhanTramE29.Location = new Point(201, 272);
             kryptonButton1_CaiDatTyLePhanTramE29.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_CaiDatTyLePhanTramE29.Name = "kryptonButton1_CaiDatTyLePhanTramE29";
             kryptonButton1_CaiDatTyLePhanTramE29.Size = new Size(154, 30);
@@ -1344,7 +1284,7 @@
             // kryptonButton_TyLePhanTramBaNhat
             // 
             kryptonButton_TyLePhanTramBaNhat.Anchor = AnchorStyles.None;
-            kryptonButton_TyLePhanTramBaNhat.Location = new Point(398, 272);
+            kryptonButton_TyLePhanTramBaNhat.Location = new Point(387, 272);
             kryptonButton_TyLePhanTramBaNhat.Margin = new Padding(2, 4, 2, 4);
             kryptonButton_TyLePhanTramBaNhat.Name = "kryptonButton_TyLePhanTramBaNhat";
             kryptonButton_TyLePhanTramBaNhat.Size = new Size(154, 30);
@@ -1358,7 +1298,7 @@
             // kryptonButton1_TyLePhanTramXetThiDuaNam
             // 
             kryptonButton1_TyLePhanTramXetThiDuaNam.Anchor = AnchorStyles.None;
-            kryptonButton1_TyLePhanTramXetThiDuaNam.Location = new Point(73, 355);
+            kryptonButton1_TyLePhanTramXetThiDuaNam.Location = new Point(16, 355);
             kryptonButton1_TyLePhanTramXetThiDuaNam.Margin = new Padding(2, 4, 2, 4);
             kryptonButton1_TyLePhanTramXetThiDuaNam.Name = "kryptonButton1_TyLePhanTramXetThiDuaNam";
             kryptonButton1_TyLePhanTramXetThiDuaNam.Size = new Size(154, 30);
@@ -1466,10 +1406,6 @@
             tableLayoutPanel8.PerformLayout();
             groupBox3.ResumeLayout(false);
             tableLayoutPanel17.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox4).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox5).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox6).EndInit();
-            ((System.ComponentModel.ISupportInitialize)pictureBox13).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ResumeLayout(false);
@@ -1524,8 +1460,6 @@
         internal Krypton.Toolkit.KryptonButton kryptonButton_CapNhatDanhSachChiHuyD;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_CapNhatChucVu;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_CaiDatTyLePhanTramE29;
-        private PictureBox pictureBox4;
-        private PictureBox pictureBox5;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_CapNhatDanhSachDonVi;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_Khoiphuc;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_SaoLuu;
@@ -1547,7 +1481,6 @@
         private PictureBox pictureBox12;
         private ComboBox comboBox1_ThoiGianThayDoiAnh;
         private TabPage tabPage4;
-        private PictureBox pictureBox6;
         private TabPage tabPage3;
         internal Krypton.Toolkit.KryptonButton kryptonButton_LuuCauHinh;
         private ComboBox comboBox1_XemHuongDanSuDung;
@@ -1555,7 +1488,6 @@
         internal Krypton.Toolkit.KryptonButton kryptonButton2_ChuyenGiaoDuLieu;
         private Label label16;
         private CheckBox checkBox1;
-        private PictureBox pictureBox13;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_CaiDatTyLePhanTramBCH;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
@@ -1576,4 +1508,3 @@
         internal Krypton.Toolkit.KryptonButton kryptonButton1_TyLePhanTramXetThiDuaNam;
     }
 }
-    

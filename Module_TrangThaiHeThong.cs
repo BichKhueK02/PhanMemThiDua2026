@@ -345,7 +345,6 @@ namespace PhanMemThiDua2026
         }
         // 🌟 BIỂU ĐỒ DONUT SỐ MÀU TÍM
         // 🌟 BIỂU ĐỒ DONUT CÓ HIỆU ỨNG QUÉT ĐỘNG
-
         // 🌟 BIỂU ĐỒ DONUT CÓ VỆT QUÉT CHẠY TRONG PHẠM VI VIỀN XANH
          // 🌟 BIỂU ĐỒ DONUT HỖ TRỢ CẢ 2 CHẾ ĐỘ QUÉT (QUÉT TRONG PHẦN TRĂM HOẶC QUÉT 360 ĐỘ)
         private sealed class RamDonutPanel : SmoothPanel
@@ -354,10 +353,8 @@ namespace PhanMemThiDua2026
             private Color _accentColor = MauXanh;
             private float _scanOffset = 0f;
             private System.Windows.Forms.Timer? _animTimer;
-
             // Thuộc tính để bật/tắt chế độ chạy full 360 độ
             public bool FullCircleScan { get; set; } = false;
-
             public RamDonutPanel()
             {
                 _animTimer = new System.Windows.Forms.Timer { Interval = 30 };
@@ -388,7 +385,6 @@ namespace PhanMemThiDua2026
                 };
                 _animTimer.Start();
             }
-
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
@@ -398,44 +394,36 @@ namespace PhanMemThiDua2026
                 }
                 base.Dispose(disposing);
             }
-
             public float Percent
             {
                 get => _percent;
                 set { _percent = Math.Clamp(value, 0, 100); Invalidate(); }
             }
-
             public Color AccentColor
             {
                 get => _accentColor;
                 set { _accentColor = value; Invalidate(); }
             }
-
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
                 var g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-
                 int w = ClientSize.Width;
                 int h = ClientSize.Height;
                 if (w < 20 || h < 20) return;
-
                 int size = (int)(Math.Min(w, h) * 0.75f);
                 if (size < 20) size = 20;
-
                 int x = (w - size) / 2;
                 int y = (h - size) / 2;
                 Rectangle rect = new Rectangle(x, y, size, size);
-
                 int strokeWidth = Math.Max(3, size / 16);
                 Rectangle arcRect = new Rectangle(
                     rect.X + strokeWidth / 2,
                     rect.Y + strokeWidth / 2,
                     rect.Width - strokeWidth,
                     rect.Height - strokeWidth);
-
                 // 1. Vẽ vòng nền xám nhạt
                 using (var pen = new Pen(Color.FromArgb(226, 232, 240), strokeWidth))
                 {
@@ -443,7 +431,6 @@ namespace PhanMemThiDua2026
                     pen.EndCap = LineCap.Round;
                     g.DrawEllipse(pen, arcRect);
                 }
-
                 // 2. Vẽ phần trăm RAM chính (viền xanh)
                 float sweepAngle = (_percent / 100f) * 360f;
                 if (sweepAngle > 0)
@@ -455,7 +442,6 @@ namespace PhanMemThiDua2026
                         g.DrawArc(pen, arcRect, -90, sweepAngle);
                     }
                 }
-
                 // 3. Vẽ hiệu ứng vệt quét tùy theo chế độ
                 if (FullCircleScan)
                 {
@@ -474,7 +460,6 @@ namespace PhanMemThiDua2026
                     {
                         float scanLength = Math.Min(18f, sweepAngle * 0.4f);
                         float currentScanAngle = -90f + _scanOffset;
-
                         using (var scanPen = new Pen(Color.FromArgb(220, 255, 255, 255), Math.Max(2, strokeWidth)))
                         {
                             scanPen.StartCap = LineCap.Round;
@@ -483,7 +468,6 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-
                 // 4. Vẽ chữ số phần trăm ở giữa
                 string text = $"{_percent:0}%";
                 using (var font = new Font(FontUI, Math.Max(8f, size / 6.0f), FontStyle.Bold))
@@ -494,7 +478,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         private sealed class Form_TaskManagerMini : Form
         {
             private volatile float _bgSysRamPercent;
@@ -851,7 +834,6 @@ namespace PhanMemThiDua2026
                     e.Graphics.FillPath(brush, path);
                     e.Graphics.DrawPath(pen, path);
                 };
-
                 var lblTitle = new Label
                 {
                     Text = title,
@@ -862,7 +844,6 @@ namespace PhanMemThiDua2026
                     BackColor = Color.Transparent,
                     TextAlign = ContentAlignment.MiddleLeft
                 };
-
                 detailLabel = new SmoothLabel
                 {
                     Text = "Đang thu thập dữ liệu...",
@@ -873,7 +854,6 @@ namespace PhanMemThiDua2026
                     BackColor = Color.Transparent,
                     TextAlign = ContentAlignment.MiddleCenter
                 };
-
                 donutPanel = new RamDonutPanel
                 {
                     Dock = DockStyle.Fill,
@@ -881,11 +861,9 @@ namespace PhanMemThiDua2026
                     Percent = 0,
                     FullCircleScan = isApp // Nếu là RAM ứng dụng (isApp = true), vệt quét sẽ chạy trọn vẹn 360 độ
                 };
-
                 card.Controls.Add(donutPanel);
                 card.Controls.Add(detailLabel);
                 card.Controls.Add(lblTitle);
-
                 return card;
             }
             private void DatKhoangChiaAnToan()

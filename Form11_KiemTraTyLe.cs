@@ -396,6 +396,5 @@ namespace PhanMemThiDua2026
             ListBox2.Items.Add($"   + Số lượng L2/Tổng: {qLoai2}/{(int)tongQS} = {tlLoai2Thuc.ToString(CultureInfo.InvariantCulture)}%");
             ListBox2.Items.Add($"   + Số lượng L3/Tổng: {qLoai3}/{(int)tongQS} = {tlLoai3Thuc.ToString(CultureInfo.InvariantCulture)}%");
         }
-   
     }
 }

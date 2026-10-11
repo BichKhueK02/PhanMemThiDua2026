@@ -7,7 +7,6 @@ namespace PhanMemThiDua2026
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -19,9 +18,7 @@ namespace PhanMemThiDua2026
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
@@ -892,9 +889,7 @@ namespace PhanMemThiDua2026
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
-
         // ===== Các Control giữ nguyên tên =====
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
@@ -918,27 +913,22 @@ namespace PhanMemThiDua2026
         private Label label7;
         private Label label8;
         private Label label9;
-
         // ComboBox chuẩn Krypton
         private Krypton.Toolkit.KryptonComboBox combobox_HinhThucKhen;
         private Krypton.Toolkit.KryptonComboBox comboBox_DonViKhenThuong;
-
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_QuyetDinh;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_NgayQuyDinh;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_TienThuong;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_NgayCapPhat;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_CanBoCapPhat;
-
         // Đã chuyển sang KryptonTextBox (Multiline) để giữ nguyên tên biến nhưng bo tròn góc hoàn hảo
         private Krypton.Toolkit.KryptonTextBox richTextBox1_VeViec;
         private Krypton.Toolkit.KryptonTextBox richTextBox1_GhiChu;
-
         private Krypton.Toolkit.KryptonButton kryptonButton_Xoa;
         private Krypton.Toolkit.KryptonButton kryptonButton_Sua;
         private Krypton.Toolkit.KryptonButton kryptonButton_Them;
         private Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1_DanhSachCBCS;
         private ToolTip toolTip1;
-
         // Các field cũ giữ lại phòng trường hợp file logic gọi tới
         private Label label_DonVi;
         private Label label1_ID_Tanbinh;
@@ -946,7 +936,6 @@ namespace PhanMemThiDua2026
         private ComboBox combobox_tuan_1_Thang5;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox4;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox1_DonVi;
-
         // Container bố cục
         private Panel cardHeader;
         private Panel cardHeaderNen;
