@@ -1,4 +1,5 @@
-﻿//using System.Drawing.Drawing2D;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+/////using System.Drawing.Drawing2D;
 //using System.Runtime.InteropServices;
 //namespace PhanMemThiDua2026
 //{
@@ -153,12 +154,16 @@
 //        }
 //    }
 //}
+
+
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Runtime.InteropServices;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     /// <summary>
     /// Form loading hiện đại: thẻ trắng bo góc + đổ bóng, vòng tiến trình gradient mượt,
     /// thanh tiến trình mảnh, fade-in. Giữ nguyên API cũ:

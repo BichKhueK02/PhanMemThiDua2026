@@ -1,9 +1,13 @@
-﻿using Krypton.Toolkit;
+﻿
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using Krypton.Toolkit;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
 // ==== HẰNG SỐ DÙNG CHUNG (TRÁNH MAGIC STRING RẢI RÁC) ====
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form7_ThongTinAdmin : Form
     {
         private readonly Color _focusColor = Color.FromArgb(0, 120, 215); // Windows 10/11 blue

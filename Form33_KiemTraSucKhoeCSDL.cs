@@ -1,4 +1,6 @@
-﻿using Krypton.Toolkit;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Collections.Concurrent;
 using System.Data;
@@ -7,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form33_KiemTraSucKhoeCSDL : Form
     {
         // ================== HÀM API WINDOWS CHO PROGRESS BAR ==================

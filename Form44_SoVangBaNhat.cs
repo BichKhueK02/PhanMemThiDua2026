@@ -1,4 +1,5 @@
-﻿using System;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,6 +15,7 @@ using ClosedXML.Excel; // Nhớ thêm using này
 using System.Diagnostics; // Để mở thư mục
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form44_SoVangBaNhat : Form
     {
         // Sử dụng chung đường dẫn CSDL2 từ module dẫn đường

@@ -1,8 +1,10 @@
-﻿using ClosedXML.Excel;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 using System.Data;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form19_NapKQPLTuDonVi : Form
     {
         private readonly Form6_XuLyData _form6Ref;

@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,6 +10,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form40_BoQuaDonViCanhBaoTyLe : Form
     {
         // Đường dẫn CSDL lấy tập trung từ Module hệ thống

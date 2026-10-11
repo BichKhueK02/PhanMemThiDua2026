@@ -1,4 +1,6 @@
-﻿using System;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.Sqlite;
@@ -10,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form58_DongBoKetQuaThiDuaNamTruocVeNamHienTai : Form
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);

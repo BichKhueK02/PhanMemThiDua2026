@@ -1,8 +1,11 @@
-﻿using Microsoft.Data.Sqlite;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form39_ThongTinNguoiDung : Form
     {
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;

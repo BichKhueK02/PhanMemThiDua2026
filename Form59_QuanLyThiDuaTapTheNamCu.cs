@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
+﻿
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,6 +12,7 @@ using System.Windows.Forms;
 using Krypton.Toolkit;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form59_QuanLyThiDuaTapTheNamCu : Form
     {
         // Cache danh sách 14 KryptonTextBox để thao tác nhanh và chống rò rỉ bộ nhớ

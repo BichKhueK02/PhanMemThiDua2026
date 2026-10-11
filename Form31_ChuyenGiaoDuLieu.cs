@@ -1,7 +1,9 @@
-﻿using System.Diagnostics;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form31_ChuyenGiaoDuLieu : Form
     {
         private CancellationTokenSource? _ctsTaiThongTinDatabase;

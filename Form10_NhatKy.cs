@@ -1,4 +1,5 @@
-﻿using ClosedXML.Excel;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using ClosedXML.Excel;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Data;
@@ -7,6 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form10_NhatKy : Form
     {
         // Thêm biến này vào Form6_XuLyData, Form10_NhatKy, Form15_ThongKeThiDua

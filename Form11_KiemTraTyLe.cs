@@ -1,7 +1,9 @@
-﻿using System.Diagnostics;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using System.Diagnostics;
 using System.Globalization;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form11_KiemTraTyLe : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
@@ -394,8 +396,6 @@ namespace PhanMemThiDua2026
             ListBox2.Items.Add($"   + Số lượng L2/Tổng: {qLoai2}/{(int)tongQS} = {tlLoai2Thuc.ToString(CultureInfo.InvariantCulture)}%");
             ListBox2.Items.Add($"   + Số lượng L3/Tổng: {qLoai3}/{(int)tongQS} = {tlLoai3Thuc.ToString(CultureInfo.InvariantCulture)}%");
         }
-        private void Label5_Click(object sender, EventArgs e)
-        {
-        }
+   
     }
 }

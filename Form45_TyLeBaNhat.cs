@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using Microsoft.Data.Sqlite;
 using System;
 using System.Drawing;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
             // Lê Trung Kiên -  Yêu mèo cam
     public partial class Form45_TyLeBaNhat : Form
     {

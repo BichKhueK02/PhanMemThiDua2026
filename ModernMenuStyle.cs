@@ -1,6 +1,7 @@
 ﻿using System.Drawing.Drawing2D;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     /// <summary>
     /// Giao diện phẳng, hiện đại (kiểu thanh điều hướng của trang web) cho MenuStrip.
     /// Cách dùng:

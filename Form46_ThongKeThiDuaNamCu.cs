@@ -1,4 +1,6 @@
-﻿using Krypton.Toolkit;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+        
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Linq;
 using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form46_ThongKeThiDuaNamCu : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;

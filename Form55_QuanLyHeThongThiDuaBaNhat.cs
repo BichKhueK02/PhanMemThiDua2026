@@ -1,10 +1,13 @@
-﻿using System;
+﻿
+
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form55_QuanLyHeThongThiDuaBaNhat : Form
     {
         // CẤU HÌNH CỐ ĐỊNH

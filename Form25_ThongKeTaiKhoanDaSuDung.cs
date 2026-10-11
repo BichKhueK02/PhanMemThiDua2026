@@ -1,10 +1,13 @@
-﻿using Microsoft.Data.Sqlite;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using Microsoft.Data.Sqlite;
 using SQLitePCL;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form25_ThongKeTaiKhoanDaSuDung : Form
     {
         private readonly string _csdl3Path = Module_DanduongGPS.DuongDanCSDL3;

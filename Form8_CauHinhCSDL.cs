@@ -1,8 +1,11 @@
-﻿using Krypton.Toolkit; // 🟢 BẮT BUỘC THÊM ĐỂ SỬ DỤNG GIAO DIỆN KRYPTON
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using Krypton.Toolkit; // 🟢 BẮT BUỘC THÊM ĐỂ SỬ DỤNG GIAO DIỆN KRYPTON
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form8_CauHinhCSDL : Form
     {
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;

@@ -1,4 +1,6 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
+﻿
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using DocumentFormat.OpenXml.Drawing.Charts;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;
@@ -13,6 +15,7 @@ using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form50_QuanLyKhenThuongNamCu : Form
     {
         // KHAI BÁO DTO VÀ BIẾN TOÀN CỤC CHO KHEN THƯỞNG CÁ NHÂN

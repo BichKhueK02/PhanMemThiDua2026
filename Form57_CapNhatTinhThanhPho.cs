@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
+﻿
+
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +14,7 @@ using ClosedXML.Excel;
 using System.Globalization;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form57_CapNhatTinhThanhPho : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;

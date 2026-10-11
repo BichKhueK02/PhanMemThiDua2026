@@ -1,4 +1,5 @@
-﻿using Krypton.Toolkit;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.ComponentModel;
 using System.Data;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form12 : Form
     {
         private bool _dataChanged = false;
@@ -2916,6 +2918,6 @@ PRAGMA busy_timeout=15000;
             catch (Exception ex) { HienThiFormAo_Loi("LỖI XỬ LÝ", $"Đã xảy ra lỗi trong quá trình kiểm tra năm hệ thống:\n{ex.Message}"); }
         }
 
-
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     }
 }//Ngoài luồng

@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form53_QuanLyKetQuaThiDua : Form
     {
         private readonly int _namHeThong = Module_HeThong.LayNamHeThong();

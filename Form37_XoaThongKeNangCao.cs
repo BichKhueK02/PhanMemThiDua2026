@@ -1,6 +1,8 @@
-﻿using Microsoft.Data.Sqlite;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using Microsoft.Data.Sqlite;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form37_XoaThongKeNangCao : Form
     {
         private Form15_ThongKeThiDua _formCha;

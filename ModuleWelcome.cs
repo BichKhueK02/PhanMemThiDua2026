@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public static class ModuleWelcome
     {
         //"Dấu vân tay môi trường" (GenerateCurrentFingerprint)

@@ -1,9 +1,13 @@
-﻿using System;
+﻿
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form52_QuanLyKhenThuong : Form // hoặc KryptonForm
     {
         // 1. CHUẨN KỸ SƯ: Cache năm hệ thống để giảm thiểu I/O Database nhiều lần

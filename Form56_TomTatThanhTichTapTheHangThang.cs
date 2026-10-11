@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Data;
 using System.Drawing;
 using System.IO;
@@ -8,6 +10,7 @@ using Microsoft.Data.Sqlite;
 using System.Runtime.InteropServices;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form56_TomTatThanhTichTapTheHangThang : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;

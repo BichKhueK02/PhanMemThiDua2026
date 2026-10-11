@@ -1,4 +1,6 @@
-﻿using Krypton.Toolkit;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form51_QuanLyKhenThuongTapTheNamCu : Form
     {
         // BIẾN QUAN TRỌNG: Lưu đường dẫn CSDL năm cũ hiện tại đang được chọn

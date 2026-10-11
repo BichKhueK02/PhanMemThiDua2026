@@ -1,4 +1,6 @@
-﻿using ClosedXML.Excel; // Nhớ thêm thư viện này
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using ClosedXML.Excel; // Nhớ thêm thư viện này
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System;
@@ -13,6 +15,7 @@ using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form42_QuanLyThiDuaBaNhat : Form
     {
         // Đường dẫn cơ sở dữ liệu csdl2.db của hệ thống

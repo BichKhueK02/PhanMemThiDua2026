@@ -1,4 +1,6 @@
-﻿using System;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -9,6 +11,7 @@ using System.Windows.Forms;
 using Microsoft.Data.Sqlite;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form43_TomTatThanhTichBaNhat : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;

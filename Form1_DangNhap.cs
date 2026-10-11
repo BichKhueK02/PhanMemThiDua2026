@@ -1,9 +1,11 @@
-﻿using Krypton.Toolkit;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using BCrypt.Net;
 namespace PhanMemThiDua2026
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form1 : Form
     {
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
