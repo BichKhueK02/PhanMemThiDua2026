@@ -403,7 +403,6 @@ namespace PhanMemThiDua2026
         }
         // Stub để dùng trong try (không cần implement gì)
         // Lê Trung Kiên -  Yêu mèo cam
-
         private void OnColumnChanged_SuppressNotify(object? s, DataColumnChangeEventArgs e) { }
         private string SafeDecrypt(object? value)
         {

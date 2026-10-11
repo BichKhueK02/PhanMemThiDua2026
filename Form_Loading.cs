@@ -153,12 +153,10 @@
 //        }
 //    }
 //}
-
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Runtime.InteropServices;
-
 namespace PhanMemThiDua2026
 {
     /// <summary>
@@ -172,13 +170,11 @@ namespace PhanMemThiDua2026
         private readonly System.Windows.Forms.Timer _timer;
         private readonly Stopwatch _clock = Stopwatch.StartNew();
         private long _lastTicks;
-
         private string _message;
         private volatile bool _autoSimulate = true;
         private float _targetPercent = 0f;   // giá trị thật / giả lập cần đạt tới
         private float _displayPercent = 0f;  // giá trị hiển thị (đã làm mượt)
         private float _spinAngle = 0f;       // góc quay của hiệu ứng ánh sáng
-
         // ====== Giao diện ======
         private readonly Color Accent1 = Color.FromArgb(0, 122, 255);   // xanh dương
         private readonly Color Accent2 = Color.FromArgb(0, 210, 255);   // xanh cyan
@@ -186,26 +182,20 @@ namespace PhanMemThiDua2026
         private readonly Color TrackColor = Color.FromArgb(234, 238, 244);
         private readonly Color TextColor = Color.FromArgb(55, 65, 81);
         private readonly Color SubTextColor = Color.FromArgb(130, 140, 155);
-
         private readonly Font MessageFont = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular);
         private readonly Font PercentFont = new Font(Module_HeThong.TenFontHeThong, 14F, FontStyle.Bold);
         private readonly Font SmallFont = new Font(Module_HeThong.TenFontHeThong, 8.5F, FontStyle.Regular);
-
         private const int RingSize = 76;
         private const int RingThickness = 7;
         private const int CornerRadius = 16;
-
         // ====== Win32 / DWM ======
         [DllImport("Gdi32.dll")]
         private static extern IntPtr CreateRoundRectRgn(int l, int t, int r, int b, int w, int h);
-
         [DllImport("dwmapi.dll")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
-
         private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
         private const int DWMWCP_ROUND = 2;
         private const int CS_DROPSHADOW = 0x00020000;
-
         protected override CreateParams CreateParams
         {
             get
@@ -215,11 +205,9 @@ namespace PhanMemThiDua2026
                 return cp;
             }
         }
-
         public Form_Loading(string message = "Đang xử lý dữ liệu...")
         {
             _message = message;
-
             FormBorderStyle = FormBorderStyle.None;
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = CardColor;
@@ -227,43 +215,35 @@ namespace PhanMemThiDua2026
             TopMost = true;
             DoubleBuffered = true;
             Opacity = 0; // fade-in khi hiện
-
             SetStyle(ControlStyles.AllPaintingInWmPaint |
            ControlStyles.UserPaint |
            ControlStyles.OptimizedDoubleBuffer |
            ControlStyles.ResizeRedraw, true);
-
             CapNhatKichThuocForm(message);
-
             _timer = new System.Windows.Forms.Timer { Interval = 16 }; // ~60 FPS
             _timer.Tick += OnTick;
             Shown += (s, e) => { _lastTicks = _clock.ElapsedTicks; _timer.Start(); };
             FormClosing += (s, e) => _timer.Stop();
         }
-
         // ====== Bo góc: ưu tiên DWM (Win11, mịn), dự phòng Region ======
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
             ApDungBoGoc();
         }
-
         private void ApDungBoGoc()
         {
             if (!IsHandleCreated) return;
-
             int pref = DWMWCP_ROUND;
             int hr;
             try { hr = DwmSetWindowAttribute(Handle, DWMWA_WINDOW_CORNER_PREFERENCE, ref pref, sizeof(int)); }
             catch { hr = -1; }
-
             if (hr != 0) // Windows 10 trở xuống
             {
                 int d = CornerRadius * 2;
                 Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, Width + 1, Height + 1, d, d));
             }
         }
-
         // ====== Tự đo kích thước theo nội dung ======
         private void CapNhatKichThuocForm(string text)
         {
@@ -275,7 +255,6 @@ namespace PhanMemThiDua2026
             }
             ApDungBoGoc();
         }
-
         // ====== Vòng lặp animation (độc lập tốc độ máy) ======
         private void OnTick(object sender, EventArgs e)
         {
@@ -283,23 +262,17 @@ namespace PhanMemThiDua2026
             float dt = (now - _lastTicks) / (float)Stopwatch.Frequency; // giây
             _lastTicks = now;
             if (dt > 0.1f) dt = 0.1f;
-
             _spinAngle = (_spinAngle + 300f * dt) % 360f;
-
             // Giả lập tiến trình: tiệm cận 99%
             if (_autoSimulate && _targetPercent < 99f)
                 _targetPercent += (99f - _targetPercent) * 0.6f * dt;
-
             // Làm mượt: nội suy hiển thị về target (exponential smoothing)
             float k = 1f - (float)Math.Exp(-8f * dt);
             _displayPercent += (_targetPercent - _displayPercent) * k;
-
             // Fade-in
             if (Opacity < 1) Opacity = Math.Min(1, Opacity + dt * 6f);
-
             Invalidate();
         }
-
         // ====== Vẽ ======
         protected override void OnPaint(PaintEventArgs e)
         {
@@ -307,29 +280,24 @@ namespace PhanMemThiDua2026
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
-
             // Nền thẻ + viền mảnh
             using (var bg = new SolidBrush(CardColor))
                 g.FillRectangle(bg, ClientRectangle);
             using (var path = RoundRect(new RectangleF(0.5f, 0.5f, Width - 1, Height - 1), CornerRadius))
             using (var border = new Pen(Color.FromArgb(40, 0, 0, 0), 1))
                 g.DrawPath(border, path);
-
             DrawRing(g);
             DrawMessage(g);
             DrawProgressBar(g);
         }
-
         private void DrawRing(Graphics g)
         {
             var rect = new Rectangle((Width - RingSize) / 2, 26, RingSize, RingSize);
             float pct = Math.Max(0f, Math.Min(100f, _displayPercent));
             float sweep = pct * 3.6f;
-
             // Đường ray
             using (var track = new Pen(TrackColor, RingThickness))
                 g.DrawEllipse(track, rect);
-
             // Cung tiến trình (gradient)
             if (sweep > 0.5f)
             {
@@ -337,7 +305,6 @@ namespace PhanMemThiDua2026
                 using (var pen = new Pen(lg, RingThickness) { StartCap = LineCap.Round, EndCap = LineCap.Round })
                     g.DrawArc(pen, rect, -90, sweep);
             }
-
             // Vệt sáng chạy quanh vòng cho cảm giác "đang xử lý"
             using (var glow = new Pen(Color.FromArgb(150, 255, 255, 255), RingThickness - 3)
             { StartCap = LineCap.Round, EndCap = LineCap.Round })
@@ -350,7 +317,6 @@ namespace PhanMemThiDua2026
                     if (len > 2f) g.DrawArc(glow, rect, start, len);
                 }
             }
-
             // Chấm đầu mút
             if (sweep > 2f && pct < 100f)
             {
@@ -360,13 +326,11 @@ namespace PhanMemThiDua2026
                 using (var dot = new SolidBrush(Color.White))
                     g.FillEllipse(dot, cx - 2.5f, cy - 2.5f, 5, 5);
             }
-
             // Số phần trăm ở giữa
             using (var br = new SolidBrush(TextColor))
             using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                 g.DrawString($"{(int)pct}%", PercentFont, br, rect, sf);
         }
-
         private void DrawMessage(Graphics g)
         {
             var r = new RectangleF(16, 116, Width - 32, 28);
@@ -379,21 +343,17 @@ namespace PhanMemThiDua2026
                 FormatFlags = StringFormatFlags.NoWrap
             })
                 g.DrawString(_message, MessageFont, br, r, sf);
-
             using (var br = new SolidBrush(SubTextColor))
             using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
                 g.DrawString("Vui lòng đợi trong giây lát", SmallFont, br, new RectangleF(16, 140, Width - 32, 20), sf);
         }
-
         private void DrawProgressBar(Graphics g)
         {
             const int h = 5;
             var bar = new RectangleF(30, Height - 26, Width - 60, h);
-
             using (var p = RoundRect(bar, h / 2f))
             using (var track = new SolidBrush(TrackColor))
                 g.FillPath(track, p);
-
             float w = bar.Width * Math.Max(0f, Math.Min(100f, _displayPercent)) / 100f;
             if (w >= h)
             {
@@ -404,7 +364,6 @@ namespace PhanMemThiDua2026
                     g.FillPath(lg, p);
             }
         }
-
         private static GraphicsPath RoundRect(RectangleF b, float radius)
         {
             float d = radius * 2f;
@@ -416,7 +375,6 @@ namespace PhanMemThiDua2026
             path.CloseFigure();
             return path;
         }
-
         // ====== API công khai (giữ nguyên tên cũ) ======
         public void CapNhatThongBao(string txt)
         {
@@ -425,7 +383,6 @@ namespace PhanMemThiDua2026
             CapNhatKichThuocForm(txt);
             Invalidate();
         }
-
         public void CapNhatPhanTram(int percent)
         {
             _autoSimulate = false;
@@ -433,7 +390,6 @@ namespace PhanMemThiDua2026
             if (percent > 100) percent = 100;
             _targetPercent = percent; // hiển thị sẽ tự chạy mượt tới giá trị này
         }
-
         protected override void Dispose(bool disposing)
         {
             if (disposing)

@@ -1,4 +1,6 @@
-﻿using System;
+﻿//Yêu mèo cam
+#nullable enable
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -10,51 +12,78 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Microsoft.VisualBasic.Devices; // 🌟 Thêm thư viện này để dùng ComputerInfo (An toàn 100% với Antivirus)
+using Microsoft.VisualBasic.Devices;
+using Microsoft.Win32;
 namespace PhanMemThiDua2026
 {
     internal static class Module_TrangThaiHeThong
     {
-        // ================== BỘ NHỚ ĐỆM & TÀI NGUYÊN DÙNG CHUNG ==================
-        private static readonly ToolTip _sharedToolTip = new ToolTip { AutoPopDelay = 10000, InitialDelay = 500, ReshowDelay = 100, ShowAlways = true };
+        private static readonly ToolTip _sharedToolTip = new ToolTip {
+                                                                        AutoPopDelay = 10000,
+                                                                        InitialDelay = 500,
+                                                                        ReshowDelay = 100,
+                                                                        ShowAlways = true
+                                                                    };
         private static string _cachedCpuName = string.Empty;
-        // Đã xóa bỏ Struct MEMORYSTATUSEX và [DllImport("kernel32.dll")] để tránh bị EDR bắt nhầm
+        private static readonly Color MauNen = Color.FromArgb(244, 247, 251);
+        private static readonly Color MauThe = Color.White;
+        private static readonly Color MauChu = Color.FromArgb(35, 47, 62);
+        private static readonly Color MauPhu = Color.FromArgb(105, 119, 138);
+        private static readonly Color MauXanh = Color.FromArgb(37, 99, 235);
+        private static readonly Color MauXanhLa = Color.FromArgb(5, 150, 105);
+        private static readonly Color MauVien = Color.FromArgb(225, 232, 241);
+        private static string FontUI
+        {
+            get
+            {
+                try
+                {
+                    string tenFont = Module_HeThong.TenFontHeThong;
+                    if (!string.IsNullOrWhiteSpace(tenFont))
+                        return tenFont;
+                }
+                catch { }
+                return "Segoe UI";
+            }
+        }
         public static void CapNhatStatusCSDL(StatusStrip status, ToolStripStatusLabel label)
         {
-            if (status == null || label == null || status.IsDisposed || label.IsDisposed)
-            {
+            if (status == null || label == null ||
+                status.IsDisposed || label.IsDisposed)
                 return;
-            }
             try
             {
-                // Chuyển về UI Thread nếu cần
                 if (status.InvokeRequired)
                 {
                     try
                     {
-                        status.BeginInvoke(new Action(() => CapNhatStatusCSDL(status, label)));
+                        status.BeginInvoke(new Action(
+                            () => CapNhatStatusCSDL(status, label)));
                     }
                     catch (ObjectDisposedException) { }
                     catch (InvalidOperationException) { }
                     return;
                 }
-                bool csdlSanSang = Module_DanduongGPS.KiemTraTrangThaiSanSangCuaHeThongCSDL();
+                bool csdlSanSang =
+                    Module_DanduongGPS.KiemTraTrangThaiSanSangCuaHeThongCSDL();
                 DateTime thoiGianDangNhap = SessionInfo.ThoiGianDangNhap;
                 string thoiGianStr = thoiGianDangNhap == default
                     ? "(chưa đăng nhập)"
                     : $"Truy cập lúc {thoiGianDangNhap:hh:mm tt}, ngày {thoiGianDangNhap:dd/M/yyyy}";
                 string tenMay = Environment.MachineName;
                 string tenUser = Environment.UserName;
-                string hienThiNgan = csdlSanSang
+                label.Text = csdlSanSang
                     ? $"Đang kết nối CSDL | User: {tenUser} | {thoiGianStr}"
                     : $"Mất kết nối | User: {tenUser} | {thoiGianStr}";
-                string tooltipChiTiet = $"Máy tính: {tenMay}\n" +
-                                        $"Tài khoản Windows: {tenUser}\n" +
-                                        $"Phiên kết nối: {thoiGianStr}";
-                status.BackColor = csdlSanSang ? Color.FromArgb(220, 248, 198) : Color.FromArgb(255, 224, 224);
-                label.Text = hienThiNgan;
                 label.ForeColor = csdlSanSang ? Color.DarkGreen : Color.DarkRed;
-                _sharedToolTip?.SetToolTip(status, tooltipChiTiet);
+                status.BackColor = csdlSanSang
+                    ? Color.FromArgb(220, 248, 198)
+                    : Color.FromArgb(255, 224, 224);
+                _sharedToolTip.SetToolTip(
+                    status,
+                    $"Máy tính: {tenMay}\n" +
+                    $"Tài khoản Windows: {tenUser}\n" +
+                    $"Phiên kết nối: {thoiGianStr}");
             }
             catch (ObjectDisposedException) { }
             catch (InvalidOperationException) { }
@@ -63,79 +92,156 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"CapNhatStatusCSDL Error: {ex}");
             }
         }
+        private static GraphicsPath GetRoundedRectanglePath(Rectangle rect, int radius)
+        {
+            var path = new GraphicsPath();
+            int d = radius * 2;
+            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
         public static string LayUUIDMayTinh()
         {
             try
             {
-                string rawSysInfo = Environment.MachineName + Environment.UserDomainName + Environment.UserName + Environment.ProcessorCount;
+                string rawSysInfo =
+                    Environment.MachineName +
+                    Environment.UserDomainName +
+                    Environment.UserName +
+                    Environment.ProcessorCount;
                 using (SHA256 sha = SHA256.Create())
                 {
-                    byte[] hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(rawSysInfo));
-                    return "SYS-" + BitConverter.ToString(hashBytes).Replace("-", "").Substring(0, 16);
+                    byte[] hashBytes =
+                        sha.ComputeHash(Encoding.UTF8.GetBytes(rawSysInfo));
+                    return "SYS-" +
+                        BitConverter.ToString(hashBytes)
+                            .Replace("-", "")
+                            .Substring(0, 16);
                 }
             }
-            catch { return $"SYS-{Environment.MachineName}"; }
+            catch
+            {
+                return $"SYS-{Environment.MachineName}";
+            }
         }
         public static void MoFormNhungVaoPanel(Form formHienTai)
         {
-            Panel? panelContainer = formHienTai.Parent as Panel;
-            if (panelContainer == null)
+            if (formHienTai == null || formHienTai.IsDisposed)
+                return;
+            Control? container = formHienTai.Parent;
+            while (container != null &&
+                   container is not Panel &&
+                   container is not TabPage)
             {
-                using (var f = new Form_TaskManagerMini()) { f.ShowDialog(); }
+                container = container.Parent;
+            }
+            if (container == null || container.IsDisposed)
+            {
+                Debug.WriteLine(
+                    "MoFormNhungVaoPanel: Không tìm thấy Panel hoặc TabPage cha.");
+                MessageBox.Show(
+                    formHienTai,
+                    "Không tìm thấy Panel hoặc TabPage để nhúng giao diện.\n" +
+                    "Nếu đã có Panel đích, hãy gọi NhungFormVaoTabPage(panel).",
+                    "Không thể hiển thị giao diện",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
-            var fTask = panelContainer.Controls.OfType<Form_TaskManagerMini>().FirstOrDefault();
-            if (fTask == null)
-            {
-                fTask = new Form_TaskManagerMini { TopLevel = false, FormBorderStyle = FormBorderStyle.None, Dock = DockStyle.Fill };
-                panelContainer.Controls.Add(fTask);
-                fTask.FormClosed += (s, ev) =>
-                {
-                    if (!formHienTai.IsDisposed) { formHienTai.Show(); formHienTai.BringToFront(); }
-                };
-            }
-            formHienTai.Hide();
-            fTask.Show();
-            fTask.BringToFront();
+            NhungFormVaoTabPage(container);
         }
         public static void NhungFormVaoTabPage(Control targetContainer)
         {
-            if (targetContainer == null) return;
-            var fTask = targetContainer.Controls.OfType<Form_TaskManagerMini>().FirstOrDefault();
-            if (fTask == null)
+            if (targetContainer == null ||
+                targetContainer.IsDisposed ||
+                targetContainer.Disposing)
+                return;
+            try
             {
-                fTask = new Form_TaskManagerMini
+                Form_TaskManagerMini? taskForm =
+                    targetContainer.Controls
+                        .OfType<Form_TaskManagerMini>()
+                        .FirstOrDefault(f => !f.IsDisposed);
+                if (taskForm == null)
                 {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-                targetContainer.Controls.Add(fTask);
+                    taskForm = new Form_TaskManagerMini
+                    {
+                        TopLevel = false,
+                        FormBorderStyle = FormBorderStyle.None,
+                        Dock = DockStyle.Fill,
+                        ShowInTaskbar = false,
+                        StartPosition = FormStartPosition.Manual
+                    };
+                    targetContainer.SuspendLayout();
+                    try
+                    {
+                        targetContainer.Controls.Add(taskForm);
+                        taskForm.Dock = DockStyle.Fill;
+                        taskForm.Show();
+                        taskForm.BringToFront();
+                    }
+                    finally
+                    {
+                        targetContainer.ResumeLayout(true);
+                    }
+                }
+                else
+                {
+                    taskForm.Dock = DockStyle.Fill;
+                    if (!ReferenceEquals(taskForm.Parent, targetContainer))
+                    {
+                        taskForm.Parent?.Controls.Remove(taskForm);
+                        targetContainer.Controls.Add(taskForm);
+                    }
+                    if (!taskForm.Visible)
+                        taskForm.Show();
+                    taskForm.BringToFront();
+                }
             }
-            fTask.Show();
-            fTask.BringToFront();
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"NhungFormVaoTabPage Error: {ex}");
+                MessageBox.Show(
+                    targetContainer.FindForm(),
+                    "Không thể hiển thị giao diện giám sát hệ thống.\n\n" +
+                    ex.GetType().Name + ": " + ex.Message,
+                    "Lỗi giao diện",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
-        // ================== CÁC HÀM TRUY VẤN ==================
         private static string LayUngDungDocExcel()
         {
             try
             {
-                using (var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(".xlsx"))
+                using (var key =
+                    Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(".xlsx"))
                 {
                     if (key != null)
                     {
-                        string progId = key.GetValue("")?.ToString();
+                        string? progId = key.GetValue("")?.ToString();
                         if (!string.IsNullOrEmpty(progId))
                         {
-                            if (progId.IndexOf("Excel", StringComparison.OrdinalIgnoreCase) >= 0)
+                            if (progId.IndexOf(
+                                "Excel", StringComparison.OrdinalIgnoreCase) >= 0)
                                 return "Microsoft Office - Microsoft Excel";
-                            if (progId.IndexOf("WPS", StringComparison.OrdinalIgnoreCase) >= 0)
+                            if (progId.IndexOf(
+                                "WPS", StringComparison.OrdinalIgnoreCase) >= 0)
                                 return "WPS Office";
-                            if (progId.IndexOf("opendocument.spreadsheet", StringComparison.OrdinalIgnoreCase) >= 0 || progId.IndexOf("LibreOffice", StringComparison.OrdinalIgnoreCase) >= 0)
+                            if (progId.IndexOf(
+                                    "opendocument.spreadsheet",
+                                    StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                progId.IndexOf(
+                                    "LibreOffice",
+                                    StringComparison.OrdinalIgnoreCase) >= 0)
                                 return "LibreOffice / OpenOffice";
-                            using (var progIdKey = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
+                            using (var progIdKey =
+                                Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
                             {
-                                string appName = progIdKey?.GetValue("")?.ToString();
+                                string? appName = progIdKey?.GetValue("")?.ToString();
                                 if (!string.IsNullOrWhiteSpace(appName))
                                     return appName;
                             }
@@ -156,7 +262,9 @@ namespace PhanMemThiDua2026
                 return _cachedCpuName;
             try
             {
-                _cachedCpuName = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") ?? "Unknown CPU";
+                _cachedCpuName =
+                    Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER")
+                    ?? "Unknown CPU";
             }
             catch
             {
@@ -171,31 +279,36 @@ namespace PhanMemThiDua2026
         }
         private static string LayWindowsVersionChiTiet()
         {
-            try
-            {
-                return RuntimeInformation.OSDescription;
-            }
+            try { return RuntimeInformation.OSDescription; }
             catch { return Environment.OSVersion.ToString(); }
         }
         private static string LayTrangThaiUAC()
         {
             try
             {
-                using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+                using (var identity =
+                    System.Security.Principal.WindowsIdentity.GetCurrent())
                 {
-                    var principal = new System.Security.Principal.WindowsPrincipal(identity);
-                    bool isAdmin = principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-                    return isAdmin ? "Đang chạy với quyền Cao nhất (Admin)" : "Tiêu chuẩn (User thường)";
+                    var principal =
+                        new System.Security.Principal.WindowsPrincipal(identity);
+                    return principal.IsInRole(
+                        System.Security.Principal.WindowsBuiltInRole.Administrator)
+                        ? "Đang chạy với quyền Cao nhất (Admin)"
+                        : "Tiêu chuẩn (User thường)";
                 }
             }
-            catch { return "Không xác định"; }
+            catch
+            {
+                return "Không xác định";
+            }
         }
         public static string LayLoaiMayTinh()
         {
             try
             {
                 PowerStatus powerStatus = SystemInformation.PowerStatus;
-                return powerStatus.BatteryChargeStatus == BatteryChargeStatus.NoSystemBattery
+                return powerStatus.BatteryChargeStatus ==
+                       BatteryChargeStatus.NoSystemBattery
                     ? "Máy bàn"
                     : "Laptop";
             }
@@ -204,89 +317,404 @@ namespace PhanMemThiDua2026
                 return "Không xác định";
             }
         }
-        // 🌟 CUSTOM CONTROL: Chống nháy (Flickering) An Toàn, không dùng Reflection
         private class SmoothPanel : Panel
         {
             public SmoothPanel()
             {
-                this.DoubleBuffered = true;
-                this.ResizeRedraw = true;
-                this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+                DoubleBuffered = true;
+                ResizeRedraw = true;
+                SetStyle(
+                    ControlStyles.AllPaintingInWmPaint |
+                    ControlStyles.UserPaint |
+                    ControlStyles.OptimizedDoubleBuffer |
+                    ControlStyles.ResizeRedraw,
+                    true);
             }
         }
-        private class SmoothListView : ListView
+        private sealed class SmoothListView : ListView
         {
             public SmoothListView()
             {
-                this.DoubleBuffered = true;
-                this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+                DoubleBuffered = true;
+                SetStyle(
+                    ControlStyles.OptimizedDoubleBuffer |
+                    ControlStyles.AllPaintingInWmPaint |
+                    ControlStyles.ResizeRedraw,
+                    true);
             }
         }
-        // 🚀 FORM NỘI BỘ (COMPACT WIDGET LAYOUT)
-        private class Form_TaskManagerMini : Form
+        // 🌟 BIỂU ĐỒ DONUT SỐ MÀU TÍM
+        // 🌟 BIỂU ĐỒ DONUT CÓ HIỆU ỨNG QUÉT ĐỘNG
+
+        // 🌟 BIỂU ĐỒ DONUT CÓ VỆT QUÉT CHẠY TRONG PHẠM VI VIỀN XANH
+         // 🌟 BIỂU ĐỒ DONUT HỖ TRỢ CẢ 2 CHẾ ĐỘ QUÉT (QUÉT TRONG PHẦN TRĂM HOẶC QUÉT 360 ĐỘ)
+        private sealed class RamDonutPanel : SmoothPanel
         {
-            private volatile float _bgSysRamPercent = 0;
+            private float _percent;
+            private Color _accentColor = MauXanh;
+            private float _scanOffset = 0f;
+            private System.Windows.Forms.Timer? _animTimer;
+
+            // Thuộc tính để bật/tắt chế độ chạy full 360 độ
+            public bool FullCircleScan { get; set; } = false;
+
+            public RamDonutPanel()
+            {
+                _animTimer = new System.Windows.Forms.Timer { Interval = 30 };
+                _animTimer.Tick += (s, e) =>
+                {
+                    if (!IsDisposed && Visible)
+                    {
+                        if (FullCircleScan)
+                        {
+                            // Chạy liên tục 360 độ quanh toàn bộ vòng tròn
+                            _scanOffset = (_scanOffset + 5f) % 360f;
+                        }
+                        else
+                        {
+                            // Chạy co giãn trong giới hạn phần trăm RAM hiện tại
+                            float sweepAngle = (_percent / 100f) * 360f;
+                            if (sweepAngle > 5f)
+                            {
+                                _scanOffset = (_scanOffset + 2.5f) % sweepAngle;
+                            }
+                            else
+                            {
+                                _scanOffset = 0f;
+                            }
+                        }
+                        Invalidate();
+                    }
+                };
+                _animTimer.Start();
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _animTimer?.Stop();
+                    _animTimer?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+
+            public float Percent
+            {
+                get => _percent;
+                set { _percent = Math.Clamp(value, 0, 100); Invalidate(); }
+            }
+
+            public Color AccentColor
+            {
+                get => _accentColor;
+                set { _accentColor = value; Invalidate(); }
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                base.OnPaint(e);
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+                int w = ClientSize.Width;
+                int h = ClientSize.Height;
+                if (w < 20 || h < 20) return;
+
+                int size = (int)(Math.Min(w, h) * 0.75f);
+                if (size < 20) size = 20;
+
+                int x = (w - size) / 2;
+                int y = (h - size) / 2;
+                Rectangle rect = new Rectangle(x, y, size, size);
+
+                int strokeWidth = Math.Max(3, size / 16);
+                Rectangle arcRect = new Rectangle(
+                    rect.X + strokeWidth / 2,
+                    rect.Y + strokeWidth / 2,
+                    rect.Width - strokeWidth,
+                    rect.Height - strokeWidth);
+
+                // 1. Vẽ vòng nền xám nhạt
+                using (var pen = new Pen(Color.FromArgb(226, 232, 240), strokeWidth))
+                {
+                    pen.StartCap = LineCap.Round;
+                    pen.EndCap = LineCap.Round;
+                    g.DrawEllipse(pen, arcRect);
+                }
+
+                // 2. Vẽ phần trăm RAM chính (viền xanh)
+                float sweepAngle = (_percent / 100f) * 360f;
+                if (sweepAngle > 0)
+                {
+                    using (var pen = new Pen(_accentColor, strokeWidth))
+                    {
+                        pen.StartCap = LineCap.Round;
+                        pen.EndCap = LineCap.Round;
+                        g.DrawArc(pen, arcRect, -90, sweepAngle);
+                    }
+                }
+
+                // 3. Vẽ hiệu ứng vệt quét tùy theo chế độ
+                if (FullCircleScan)
+                {
+                    // Chế độ chạy quét 360 độ liên tục (Dành cho RAM Ứng dụng)
+                    using (var scanPen = new Pen(Color.FromArgb(220, 255, 255, 255), Math.Max(2, strokeWidth)))
+                    {
+                        scanPen.StartCap = LineCap.Round;
+                        scanPen.EndCap = LineCap.Round;
+                        g.DrawArc(scanPen, arcRect, -90f + _scanOffset, 45); // Vệt sáng dài 45 độ quét vòng quanh
+                    }
+                }
+                else
+                {
+                    // Chế độ chạy co giãn trong phạm vi viền xanh (Dành cho RAM Toàn hệ thống)
+                    if (sweepAngle > 15f)
+                    {
+                        float scanLength = Math.Min(18f, sweepAngle * 0.4f);
+                        float currentScanAngle = -90f + _scanOffset;
+
+                        using (var scanPen = new Pen(Color.FromArgb(220, 255, 255, 255), Math.Max(2, strokeWidth)))
+                        {
+                            scanPen.StartCap = LineCap.Round;
+                            scanPen.EndCap = LineCap.Round;
+                            g.DrawArc(scanPen, arcRect, currentScanAngle, scanLength);
+                        }
+                    }
+                }
+
+                // 4. Vẽ chữ số phần trăm ở giữa
+                string text = $"{_percent:0}%";
+                using (var font = new Font(FontUI, Math.Max(8f, size / 6.0f), FontStyle.Bold))
+                using (var brush = new SolidBrush(Color.FromArgb(165, 156, 228)))
+                {
+                    SizeF sz = g.MeasureString(text, font);
+                    g.DrawString(text, font, brush, rect.X + (rect.Width - sz.Width) / 2f, rect.Y + (rect.Height - sz.Height) / 2f);
+                }
+            }
+        }
+
+        private sealed class Form_TaskManagerMini : Form
+        {
+            private volatile float _bgSysRamPercent;
             private string _bgSysRamText = "0 / 0 GB";
-            private volatile float _bgAppRamPercent = 0;
+            private volatile float _bgAppRamPercent;
             private string _bgAppRamText = "0 MB";
             private CancellationTokenSource? _monitorCts;
-            private SmoothPanel pnlSysRamBar, pnlAppRamBar;
-            private Label lblSysRamPercent, lblAppRamPercent;
-            private Label lblSysRamDetail, lblAppRamDetail;
-            private SmoothListView lvInfo;
-            private System.Windows.Forms.Timer updateTimer;
+            private Task? _monitorTask;
+            private System.Windows.Forms.Timer? updateTimer;
+            private bool _daKhoiTao;
+            private bool _dangDong;
+            private RamDonutPanel chartSysRam = null!;
+            private RamDonutPanel chartAppRam = null!;
+            private SmoothLabel lblSysRamDetail = null!;
+            private SmoothLabel lblAppRamDetail = null!;
+            private Label lblSystemStatus = null!;
+            private SmoothListView lvInfo = null!;
+            private SplitContainer split = null!;
+            private Button btnExport = null!;
             public Form_TaskManagerMini()
             {
-                this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+                SetStyle(
+                    ControlStyles.AllPaintingInWmPaint |
+                    ControlStyles.UserPaint |
+                    ControlStyles.OptimizedDoubleBuffer |
+                    ControlStyles.ResizeRedraw,
+                    true);
                 InitializeModernUI_SplitLayout();
-                this.Load += async (s, e) =>
+                Load += Form_TaskManagerMini_Load;
+            }
+            private async void Form_TaskManagerMini_Load(object? sender, EventArgs e)
+            {
+                if (_daKhoiTao || IsDisposed)
+                    return;
+                _daKhoiTao = true;
+                try
                 {
                     await LoadListViewDataAsync();
+                    if (IsDisposed || !IsHandleCreated)
+                        return;
                     _monitorCts = new CancellationTokenSource();
-                    // Kích hoạt luồng ngầm an toàn
-                    _ = Task.Run(() => HardwareSafePollingLoop(_monitorCts.Token));
-                    updateTimer = new System.Windows.Forms.Timer { Interval = 1000 };
+                    CancellationToken token = _monitorCts.Token;
+                    _monitorTask = Task.Run(
+                        () => HardwareSafePollingLoop(token), token);
+                    updateTimer = new System.Windows.Forms.Timer
+                    {
+                        Interval = 1000
+                    };
                     updateTimer.Tick += UpdateTimer_Tick;
                     updateTimer.Start();
-                };
+                    lblSystemStatus.Text = "● Đang giám sát tài nguyên";
+                    lblSystemStatus.ForeColor = Color.FromArgb(22, 128, 72);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Khởi tạo giám sát hệ thống: {ex}");
+                    if (!IsDisposed && lblSystemStatus != null)
+                    {
+                        lblSystemStatus.Text = "● Chưa thể khởi tạo giám sát";
+                        lblSystemStatus.ForeColor = Color.Firebrick;
+                    }
+                }
             }
             private void InitializeModernUI_SplitLayout()
             {
-                this.SuspendLayout();
-                this.Text = "Thông tin hệ thống";
-                this.Size = new Size(1200, 650);
-                this.MinimumSize = new Size(950, 550);
-                this.StartPosition = FormStartPosition.CenterScreen;
-                this.BackColor = Color.FromArgb(245, 246, 250);
-                this.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F);
-                this.ShowIcon = false;
-                SplitContainer split = new SplitContainer
+                SuspendLayout();
+                Text = "Trung tâm giám sát hệ thống";
+                Size = new Size(1200, 720);
+                MinimumSize = new Size(650, 400);
+                StartPosition = FormStartPosition.Manual;
+                FormBorderStyle = FormBorderStyle.None;
+                ShowIcon = false;
+                ShowInTaskbar = false;
+                BackColor = MauNen;
+                ForeColor = MauChu;
+                Font = new Font(FontUI, 9.5F);
+                AutoScaleMode = AutoScaleMode.Font;
+                var root = new TableLayoutPanel
                 {
                     Dock = DockStyle.Fill,
-                    Panel1MinSize = 0,
-                    Panel2MinSize = 0,
+                    ColumnCount = 1,
+                    RowCount = 3,
+                    BackColor = MauNen,
+                    Padding = new Padding(16, 12, 16, 10),
+                    Margin = Padding.Empty
+                };
+                root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+                root.RowStyles.Add(new RowStyle(SizeType.Absolute, 68));
+                root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+                root.RowStyles.Add(new RowStyle(SizeType.Absolute, 54));
+                var header = new Panel
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = MauNen,
+                    Margin = Padding.Empty
+                };
+                var lblTitle = new Label
+                {
+                    Text = "Tổng quan hệ thống",
+                    Font = new Font(FontUI, 16F, FontStyle.Bold),
+                    ForeColor = MauChu,
+                    AutoSize = true,
+                    Location = new Point(0, 0)
+                };
+                var lblSubtitle = new Label
+                {
+                    Text = "Theo dõi tài nguyên và cấu hình thiết bị",
+                    Font = new Font(FontUI, 8F),
+                    ForeColor = MauPhu,
+                    AutoSize = true,
+                    Location = new Point(2, 37)
+                };
+                lblSystemStatus = new Label
+                {
+                    Text = "● Đang khởi tạo",
+                    AutoSize = false,
+                    Width = 250,
+                    Height = 28,
+                    TextAlign = ContentAlignment.MiddleRight,
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                    Font = new Font(FontUI, 9F, FontStyle.Bold),
+                    ForeColor = MauPhu
+                };
+                header.Controls.AddRange(new Control[]
+                {
+                    lblTitle, lblSubtitle, lblSystemStatus
+                });
+                header.Resize += (s, e) =>
+                {
+                    lblSystemStatus.Location = new Point(
+                        Math.Max(0, header.ClientSize.Width -
+                                   lblSystemStatus.Width - 2), 8);
+                };
+                split = new SplitContainer
+                {
+                    Name = "splitSystemOverview",
+                    Dock = DockStyle.Fill,
+                    Orientation = Orientation.Vertical,
+                    SplitterWidth = 7,
                     FixedPanel = FixedPanel.Panel1,
                     IsSplitterFixed = false,
-                    SplitterWidth = 4,
-                    BackColor = Color.FromArgb(230, 230, 230)
+                    Panel1MinSize = 0,
+                    Panel2MinSize = 0,
+                    BackColor = MauNen,
+                    Margin = Padding.Empty,
+                    TabStop = false
                 };
-                Panel pnlLeft = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
-                int leftPadding = 25;
-                int safeWidth = 250;
-                // CỤM RAM
-                Label lblRamTitle = new Label { Text = "RAM MÁY TÍNH", Font = new System.Drawing.Font("Segoe UI Semibold", 9F), ForeColor = Color.DarkGray, AutoSize = false, Size = new Size(safeWidth, 20), Location = new Point(leftPadding, 30), TextAlign = ContentAlignment.BottomLeft };
-                lblSysRamPercent = new Label { Text = "0%", Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 32F, System.Drawing.FontStyle.Bold), ForeColor = Color.FromArgb(45, 52, 54), AutoSize = false, Size = new Size(safeWidth, 60), Location = new Point(leftPadding - 3, 55), TextAlign = ContentAlignment.MiddleLeft };
-                lblSysRamDetail = new Label { Text = "0,0 / 0,0 GB", Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F), ForeColor = Color.FromArgb(127, 140, 141), AutoSize = false, Size = new Size(safeWidth, 25), Location = new Point(leftPadding, 115), TextAlign = ContentAlignment.MiddleLeft };
-                pnlSysRamBar = new SmoothPanel { Height = 10, Location = new Point(leftPadding, 145), Width = 230, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
-                pnlSysRamBar.Paint += (s, e) => DrawFlatProgressBar(e.Graphics, pnlSysRamBar.ClientRectangle, _bgSysRamPercent, false);
-                // CỤM APP
-                Label lblAppTitle = new Label { Text = "APP ĐANG CHIẾM", Font = new System.Drawing.Font("Segoe UI Semibold", 9F), ForeColor = Color.DarkGray, AutoSize = false, Size = new Size(safeWidth, 20), Location = new Point(leftPadding, 210), TextAlign = ContentAlignment.BottomLeft };
-                lblAppRamPercent = new Label { Text = "0%", Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 32F, System.Drawing.FontStyle.Bold), ForeColor = Color.FromArgb(45, 52, 54), AutoSize = false, Size = new Size(safeWidth, 60), Location = new Point(leftPadding - 3, 235), TextAlign = ContentAlignment.MiddleLeft };
-                lblAppRamDetail = new Label { Text = "0 MB", Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F), ForeColor = Color.FromArgb(127, 140, 141), AutoSize = false, Size = new Size(safeWidth, 25), Location = new Point(leftPadding, 295), TextAlign = ContentAlignment.MiddleLeft };
-                pnlAppRamBar = new SmoothPanel { Height = 10, Location = new Point(leftPadding, 325), Width = 230, Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right };
-                pnlAppRamBar.Paint += (s, e) => DrawFlatProgressBar(e.Graphics, pnlAppRamBar.ClientRectangle, _bgAppRamPercent, true);
-                pnlLeft.Controls.AddRange(new Control[] { lblRamTitle, lblSysRamPercent, lblSysRamDetail, pnlSysRamBar, lblAppTitle, lblAppRamPercent, lblAppRamDetail, pnlAppRamBar });
-                Panel pnlRight = new Panel { Dock = DockStyle.Fill, BackColor = Color.FromArgb(245, 246, 250), Padding = new Padding(15) };
+                split.Panel1.BackColor = MauNen;
+                split.Panel2.BackColor = MauNen;
+                var left = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    ColumnCount = 1,
+                    RowCount = 3,
+                    BackColor = MauNen,
+                    Padding = new Padding(0, 0, 10, 0),
+                    Margin = Padding.Empty
+                };
+                left.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+                left.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+                left.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+                left.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+                var lblResourceTitle = new Label
+                {
+                    Text = "TÀI NGUYÊN",
+                    Dock = DockStyle.Fill,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Font = new Font(FontUI, 9F, FontStyle.Bold),
+                    ForeColor = MauPhu
+                };
+                left.Controls.Add(lblResourceTitle, 0, 0);
+                Panel cardSys = CreateRamCardDonut(
+                    "RAM TOÀN HỆ THỐNG",
+                    out chartSysRam,
+                    out lblSysRamDetail,
+                    false);
+                Panel cardApp = CreateRamCardDonut(
+                    "RAM ỨNG DỤNG",
+                    out chartAppRam,
+                    out lblAppRamDetail,
+                    true);
+                left.Controls.Add(cardSys, 0, 1);
+                left.Controls.Add(cardApp, 0, 2);
+                split.Panel1.Controls.Add(left);
+                var right = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    ColumnCount = 1,
+                    RowCount = 2,
+                    BackColor = MauNen,
+                    Padding = new Padding(4, 0, 0, 0),
+                    Margin = Padding.Empty
+                };
+                right.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+                right.RowStyles.Add(new RowStyle(SizeType.Absolute, 34));
+                right.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+                var lblInfoTitle = new Label
+                {
+                    Text = "CHI TIẾT CẤU HÌNH THIẾT BỊ",
+                    Dock = DockStyle.Fill,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Font = new Font(FontUI, 9F, FontStyle.Bold),
+                    ForeColor = MauPhu
+                };
+                var infoCard = new Panel
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = MauThe,
+                    Padding = new Padding(10),
+                    Margin = Padding.Empty
+                };
+                infoCard.Paint += (s, e) =>
+                {
+                    e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    using var path = GetRoundedRectanglePath(new Rectangle(0, 0, infoCard.Width - 1, infoCard.Height - 1), 8);
+                    using var brush = new SolidBrush(infoCard.BackColor);
+                    using var pen = new Pen(MauVien, 1);
+                    e.Graphics.FillPath(brush, path);
+                    e.Graphics.DrawPath(pen, path);
+                };
                 lvInfo = new SmoothListView
                 {
                     Dock = DockStyle.Fill,
@@ -295,277 +723,430 @@ namespace PhanMemThiDua2026
                     GridLines = true,
                     HeaderStyle = ColumnHeaderStyle.Nonclickable,
                     BorderStyle = BorderStyle.None,
-                    Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F),
-                    BackColor = Color.White
+                    Font = new Font(FontUI, 9.5F),
+                    BackColor = MauThe,
+                    ForeColor = MauChu,
+                    HideSelection = false,
+                    MultiSelect = false,
+                    UseCompatibleStateImageBehavior = false,
+                    OwnerDraw = true
                 };
-                lvInfo.Columns.Add("Thành phần", 260);
-                lvInfo.Columns.Add("Thông chi chi tiết", 500);
+                lvInfo.Columns.Add("Thành phần", 220);
+                lvInfo.Columns.Add("Thông tin chi tiết", 440);
+                lvInfo.DrawColumnHeader += (s, e) => e.DrawDefault = true;
+                lvInfo.DrawSubItem += LvInfo_DrawSubItem;
                 lvInfo.Resize += (s, e) =>
                 {
-                    if (lvInfo.Columns.Count < 2) return;
-                    lvInfo.Columns[1].Width = Math.Max(300, lvInfo.ClientSize.Width - lvInfo.Columns[0].Width - 2);
+                    if (lvInfo.Columns.Count < 2)
+                        return;
+                    int firstWidth = Math.Min(
+                        240, Math.Max(150, lvInfo.ClientSize.Width / 3));
+                    lvInfo.Columns[0].Width = firstWidth;
+                    lvInfo.Columns[1].Width = Math.Max(
+                        80, lvInfo.ClientSize.Width - firstWidth - 4);
                 };
-                pnlRight.Controls.Add(lvInfo);
-                Panel pnlBottom = new Panel { Dock = DockStyle.Bottom, Height = 70, BackColor = Color.White };
-                pnlBottom.Paint += (s, e) => { e.Graphics.DrawLine(new Pen(Color.FromArgb(230, 230, 230), 1), 0, 0, pnlBottom.Width, 0); };
-                Button btnExport = new Button    {
-                    Text = "📄 Xuất báo cáo",
-                    Size = new Size(220, 38),
-                    Location = new Point(0, 16),
-                    BackColor = Color.FromArgb(9, 132, 227),
+                infoCard.Controls.Add(lvInfo);
+                right.Controls.Add(lblInfoTitle, 0, 0);
+                right.Controls.Add(infoCard, 0, 1);
+                split.Panel2.Controls.Add(right);
+                var footer = new Panel
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = MauNen,
+                    Margin = Padding.Empty
+                };
+                footer.Paint += (s, e) =>
+                {
+                    using var pen = new Pen(MauVien);
+                    e.Graphics.DrawLine(pen, 0, 0, footer.ClientSize.Width, 0);
+                };
+                var lblFooter = new Label
+                {
+                    Text = "Trình giám sát tài nguyên",
+                    AutoSize = false,
+                    Dock = DockStyle.Left,
+                    Width = 440,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    ForeColor = MauPhu,
+                    Font = new Font(FontUI, 8.5F, FontStyle.Bold)
+                };
+                btnExport = new Button
+                {
+                    Text = "Xuất báo cáo",
+                    Size = new Size(155, 36),
+                    Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                    BackColor = MauXanh,
                     ForeColor = Color.White,
                     FlatStyle = FlatStyle.Flat,
-                    Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10F, System.Drawing.FontStyle.Bold),
-                    Cursor = Cursors.Hand
+                    Font = new Font(FontUI, 9.5F, FontStyle.Bold),
+                    Cursor = Cursors.Hand,
+                    UseVisualStyleBackColor = false
                 };
                 btnExport.FlatAppearance.BorderSize = 0;
+                btnExport.FlatAppearance.MouseOverBackColor =
+                    Color.FromArgb(29, 78, 216);
+                btnExport.FlatAppearance.MouseDownBackColor =
+                    Color.FromArgb(30, 64, 175);
                 btnExport.Click += BtnExport_Click;
-                pnlBottom.Resize += (s, e) =>
+                footer.Controls.Add(lblFooter);
+                footer.Controls.Add(btnExport);
+                footer.Resize += (s, e) =>
                 {
-                    btnExport.Location = new Point(pnlBottom.Width - btnExport.Width - 20, 16);
+                    btnExport.Location = new Point(
+                        Math.Max(0, footer.ClientSize.Width -
+                                    btnExport.Width - 2),
+                        Math.Max(0, (footer.ClientSize.Height -
+                                   btnExport.Height) / 2));
                 };
-                pnlBottom.Controls.Add(btnExport);
-                split.Panel1.Controls.Add(pnlLeft);
-                split.Panel2.Controls.Add(pnlRight);
-                this.Controls.Add(split);
-                this.Controls.Add(pnlBottom);
-                this.HandleCreated += (s, e) =>
+                root.Controls.Add(header, 0, 0);
+                root.Controls.Add(split, 0, 1);
+                root.Controls.Add(footer, 0, 2);
+                Controls.Add(root);
+                Shown += (s, e) => DatKhoangChiaAnToan();
+                SizeChanged += (s, e) => DatKhoangChiaAnToan();
+                ResumeLayout(true);
+            }
+            private void LvInfo_DrawSubItem(object? sender, DrawListViewSubItemEventArgs e)
+            {
+                if (e.Item == null || e.Graphics == null) return;
+                bool isGroupHeader = e.Item.Tag is bool b && b;
+                if (isGroupHeader)
                 {
-                    this.BeginInvoke(new Action(() =>
+                    using var bgBrush = new SolidBrush(Color.FromArgb(241, 245, 249));
+                    e.Graphics.FillRectangle(bgBrush, e.Bounds);
+                    using var pen = new Pen(Color.FromArgb(226, 232, 240));
+                    e.Graphics.DrawLine(pen, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
+                    if (e.ColumnIndex == 0)
                     {
-                        try
-                        {
-                            int targetDistance = 300;
-                            if (this.Width > targetDistance + 400)
-                            {
-                                split.SplitterDistance = targetDistance;
-                            }
-                            split.Panel1MinSize = 260;
-                            split.Panel2MinSize = 500;
-                        }
-                        catch { }
-                    }));
+                        using var fontHeader = new Font(FontUI, 9.5F, FontStyle.Bold);
+                        using var brushHeader = new SolidBrush(Color.FromArgb(30, 41, 59));
+                        var textRect = new Rectangle(e.Bounds.X + 8, e.Bounds.Y, e.Bounds.Width - 8, e.Bounds.Height);
+                        e.Graphics.DrawString(e.Item.Text, fontHeader, brushHeader, textRect, new StringFormat { LineAlignment = StringAlignment.Center });
+                    }
+                }
+                else
+                {
+                    e.DrawDefault = true;
+                }
+            }
+            private Panel CreateRamCardDonut(
+                string title,
+                out RamDonutPanel donutPanel,
+                out SmoothLabel detailLabel,
+                bool isApp)
+            {
+                var card = new SmoothPanel
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = MauThe,
+                    Margin = new Padding(0, 4, 0, 8),
+                    Padding = new Padding(8, 6, 8, 6)
                 };
-                this.ResumeLayout(false);
+                card.Paint += (s, e) =>
+                {
+                    e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    using var path = GetRoundedRectanglePath(new Rectangle(0, 0, card.Width - 1, card.Height - 1), 8);
+                    using var brush = new SolidBrush(card.BackColor);
+                    using var pen = new Pen(MauVien, 1);
+                    e.Graphics.FillPath(brush, path);
+                    e.Graphics.DrawPath(pen, path);
+                };
+
+                var lblTitle = new Label
+                {
+                    Text = title,
+                    Dock = DockStyle.Top,
+                    Height = 22,
+                    Font = new Font(FontUI, 8.5F, FontStyle.Bold),
+                    ForeColor = MauPhu,
+                    BackColor = Color.Transparent,
+                    TextAlign = ContentAlignment.MiddleLeft
+                };
+
+                detailLabel = new SmoothLabel
+                {
+                    Text = "Đang thu thập dữ liệu...",
+                    Dock = DockStyle.Bottom,
+                    Height = 22,
+                    Font = new Font(FontUI, 8.5F),
+                    ForeColor = MauPhu,
+                    BackColor = Color.Transparent,
+                    TextAlign = ContentAlignment.MiddleCenter
+                };
+
+                donutPanel = new RamDonutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    AccentColor = isApp ? MauXanhLa : MauXanh,
+                    Percent = 0,
+                    FullCircleScan = isApp // Nếu là RAM ứng dụng (isApp = true), vệt quét sẽ chạy trọn vẹn 360 độ
+                };
+
+                card.Controls.Add(donutPanel);
+                card.Controls.Add(detailLabel);
+                card.Controls.Add(lblTitle);
+
+                return card;
+            }
+            private void DatKhoangChiaAnToan()
+            {
+                if (split == null || split.IsDisposed ||
+                    !split.IsHandleCreated || split.ClientSize.Width <= 0)
+                    return;
+                try
+                {
+                    int minLeft = Math.Min(260, split.ClientSize.Width / 3);
+                    int targetDistance = Math.Max(320, minLeft);
+                    if (targetDistance < split.Panel1MinSize)
+                        targetDistance = split.Panel1MinSize;
+                    int maxAllowed = split.ClientSize.Width - split.Panel2MinSize - split.SplitterWidth;
+                    if (targetDistance > maxAllowed)
+                        targetDistance = Math.Max(split.Panel1MinSize, maxAllowed);
+                    if (targetDistance > 0 && targetDistance < split.ClientSize.Width)
+                    {
+                        split.SplitterDistance = targetDistance;
+                    }
+                }
+                catch { }
             }
             private async Task LoadListViewDataAsync()
             {
                 lvInfo.Items.Clear();
-                var sysData = await Task.Run(() =>
+                var listItems = await Task.Run(() =>
                 {
-                    string dinhDangVung = System.Globalization.CultureInfo.CurrentCulture.DisplayName;
-                    string dinhDangNgay = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern;
-                    string appDir = AppContext.BaseDirectory;
-                    string rootDrive = Path.GetPathRoot(appDir) ?? "C:\\";
-                    string thongTinOChuaApp = "Không xác định";
+                    var items = new System.Collections.Generic.List<ListViewItem>();
+                    void AddGroupHeader(string groupName)
+                    {
+                        var lvi = new ListViewItem(groupName) { Tag = true };
+                        items.Add(lvi);
+                    }
+                    void AddRow(string title, string value)
+                    {
+                        var lvi = new ListViewItem(title) { Tag = false };
+                        lvi.SubItems.Add(string.IsNullOrWhiteSpace(value) ? "Không xác định" : value);
+                        items.Add(lvi);
+                    }
+                    // 1. Môi trường Windows
+                    AddGroupHeader("Môi trường Windows");
+                    AddRow("Hệ điều hành", LayWindowsVersionChiTiet());
+                    AddRow("Kiến trúc OS", LayLoaiMayTinh());
+                    AddRow("Kiến trúc Ứng dụng", Environment.Is64BitProcess ? "64-bit (Tối ưu)" : "32-bit");
+                    AddRow("Phân quyền ứng dụng", LayTrangThaiUAC());
+                    // 2. Cấu hình hiển thị & Vùng
+                    AddGroupHeader("Cấu hình hiển thị & Vùng");
                     try
                     {
-                        DriveInfo dInfo = new DriveInfo(rootDrive);
-                        if (dInfo.IsReady)
+                        var screen = Screen.PrimaryScreen;
+                        if (screen != null)
                         {
-                            thongTinOChuaApp = $"Trống {dInfo.AvailableFreeSpace / 1073741824} GB / Tổng {dInfo.TotalSize / 1073741824} GB ({dInfo.DriveFormat})";
+                            AddRow("Độ phân giải màn hình", $"{screen.Bounds.Width} x {screen.Bounds.Height}");
                         }
                     }
                     catch { }
-                    // ======================= THÊM CODE XỬ LÝ WINDOWS VERSION Ở ĐÂY =======================
-                    string rawWinVer = LayWindowsVersionChiTiet();
-                    if (Environment.OSVersion.Version.Build >= 22000 && rawWinVer.Contains("Windows 10"))
+                    try
                     {
-                        rawWinVer = rawWinVer.Replace("Windows 10", "Windows 11");
+                        using var g = CreateGraphics();
+                        AddRow("Tỷ lệ thu phóng (Scaling)", $"{g.DpiX / 96d * 100d:0}%");
                     }
-                    string formattedWinVer = rawWinVer;
-                    var match = System.Text.RegularExpressions.Regex.Match(rawWinVer, @"(Windows\s+(?:7|8\.1|8|10|11|Server))", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-                    if (match.Success)
+                    catch { }
+                    AddRow("Định dạng vùng (Culture)", $"{System.Globalization.CultureInfo.CurrentCulture.DisplayName} (dd/MM/yyyy)");
+                    // 3. Cấu hình thiết bị
+                    AddGroupHeader("Cấu hình thiết bị");
+                    AddRow("Vi xử lý (CPU)", GetCpuName());
+                    AddRow("Số luồng xử lý", $"{Environment.ProcessorCount} Luồng");
+                    AddRow("Định danh thiết bị", LayUUIDMayTinh());
+                    // 4. Khả năng lưu trữ
+                    AddGroupHeader("Khả năng lưu trữ");
+                    foreach (var drive in DriveInfo.GetDrives())
                     {
-                        string mainOs = match.Groups[1].Value;
-                        string details = rawWinVer.Replace(mainOs, "").Trim();
-                        details = details.Replace(".0.", " Build ");
-                        details = System.Text.RegularExpressions.Regex.Replace(details, @"\s+", " ");
-                        if (details.StartsWith("."))
+                        try
                         {
-                            details = details.Substring(1).Trim();
+                            if (!drive.IsReady) continue;
+                            double totalGB = drive.TotalSize / 1024d / 1024d / 1024d;
+                            double freeGB = drive.AvailableFreeSpace / 1024d / 1024d / 1024d;
+                            AddRow($"Ổ đĩa cài đặt phần mềm [{drive.Name.TrimEnd('\\')}]", $"Trống {freeGB:0} GB / Tổng {totalGB:0} GB ({drive.DriveFormat})");
                         }
-                        formattedWinVer = string.IsNullOrWhiteSpace(details) ? mainOs : $"{mainOs} ({details})";
+                        catch { }
                     }
-                    return new
-                    {
-                        DinhDangVung = $"{dinhDangVung} ({dinhDangNgay})",
-                        WindowsVersion = formattedWinVer,
-                        Is64BitOS = Environment.Is64BitOperatingSystem ? "64-bit" : "32-bit",
-                        Is64BitProc = Environment.Is64BitProcess ? "64-bit (Tối ưu)" : "32-bit",
-                        UAC = LayTrangThaiUAC(),
-                        CpuName = GetCpuName(),
-                        ProcCount = $"{Environment.ProcessorCount} Luồng",
-                        UUID = LayUUIDMayTinh(),
-                        RootDrive = rootDrive,
-                        ThongTinOChuaApp = thongTinOChuaApp,
-                        DotNetVer = LayDotNetRuntime(),
-                        AppDocExcel = LayUngDungDocExcel()
-                    };
+                    // 5. Môi trường triển khai
+                    AddGroupHeader("Môi trường triển khai");
+                    AddRow("Môi trường .NET", $"{LayDotNetRuntime()} (Phát hành bởi Microsoft)");
+                    // 6. Phần mềm hỗ trợ
+                    AddGroupHeader("Phần mềm hỗ trợ");
+                    AddRow("Ứng dụng xử lý Excel", LayUngDungDocExcel());
+                    return items;
                 });
-                string doPhanGiai = $"{Screen.PrimaryScreen.Bounds.Width} x {Screen.PrimaryScreen.Bounds.Height}";
-                int dpiX = 96;
-                using (Graphics g = Graphics.FromHwnd(IntPtr.Zero)) { dpiX = (int)g.DpiX; }
-                int scalePercent = (int)Math.Round((dpiX / 96.0) * 100);
-                string scaling = $"{scalePercent}%";
-                bool isScalingHigh = scalePercent > 125;
-                if (isScalingHigh)
-                {
-                    scaling += " (Khuyến cáo: Chỉ nên đặt từ 100% - 125%, quá cao có thể lỗi hiển thị giao diện)";
-                }
-                Font boldFont = new System.Drawing.Font(lvInfo.Font, System.Drawing.FontStyle.Bold);
-                ListViewItem itemScaling = new ListViewItem(new[] { "Tỷ lệ thu phóng (Scaling)", scaling });
-                if (isScalingHigh)
-                {
-                    itemScaling.ForeColor = Color.FromArgb(214, 48, 49);
-                }
-                var items = new[]
-                {
-                    new ListViewItem(new[] { "Môi trường Windows", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
-                    new ListViewItem(new[] { "Hệ điều hành", sysData.WindowsVersion }),
-                    new ListViewItem(new[] { "Kiến trúc OS", sysData.Is64BitOS }),
-                    new ListViewItem(new[] { "Kiến trúc Ứng dụng", sysData.Is64BitProc }),
-                    new ListViewItem(new[] { "Phân quyền ứng dụng", sysData.UAC }),
-                    new ListViewItem(new[] { "Cấu hình hiển thị & Vùng", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
-                    new ListViewItem(new[] { "Độ phân giải màn hình", doPhanGiai }),
-                    itemScaling,
-                    new ListViewItem(new[] { "Định dạng vùng (Culture)", sysData.DinhDangVung }),
-                    new ListViewItem(new[] { "Cấu hình thiết bị", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
-                    new ListViewItem(new[] { "Vi xử lý (CPU)", sysData.CpuName }),
-                    new ListViewItem(new[] { "Số luồng xử lý", sysData.ProcCount }),
-                    new ListViewItem(new[] { "Định danh thiết bị", sysData.UUID }),
-                    new ListViewItem(new[] { "Khả năng lưu trữ", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
-                    new ListViewItem(new[] { $"Ổ đĩa cài đặt phần mềm [{sysData.RootDrive}]", sysData.ThongTinOChuaApp }),
-                    new ListViewItem(new[] { "Môi trường triển khai", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
-                    new ListViewItem(new[] { "Môi trường .NET", sysData.DotNetVer + " (Phát hành bởi Microsoft)" }),
-                    new ListViewItem(new[] { "Phần mềm hỗ trợ", "" }) { BackColor = Color.AliceBlue, Font = boldFont },
-                    new ListViewItem(new[] { "Ứng dụng xử lý Excel", sysData.AppDocExcel })
-                };
-                lvInfo.Items.AddRange(items);
+                if (IsDisposed || !IsHandleCreated) return;
+                lvInfo.BeginUpdate();
+                lvInfo.Items.AddRange(listItems.ToArray());
+                lvInfo.EndUpdate();
             }
-            private void DrawFlatProgressBar(Graphics g, Rectangle bounds, float percent, bool isAppMem)
+            private void HardwareSafePollingLoop(CancellationToken token)
             {
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                using (GraphicsPath pathBg = CreateRoundedRect(bounds, bounds.Height / 2))
-                using (SolidBrush bgBrush = new SolidBrush(Color.FromArgb(235, 235, 235)))
+                var computerInfo = new ComputerInfo();
+                while (!token.IsCancellationRequested)
                 {
-                    g.FillPath(bgBrush, pathBg);
-                }
-                if (percent <= 0) return;
-                int fillWidth = (int)(bounds.Width * (Math.Min(percent, 100) / 100f));
-                if (fillWidth < bounds.Height) fillWidth = bounds.Height;
-                Rectangle fillRect = new Rectangle(bounds.X, bounds.Y, fillWidth, bounds.Height);
-                Color barColor = isAppMem ? Color.FromArgb(0, 184, 148) : Color.FromArgb(9, 132, 227);
-                if (percent > 80) barColor = Color.FromArgb(253, 203, 110);
-                if (percent > 95) barColor = Color.FromArgb(214, 48, 49);
-                using (GraphicsPath pathFill = CreateRoundedRect(fillRect, fillRect.Height / 2))
-                using (SolidBrush fgBrush = new SolidBrush(barColor))
-                {
-                    g.FillPath(fgBrush, pathFill);
-                }
-            }
-            private GraphicsPath CreateRoundedRect(Rectangle rect, int radius)
-            {
-                GraphicsPath path = new GraphicsPath();
-                int d = radius * 2;
-                path.AddArc(rect.X, rect.Y, d, d, 180, 90);
-                path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
-                path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
-                path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
-                path.CloseFigure();
-                return path;
-            }
-            private async Task HardwareSafePollingLoop(CancellationToken token)
-            {
-                using (Process currentAppProcess = Process.GetCurrentProcess())
-                {
-                    // 🌟 SỬ DỤNG LỚP THUẦN .NET THAY VÌ KERNEL32 API
-                    var computerInfo = new ComputerInfo();
-                    while (!token.IsCancellationRequested)
+                    try
                     {
-                        try
+                        ulong total = computerInfo.TotalPhysicalMemory;
+                        ulong available = computerInfo.AvailablePhysicalMemory;
+                        double totalGB = total / 1024d / 1024d / 1024d;
+                        double freeGB = available / 1024d / 1024d / 1024d;
+                        if (totalGB > 0)
                         {
-                            // --- Đo lường Tổng RAM Hệ thống ---
-                            double totalRamGB = computerInfo.TotalPhysicalMemory / 1073741824.0;
-                            double availableRamGB = computerInfo.AvailablePhysicalMemory / 1073741824.0;
-                            double usedRamGB = totalRamGB - availableRamGB;
-                            _bgSysRamPercent = (float)((usedRamGB / totalRamGB) * 100);
-                            _bgSysRamText = $"{usedRamGB:N1} / {totalRamGB:N1} GB";
-                            // --- Đo lường RAM App ---
-                            currentAppProcess.Refresh();
-                            double appRamMB = currentAppProcess.WorkingSet64 / 1048576.0;
-                            _bgAppRamPercent = (float)Math.Min(appRamMB / 1024.0 * 100, 100);
-                            _bgAppRamText = $"{appRamMB:N1} MB";
+                            freeGB = Math.Clamp(freeGB, 0, totalGB);
+                            double usedGB = Math.Clamp(totalGB - freeGB, 0, totalGB);
+                            float sysPercent = (float)(usedGB / totalGB * 100f);
+                            _bgSysRamPercent = sysPercent;
+                            _bgSysRamText = $"{usedGB:0.00} GB / {totalGB:0.00} GB";
+                            long appPrivateBytes = GC.GetTotalMemory(false);
+                            try
+                            {
+                                using var curProc = Process.GetCurrentProcess();
+                                appPrivateBytes = curProc.WorkingSet64;
+                            }
+                            catch { }
+                            double appMB = appPrivateBytes / 1024d / 1024d;
+                            float appPercent = (float)Math.Clamp(appMB / (totalGB * 1024d) * 100f, 0, 100f);
+                            _bgAppRamPercent = appPercent;
+                            _bgAppRamText = appMB >= 1024
+                                ? $"{appMB / 1024d:0.00} GB"
+                                : $"{appMB:0.0} MB";
                         }
-                        catch { /* Bỏ qua lỗi truy xuất nhất thời */ }
-                        try
-                        {
-                            await Task.Delay(2000, token);
-                        }
-                        catch (TaskCanceledException) { break; }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch { }
+                    try
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
                     }
                 }
             }
-            private void UpdateTimer_Tick(object sender, EventArgs e)
+            private void UpdateTimer_Tick(object? sender, EventArgs e)
             {
-                lblSysRamPercent.Text = $"{(int)_bgSysRamPercent}%";
-                lblSysRamDetail.Text = _bgSysRamText;
-                lblSysRamPercent.ForeColor = _bgSysRamPercent > 85 ? Color.FromArgb(214, 48, 49) : Color.FromArgb(9, 132, 227);
-                lblAppRamPercent.Text = $"{(int)_bgAppRamPercent}%";
-                lblAppRamDetail.Text = _bgAppRamText;
-                pnlSysRamBar.Invalidate();
-                pnlAppRamBar.Invalidate();
+                if (_dangDong || IsDisposed || !IsHandleCreated)
+                    return;
+                try
+                {
+                    chartSysRam.Percent = _bgSysRamPercent;
+                    lblSysRamDetail.Text = _bgSysRamText;
+                    chartAppRam.Percent = _bgAppRamPercent;
+                    lblAppRamDetail.Text = $"Đang sử dụng: {_bgAppRamText}";
+                }
+                catch { }
             }
-            private void BtnExport_Click(object sender, EventArgs e)
+            private void BtnExport_Click(object? sender, EventArgs e)
             {
                 try
                 {
-                    using (SaveFileDialog sfd = new SaveFileDialog())
+                    using var sfd = new SaveFileDialog
                     {
-                        sfd.Filter = "Tệp báo cáo hệ thống (*.report)|*.report|Tệp văn bản (*.txt)|*.txt";
-                        sfd.Title = "Xuất thông tin cấu hình";
-                        sfd.FileName = $"Thông tin cấu hình máy tính cài đặt - SysInfo_{DateTime.Now:ddMMyyyy_HHmm}_report.txt";
-                        if (sfd.ShowDialog() == DialogResult.OK)
+                        Title = "Xuất báo cáo trạng thái hệ thống",
+                        Filter = "Tệp văn bản (*.txt)|*.txt",
+                        FileName = $"BaoCaoHeThong_{DateTime.Now:yyyyMMdd_HHmmss}.txt",
+                        OverwritePrompt = true
+                    };
+                    if (sfd.ShowDialog(this) != DialogResult.OK)
+                        return;
+                    var sb = new StringBuilder();
+                    sb.AppendLine("BÁO CÁO TRẠNG THÁI VÀ CẤU HÌNH HỆ THỐNG");
+                    sb.AppendLine($"Thời gian xuất: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
+                    sb.AppendLine(new string('=', 60));
+                    sb.AppendLine($"RAM Toàn hệ thống: {_bgSysRamText} ({_bgSysRamPercent:0.0}%)");
+                    sb.AppendLine($"RAM Ứng dụng: {_bgAppRamText} ({_bgAppRamPercent:0.0}%)");
+                    sb.AppendLine(new string('-', 60));
+                    foreach (ListViewItem item in lvInfo.Items)
+                    {
+                        bool isHeader = item.Tag is bool b && b;
+                        if (isHeader)
                         {
-                            StringBuilder sb = new StringBuilder();
-                            sb.AppendLine("BÁO CÁO THÔNG TIN CẤU HÌNH");
-                            sb.AppendLine($"Ngày xuất: {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
-                            sb.AppendLine(new string('=', 50));
-                            foreach (ListViewItem item in lvInfo.Items)
-                            {
-                                if (string.IsNullOrWhiteSpace(item.SubItems[1].Text))
-                                    sb.AppendLine($"\n[{item.Text.ToUpper()}]");
-                                else
-                                    sb.AppendLine($"{item.Text,-25}: {item.SubItems[1].Text}");
-                            }
-                            File.WriteAllText(sfd.FileName, sb.ToString(), Encoding.UTF8);
-                            try { Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(sfd.FileName); } catch { }
+                            sb.AppendLine();
+                            sb.AppendLine($"[{item.Text}]");
+                        }
+                        else
+                        {
+                            string val = item.SubItems.Count > 1 ? item.SubItems[1].Text : "";
+                            sb.AppendLine($"  {item.Text,-25}: {val}");
                         }
                     }
+                    File.WriteAllText(sfd.FileName, sb.ToString(), new UTF8Encoding(true));
+                    MessageBox.Show(
+                        this,
+                        "Xuất báo cáo hệ thống thành công!",
+                        "Thông báo",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Không thể xuất báo cáo.\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(
+                        this,
+                        $"Không thể xuất báo cáo.\nChi tiết lỗi: {ex.Message}",
+                        "Lỗi",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
                 }
             }
-            protected override void OnFormClosing(FormClosingEventArgs e)
+            protected override void OnFormClosed(FormClosedEventArgs e)
             {
+                _dangDong = true;
                 try
                 {
-                    if (_monitorCts != null && !_monitorCts.IsCancellationRequested)
-                    {
-                        _monitorCts.Cancel();
-                        _monitorCts.Dispose();
-                    }
-                    if (updateTimer != null)
-                    {
-                        updateTimer.Stop();
-                        updateTimer.Dispose();
-                    }
+                    updateTimer?.Stop();
+                    updateTimer?.Dispose();
+                    _monitorCts?.Cancel();
+                    _monitorCts?.Dispose();
                 }
                 catch { }
-                base.OnFormClosing(e);
+                base.OnFormClosed(e);
             }
+        }
+        private sealed class SmoothLabel : Label
+        {
+            public SmoothLabel()
+            {
+                SetStyle(
+                    ControlStyles.OptimizedDoubleBuffer |
+                    ControlStyles.AllPaintingInWmPaint |
+                    ControlStyles.UserPaint |
+                    ControlStyles.ResizeRedraw,
+                    true);
+                UpdateStyles();
+            }
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+                using var bgBrush = new SolidBrush(BackColor);
+                e.Graphics.FillRectangle(bgBrush, ClientRectangle);
+                using var textBrush = new SolidBrush(ForeColor);
+                var sf = new StringFormat
+                {
+                    Alignment = GetStringAlignment(TextAlign),
+                    LineAlignment = GetStringLineAlignment(TextAlign)
+                };
+                var rect = new Rectangle(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
+                e.Graphics.DrawString(Text, Font, textBrush, rect, sf);
+            }
+            private static StringAlignment GetStringAlignment(ContentAlignment align) => align switch
+            {
+                ContentAlignment.TopLeft or ContentAlignment.MiddleLeft or ContentAlignment.BottomLeft => StringAlignment.Near,
+                ContentAlignment.TopCenter or ContentAlignment.MiddleCenter or ContentAlignment.BottomCenter => StringAlignment.Center,
+                _ => StringAlignment.Far,
+            };
+            private static StringAlignment GetStringLineAlignment(ContentAlignment align) => align switch
+            {
+                ContentAlignment.TopLeft or ContentAlignment.TopCenter or ContentAlignment.TopRight => StringAlignment.Near,
+                ContentAlignment.MiddleCenter or ContentAlignment.MiddleLeft or ContentAlignment.MiddleRight => StringAlignment.Center,
+                _ => StringAlignment.Far, // Thay Bottom thành Far ở đây
+            };
         }
     }
 }

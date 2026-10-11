@@ -2,7 +2,6 @@
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;   // Cho Debug.WriteLine
 using System.Data;          // Cho CommandBehavior
-
 namespace PhanMemThiDua2026
 {
     public partial class Form27_TyLeQuyDinhE29 : Form
@@ -167,7 +166,6 @@ namespace PhanMemThiDua2026
         //(1, '{Module_HeThong.Loai_1}', '0', '0', '0', '0', '0'),
         //(2, '{Module_HeThong.Loai_2}', '0', '0', '0', '0', '0'),
         //(3, '{Module_HeThong.Loai_3}', '0', '0', '0', '0', '0');";
-
         //            await cmdCreate.ExecuteNonQueryAsync();
         //        }
         //        DeNghiMapping.Clear();
@@ -202,7 +200,6 @@ namespace PhanMemThiDua2026
         private static readonly string[] CotDuLieuTyLe = { "Loai_1", "Loai_2", "Loai_3", "Loai_4", "Khong_PL" };
         private static readonly System.Text.RegularExpressions.Regex QuyTacTenBangHopLe =
             new(@"^[A-Za-z0-9_]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
-
         /// <summary>
         /// Tải quy định tỷ lệ phân loại tập thể từ CSDL2 lên lưới nhập liệu (_txtGrid).
         /// Tự động khởi tạo bảng + dữ liệu mặc định nếu chưa tồn tại.
@@ -212,9 +209,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path))
                 return;
-
             string tableName = TenBangHienTai;
-
             // ⭐ CHỐNG SQL INJECTION QUA TÊN BẢNG (tên bảng không thể tham số hóa trong SQL)
             if (!QuyTacTenBangHopLe.IsMatch(tableName))
             {
@@ -223,31 +218,24 @@ namespace PhanMemThiDua2026
                     "Lỗi cấu hình", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
             if (_txtGrid == null || _txtGrid.GetLength(1) != CotDuLieuTyLe.Length)
             {
                 Debug.WriteLine("[LoadQuyDinhTyLeAsync] Lưới _txtGrid chưa khởi tạo hoặc sai số cột.");
                 return;
             }
-
             try
             {
                 await using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
                 await conn.OpenAsync(cancellationToken);
-
                 // 🌟 GỘP TẠO BẢNG + ĐỌC DỮ LIỆU TRONG 1 TRANSACTION DUY NHẤT
                 // -> Đảm bảo tính toàn vẹn: nếu lỗi giữa chừng, không để lại trạng thái nửa vời
                 await using var transaction = (SqliteTransaction)await conn.BeginTransactionAsync(cancellationToken);
-
                 try
                 {
                     await TaoBangQuyDinhTyLeNeuChuaCoAsync(conn, transaction, tableName, cancellationToken);
-
                     int soHang = _txtGrid.GetLength(0);
                     var duLieuDoc = await DocDuLieuTyLeAsync(conn, transaction, tableName, soHang, cancellationToken);
-
                     await transaction.CommitAsync(cancellationToken);
-
                     // ⭐ CHỈ CẬP NHẬT UI SAU KHI ĐỌC + COMMIT THÀNH CÔNG HOÀN TOÀN
                     ApDungDuLieuTyLeLenGiaoDien(duLieuDoc, soHang);
                 }
@@ -274,7 +262,6 @@ namespace PhanMemThiDua2026
                     "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         /// <summary>
         /// Tạo bảng quy định tỷ lệ nếu chưa tồn tại, và chèn 3 dòng mặc định (bỏ qua nếu đã có).
         /// Dùng tham số hóa hoàn toàn cho phần giá trị để tránh lỗi cú pháp / SQL Injection.
@@ -300,14 +287,11 @@ VALUES
 (1, @tenLoai1, '0', '0', '0', '0', '0'),
 (2, @tenLoai2, '0', '0', '0', '0', '0'),
 (3, @tenLoai3, '0', '0', '0', '0', '0');";
-
             cmdCreate.Parameters.AddWithValue("@tenLoai1", Module_HeThong.Loai_1);
             cmdCreate.Parameters.AddWithValue("@tenLoai2", Module_HeThong.Loai_2);
             cmdCreate.Parameters.AddWithValue("@tenLoai3", Module_HeThong.Loai_3);
-
             await cmdCreate.ExecuteNonQueryAsync(cancellationToken);
         }
-
         /// <summary>
         /// Đọc toàn bộ dữ liệu tỷ lệ cho các ID từ 1..soHang bằng DUY NHẤT 1 câu truy vấn
         /// (tránh vấn đề N+1 query gây chậm khi soHang lớn).
@@ -319,7 +303,6 @@ VALUES
             CancellationToken cancellationToken)
         {
             var ketQua = new Dictionary<int, int[]>(soHang);
-
             using var cmd = conn.CreateCommand();
             cmd.Transaction = transaction;
             cmd.CommandText = $@"
@@ -327,29 +310,22 @@ SELECT ID, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL
 FROM [{tableName}]
 WHERE ID BETWEEN 1 AND @soHang";
             cmd.Parameters.AddWithValue("@soHang", soHang);
-
             using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-
             int idxId = reader.GetOrdinal("ID");
             int[] idxCot = CotDuLieuTyLe.Select(reader.GetOrdinal).ToArray();
-
             while (await reader.ReadAsync(cancellationToken))
             {
                 int id = reader.GetInt32(idxId);
                 var values = new int[CotDuLieuTyLe.Length];
-
                 for (int i = 0; i < idxCot.Length; i++)
                 {
                     string valStr = reader.IsDBNull(idxCot[i]) ? "0" : reader.GetString(idxCot[i]);
                     values[i] = int.TryParse(valStr, out int parsed) ? parsed : 0;
                 }
-
                 ketQua[id] = values;
             }
-
             return ketQua;
         }
-
         /// <summary>
         /// Ghi dữ liệu đã đọc lên lưới _txtGrid và cập nhật DeNghiMapping.
         /// Với các ID không có trong CSDL (dữ liệu thiếu), điền mặc định toàn 0 để tránh lỗi NullReference.
@@ -357,22 +333,18 @@ WHERE ID BETWEEN 1 AND @soHang";
         private void ApDungDuLieuTyLeLenGiaoDien(Dictionary<int, int[]> duLieuDoc, int soHang)
         {
             DeNghiMapping.Clear();
-
             for (int id = 1; id <= soHang; id++)
             {
                 int[] values = duLieuDoc.TryGetValue(id, out var gia_tri)
                     ? gia_tri
                     : new int[CotDuLieuTyLe.Length]; // Mặc định toàn 0 nếu thiếu dòng dữ liệu
-
                 for (int i = 0; i < values.Length; i++)
                 {
                     _txtGrid[id - 1, i].Text = values[i].ToString();
                 }
-
                 DeNghiMapping[$"Loại {id}"] = values;
             }
         }
-
         /// Hàm Save dữ liệu từ TextBox về SQLite, chuẩn async + transaction + tối ưu
         // Truyền CancellationToken vào hàm
         private async Task SaveQuyDinhTyLeAsync(CancellationToken ct)

@@ -37,7 +37,6 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             this.Shown += Form33_KiemTraSucKhoeCSDL_Shown;
-
             _pathCSDL = new[]
             {
                 Module_DanduongGPS.DuongDanCSDL1,
@@ -51,7 +50,6 @@ namespace PhanMemThiDua2026
                 Module_DanduongGPS.DuongDanCSDL4ex,
                 ThuMucCoSoDuLieu
             };
-
             kryptonDataGridView1.CellPainting += KryptonDataGridView_CellPainting_CanhBao;
             kryptonDataGridView2.CellPainting += KryptonDataGridView_CellPainting_CanhBao;
         }

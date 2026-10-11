@@ -6,11 +6,9 @@
         ///  Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         ///  Clean up any resources being used.
         /// </summary>
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -19,31 +17,25 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form8_CauHinhCSDL));
-
             pnlBackground = new Panel();
             cardPanel = new Krypton.Toolkit.KryptonPanel();
             pnlHeader = new Panel();
             lblTitle = new Label();
             lblSubtitle = new Label();
             picLogo = new PictureBox();
-
             lblAdmin = new Label();
             Text_Admin = new Krypton.Toolkit.KryptonTextBox();
             lblPassword = new Label();
             Text_Password = new Krypton.Toolkit.KryptonTextBox();
             Chex_HienMatKhau = new CheckBox();
-
             pnlActions = new FlowLayoutPanel();
             btn_DangNhap = new Krypton.Toolkit.KryptonButton();
             btn_Thoat = new Krypton.Toolkit.KryptonButton();
-
             pnlBackground.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)cardPanel).BeginInit();
             cardPanel.SuspendLayout();
@@ -51,7 +43,6 @@
             ((System.ComponentModel.ISupportInitialize)picLogo).BeginInit();
             pnlActions.SuspendLayout();
             SuspendLayout();
-
             // 
             // pnlBackground (Khung nền giả lập hiệu ứng Web App Container)
             // 
@@ -63,7 +54,6 @@
             pnlBackground.Padding = new Padding(24);
             pnlBackground.Size = new Size(480, 430);
             pnlBackground.TabIndex = 0;
-
             // 
             // cardPanel (Thẻ Card chứa Form chính)
             // 
@@ -81,7 +71,6 @@
             cardPanel.StateCommon.Color1 = Color.White;
             cardPanel.StateCommon.Color2 = Color.White;
             cardPanel.TabIndex = 0;
-
             // 
             // pnlHeader
             // 
@@ -93,7 +82,6 @@
             pnlHeader.Name = "pnlHeader";
             pnlHeader.Size = new Size(392, 70);
             pnlHeader.TabIndex = 0;
-
             // 
             // picLogo
             // 
@@ -104,7 +92,6 @@
             picLogo.SizeMode = PictureBoxSizeMode.Zoom;
             picLogo.TabIndex = 0;
             picLogo.TabStop = false;
-
             // 
             // lblTitle
             // 
@@ -116,7 +103,6 @@
             lblTitle.Size = new Size(210, 25);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "Cấu hình Cơ sở dữ liệu";
-
             // 
             // lblSubtitle
             // 
@@ -128,7 +114,6 @@
             lblSubtitle.Size = new Size(254, 15);
             lblSubtitle.TabIndex = 1;
             lblSubtitle.Text = "Nhập tài khoản quản trị để xác thực kết nối";
-
             // 
                         // lblAdmin
             //
@@ -141,7 +126,6 @@
             lblAdmin.Size = new Size(98, 17);
             lblAdmin.TabIndex = 1;
             lblAdmin.Text = "Tên đăng nhập";
-
             // 
             // Text_Admin
             // 
@@ -156,7 +140,6 @@
             Text_Admin.StateCommon.Content.Padding = new Padding(10, 8, 10, 8);
             Text_Admin.StateCommon.Content.Font = new Font("Segoe UI", 10F);
             Text_Admin.TabIndex = 2;
-
             // 
             // lblPassword
             // 
@@ -169,7 +152,6 @@
             lblPassword.Size = new Size(64, 17);
             lblPassword.TabIndex = 3;
             lblPassword.Text = "Mật khẩu";
-
             // 
             // Text_Password
             // 
@@ -185,7 +167,6 @@
             Text_Password.StateCommon.Content.Padding = new Padding(10, 8, 10, 8);
             Text_Password.StateCommon.Content.Font = new Font("Segoe UI", 10F);
             Text_Password.TabIndex = 4;
-
             // 
             // Chex_HienMatKhau
             // 
@@ -201,7 +182,6 @@
             Chex_HienMatKhau.Text = "Hiện mật khẩu";
             Chex_HienMatKhau.UseVisualStyleBackColor = false;
             Chex_HienMatKhau.CheckedChanged += Chex_HienMatKhau_CheckedChanged;
-
             // 
             // pnlActions
             // 
@@ -213,14 +193,12 @@
             pnlActions.Name = "pnlActions";
             pnlActions.Size = new Size(392, 50);
             pnlActions.TabIndex = 6;
-
 // 
 btn_DangNhap.Cursor = Cursors.Hand;
             btn_DangNhap.Location = new Point(262, 3);
             btn_DangNhap.Margin = new Padding(3, 2, 3, 2);
             btn_DangNhap.Name = "btn_DangNhap";
             btn_DangNhap.Size = new Size(127, 40);
-
             btn_DangNhap.OverrideDefault.Back.Color1 = Color.FromArgb(79, 70, 229);
             btn_DangNhap.OverrideDefault.Back.Color2 = Color.FromArgb(79, 70, 229);
             btn_DangNhap.OverrideDefault.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
@@ -232,7 +210,6 @@ btn_DangNhap.Cursor = Cursors.Hand;
             btn_DangNhap.OverrideDefault.Content.ShortText.Color1 = Color.White;
             btn_DangNhap.OverrideDefault.Content.ShortText.Color2 = Color.White;
             btn_DangNhap.OverrideDefault.Content.ShortText.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold);
-
             btn_DangNhap.StateCommon.Back.Color1 = Color.FromArgb(79, 70, 229);
             btn_DangNhap.StateCommon.Back.Color2 = Color.FromArgb(79, 70, 229);
             btn_DangNhap.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
@@ -244,23 +221,19 @@ btn_DangNhap.Cursor = Cursors.Hand;
             btn_DangNhap.StateCommon.Content.ShortText.Color1 = Color.White;
             btn_DangNhap.StateCommon.Content.ShortText.Color2 = Color.White;
             btn_DangNhap.StateCommon.Content.ShortText.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold);
-
             btn_DangNhap.StateTracking.Back.Color1 = Color.FromArgb(67, 56, 202);
             btn_DangNhap.StateTracking.Back.Color2 = Color.FromArgb(67, 56, 202);
             btn_DangNhap.StateTracking.Border.Color1 = Color.FromArgb(67, 56, 202);
             btn_DangNhap.StateTracking.Border.Color2 = Color.FromArgb(67, 56, 202);
-
             btn_DangNhap.StatePressed.Back.Color1 = Color.FromArgb(55, 48, 163);
             btn_DangNhap.StatePressed.Back.Color2 = Color.FromArgb(55, 48, 163);
             btn_DangNhap.StatePressed.Border.Color1 = Color.FromArgb(55, 48, 163);
             btn_DangNhap.StatePressed.Border.Color2 = Color.FromArgb(55, 48, 163);
-
             btn_DangNhap.TabIndex = 0;
             btn_DangNhap.Values.DropDownArrowColor = Color.Empty;
             btn_DangNhap.Values.Image = (Image)resources.GetObject("btn_DangNhap.Values.Image");
             btn_DangNhap.Values.Text = "Xác thực";
             btn_DangNhap.Click += btn_DangNhap_Click;
-
             // 
             // btn_Thoat
             // 
@@ -269,7 +242,6 @@ btn_DangNhap.Cursor = Cursors.Hand;
             btn_Thoat.Margin = new Padding(3, 2, 3, 2);
             btn_Thoat.Name = "btn_Thoat";
             btn_Thoat.Size = new Size(100, 40);
-
             btn_Thoat.OverrideDefault.Back.Color1 = Color.White;
             btn_Thoat.OverrideDefault.Back.Color2 = Color.White;
             btn_Thoat.OverrideDefault.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
@@ -281,7 +253,6 @@ btn_DangNhap.Cursor = Cursors.Hand;
             btn_Thoat.OverrideDefault.Content.ShortText.Color1 = Color.FromArgb(75, 85, 99);
             btn_Thoat.OverrideDefault.Content.ShortText.Color2 = Color.FromArgb(75, 85, 99);
             btn_Thoat.OverrideDefault.Content.ShortText.Font = new Font("Segoe UI", 9.5F);
-
             btn_Thoat.StateCommon.Back.Color1 = Color.White;
             btn_Thoat.StateCommon.Back.Color2 = Color.White;
             btn_Thoat.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
@@ -293,23 +264,19 @@ btn_DangNhap.Cursor = Cursors.Hand;
             btn_Thoat.StateCommon.Content.ShortText.Color1 = Color.FromArgb(75, 85, 99);
             btn_Thoat.StateCommon.Content.ShortText.Color2 = Color.FromArgb(75, 85, 99);
             btn_Thoat.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.5F);
-
             btn_Thoat.StateTracking.Back.Color1 = Color.FromArgb(243, 244, 246);
             btn_Thoat.StateTracking.Back.Color2 = Color.FromArgb(243, 244, 246);
             btn_Thoat.StateTracking.Border.Color1 = Color.FromArgb(156, 163, 175);
             btn_Thoat.StateTracking.Border.Color2 = Color.FromArgb(156, 163, 175);
-
             btn_Thoat.StatePressed.Back.Color1 = Color.FromArgb(229, 231, 235);
             btn_Thoat.StatePressed.Back.Color2 = Color.FromArgb(229, 231, 235);
             btn_Thoat.StatePressed.Border.Color1 = Color.FromArgb(156, 163, 175);
             btn_Thoat.StatePressed.Border.Color2 = Color.FromArgb(156, 163, 175);
-
             btn_Thoat.TabIndex = 1;
             btn_Thoat.Values.DropDownArrowColor = Color.Empty;
             btn_Thoat.Values.Image = (Image)resources.GetObject("btn_Thoat.Values.Image");
             btn_Thoat.Values.Text = "Hủy";
             btn_Thoat.Click += btn_Thoat_Click;
-
             // Form8_CauHinhCSDL
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -324,7 +291,6 @@ btn_DangNhap.Cursor = Cursors.Hand;
             Name = "Form8_CauHinhCSDL";
             Text = "Cấu hình cơ sở dữ liệu";
             Load += Form8_Load;
-
             pnlBackground.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)cardPanel).EndInit();
             cardPanel.ResumeLayout(false);
@@ -335,9 +301,7 @@ btn_DangNhap.Cursor = Cursors.Hand;
             pnlActions.ResumeLayout(false);
             ResumeLayout(false);
         }
-
         #endregion
-
         private Panel pnlBackground;
         private Krypton.Toolkit.KryptonPanel cardPanel;
         private Panel pnlHeader;
@@ -347,7 +311,6 @@ btn_DangNhap.Cursor = Cursors.Hand;
         private Label lblAdmin;
         private Label lblPassword;
         private FlowLayoutPanel pnlActions;
-
         internal Krypton.Toolkit.KryptonButton btn_DangNhap;
         internal Krypton.Toolkit.KryptonButton btn_Thoat;
         internal CheckBox Chex_HienMatKhau;
@@ -355,7 +318,6 @@ btn_DangNhap.Cursor = Cursors.Hand;
         private Krypton.Toolkit.KryptonTextBox Text_Admin;
     }
 }
-
 //namespace PhanMemThiDua2026
 //{
 //    partial class Form8_CauHinhCSDL

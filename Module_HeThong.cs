@@ -517,7 +517,6 @@ namespace PhanMemThiDua2026
         {
             var parent = c.Parent;
             if (parent == null) return;
-
             var host = new RoundedPanel
             {
                 Radius = radius,
@@ -527,31 +526,23 @@ namespace PhanMemThiDua2026
                 Margin = c.Margin,
                 TabIndex = c.TabIndex
             };
-
             int idx = parent.Controls.GetChildIndex(c);
             parent.SuspendLayout();
             parent.Controls.Remove(c);
-
             // Bỏ viền vuông của control gốc
             if (c is RichTextBox rtb) rtb.BorderStyle = BorderStyle.None;
             if (c is ListBox lb) lb.BorderStyle = BorderStyle.None;
-
             c.BackColor = host.FillColor;
             c.Dock = DockStyle.Fill;
-
             host.Controls.Add(c);
             parent.Controls.Add(host);
             parent.Controls.SetChildIndex(host, idx);
             parent.ResumeLayout();
         }
-
-    
             public static event Action? SuKienThayDoiDanhSachPhanLoai;
-
             public static void ThongBaoThayDoiPhanLoai()
             {
                 SuKienThayDoiDanhSachPhanLoai?.Invoke();
             }
-        
     } 
 }

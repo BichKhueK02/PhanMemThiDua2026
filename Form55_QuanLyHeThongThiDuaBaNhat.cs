@@ -18,8 +18,6 @@ namespace PhanMemThiDua2026
         private bool _daNapLanDau;
         private bool _canNapLai;
         public void DanhDauCanNapLai() => _canNapLai = true;   // gọi khi dữ liệu nguồn thay đổi
-
-
         public Form55_QuanLyHeThongThiDuaBaNhat()
         {
             InitializeComponent();

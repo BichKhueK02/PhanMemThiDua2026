@@ -6,7 +6,6 @@
         ///  Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
         /// <summary>
         ///  Clean up any resources being used.
         /// </summary>
@@ -18,9 +17,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
@@ -75,7 +72,7 @@
             // 
             label3_HienThiTenPhanMem.AutoSize = true;
             label3_HienThiTenPhanMem.Font = new Font("Segoe UI Semibold", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label3_HienThiTenPhanMem.ForeColor = Color.FromArgb(17, 24, 39);
+            label3_HienThiTenPhanMem.ForeColor = Color.Green;
             label3_HienThiTenPhanMem.Location = new Point(56, 48);
             label3_HienThiTenPhanMem.Name = "label3_HienThiTenPhanMem";
             label3_HienThiTenPhanMem.Size = new Size(275, 32);
@@ -109,15 +106,16 @@
             text_TenDangNhap.Location = new Point(60, 162);
             text_TenDangNhap.Margin = new Padding(3, 2, 3, 2);
             text_TenDangNhap.Name = "text_TenDangNhap";
-            text_TenDangNhap.Size = new Size(400, 38); // Tăng chiều cao lên 38
+            text_TenDangNhap.Size = new Size(400, 40);
             text_TenDangNhap.StateCommon.Back.Color1 = Color.White;
             text_TenDangNhap.StateCommon.Border.Color1 = Color.Silver;
             text_TenDangNhap.StateCommon.Border.Color2 = Color.Silver;
             text_TenDangNhap.StateCommon.Border.Rounding = 8F;
             text_TenDangNhap.StateCommon.Border.Width = 1;
             text_TenDangNhap.StateCommon.Content.Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            text_TenDangNhap.StateCommon.Content.Padding = new Padding(10, 6, 10, 6); // Thêm padding trên/dưới là 6
+            text_TenDangNhap.StateCommon.Content.Padding = new Padding(10, 6, 10, 6);
             text_TenDangNhap.TabIndex = 0;
+            // 
             // label2
             // 
             label2.AutoSize = true;
@@ -134,15 +132,16 @@
             text_MatKhau.Location = new Point(60, 238);
             text_MatKhau.Margin = new Padding(3, 2, 3, 2);
             text_MatKhau.Name = "text_MatKhau";
-            text_MatKhau.Size = new Size(400, 38); // Tăng chiều cao lên 38
+            text_MatKhau.Size = new Size(400, 40);
             text_MatKhau.StateCommon.Back.Color1 = Color.White;
             text_MatKhau.StateCommon.Border.Color1 = Color.Silver;
             text_MatKhau.StateCommon.Border.Color2 = Color.Silver;
             text_MatKhau.StateCommon.Border.Rounding = 8F;
             text_MatKhau.StateCommon.Border.Width = 1;
             text_MatKhau.StateCommon.Content.Font = new Font("Segoe UI", 11F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            text_MatKhau.StateCommon.Content.Padding = new Padding(10, 6, 10, 6); // Thêm padding trên/dưới là 6
+            text_MatKhau.StateCommon.Content.Padding = new Padding(10, 6, 10, 6);
             text_MatKhau.TabIndex = 1;
+            // 
             // Check_HienMatKhau
             // 
             Check_HienMatKhau.AutoSize = true;
@@ -327,14 +326,19 @@
             // 
             // lblChaoMung
             // 
+            // 
+            // lblChaoMung
+            // 
             lblChaoMung.Anchor = AnchorStyles.None;
             lblChaoMung.AutoSize = true;
             lblChaoMung.BackColor = Color.Transparent;
-            lblChaoMung.Font = new Font("Segoe UI Semibold", 16F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblChaoMung.ForeColor = Color.White;
-            lblChaoMung.Location = new Point(73, 315);
+            // Cú pháp Font với kiểu chữ thường (Regular): (tên font, kích thước, kiểu chữ, đơn vị)
+            lblChaoMung.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Point);
+            // Đổi màu chữ thành màu xanh lá theo yêu cầu
+            lblChaoMung.ForeColor = Color.Green;
+            lblChaoMung.Location = new Point(69, 315);
             lblChaoMung.Name = "lblChaoMung";
-            lblChaoMung.Size = new Size(193, 30);
+            lblChaoMung.Size = new Size(201, 30);
             lblChaoMung.TabIndex = 1;
             lblChaoMung.Text = "Chào mừng trở lại";
             // 
@@ -342,8 +346,8 @@
             // 
             lblMoTa.Anchor = AnchorStyles.Top;
             lblMoTa.BackColor = Color.Transparent;
-            lblMoTa.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lblMoTa.ForeColor = Color.FromArgb(224, 231, 255);
+            lblMoTa.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblMoTa.ForeColor = Color.Green;
             lblMoTa.Location = new Point(30, 366);
             lblMoTa.Name = "lblMoTa";
             lblMoTa.Size = new Size(280, 50);
@@ -371,9 +375,7 @@
             ((System.ComponentModel.ISupportInitialize)PictureBox1).EndInit();
             ResumeLayout(false);
         }
-
         #endregion
-
         private ToolTip toolTip1;
         private Panel panelDangNhap;
         internal TableLayoutPanel TableLayoutPanel6;

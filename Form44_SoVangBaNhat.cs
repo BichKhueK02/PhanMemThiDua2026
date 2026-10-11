@@ -49,30 +49,24 @@ namespace PhanMemThiDua2026
         {
             CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_SoHieu);
             CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_PhanLoai);
-
             kryptonDataGridView1.CellFormatting += kryptonDataGridView1_CellFormatting;
             kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
             kryptonDataGridView1.CellMouseClick += kryptonDataGridView1_CellMouseClick;
             kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
             kryptonDataGridView1.Dock = DockStyle.Fill;
-
             await LoadDuLieuSoVangBaNhatAsync();
             DinhDangGiaoDienDataGridSoVang();
-
             this.SizeChanged += Form44_ResizeOrSizeChanged;
             kryptonDataGridView1.SizeChanged += Form44_ResizeOrSizeChanged;
-
             CapNhatDanhSachDonVi();
             CapNhatThongKeSoLuong();
             CapNhatTrangThaiNut();
-
             Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             InitToolTips();
         }
         private void Form44_ResizeOrSizeChanged(object? sender, EventArgs e)
         {
             if (this.IsDisposed || kryptonDataGridView1 == null || kryptonDataGridView1.IsDisposed) return;
-
             this.BeginInvoke(new Action(() => DinhDangGiaoDienDataGridSoVang()));
         }
         private void Form44_SoVangBaNhat_Shown(object? sender, EventArgs e) => kryptonTextBox1_TimKiemTheoTen.Focus();
@@ -769,9 +763,7 @@ namespace PhanMemThiDua2026
             }
         }
         private void lamMoiHeThong_Click(object? sender, EventArgs e) => kryptonButton_RefershCSDL.PerformClick();
-
         private void xoaTimKiem_Click(object? sender, EventArgs e) => kryptonButton_LamMoiCacOTimKiem.PerformClick();
-
         private void toolStripMenuItem_ThoatTrang_Click(object? sender, EventArgs e) => kryptonButton1_Thoat.PerformClick();
         private async void toolStripMenuItem_XoaChonTatCa_Click(object? sender, EventArgs e)
         {

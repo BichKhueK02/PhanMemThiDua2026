@@ -3,7 +3,6 @@
     partial class Form14
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -12,9 +11,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         // ============================================================
         //  DESIGN TOKENS (giao diện sáng kiểu web)
         //  Nền trang        #EEF2F9  (238, 242, 249)
@@ -31,7 +28,6 @@
         //  Mọi phím: TextAlign = MiddleCenter, Padding = 0, UseCompatibleTextRendering = true
         //  (căn giữa chữ chính xác, không rớt dòng / không bị cắt).
         // ============================================================
-
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form14));
@@ -669,9 +665,7 @@
             pnlHeader.ResumeLayout(false);
             ResumeLayout(false);
         }
-
         #endregion
-
         private TableLayoutPanel tblMain;
         private TableLayoutPanel tblPhim;
         private TableLayoutPanel tblHeader;
@@ -680,7 +674,6 @@
         private Panel pnlDisplay;
         private Label lblTieuDe;
         private Label lblPhuDe;
-
         internal Button Btn_phimdong;
         internal Button Btn_phimmo;
         internal Button Btn_phimdauxoa;

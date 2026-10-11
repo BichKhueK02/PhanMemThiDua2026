@@ -3,22 +3,17 @@
     partial class FormWelcome
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
                 components.Dispose();
-
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormWelcome));
-
             panelNen = new Panel();
             panelCard = new Panel();
             panelNoiDung = new Panel();
@@ -33,7 +28,6 @@
             label2_TinCayAnToan = new Label();
             panelThanhMau = new Panel();
             timer1 = new System.Windows.Forms.Timer(components);
-
             panelNen.SuspendLayout();
             panelCard.SuspendLayout();
             panelNoiDung.SuspendLayout();
@@ -43,7 +37,6 @@
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             tableLayoutPanel3.SuspendLayout();
             SuspendLayout();
-
             // 
             // panelNen
             // 
@@ -55,7 +48,6 @@
             panelNen.Padding = new Padding(30);
             panelNen.Size = new Size(850, 520);
             panelNen.TabIndex = 0;
-
             // 
             // panelCard
             // 
@@ -69,7 +61,6 @@
             panelCard.Name = "panelCard";
             panelCard.Size = new Size(790, 460);
             panelCard.TabIndex = 0;
-
             // 
             // panelThanhMau
             // 
@@ -79,7 +70,6 @@
             panelThanhMau.Name = "panelThanhMau";
             panelThanhMau.Size = new Size(790, 4);
             panelThanhMau.TabIndex = 0;
-
             // 
             // panelHeader
             // 
@@ -91,7 +81,6 @@
             panelHeader.Padding = new Padding(34, 22, 34, 18);
             panelHeader.Size = new Size(790, 112);
             panelHeader.TabIndex = 1;
-
             // 
             // tableLayoutPanel2
             // 
@@ -108,7 +97,6 @@
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel2.Size = new Size(722, 72);
             tableLayoutPanel2.TabIndex = 0;
-
             // 
             // pictureBox1
             // 
@@ -121,7 +109,6 @@
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
-
             // 
             // tableLayoutPanel3
             // 
@@ -138,7 +125,6 @@
             tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
             tableLayoutPanel3.Size = new Size(650, 72);
             tableLayoutPanel3.TabIndex = 1;
-
             // 
             // label1_TenPhanMem
             // 
@@ -153,7 +139,6 @@
             label1_TenPhanMem.TabIndex = 1;
             label1_TenPhanMem.Text = "PHẦN MỀM THI ĐUA 2026";
             label1_TenPhanMem.TextAlign = ContentAlignment.MiddleLeft;
-
             // 
             // label2_TinCayAnToan
             // 
@@ -168,7 +153,6 @@
             label2_TinCayAnToan.TabIndex = 2;
             label2_TinCayAnToan.Text = "Tin cậy • An toàn • Bảo mật • Phù hợp mọi máy tính";
             label2_TinCayAnToan.TextAlign = ContentAlignment.MiddleLeft;
-
             // 
             // panelNoiDung
             // 
@@ -180,7 +164,6 @@
             panelNoiDung.Padding = new Padding(34, 18, 34, 14);
             panelNoiDung.Size = new Size(790, 270);
             panelNoiDung.TabIndex = 2;
-
             // 
             // richTextBox1
             // 
@@ -197,7 +180,6 @@
             richTextBox1.Size = new Size(722, 238);
             richTextBox1.TabIndex = 20;
             richTextBox1.Text = "";
-
             // 
             // panelFooter
             // 
@@ -209,7 +191,6 @@
             panelFooter.Padding = new Padding(34, 12, 34, 20);
             panelFooter.Size = new Size(790, 74);
             panelFooter.TabIndex = 3;
-
             // 
             // btn_BatDau
             // 
@@ -234,9 +215,7 @@
             btn_BatDau.OverrideDefault.Content.ShortText.Color2 = Color.White;
             btn_BatDau.OverrideDefault.Content.ShortText.Font =
                 new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
-
             btn_BatDau.Size = new Size(135, 42);
-
             btn_BatDau.StateCommon.Back.Color1 = Color.FromArgb(0, 120, 215);
             btn_BatDau.StateCommon.Back.Color2 = Color.FromArgb(0, 120, 215);
             btn_BatDau.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
@@ -253,22 +232,18 @@
             btn_BatDau.StateCommon.Content.ShortText.Color2 = Color.White;
             btn_BatDau.StateCommon.Content.ShortText.Font =
                 new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
-
             btn_BatDau.StateTracking.Back.Color1 = Color.FromArgb(0, 102, 204);
             btn_BatDau.StateTracking.Back.Color2 = Color.FromArgb(0, 102, 204);
             btn_BatDau.StateTracking.Border.Color1 = Color.FromArgb(0, 102, 204);
             btn_BatDau.StateTracking.Border.Color2 = Color.FromArgb(0, 102, 204);
-
             btn_BatDau.StatePressed.Back.Color1 = Color.FromArgb(0, 84, 166);
             btn_BatDau.StatePressed.Back.Color2 = Color.FromArgb(0, 84, 166);
             btn_BatDau.StatePressed.Border.Color1 = Color.FromArgb(0, 84, 166);
             btn_BatDau.StatePressed.Border.Color2 = Color.FromArgb(0, 84, 166);
-
             btn_BatDau.TabIndex = 19;
             btn_BatDau.Values.DropDownArrowColor = Color.Empty;
             btn_BatDau.Values.Image = (Image)resources.GetObject("btn_BatDau.Values.Image");
             btn_BatDau.Values.Text = "Bắt đầu";
-
             // 
             // FormWelcome
             // 
@@ -285,7 +260,6 @@
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Lời chào đầu tiên";
             Load += FormWelcome_Load;
-
             panelNen.ResumeLayout(false);
             panelCard.ResumeLayout(false);
             panelNoiDung.ResumeLayout(false);
@@ -297,9 +271,7 @@
             tableLayoutPanel3.PerformLayout();
             ResumeLayout(false);
         }
-
         #endregion
-
         private Panel panelNen;
         private Panel panelCard;
         private Panel panelThanhMau;

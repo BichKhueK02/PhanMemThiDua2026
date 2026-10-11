@@ -72,10 +72,8 @@ namespace PhanMemThiDua2026
         private static string ChuyenDoiLoaiDeNghi(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return input;
-
             // Chuẩn hóa chuỗi (xóa khoảng trắng thừa, chuyển về chữ hoa để so sánh)
             string normalized = input.Trim().ToUpper();
-
             return normalized switch
             {
                 "ĐVQT" => "Đơn vị Quyết thắng",
@@ -85,7 +83,6 @@ namespace PhanMemThiDua2026
                 _ => input // Giữ nguyên giá trị gốc nếu không khớp các mã trên
             };
         }
-
         private static void VietKyTenBaoCaoTongHop(IXLWorksheet ws, string fileDB)
         {
             string hoTenKy = "     "; // Khoảng trắng mặc định
@@ -198,7 +195,6 @@ namespace PhanMemThiDua2026
                 // 👉 CHỌN SHEET ĐỔ DỮ LIỆU TỰ ĐỘNG THEO CHẾ ĐỘ NĂM / THÁNG
                 string tenSheet = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
                 var ws = wb.Worksheet(tenSheet);
-
                 string csdl2 = Module_DanduongGPS.DuongDanCSDL2;
                 if (string.IsNullOrWhiteSpace(csdl2) || !File.Exists(csdl2))
                     throw new Exception("Không tìm thấy CSDL csdl2.");
@@ -299,7 +295,6 @@ namespace PhanMemThiDua2026
                         //deNghi = string.IsNullOrWhiteSpace(reader["LoaiDeNghi"]?.ToString())
                         //    ? khoangTrang
                         //    : Module_BaoMatAES.GiaiMa(reader["LoaiDeNghi"].ToString());
-
                         deNghi = string.IsNullOrWhiteSpace(reader["LoaiDeNghi"]?.ToString())
                         ? khoangTrang
                         : Module_BaoMatAES.GiaiMa(reader["LoaiDeNghi"].ToString());
@@ -420,13 +415,10 @@ namespace PhanMemThiDua2026
                 string chuoiThoiGian;
                 loaiBaoCao = (loaiBaoCao ?? "").Trim().ToUpper();
                 tuanBaoCao = (tuanBaoCao ?? "").Trim();
-
-
                 if (Module_HeThong.IsCheDoXetThiDuaNam())
                 {
                     // 👉 CHẾ ĐỘ XÉT NĂM
                     string namHT = Module_XuatPhanLoai.LayNamHeThong();
-
                     var tieuDe = ws.Range("A6:M6");
                     tieuDe.Merge();
                     tieuDe.Value = $"Phân loại tập thể và tổng hợp năm {namHT}";
@@ -441,7 +433,6 @@ namespace PhanMemThiDua2026
                     // 👉 CHẾ ĐỘ XÉT THÁNG (GIỮ NGUYÊN CODE GỐC)
                     string rawThang = Module_XuatPhanLoai.LayThangHeThong();
                     string namHT = Module_XuatPhanLoai.LayNamHeThong();
-
                     // 🌟 CHỐT CHẶN TRIỆT ĐỂ: Ép kiểu tháng để loại bỏ sạch sẽ số 0 thừa từ tháng 3 đến 12
                     string thangHT = rawThang;
                     if (int.TryParse(rawThang, out int thangSo))
@@ -449,7 +440,6 @@ namespace PhanMemThiDua2026
                         // Tháng 1 và 2 giữ nguyên dạng "01", "02". Từ tháng 3 đến 12 chuyển thành "3", "4"... "12"
                         thangHT = (thangSo == 1 || thangSo == 2) ? thangSo.ToString("00") : thangSo.ToString();
                     }
-
                     if (loaiBaoCao.Contains("TUẦN"))
                     {
                         // Nếu dữ liệu là "Tuần 1" → lấy số 1
@@ -459,7 +449,6 @@ namespace PhanMemThiDua2026
                         }
                         if (string.IsNullOrWhiteSpace(tuanBaoCao))
                             tuanBaoCao = "1";
-
                         // Vẫn giữ nguyên dấu "/" theo đúng quy chuẩn của đơn vị bạn
                         chuoiThoiGian = $"TUẦN {tuanBaoCao} THÁNG {thangHT}/{namHT}";
                     }
@@ -467,7 +456,6 @@ namespace PhanMemThiDua2026
                     {
                         chuoiThoiGian = $"THÁNG {thangHT}/{namHT}";
                     }
-
                     var tieuDe = ws.Range("A6:M6");
                     tieuDe.Merge();
                     tieuDe.Value = $"DANH SÁCH TỔNG HỢP CÁC LOẠI {chuoiThoiGian}";
@@ -533,7 +521,6 @@ namespace PhanMemThiDua2026
                 ws.Cell("F11").Value = tyLe.GetValueOrDefault(3).canDat;
                 ws.Cell("G11").Value = tyLe.GetValueOrDefault(4).canDat;
                 ws.Cell("H11").Value = tyLe.GetValueOrDefault(5).canDat;
-
                 //ws.Cell("I11").Value = tyLe.GetValueOrDefault(6).canDat;
                 if (!Module_HeThong.IsCheDoXetThiDuaNam())
                 {
@@ -549,7 +536,6 @@ namespace PhanMemThiDua2026
                 cellK11.Style.Font.FontSize = 13;
                 cellK11.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cellK11.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
                 // ws.Cell("L11").Value = string.IsNullOrWhiteSpace(Module_XuatTongHop.TOM_TAT_GHI_CHU) ? "" : Module_XuatTongHop.TOM_TAT_GHI_CHU;
                 // ===== XỬ LÝ Ô L11 - TÓM TẮT GHI CHÚ =====
                 string ghiChu = Module_XuatTongHop.TOM_TAT_GHI_CHU?.Trim() ?? string.Empty;

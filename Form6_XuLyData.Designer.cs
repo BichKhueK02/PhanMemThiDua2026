@@ -210,8 +210,8 @@
             textBox_TimKiemTheoTen.Location = new Point(84, 9);
             textBox_TimKiemTheoTen.Margin = new Padding(2, 3, 2, 3);
             textBox_TimKiemTheoTen.Name = "textBox_TimKiemTheoTen";
-            textBox_TimKiemTheoTen.Size = new Size(150, 29);
-            textBox_TimKiemTheoTen.StateCommon.Border.Rounding = 8F;
+            textBox_TimKiemTheoTen.Size = new Size(150, 32); // Tăng chiều cao từ 29 lên 32 để thoáng khung
+            textBox_TimKiemTheoTen.StateCommon.Border.Rounding = 4F; // Giảm độ bo góc từ 8F xuống 4F
             textBox_TimKiemTheoTen.StateCommon.Border.Width = 1;
             textBox_TimKiemTheoTen.TabIndex = 29;
             // 
@@ -464,7 +464,6 @@
             tableLayoutPanel9.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel9.Size = new Size(1246, 51);
             tableLayoutPanel9.TabIndex = 4;
-            tableLayoutPanel9.Paint += tableLayoutPanel9_Paint;
             // 
             // textBox_NgayVaoCAND
             // 

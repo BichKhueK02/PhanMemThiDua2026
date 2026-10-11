@@ -44,14 +44,12 @@ namespace PhanMemThiDua2026
             toolTip1.AutoPopDelay = 2500;
             toolTip1.ReshowDelay = 100;
             toolTip1.ShowAlways = true;
-
             var tips = new Dictionary<Control, string>
     {
         { Btn_GoCaiDat, "Xác thực mật khẩu và tiến hành gỡ cài đặt phần mềm" },
         { kryptonButton_HuongDanToi, "Xem hướng dẫn sử dụng chức năng gỡ cài đặt" },
         { Btn_Thoat, "Đóng cửa sổ này, không gỡ cài đặt" }
     };
-
             foreach (var tip in tips)
             {
                 if (tip.Key != null && !tip.Key.IsDisposed)
@@ -253,7 +251,6 @@ namespace PhanMemThiDua2026
                 "⚠️ Lưu ý bảo mật:\n" +
                 "    - Nếu nhập sai mật khẩu 3 lần liên tiếp, ứng dụng sẽ tự động đóng để bảo vệ an toàn.\n" +
                 "    - Chỉ những người có quyền Admin mới nên thực hiện thao tác gỡ cài đặt.";
-
             MessageBox.Show(
                 noiDungHuongDan,
                 "Hướng dẫn sử dụng",

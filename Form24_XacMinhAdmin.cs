@@ -51,11 +51,9 @@ namespace PhanMemThiDua2026
         private void RegisterEvents()
         {
             this.Load += Form24_XacMinhAdmin_Load;
-
             // Thêm 2 dòng này để đăng ký sự kiện ẩn/hiện mật khẩu
             check_HienMatKhau.CheckedChanged -= check_HienMatKhau_CheckedChanged;
             check_HienMatKhau.CheckedChanged += check_HienMatKhau_CheckedChanged;
-
             btn_XacThuc.Click -= btn_XacThuc_Click;
             btn_XacThuc.Click += btn_XacThuc_Click;
             btn_Thoat.Click -= btn_Thoat_Click;
@@ -351,7 +349,6 @@ namespace PhanMemThiDua2026
                 if (tip.Key != null) toolTip1.SetToolTip(tip.Key, tip.Value);
             }
         }
-
         private void check_HienMatKhau_CheckedChanged(object sender, EventArgs e)
         {
             if (check_HienMatKhau.Checked)

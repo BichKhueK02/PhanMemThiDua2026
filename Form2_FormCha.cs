@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using static UIHelper;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form2_FormCha : Form
@@ -1153,8 +1152,6 @@ namespace PhanMemThiDua2026
             if (btn == null || btn.IsDisposed) return;
             Module_SidebarHienDai.DatTrangThai(btn, false);
         }
-
-      
     }
 }
 public static class UIHelper

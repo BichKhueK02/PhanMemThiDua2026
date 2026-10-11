@@ -1,11 +1,9 @@
 ﻿using Krypton.Toolkit;
-
 namespace PhanMemThiDua2026
 {
     partial class Form39_ThongTinNguoiDung
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -14,9 +12,7 @@ namespace PhanMemThiDua2026
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
@@ -113,13 +109,11 @@ namespace PhanMemThiDua2026
             panelFooter.TabIndex = 1;
             //
             // kryptonButton1_DongFrom
-
             kryptonButton1_DongFrom.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             kryptonButton1_DongFrom.Cursor = Cursors.Hand;
             kryptonButton1_DongFrom.Location = new Point(600, 8);
             kryptonButton1_DongFrom.Name = "kryptonButton1_DongFrom";
             kryptonButton1_DongFrom.Size = new Size(128, 40);
-
             // Màu mặc định của Krypton
             kryptonButton1_DongFrom.OverrideDefault.Back.ColorStyle = PaletteColorStyle.Solid;
             kryptonButton1_DongFrom.OverrideDefault.Back.Color1 = Color.FromArgb(37, 99, 235);
@@ -128,7 +122,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_DongFrom.OverrideDefault.Border.Color2 = Color.FromArgb(37, 99, 235);
             kryptonButton1_DongFrom.OverrideDefault.Content.ShortText.Color1 = Color.White;
             kryptonButton1_DongFrom.OverrideDefault.Content.ShortText.Color2 = Color.White;
-
             // Trạng thái chung
             kryptonButton1_DongFrom.StateCommon.Back.ColorStyle = PaletteColorStyle.Solid;
             kryptonButton1_DongFrom.StateCommon.Back.Color1 = Color.FromArgb(37, 99, 235);
@@ -146,7 +139,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_DongFrom.StateCommon.Content.ShortText.Color2 = Color.White;
             kryptonButton1_DongFrom.StateCommon.Content.ShortText.Font =
                 new Font("Segoe UI Semibold", 10F, FontStyle.Bold);
-
             // Trạng thái bình thường
             kryptonButton1_DongFrom.StateNormal.Back.ColorStyle = PaletteColorStyle.Solid;
             kryptonButton1_DongFrom.StateNormal.Back.Color1 = Color.FromArgb(37, 99, 235);
@@ -155,7 +147,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_DongFrom.StateNormal.Border.Color2 = Color.FromArgb(37, 99, 235);
             kryptonButton1_DongFrom.StateNormal.Content.ShortText.Color1 = Color.White;
             kryptonButton1_DongFrom.StateNormal.Content.ShortText.Color2 = Color.White;
-
             // Hover
             kryptonButton1_DongFrom.StateTracking.Back.ColorStyle = PaletteColorStyle.Solid;
             kryptonButton1_DongFrom.StateTracking.Back.Color1 = Color.FromArgb(29, 78, 216);
@@ -164,7 +155,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_DongFrom.StateTracking.Border.Color2 = Color.FromArgb(29, 78, 216);
             kryptonButton1_DongFrom.StateTracking.Content.ShortText.Color1 = Color.White;
             kryptonButton1_DongFrom.StateTracking.Content.ShortText.Color2 = Color.White;
-
             // Nhấn
             kryptonButton1_DongFrom.StatePressed.Back.ColorStyle = PaletteColorStyle.Solid;
             kryptonButton1_DongFrom.StatePressed.Back.Color1 = Color.FromArgb(30, 64, 175);
@@ -173,14 +163,12 @@ namespace PhanMemThiDua2026
             kryptonButton1_DongFrom.StatePressed.Border.Color2 = Color.FromArgb(30, 64, 175);
             kryptonButton1_DongFrom.StatePressed.Content.ShortText.Color1 = Color.White;
             kryptonButton1_DongFrom.StatePressed.Content.ShortText.Color2 = Color.White;
-
             kryptonButton1_DongFrom.TabIndex = 0;
             kryptonButton1_DongFrom.Values.DropDownArrowColor = Color.Empty;
             kryptonButton1_DongFrom.Values.Image =
                 (Image)resources.GetObject("kryptonButton1_DongFrom.Values.Image");
             kryptonButton1_DongFrom.Values.Text = "Đóng";
             kryptonButton1_DongFrom.Click += kryptonButton1_DongFrom_Click;
-
             //
             // panelBody
             //
@@ -251,7 +239,6 @@ namespace PhanMemThiDua2026
             label9.Name = "label9";
             label9.TabIndex = 0;
             label9.Text = "TÀI KHOẢN";
-
             label10.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
             label10.AutoSize = true;
             label10.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
@@ -259,7 +246,6 @@ namespace PhanMemThiDua2026
             label10.Name = "label10";
             label10.TabIndex = 1;
             label10.Text = "ĐĂNG NHẬP LÚC";
-
             label13.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
             label13.AutoSize = true;
             label13.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
@@ -267,7 +253,6 @@ namespace PhanMemThiDua2026
             label13.Name = "label13";
             label13.TabIndex = 4;
             label13.Text = "USER WINDOWS";
-
             label12.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
             label12.AutoSize = true;
             label12.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
@@ -275,7 +260,6 @@ namespace PhanMemThiDua2026
             label12.Name = "label12";
             label12.TabIndex = 3;
             label12.Text = "TÊN MÁY TÍNH";
-
             label2.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
@@ -283,7 +267,6 @@ namespace PhanMemThiDua2026
             label2.Name = "label2";
             label2.TabIndex = 38;
             label2.Text = "SERIA MÁY TÍNH";
-
             label15.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
             label15.AutoSize = true;
             label15.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
@@ -291,7 +274,6 @@ namespace PhanMemThiDua2026
             label15.Name = "label15";
             label15.TabIndex = 35;
             label15.Text = "THỂ LOẠI MÁY";
-
             label14.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
             label14.AutoSize = true;
             label14.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
@@ -299,7 +281,6 @@ namespace PhanMemThiDua2026
             label14.Name = "label14";
             label14.TabIndex = 5;
             label14.Text = "PHIÊN BẢN PHẦN MỀM";
-
             label1.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
@@ -346,7 +327,6 @@ namespace PhanMemThiDua2026
             tableThongTin.PerformLayout();
             ResumeLayout(false);
         }
-
         private static void ConfigTextBox(Krypton.Toolkit.KryptonTextBox tb, string name, int tabIndex)
         {
             tb.Anchor = AnchorStyles.Left | AnchorStyles.Right;
@@ -362,9 +342,7 @@ namespace PhanMemThiDua2026
             tb.StateCommon.Content.Color1 = Color.FromArgb(17, 24, 39);
             tb.StateCommon.Content.Font = new Font("Segoe UI", 10.5F);
         }
-
         #endregion
-
         private Panel panelHeader;
         private Label lblTieuDe;
         private Label lblMoTa;

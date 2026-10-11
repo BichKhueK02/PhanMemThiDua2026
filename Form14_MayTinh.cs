@@ -35,7 +35,6 @@ namespace PhanMemThiDua2026
             KeyDown += Form_KeyDown;
             AcceptButton = Btn_phimdaubang;
             AttachButtons(this);
-
             // [CẤU HÌNH CUSTOM HIGHLIGHT CHO LISTBOX1]
             ListBox1.DrawMode = DrawMode.OwnerDrawFixed;
             ListBox1.DrawItem += ListBox1_DrawItem;
@@ -43,22 +42,17 @@ namespace PhanMemThiDua2026
         private void ListBox1_DrawItem(object? sender, DrawItemEventArgs e)
         {
             if (e.Index < 0 || sender is not ListBox lb) return;
-
             bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-
             // [MÀU CHUẨN DARK THEME MELLOW GREEN]
             // Nền highlight: Xanh lục bảo trầm dịu mắt, không bị choang rực trên nền đen
             Color backColor = isSelected ? Color.FromArgb(20, 65, 35) : lb.BackColor;
-
             // Chữ khi chọn: Xanh neon dịu nhẹ (sáng rõ nét trên nền xanh tối)
             // Chữ bình thường: Giữ nguyên màu nền gốc
             Color textColor = isSelected ? Color.FromArgb(160, 255, 170) : lb.ForeColor;
-
             using (SolidBrush backBrush = new SolidBrush(backColor))
             {
                 e.Graphics.FillRectangle(backBrush, e.Bounds);
             }
-
             string itemText = lb.Items[e.Index]?.ToString() ?? string.Empty;
             TextRenderer.DrawText(
                 e.Graphics,
@@ -68,11 +62,8 @@ namespace PhanMemThiDua2026
                 textColor,
                 TextFormatFlags.VerticalCenter | TextFormatFlags.Left
             );
-
             // Bỏ DrawFocusRectangle để không bị viền nét đứt gợn xấu
         }
-
-
         private void AttachButtons(Control parent)
         {
             foreach (Control ctrl in parent.Controls)

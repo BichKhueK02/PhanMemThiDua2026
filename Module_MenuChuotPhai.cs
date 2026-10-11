@@ -5,7 +5,6 @@
 //using System.Linq;
 //using System.Runtime.CompilerServices;
 //using System.Windows.Forms;
-
 //namespace PhanMemThiDua2026
 //{
 //    /// <summary>
@@ -16,30 +15,24 @@
 //    {
 //        // Cache tên màu đang chọn trên RAM để tránh đọc ổ cứng liên tục khi mở menu
 //        public static string MauHienTai { get; set; } = "Mặc định";
-
 //        // ===== Tuỳ chỉnh nhanh =====
 //        private const int BanKinhBoGoc = 10;     // bo góc khung menu
 //        private const int BanKinhHover = 6;      // bo góc ô hover
 //        private const int TocDoFadeMs = 12;      // chu kỳ timer (nhỏ = mượt hơn)
 //        private const double BuocFade = 0.18;    // mỗi tick tăng bao nhiêu độ mờ
 //        private static readonly Font FontMenu = new Font(Module_HeThong.TenFontHeThong, 10f, FontStyle.Regular);
-
 //        // Đảm bảo mỗi dropdown chỉ gắn hiệu ứng 1 lần
 //        private static readonly ConditionalWeakTable<ToolStripDropDown, object> _daGan = new();
-
 //        public static void TichHopGiaoDien(ContextMenuStrip menu)
 //        {
 //            if (menu == null) return;
-
 //            GanHieuUng(menu);
-
 //            menu.Opening += (s, ev) =>
 //            {
 //                if (ev.Cancel) return;
 //                AreStyle(menu, LayChuDe(MauHienTai));
 //            };
 //        }
-
 //        // Tự động đọc màu đã lưu từ CSDL2 khi khởi động phần mềm
 //        public static void KhoiTaoMauTuCSDL(string csdl2Path)
 //        {
@@ -58,13 +51,9 @@
 //            }
 //            catch { MauHienTai = "Mặc định"; }
 //        }
-
 //        // Giữ lại để tương thích code cũ
 //        public static ProfessionalColorTable LayBangMauTheoTen(string tenMau) => new ThemeColorTable(LayChuDe(tenMau));
-
-
 //        //  CHỦ ĐỀ MÀU
-
 //        public static MenuTheme LayChuDe(string tenMau)
 //        {
 //            return tenMau switch
@@ -74,25 +63,21 @@
 //                    border: Color.FromArgb(110, 190, 140), text: Color.FromArgb(14, 64, 34),
 //                    disabled: Color.FromArgb(120, 160, 135), separator: Color.FromArgb(190, 228, 203),
 //                    accent: Color.FromArgb(22, 163, 74)),
-
 //                "Xanh dương" => new MenuTheme(
 //                    back: Color.FromArgb(232, 242, 255), hover: Color.FromArgb(162, 200, 250),
 //                    border: Color.FromArgb(110, 160, 230), text: Color.FromArgb(12, 40, 90),
 //                    disabled: Color.FromArgb(125, 150, 190), separator: Color.FromArgb(190, 213, 246),
 //                    accent: Color.FromArgb(37, 99, 235)),
-
 //                "Xám trắng" => new MenuTheme(
 //                    back: Color.FromArgb(245, 246, 248), hover: Color.FromArgb(214, 218, 226),
 //                    border: Color.FromArgb(190, 195, 205), text: Color.FromArgb(30, 34, 42),
 //                    disabled: Color.FromArgb(150, 155, 165), separator: Color.FromArgb(218, 222, 229),
 //                    accent: Color.FromArgb(71, 85, 105)),
-
 //                "Tối" => new MenuTheme(
 //                    back: Color.FromArgb(24, 26, 33), hover: Color.FromArgb(60, 68, 92),
 //                    border: Color.FromArgb(70, 76, 96), text: Color.FromArgb(235, 237, 242),
 //                    disabled: Color.FromArgb(115, 120, 132), separator: Color.FromArgb(50, 54, 66),
 //                    accent: Color.FromArgb(122, 162, 255)),
-
 //                // "Mặc định" hoặc giá trị trống: vàng hổ phách ấm
 //                _ => new MenuTheme(
 //                    back: Color.FromArgb(255, 248, 225), hover: Color.FromArgb(255, 224, 130),
@@ -101,28 +86,23 @@
 //                    accent: Color.FromArgb(245, 158, 11)),
 //            };
 //        }
-
 //        //  ÁP STYLE + HIỆU ỨNG
-
 //        private static void AreStyle(ToolStripDropDown dd, MenuTheme theme)
 //        {
 //            dd.RenderMode = ToolStripRenderMode.Professional;
 //            dd.Renderer = new ModernMenuRenderer(theme);
 //            dd.Font = FontMenu;
 //            dd.BackColor = theme.Back;
-
 //            if (dd is ToolStripDropDownMenu ddm)
 //            {
 //                ddm.ShowCheckMargin = false;
 //                ddm.ShowImageMargin = ddm.Items.OfType<ToolStripMenuItem>().Any(i => i.Image != null);
 //            }
-
 //            foreach (ToolStripItem item in dd.Items)
 //            {
 //                if (item is ToolStripSeparator) continue;
 //                item.Padding = new Padding(6, 6, 6, 6); // item cao thoáng hơn
 //                item.ForeColor = item.Enabled ? theme.Text : theme.Disabled;
-
 //                if (item is ToolStripMenuItem mi && mi.HasDropDownItems)
 //                {
 //                    GanHieuUng(mi.DropDown);
@@ -130,12 +110,10 @@
 //                }
 //            }
 //        }
-
 //        private static void GanHieuUng(ToolStripDropDown dd)
 //        {
 //            if (_daGan.TryGetValue(dd, out _)) return;
 //            _daGan.Add(dd, new object());
-
 //            var timer = new System.Windows.Forms.Timer { Interval = TocDoFadeMs };
 //            timer.Tick += (s, e) =>
 //            {
@@ -143,14 +121,12 @@
 //                if (op >= 1.0) { dd.Opacity = 1.0; timer.Stop(); }
 //                else dd.Opacity = op;
 //            };
-
 //            dd.Opening += (s, e) =>
 //            {
 //                if (e.Cancel) return;
 //                timer.Stop();
 //                dd.Opacity = 0.0; // bắt đầu trong suốt
 //            };
-
 //            dd.Opened += (s, e) =>
 //            {
 //                // Bo góc khung menu
@@ -164,14 +140,12 @@
 //                catch { }
 //                timer.Start(); // fade-in
 //            };
-
 //            dd.Closed += (s, e) =>
 //            {
 //                timer.Stop();
 //                dd.Opacity = 1.0;
 //            };
 //        }
-
 //        internal static GraphicsPath RoundRect(Rectangle r, int radius)
 //        {
 //            int d = Math.Max(1, radius * 2);
@@ -183,26 +157,20 @@
 //            p.CloseFigure();
 //            return p;
 //        }
-
-
 //        //  RENDERER HIỆN ĐẠI
-
 //        private sealed class ModernMenuRenderer : ToolStripProfessionalRenderer
 //        {
 //            private readonly MenuTheme _t;
-
 //            public ModernMenuRenderer(MenuTheme t) : base(new ThemeColorTable(t))
 //            {
 //                _t = t;
 //                RoundedEdges = false;
 //            }
-
 //            protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
 //            {
 //                using var b = new SolidBrush(_t.Back);
 //                e.Graphics.FillRectangle(b, e.AffectedBounds);
 //            }
-
 //            protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
 //            {
 //                if (e.ToolStrip is not ToolStripDropDown) { base.OnRenderToolStripBorder(e); return; }
@@ -213,15 +181,12 @@
 //                using var pen = new Pen(_t.Border, 1f);
 //                g.DrawPath(pen, path);
 //            }
-
 //            // Bỏ cột lề icon kiểu cũ -> phẳng, hiện đại
 //            protected override void OnRenderImageMargin(ToolStripRenderEventArgs e) { }
-
 //            protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
 //            {
 //                if (!e.Item.IsOnDropDown) { base.OnRenderMenuItemBackground(e); return; }
 //                if (!e.Item.Selected || !e.Item.Enabled) return;
-
 //                var g = e.Graphics;
 //                g.SmoothingMode = SmoothingMode.AntiAlias;
 //                var r = new Rectangle(5, 2, e.Item.Width - 10, e.Item.Height - 4);
@@ -229,27 +194,23 @@
 //                using var b = new SolidBrush(_t.Hover);
 //                g.FillPath(b, path);
 //            }
-
 //            protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
 //            {
 //                int y = e.Item.Height / 2;
 //                using var pen = new Pen(_t.Separator, 1f);
 //                e.Graphics.DrawLine(pen, 14, y, e.Item.Width - 14, y);
 //            }
-
 //            protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
 //            {
 //                e.TextColor = e.Item.Enabled ? _t.Text : _t.Disabled;
 //                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 //                base.OnRenderItemText(e);
 //            }
-
 //            protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
 //            {
 //                e.ArrowColor = e.Item.Enabled ? _t.Text : _t.Disabled;
 //                base.OnRenderArrow(e);
 //            }
-
 //            protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
 //            {
 //                var g = e.Graphics;
@@ -259,7 +220,6 @@
 //                using (var path = RoundRect(r, 4))
 //                using (var b = new SolidBrush(_t.Accent))
 //                    g.FillPath(b, path);
-
 //                using var pen = new Pen(Color.White, 2f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
 //                g.DrawLines(pen, new[]
 //                {
@@ -269,10 +229,7 @@
 //                });
 //            }
 //        }
-
-
 //        //  MODEL MÀU + BẢNG MÀU (tương thích ProfessionalColorTable)
-
 //        public sealed class MenuTheme
 //        {
 //            public Color Back, Hover, Border, Text, Disabled, Separator, Accent;
@@ -283,12 +240,10 @@
 //                Disabled = disabled; Separator = separator; Accent = accent;
 //            }
 //        }
-
 //        private sealed class ThemeColorTable : ProfessionalColorTable
 //        {
 //            private readonly MenuTheme _t;
 //            public ThemeColorTable(MenuTheme t) { _t = t; UseSystemColors = false; }
-
 //            public override Color ImageMarginGradientBegin => _t.Back;
 //            public override Color ImageMarginGradientMiddle => _t.Back;
 //            public override Color ImageMarginGradientEnd => _t.Back;
@@ -303,7 +258,6 @@
 //        }
 //    }
 //}
-
 using Microsoft.Data.Sqlite;
 using System;
 using System.Drawing;
@@ -311,7 +265,6 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     /// <summary>
@@ -322,30 +275,24 @@ namespace PhanMemThiDua2026
     {
         // Cache tên màu đang chọn trên RAM để tránh đọc ổ cứng liên tục khi mở menu
         public static string MauHienTai { get; set; } = "Mặc định";
-
         // ===== Tuỳ chỉnh nhanh =====
         private const int BanKinhBoGoc = 10;     // bo góc khung menu
         private const int BanKinhHover = 6;      // bo góc ô hover
         private const int TocDoFadeMs = 12;      // chu kỳ timer (nhỏ = mượt hơn)
         private const double BuocFade = 0.18;    // mỗi tick tăng bao nhiêu độ mờ
         private static readonly Font FontMenu = new Font(Module_HeThong.TenFontHeThong, 10f, FontStyle.Regular);
-
         // Đảm bảo mỗi dropdown chỉ gắn hiệu ứng 1 lần
         private static readonly ConditionalWeakTable<ToolStripDropDown, object> _daGan = new();
-
         public static void TichHopGiaoDien(ContextMenuStrip menu)
         {
             if (menu == null) return;
-
             GanHieuUng(menu);
-
             menu.Opening += (s, ev) =>
             {
                 if (ev.Cancel) return;
                 AreStyle(menu, LayChuDe(MauHienTai));
             };
         }
-
         // Tự động đọc màu đã lưu từ CSDL2 khi khởi động phần mềm
         public static void KhoiTaoMauTuCSDL(string csdl2Path)
         {
@@ -364,13 +311,9 @@ namespace PhanMemThiDua2026
             }
             catch { MauHienTai = "Mặc định"; }
         }
-
         // Giữ lại để tương thích code cũ
         public static ProfessionalColorTable LayBangMauTheoTen(string tenMau) => new ThemeColorTable(LayChuDe(tenMau));
-
-
         //  CHỦ ĐỀ MÀU
-
         public static MenuTheme LayChuDe(string tenMau)
         {
             return tenMau switch
@@ -380,25 +323,21 @@ namespace PhanMemThiDua2026
                     border: Color.FromArgb(110, 190, 140), text: Color.FromArgb(14, 64, 34),
                     disabled: Color.FromArgb(120, 160, 135), separator: Color.FromArgb(190, 228, 203),
                     accent: Color.FromArgb(22, 163, 74)),
-
                 "Xanh dương" => new MenuTheme(
                     back: Color.FromArgb(232, 242, 255), hover: Color.FromArgb(162, 200, 250),
                     border: Color.FromArgb(110, 160, 230), text: Color.FromArgb(12, 40, 90),
                     disabled: Color.FromArgb(125, 150, 190), separator: Color.FromArgb(190, 213, 246),
                     accent: Color.FromArgb(37, 99, 235)),
-
                 "Xám trắng" => new MenuTheme(
                     back: Color.FromArgb(245, 246, 248), hover: Color.FromArgb(214, 218, 226),
                     border: Color.FromArgb(190, 195, 205), text: Color.FromArgb(30, 34, 42),
                     disabled: Color.FromArgb(150, 155, 165), separator: Color.FromArgb(218, 222, 229),
                     accent: Color.FromArgb(71, 85, 105)),
-
                 "Tối" => new MenuTheme(
                     back: Color.FromArgb(24, 26, 33), hover: Color.FromArgb(60, 68, 92),
                     border: Color.FromArgb(70, 76, 96), text: Color.FromArgb(235, 237, 242),
                     disabled: Color.FromArgb(115, 120, 132), separator: Color.FromArgb(50, 54, 66),
                     accent: Color.FromArgb(122, 162, 255)),
-
                 // "Mặc định" hoặc giá trị trống: vàng hổ phách ấm
                 _ => new MenuTheme(
                     back: Color.FromArgb(255, 248, 225), hover: Color.FromArgb(255, 224, 130),
@@ -407,28 +346,23 @@ namespace PhanMemThiDua2026
                     accent: Color.FromArgb(245, 158, 11)),
             };
         }
-
         //  ÁP STYLE + HIỆU ỨNG
-
         private static void AreStyle(ToolStripDropDown dd, MenuTheme theme)
         {
             dd.RenderMode = ToolStripRenderMode.Professional;
             dd.Renderer = new ModernMenuRenderer(theme);
             dd.Font = FontMenu;
             dd.BackColor = theme.Back;
-
             if (dd is ToolStripDropDownMenu ddm)
             {
                 ddm.ShowCheckMargin = false;
                 ddm.ShowImageMargin = ddm.Items.OfType<ToolStripMenuItem>().Any(i => i.Image != null);
             }
-
             foreach (ToolStripItem item in dd.Items)
             {
                 if (item is ToolStripSeparator) continue;
                 item.Padding = new Padding(6, 6, 6, 6); // item cao thoáng hơn
                 item.ForeColor = item.Enabled ? theme.Text : theme.Disabled;
-
                 if (item is ToolStripMenuItem mi && mi.HasDropDownItems)
                 {
                     GanHieuUng(mi.DropDown);
@@ -436,12 +370,10 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         private static void GanHieuUng(ToolStripDropDown dd)
         {
             if (_daGan.TryGetValue(dd, out _)) return;
             _daGan.Add(dd, new object());
-
             var timer = new System.Windows.Forms.Timer { Interval = TocDoFadeMs };
             timer.Tick += (s, e) =>
             {
@@ -449,14 +381,12 @@ namespace PhanMemThiDua2026
                 if (op >= 1.0) { dd.Opacity = 1.0; timer.Stop(); }
                 else dd.Opacity = op;
             };
-
             dd.Opening += (s, e) =>
             {
                 if (e.Cancel) return;
                 timer.Stop();
                 dd.Opacity = 0.0; // bắt đầu trong suốt
             };
-
             dd.Opened += (s, e) =>
             {
                 // Bo góc khung menu
@@ -470,14 +400,12 @@ namespace PhanMemThiDua2026
                 catch { }
                 timer.Start(); // fade-in
             };
-
             dd.Closed += (s, e) =>
             {
                 timer.Stop();
                 dd.Opacity = 1.0;
             };
         }
-
         internal static GraphicsPath RoundRect(Rectangle r, int radius)
         {
             int d = Math.Max(1, radius * 2);
@@ -489,26 +417,20 @@ namespace PhanMemThiDua2026
             p.CloseFigure();
             return p;
         }
-
-
         //  RENDERER HIỆN ĐẠI
-
         private sealed class ModernMenuRenderer : ToolStripProfessionalRenderer
         {
             private readonly MenuTheme _t;
-
             public ModernMenuRenderer(MenuTheme t) : base(new ThemeColorTable(t))
             {
                 _t = t;
                 RoundedEdges = false;
             }
-
             protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
             {
                 using var b = new SolidBrush(_t.Back);
                 e.Graphics.FillRectangle(b, e.AffectedBounds);
             }
-
             protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
             {
                 if (e.ToolStrip is not ToolStripDropDown) { base.OnRenderToolStripBorder(e); return; }
@@ -519,15 +441,12 @@ namespace PhanMemThiDua2026
                 using var pen = new Pen(_t.Border, 1f);
                 g.DrawPath(pen, path);
             }
-
             // Bỏ cột lề icon kiểu cũ -> phẳng, hiện đại
             protected override void OnRenderImageMargin(ToolStripRenderEventArgs e) { }
-
             protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
             {
                 if (!e.Item.IsOnDropDown) { base.OnRenderMenuItemBackground(e); return; }
                 if (!e.Item.Selected || !e.Item.Enabled) return;
-
                 var g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 var r = new Rectangle(5, 2, e.Item.Width - 10, e.Item.Height - 4);
@@ -535,19 +454,16 @@ namespace PhanMemThiDua2026
                 using var b = new SolidBrush(_t.Hover);
                 g.FillPath(b, path);
             }
-
             protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
             {
                 int y = e.Item.Height / 2;
                 using var pen = new Pen(_t.Separator, 1f);
                 e.Graphics.DrawLine(pen, 14, y, e.Item.Width - 14, y);
             }
-
             protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
             {
                 e.TextColor = e.Item.Enabled ? _t.Text : _t.Disabled;
                 e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-
                 // Căn giữa chữ (cả chữ chính lẫn phím tắt) theo CHIỀU CAO CẢ Ô,
                 // giữ nguyên X/Width mà WinForms đã tính -> thẳng hàng với icon
                 if (e.Item.IsOnDropDown)
@@ -560,7 +476,6 @@ namespace PhanMemThiDua2026
                 }
                 base.OnRenderItemText(e);
             }
-
             // Icon cũng căn giữa theo chiều cao cả ô (cùng trục với chữ)
             protected override void OnRenderItemImage(ToolStripItemImageRenderEventArgs e)
             {
@@ -573,13 +488,11 @@ namespace PhanMemThiDua2026
                 }
                 base.OnRenderItemImage(e);
             }
-
             protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
             {
                 e.ArrowColor = e.Item.Enabled ? _t.Text : _t.Disabled;
                 base.OnRenderArrow(e);
             }
-
             protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
             {
                 var g = e.Graphics;
@@ -589,7 +502,6 @@ namespace PhanMemThiDua2026
                 using (var path = RoundRect(r, 4))
                 using (var b = new SolidBrush(_t.Accent))
                     g.FillPath(b, path);
-
                 using var pen = new Pen(Color.White, 2f) { StartCap = LineCap.Round, EndCap = LineCap.Round };
                 g.DrawLines(pen, new[]
                 {
@@ -599,10 +511,7 @@ namespace PhanMemThiDua2026
                 });
             }
         }
-
-
         //  MODEL MÀU + BẢNG MÀU (tương thích ProfessionalColorTable)
-
         public sealed class MenuTheme
         {
             public Color Back, Hover, Border, Text, Disabled, Separator, Accent;
@@ -613,12 +522,10 @@ namespace PhanMemThiDua2026
                 Disabled = disabled; Separator = separator; Accent = accent;
             }
         }
-
         private sealed class ThemeColorTable : ProfessionalColorTable
         {
             private readonly MenuTheme _t;
             public ThemeColorTable(MenuTheme t) { _t = t; UseSystemColors = false; }
-
             public override Color ImageMarginGradientBegin => _t.Back;
             public override Color ImageMarginGradientMiddle => _t.Back;
             public override Color ImageMarginGradientEnd => _t.Back;

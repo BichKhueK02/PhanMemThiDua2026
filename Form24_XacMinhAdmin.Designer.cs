@@ -2,22 +2,18 @@
 using System.Drawing;
 using System.Windows.Forms;
 using Krypton.Toolkit;
-
 namespace PhanMemThiDua2026
 {
     partial class Form24_XacMinhAdmin
     {
         private IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && components != null)
                 components.Dispose();
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
             components = new Container();
@@ -340,28 +336,21 @@ namespace PhanMemThiDua2026
             TableLayoutPanel3.PerformLayout();
             ResumeLayout(false);
         }
-
         #endregion
-
         internal PictureBox PictureBox1;
         internal CheckBox check_HienMatKhau;
-
         private KryptonTextBox text_MatKhau;
         private KryptonTextBox text_TenDangNhap;
-
         internal Label label1;
         internal Label label2;
         private Label label_TieuDe;
         private Label label_MoTa;
-
         private KryptonButton btn_XacThuc;
         private KryptonButton btn_Thoat;
-
         internal TableLayoutPanel TableLayoutPanel1;
         internal TableLayoutPanel TableLayoutPanel2;
         internal TableLayoutPanel TableLayoutPanel3;
         internal TableLayoutPanel TableLayoutPanel5;
-
         private KryptonGroup panel_Card; // Đổi sang KryptonGroup
         private ToolTip toolTip1;
     }

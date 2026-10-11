@@ -77,7 +77,6 @@ namespace PhanMemThiDua2026
         }
         /// ⭐ 4. HÀM CUNG CẤP DỮ LIỆU ĐỘNG CHO LƯỚI
         ///         // Lê Trung Kiên -  Yêu mèo cam
-
         private void KryptonDataGridView1_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
                 {
                     if (e.RowIndex < 0 || e.RowIndex >= _danhSachDonVi.Count)

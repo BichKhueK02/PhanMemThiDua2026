@@ -184,7 +184,6 @@ namespace PhanMemThiDua2026
                 //}
                 // 2. XỬ LÝ SHEET TỔNG HỢP (Chỉ chạy khi xuất tất cả, không chạy khi xuất lẻ)
                 string tenSheetTongHop = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
-
                 if (string.IsNullOrEmpty(singlePhanLoai) && wb.Worksheets.Contains(tenSheetTongHop))
                 {
                     var wsTongHop = wb.Worksheet(tenSheetTongHop);
@@ -2359,7 +2358,6 @@ namespace PhanMemThiDua2026
                 //}
                 // 2. XỬ LÝ SHEET TỔNG HỢP (ĐỔI TIÊU ĐỀ HÀNG 10)
                 string tenSheetTongHop = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
-
                 if (wb.Worksheets.Contains(tenSheetTongHop))
                 {
                     var wsTongHop = wb.Worksheet(tenSheetTongHop);
@@ -2418,7 +2416,6 @@ namespace PhanMemThiDua2026
                             ghiChuTomTat = Module_BaoMatAES.GiaiMa(result.ToString()) ?? "";
                     }
                 }
-
                 //if (wb.Worksheets.Contains("BAO CAO TONG HOP"))
                 //{
                 //    var wsTongHop = wb.Worksheet("BAO CAO TONG HOP");
@@ -2432,7 +2429,6 @@ namespace PhanMemThiDua2026
                 //    cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
                 //}
                 string tenSheetTongHop = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
-
                 if (wb.Worksheets.Contains(tenSheetTongHop))
                 {
                     var wsTongHop = wb.Worksheet(tenSheetTongHop);
@@ -2483,7 +2479,6 @@ namespace PhanMemThiDua2026
                 AnhXaTenCheDoCBCSVaNam(wb);
                 // ================== XÓA SHEET KHÔNG DÙNG ==================
                 string tenSheetTongHopSuDung = Module_HeThong.IsCheDoXetThiDuaNam() ? "BAOCAOTONGHOP_NAM" : "BAO CAO TONG HOP";
-
                 var sheetsToDelete = wb.Worksheets
                     .Where(ws =>
                         !usedSheets.Contains(ws.Name) &&
@@ -2491,10 +2486,8 @@ namespace PhanMemThiDua2026
                         ws.Name != "GIOI_THIEU"
                     )
                     .ToList();
-
                 foreach (var ws in sheetsToDelete)
                     wb.Worksheets.Delete(ws.Name); // <-- dùng ws.Name thay vì ws
-
                 Module_BanQuyen.DongDauExcel(wb);
                 // Lưu file xuất ra
                 wb.SaveAs(fileDich);

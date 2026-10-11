@@ -1657,9 +1657,6 @@ namespace PhanMemThiDua2026
         {
             kryptonButton_LamMoiCacOTimKiem.PerformClick();
         }
-        private void tableLayoutPanel9_Paint(object? sender, PaintEventArgs e)
-        {
-        }
         public void RefreshCSDL()
         {
             // Nội dung mà kryptonButton_RefershCSDL_Click thực hiện/ nhận tín hiệu truyền từ form16

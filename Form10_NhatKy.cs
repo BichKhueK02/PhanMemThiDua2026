@@ -5,7 +5,6 @@ using System.Data;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form10_NhatKy : Form
@@ -853,15 +852,12 @@ namespace PhanMemThiDua2026
         {
             // Đọc nhanh nếu đã cache (double-checked locking, tránh race-condition khi đa luồng)
             if (!string.IsNullOrEmpty(_localIP)) return _localIP;
-
             lock (_localIpLock)
             {
                 if (!string.IsNullOrEmpty(_localIP)) return _localIP;
-
                 _localIP = TryGetIPViaSocket()
                            ?? TryGetIPViaDns()
                            ?? "127.0.0.1";
-
                 return _localIP;
             }
         }
@@ -878,7 +874,6 @@ namespace PhanMemThiDua2026
                 // 8.8.8.8:65530 chỉ dùng để "Connect" ảo (UDP không bắt tay thật),
                 // mục đích duy nhất là buộc OS chọn route/interface phù hợp.
                 socket.Connect("8.8.8.8", 65530);
-
                 if (socket.LocalEndPoint is IPEndPoint endPoint &&
                     !IPAddress.IsLoopback(endPoint.Address))
                 {
@@ -901,7 +896,6 @@ namespace PhanMemThiDua2026
             try
             {
                 var host = Dns.GetHostEntry(Dns.GetHostName());
-
                 return host.AddressList
                     .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork)
                     .Where(ip => !IPAddress.IsLoopback(ip))
@@ -1004,7 +998,6 @@ namespace PhanMemThiDua2026
             await ChuyenTrangThucThi(-1); // -1 là lùi lại
         }
         // Hàm cốt lõi xử lý hiệu ứng UI và Logic khi chuyển trang
-  
         // 2 SỰ KIỆN TỪ MENU CHUỘT PHẢI
         private void trangTiepTheo_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
@@ -1744,9 +1737,7 @@ namespace PhanMemThiDua2026
         private Task LoadPageAsync()
         {
             if (IsDisposed) return Task.CompletedTask;
-
             CapNhatPhanTrang(); // luôn tính lại tổng trang, tránh _currentPage lệch
-
             if (_listFiltered == null || _listFiltered.Count == 0)
             {
                 _listCurrentPage = new List<NhatKyModel>();
@@ -1757,43 +1748,34 @@ namespace PhanMemThiDua2026
                 CapNhatTrangThaiNutPhanTrang();
                 return Task.CompletedTask;
             }
-
             int start = Math.Max(0, (_currentPage - 1) * _pageSize);
             int count = Math.Max(0, Math.Min(_pageSize, _listFiltered.Count - start));
             _listCurrentPage = _listFiltered.GetRange(start, count);
-
             kryptonDataGridView1.RowCount = _listCurrentPage.Count + 1; // +1 dòng trống cuối như thiết kế cũ
             kryptonDataGridView1.Invalidate();
-
             label_Trang.Text = $"Trang {_currentPage}/{_totalPages}";
             toolStripStatusLabel2.Text = $"Trang {_currentPage}/{_totalPages}";
             toolStripStatusLabel4.Text = $"             Tổng: {_listFiltered.Count:N0} hành động";
-
             CapNhatTrangThaiNutPhanTrang();
             return Task.CompletedTask;
         }
         private async Task ChuyenTrangThucThi(int step)
         {
             if (_isPaging) return;
-
             string textTiep = kryptonButton_TiepTheo.Values.Text;
             string textLui = kryptonButton_TroLai.Values.Text;
-
             try
             {
                 _isPaging = true;
                 kryptonButton_TiepTheo.Enabled = false;
                 kryptonButton_TroLai.Enabled = false;
                 kryptonButton_ApDungSoTrang.Enabled = false;
-
                 toolStripStatusLabel2.Text = "Đang chuyển trang...";
                 toolStripStatusLabel2.ForeColor = Color.Blue;
                 if (step > 0) kryptonButton_TiepTheo.Values.Text = "...";
                 else kryptonButton_TroLai.Values.Text = "...";
-
                 await Task.Delay(100); // nhịp UX
                 if (IsDisposed) return;
-
                 _currentPage = Math.Clamp(_currentPage + step, 1, _totalPages); // chỉ cộng 1 lần
                 await LoadPageAsync();
             }
@@ -1829,7 +1811,6 @@ namespace PhanMemThiDua2026
                     size = PAGE_SIZE_DEFAULT;
                     textBox_SoDongHienThi.Text = size.ToString();
                 }
-
                 _pageSize = size;
                 _currentPage = 1;
                 await LoadPageAsync();
@@ -1843,7 +1824,6 @@ namespace PhanMemThiDua2026
         private async void kryptonButton_ApDungSoTrang_Click(object? sender, EventArgs e)
         {
             if (_isApplyingPage || _isPaging) return;
-
             string textBanDau = kryptonButton_ApDungSoTrang.Values.Text;
             Image anhBanDau = kryptonButton_ApDungSoTrang.Values.Image;
             try
@@ -1871,9 +1851,7 @@ namespace PhanMemThiDua2026
         private async Task ThucThiBoLocToanDienAsync()
         {
             if (IsDisposed || !IsHandleCreated) return;
-
             int version = Interlocked.Increment(ref _filterVersion);
-
             // Chụp snapshot + tham số trên UI thread
             var snapshot = _listFull.ToList();
             string tk = _filterTaiKhoan;
@@ -1881,12 +1859,10 @@ namespace PhanMemThiDua2026
             bool asc = _sortAsc;
             DateTime? tuNgay = _filterTuNgay;
             DateTime? denNgay = _filterDenNgay;
-
             bool locTK = !string.IsNullOrWhiteSpace(tk) &&
                          !string.Equals(tk, Module_HeThong.Tat_Ca, StringComparison.OrdinalIgnoreCase);
             bool locMT = !string.IsNullOrWhiteSpace(mt) &&
                          !string.Equals(mt, Module_HeThong.Tat_Ca, StringComparison.OrdinalIgnoreCase);
-
             try
             {
                 Cursor = Cursors.WaitCursor;
@@ -1894,17 +1870,13 @@ namespace PhanMemThiDua2026
                 kryptonButton_TiepTheo.Enabled = false;
                 toolStripStatusLabel2.Text = "Đang xử lý dữ liệu...";
                 toolStripStatusLabel2.ForeColor = Color.Blue;
-
                 var ketQua = await Task.Run(() =>
                 {
                     IEnumerable<NhatKyModel> query = snapshot;
-
                     if (locTK)
                         query = query.Where(x => string.Equals(x.TaiKhoan, tk, StringComparison.OrdinalIgnoreCase));
-
                     if (locMT)
                         query = query.Where(x => string.Equals(x.TenMay, mt, StringComparison.OrdinalIgnoreCase));
-
                     if (tuNgay.HasValue || denNgay.HasValue)
                     {
                         query = query.Where(x =>
@@ -1916,18 +1888,14 @@ namespace PhanMemThiDua2026
                             return true;
                         });
                     }
-
                     return (asc ? query.OrderBy(x => x.ID) : query.OrderByDescending(x => x.ID)).ToList();
                 });
-
                 // Có lần lọc mới hơn đã được kích hoạt -> bỏ kết quả cũ
                 if (version != Volatile.Read(ref _filterVersion) || IsDisposed) return;
-
                 _listFiltered = ketQua;
                 _currentPage = 1;
                 kryptonDataGridView1.RowCount = 0;
                 await LoadPageAsync(); // tự tính lại tổng trang và sync nút
-
                 _ = HieuUngKetQuaLoc(ketQua.Count, version); // không giữ khóa 900ms
             }
             catch (Exception ex)
@@ -1952,21 +1920,16 @@ namespace PhanMemThiDua2026
         private async Task HieuUngKetQuaLoc(int soDongPhuHop, int version)
         {
             if (IsDisposed) return;
-
             bool coDuLieu = soDongPhuHop > 0;
             Color mau = coDuLieu ? Color.FromArgb(0, 140, 60) : Color.OrangeRed;
-
             toolStripStatusLabel2.Text = coDuLieu
                 ? $"Đã lọc xong: {soDongPhuHop:N0} dòng phù hợp"
                 : "⚠ Không có dòng nào phù hợp với bộ lọc";
             toolStripStatusLabel2.ForeColor = mau;
             toolStripStatusLabel4.ForeColor = mau;
-
             await Task.Delay(900);
-
             // Có lần lọc khác chen vào -> để lần đó tự phục hồi
             if (IsDisposed || version != Volatile.Read(ref _filterVersion)) return;
-
             toolStripStatusLabel2.Text = $"Trang {_currentPage}/{_totalPages}";
             toolStripStatusLabel2.ForeColor = Color.Black; // màu cố định, không "nhớ" màu cũ
             toolStripStatusLabel4.ForeColor = Color.Black;
@@ -1974,11 +1937,9 @@ namespace PhanMemThiDua2026
         private static void GiaiMaChoBoLoc(NhatKyModel item)
         {
             if (item.DaGiaiMaBoLoc) return;
-
             item.ThoiGian = GiaiMaAnToan(item.ThoiGianRaw);
             item.TaiKhoan = GiaiMaAnToan(item.TaiKhoanRaw);
             item.TenMay = GiaiMaAnToan(item.TenMayRaw);
-
             string tg = item.ThoiGian?.Trim();
             if (DateTime.TryParseExact(tg, _cacDinhDangNgay,
                     System.Globalization.CultureInfo.InvariantCulture,
@@ -1986,7 +1947,6 @@ namespace PhanMemThiDua2026
                 item.ThoiGianParsed = dt.Date;
             else if (DateTime.TryParse(tg, out DateTime dt2))
                 item.ThoiGianParsed = dt2.Date;
-
             item.DaGiaiMaBoLoc = true;
         }
         // Chạy hoàn toàn ở luồng nền, trả về list MỚI để UI thread hoán đổi 1 lần
@@ -1994,7 +1954,6 @@ namespace PhanMemThiDua2026
         {
             var dt = Module_NhatKy.LoadTatCaNhatKy();
             if (dt == null || dt.Rows.Count == 0) return new List<NhatKyModel>();
-
             var list = new List<NhatKyModel>(dt.Rows.Count);
             foreach (DataRow row in dt.Rows)
             {
@@ -2009,7 +1968,6 @@ namespace PhanMemThiDua2026
                     GhiChuRaw = row["GhiChu"]?.ToString() ?? ""
                 });
             }
-
             int maxThreads = Math.Max(1, Environment.ProcessorCount / 2);
             list.AsParallel().WithDegreeOfParallelism(maxThreads).ForAll(GiaiMaChoBoLoc);
             return list;
@@ -2017,21 +1975,18 @@ namespace PhanMemThiDua2026
         public async Task ReloadDuLieuAsync()
         {
             if (IsDisposed || !IsHandleCreated) return;
-
             // Gọi từ luồng khác -> chuyển về UI thread (không chờ kết quả)
             if (InvokeRequired)
             {
                 BeginInvoke(new Action(() => _ = ReloadDuLieuAsync()));
                 return;
             }
-
             // Đang reload -> đánh dấu cần chạy lại 1 lần nữa, KHÔNG làm mất yêu cầu
             if (Interlocked.Exchange(ref _reloadDangChay, 1) == 1)
             {
                 _reloadChoXuLy = true;
                 return;
             }
-
             try
             {
                 do
@@ -2058,22 +2013,18 @@ namespace PhanMemThiDua2026
                 Cursor = Cursors.WaitCursor;
                 toolStripStatusLabel2.Text = "Đang tải dữ liệu nhật ký...";
                 toolStripStatusLabel2.ForeColor = Color.Blue;
-
                 // 1. Bảo trì DB xong rồi mới đọc (không đọc song song với lúc xóa)
                 await Task.Run(() => TuDongXoaNhatKyNeuCanAsync());
                 if (IsDisposed) return;
-
                 // 2. Đọc + giải mã ở luồng nền, tạo list mới
                 var duLieuMoi = await Task.Run(() => TaiVaGiaiMaNhatKy());
                 if (IsDisposed) return;
-
                 // 3. Hoán đổi trên UI thread, nạp combo, reset bộ lọc, lọc 1 lần
                 _listFull = duLieuMoi;
                 LoadComboBoxTaiKhoan();
                 LoadComboBoxMayTinh();
                 DatLaiBoLocVeMacDinh();
                 await ThucThiBoLocToanDienAsync();
-
                 Module_NhatKy.DocVaNapStatusLabelForm10();
             }
             catch (Exception ex)
@@ -2097,20 +2048,16 @@ namespace PhanMemThiDua2026
                 _filterTaiKhoan = Module_HeThong.Tat_Ca;
                 _filterMayTinh = Module_HeThong.Tat_Ca;
                 _sortAsc = false; // Z → A: mới nhất trước
-
                 if (comboBox_LocTaiKhoan.Items.Count > 0) comboBox_LocTaiKhoan.SelectedIndex = 0;
                 if (comboBox1_MayTinh.Items.Count > 0) comboBox1_MayTinh.SelectedIndex = 0;
-
                 radioButton1_TuAZ.Checked = false;
                 radioButton1_TuZA.Checked = true;
-
                 ThietLapKhoangNgayMacDinh();
             }
             finally
             {
                 _dangNapComboBox = cu;
             }
-
             CapNhatMauRadioSapXep();
             CapNhatTrangThaiSapXep();
             CapNhatHienThiTaiKhoanLabel();
@@ -2135,7 +2082,6 @@ namespace PhanMemThiDua2026
         private async void kryptonButton1_LamMoiBoLoc_Click(object? sender, EventArgs e)
         {
             if (_dangLamMoiBoLoc || Volatile.Read(ref _reloadDangChay) == 1) return;
-
             _dangLamMoiBoLoc = true;
             try
             {

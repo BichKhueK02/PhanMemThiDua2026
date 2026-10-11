@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form42_QuanLyThiDuaBaNhat : Form
@@ -97,7 +96,6 @@ namespace PhanMemThiDua2026
                     await Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(
                         toolStripStatusLabel2_TyLeBaNhat);
                     await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
-
             // 6. ĐỒNG BỘ DỮ LIỆU NGUỒN from55 đã lo việc này rồi
             //await DongBoDuLieuLoai1SangBaNhatAsync();
             //// 7. NẠP DỮ LIỆU CHÍNH LÊN GRID
@@ -114,7 +112,6 @@ namespace PhanMemThiDua2026
         {
             textBox_TimKiemTheoTen.Focus();
         }
-
         // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
         private void InitToolTips()
         {
@@ -468,37 +465,29 @@ namespace PhanMemThiDua2026
         public async Task LoadDuLieuToanBoDanhSachBaNhatAsync(CancellationToken externalToken = default)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
-
             // Chỉ lấy tên bảng 1 lần để dùng cho cả kiểm tra lẫn truy vấn
             string tenBang = TenBangDanhSachBaNhat;
-
             // AN TOÀN: tên bảng chỉ gồm chữ/số/gạch dưới (chống SQL injection)
             if (!IsValidIdentifier(tenBang))
             {
                 Debug.WriteLine($"Tên bảng không hợp lệ: {tenBang}");
                 return;
             }
-
             // Đảm bảo cột và style của grid đã được dựng (hàm tự bỏ qua nếu đã làm rồi)
             CauHinhGridMotLan();
-
             // Hủy lần load trước (nếu còn chạy) để chỉ có 1 kết quả được ghi vào lưới
             _ctsLoadDanhSachBaNhat?.Cancel();
             _ctsLoadDanhSachBaNhat?.Dispose();
             _ctsLoadDanhSachBaNhat = CancellationTokenSource.CreateLinkedTokenSource(externalToken);
             CancellationToken token = _ctsLoadDanhSachBaNhat.Token;
-
             try
             {
                 // Đọc DB + giải mã AES ở luồng nền, UI không bị chặn
                 var (dtBaNhat, tongQuanSoGoc) = await Task.Run(() => DocBangBaNhat(tenBang, token), token);
-
                 // Nếu trong lúc chờ có lần gọi mới hơn hoặc form đã đóng thì bỏ kết quả này
                 token.ThrowIfCancellationRequested();
-
                 var g = kryptonDataGridView1;
                 if (g == null || g.IsDisposed) return;
-
                 // Tắt vẽ trong lúc bind để lưới không nhấp nháy từng bước
                 TatVe(g);
                 try
@@ -528,12 +517,10 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
             string bang = TenBangDanhSachBaNhat;
             if (!IsValidIdentifier(bang)) return;
-
             try
             {
                 using var conn = new SqliteConnection($"Data Source={_csdl2Path};Default Timeout=30");
                 conn.Open();
-
                 // 1. Đọc nguồn (Loại 1) -> Dictionary theo SoHieu (mã hóa)
                 var nguon = new Dictionary<string, (int stt, string[] v)>();
                 using (var cmd = conn.CreateCommand())
@@ -545,14 +532,12 @@ namespace PhanMemThiDua2026
                         string plEnc = rd.IsDBNull(9) ? "" : rd.GetString(9);
                         if (!Module_BaoMatAES.GiaiMa(plEnc).Trim().Equals(Module_HeThong.Loai_1, StringComparison.OrdinalIgnoreCase))
                             continue;
-
                         string sh = rd.IsDBNull(1) ? "" : rd.GetString(1);
                         var v = new string[9]; // HoVaTen, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu
                         for (int i = 0; i < 9; i++) v[i] = rd.IsDBNull(i + 2) ? "" : rd.GetString(i + 2);
                         nguon[sh] = (Convert.ToInt32(rd.GetValue(0)), v);
                     }
                 }
-
                 // 2. Đọc bảng đích 1 lần
                 var dich = new Dictionary<string, string[]>();
                 using (var cmd = conn.CreateCommand())
@@ -566,15 +551,12 @@ namespace PhanMemThiDua2026
                         dich[rd.IsDBNull(0) ? "" : rd.GetString(0)] = v;
                     }
                 }
-
                 // 3. Tính chênh lệch trong RAM
                 var canThem = nguon.Where(k => !dich.ContainsKey(k.Key)).ToList();
                 var canSua = nguon.Where(k => dich.TryGetValue(k.Key, out var d) && !d.SequenceEqual(k.Value.v)).ToList();
                 var canXoa = dich.Keys.Where(k => !nguon.ContainsKey(k)).ToList();
                 if (canThem.Count == 0 && canSua.Count == 0 && canXoa.Count == 0) return; // không đổi gì -> thoát luôn
-
                 using var tx = conn.BeginTransaction();
-
                 if (canThem.Count > 0)
                 {
                     string rong = Module_BaoMatAES.MaHoa("");
@@ -596,7 +578,6 @@ VALUES(@stt,@p0,@sh,@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8,@r,@r,@r)";
                         ins.ExecuteNonQuery();
                     }
                 }
-
                 if (canSua.Count > 0)
                 {
                     using var upd = conn.CreateCommand();
@@ -613,7 +594,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                         upd.ExecuteNonQuery();
                     }
                 }
-
                 if (canXoa.Count > 0)
                 {
                     using var del = conn.CreateCommand();
@@ -622,7 +602,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                     del.Parameters.Add("@sh", SqliteType.Text);
                     foreach (var sh in canXoa) { del.Parameters["@sh"].Value = sh; del.ExecuteNonQuery(); }
                 }
-
                 tx.Commit();
             }
             catch (Exception ex)
@@ -646,7 +625,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 tong == 0 ? "Chưa có cán bộ, chiến sĩ nào được đề nghị biểu dương trong phong trào thi đua Ba Nhất"
                 : soDeNghi == 0 ? $"Tổng cộng: {tong} {Module_HeThong.Tu_dong_chi}."
                 : $"Tổng cộng: {tong} {Module_HeThong.Tu_dong_chi}, đề nghị: {soDeNghi} {Module_HeThong.Tu_dong_chi}.";
-
             if (tinhLaiTyLe)   // chỉ tính lại khi dữ liệu thật sự đổi (nạp, lưu, làm mới, nhập)
                 _ = Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(toolStripStatusLabel2_TyLeBaNhat);
         }
@@ -659,7 +637,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
             using var cmd = conn.CreateCommand();
             cmd.CommandText = $"SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu, DeNghi, ThanhTich, TinhTrang FROM [{tenBang}] ORDER BY STT ASC";
             using var r = cmd.ExecuteReader();
-
             string S(int i) => SafeGiaiMa(r.IsDBNull(i) ? null : r.GetString(i));
             var buf = new object[15];
             int stt = 1;
@@ -1102,7 +1079,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
             if (_daCauHinhGrid) return;
             var g = kryptonDataGridView1;
             EnableDoubleBuffer(g);
-
             g.AutoGenerateColumns = false;               // quan trọng: không sinh lại cột khi đổi DataSource
             g.AllowUserToAddRows = false;
             g.AllowUserToDeleteRows = false;
@@ -1117,7 +1093,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
             g.ColumnHeadersHeight = 60;
             g.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             g.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-
             _fontGridDam = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
             _fontGrid = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
             var pad = new Padding(6, 8, 6, 8);
@@ -1132,7 +1107,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
             g.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
             g.StateSelected.DataCell.Back.Color2 = Color.FromArgb(232, 244, 253);
             g.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
-
             // Thêm cột ĐÚNG THỨ TỰ hiển thị -> không cần DisplayIndex
             var giua = DataGridViewContentAlignment.MiddleCenter;
             var trai = DataGridViewContentAlignment.MiddleLeft;
@@ -1152,7 +1126,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 Cot("TinhTrang", "Tình trạng", 120, giua),
                 Cot("GhiChu", "Ghi chú", 0, trai, fill: true, minW: 100),
                 Cot("ThanhTich", "Thành tích", 0, trai, readOnly: false, fill: true, minW: 150));
-
             _daCauHinhGrid = true;
         }
         private static DataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,

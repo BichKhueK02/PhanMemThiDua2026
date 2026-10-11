@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 using PhanMemThiDua2026;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Security.Cryptography;
@@ -13,7 +14,26 @@ public static class Module_BaoMatAES
     private const string PREFIX_V2 = "v2|"; //Phiên bản mã hóa dành cho hệ thống
     public static string yeuMeoCam_v1 = string.Empty;
     public static string yeuChuMeoCam_v1 = string.Empty;
-    // CHỈ DÙNG CACHE GIẢI MÃ: Tiết kiệm RAM tối đa.
+    //  Module_BaoMatAES - BẢN TỐI ƯU MaHoa / GiaiMa
+    //  GIỮ NGUYÊN 100%: thuật toán (AES-CBC, PKCS7), cách sinh khóa/IV từ _aesLocal,
+    //  định dạng "v2|" + Base64(IV16 + Cipher), đường giải mã v1 (IV mặc định),
+    //  quy tắc Trim('\0').Trim(), điều kiện cache, và "lỗi => trả chuỗi rỗng".
+    //  => Dữ liệu cũ (v1/v2) giải mã như trước; dữ liệu mới vẫn đọc được bằng bản cũ.
+    //
+    //  CÁCH ÁP DỤNG (chỉ 4 việc, các hàm khác của module KHÔNG đổi):
+    //   1) Thêm dòng:  using System.Buffers;          (đầu file)
+    //   2) Thêm 2 khai báo ở MỤC 1 vào cạnh các field cache hiện có
+    //   3) Thay nguyên hàm MaHoa, GiaiMa, DonNheCache bằng MỤC 2, 3, 4
+    //   4) (Tùy chọn) dán MỤC 5 để tự kiểm tra tương thích với dữ liệu thật
+    // MỤC 1: KHAI BÁO MỚI
+    // Đếm lượt "miss" cache để chỉ kiểm tra kích thước cache định kỳ
+    // (ConcurrentDictionary.Count khóa TẤT CẢ bucket -> trước đây gọi ở MỌI lượt miss).
+    // MỤC 1: KHAI BÁO MỚI
+    // Đếm lượt "miss" cache để chỉ kiểm tra kích thước cache định kỳ
+    // (ConcurrentDictionary.Count khóa TẤT CẢ bucket -> trước đây gọi ở MỌI lượt miss).
+    private static int _giaiMaMissCount;
+    // Vùng đệm trên stack cho chuỗi ngắn (tên, đơn vị, phân loại...): không cấp phát heap, không tạo rác cho GC.
+    private const int STACK_BYTES = 1024;
     private static readonly ConcurrentDictionary<string, string> _giaiMaCache = new(StringComparer.Ordinal);
     // ĐÃ XÓA _maHoaCache: Để ép hàm MaHoa luôn chạy logic tạo chuỗi Random mới và giải phóng RAM.
     private static readonly ThreadLocal<Aes> _aesLocal = new(() =>
@@ -62,62 +82,117 @@ public static class Module_BaoMatAES
             return Aes.Create(); // Trả về đối tượng mặc định để tránh crash luồng
         }
     }, trackAllValues: true);
+    // MỤC 2: MaHoa
+    // Trước: GetBytes + new byte[16] + EncryptCbc(byte[]) + new payload + BlockCopy x2 + ToBase64String + nối chuỗi
+    //        => ~7 lần cấp phát / 1 lượt.
+    // Nay  : toàn bộ trong 1 vùng stackalloc, EncryptCbc ghi thẳng vào payload (sau 16 byte IV),
+    //        Base64 ghi thẳng cạnh tiền tố "v2|" => chỉ còn 1 lần cấp phát (chuỗi kết quả).
+    // IV vẫn là ngẫu nhiên mới cho mỗi lần mã hóa (RandomNumberGenerator).
     public static string MaHoa(string chuoiGoc)
     {
         if (string.IsNullOrEmpty(chuoiGoc)) return string.Empty;
+        byte[]? rented = null;
         try
         {
-            byte[] inputBytes = Encoding.UTF8.GetBytes(chuoiGoc);
             Aes aes = _aesLocal.Value!;
-            // Tạo IV ngẫu nhiên mới hoàn toàn
-            byte[] randomIv = new byte[16];
-            RandomNumberGenerator.Fill(randomIv);
-            byte[] cipherBytes = aes.EncryptCbc(inputBytes, randomIv, PaddingMode.PKCS7);
-            byte[] payload = new byte[16 + cipherBytes.Length];
-            Buffer.BlockCopy(randomIv, 0, payload, 0, 16);
-            Buffer.BlockCopy(cipherBytes, 0, payload, 16, cipherBytes.Length);
-            return PREFIX_V2 + Convert.ToBase64String(payload);
+            // PKCS7 luôn thêm 1..16 byte => độ dài cipher = (n / 16 + 1) * 16
+            int plainLen = Encoding.UTF8.GetByteCount(chuoiGoc);
+            int payloadMax = 16 + ((plainLen / 16) + 1) * 16;
+            int need = plainLen + payloadMax;
+            Span<byte> buf = need <= STACK_BYTES
+                ? stackalloc byte[STACK_BYTES]
+                : (rented = ArrayPool<byte>.Shared.Rent(need));
+            Span<byte> plain = buf.Slice(0, plainLen);
+            Span<byte> payload = buf.Slice(plainLen, payloadMax);
+            Encoding.UTF8.GetBytes(chuoiGoc.AsSpan(), plain);
+            // payload = [IV 16 byte][cipher...]
+            Span<byte> iv = payload.Slice(0, 16);
+            RandomNumberGenerator.Fill(iv);
+            int cipherLen = aes.EncryptCbc(plain, iv, payload.Slice(16), PaddingMode.PKCS7);
+            int payloadLen = 16 + cipherLen;
+            // "v2|" + Base64(payload) ghi thẳng vào 1 bộ đệm char rồi tạo chuỗi đúng 1 lần
+            int prefixLen = PREFIX_V2.Length;
+            int totalChars = prefixLen + ((payloadLen + 2) / 3) * 4;
+            Span<char> chars = totalChars <= 512 ? stackalloc char[512] : new char[totalChars];
+            PREFIX_V2.AsSpan().CopyTo(chars);
+            if (!Convert.TryToBase64Chars(payload.Slice(0, payloadLen), chars.Slice(prefixLen), out int charsWritten))
+                return string.Empty;
+            return new string(chars.Slice(0, prefixLen + charsWritten));
         }
         catch { return string.Empty; }
+        finally
+        {
+            if (rented != null) ArrayPool<byte>.Shared.Return(rented, clearArray: true);
+        }
     }
-    /// GIẢI MÃ: Load từ Cache cho 10000 dòng dữ liệu cực nhanh, tương thích ngược v1 và v2
+    // MỤC 3: GiaiMa
+    // Cải tiến (không đổi kết quả):
+    //  - Bỏ Substring / FromBase64String / new iv / new cipher / DecryptCbc(byte[]) / GetString(byte[]):
+    //    giải Base64 và giải mã trên vùng stackalloc (Span), chỉ cấp phát chuỗi kết quả.
+    //  - Chuỗi KHÔNG hợp lệ (văn bản thường, sai Base64, độ dài không chia hết 16...) trước đây
+    //    gây ném ngoại lệ (FormatException / CryptographicException) rồi mới bị catch => rất chậm
+    //    (hàng chục micro-giây mỗi lần, hàng mili-giây khi chạy trong Visual Studio).
+    //    Nay được loại ngay bằng Try* và kiểm tra độ dài, kết quả vẫn là chuỗi rỗng như cũ.
+    //  - Không gọi ConcurrentDictionary.Count ở mọi lượt miss (xem MỤC 1 / MỤC 4).
     public static string GiaiMa(string chuoiMaHoa)
     {
         if (string.IsNullOrEmpty(chuoiMaHoa)) return string.Empty;
         // Đọc từ Cache giúp load dữ liệu CSDL nhanh chóng
         if (_giaiMaCache.TryGetValue(chuoiMaHoa, out string cached)) return cached;
+        byte[]? rented = null;
         try
         {
             Aes aes = _aesLocal.Value!;
-            string finalResult;
-            if (chuoiMaHoa.StartsWith(PREFIX_V2, StringComparison.Ordinal))
+            bool laV2 = chuoiMaHoa.StartsWith(PREFIX_V2, StringComparison.Ordinal);
+            ReadOnlySpan<char> b64 = laV2 ? chuoiMaHoa.AsSpan(PREFIX_V2.Length) : chuoiMaHoa.AsSpan();
+            // Cận trên số byte sau khi giải Base64 (>= kích thước thật)
+            int maxBytes = (b64.Length / 4 + 1) * 3;
+            int need = maxBytes * 2;                       // [raw][plain]
+            Span<byte> buf = need <= STACK_BYTES
+                ? stackalloc byte[STACK_BYTES]
+                : (rented = ArrayPool<byte>.Shared.Rent(need));
+            Span<byte> raw = buf.Slice(0, maxBytes);
+            Span<byte> plain = buf.Slice(maxBytes);        // luôn dài >= maxBytes >= độ dài cipher
+            // Sai Base64 => như FormatException cũ => chuỗi rỗng
+            if (!Convert.TryFromBase64Chars(b64, raw, out int rawLen)) return string.Empty;
+            // IV luôn được chép ra 1 vùng stack riêng (16 byte) => không phải gán span trong nhánh if/else
+            // (đó chính là nguyên nhân lỗi CS8352/CS8353 "may expose referenced variables").
+            Span<byte> iv = stackalloc byte[16];
+            int cipherStart;
+            if (laV2)
             {
-                string b64 = chuoiMaHoa.Substring(PREFIX_V2.Length);
-                byte[] payload = Convert.FromBase64String(b64);
-                byte[] iv = new byte[16];
-                Buffer.BlockCopy(payload, 0, iv, 0, 16);
-                byte[] cipher = new byte[payload.Length - 16];
-                Buffer.BlockCopy(payload, 16, cipher, 0, cipher.Length);
-                byte[] decrypted = aes.DecryptCbc(cipher, iv, PaddingMode.PKCS7);
-                // 🔥 Gọt sạch ký tự Null
-                finalResult = Encoding.UTF8.GetString(decrypted).Trim('\0').Trim();
+                // v2: [IV 16 byte][cipher]
+                if (rawLen < 16) return string.Empty;      // như BlockCopy ném lỗi cũ
+                raw.Slice(0, 16).CopyTo(iv);
+                cipherStart = 16;
             }
             else
             {
-                // TƯƠNG THÍCH CŨ: Dùng IV mặc định
-                byte[] cipher = Convert.FromBase64String(chuoiMaHoa);
-                byte[] decrypted = aes.DecryptCbc(cipher, aes.IV, PaddingMode.PKCS7);
-                finalResult = Encoding.UTF8.GetString(decrypted).Trim('\0').Trim();
+                // TƯƠNG THÍCH CŨ (v1): dùng IV mặc định của đối tượng Aes
+                aes.IV.AsSpan().CopyTo(iv);
+                cipherStart = 0;
             }
+            // AES-CBC chỉ nhận bội số của 16 byte và không rỗng (nếu không, bản cũ ném lỗi => rỗng)
+            int cipherLen = rawLen - cipherStart;
+            if (cipherLen == 0 || (cipherLen & 15) != 0) return string.Empty;
+            int plainLen = aes.DecryptCbc(raw.Slice(cipherStart, cipherLen), iv, plain, PaddingMode.PKCS7);
+            // 🔥 Gọt sạch ký tự Null (giữ nguyên đúng thứ tự như bản gốc)
+            string finalResult = Encoding.UTF8.GetString(plain.Slice(0, plainLen)).Trim('\0').Trim();
             // Lưu cache giải mã để các lần hiển thị sau trên Grid nhanh hơn
             if (chuoiMaHoa.Length <= MAX_STRING_LENGTH * 2)
             {
-                if (_giaiMaCache.Count >= MAX_CACHE_SIZE) DonNheCache(_giaiMaCache, 1000);
+                // Chỉ kiểm tra kích thước cache mỗi 256 lượt miss (sai lệch tối đa ~255 mục, không đáng kể)
+                if ((Interlocked.Increment(ref _giaiMaMissCount) & 0xFF) == 0 && _giaiMaCache.Count >= MAX_CACHE_SIZE)
+                    DonNheCache(_giaiMaCache, 1000);
                 _giaiMaCache.TryAdd(chuoiMaHoa, finalResult);
             }
             return finalResult;
         }
         catch { return string.Empty; }
+        finally
+        {
+            if (rented != null) ArrayPool<byte>.Shared.Return(rented, clearArray: true);
+        }
     }
     // --- CÁC HÀM TIỆN ÍCH HỖ TRỢ GIỮ NGUYÊN ---
     public static string KhoBaoTanVuongGiaiMaHex(string hex)
@@ -144,10 +219,108 @@ public static class Module_BaoMatAES
     {
         using MD5 md5 = MD5.Create(); return md5.ComputeHash(Encoding.UTF8.GetBytes(iv));
     }
+    // MỤC 4: DonNheCache
+    // Trước: foreach (var key in cache.Keys) -> .Keys sao chép TOÀN BỘ ~10.000 khóa + khóa mọi bucket.
+    // Nay  : duyệt thẳng enumerator của ConcurrentDictionary (không khóa, không sao chép), kết quả y hệt.
     private static void DonNheCache(ConcurrentDictionary<string, string> cache, int soLuong)
     {
         int count = 0;
-        foreach (var key in cache.Keys) { if (cache.TryRemove(key, out _)) count++; if (count >= soLuong) break; }
+        foreach (var kv in cache)
+        {
+            if (cache.TryRemove(kv.Key, out _)) count++;
+            if (count >= soLuong) break;
+        }
+    }
+    private static string MaHoa_Goc(string chuoiGoc)
+    {
+        if (string.IsNullOrEmpty(chuoiGoc)) return string.Empty;
+        try
+        {
+            byte[] inputBytes = Encoding.UTF8.GetBytes(chuoiGoc);
+            Aes aes = _aesLocal.Value!;
+            byte[] randomIv = new byte[16];
+            RandomNumberGenerator.Fill(randomIv);
+            byte[] cipherBytes = aes.EncryptCbc(inputBytes, randomIv, PaddingMode.PKCS7);
+            byte[] payload = new byte[16 + cipherBytes.Length];
+            Buffer.BlockCopy(randomIv, 0, payload, 0, 16);
+            Buffer.BlockCopy(cipherBytes, 0, payload, 16, cipherBytes.Length);
+            return PREFIX_V2 + Convert.ToBase64String(payload);
+        }
+        catch { return string.Empty; }
+    }
+    private static string GiaiMa_Goc(string chuoiMaHoa)
+    {
+        if (string.IsNullOrEmpty(chuoiMaHoa)) return string.Empty;
+        try
+        {
+            Aes aes = _aesLocal.Value!;
+            string finalResult;
+            if (chuoiMaHoa.StartsWith(PREFIX_V2, StringComparison.Ordinal))
+            {
+                string b64 = chuoiMaHoa.Substring(PREFIX_V2.Length);
+                byte[] payload = Convert.FromBase64String(b64);
+                byte[] iv = new byte[16];
+                Buffer.BlockCopy(payload, 0, iv, 0, 16);
+                byte[] cipher = new byte[payload.Length - 16];
+                Buffer.BlockCopy(payload, 16, cipher, 0, cipher.Length);
+                byte[] decrypted = aes.DecryptCbc(cipher, iv, PaddingMode.PKCS7);
+                finalResult = Encoding.UTF8.GetString(decrypted).Trim('\0').Trim();
+            }
+            else
+            {
+                byte[] cipher = Convert.FromBase64String(chuoiMaHoa);
+                byte[] decrypted = aes.DecryptCbc(cipher, aes.IV, PaddingMode.PKCS7);
+                finalResult = Encoding.UTF8.GetString(decrypted).Trim('\0').Trim();
+            }
+            return finalResult;
+        }
+        catch { return string.Empty; }
+    }
+    // Kết quả phải là "KHÔNG CÓ KHÁC BIỆT". Nếu có dòng "KHÁC" => đừng triển khai và gửi lại cho mình.
+    public static string KiemTraTuongThichMaHoa(IEnumerable<string>? mauTuCSDL = null)
+    {
+        var sb = new StringBuilder();
+        int ok = 0, khac = 0;
+        void SoSanhGiaiMa(string input, string nhan)
+        {
+            string a = GiaiMa_Goc(input);
+            _giaiMaCache.TryRemove(input, out _);          // ép chạy đường giải mã thật, không lấy từ cache
+            string b = GiaiMa(input);
+            if (string.Equals(a, b, StringComparison.Ordinal)) { ok++; return; }
+            khac++;
+            if (khac <= 15) sb.AppendLine($"KHÁC [{nhan}] input='{input}' | goc='{a}' | moi='{b}'");
+        }
+        // 1) Dữ liệu thật từ CSDL (v1 + v2 đang có)
+        if (mauTuCSDL != null)
+            foreach (var s in mauTuCSDL) SoSanhGiaiMa(s, "CSDL");
+        // 2) Chuỗi biên: độ dài sát bội số 16, tiếng Việt, emoji, ký tự Null / khoảng trắng đầu cuối
+        string[] mau =
+        {
+        "a", "Nguyễn Văn A", "Đại đội 1", new string('x', 15), new string('x', 16), new string('y', 17),
+        new string('z', 31), new string('z', 32), new string('w', 33), "Tiếng Việt ƒ 😀 ✓", new string('k', 300), new string('q', 600),
+        " có khoảng trắng ", "\0nul\0", "abc\0 "
+    };
+        foreach (var p in mau)
+        {
+            string eMoi = MaHoa(p);
+            string eGoc = MaHoa_Goc(p);
+            if (!eMoi.StartsWith(PREFIX_V2, StringComparison.Ordinal) || eMoi.Length != eGoc.Length)
+            { khac++; sb.AppendLine($"KHÁC [định dạng MaHoa] p.Length={p.Length}: moi.Length={eMoi.Length} goc.Length={eGoc.Length}"); }
+            else ok++;
+            SoSanhGiaiMa(eMoi, "MaHoa(mới) -> giải");      // mới mã -> cả hai giải phải ra cùng kết quả
+            SoSanhGiaiMa(eGoc, "MaHoa(gốc) -> giải");       // gốc mã -> bản mới giải phải ra cùng kết quả
+            // v1 (dữ liệu cũ): AES-CBC với IV mặc định, không có tiền tố
+            Aes aes = _aesLocal.Value!;
+            string v1 = Convert.ToBase64String(aes.EncryptCbc(Encoding.UTF8.GetBytes(p), aes.IV, PaddingMode.PKCS7));
+            SoSanhGiaiMa(v1, "v1");
+        }
+        // 3) Đầu vào hỏng / văn bản thường: cả hai phải cùng trả chuỗi rỗng (bản mới không ném ngoại lệ)
+        string[] hong = { "abc", "v2|", "v2|AAAA", "v2|!!!!", "!!!", "   ", "Phiên bản dành cho CBCS", new string('A', 24), "v2|" + new string('A', 44) };
+        foreach (var h in hong) SoSanhGiaiMa(h, "hỏng");
+        sb.Insert(0, khac == 0
+            ? $"KHÔNG CÓ KHÁC BIỆT ({ok} phép so sánh).\n"
+            : $"CÓ {khac} KHÁC BIỆT / {ok + khac}.\n");
+        return sb.ToString();
     }
     public static string TraLaiTenChoMeoCam(string s)
     {

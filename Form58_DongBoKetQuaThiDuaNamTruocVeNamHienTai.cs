@@ -245,53 +245,41 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Vui lòng chọn CSDL năm cũ cần nạp dữ liệu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             string dbNguonPath = comboBox_ChonCSDLNamCu.SelectedValue.ToString();
             string dbDichPath = Module_DanduongGPS.DuongDanCSDL4;
-
             if (!File.Exists(dbNguonPath) || !File.Exists(dbDichPath))
             {
                 MessageBox.Show("File CSDL nguồn hoặc CSDL đích không tồn tại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
             using (Form24_XacMinhAdmin frmXacMinh = new Form24_XacMinhAdmin())
             {
                 frmXacMinh.TopMost = true;
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
                 if (frmXacMinh.ShowDialog() != DialogResult.OK) return;
             }
-
             if (!await _semaphore.WaitAsync(0))
             {
                 MessageBox.Show("Thao tác đồng bộ đang được thực hiện, vui lòng chờ...", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-
             Control btn = sender as Control;
-
             try
             {
                 if (btn != null) btn.Enabled = false;
                 Cursor = Cursors.WaitCursor;
-
                 KetQuaDongBo result = await Task.Run(() => DongBoDuLieuInternal(dbNguonPath, dbDichPath));
-
                 string ghiChu = $"Tổng số CBCS kiểm tra: {result.TongSoNguoi}\n" +
                                 $"Cập nhật thành công: {result.SoDongCapNhat}\n" +
                                 $"Giữ nguyên/Không khớp: {result.SoDongKhongThayDoi}";
-
                 if (result.SoGiaiMaLoi > 0)
                     ghiChu += $"\nKhông thể giải mã: {result.SoGiaiMaLoi} bản ghi.";
-
                 Module_NhatKy.GhiNhatKy(
                     taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                     hanhDong: "Đồng bộ kết quả thi đua năm cũ",
                     ghiChu: ghiChu);
-
                 string thongBao = $"Đồng bộ hoàn tất!\n\n{ghiChu}";
                 MessageBox.Show(thongBao, "Kết quả", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
                 Form15_ThongKeThiDua frm15 = Application.OpenForms.OfType<Form15_ThongKeThiDua>().FirstOrDefault();
                 if (frm15 != null && !frm15.IsDisposed)
                     await frm15.LamMoiDuLieuAsync();

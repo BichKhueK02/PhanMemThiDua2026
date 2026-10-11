@@ -2,13 +2,11 @@
 using System.Drawing;
 using System.Windows.Forms;
 using Krypton.Toolkit;
-
 namespace PhanMemThiDua2026
 {
     partial class Form56_TomTatThanhTichTapTheHangThang
     {
         private IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -17,9 +15,7 @@ namespace PhanMemThiDua2026
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
             components = new Container();
@@ -411,9 +407,7 @@ namespace PhanMemThiDua2026
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
-
         private Panel pnlHeader;
         private Label lblMoTa;
         private Panel pnlBody;

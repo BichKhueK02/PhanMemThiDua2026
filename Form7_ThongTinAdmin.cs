@@ -1,7 +1,6 @@
 ﻿using Krypton.Toolkit;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
-
 // ==== HẰNG SỐ DÙNG CHUNG (TRÁNH MAGIC STRING RẢI RÁC) ====
 namespace PhanMemThiDua2026
 {
@@ -47,16 +46,13 @@ namespace PhanMemThiDua2026
             }
         }
         #region Thông tin chữ ký số (Textbox + màu)
-
     private const string PLACEHOLDER = "—";
     private const string DATE_FORMAT = "dd/MM/yyyy";
-
     /// <summary>
     /// Timeout tối đa cho việc kiểm tra thu hồi chứng chỉ (revocation check) qua mạng.
     /// Tránh treo UI vô thời hạn khi máy không có Internet hoặc CRL server không phản hồi.
     /// </summary>
     private static readonly TimeSpan ChainRevocationTimeout = TimeSpan.FromSeconds(5);
-
     /// <summary>
     /// Kết quả xác thực chữ ký số — tách biệt hoàn toàn khỏi tầng hiển thị (UI),
     /// giúp hàm kiểm tra có thể unit-test độc lập, không phụ thuộc Form/Control.
@@ -74,14 +70,12 @@ namespace PhanMemThiDua2026
         // Trạng thái khởi tạo trong lúc chờ kiểm tra
         SetTrangThai("Unknown", "Unknown", PLACEHOLDER, PLACEHOLDER,
             "Software integrity has not been evaluated", Color.DimGray);
-
         if (!File.Exists(exePath))
         {
             SetTrangThai("Executable file not found", PLACEHOLDER, PLACEHOLDER, PLACEHOLDER,
                 "⚠ The application executable file does not exist", Color.Red);
             return;
         }
-
         // 🌟 CHẠY KIỂM TRA CHỮ KÝ SỐ TRÊN THREAD POOL, TRÁNH GIẬT/ĐƠ FORM
         KetQuaChuKySo ketQua;
         using (var cts = new CancellationTokenSource(ChainRevocationTimeout + TimeSpan.FromSeconds(2)))
@@ -89,7 +83,6 @@ namespace PhanMemThiDua2026
             ketQua = await Task.Run(() => KiemTraChuKySo(exePath, cts.Token), cts.Token)
                                .ConfigureAwait(true); // true: quay lại UI thread để cập nhật control
         }
-
         SetTrangThai(
             ketQua.TrangThai,
             ketQua.NguoiKyHoacNhaPhatHanh,
@@ -98,7 +91,6 @@ namespace PhanMemThiDua2026
             ketQua.GhiChu,
             ketQua.MauHienThi);
     }
-
     /// <summary>
     /// Logic thuần túy kiểm tra chữ ký số của file thực thi — KHÔNG đụng tới UI.
     /// Tách riêng để có thể unit-test và tái sử dụng ở nơi khác (log hệ thống, CLI, v.v).
@@ -109,7 +101,6 @@ namespace PhanMemThiDua2026
     {
         X509Certificate2? cert = null;
         X509Chain? chain = null;
-
         try
         {
             // Bước 1: Đọc chữ ký số nhúng trong file (ném CryptographicException nếu chưa ký)
@@ -138,16 +129,13 @@ namespace PhanMemThiDua2026
                 UrlRetrievalTimeout = ChainRevocationTimeout
             }
             };
-
             bool isValid = chain.Build(cert);
             cancellationToken.ThrowIfCancellationRequested();
-
             if (!isValid)
             {
                 // Gom lý do cụ thể để hỗ trợ chẩn đoán (hết hạn CA, không rõ nguồn gốc, bị thu hồi...)
                 string lyDo = string.Join("; ",
                     chain.ChainStatus.Select(s => s.StatusInformation.Trim()));
-
                 return new KetQuaChuKySo(
                     "Invalid digital signature",
                     LayTenNhaPhatHanh(cert),
@@ -156,7 +144,6 @@ namespace PhanMemThiDua2026
                     $"⚠ Certificate chain validation failed: {lyDo}",
                     Color.Red);
             }
-
             // Bước 4: Hợp lệ hoàn toàn
             return new KetQuaChuKySo(
                 "Digitally signed – Verified",
@@ -188,7 +175,6 @@ namespace PhanMemThiDua2026
             // Lỗi không lường trước (I/O, quyền truy cập...) — ghi log để chẩn đoán sau này
             Module_NhatKy.GhiNhatKy("System", "Kiểm tra chữ ký số",
                 $"Lỗi không xác định khi kiểm tra chữ ký số: {ex.Message}");
-
             return new KetQuaChuKySo(
                 "Unable to read digital signature",
                 PLACEHOLDER, PLACEHOLDER, PLACEHOLDER,
@@ -202,11 +188,9 @@ namespace PhanMemThiDua2026
             cert?.Dispose();
         }
     }
-
     /// <summary>Lấy tên nhà phát hành một cách an toàn, không ném lỗi nếu cert null.</summary>
     private string LayTenNhaPhatHanhAnToan(X509Certificate2? cert)
         => cert == null ? PLACEHOLDER : LayTenNhaPhatHanh(cert);
-
     private void SetTrangThai(
                     string trangThai,
                     string nhaPhatHanh,

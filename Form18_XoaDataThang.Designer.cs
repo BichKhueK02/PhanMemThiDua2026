@@ -3,7 +3,6 @@
     partial class Form18_XoaDataThang
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -12,36 +11,29 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         // Bố cục kiểu trang web, toàn bộ dùng Dock nên không bao giờ bị che/cắt:
         //   [ Banner tím  ]  Dock Top     - ảnh + tiêu đề + mô tả
         //   [ Thân xám    ]  Dock Fill    - thẻ trắng bo 12 chứa ô chọn tháng
         //   [ Thanh nút   ]  Dock Bottom  - nút Đóng (trắng) + nút Xóa dữ liệu (đỏ)
-
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form18_XoaDataThang));
-
             pnlHeader = new Panel();
             pnlAnh = new RoundedPanel();
             pictureBox1 = new PictureBox();
             lblTieuDe = new Label();
             lblPhuDe = new Label();
-
             pnlFooter = new Panel();
             pnlFooterLine = new Panel();
             btn_Huy = new Krypton.Toolkit.KryptonButton();
             kryptonButton_XoaDuLieuThangThongKe = new Krypton.Toolkit.KryptonButton();
-
             pnlBody = new Panel();
             pnlCard = new RoundedPanel();
             label1 = new Label();
             pnlKhungCombo = new Panel();
             comboBox1_ChonThangCanXoaDuLieu = new Krypton.Toolkit.KryptonComboBox();
             lblCanhBao = new Label();
-
             pnlHeader.SuspendLayout();
             pnlAnh.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
@@ -50,7 +42,6 @@
             pnlCard.SuspendLayout();
             pnlKhungCombo.SuspendLayout();
             SuspendLayout();
-
             // ===================== BANNER (tím) =====================
             pnlHeader.BackColor = Color.FromArgb(79, 70, 229);
             pnlHeader.Controls.Add(lblPhuDe);
@@ -108,7 +99,6 @@
             lblPhuDe.Size = new Size(320, 19);
             lblPhuDe.TabIndex = 2;
             lblPhuDe.Text = "Chọn tháng cần xóa khỏi cơ sở dữ liệu thi đua";
-
             // ===================== THANH NÚT (dưới cùng) =====================
             pnlFooter.BackColor = Color.White;
             pnlFooter.Controls.Add(kryptonButton_XoaDuLieuThangThongKe);
@@ -159,7 +149,6 @@
             kryptonButton_XoaDuLieuThangThongKe.Values.Image = (Image)resources.GetObject("kryptonButton_XoaDuLieuThangThongKe.Values.Image");
             kryptonButton_XoaDuLieuThangThongKe.Values.Text = " Xóa dữ liệu";
             kryptonButton_XoaDuLieuThangThongKe.Click += kryptonButton_XoaDuLieuThangThongKe_Click;
-
             // ===================== THÂN (xám nhạt) =====================
             pnlBody.BackColor = Color.FromArgb(243, 244, 246);
             pnlBody.Controls.Add(pnlCard);
@@ -243,7 +232,6 @@
             lblCanhBao.TabIndex = 2;
             lblCanhBao.Text = "Lưu ý: dữ liệu đã xóa không thể khôi phục.";
             lblCanhBao.TextAlign = ContentAlignment.MiddleLeft;
-
             // ===================== FORM =====================
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -261,7 +249,6 @@
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Xóa dữ liệu thi đua tháng";
             Load += Form18_XoaDataThang_Load;
-
             pnlHeader.ResumeLayout(false);
             pnlHeader.PerformLayout();
             pnlAnh.ResumeLayout(false);
@@ -273,7 +260,6 @@
             pnlKhungCombo.ResumeLayout(false);
             ResumeLayout(false);
         }
-
         // Nút bo 8, cấu trúc giống btn_Luu mẫu (OverrideDefault + StateCommon/Tracking/Pressed)
         private void StyleButton(Krypton.Toolkit.KryptonButton b, Color back, Color hover, Color press,
                                  Color border, Color text)
@@ -282,7 +268,6 @@
             var all = Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom |
                       Krypton.Toolkit.PaletteDrawBorders.Left | Krypton.Toolkit.PaletteDrawBorders.Right;
             var font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
-
             b.OverrideDefault.Back.Color1 = back;
             b.OverrideDefault.Back.Color2 = back;
             b.OverrideDefault.Back.ColorStyle = solid;
@@ -294,7 +279,6 @@
             b.OverrideDefault.Content.ShortText.Color1 = text;
             b.OverrideDefault.Content.ShortText.Color2 = text;
             b.OverrideDefault.Content.ShortText.Font = font;
-
             b.StateCommon.Back.Color1 = back;
             b.StateCommon.Back.Color2 = back;
             b.StateCommon.Back.ColorStyle = solid;
@@ -306,31 +290,25 @@
             b.StateCommon.Content.ShortText.Color1 = text;
             b.StateCommon.Content.ShortText.Color2 = text;
             b.StateCommon.Content.ShortText.Font = font;
-
             b.StateTracking.Back.Color1 = hover;
             b.StateTracking.Back.Color2 = hover;
             b.StateTracking.Border.Color1 = border;
             b.StateTracking.Border.Color2 = border;
-
             b.StatePressed.Back.Color1 = press;
             b.StatePressed.Back.Color2 = press;
             b.StatePressed.Border.Color1 = border;
             b.StatePressed.Border.Color2 = border;
         }
-
         #endregion
-
         private Panel pnlHeader;
         private RoundedPanel pnlAnh;
         private PictureBox pictureBox1;
         private Label lblTieuDe;
         private Label lblPhuDe;
-
         private Panel pnlFooter;
         private Panel pnlFooterLine;
         private Krypton.Toolkit.KryptonButton btn_Huy;
         internal Krypton.Toolkit.KryptonButton kryptonButton_XoaDuLieuThangThongKe;
-
         private Panel pnlBody;
         private RoundedPanel pnlCard;
         private Label label1;

@@ -1989,18 +1989,14 @@ namespace PhanMemThiDua2026
             {
                 // 1. KIỂM TRA DÒNG
                 if (rowIndex < 0) return;
-
                 // 2. BẬT HIỆU ỨNG CHUỘT CHỜ
                 this.Cursor = Cursors.WaitCursor;
                 string id = "", donVi = "", hoTen = "", tinhTrang = "", soHieu = "";
-
                 // 3. XÁC ĐỊNH ĐỐI TƯỢNG
                 bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-
                 // 4. LẤY INDEX THẬT TỪ CACHE/FILTER
                 if (_filteredIndexes == null || rowIndex >= _filteredIndexes.Count) return;
                 int actualIndex = _filteredIndexes[rowIndex];
-
                 // 5. ĐỌC DỮ LIỆU THEO CHẾ ĐỘ
                 if (_isDataMaxMode)
                 {
@@ -2026,7 +2022,6 @@ namespace PhanMemThiDua2026
                 {
                     if (dtDanhSachGoc == null) return;
                     if (actualIndex < 0 || actualIndex >= dtDanhSachGoc.DefaultView.Count) return;
-
                     DataRowView rowView = dtDanhSachGoc.DefaultView[actualIndex];
                     id = rowView["ID"]?.ToString() ?? "";
                     donVi = rowView["DonVi"]?.ToString() ?? "";
@@ -2034,13 +2029,10 @@ namespace PhanMemThiDua2026
                     tinhTrang = rowView["TinhTrang"]?.ToString() ?? "";
                     soHieu = rowView["SoHieu"]?.ToString() ?? "";
                 }
-
                 // 6. KIỂM TRA ID
                 if (string.IsNullOrWhiteSpace(id) || !int.TryParse(id, out int idInt)) return;
-
                 // 7. TRẢ CHUỘT VỀ BÌNH THƯỜNG
                 this.Cursor = Cursors.Default;
-
                 // 8. MỞ FORM CHỈNH SỬA
                 if (laTanBinh)
                 {
@@ -2049,7 +2041,6 @@ namespace PhanMemThiDua2026
                         frm.Owner = this;
                         frm.ShowInTaskbar = false;
                         frm.ShowDialog();
-
                         // CẬP NHẬT SAU KHI SỬA THÀNH CÔNG
                         if (frm.DialogResult == DialogResult.OK)
                         {
@@ -2075,7 +2066,6 @@ namespace PhanMemThiDua2026
                         frm22.Owner = this;
                         frm22.ShowInTaskbar = false;
                         frm22.ShowDialog();
-
                         // CẬP NHẬT SAU KHI SỬA THÀNH CÔNG
                         if (frm22.DialogResult == DialogResult.OK)
                         {
@@ -2338,7 +2328,6 @@ namespace PhanMemThiDua2026
             recordId = 0;
             if (kryptonDataGridView1 == null || kryptonDataGridView1.CurrentRow == null || kryptonDataGridView1.CurrentRow.Index < 0) return false;
             int gridRowIndex = kryptonDataGridView1.CurrentRow.Index;
-
             if (_isDataMaxMode)
             {
                 if (_filteredIndexes == null || gridRowIndex >= _filteredIndexes.Count) return false;
@@ -2366,11 +2355,9 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Vui lòng chọn dòng cần xóa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
             string hoVaTen = "(không xác định)";
-
             try
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
@@ -2389,10 +2376,8 @@ namespace PhanMemThiDua2026
                 hoVaTen = "(lỗi lấy họ tên)";
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi lấy HoVaTen khi xóa", ex.Message);
             }
-
             var confirm = MessageBox.Show($"Bạn có chắc chắn muốn xóa {Module_HeThong.Tu_dong_chi}:\n\n👉 {hoVaTen}\n\nThao tác này không thể hoàn tác.", "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (confirm != DialogResult.Yes) return;
-
             DialogResult kq;
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
@@ -2401,7 +2386,6 @@ namespace PhanMemThiDua2026
                 kq = frm.ShowDialog();
             }
             if (kq != DialogResult.OK) return;
-
             try
             {
                 using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
@@ -2412,7 +2396,6 @@ namespace PhanMemThiDua2026
                 int affected = cmd.ExecuteNonQuery();
                 if (affected != 1) throw new Exception("Không tìm thấy bản ghi để xóa.");
                 tran.Commit();
-
                 using var cmdVacuum = new SqliteCommand("VACUUM;", cn);
                 cmdVacuum.ExecuteNonQuery();
             }
@@ -2421,16 +2404,12 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Xóa dữ liệu thất bại:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
             if (laTanBinh) LoadThongKe_TanBinh();
             else LoadThongKe_CBCS();
             ApplyFilter();
-
             int tong = _filteredIndexes?.Count ?? 0;
             toolStripStatusLabel1.Text = $"Tổng cộng: {tong} {Module_HeThong.Tu_dong_chi}";
-
             try { System.Media.SystemSounds.Exclamation.Play(); } catch { }
-
             Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa dòng thống kê", $"Đã xóa: {hoVaTen} (ID={recordId})");
         }
         private void CapNhatPhienBanPhanMem()
@@ -2473,12 +2452,9 @@ namespace PhanMemThiDua2026
         {
             var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
             if (formCha == null) return;
-
             var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
             if (panel == null) return;
-
             foreach (Control ctl in panel.Controls) if (ctl is Form frm) frm.Hide();
-
             var form36 = panel.Controls.OfType<Form34_ThongKeKhenThuong>().FirstOrDefault();
             if (form36 == null)
             {
@@ -2496,7 +2472,6 @@ namespace PhanMemThiDua2026
                 };
                 panel.Controls.Add(form36);
             }
-
             form36.Show();
             form36.BringToFront();
         }
@@ -3551,7 +3526,5 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Chi tiết lỗi: " + ex.Message, "Lỗi Giao Diện", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-
     }
 } /// Ngoài luồng

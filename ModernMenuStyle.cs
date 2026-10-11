@@ -1,5 +1,4 @@
 ﻿using System.Drawing.Drawing2D;
-
 namespace PhanMemThiDua2026
 {
     /// <summary>
@@ -21,15 +20,12 @@ namespace PhanMemThiDua2026
         public static readonly Color AccentSoft = Color.FromArgb(238, 242, 255);
         public static readonly Color AccentSoftHover = Color.FromArgb(224, 231, 255);
         public static readonly Color HoverFill = Color.FromArgb(243, 244, 246);
-
         public const float MenuFontSize = 10.5F;
         public const int MenuHeight = 44;
-
         /// <summary>Áp giao diện hiện đại cho một MenuStrip (gọi sau InitializeComponent).</summary>
         public static void Apply(MenuStrip menu)
         {
             ArgumentNullException.ThrowIfNull(menu);
-
             menu.Renderer = new ModernMenuRenderer();
             menu.GripStyle = ToolStripGripStyle.Hidden;
             menu.BackColor = Surface;
@@ -38,7 +34,6 @@ namespace PhanMemThiDua2026
             menu.Padding = new Padding(12, 0, 12, 0);
             menu.AutoSize = false;
             menu.Height = MenuHeight;
-
             foreach (ToolStripItem item in menu.Items)
             {
                 if (item is ToolStripMenuItem mi)
@@ -53,12 +48,10 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         /// <summary>Đánh dấu mục đang mở (tô nền nhạt + chữ màu nhấn). Truyền null để bỏ chọn tất cả.</summary>
         public static void SetActive(MenuStrip menu, ToolStripMenuItem? active)
         {
             ArgumentNullException.ThrowIfNull(menu);
-
             foreach (ToolStripItem item in menu.Items)
             {
                 if (item is ToolStripMenuItem mi)
@@ -66,7 +59,6 @@ namespace PhanMemThiDua2026
             }
             menu.Invalidate();
         }
-
         // =====================================================================
         //  RENDERER
         // =====================================================================
@@ -76,10 +68,8 @@ namespace PhanMemThiDua2026
             {
                 RoundedEdges = false;
             }
-
             private static bool IsActive(ToolStripItem item) =>
                 item is ToolStripMenuItem { Checked: true };
-
             private static GraphicsPath RoundedRect(Rectangle r, int radius)
             {
                 int d = Math.Max(1, radius * 2);
@@ -91,13 +81,11 @@ namespace PhanMemThiDua2026
                 path.CloseFigure();
                 return path;
             }
-
             protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
             {
                 using var brush = new SolidBrush(Surface);
                 e.Graphics.FillRectangle(brush, e.AffectedBounds);
             }
-
             protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
             {
                 using var pen = new Pen(BorderColor);
@@ -112,38 +100,29 @@ namespace PhanMemThiDua2026
                     e.Graphics.DrawLine(pen, 0, y, e.ToolStrip.Width, y);
                 }
             }
-
             protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
             {
                 ToolStripItem item = e.Item;
                 if (!item.Enabled) return;
-
                 bool active = IsActive(item);
                 bool hot = item.Selected || item.Pressed;
                 if (!active && !hot) return;
-
                 Color fill = active
                     ? (hot ? AccentSoftHover : AccentSoft)
                     : (item.Pressed ? AccentSoftHover : HoverFill);
-
                 float scale = e.ToolStrip?.DeviceDpi / 96f ?? 1f;
                 int radius = (int)Math.Round(8 * scale);
-
                 var g = e.Graphics;
                 var oldMode = g.SmoothingMode;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
-
                 Rectangle rect = item.IsOnDropDown
                     ? new Rectangle(4, 1, item.Width - 8, item.Height - 2)
                     : new Rectangle(1, 4, item.Width - 3, item.Height - 9);
-
                 using GraphicsPath path = RoundedRect(rect, radius);
                 using var brush = new SolidBrush(fill);
                 g.FillPath(brush, path);
-
                 g.SmoothingMode = oldMode;
             }
-
             protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
             {
                 if (!e.Item.Enabled)
@@ -152,26 +131,20 @@ namespace PhanMemThiDua2026
                     e.TextColor = Accent;
                 else
                     e.TextColor = TextColor;
-
                 base.OnRenderItemText(e);
             }
-
             // Không vẽ dấu tick/khung quanh icon khi Checked: trạng thái đã thể hiện bằng nền.
             protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e) { }
-
             protected override void OnRenderImageMargin(ToolStripRenderEventArgs e) { }
-
             protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
             {
                 e.ArrowColor = e.Item.Enabled ? TextColor : TextDisabled;
                 base.OnRenderArrow(e);
             }
-
             protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
             {
                 using var pen = new Pen(BorderColor);
                 Rectangle b = e.Item.ContentRectangle;
-
                 if (e.Vertical)
                 {
                     // Vạch đứng ngắn, căn giữa theo chiều cao thanh menu.

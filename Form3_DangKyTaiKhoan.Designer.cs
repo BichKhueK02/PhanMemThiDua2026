@@ -3,7 +3,6 @@
     partial class Form3_DangKyTaiKhoan
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -12,9 +11,7 @@
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         // ===== BẢNG MÀU (không dùng trắng) =====
         // Nền form      : #CFDBEA   Nền thẻ   : #E6EEF8   Nền ô nhập : #FFF8DC (kem nhạt)
         // Header        : #BBD3F2   Footer    : #BFD0E6
@@ -22,28 +19,22 @@
         // Nút Đăng ký   : nền xanh lá #4ADE80, chữ #052E16
         // Nút Thoát     : nền đỏ nhạt #FCA5A5, chữ #7F1D1D
         // Nút Thêm ảnh  : nền xanh trời #7DD3FC, chữ #0C4A6E
-
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form3_DangKyTaiKhoan));
-
             toolTip1 = new ToolTip(components);
-
             pnlHeader = new Panel();
             pnlHeaderLine = new Panel();
             pictureBox2_AnhDaiDienAdmin = new PictureBox();
             kryptonButton1_ThemAnhDaiDien = new Krypton.Toolkit.KryptonButton();
             label2 = new Label();
             label1 = new Label();
-
             pnlFooter = new Panel();
             pictureBox2_ThongTin_DKTK = new PictureBox();
             btn_Thoat = new Krypton.Toolkit.KryptonButton();
             btn_Luu = new Krypton.Toolkit.KryptonButton();
-
             tblBody = new TableLayoutPanel();
-
             pnlCardTrai = new Panel();
             pnlStripeTrai = new Panel();
             tblTrai = new TableLayoutPanel();
@@ -59,7 +50,6 @@
             text_Token = new Krypton.Toolkit.KryptonTextBox();
             PictureBox1 = new PictureBox();
             Check_HienMatKhau = new CheckBox();
-
             pnlCardPhai = new Panel();
             pnlStripePhai = new Panel();
             tblPhai = new TableLayoutPanel();
@@ -72,7 +62,6 @@
             ComboBox2_CauHoi2 = new ComboBox();
             label11 = new Label();
             TextBox2_CauTraLoi2 = new Krypton.Toolkit.KryptonTextBox();
-
             pnlHeader.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2_AnhDaiDienAdmin).BeginInit();
             pnlFooter.SuspendLayout();
@@ -85,7 +74,6 @@
             pnlCardPhai.SuspendLayout();
             tblPhai.SuspendLayout();
             SuspendLayout();
-
             // ===================== HEADER =====================
             pnlHeader.BackColor = Color.FromArgb(187, 211, 242);
             pnlHeader.Controls.Add(label1);
@@ -156,7 +144,6 @@
             label1.Size = new Size(300, 20);
             label1.TabIndex = 3;
             label1.Text = "Nhập thông tin tài khoản mới của bạn";
-
             // ===================== FOOTER =====================
             pnlFooter.BackColor = Color.FromArgb(191, 208, 230);
             pnlFooter.Controls.Add(btn_Luu);
@@ -210,7 +197,6 @@
             btn_Luu.Values.Image = (Image)resources.GetObject("btn_Luu.Values.Image");
             btn_Luu.Values.Text = "Đăng ký";
             btn_Luu.Click += btn_Luu_Click;
-
             // ===================== BODY (2 thẻ) =====================
             tblBody.BackColor = Color.FromArgb(207, 219, 234);
             tblBody.ColumnCount = 2;
@@ -226,7 +212,6 @@
             tblBody.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tblBody.Size = new Size(1000, 450);
             tblBody.TabIndex = 1;
-
             // ---------- Thẻ trái ----------
             pnlCardTrai.BackColor = Color.FromArgb(230, 238, 248);
             pnlCardTrai.BorderStyle = BorderStyle.FixedSingle;
@@ -337,7 +322,6 @@
             Check_HienMatKhau.TabIndex = 8;
             Check_HienMatKhau.Text = "Hiện mật khẩu";
             Check_HienMatKhau.UseVisualStyleBackColor = false;
-
             // ---------- Thẻ phải ----------
             pnlCardPhai.BackColor = Color.FromArgb(230, 238, 248);
             pnlCardPhai.BorderStyle = BorderStyle.FixedSingle;
@@ -403,7 +387,6 @@
             ConfigCombo(ComboBox2_CauHoi2, "ComboBox2_CauHoi2", 5);
             StyleLabel(label11, "label11", "Câu trả lời 2", 6);
             ConfigInput(TextBox2_CauTraLoi2, "TextBox2_CauTraLoi2", 7);
-
             // ===================== FORM =====================
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -418,7 +401,6 @@
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Tạo tài khoản";
             Load += Form3_Load;
-
             pnlHeader.ResumeLayout(false);
             pnlHeader.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2_AnhDaiDienAdmin).EndInit();
@@ -435,14 +417,12 @@
             tblPhai.PerformLayout();
             ResumeLayout(false);
         }
-
         // Nút phẳng: nền màu, chữ đậm tối màu, đổi màu khi rê chuột / nhấn
         private void StyleButton(Krypton.Toolkit.KryptonButton b, Color back, Color hover, Color press,
                                  Color border, Color text, float rounding, float fontSize)
         {
             var solid = Krypton.Toolkit.PaletteColorStyle.Solid;
             var font = new Font("Segoe UI Semibold", fontSize, FontStyle.Bold);
-
             b.StateCommon.Back.Color1 = back;
             b.StateCommon.Back.Color2 = back;
             b.StateCommon.Back.ColorStyle = solid;
@@ -454,48 +434,40 @@
             b.StateCommon.Content.ShortText.Color1 = text;
             b.StateCommon.Content.ShortText.Color2 = text;
             b.StateCommon.Content.ShortText.Font = font;
-
             b.StateNormal.Back.Color1 = back;
             b.StateNormal.Back.Color2 = back;
             b.StateNormal.Content.ShortText.Color1 = text;
-
             b.StateTracking.Back.Color1 = hover;
             b.StateTracking.Back.Color2 = hover;
             b.StateTracking.Border.Color1 = border;
             b.StateTracking.Content.ShortText.Color1 = text;
-
             b.StatePressed.Back.Color1 = press;
             b.StatePressed.Back.Color2 = press;
             b.StatePressed.Border.Color1 = border;
             b.StatePressed.Content.ShortText.Color1 = text;
         }
-
         // Ô nhập: nền kem nhạt, viền xám đậm, chữ gần đen; focus viền xanh
         private void ConfigInput(Krypton.Toolkit.KryptonTextBox tb, string name, int tabIndex)
         {
             Color cream = Color.FromArgb(255, 248, 220);
             Color ink = Color.FromArgb(15, 23, 42);
-
             tb.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             tb.Margin = new Padding(0, 3, 0, 3);
             tb.Name = name;
             tb.Size = new Size(380, 36);
             tb.TabIndex = tabIndex;
-
             tb.StateCommon.Back.Color1 = cream;
             tb.StateCommon.Border.Color1 = Color.FromArgb(71, 85, 105);
             tb.StateCommon.Border.Rounding = 8F;
             tb.StateCommon.Border.Width = 2;
             tb.StateCommon.Content.Font = new Font("Segoe UI", 10.5F);
             tb.StateCommon.Content.Color1 = ink;
-
             tb.StateNormal.Back.Color1 = cream;
             tb.StateNormal.Content.Color1 = ink;
             tb.StateActive.Back.Color1 = cream;
             tb.StateActive.Border.Color1 = Color.FromArgb(37, 99, 235);
             tb.StateActive.Content.Color1 = ink;
         }
-
         private void ConfigCombo(ComboBox cb, string name, int tabIndex)
         {
             cb.Anchor = AnchorStyles.Left | AnchorStyles.Right;
@@ -510,7 +482,6 @@
             cb.Size = new Size(380, 28);
             cb.TabIndex = tabIndex;
         }
-
         private void StyleLabel(Label lb, string name, string text, int tabIndex)
         {
             lb.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;
@@ -523,25 +494,19 @@
             lb.TabIndex = tabIndex;
             lb.Text = text;
         }
-
         #endregion
-
         private ToolTip toolTip1;
-
         private Panel pnlHeader;
         private Panel pnlHeaderLine;
         internal PictureBox pictureBox2_AnhDaiDienAdmin;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_ThemAnhDaiDien;
         internal Label label2;
         internal Label label1;
-
         private Panel pnlFooter;
         internal PictureBox pictureBox2_ThongTin_DKTK;
         internal Krypton.Toolkit.KryptonButton btn_Thoat;
         internal Krypton.Toolkit.KryptonButton btn_Luu;
-
         private TableLayoutPanel tblBody;
-
         private Panel pnlCardTrai;
         private Panel pnlStripeTrai;
         private TableLayoutPanel tblTrai;
@@ -557,7 +522,6 @@
         private Krypton.Toolkit.KryptonTextBox text_Token;
         internal PictureBox PictureBox1;
         internal CheckBox Check_HienMatKhau;
-
         private Panel pnlCardPhai;
         private Panel pnlStripePhai;
         private TableLayoutPanel tblPhai;
