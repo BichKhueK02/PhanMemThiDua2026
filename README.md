@@ -303,7 +303,7 @@ Lưu ý: Không sử dụng .NET Framework cũ, phần mềm được xây dựn
 - Dữ liệu độc lập theo từng máy (phù hợp môi trường nội bộ)
 - Các thức đóng gói: Portable (Copy và chạy - Không cần cài đặt - đơn giản)
 Bộ cài đặt có tên: PhanMemThiDua2026
-Dung lượng: 619 MB
+Dung lượng: Tùy phiên bản trung bình khoảng 800 - 900 MB
 Cơ sở dữ liệu: (Không cần cài riêng) phần mềm tự động khởi tạo, mã hóa và giải mã việc đọc và ghi để đảm bảo tính bảo mật và an toàn sẵn sàng chạy trên mọi nền máy windows
-* Tuy vậy quá trình làm phần mềm có nhiều sơ xuất, cũng như hạn chế về trình độ, chưa tối ưu về mặt UI, hiệu suất để phù hợp với mọi máy tính, nhờ các anh góp ý dùng để cho em cập nhật lại bản vá lỗi tối ưu hơn. Trân trọng cảm ơn!
+* Tuy vậy quá trình làm phần mềm có nhiều sơ xuất, cũng như hạn chế, chưa tối ưu về mặt UI, hiệu suất để phù hợp với mọi máy tính, nhờ các anh góp ý dùng để cho em cập nhật lại bản vá lỗi tối ưu hơn. Trân trọng cảm ơn!
 TrungKien
