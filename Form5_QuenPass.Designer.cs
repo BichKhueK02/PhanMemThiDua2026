@@ -6,10 +6,10 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -18,443 +18,514 @@
             }
             base.Dispose(disposing);
         }
+
         #region Windows Form Designer generated code
+
         /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
+        /// Giao diện kiểu "web": trang nền xám xanh nhạt, thẻ trắng bo góc,
+        /// bên trái là panel gradient thương hiệu, bên phải là form (nhãn nằm trên ô nhập).
         /// </summary>
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form5_QuenPass));
-            TableLayoutPanel5 = new TableLayoutPanel();
-            progressBar1 = new ProgressBar();
-            PictureBox2 = new PictureBox();
-            Label1 = new Label();
-            Text_MatKhauLayLai = new Krypton.Toolkit.KryptonTextBox();
-            TextBox2_TraLoi2 = new Krypton.Toolkit.KryptonTextBox();
-            Label8 = new Label();
-            ComboBox2_CauHoi2 = new ComboBox();
-            TextBox1_TraLoi1 = new Krypton.Toolkit.KryptonTextBox();
-            Label7 = new Label();
+            pnlRoot = new BufferedPanel();
+            pnlCard = new WebCardPanel();
+            pnlRight = new BufferedPanel();
+            tlpForm = new BufferedTableLayoutPanel();
+            lblTieuDe = new Label();
+            lblMoTa = new Label();
+            lblCauHoi1 = new Label();
+            pnlCombo1 = new WebFieldPanel();
             ComboBox1_CauHoi1 = new ComboBox();
+            TextBox1_TraLoi1 = new Krypton.Toolkit.KryptonTextBox();
+            lblCauHoi2 = new Label();
+            pnlCombo2 = new WebFieldPanel();
+            ComboBox2_CauHoi2 = new ComboBox();
+            TextBox2_TraLoi2 = new Krypton.Toolkit.KryptonTextBox();
             Btn_KiemTra = new Krypton.Toolkit.KryptonButton();
-            TableLayoutPanel6 = new TableLayoutPanel();
-            label5 = new Label();
-            label4 = new Label();
-            TableLayoutPanel1 = new TableLayoutPanel();
-            TableLayoutPanel2 = new TableLayoutPanel();
+            lblKetQua = new Label();
+            tlpKetQua = new BufferedTableLayoutPanel();
+            lblTaiKhoan = new Label();
+            lblMatKhau = new Label();
             Text_TenTaiKhoan = new Krypton.Toolkit.KryptonTextBox();
-            Label2 = new Label();
-            TableLayoutPanel3 = new TableLayoutPanel();
+            Text_MatKhauLayLai = new Krypton.Toolkit.KryptonTextBox();
+            progressBar1 = new ProgressBar();
+            pnlHero = new HeroGradientPanel();
+            tlpHero = new BufferedTableLayoutPanel();
+            pnlBadge = new WebCardPanel();
+            PictureBox2 = new PictureBox();
+            lblHeroTitle = new Label();
+            lblHeroDesc = new Label();
+            lblHeroHint = new Label();
             statusStrip1 = new StatusStrip();
             label1_PhienBanPhanMem = new ToolStripStatusLabel();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
-            tableLayoutPanel10 = new TableLayoutPanel();
-            label3 = new Label();
-            groupBox1 = new GroupBox();
-            TableLayoutPanel5.SuspendLayout();
+            pnlRoot.SuspendLayout();
+            pnlCard.SuspendLayout();
+            pnlRight.SuspendLayout();
+            pnlCombo1.SuspendLayout();
+            pnlCombo2.SuspendLayout();
+            tlpForm.SuspendLayout();
+            tlpKetQua.SuspendLayout();
+            pnlHero.SuspendLayout();
+            tlpHero.SuspendLayout();
+            pnlBadge.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PictureBox2).BeginInit();
-            TableLayoutPanel6.SuspendLayout();
-            TableLayoutPanel1.SuspendLayout();
-            TableLayoutPanel2.SuspendLayout();
-            TableLayoutPanel3.SuspendLayout();
             statusStrip1.SuspendLayout();
-            tableLayoutPanel10.SuspendLayout();
-            groupBox1.SuspendLayout();
             SuspendLayout();
-            // 
-            // TableLayoutPanel5
-            // 
-            TableLayoutPanel5.ColumnCount = 1;
-            TableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            TableLayoutPanel5.Controls.Add(progressBar1, 0, 1);
-            TableLayoutPanel5.Controls.Add(PictureBox2, 0, 0);
-            TableLayoutPanel5.Dock = DockStyle.Fill;
-            TableLayoutPanel5.Location = new Point(3, 2);
-            TableLayoutPanel5.Margin = new Padding(3, 2, 3, 2);
-            TableLayoutPanel5.Name = "TableLayoutPanel5";
-            TableLayoutPanel5.RowCount = 2;
-            TableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 91.26761F));
-            TableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 8.732394F));
-            TableLayoutPanel5.Size = new Size(144, 341);
-            TableLayoutPanel5.TabIndex = 0;
-            // 
-            // progressBar1
-            // 
-            progressBar1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            progressBar1.Location = new Point(3, 321);
-            progressBar1.Margin = new Padding(3, 2, 3, 2);
+            //
+            // pnlRoot  (nền trang)
+            //
+            pnlRoot.BackColor = Color.FromArgb(238, 242, 249);
+            pnlRoot.Controls.Add(pnlCard);
+            pnlRoot.Dock = DockStyle.Fill;
+            pnlRoot.Location = new Point(0, 0);
+            pnlRoot.Name = "pnlRoot";
+            pnlRoot.Padding = new Padding(28);
+            pnlRoot.Size = new Size(900, 616);
+            pnlRoot.TabIndex = 0;
+            //
+            // pnlCard  (thẻ trắng bo góc)
+            //
+            pnlCard.BackColor = Color.White;
+            pnlCard.CornerRadius = 18;
+            pnlCard.Controls.Add(pnlRight);
+            pnlCard.Controls.Add(pnlHero);
+            pnlCard.Dock = DockStyle.Fill;
+            pnlCard.Location = new Point(28, 28);
+            pnlCard.Name = "pnlCard";
+            pnlCard.Size = new Size(844, 560);
+            pnlCard.TabIndex = 0;
+            //
+            // pnlRight  (cột form bên phải)
+            //
+            pnlRight.BackColor = Color.White;
+            pnlRight.Controls.Add(tlpForm);
+            pnlRight.Dock = DockStyle.Fill;
+            pnlRight.Location = new Point(300, 0);
+            pnlRight.Name = "pnlRight";
+            pnlRight.Size = new Size(544, 560);
+            pnlRight.TabIndex = 0;
+            //
+            // progressBar1  (thanh chạy mảnh phía trên)
+            //
+            progressBar1.Visible = false;
+            progressBar1.Location = new Point(0, 0);
+            progressBar1.Margin = new Padding(0);
             progressBar1.Name = "progressBar1";
-            progressBar1.Size = new Size(138, 10);
+            progressBar1.Size = new Size(544, 4);
             progressBar1.TabIndex = 1;
-            // 
-            // PictureBox2
-            // 
-            PictureBox2.Anchor = AnchorStyles.None;
-            PictureBox2.Image = (Image)resources.GetObject("PictureBox2.Image");
-            PictureBox2.Location = new Point(5, 93);
-            PictureBox2.Margin = new Padding(3, 2, 3, 2);
-            PictureBox2.Name = "PictureBox2";
-            PictureBox2.Size = new Size(134, 125);
-            PictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
-            PictureBox2.TabIndex = 0;
-            PictureBox2.TabStop = false;
-            PictureBox2.Click += PictureBox2_Click;
-            // 
-            // Label1
-            // 
-            Label1.Anchor = AnchorStyles.Left;
-            Label1.AutoSize = true;
-            Label1.Font = new Font("Segoe UI Semilight", 12.096F);
-            Label1.ForeColor = Color.FromArgb(0, 0, 192);
-            Label1.Location = new Point(3, 54);
-            Label1.Name = "Label1";
-            Label1.Size = new Size(143, 23);
-            Label1.TabIndex = 2;
-            Label1.Text = "Mật khẩu của bạn";
-            // 
-            // Text_MatKhauLayLai
-            // 
-            Text_MatKhauLayLai.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_MatKhauLayLai.Location = new Point(184, 51);
-            Text_MatKhauLayLai.Margin = new Padding(3, 2, 3, 2);
-            Text_MatKhauLayLai.Name = "Text_MatKhauLayLai";
-            Text_MatKhauLayLai.Size = new Size(293, 29);
-            Text_MatKhauLayLai.StateCommon.Border.Rounding = 8F;
-            Text_MatKhauLayLai.StateCommon.Border.Width = 1;
-            Text_MatKhauLayLai.TabIndex = 3;
-            // 
-            // TextBox2_TraLoi2
-            // 
-            TextBox2_TraLoi2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            TextBox2_TraLoi2.Location = new Point(119, 155);
-            TextBox2_TraLoi2.Margin = new Padding(3, 2, 3, 2);
-            TextBox2_TraLoi2.Name = "TextBox2_TraLoi2";
-            TextBox2_TraLoi2.Size = new Size(358, 29);
-            TextBox2_TraLoi2.StateCommon.Border.Rounding = 8F;
-            TextBox2_TraLoi2.StateCommon.Border.Width = 1;
-            TextBox2_TraLoi2.TabIndex = 23;
-            // 
-            // Label8
-            // 
-            Label8.Anchor = AnchorStyles.None;
-            Label8.AutoSize = true;
-            Label8.Font = new Font("Segoe UI Semilight", 12.096F);
-            Label8.ForeColor = Color.Blue;
-            Label8.Location = new Point(15, 108);
-            Label8.Name = "Label8";
-            Label8.Size = new Size(85, 23);
-            Label8.TabIndex = 26;
-            Label8.Text = "Câu hỏi 2:";
-            // 
-            // ComboBox2_CauHoi2
-            // 
-            ComboBox2_CauHoi2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            ComboBox2_CauHoi2.Font = new Font("Segoe UI", 9.792F);
-            ComboBox2_CauHoi2.FormattingEnabled = true;
-            ComboBox2_CauHoi2.Location = new Point(119, 106);
-            ComboBox2_CauHoi2.Margin = new Padding(3, 2, 3, 2);
-            ComboBox2_CauHoi2.Name = "ComboBox2_CauHoi2";
-            ComboBox2_CauHoi2.Size = new Size(358, 25);
-            ComboBox2_CauHoi2.TabIndex = 0;
-            // 
-            // TextBox1_TraLoi1
-            // 
-            TextBox1_TraLoi1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            TextBox1_TraLoi1.Location = new Point(119, 57);
-            TextBox1_TraLoi1.Margin = new Padding(3, 2, 3, 2);
-            TextBox1_TraLoi1.Name = "TextBox1_TraLoi1";
-            TextBox1_TraLoi1.Size = new Size(358, 29);
-            TextBox1_TraLoi1.StateCommon.Border.Rounding = 8F;
-            TextBox1_TraLoi1.StateCommon.Border.Width = 1;
-            TextBox1_TraLoi1.TabIndex = 22;
-            // 
-            // Label7
-            // 
-            Label7.Anchor = AnchorStyles.None;
-            Label7.AutoSize = true;
-            Label7.Font = new Font("Segoe UI Semilight", 12.096F);
-            Label7.ForeColor = Color.Blue;
-            Label7.Location = new Point(17, 12);
-            Label7.Name = "Label7";
-            Label7.Size = new Size(82, 23);
-            Label7.TabIndex = 26;
-            Label7.Text = "Câu hỏi 1:";
+            //
+            // tlpForm
+            //
+            tlpForm.ColumnCount = 1;
+            tlpForm.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlpForm.Controls.Add(lblTieuDe, 0, 0);
+            tlpForm.Controls.Add(lblMoTa, 0, 1);
+            tlpForm.Controls.Add(lblCauHoi1, 0, 2);
+            tlpForm.Controls.Add(pnlCombo1, 0, 3);
+            tlpForm.Controls.Add(TextBox1_TraLoi1, 0, 4);
+            tlpForm.Controls.Add(lblCauHoi2, 0, 5);
+            tlpForm.Controls.Add(pnlCombo2, 0, 6);
+            tlpForm.Controls.Add(TextBox2_TraLoi2, 0, 7);
+            tlpForm.Controls.Add(Btn_KiemTra, 0, 8);
+            tlpForm.Controls.Add(lblKetQua, 0, 9);
+            tlpForm.Controls.Add(tlpKetQua, 0, 10);
+            tlpForm.Dock = DockStyle.Fill;
+            tlpForm.Location = new Point(0, 0);
+            tlpForm.Name = "tlpForm";
+            tlpForm.Padding = new Padding(44, 28, 44, 20);
+            tlpForm.RowCount = 12;
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpForm.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tlpForm.Size = new Size(544, 556);
+            tlpForm.TabIndex = 0;
+            //
+            // lblTieuDe
+            //
+            lblTieuDe.AutoSize = true;
+            lblTieuDe.Font = new Font("Segoe UI", 22F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTieuDe.ForeColor = Color.FromArgb(15, 23, 42);
+            lblTieuDe.Margin = new Padding(0, 0, 0, 2);
+            lblTieuDe.Name = "lblTieuDe";
+            lblTieuDe.TabIndex = 10;
+            lblTieuDe.Text = "Quên mật khẩu?";
+            //
+            // lblMoTa
+            //
+            lblMoTa.AutoSize = true;
+            lblMoTa.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblMoTa.ForeColor = Color.FromArgb(100, 116, 139);
+            lblMoTa.Margin = new Padding(0, 0, 0, 10);
+            lblMoTa.MaximumSize = new Size(450, 0);
+            lblMoTa.Name = "lblMoTa";
+            lblMoTa.TabIndex = 11;
+            lblMoTa.Text = "Hãy xác minh danh tính bằng hai câu hỏi bảo mật bạn đã thiết lập để lấy lại thông tin đăng nhập.";
+            //
+            // lblCauHoi1
+            //
+            lblCauHoi1.AutoSize = true;
+            lblCauHoi1.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblCauHoi1.ForeColor = Color.FromArgb(51, 65, 85);
+            lblCauHoi1.Margin = new Padding(0, 12, 0, 4);
+            lblCauHoi1.Name = "lblCauHoi1";
+            lblCauHoi1.TabIndex = 12;
+            lblCauHoi1.Text = "Câu hỏi bảo mật 1";
+            //
+            // ComboBox1_CauHoi1
+            //
+            // khung viền bao quanh combobox (ComboBox Flat tự nó không có viền)
+            pnlCombo1.BackColor = Color.White;
+            pnlCombo1.Controls.Add(ComboBox1_CauHoi1);
+            pnlCombo1.Dock = DockStyle.Fill;
+            pnlCombo1.Margin = new Padding(0, 0, 0, 8);
+            pnlCombo1.MinimumSize = new Size(0, 36);
+            pnlCombo1.Name = "pnlCombo1";
+            pnlCombo1.Padding = new Padding(10, 0, 4, 0);
+            pnlCombo1.Size = new Size(456, 36);
+            pnlCombo1.TabIndex = 0;
             // 
             // ComboBox1_CauHoi1
             // 
-            ComboBox1_CauHoi1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            ComboBox1_CauHoi1.Font = new Font("Segoe UI", 9.792F);
+            ComboBox1_CauHoi1.BackColor = Color.White;
+            ComboBox1_CauHoi1.FlatStyle = FlatStyle.Flat;
+            ComboBox1_CauHoi1.Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            ComboBox1_CauHoi1.ForeColor = Color.FromArgb(15, 23, 42);
             ComboBox1_CauHoi1.FormattingEnabled = true;
-            ComboBox1_CauHoi1.Location = new Point(119, 10);
-            ComboBox1_CauHoi1.Margin = new Padding(3, 2, 3, 2);
             ComboBox1_CauHoi1.Name = "ComboBox1_CauHoi1";
-            ComboBox1_CauHoi1.Size = new Size(358, 25);
             ComboBox1_CauHoi1.TabIndex = 0;
+            ComboBox1_CauHoi1.Width = 440;
+            //
+            // TextBox1_TraLoi1
+            //
+            TextBox1_TraLoi1.CueHint.CueHintText = "Nhập câu trả lời của bạn";
+            TextBox1_TraLoi1.Dock = DockStyle.Fill;
+            TextBox1_TraLoi1.Margin = new Padding(0);
+            TextBox1_TraLoi1.Name = "TextBox1_TraLoi1";
+            TextBox1_TraLoi1.TabIndex = 1;
+            //
+            // lblCauHoi2
+            //
+            lblCauHoi2.AutoSize = true;
+            lblCauHoi2.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblCauHoi2.ForeColor = Color.FromArgb(51, 65, 85);
+            lblCauHoi2.Margin = new Padding(0, 14, 0, 4);
+            lblCauHoi2.Name = "lblCauHoi2";
+            lblCauHoi2.TabIndex = 13;
+            lblCauHoi2.Text = "Câu hỏi bảo mật 2";
+            //
+            // ComboBox2_CauHoi2
+            //
+            // khung viền bao quanh combobox (ComboBox Flat tự nó không có viền)
+            pnlCombo2.BackColor = Color.White;
+            pnlCombo2.Controls.Add(ComboBox2_CauHoi2);
+            pnlCombo2.Dock = DockStyle.Fill;
+            pnlCombo2.Margin = new Padding(0, 0, 0, 8);
+            pnlCombo2.MinimumSize = new Size(0, 36);
+            pnlCombo2.Name = "pnlCombo2";
+            pnlCombo2.Padding = new Padding(10, 0, 4, 0);
+            pnlCombo2.Size = new Size(456, 36);
+            pnlCombo2.TabIndex = 2;
             // 
+            // ComboBox2_CauHoi2
+            // 
+            ComboBox2_CauHoi2.BackColor = Color.White;
+            ComboBox2_CauHoi2.FlatStyle = FlatStyle.Flat;
+            ComboBox2_CauHoi2.Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            ComboBox2_CauHoi2.ForeColor = Color.FromArgb(15, 23, 42);
+            ComboBox2_CauHoi2.FormattingEnabled = true;
+            ComboBox2_CauHoi2.Name = "ComboBox2_CauHoi2";
+            ComboBox2_CauHoi2.TabIndex = 0;
+            ComboBox2_CauHoi2.Width = 440;
+            //
+            // TextBox2_TraLoi2
+            //
+            TextBox2_TraLoi2.CueHint.CueHintText = "Nhập câu trả lời của bạn";
+            TextBox2_TraLoi2.Dock = DockStyle.Fill;
+            TextBox2_TraLoi2.Margin = new Padding(0);
+            TextBox2_TraLoi2.Name = "TextBox2_TraLoi2";
+            TextBox2_TraLoi2.TabIndex = 3;
+            //
             // Btn_KiemTra
-            // 
-            Btn_KiemTra.Anchor = AnchorStyles.None;
-            Btn_KiemTra.Location = new Point(176, 300);
-            Btn_KiemTra.Margin = new Padding(3, 2, 3, 2);
+            //
+            Btn_KiemTra.Cursor = Cursors.Hand;
+            Btn_KiemTra.Dock = DockStyle.Fill;
+            Btn_KiemTra.Margin = new Padding(0, 22, 0, 0);
+            Btn_KiemTra.MinimumSize = new Size(0, 46);
             Btn_KiemTra.Name = "Btn_KiemTra";
-            Btn_KiemTra.Size = new Size(134, 32);
-            Btn_KiemTra.StateCommon.Border.Rounding = 4F;
-            Btn_KiemTra.TabIndex = 0;
-            Btn_KiemTra.Values.DropDownArrowColor = Color.Empty;
+            Btn_KiemTra.Size = new Size(456, 46);
+            Btn_KiemTra.TabIndex = 4;
             Btn_KiemTra.Values.Image = (Image)resources.GetObject("Btn_KiemTra.Values.Image");
-            Btn_KiemTra.Values.Text = "Kiểm tra";
+            Btn_KiemTra.Values.Text = "Xác minh && lấy lại mật khẩu";
             Btn_KiemTra.Click += Btn_KiemTra_Click;
-            // 
-            // TableLayoutPanel6
-            // 
-            TableLayoutPanel6.ColumnCount = 2;
-            TableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.166666F));
-            TableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 75.8333359F));
-            TableLayoutPanel6.Controls.Add(label5, 0, 3);
-            TableLayoutPanel6.Controls.Add(label4, 0, 1);
-            TableLayoutPanel6.Controls.Add(TextBox2_TraLoi2, 1, 3);
-            TableLayoutPanel6.Controls.Add(ComboBox2_CauHoi2, 1, 2);
-            TableLayoutPanel6.Controls.Add(TextBox1_TraLoi1, 1, 1);
-            TableLayoutPanel6.Controls.Add(Label8, 0, 2);
-            TableLayoutPanel6.Controls.Add(Label7, 0, 0);
-            TableLayoutPanel6.Controls.Add(ComboBox1_CauHoi1, 1, 0);
-            TableLayoutPanel6.Dock = DockStyle.Fill;
-            TableLayoutPanel6.Location = new Point(3, 2);
-            TableLayoutPanel6.Margin = new Padding(3, 2, 3, 2);
-            TableLayoutPanel6.Name = "TableLayoutPanel6";
-            TableLayoutPanel6.RowCount = 4;
-            TableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
-            TableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
-            TableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
-            TableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
-            TableLayoutPanel6.Size = new Size(480, 195);
-            TableLayoutPanel6.TabIndex = 26;
-            // 
-            // label5
-            // 
-            label5.Anchor = AnchorStyles.None;
-            label5.AutoSize = true;
-            label5.Font = new Font("Segoe UI Semilight", 12.096F);
-            label5.ForeColor = Color.Blue;
-            label5.Location = new Point(30, 158);
-            label5.Name = "label5";
-            label5.Size = new Size(56, 23);
-            label5.TabIndex = 28;
-            label5.Text = "Trả lời";
-            // 
-            // label4
-            // 
-            label4.Anchor = AnchorStyles.None;
-            label4.AutoSize = true;
-            label4.Font = new Font("Segoe UI Semilight", 12.096F);
-            label4.ForeColor = Color.Blue;
-            label4.Location = new Point(30, 60);
-            label4.Name = "label4";
-            label4.Size = new Size(56, 23);
-            label4.TabIndex = 27;
-            label4.Text = "Trả lời";
-            // 
-            // TableLayoutPanel1
-            // 
-            TableLayoutPanel1.ColumnCount = 1;
-            TableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            TableLayoutPanel1.Controls.Add(Btn_KiemTra, 0, 2);
-            TableLayoutPanel1.Controls.Add(TableLayoutPanel2, 0, 1);
-            TableLayoutPanel1.Controls.Add(TableLayoutPanel6, 0, 0);
-            TableLayoutPanel1.Dock = DockStyle.Fill;
-            TableLayoutPanel1.Location = new Point(153, 2);
-            TableLayoutPanel1.Margin = new Padding(3, 2, 3, 2);
-            TableLayoutPanel1.Name = "TableLayoutPanel1";
-            TableLayoutPanel1.RowCount = 3;
-            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 58.1761F));
-            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 27.0440254F));
-            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 14.4654093F));
-            TableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
-            TableLayoutPanel1.Size = new Size(486, 341);
-            TableLayoutPanel1.TabIndex = 19;
-            // 
-            // TableLayoutPanel2
-            // 
-            TableLayoutPanel2.ColumnCount = 2;
-            TableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 37.78196F));
-            TableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62.21804F));
-            TableLayoutPanel2.Controls.Add(Label1, 0, 1);
-            TableLayoutPanel2.Controls.Add(Text_MatKhauLayLai, 1, 1);
-            TableLayoutPanel2.Controls.Add(Text_TenTaiKhoan, 1, 0);
-            TableLayoutPanel2.Controls.Add(Label2, 0, 0);
-            TableLayoutPanel2.Dock = DockStyle.Fill;
-            TableLayoutPanel2.Location = new Point(3, 201);
-            TableLayoutPanel2.Margin = new Padding(3, 2, 3, 2);
-            TableLayoutPanel2.Name = "TableLayoutPanel2";
-            TableLayoutPanel2.RowCount = 2;
-            TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            TableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            TableLayoutPanel2.Size = new Size(480, 88);
-            TableLayoutPanel2.TabIndex = 18;
-            // 
+            //
+            // lblKetQua
+            //
+            lblKetQua.AutoSize = true;
+            lblKetQua.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblKetQua.ForeColor = Color.FromArgb(100, 116, 139);
+            lblKetQua.Margin = new Padding(0, 22, 0, 6);
+            lblKetQua.Name = "lblKetQua";
+            lblKetQua.TabIndex = 14;
+            lblKetQua.Text = "THÔNG TIN KHÔI PHỤC";
+            //
+            // tlpKetQua
+            //
+            tlpKetQua.AutoSize = true;
+            tlpKetQua.ColumnCount = 2;
+            tlpKetQua.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpKetQua.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpKetQua.Controls.Add(lblTaiKhoan, 0, 0);
+            tlpKetQua.Controls.Add(lblMatKhau, 1, 0);
+            tlpKetQua.Controls.Add(Text_TenTaiKhoan, 0, 1);
+            tlpKetQua.Controls.Add(Text_MatKhauLayLai, 1, 1);
+            tlpKetQua.Dock = DockStyle.Fill;
+            tlpKetQua.Margin = new Padding(0);
+            tlpKetQua.Name = "tlpKetQua";
+            tlpKetQua.RowCount = 2;
+            tlpKetQua.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpKetQua.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpKetQua.TabIndex = 5;
+            //
+            // lblTaiKhoan
+            //
+            lblTaiKhoan.AutoSize = true;
+            lblTaiKhoan.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTaiKhoan.ForeColor = Color.FromArgb(51, 65, 85);
+            lblTaiKhoan.Margin = new Padding(0, 0, 0, 4);
+            lblTaiKhoan.Name = "lblTaiKhoan";
+            lblTaiKhoan.TabIndex = 0;
+            lblTaiKhoan.Text = "Tên tài khoản";
+            //
+            // lblMatKhau
+            //
+            lblMatKhau.AutoSize = true;
+            lblMatKhau.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblMatKhau.ForeColor = Color.FromArgb(51, 65, 85);
+            lblMatKhau.Margin = new Padding(6, 0, 0, 4);
+            lblMatKhau.Name = "lblMatKhau";
+            lblMatKhau.TabIndex = 1;
+            lblMatKhau.Text = "Mật khẩu của bạn";
+            //
             // Text_TenTaiKhoan
-            // 
-            Text_TenTaiKhoan.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            Text_TenTaiKhoan.Location = new Point(184, 7);
-            Text_TenTaiKhoan.Margin = new Padding(3, 2, 3, 2);
+            //
+            Text_TenTaiKhoan.Dock = DockStyle.Fill;
+            Text_TenTaiKhoan.Margin = new Padding(0, 0, 6, 0);
             Text_TenTaiKhoan.Name = "Text_TenTaiKhoan";
-            Text_TenTaiKhoan.Size = new Size(293, 29);
-            Text_TenTaiKhoan.StateCommon.Border.Rounding = 8F;
-            Text_TenTaiKhoan.StateCommon.Border.Width = 1;
-            Text_TenTaiKhoan.TabIndex = 3;
-            // 
-            // Label2
-            // 
-            Label2.Anchor = AnchorStyles.Left;
-            Label2.AutoSize = true;
-            Label2.Font = new Font("Segoe UI Semilight", 12.096F);
-            Label2.ForeColor = Color.Blue;
-            Label2.Location = new Point(3, 10);
-            Label2.Name = "Label2";
-            Label2.Size = new Size(108, 23);
-            Label2.TabIndex = 2;
-            Label2.Text = "Tên tài khoản";
-            // 
-            // TableLayoutPanel3
-            // 
-            TableLayoutPanel3.ColumnCount = 2;
-            TableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.4314976F));
-            TableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 76.5685043F));
-            TableLayoutPanel3.Controls.Add(TableLayoutPanel1, 1, 0);
-            TableLayoutPanel3.Controls.Add(TableLayoutPanel5, 0, 0);
-            TableLayoutPanel3.Dock = DockStyle.Fill;
-            TableLayoutPanel3.Location = new Point(3, 20);
-            TableLayoutPanel3.Margin = new Padding(3, 2, 3, 2);
-            TableLayoutPanel3.Name = "TableLayoutPanel3";
-            TableLayoutPanel3.RowCount = 1;
-            TableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            TableLayoutPanel3.Size = new Size(642, 345);
-            TableLayoutPanel3.TabIndex = 4;
-            // 
+            Text_TenTaiKhoan.TabIndex = 2;
+            Text_TenTaiKhoan.TabStop = false;
+            //
+            // Text_MatKhauLayLai
+            //
+            Text_MatKhauLayLai.Dock = DockStyle.Fill;
+            Text_MatKhauLayLai.Margin = new Padding(6, 0, 0, 0);
+            Text_MatKhauLayLai.Name = "Text_MatKhauLayLai";
+            Text_MatKhauLayLai.TabIndex = 3;
+            Text_MatKhauLayLai.TabStop = false;
+            //
+            // pnlHero  (panel gradient bên trái)
+            //
+            pnlHero.Controls.Add(tlpHero);
+            pnlHero.Dock = DockStyle.Left;
+            pnlHero.Location = new Point(0, 0);
+            pnlHero.Name = "pnlHero";
+            pnlHero.Size = new Size(300, 560);
+            pnlHero.TabIndex = 1;
+            //
+            // tlpHero
+            //
+            tlpHero.BackColor = Color.Transparent;
+            tlpHero.ColumnCount = 1;
+            tlpHero.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            tlpHero.Controls.Add(pnlBadge, 0, 0);
+            tlpHero.Controls.Add(lblHeroTitle, 0, 1);
+            tlpHero.Controls.Add(lblHeroDesc, 0, 2);
+            tlpHero.Controls.Add(lblHeroHint, 0, 3);
+            tlpHero.Dock = DockStyle.Fill;
+            tlpHero.Name = "tlpHero";
+            tlpHero.Padding = new Padding(24, 24, 24, 28);
+            tlpHero.RowCount = 4;
+            tlpHero.RowStyles.Add(new RowStyle(SizeType.Percent, 45F));
+            tlpHero.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpHero.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tlpHero.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
+            tlpHero.TabIndex = 0;
+            //
+            // pnlBadge  (vòng tròn trắng chứa biểu tượng)
+            //
+            pnlBadge.Anchor = AnchorStyles.Bottom;
+            pnlBadge.BackColor = Color.White;
+            pnlBadge.CornerRadius = 70;
+            pnlBadge.Controls.Add(PictureBox2);
+            pnlBadge.Cursor = Cursors.Hand;
+            pnlBadge.Margin = new Padding(0, 0, 0, 22);
+            pnlBadge.Name = "pnlBadge";
+            pnlBadge.Padding = new Padding(22);
+            pnlBadge.Size = new Size(140, 140);
+            pnlBadge.TabIndex = 0;
+            pnlBadge.Click += PictureBox2_Click;
+            //
+            // PictureBox2
+            //
+            PictureBox2.BackColor = Color.White;
+            PictureBox2.Cursor = Cursors.Hand;
+            PictureBox2.Dock = DockStyle.Fill;
+            PictureBox2.Image = (Image)resources.GetObject("PictureBox2.Image");
+            PictureBox2.Name = "PictureBox2";
+            PictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
+            PictureBox2.TabIndex = 0;
+            PictureBox2.TabStop = false;
+            PictureBox2.Click += PictureBox2_Click;
+            //
+            // lblHeroTitle
+            //
+            lblHeroTitle.Anchor = AnchorStyles.Top;
+            lblHeroTitle.AutoSize = true;
+            lblHeroTitle.BackColor = Color.Transparent;
+            lblHeroTitle.Font = new Font("Segoe UI", 17F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblHeroTitle.ForeColor = Color.White;
+            lblHeroTitle.Margin = new Padding(0, 0, 0, 8);
+            lblHeroTitle.Name = "lblHeroTitle";
+            lblHeroTitle.TabIndex = 1;
+            lblHeroTitle.Text = "Khôi phục tài khoản";
+            lblHeroTitle.TextAlign = ContentAlignment.MiddleCenter;
+            //
+            // lblHeroDesc
+            //
+            lblHeroDesc.Anchor = AnchorStyles.Top;
+            lblHeroDesc.AutoSize = true;
+            lblHeroDesc.BackColor = Color.Transparent;
+            lblHeroDesc.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblHeroDesc.ForeColor = Color.FromArgb(224, 231, 255);
+            lblHeroDesc.Margin = new Padding(0);
+            lblHeroDesc.MaximumSize = new Size(244, 0);
+            lblHeroDesc.Name = "lblHeroDesc";
+            lblHeroDesc.TabIndex = 2;
+            lblHeroDesc.Text = "Xác minh bằng câu hỏi bảo mật để lấy lại quyền truy cập một cách an toàn và nhanh chóng.";
+            lblHeroDesc.TextAlign = ContentAlignment.TopCenter;
+            //
+            // lblHeroHint
+            //
+            lblHeroHint.Anchor = AnchorStyles.Bottom;
+            lblHeroHint.AutoSize = true;
+            lblHeroHint.BackColor = Color.Transparent;
+            lblHeroHint.Font = new Font("Segoe UI", 8.5F, FontStyle.Italic, GraphicsUnit.Point, 0);
+            lblHeroHint.ForeColor = Color.FromArgb(199, 210, 254);
+            lblHeroHint.Margin = new Padding(0);
+            lblHeroHint.MaximumSize = new Size(244, 0);
+            lblHeroHint.Name = "lblHeroHint";
+            lblHeroHint.TabIndex = 3;
+            lblHeroHint.Text = "Cần hỗ trợ? Nhấn vào biểu tượng phía trên để xem hướng dẫn.";
+            lblHeroHint.TextAlign = ContentAlignment.MiddleCenter;
+            //
             // statusStrip1
-            // 
-            statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
-            statusStrip1.ImageScalingSize = new Size(21, 21);
+            //
+            statusStrip1.BackColor = Color.FromArgb(238, 242, 249);
+            statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { label1_PhienBanPhanMem, toolStripStatusLabel1 });
-            statusStrip1.Location = new Point(0, 403);
+            statusStrip1.Location = new Point(0, 616);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new Padding(1, 0, 10, 0);
-            statusStrip1.Size = new Size(654, 26);
+            statusStrip1.Padding = new Padding(12, 0, 16, 0);
+            statusStrip1.Size = new Size(900, 24);
             statusStrip1.TabIndex = 5;
             statusStrip1.Text = "statusStrip1";
-            // 
+            //
             // label1_PhienBanPhanMem
-            // 
+            //
             label1_PhienBanPhanMem.Image = (Image)resources.GetObject("label1_PhienBanPhanMem.Image");
+            label1_PhienBanPhanMem.ForeColor = Color.FromArgb(100, 116, 139);
             label1_PhienBanPhanMem.Name = "label1_PhienBanPhanMem";
-            label1_PhienBanPhanMem.Size = new Size(243, 21);
+            label1_PhienBanPhanMem.Size = new Size(243, 19);
             label1_PhienBanPhanMem.Text = "Viết bởi LeTrungKien và Nhóm phát triển";
-            // 
+            //
             // toolStripStatusLabel1
-            // 
+            //
+            toolStripStatusLabel1.ActiveLinkColor = Color.FromArgb(29, 78, 216);
+            toolStripStatusLabel1.LinkColor = Color.FromArgb(37, 99, 235);
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(65, 21);
+            toolStripStatusLabel1.Size = new Size(65, 19);
             toolStripStatusLabel1.Text = "HuongDan";
-            // 
-            // tableLayoutPanel10
-            // 
-            tableLayoutPanel10.ColumnCount = 1;
-            tableLayoutPanel10.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel10.Controls.Add(label3, 0, 0);
-            tableLayoutPanel10.Controls.Add(groupBox1, 0, 1);
-            tableLayoutPanel10.Dock = DockStyle.Fill;
-            tableLayoutPanel10.Location = new Point(0, 0);
-            tableLayoutPanel10.Margin = new Padding(3, 2, 3, 2);
-            tableLayoutPanel10.Name = "tableLayoutPanel10";
-            tableLayoutPanel10.RowCount = 2;
-            tableLayoutPanel10.RowStyles.Add(new RowStyle(SizeType.Percent, 8F));
-            tableLayoutPanel10.RowStyles.Add(new RowStyle(SizeType.Percent, 92F));
-            tableLayoutPanel10.Size = new Size(654, 403);
-            tableLayoutPanel10.TabIndex = 6;
-            // 
-            // label3
-            // 
-            label3.Anchor = AnchorStyles.Left;
-            label3.AutoSize = true;
-            label3.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold | FontStyle.Italic);
-            label3.ForeColor = Color.Green;
-            label3.Location = new Point(3, 6);
-            label3.Name = "label3";
-            label3.Size = new Size(71, 19);
-            label3.TabIndex = 33;
-            label3.Text = " Xin chào,";
-            // 
-            // groupBox1
-            // 
-            groupBox1.Controls.Add(TableLayoutPanel3);
-            groupBox1.Dock = DockStyle.Fill;
-            groupBox1.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
-            groupBox1.ForeColor = Color.Green;
-            groupBox1.Location = new Point(3, 34);
-            groupBox1.Margin = new Padding(3, 2, 3, 2);
-            groupBox1.Name = "groupBox1";
-            groupBox1.Padding = new Padding(3, 2, 3, 2);
-            groupBox1.Size = new Size(648, 367);
-            groupBox1.TabIndex = 32;
-            groupBox1.TabStop = false;
-            groupBox1.Text = "bạn hãy nhập thông tin để khôi phục lại mật khẩu";
-            // 
+            //
             // Form5_QuenPass
-            // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.Control;
-            ClientSize = new Size(654, 429);
-            Controls.Add(tableLayoutPanel10);
+            //
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            BackColor = Color.FromArgb(238, 242, 249);
+            ClientSize = new Size(900, 640);
+            Controls.Add(pnlRoot);
             Controls.Add(statusStrip1);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(3, 2, 3, 2);
             Name = "Form5_QuenPass";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Quên mật khẩu";
             Load += Form5_Load;
-            TableLayoutPanel5.ResumeLayout(false);
+            pnlRoot.ResumeLayout(false);
+            pnlCard.ResumeLayout(false);
+            pnlRight.ResumeLayout(false);
+            pnlCombo1.ResumeLayout(false);
+            pnlCombo2.ResumeLayout(false);
+            tlpForm.ResumeLayout(false);
+            tlpForm.PerformLayout();
+            tlpKetQua.ResumeLayout(false);
+            tlpKetQua.PerformLayout();
+            pnlHero.ResumeLayout(false);
+            tlpHero.ResumeLayout(false);
+            tlpHero.PerformLayout();
+            pnlBadge.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)PictureBox2).EndInit();
-            TableLayoutPanel6.ResumeLayout(false);
-            TableLayoutPanel6.PerformLayout();
-            TableLayoutPanel1.ResumeLayout(false);
-            TableLayoutPanel2.ResumeLayout(false);
-            TableLayoutPanel2.PerformLayout();
-            TableLayoutPanel3.ResumeLayout(false);
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
-            tableLayoutPanel10.ResumeLayout(false);
-            tableLayoutPanel10.PerformLayout();
-            groupBox1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
+
         #endregion
-        internal TableLayoutPanel TableLayoutPanel5;
-        internal PictureBox PictureBox2;
-        internal Label Label1;
-        internal Label Label8;
-        internal ComboBox ComboBox2_CauHoi2;
-        internal Label Label7;
+
+        private BufferedPanel pnlRoot;
+        private WebCardPanel pnlCard;
+        private BufferedPanel pnlRight;
+        private BufferedTableLayoutPanel tlpForm;
+        private Label lblTieuDe;
+        private Label lblMoTa;
+        private Label lblCauHoi1;
+        private Label lblCauHoi2;
+        private WebFieldPanel pnlCombo1;
+        private WebFieldPanel pnlCombo2;
         internal ComboBox ComboBox1_CauHoi1;
-        internal Krypton.Toolkit.KryptonButton Btn_KiemTra;
-        internal TableLayoutPanel TableLayoutPanel6;
-        internal TableLayoutPanel TableLayoutPanel1;
-        internal TableLayoutPanel TableLayoutPanel2;
-        internal Label Label2;
-        internal TableLayoutPanel TableLayoutPanel3;
-        private Krypton.Toolkit.KryptonTextBox Text_MatKhauLayLai;
-        private Krypton.Toolkit.KryptonTextBox TextBox2_TraLoi2;
+        internal ComboBox ComboBox2_CauHoi2;
         private Krypton.Toolkit.KryptonTextBox TextBox1_TraLoi1;
+        private Krypton.Toolkit.KryptonTextBox TextBox2_TraLoi2;
+        internal Krypton.Toolkit.KryptonButton Btn_KiemTra;
+        private Label lblKetQua;
+        private BufferedTableLayoutPanel tlpKetQua;
+        private Label lblTaiKhoan;
+        private Label lblMatKhau;
         private Krypton.Toolkit.KryptonTextBox Text_TenTaiKhoan;
+        private Krypton.Toolkit.KryptonTextBox Text_MatKhauLayLai;
         private ProgressBar progressBar1;
+        private HeroGradientPanel pnlHero;
+        private BufferedTableLayoutPanel tlpHero;
+        private WebCardPanel pnlBadge;
+        internal PictureBox PictureBox2;
+        private Label lblHeroTitle;
+        private Label lblHeroDesc;
+        private Label lblHeroHint;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel label1_PhienBanPhanMem;
-        private TableLayoutPanel tableLayoutPanel10;
-        private GroupBox groupBox1;
-        internal Label label3;
         private ToolStripStatusLabel toolStripStatusLabel1;
-        internal Label label5;
-        internal Label label4;
     }
 }

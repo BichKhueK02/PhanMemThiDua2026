@@ -855,6 +855,26 @@ namespace PhanMemThiDua2026
                 cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
             }
         }
+        //public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params ComboBox[] comboBoxes)
+        //{
+        //    if (comboBoxes == null || comboBoxes.Length == 0 || danhSachCauHoi == null) return;
+        //    foreach (var cb in comboBoxes)
+        //    {
+        //        if (cb == null) continue;
+        //        cb.SelectedIndexChanged -= ComboBox_SelectedIndexChanged;
+        //        cb.BeginUpdate();
+        //        cb.Items.Clear();
+        //        cb.Items.AddRange(danhSachCauHoi);
+        //        cb.SelectedIndex = -1;
+        //        cb.EndUpdate();
+        //        cb.Tag = new Tuple<string[], ComboBox[]>(danhSachCauHoi, comboBoxes);
+        //        cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
+        //    }
+        //}
+        // 🛡️ CHÍNH SÁCH TUẦN TRA VÀ KHÔI PHỤC CHÉO (SELF-HEALING) CHO CORE REPOSITORY
+        // Danh sách các tệp ĐƯỢC PHÉP tồn tại (data1 -> data15)
+
+        // 1. Dành cho ComboBox truyền thống (WinForms mặc định)
         public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params ComboBox[] comboBoxes)
         {
             if (comboBoxes == null || comboBoxes.Length == 0 || danhSachCauHoi == null) return;
@@ -871,8 +891,24 @@ namespace PhanMemThiDua2026
                 cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
             }
         }
-        // 🛡️ CHÍNH SÁCH TUẦN TRA VÀ KHÔI PHỤC CHÉO (SELF-HEALING) CHO CORE REPOSITORY
-        // Danh sách các tệp ĐƯỢC PHÉP tồn tại (data1 -> data15)
+
+        // 2. Dành cho KryptonComboBox hiện đại (Giao diện mới)
+        public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params Krypton.Toolkit.KryptonComboBox[] comboBoxes)
+        {
+            if (comboBoxes == null || comboBoxes.Length == 0 || danhSachCauHoi == null) return;
+            foreach (var cb in comboBoxes)
+            {
+                if (cb == null) continue;
+                cb.SelectedIndexChanged -= ComboBox_SelectedIndexChanged;
+                cb.BeginUpdate();
+                cb.Items.Clear();
+                cb.Items.AddRange(danhSachCauHoi);
+                cb.SelectedIndex = -1;
+                cb.EndUpdate();
+                cb.Tag = new Tuple<string[], Krypton.Toolkit.KryptonComboBox[]>(danhSachCauHoi, comboBoxes);
+                cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
+            }
+        }
         private static readonly HashSet<string> DanhSachDataHopLe = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "data1", "data2", "data3", "data4", "data5",

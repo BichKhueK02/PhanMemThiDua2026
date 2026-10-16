@@ -1,4 +1,403 @@
-﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+﻿/////TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+//using System.Globalization;
+//using System.Text;
+//namespace PhanMemThiDua2026
+//{
+//    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+//    public partial class Form14 : Form
+//    {
+//        private readonly StringBuilder _expression = new();
+//        private bool _justCalculated;
+//        // [FIX 5]: Chống spam phím
+//        private DateTime _lastInputTime = DateTime.MinValue;
+//        private const int INPUT_DELAY = 40;
+//        private const int MAX_LENGTH = 100;
+//        // [PRO 2]: Lặp phép tính
+//        private char _lastOp = '\0';
+//        private double _lastRightOperand = 0;
+//        private readonly Dictionary<char, int> _operators = new(){
+//            { '+', 1 }, { '-', 1 }, { '*', 2 }, { '/', 2 }, { '%', 2 }, { '^', 3 }, { '√', 4 }
+//        };
+//        public Form14()
+//        {
+//            InitializeComponent();
+//            Module_HeThong.BocBoTronGiaoDien(ListBox1);
+//            InitializeForm();
+//        }
+//        //region ===== INITIALIZE =====
+//        private void InitializeForm()
+//        {
+//            ShowInTaskbar = false;
+//            FormBorderStyle = FormBorderStyle.FixedSingle;
+//            MaximizeBox = false;
+//            MinimizeBox = false;
+//            StartPosition = FormStartPosition.CenterScreen;
+//            KeyPreview = true;
+//            KeyPress += Form_KeyPress;
+//            KeyDown += Form_KeyDown;
+//            AcceptButton = Btn_phimdaubang;
+//            AttachButtons(this);
+//            // [CẤU HÌNH CUSTOM HIGHLIGHT CHO LISTBOX1]
+//            ListBox1.DrawMode = DrawMode.OwnerDrawFixed;
+//            ListBox1.DrawItem += ListBox1_DrawItem;
+//        }
+//        private void ListBox1_DrawItem(object? sender, DrawItemEventArgs e)
+//        {
+//            if (e.Index < 0 || sender is not ListBox lb) return;
+//            bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+//            // [MÀU CHUẨN DARK THEME MELLOW GREEN]
+//            // Nền highlight: Xanh lục bảo trầm dịu mắt, không bị choang rực trên nền đen
+//            Color backColor = isSelected ? Color.FromArgb(20, 65, 35) : lb.BackColor;
+//            // Chữ khi chọn: Xanh neon dịu nhẹ (sáng rõ nét trên nền xanh tối)
+//            // Chữ bình thường: Giữ nguyên màu nền gốc
+//            Color textColor = isSelected ? Color.FromArgb(160, 255, 170) : lb.ForeColor;
+//            using (SolidBrush backBrush = new SolidBrush(backColor))
+//            {
+//                e.Graphics.FillRectangle(backBrush, e.Bounds);
+//            }
+//            string itemText = lb.Items[e.Index]?.ToString() ?? string.Empty;
+//            TextRenderer.DrawText(
+//                e.Graphics,
+//                itemText,
+//                e.Font ?? lb.Font,
+//                e.Bounds,
+//                textColor,
+//                TextFormatFlags.VerticalCenter | TextFormatFlags.Left
+//            );
+//            // Bỏ DrawFocusRectangle để không bị viền nét đứt gợn xấu
+//        }
+//        private void AttachButtons(Control parent)
+//        {
+//            foreach (Control ctrl in parent.Controls)
+//            {
+//                if (ctrl is Button btn) btn.Click += Button_Click;
+//                if (ctrl.HasChildren) AttachButtons(ctrl);
+//            }
+//        }
+//        //endregion
+//        //region ===== INPUT HANDLING =====
+//        private void Button_Click(object? sender, EventArgs e)
+//        {
+//            if (sender is not Button btn) return;
+//            switch (btn.Name)
+//            {
+//                case "Btn_phimdaubang": Calculate(); break;
+//                case "Btn_phimdauxoaall": ClearAllFull(); break;
+//                case "Btn_phimdauxoa": DeleteLast(); break;
+//                default: ProcessInput(btn.Text.Trim()); break;
+//            }
+//        }
+//        private void Form_KeyPress(object? sender, KeyPressEventArgs e)
+//        {
+//            char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+//            if (char.IsDigit(e.KeyChar) || "+-*/()%^√".Contains(e.KeyChar))
+//            {
+//                ProcessInput(e.KeyChar.ToString());
+//                e.Handled = true;
+//            }
+//            else if (e.KeyChar == '.' || e.KeyChar == ',')
+//            {
+//                ProcessInput(dec.ToString());
+//                e.Handled = true;
+//            }
+//        }
+//        private void Form_KeyDown(object? sender, KeyEventArgs e)
+//        {
+//            if (e.KeyCode == Keys.Enter)
+//            {
+//                Calculate();
+//                e.SuppressKeyPress = true;
+//            }
+//            else if (e.KeyCode == Keys.Back)
+//            {
+//                DeleteLast();
+//                e.SuppressKeyPress = true;
+//            }
+//            else if (e.KeyCode == Keys.Delete)
+//            {
+//                ClearAll();
+//                e.SuppressKeyPress = true;
+//            }
+//            else if (e.Control && e.KeyCode == Keys.C)
+//            {
+//                CopyResult();
+//                e.SuppressKeyPress = true;
+//            }
+//        }
+//        private void ProcessInput(string value)
+//        {
+//            // [FIX 5]: Chống spam & Giới hạn độ dài
+//            if ((DateTime.Now - _lastInputTime).TotalMilliseconds < INPUT_DELAY) return;
+//            _lastInputTime = DateTime.Now;
+//            if (_expression.Length >= MAX_LENGTH) return;
+//            if (string.IsNullOrWhiteSpace(value)) return;
+//            value = value.Replace("×", "*").Replace("x", "*").Replace("X", "*").Replace("÷", "/");
+//            char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+//            // [PRO 1]: Auto thêm ngoặc cho căn bậc 2
+//            if (value == "√")
+//            {
+//                if (_justCalculated) { _expression.Clear(); _justCalculated = false; }
+//                _expression.Append("√(");
+//                RefreshDisplay();
+//                return;
+//            }
+//            if (_justCalculated && char.IsDigit(value[0]))
+//            {
+//                _expression.Clear();
+//                _justCalculated = false;
+//            }
+//            if (value.Length == 1 && _operators.ContainsKey(value[0]))
+//            {
+//                _justCalculated = false; // Reset cờ để không bị lặp phép tính nhầm
+//                if (_expression.Length == 0)
+//                {
+//                    if (value[0] == '-') { _expression.Append(value); RefreshDisplay(); }
+//                    return;
+//                }
+//                if (_operators.ContainsKey(_expression[^1]) && _expression[^1] != '√')
+//                {
+//                    _expression[^1] = value[0];
+//                    RefreshDisplay();
+//                    return;
+//                }
+//            }
+//            if (value.Length == 1 && value[0] == dec && GetCurrentNumber().Contains(dec))
+//                return;
+//            _expression.Append(value);
+//            RefreshDisplay();
+//        }
+//        //endregion
+//        //region ===== CALCULATE =====
+//        private void Calculate()
+//        {
+//            if (_expression.Length == 0) return;
+//            try
+//            {
+//                // [PRO 2]: Lặp phép tính nếu user vừa tính xong và ấn '=' tiếp
+//                if (_justCalculated && _lastOp != '\0')
+//                {
+//                    _expression.Append(_lastOp).Append(_lastRightOperand.ToString(CultureInfo.InvariantCulture));
+//                }
+//                string rawExpression = _expression.ToString();
+//                double result = Evaluate(rawExpression);
+//                // Add expression
+//                ListBox1.Items.Add(rawExpression + " =");
+//                // Add result
+//                ListBox1.Items.Add(result.ToString("G15", CultureInfo.CurrentCulture));
+//                // [PRO 3]: Highlight kết quả và cuộn xuống
+//                ListBox1.SelectedIndex = ListBox1.Items.Count - 1;
+//                _expression.Clear();
+//                _expression.Append(result.ToString(CultureInfo.CurrentCulture));
+//                _justCalculated = true;
+//            }
+//            // [FIX 2]: Phân biệt Exception cực chuẩn
+//            catch (DivideByZeroException) { ShowError("Lỗi: Không thể chia cho 0"); }
+//            catch (ArithmeticException ex) { ShowError(ex.Message); }
+//            catch (Exception) { ShowError("Lỗi: Biểu thức không hợp lệ"); }
+//        }
+//        private double Evaluate(string expression)
+//        {
+//            var tokens = Tokenize(expression);
+//            var postfix = ToPostfix(tokens);
+//            return EvaluatePostfix(postfix);
+//        }
+//        //endregion
+//        //region ===== TOKENIZE =====
+//        private List<string> Tokenize(string expression)
+//        {
+//            var tokens = new List<string>();
+//            var number = new StringBuilder();
+//            char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+//            for (int i = 0; i < expression.Length; i++)
+//            {
+//                char c = expression[i];
+//                if (char.IsDigit(c) || c == dec)
+//                {
+//                    number.Append(c);
+//                    continue;
+//                }
+//                if (c == '-' && (i == 0 || _operators.ContainsKey(expression[i - 1]) || expression[i - 1] == '('))
+//                {
+//                    number.Append(c);
+//                    continue;
+//                }
+//                if (number.Length > 0)
+//                {
+//                    tokens.Add(number.ToString());
+//                    number.Clear();
+//                }
+//                tokens.Add(c.ToString());
+//            }
+//            if (number.Length > 0) tokens.Add(number.ToString());
+//            return tokens;
+//        }
+//        //endregion
+//        //region ===== INFIX → POSTFIX =====
+//        private List<string> ToPostfix(List<string> tokens)
+//        {
+//            var output = new List<string>();
+//            var stack = new Stack<string>();
+//            foreach (var token in tokens)
+//            {
+//                if (double.TryParse(token, NumberStyles.Float, CultureInfo.CurrentCulture, out _))
+//                {
+//                    output.Add(token);
+//                }
+//                else if (token.Length == 1 && _operators.ContainsKey(token[0]))
+//                {
+//                    // [FIX 3]: Xử lý Associativity chuẩn (Right-associative cho ^ và √)
+//                    while (stack.Count > 0 &&
+//                           _operators.ContainsKey(stack.Peek()[0]) &&
+//                           (
+//                               (_operators[stack.Peek()[0]] > _operators[token[0]]) ||
+//                               (_operators[stack.Peek()[0]] == _operators[token[0]] && token[0] != '^' && token[0] != '√')
+//                           ))
+//                    {
+//                        output.Add(stack.Pop());
+//                    }
+//                    stack.Push(token);
+//                }
+//                else if (token == "(")
+//                {
+//                    stack.Push(token);
+//                }
+//                else if (token == ")")
+//                {
+//                    while (stack.Count > 0 && stack.Peek() != "(")
+//                        output.Add(stack.Pop());
+//                    if (stack.Count == 0) throw new Exception("Ngoặc không cân");
+//                    stack.Pop();
+//                }
+//            }
+//            while (stack.Count > 0)
+//            {
+//                if (stack.Peek() == "(") throw new Exception("Ngoặc không cân");
+//                output.Add(stack.Pop());
+//            }
+//            return output;
+//        }
+//        //endregion
+//        //region ===== POSTFIX EVALUATE =====
+//        private double EvaluatePostfix(List<string> postfix)
+//        {
+//            var values = new Stack<double>();
+//            foreach (var token in postfix)
+//            {
+//                if (double.TryParse(token, NumberStyles.Float, CultureInfo.CurrentCulture, out double num))
+//                {
+//                    values.Push(num);
+//                }
+//                else if (token.Length == 1 && _operators.ContainsKey(token[0]))
+//                {
+//                    if (token[0] == '√')
+//                    {
+//                        if (values.Count < 1) throw new Exception("Thiếu toán hạng");
+//                        double val = values.Pop();
+//                        // [FIX 1]: Chặn Sqrt số âm bẻ gãy UX
+//                        if (val < 0) throw new ArithmeticException("Lỗi: Không thể căn số âm");
+//                        values.Push(Math.Sqrt(val));
+//                        continue;
+//                    }
+//                    if (values.Count < 2) throw new Exception("Thiếu toán hạng");
+//                    double b = values.Pop();
+//                    double a = values.Pop();
+//                    // [PRO 2]: Lưu vết toán tử cuối cùng để lặp phép tính
+//                    _lastOp = token[0];
+//                    _lastRightOperand = b;
+//                    values.Push(token[0] switch
+//                    {
+//                        '+' => a + b,
+//                        '-' => a - b,
+//                        '*' => a * b,
+//                        '/' => b == 0 ? throw new DivideByZeroException() : a / b,
+//                        '%' => a * b / 100, // [FIX 2]: Giống máy tính Windows (Percentage)
+//                        '^' => Math.Pow(a, b),
+//                        _ => throw new InvalidOperationException()
+//                    });
+//                }
+//            }
+//            if (values.Count != 1) throw new Exception("Sai biểu thức");
+//            return values.Pop();
+//        }
+//        //endregion
+//        //region ===== UTIL =====
+//        private string GetCurrentNumber()
+//        {
+//            if (_expression.Length == 0) return string.Empty;
+//            var sb = new StringBuilder();
+//            for (int i = _expression.Length - 1; i >= 0; i--)
+//            {
+//                char c = _expression[i];
+//                if (_operators.ContainsKey(c) || c == '(' || c == ')') break;
+//                sb.Insert(0, c);
+//            }
+//            return sb.ToString();
+//        }
+//        private void DeleteLast()
+//        {
+//            if (_expression.Length == 0) return;
+//            _expression.Remove(_expression.Length - 1, 1);
+//            RefreshDisplay();
+//        }
+//        private void ClearAll()
+//        {
+//            _expression.Clear();
+//            _justCalculated = false;
+//            RefreshDisplay();
+//        }
+//        private void ClearAllFull()
+//        {
+//            _expression.Clear();
+//            _justCalculated = false;
+//            _lastOp = '\0';
+//            ListBox1.Items.Clear();
+//        }
+//        // [FIX 4]: RefreshDisplay cực chuẩn
+//        private void RefreshDisplay()
+//        {
+//            string text = _expression.ToString();
+//            if (ListBox1.Items.Count == 0)
+//            {
+//                ListBox1.Items.Add(text);
+//            }
+//            else if (_justCalculated)
+//            {
+//                ListBox1.Items.Add(text);
+//                _justCalculated = false;
+//            }
+//            else
+//            {
+//                ListBox1.Items[ListBox1.Items.Count - 1] = text;
+//            }
+//            ListBox1.TopIndex = ListBox1.Items.Count - 1;
+//        }
+//        private void ShowError(string message)
+//        {
+//            ListBox1.Items.Add(_expression.ToString());
+//            ListBox1.Items.Add(message);
+//            ListBox1.SelectedIndex = ListBox1.Items.Count - 1;
+//            _expression.Clear();
+//            _justCalculated = false;
+//            _lastOp = '\0'; // Xóa cache lặp phép tính
+//        }
+//        private void CopyResult()
+//        {
+//            if (ListBox1.Items.Count > 0)
+//            {
+//                string lastItem = ListBox1.Items[^1].ToString();
+//                if (!string.IsNullOrWhiteSpace(lastItem) && !lastItem.Contains("Lỗi"))
+//                {
+//                    Clipboard.SetText(lastItem);
+//                }
+//            }
+//        }
+//        //endregion
+//    }
+//}
+
+///Phiên bản 2
+///
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using System.Globalization;
 using System.Text;
 namespace PhanMemThiDua2026
@@ -8,22 +407,24 @@ namespace PhanMemThiDua2026
     {
         private readonly StringBuilder _expression = new();
         private bool _justCalculated;
+        // Dòng cuối của ListBox đang là "dòng đang gõ" (được cập nhật tại chỗ khi gõ tiếp)
+        private bool _coDongDangNhap;
         // [FIX 5]: Chống spam phím
         private DateTime _lastInputTime = DateTime.MinValue;
         private const int INPUT_DELAY = 40;
         private const int MAX_LENGTH = 100;
-        // [PRO 2]: Lặp phép tính
+        // [PRO 2]: Lặp phép tính khi bấm '=' liên tiếp
         private char _lastOp = '\0';
         private double _lastRightOperand = 0;
-        private readonly Dictionary<char, int> _operators = new(){
-            { '+', 1 }, { '-', 1 }, { '*', 2 }, { '/', 2 }, { '%', 2 }, { '^', 3 }, { '√', 4 }
-        };
+        private string _lastResultText = string.Empty;
+
         public Form14()
         {
             InitializeComponent();
             Module_HeThong.BocBoTronGiaoDien(ListBox1);
             InitializeForm();
         }
+
         //region ===== INITIALIZE =====
         private void InitializeForm()
         {
@@ -35,46 +436,81 @@ namespace PhanMemThiDua2026
             KeyPreview = true;
             KeyPress += Form_KeyPress;
             KeyDown += Form_KeyDown;
-            AcceptButton = Btn_phimdaubang;
+            // Enter được xử lý trong ProcessCmdKey (không dùng AcceptButton, tránh Enter bấm lại phím đang giữ focus)
+            AcceptButton = null;
+            // Nút dấu thập phân hiển thị đúng dấu của máy (',' hoặc '.')
+            Btn_phimdauphay.Text = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
             AttachButtons(this);
             // [CẤU HÌNH CUSTOM HIGHLIGHT CHO LISTBOX1]
             ListBox1.DrawMode = DrawMode.OwnerDrawFixed;
             ListBox1.DrawItem += ListBox1_DrawItem;
         }
+
         private void ListBox1_DrawItem(object? sender, DrawItemEventArgs e)
         {
             if (e.Index < 0 || sender is not ListBox lb) return;
             bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-            // [MÀU CHUẨN DARK THEME MELLOW GREEN]
-            // Nền highlight: Xanh lục bảo trầm dịu mắt, không bị choang rực trên nền đen
-            Color backColor = isSelected ? Color.FromArgb(20, 65, 35) : lb.BackColor;
-            // Chữ khi chọn: Xanh neon dịu nhẹ (sáng rõ nét trên nền xanh tối)
-            // Chữ bình thường: Giữ nguyên màu nền gốc
-            Color textColor = isSelected ? Color.FromArgb(160, 255, 170) : lb.ForeColor;
+            string text = lb.Items[e.Index]?.ToString() ?? string.Empty;
+            bool laBieuThuc = text.EndsWith(" =", StringComparison.Ordinal);
+            bool laLoi = text.StartsWith("Lỗi", StringComparison.Ordinal);
+
+            // Giao diện sáng: dòng chọn nền xanh nhạt, biểu thức xám, kết quả đậm, lỗi đỏ
+            Color backColor = isSelected ? Color.FromArgb(219, 234, 254) : lb.BackColor;
+            Color textColor = laLoi ? Color.FromArgb(185, 28, 28)
+                            : laBieuThuc ? Color.FromArgb(100, 116, 139)
+                            : isSelected ? Color.FromArgb(30, 64, 175)
+                            : lb.ForeColor;
             using (SolidBrush backBrush = new SolidBrush(backColor))
             {
                 e.Graphics.FillRectangle(backBrush, e.Bounds);
             }
-            string itemText = lb.Items[e.Index]?.ToString() ?? string.Empty;
-            TextRenderer.DrawText(
-                e.Graphics,
-                itemText,
-                e.Font ?? lb.Font,
-                e.Bounds,
-                textColor,
-                TextFormatFlags.VerticalCenter | TextFormatFlags.Left
-            );
-            // Bỏ DrawFocusRectangle để không bị viền nét đứt gợn xấu
+
+            Rectangle r = Rectangle.Inflate(e.Bounds, -10, 0);
+            const TextFormatFlags dd = TextFormatFlags.NoPadding | TextFormatFlags.SingleLine;
+            float size = laBieuThuc ? 14f : lb.Font.SizeInPoints;
+            FontStyle style = laBieuThuc ? FontStyle.Regular : lb.Font.Style;
+            Font f = new Font(lb.Font.FontFamily, size, style, GraphicsUnit.Point);
+            try
+            {
+                // Dòng dài: thu nhỏ chữ dần (tối thiểu 10pt), vẫn dài thì cắt phần đầu và thêm "…"
+                while (size > 10f &&
+                       TextRenderer.MeasureText(e.Graphics, text, f, new Size(int.MaxValue, e.Bounds.Height), dd).Width > r.Width)
+                {
+                    size -= 1f;
+                    f.Dispose();
+                    f = new Font(lb.Font.FontFamily, size, style, GraphicsUnit.Point);
+                }
+                bool cat = false;
+                string tail = text;
+                while (tail.Length > 1 &&
+                       TextRenderer.MeasureText(e.Graphics, (cat ? "…" : "") + tail, f, new Size(int.MaxValue, e.Bounds.Height), dd).Width > r.Width)
+                {
+                    tail = tail.Substring(1);
+                    cat = true;
+                }
+                TextRenderer.DrawText(e.Graphics, (cat ? "…" : "") + tail, f, r, textColor,
+                    TextFormatFlags.Right | TextFormatFlags.VerticalCenter | dd);
+            }
+            finally
+            {
+                f.Dispose();
+            }
         }
+
         private void AttachButtons(Control parent)
         {
             foreach (Control ctrl in parent.Controls)
             {
-                if (ctrl is Button btn) btn.Click += Button_Click;
+                if (ctrl is Button btn)
+                {
+                    btn.TabStop = false;
+                    btn.Click += Button_Click;
+                }
                 if (ctrl.HasChildren) AttachButtons(ctrl);
             }
         }
         //endregion
+
         //region ===== INPUT HANDLING =====
         private void Button_Click(object? sender, EventArgs e)
         {
@@ -86,34 +522,72 @@ namespace PhanMemThiDua2026
                 case "Btn_phimdauxoa": DeleteLast(); break;
                 default: ProcessInput(btn.Text.Trim()); break;
             }
+            // Trả focus khỏi nút vừa bấm để Enter / Space không bấm lặp lại chính nút đó
+            ActiveControl = null;
         }
-        private void Form_KeyPress(object? sender, KeyPressEventArgs e)
+
+        // Enter (kể cả Enter bàn phím số) luôn là dấu '=', bất kể đang focus ở đâu
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-            if (char.IsDigit(e.KeyChar) || "+-*/()%^√".Contains(e.KeyChar))
-            {
-                ProcessInput(e.KeyChar.ToString());
-                e.Handled = true;
-            }
-            else if (e.KeyChar == '.' || e.KeyChar == ',')
-            {
-                ProcessInput(dec.ToString());
-                e.Handled = true;
-            }
-        }
-        private void Form_KeyDown(object? sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
+            if (keyData == Keys.Enter)
             {
                 Calculate();
-                e.SuppressKeyPress = true;
+                return true;
             }
-            else if (e.KeyCode == Keys.Back)
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        // Chuẩn hóa 1 ký tự (từ phím, nút hoặc dán) về ký tự biểu thức; null nếu không dùng
+        private static string? ChuanHoaPhim(char c)
+        {
+            if (c >= '0' && c <= '9') return c.ToString();
+            switch (c)
+            {
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                case '(':
+                case ')':
+                case '%':
+                case '^':
+                case '√':
+                    return c.ToString();
+                case 'x': case 'X': case '×': return "*";
+                case ':': case '÷': return "/";
+                case '−': return "-";
+                case '@': return "√";
+                case '.':
+                case ',':
+                    return CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0].ToString();
+            }
+            return null;
+        }
+
+        private void Form_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == '=')
+            {
+                Calculate();
+                e.Handled = true;
+                return;
+            }
+            string? v = ChuanHoaPhim(e.KeyChar);
+            if (v != null)
+            {
+                ProcessInput(v);
+                e.Handled = true;
+            }
+        }
+
+        private void Form_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Back)
             {
                 DeleteLast();
                 e.SuppressKeyPress = true;
             }
-            else if (e.KeyCode == Keys.Delete)
+            else if (e.KeyCode == Keys.Delete || e.KeyCode == Keys.Escape)
             {
                 ClearAll();
                 e.SuppressKeyPress = true;
@@ -123,203 +597,373 @@ namespace PhanMemThiDua2026
                 CopyResult();
                 e.SuppressKeyPress = true;
             }
+            else if (e.Control && e.KeyCode == Keys.V)
+            {
+                PasteExpression();
+                e.SuppressKeyPress = true;
+            }
         }
+
+        private static bool LaToanTuHai(char c) => c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
+        private static bool LaChuSo(char c) => c >= '0' && c <= '9';
+
         private void ProcessInput(string value)
         {
             // [FIX 5]: Chống spam & Giới hạn độ dài
             if ((DateTime.Now - _lastInputTime).TotalMilliseconds < INPUT_DELAY) return;
             _lastInputTime = DateTime.Now;
+            NhapKyTu(value);
+        }
+
+        private void NhapKyTu(string value)
+        {
             if (_expression.Length >= MAX_LENGTH) return;
             if (string.IsNullOrWhiteSpace(value)) return;
-            value = value.Replace("×", "*").Replace("x", "*").Replace("X", "*").Replace("÷", "/");
+            value = value.Trim();
+            if (value.Length != 1) return;
+            string? chuan = ChuanHoaPhim(value[0]);
+            if (chuan == null) return;
+            char ch = chuan[0];
             char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+
             // [PRO 1]: Auto thêm ngoặc cho căn bậc 2
-            if (value == "√")
+            if (ch == '√')
             {
                 if (_justCalculated) { _expression.Clear(); _justCalculated = false; }
                 _expression.Append("√(");
                 RefreshDisplay();
                 return;
             }
-            if (_justCalculated && char.IsDigit(value[0]))
+
+            if (LaChuSo(ch))
             {
-                _expression.Clear();
-                _justCalculated = false;
+                if (_justCalculated) { _expression.Clear(); _justCalculated = false; }
+                // Không cho số 0 dẫn đầu: "0" rồi gõ "5" thành "5"
+                if (GetCurrentNumber() == "0") _expression.Length--;
+                _expression.Append(ch);
+                RefreshDisplay();
+                return;
             }
-            if (value.Length == 1 && _operators.ContainsKey(value[0]))
+
+            if (ch == dec)
             {
-                _justCalculated = false; // Reset cờ để không bị lặp phép tính nhầm
-                if (_expression.Length == 0)
+                if (_justCalculated) { _expression.Clear(); _justCalculated = false; }
+                string cur = GetCurrentNumber();
+                if (cur.Contains(dec)) return;
+                if (cur.Length == 0) _expression.Append('0');
+                _expression.Append(dec);
+                RefreshDisplay();
+                return;
+            }
+
+            if (ch == '(')
+            {
+                if (_justCalculated) { _expression.Clear(); _justCalculated = false; }
+                _expression.Append('(');
+                RefreshDisplay();
+                return;
+            }
+
+            if (ch == ')')
+            {
+                int mo = 0, dong = 0;
+                foreach (char c in _expression.ToString()) { if (c == '(') mo++; else if (c == ')') dong++; }
+                if (mo <= dong || _expression.Length == 0) return;
+                char cuoi = _expression[^1];
+                if (!(LaChuSo(cuoi) || cuoi == ')' || cuoi == '%' || cuoi == dec)) return;
+                _expression.Append(')');
+                RefreshDisplay();
+                return;
+            }
+
+            if (ch == '%')
+            {
+                if (_expression.Length == 0) return;
+                char cuoi = _expression[^1];
+                if (!(LaChuSo(cuoi) || cuoi == ')' || cuoi == '%')) return;
+                _justCalculated = false;
+                _expression.Append('%');
+                RefreshDisplay();
+                return;
+            }
+
+            // Còn lại: + - * / ^
+            _justCalculated = false; // Reset cờ để không bị lặp phép tính nhầm
+            if (_expression.Length == 0)
+            {
+                if (ch == '-') { _expression.Append(ch); RefreshDisplay(); }
+                return;
+            }
+            char last = _expression[^1];
+            if (last == '(')
+            {
+                // Sau '(' chỉ cho dấu âm
+                if (ch == '-') { _expression.Append(ch); RefreshDisplay(); }
+                return;
+            }
+            if (LaToanTuHai(last))
+            {
+                // "5*" rồi gõ '-' => số âm: 5*-3
+                if (ch == '-' && (last == '*' || last == '/' || last == '^'))
                 {
-                    if (value[0] == '-') { _expression.Append(value); RefreshDisplay(); }
+                    _expression.Append(ch);
+                    RefreshDisplay();
                     return;
                 }
-                if (_operators.ContainsKey(_expression[^1]) && _expression[^1] != '√')
+                // Còn lại: thay toán tử cũ bằng toán tử mới
+                while (_expression.Length > 0 && LaToanTuHai(_expression[^1])) _expression.Length--;
+                if (_expression.Length == 0)
                 {
-                    _expression[^1] = value[0];
+                    if (ch == '-') _expression.Append(ch);
                     RefreshDisplay();
                     return;
                 }
             }
-            if (value.Length == 1 && value[0] == dec && GetCurrentNumber().Contains(dec))
-                return;
-            _expression.Append(value);
+            _expression.Append(ch);
             RefreshDisplay();
         }
         //endregion
+
         //region ===== CALCULATE =====
         private void Calculate()
         {
             if (_expression.Length == 0) return;
+            // Vừa tính xong mà không có phép tính để lặp (ví dụ chỉ có 1 số) => bỏ qua
+            if (_justCalculated && _lastOp == '\0') return;
             try
             {
                 // [PRO 2]: Lặp phép tính nếu user vừa tính xong và ấn '=' tiếp
                 if (_justCalculated && _lastOp != '\0')
                 {
-                    _expression.Append(_lastOp).Append(_lastRightOperand.ToString(CultureInfo.InvariantCulture));
+                    _expression.Append(_lastOp).Append(DinhDang(_lastRightOperand));
                 }
+                // Tự đóng các ngoặc còn thiếu: (2+3 => (2+3)
+                int mo = 0, dong = 0;
+                foreach (char c in _expression.ToString()) { if (c == '(') mo++; else if (c == ')') dong++; }
+                for (int i = 0; i < mo - dong; i++) _expression.Append(')');
+
                 string rawExpression = _expression.ToString();
-                double result = Evaluate(rawExpression);
-                // Add expression
-                ListBox1.Items.Add(rawExpression + " =");
-                // Add result
-                ListBox1.Items.Add(result.ToString("G15", CultureInfo.CurrentCulture));
+                var boPhanTich = new BoPhanTich(rawExpression, CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0]);
+                double result = boPhanTich.TinhToan();
+                string ketQua = DinhDang(result);
+
+                // Dòng đang gõ được đổi thành "biểu thức =" (không bị lặp 2 dòng)
+                if (_coDongDangNhap && ListBox1.Items.Count > 0)
+                    ListBox1.Items[ListBox1.Items.Count - 1] = rawExpression + " =";
+                else
+                    ListBox1.Items.Add(rawExpression + " =");
+                _coDongDangNhap = false;
+                ListBox1.Items.Add(ketQua);
                 // [PRO 3]: Highlight kết quả và cuộn xuống
                 ListBox1.SelectedIndex = ListBox1.Items.Count - 1;
+                CuonXuongCuoi();
+
+                // Ghi nhớ phép tính cuối (gốc của biểu thức) để lặp; biểu thức chỉ có 1 số thì không lặp
+                _lastOp = boPhanTich.LastOp;
+                _lastRightOperand = boPhanTich.LastRight;
+                _lastResultText = ketQua;
                 _expression.Clear();
-                _expression.Append(result.ToString(CultureInfo.CurrentCulture));
+                _expression.Append(ketQua);
                 _justCalculated = true;
             }
             // [FIX 2]: Phân biệt Exception cực chuẩn
             catch (DivideByZeroException) { ShowError("Lỗi: Không thể chia cho 0"); }
+            catch (LoiBieuThuc ex) { ShowError(ex.Message); }
             catch (ArithmeticException ex) { ShowError(ex.Message); }
             catch (Exception) { ShowError("Lỗi: Biểu thức không hợp lệ"); }
         }
-        private double Evaluate(string expression)
+
+        /// <summary>
+        /// Định dạng kết quả: làm tròn 15 chữ số có nghĩa (0.1+0.2 = 0.3), không bao giờ ra dạng 1E-05
+        /// để chuỗi kết quả luôn đọc lại được thành biểu thức tiếp theo.
+        /// </summary>
+        private static string DinhDang(double v)
         {
-            var tokens = Tokenize(expression);
-            var postfix = ToPostfix(tokens);
-            return EvaluatePostfix(postfix);
+            if (double.IsNaN(v) || double.IsInfinity(v))
+                throw new ArithmeticException("Lỗi: Kết quả vượt giới hạn");
+            decimal d;
+            try { d = (decimal)v; }
+            catch (OverflowException) { throw new ArithmeticException("Lỗi: Kết quả quá lớn"); }
+            if (d == 0m) d = 0m; // bỏ dấu âm của -0
+            return d.ToString("0.############################", CultureInfo.CurrentCulture);
         }
-        //endregion
-        //region ===== TOKENIZE =====
-        private List<string> Tokenize(string expression)
+
+        private sealed class LoiBieuThuc : Exception
         {
-            var tokens = new List<string>();
-            var number = new StringBuilder();
-            char dec = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
-            for (int i = 0; i < expression.Length; i++)
+            public LoiBieuThuc(string message) : base(message) { }
+        }
+
+        /// <summary>
+        /// Bộ phân tích đệ quy: + - (thấp) &lt; * / và nhân ngầm &lt; dấu âm đơn &lt; ^ (kết hợp phải) &lt; % (hậu tố) &lt; số / ( ) / √.
+        /// "200+10%" = 200 + 10% của 200 = 220 (giống máy tính Windows); "-2^2" = -4.
+        /// </summary>
+        private sealed class BoPhanTich
+        {
+            private readonly string _s;
+            private readonly char _dec;
+            private int _i;
+            private int _depth;
+            public char LastOp { get; private set; } = '\0';
+            public double LastRight { get; private set; }
+
+            public BoPhanTich(string s, char dec) { _s = s; _dec = dec; }
+
+            public double TinhToan()
             {
-                char c = expression[i];
-                if (char.IsDigit(c) || c == dec)
-                {
-                    number.Append(c);
-                    continue;
-                }
-                if (c == '-' && (i == 0 || _operators.ContainsKey(expression[i - 1]) || expression[i - 1] == '('))
-                {
-                    number.Append(c);
-                    continue;
-                }
-                if (number.Length > 0)
-                {
-                    tokens.Add(number.ToString());
-                    number.Clear();
-                }
-                tokens.Add(c.ToString());
+                double v = BieuThuc();
+                if (_i < _s.Length)
+                    throw new LoiBieuThuc(_s[_i] == ')' ? "Lỗi: Thừa dấu ngoặc đóng" : "Lỗi: Biểu thức không hợp lệ");
+                return v;
             }
-            if (number.Length > 0) tokens.Add(number.ToString());
-            return tokens;
-        }
-        //endregion
-        //region ===== INFIX → POSTFIX =====
-        private List<string> ToPostfix(List<string> tokens)
-        {
-            var output = new List<string>();
-            var stack = new Stack<string>();
-            foreach (var token in tokens)
+
+            private void Ghi(char op, double phai)
             {
-                if (double.TryParse(token, NumberStyles.Float, CultureInfo.CurrentCulture, out _))
+                if (_depth == 0) { LastOp = op; LastRight = phai; }
+            }
+
+            private static void Kiem(double v)
+            {
+                if (double.IsNaN(v) || double.IsInfinity(v))
+                    throw new ArithmeticException("Lỗi: Kết quả vượt giới hạn");
+            }
+
+            private bool BatDauToanHang(char c) => LaChuSo(c) || c == _dec || c == '(' || c == '√';
+
+            private double BieuThuc()
+            {
+                double a = HangTu(out _);
+                while (_i < _s.Length && (_s[_i] == '+' || _s[_i] == '-'))
                 {
-                    output.Add(token);
+                    char op = _s[_i++];
+                    double b = HangTu(out bool laPhanTram);
+                    if (laPhanTram) b = a * b; // a + b% = a + (a * b / 100)
+                    a = op == '+' ? a + b : a - b;
+                    Kiem(a);
+                    Ghi(op, b);
                 }
-                else if (token.Length == 1 && _operators.ContainsKey(token[0]))
+                return a;
+            }
+
+            private double HangTu(out bool laPhanTram)
+            {
+                double a = DonVi(out laPhanTram);
+                while (_i < _s.Length)
                 {
-                    // [FIX 3]: Xử lý Associativity chuẩn (Right-associative cho ^ và √)
-                    while (stack.Count > 0 &&
-                           _operators.ContainsKey(stack.Peek()[0]) &&
-                           (
-                               (_operators[stack.Peek()[0]] > _operators[token[0]]) ||
-                               (_operators[stack.Peek()[0]] == _operators[token[0]] && token[0] != '^' && token[0] != '√')
-                           ))
+                    char c = _s[_i];
+                    if (c == '*' || c == '/')
                     {
-                        output.Add(stack.Pop());
+                        _i++;
+                        double b = DonVi(out _);
+                        if (c == '/')
+                        {
+                            if (b == 0) throw new DivideByZeroException();
+                            a /= b;
+                        }
+                        else a *= b;
+                        Kiem(a);
+                        Ghi(c, b);
+                        laPhanTram = false;
                     }
-                    stack.Push(token);
-                }
-                else if (token == "(")
-                {
-                    stack.Push(token);
-                }
-                else if (token == ")")
-                {
-                    while (stack.Count > 0 && stack.Peek() != "(")
-                        output.Add(stack.Pop());
-                    if (stack.Count == 0) throw new Exception("Ngoặc không cân");
-                    stack.Pop();
-                }
-            }
-            while (stack.Count > 0)
-            {
-                if (stack.Peek() == "(") throw new Exception("Ngoặc không cân");
-                output.Add(stack.Pop());
-            }
-            return output;
-        }
-        //endregion
-        //region ===== POSTFIX EVALUATE =====
-        private double EvaluatePostfix(List<string> postfix)
-        {
-            var values = new Stack<double>();
-            foreach (var token in postfix)
-            {
-                if (double.TryParse(token, NumberStyles.Float, CultureInfo.CurrentCulture, out double num))
-                {
-                    values.Push(num);
-                }
-                else if (token.Length == 1 && _operators.ContainsKey(token[0]))
-                {
-                    if (token[0] == '√')
+                    else if (BatDauToanHang(c)) // nhân ngầm: 2(3+4), (1+2)(3+4), 50%3, 2√(9)
                     {
-                        if (values.Count < 1) throw new Exception("Thiếu toán hạng");
-                        double val = values.Pop();
-                        // [FIX 1]: Chặn Sqrt số âm bẻ gãy UX
-                        if (val < 0) throw new ArithmeticException("Lỗi: Không thể căn số âm");
-                        values.Push(Math.Sqrt(val));
-                        continue;
+                        double b = DonVi(out _);
+                        a *= b;
+                        Kiem(a);
+                        Ghi('*', b);
+                        laPhanTram = false;
                     }
-                    if (values.Count < 2) throw new Exception("Thiếu toán hạng");
-                    double b = values.Pop();
-                    double a = values.Pop();
-                    // [PRO 2]: Lưu vết toán tử cuối cùng để lặp phép tính
-                    _lastOp = token[0];
-                    _lastRightOperand = b;
-                    values.Push(token[0] switch
-                    {
-                        '+' => a + b,
-                        '-' => a - b,
-                        '*' => a * b,
-                        '/' => b == 0 ? throw new DivideByZeroException() : a / b,
-                        '%' => a * b / 100, // [FIX 2]: Giống máy tính Windows (Percentage)
-                        '^' => Math.Pow(a, b),
-                        _ => throw new InvalidOperationException()
-                    });
+                    else break;
                 }
+                return a;
             }
-            if (values.Count != 1) throw new Exception("Sai biểu thức");
-            return values.Pop();
+
+            private double DonVi(out bool laPhanTram)
+            {
+                laPhanTram = false;
+                if (_i < _s.Length && (_s[_i] == '-' || _s[_i] == '+'))
+                {
+                    char dau = _s[_i++];
+                    double v = DonVi(out _);
+                    return dau == '-' ? -v : v;
+                }
+                return LuyThua(out laPhanTram);
+            }
+
+            private double LuyThua(out bool laPhanTram)
+            {
+                double a = HauTo(out laPhanTram);
+                if (_i < _s.Length && _s[_i] == '^')
+                {
+                    _i++;
+                    double b = DonVi(out _); // kết hợp phải: 2^3^2 = 2^(3^2)
+                    a = Math.Pow(a, b);
+                    Kiem(a);
+                    Ghi('^', b);
+                    laPhanTram = false;
+                }
+                return a;
+            }
+
+            private double HauTo(out bool laPhanTram)
+            {
+                double v = NguyenTo();
+                laPhanTram = false;
+                while (_i < _s.Length && _s[_i] == '%')
+                {
+                    _i++;
+                    v /= 100;
+                    laPhanTram = true;
+                }
+                return v;
+            }
+
+            private double NguyenTo()
+            {
+                if (_i >= _s.Length) throw new LoiBieuThuc("Lỗi: Biểu thức chưa hoàn chỉnh");
+                char c = _s[_i];
+                if (c == '(')
+                {
+                    _i++;
+                    _depth++;
+                    double v = BieuThuc();
+                    if (_i >= _s.Length || _s[_i] != ')') throw new LoiBieuThuc("Lỗi: Thiếu dấu ngoặc đóng");
+                    _i++;
+                    _depth--;
+                    return v;
+                }
+                if (c == '√')
+                {
+                    _i++;
+                    _depth++;
+                    double v = NguyenTo();
+                    _depth--;
+                    // [FIX 1]: Chặn Sqrt số âm bẻ gãy UX
+                    if (v < 0) throw new ArithmeticException("Lỗi: Không thể căn số âm");
+                    return Math.Sqrt(v);
+                }
+                if (LaChuSo(c) || c == _dec)
+                {
+                    int st = _i;
+                    bool coDec = false;
+                    while (_i < _s.Length && (LaChuSo(_s[_i]) || _s[_i] == _dec))
+                    {
+                        if (_s[_i] == _dec)
+                        {
+                            if (coDec) throw new LoiBieuThuc("Lỗi: Số không hợp lệ");
+                            coDec = true;
+                        }
+                        _i++;
+                    }
+                    string t = _s.Substring(st, _i - st).Replace(_dec, '.');
+                    if (!double.TryParse(t, NumberStyles.Float, CultureInfo.InvariantCulture, out double n))
+                        throw new LoiBieuThuc("Lỗi: Số không hợp lệ");
+                    return n;
+                }
+                throw new LoiBieuThuc("Lỗi: Biểu thức không hợp lệ");
+            }
         }
         //endregion
+
         //region ===== UTIL =====
         private string GetCurrentNumber()
         {
@@ -328,67 +972,104 @@ namespace PhanMemThiDua2026
             for (int i = _expression.Length - 1; i >= 0; i--)
             {
                 char c = _expression[i];
-                if (_operators.ContainsKey(c) || c == '(' || c == ')') break;
+                if (LaToanTuHai(c) || c == '(' || c == ')' || c == '%' || c == '√') break;
                 sb.Insert(0, c);
             }
             return sb.ToString();
         }
+
         private void DeleteLast()
         {
             if (_expression.Length == 0) return;
-            _expression.Remove(_expression.Length - 1, 1);
+            // "√(" là 1 khối: xóa cả hai ký tự
+            if (_expression.Length >= 2 && _expression[^1] == '(' && _expression[^2] == '√')
+                _expression.Length -= 2;
+            else
+                _expression.Length--;
             RefreshDisplay();
         }
+
+        // Xóa dòng đang nhập (Delete / Esc), giữ nguyên lịch sử
         private void ClearAll()
         {
             _expression.Clear();
             _justCalculated = false;
             RefreshDisplay();
         }
+
+        // Nút "Xóa hết": xóa cả lịch sử
         private void ClearAllFull()
         {
             _expression.Clear();
             _justCalculated = false;
             _lastOp = '\0';
+            _lastResultText = string.Empty;
+            _coDongDangNhap = false;
             ListBox1.Items.Clear();
         }
-        // [FIX 4]: RefreshDisplay cực chuẩn
+
+        // [FIX 4]: RefreshDisplay - dòng đang gõ được cập nhật tại chỗ, không đè lên dòng kết quả cũ
         private void RefreshDisplay()
         {
             string text = _expression.ToString();
-            if (ListBox1.Items.Count == 0)
+            _justCalculated = false;
+            if (text.Length == 0)
             {
-                ListBox1.Items.Add(text);
+                if (_coDongDangNhap && ListBox1.Items.Count > 0)
+                    ListBox1.Items.RemoveAt(ListBox1.Items.Count - 1);
+                _coDongDangNhap = false;
+                return;
             }
-            else if (_justCalculated)
-            {
-                ListBox1.Items.Add(text);
-                _justCalculated = false;
-            }
-            else
-            {
+            if (_coDongDangNhap && ListBox1.Items.Count > 0)
                 ListBox1.Items[ListBox1.Items.Count - 1] = text;
-            }
-            ListBox1.TopIndex = ListBox1.Items.Count - 1;
+            else
+                ListBox1.Items.Add(text);
+            _coDongDangNhap = true;
+            CuonXuongCuoi();
         }
+
+        // Cuộn để dòng cuối nằm ở đáy ô hiển thị (không để trống phía dưới)
+        private void CuonXuongCuoi()
+        {
+            int hienThi = Math.Max(1, ListBox1.ClientSize.Height / Math.Max(1, ListBox1.ItemHeight));
+            ListBox1.TopIndex = Math.Max(0, ListBox1.Items.Count - hienThi);
+        }
+
         private void ShowError(string message)
         {
-            ListBox1.Items.Add(_expression.ToString());
+            string expr = _expression.ToString();
+            if (_coDongDangNhap && ListBox1.Items.Count > 0)
+                ListBox1.Items[ListBox1.Items.Count - 1] = expr;
+            else if (expr.Length > 0)
+                ListBox1.Items.Add(expr);
             ListBox1.Items.Add(message);
             ListBox1.SelectedIndex = ListBox1.Items.Count - 1;
+            CuonXuongCuoi();
+            _coDongDangNhap = false;
             _expression.Clear();
             _justCalculated = false;
             _lastOp = '\0'; // Xóa cache lặp phép tính
         }
+
+        // Ctrl+C: chép kết quả gần nhất (nếu chưa có thì chép biểu thức đang gõ)
         private void CopyResult()
         {
-            if (ListBox1.Items.Count > 0)
+            string s = _lastResultText.Length > 0 ? _lastResultText : _expression.ToString();
+            if (string.IsNullOrWhiteSpace(s)) return;
+            try { Clipboard.SetText(s); }
+            catch (Exception) { /* clipboard đang bận: bỏ qua */ }
+        }
+
+        // Ctrl+V: dán biểu thức, chỉ nhận các ký tự hợp lệ
+        private void PasteExpression()
+        {
+            string text;
+            try { text = Clipboard.ContainsText() ? Clipboard.GetText() : string.Empty; }
+            catch (Exception) { return; }
+            foreach (char c in text)
             {
-                string lastItem = ListBox1.Items[^1].ToString();
-                if (!string.IsNullOrWhiteSpace(lastItem) && !lastItem.Contains("Lỗi"))
-                {
-                    Clipboard.SetText(lastItem);
-                }
+                if (char.IsWhiteSpace(c)) continue;
+                NhapKyTu(c.ToString());
             }
         }
         //endregion

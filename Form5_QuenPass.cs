@@ -22,6 +22,7 @@ namespace PhanMemThiDua2026
         public Form5_QuenPass()
         {
             InitializeComponent();
+            ApplyWebTheme(); // Giao diện kiểu web (xem Form5_QuenPass.Theme.cs)
             //this.ShowInTaskbar = false;
             this.Shown += Form5_Shown;
             ComboBox1_CauHoi1.HandleCreated += ComboBox_ClearHighlight;
@@ -32,9 +33,6 @@ namespace PhanMemThiDua2026
         private void Form5_Load(object? sender, EventArgs e)
         {
             // 1. CẤU HÌNH CỬA SỔ
-            MaximizeBox = false;
-            MinimizeBox = false;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
             DoubleBuffered = true;
             AcceptButton = Btn_KiemTra;
             // Không cho phép thay đổi kích thước StatusStrip
@@ -42,10 +40,6 @@ namespace PhanMemThiDua2026
             // 2. CẤU HÌNH CÁC Ô HIỂN THỊ THÔNG TIN
             SetupReadOnlyBox(Text_TenTaiKhoan);
             SetupReadOnlyBox(Text_MatKhauLayLai);
-            // 3. CĂN GIỮA FORM
-            CenterFormOnScreen();
-            // 4. KHỞI TẠO THANH TIẾN TRÌNH
-            StartProgressBar();
             // 5. HIỂN THỊ THÔNG TIN PHIÊN BẢN
             label1_PhienBanPhanMem.Text = $"Phiên bản: {Module_PhienBan.SoftwareVersion}";
             // 6. CẤU HÌNH NÚT HƯỚNG DẪN TRÊN STATUS STRIP
@@ -60,12 +54,12 @@ namespace PhanMemThiDua2026
             tb.ReadOnly = true;
             tb.ShortcutsEnabled = true;
             // Màu nền xanh nhẹ
-            Color mauNen = Color.FromArgb(230, 245, 255);
+            Color mauNen = Color.FromArgb(241, 245, 249);
             tb.StateCommon.Back.Color1 = mauNen;
             // Giữ chữ rõ
-            tb.StateCommon.Content.Color1 = Color.Black;
+            tb.StateCommon.Content.Color1 = Color.FromArgb(15, 23, 42);
             // Viền xanh nhẹ để dễ phân biệt
-            tb.StateCommon.Border.Color1 = Color.SteelBlue;
+            tb.StateCommon.Border.Color1 = Color.FromArgb(203, 213, 225);
         }
         private void CenterFormOnScreen()
         {

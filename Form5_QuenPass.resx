@@ -2,12 +2,16 @@
 <root>
   <!--
     Microsoft ResX Schema
+
     Version 2.0
+
     The primary goals of this format is to allow a simple XML format
     that is mostly human readable. The generation and parsing of the
     various data types are done through the TypeConverter classes
     associated with the data types.
+
     Example:
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -22,27 +26,34 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
+
     There are any number of "resheader" rows that contain simple
     name/value pairs.
+
     Each data row contains a name, and value. The row also contains a
     type or mimetype. Type corresponds to a .NET class that support
     text/value conversion through the TypeConverter architecture.
     Classes that don't support this are serialized and stored with the
     mimetype set.
+
     The mimetype is used for serialized objects, and tells the
     ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
+
     Note - application/x-microsoft.net.object.binary.base64 is the format
     that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
+
     mimetype: application/x-microsoft.net.object.binary.base64
     value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
+
     mimetype: application/x-microsoft.net.object.soap.base64
     value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
+
     mimetype: application/x-microsoft.net.object.bytearray.base64
     value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
@@ -106,10 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="TableLayoutPanel5.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="lblBrandSub.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="progressBar1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="lblBrand.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <metadata name="PictureBox2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -1056,22 +1067,10 @@
         nrBiNBdr8fDAQsITnvATxwMLCU94wk8cDywkPOEJP3H8/wHs397iu3UaewAAAABJRU5ErkJggg==
 </value>
   </data>
-  <metadata name="Label1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="lblTieuDe.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="Text_MatKhauLayLai.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="TextBox2_TraLoi2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="Label8.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="ComboBox2_CauHoi2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="TextBox1_TraLoi1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="lblMoTa.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <metadata name="Label7.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -1080,41 +1079,28 @@
   <metadata name="ComboBox1_CauHoi1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
+  <metadata name="TextBox1_TraLoi1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="Label8.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="ComboBox2_CauHoi2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="TextBox2_TraLoi2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
   <metadata name="Btn_KiemTra.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <data name="Btn_KiemTra.Values.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAABl0RVh0U29m
-        dHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAMMSURBVDhPZZF7SFNxHMW/+ags52POhdVsmjOdr9ZS
-        N83EJyXRxEjRXgphZCaVvSiCUiiK+ieyheZfKYpQUb6YtV5aGmEW5Kw7r1Zklopa4UYQnfhe/aPoBwcO
-        53zO73LvJXtSbLBg1I0KcdGQZFgNe6LeLGYk0WByvCQxLZHs6/RmwaiDEB8zyxl1o7yloRTDr8mLZ+Do
-        fgLH0weYrqvFyOEyiKkJVYPr42YvSDVWfSrbi8nrV+G0tsHRZcXk5fMYSk/8RRO5m/D79Qs479ThW8VB
-        fC3KwXCuCR8LCyAmx2nF5Hjth4KtELOz8HmbCdPH9mCm4Rp+v32Fie05IOfRUtQQoZ4Idz0WoDdSw0MM
-        GAwYMm00i1npZpt+LYSEWPRFa9Dq5YkGItQSwXHyAMhZnI8bLvPQ6OqCNl9vPFItRV9EKBpcXVFNJIn9
-        6+hwdAUth8XfD03z3VDv7gZH6S7QWMFm8fOREtz280WzbDEeLg9An1aDJndX/LxVK6nJjS9YhU71Mukh
-        dxRyjJ45grGiXJGIKGL4/KkOZ30VfhzfjfG8DLzPTIJF4YOp8kJJ7IdSEvBlSxq+l+bBYT6L4SvnOnhL
-        jn07+ZJgItJXEwkd/ip0B0XheegKCMZYSex7gqLQoQzk7yUwyxvHif1EbT5e1O7rTTcXupe0yhWwZeej
-        WxUGmy4CgiFGEnspy84HM8y2+3hRm7eMyKJUkMVfTvz+w+UHIWSmw7ZGh061Cpe8PC+w2HPGHTPNskXg
-        jUXpR9SjUZN1ify+zbQB05VHMWJajy+5GegKVuG03CeRxZ4z7phhlje8pWcrA/U9kaGYaWnEVMUhTFWW
-        Y/zEPnSqAkBEC1nsOeOOGWZ5w1vq1YbgZXQY+jOSMLgtBz9qLmHkcAkeBwcO9IZriMWeM+6YYZY3vKVK
-        VUDxsaXKHaVKv7x7oeqW/rVReGfUoT085OobXQSx2HPGHTPM8oa3/AtlRLSYiDyISN2zJtJqN8SgThuy
-        edCoIxZ7zrhjZo7lDW//Oyvn/rPnXxl7zrj75/wBOefXg9wqFQsAAAAASUVORK5CYII=
-</value>
-  </data>
-  <metadata name="TableLayoutPanel6.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="panelKetQua.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="label5.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="Text_MatKhauLayLai.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="label4.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="TableLayoutPanel1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="TableLayoutPanel2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="Label1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <metadata name="Text_TenTaiKhoan.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
@@ -1123,7 +1109,10 @@
   <metadata name="Label2.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
-  <metadata name="TableLayoutPanel3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+  <metadata name="lblKetQua.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="lblGoiY.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
   <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -1150,15 +1139,6 @@
         H3AdX35ruX1n2Bz7eth89s335n+MNOqv7lt2P79njRnH/pgTBuRf+bughJ5ROgoAAAAASUVORK5CYII=
 </value>
   </data>
-  <metadata name="tableLayoutPanel10.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="label3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
-  <metadata name="groupBox1.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>True</value>
-  </metadata>
   <metadata name="$this.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>

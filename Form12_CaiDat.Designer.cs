@@ -386,7 +386,7 @@
             comboBox1_NamHienTai.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox1_NamHienTai.FormattingEnabled = true;
             comboBox1_NamHienTai.Items.AddRange(new object[] { "TIỂU ĐOÀN 1", "TIỂU ĐOÀN 2", "TIỂU ĐOÀN 3", "TIỂU ĐOÀN BVMT BVHĐB", "ĐỘI ĐẶC NHIỆM", "ĐẠI ĐỘI NGHI LỄ", "ĐẠI ĐỘI 1", "ĐẠI ĐỘI 2", "ĐẠI ĐỘI 3", "ĐẠI ĐỘI 4", "ĐẠI ĐỘI CƠ GIỚI", "TỔ THAM MƯU", "TỔ CHÍNH TRỊ", "TỔ HẬU CẦN", "TỔ THAM MƯU CHÍNH TRỊ" });
-            comboBox1_NamHienTai.Location = new Point(240, 13);
+            comboBox1_NamHienTai.Location = new Point(240, 12);
             comboBox1_NamHienTai.Margin = new Padding(2, 4, 2, 4);
             comboBox1_NamHienTai.Name = "comboBox1_NamHienTai";
             comboBox1_NamHienTai.Size = new Size(607, 23);
@@ -463,12 +463,12 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.Green;
-            label6.Location = new Point(96, 14);
+            label6.Location = new Point(77, 14);
             label6.Margin = new Padding(2, 0, 2, 0);
             label6.Name = "label6";
-            label6.Size = new Size(141, 17);
+            label6.Size = new Size(160, 17);
             label6.TabIndex = 23;
-            label6.Text = "Cấp Tiểu đoàn/Đại đội";
+            label6.Text = "Cấp Tiểu đoàn/Tổ/Đại đội";
             // 
             // comboBox_TenTieuDoan
             // 
@@ -477,7 +477,7 @@
             comboBox_TenTieuDoan.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_TenTieuDoan.FormattingEnabled = true;
             comboBox_TenTieuDoan.Items.AddRange(new object[] { "TIỂU ĐOÀN 1", "TIỂU ĐOÀN 2", "TIỂU ĐOÀN 3", "TIỂU ĐOÀN BVMT BVHĐB", "TIỂU ĐOÀN HUẤN LUYỆN 1", "TIỂU ĐOÀN HUẤN LUYỆN 2", "ĐỘI ĐẶC NHIỆM", "ĐẠI ĐỘI NGHI LỄ", "ĐẠI ĐỘI 1", "ĐẠI ĐỘI 2", "ĐẠI ĐỘI 3", "ĐẠI ĐỘI 4", "ĐẠI ĐỘI 5", "ĐẠI ĐỘI 6", "ĐẠI ĐỘI CƠ GIỚI", "TỔ THAM MƯU", "TỔ CHÍNH TRỊ", "TỔ HẬU CẦN", "TỔ THAM MƯU CHÍNH TRỊ", "BAN THAM MƯU", "BAN HUẤN LUYỆN", "BAN CHÍNH TRỊ", "BAN HẬU CẦN", "BỆNH XÁ" });
-            comboBox_TenTieuDoan.Location = new Point(241, 11);
+            comboBox_TenTieuDoan.Location = new Point(241, 10);
             comboBox_TenTieuDoan.Margin = new Padding(2, 4, 2, 4);
             comboBox_TenTieuDoan.Name = "comboBox_TenTieuDoan";
             comboBox_TenTieuDoan.Size = new Size(263, 23);
@@ -489,12 +489,12 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.Green;
-            label2.Location = new Point(614, 14);
+            label2.Location = new Point(595, 14);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new Size(231, 17);
+            label2.Size = new Size(250, 17);
             label2.TabIndex = 29;
-            label2.Text = "Ký hiệu đơn vị cấp Tiểu đoàn/Đại đội";
+            label2.Text = "Ký hiệu đơn vị cấp Tiểu đoàn/Tổ/Đại đội";
             // 
             // comboBox_KyHieu_TenTieuDoan
             // 
@@ -502,7 +502,7 @@
             comboBox_KyHieu_TenTieuDoan.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_KyHieu_TenTieuDoan.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_KyHieu_TenTieuDoan.FormattingEnabled = true;
-            comboBox_KyHieu_TenTieuDoan.Location = new Point(849, 11);
+            comboBox_KyHieu_TenTieuDoan.Location = new Point(849, 10);
             comboBox_KyHieu_TenTieuDoan.Margin = new Padding(2, 4, 2, 4);
             comboBox_KyHieu_TenTieuDoan.Name = "comboBox_KyHieu_TenTieuDoan";
             comboBox_KyHieu_TenTieuDoan.Size = new Size(106, 23);
@@ -587,12 +587,12 @@
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.Green;
-            label5.Location = new Point(97, 16);
+            label5.Location = new Point(69, 16);
             label5.Margin = new Padding(2, 0, 2, 0);
             label5.Name = "label5";
-            label5.Size = new Size(140, 17);
+            label5.Size = new Size(168, 17);
             label5.TabIndex = 23;
-            label5.Text = "Trung đoàn/Tiểu đoàn";
+            label5.Text = "Trung đoàn/Ban/Tiểu đoàn";
             // 
             // label12
             // 
@@ -600,19 +600,19 @@
             label12.AutoSize = true;
             label12.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label12.ForeColor = Color.Green;
-            label12.Location = new Point(899, 16);
+            label12.Location = new Point(871, 16);
             label12.Margin = new Padding(2, 0, 2, 0);
             label12.Name = "label12";
-            label12.Size = new Size(256, 17);
+            label12.Size = new Size(284, 17);
             label12.TabIndex = 30;
-            label12.Text = "Ký hiệu đơn vị cấp Trung đoàn/Tiểu đoàn";
+            label12.Text = "Ký hiệu đơn vị cấp Trung đoàn/Ban/Tiểu đoàn";
             // 
             // comboBox_KyHieu_TenTrungDoan
             // 
             comboBox_KyHieu_TenTrungDoan.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox_KyHieu_TenTrungDoan.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             comboBox_KyHieu_TenTrungDoan.FormattingEnabled = true;
-            comboBox_KyHieu_TenTrungDoan.Location = new Point(1159, 13);
+            comboBox_KyHieu_TenTrungDoan.Location = new Point(1159, 12);
             comboBox_KyHieu_TenTrungDoan.Margin = new Padding(2, 4, 2, 4);
             comboBox_KyHieu_TenTrungDoan.Name = "comboBox_KyHieu_TenTrungDoan";
             comboBox_KyHieu_TenTrungDoan.Size = new Size(75, 23);
@@ -1369,6 +1369,7 @@
             Name = "Form12";
             Text = "Trang Cài đặt";
             Load += Form12_Load;
+            Shown += Form12_Shown;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel3.ResumeLayout(false);
             tableLayoutPanel3.PerformLayout();
