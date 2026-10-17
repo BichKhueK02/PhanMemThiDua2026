@@ -98,16 +98,16 @@
             tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 44.92406F));
             tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 17.0263786F));
             tableLayoutPanel4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16.9464436F));
-            tableLayoutPanel4.Controls.Add(label1_DuongDanCSDLDuocChon, 1, 0);
             tableLayoutPanel4.Controls.Add(label2, 0, 2);
             tableLayoutPanel4.Controls.Add(chk_BackupTruocKhiChuyen, 0, 0);
             tableLayoutPanel4.Controls.Add(chk_XoaDuLieuCu, 0, 1);
-            tableLayoutPanel4.Controls.Add(lbl_TrangThaiHoatDong, 1, 1);
             tableLayoutPanel4.Controls.Add(kryptonButton2_MoThuMuc, 3, 1);
             tableLayoutPanel4.Controls.Add(btn_NhapDuLieuJson, 2, 2);
             tableLayoutPanel4.Controls.Add(btn_XuatDuLieuJson, 3, 2);
             tableLayoutPanel4.Controls.Add(btn_QuetTimKiem, 2, 1);
             tableLayoutPanel4.Controls.Add(tableLayoutPanel6, 1, 2);
+            tableLayoutPanel4.Controls.Add(lbl_TrangThaiHoatDong, 1, 0);
+            tableLayoutPanel4.Controls.Add(label1_DuongDanCSDLDuocChon, 2, 0);
             tableLayoutPanel4.Dock = DockStyle.Fill;
             tableLayoutPanel4.Location = new Point(3, 3);
             tableLayoutPanel4.Name = "tableLayoutPanel4";
@@ -124,7 +124,7 @@
             label1_DuongDanCSDLDuocChon.AutoSize = true;
             label1_DuongDanCSDLDuocChon.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label1_DuongDanCSDLDuocChon.ForeColor = Color.FromArgb(0, 0, 192);
-            label1_DuongDanCSDLDuocChon.Location = new Point(266, 13);
+            label1_DuongDanCSDLDuocChon.Location = new Point(828, 13);
             label1_DuongDanCSDLDuocChon.Margin = new Padding(2, 0, 2, 0);
             label1_DuongDanCSDLDuocChon.Name = "label1_DuongDanCSDLDuocChon";
             label1_DuongDanCSDLDuocChon.Size = new Size(0, 17);
@@ -166,9 +166,9 @@
             chk_XoaDuLieuCu.ForeColor = Color.FromArgb(0, 0, 192);
             chk_XoaDuLieuCu.Location = new Point(3, 56);
             chk_XoaDuLieuCu.Name = "chk_XoaDuLieuCu";
-            chk_XoaDuLieuCu.Size = new Size(100, 19);
+            chk_XoaDuLieuCu.Size = new Size(150, 19);
             chk_XoaDuLieuCu.TabIndex = 1;
-            chk_XoaDuLieuCu.Text = "Xóa dữ liệu cũ";
+            chk_XoaDuLieuCu.Text = "Xóa dữ liệu sau khi nạp";
             chk_XoaDuLieuCu.UseVisualStyleBackColor = true;
             // 
             // lbl_TrangThaiHoatDong
@@ -177,7 +177,7 @@
             lbl_TrangThaiHoatDong.AutoSize = true;
             lbl_TrangThaiHoatDong.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             lbl_TrangThaiHoatDong.ForeColor = Color.FromArgb(0, 0, 192);
-            lbl_TrangThaiHoatDong.Location = new Point(266, 57);
+            lbl_TrangThaiHoatDong.Location = new Point(266, 13);
             lbl_TrangThaiHoatDong.Margin = new Padding(2, 0, 2, 0);
             lbl_TrangThaiHoatDong.Name = "lbl_TrangThaiHoatDong";
             lbl_TrangThaiHoatDong.Size = new Size(13, 17);

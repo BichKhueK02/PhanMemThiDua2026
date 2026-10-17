@@ -1008,8 +1008,10 @@ namespace PhanMemThiDua2026
                             }
                             cmd.ExecuteNonQuery();
                         }
-                        transaction.Commit();
-                        MessageBox.Show("Nạp dữ liệu thi đua tập thể thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        transaction.Commit();       
+                        //MessageBox.Show("Nạp dữ liệu thi đua tập thể thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Nạp dữ liệu thi đua tập thể thành công",DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+
                     }
                     catch (Exception ex)
                     {

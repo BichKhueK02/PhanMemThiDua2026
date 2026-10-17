@@ -1442,6 +1442,7 @@ namespace PhanMemThiDua2026
             {
             }
             this.Load += Form2_Load;
+            this.Shown += Form2_FormCha_Shown;
             this.FormClosing += Form2_FormClosing;
             PanelLeft.Dock = DockStyle.Left;
             PanelContainer.Dock = DockStyle.Fill;
@@ -1500,6 +1501,13 @@ namespace PhanMemThiDua2026
             }
             // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT
             isLoaded = true;
+
+     
+        }
+
+        private void Form2_FormCha_Shown(object? sender, EventArgs e)
+        {
+            Module_HeThong.ThongBaoHelper.KiemTraThuMucChuyenGiaoDesktop(this);
         }
         // 🌟 BƯỚC 1: Khai báo biến đệm (Cache) lưu trữ năm ở ngoài hàm
         // 🌟 BƯỚC 2: Cập nhật lại hàm xử lý
