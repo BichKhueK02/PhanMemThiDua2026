@@ -29,8 +29,8 @@
             panelContent = new Panel();
             menuStrip1 = new MenuStrip();
             quanLyThiDuaBaNhat_ToolStripMenuItem = new ToolStripMenuItem();
-            quanLySoVangThiDuaBaNhat_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripMenuItem();
+            quanLySoVangThiDuaBaNhat_ToolStripMenuItem = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -62,6 +62,12 @@
             quanLyThiDuaBaNhat_ToolStripMenuItem.Text = "Quản lý thi đua Ba nhất";
             quanLyThiDuaBaNhat_ToolStripMenuItem.Click += quanLyThiDuaBaNhat_ToolStripMenuItem_Click;
             // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(22, 25);
+            toolStripMenuItem1.Text = "|";
+            // 
             // quanLySoVangThiDuaBaNhat_ToolStripMenuItem
             // 
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
@@ -70,12 +76,6 @@
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Size = new Size(202, 25);
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Text = "Sổ vàng thi đua Ba nhất";
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Click += quanLySoVangThiDuaBaNhat_ToolStripMenuItem_Click;
-            // 
-            // toolStripMenuItem1
-            // 
-            toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(22, 25);
-            toolStripMenuItem1.Text = "|";
             // 
             // Form55_QuanLyHeThongThiDuaBaNhat
             // 

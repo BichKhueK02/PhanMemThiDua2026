@@ -30,11 +30,11 @@
             quanLyKhenThuongNamHienTai_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem_KhenThuongCBCSNamHienTai = new ToolStripMenuItem();
             toolStripMenuItem_KhenThuongTapTheNamHienTai = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripMenuItem();
             quanLyKhenThuongNamCu_ToolStripMenuItem = new ToolStripMenuItem();
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu = new ToolStripMenuItem();
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu = new ToolStripMenuItem();
             panelContent = new Panel();
-            toolStripMenuItem1 = new ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             SuspendLayout();
             // 
@@ -76,6 +76,12 @@
             toolStripMenuItem_KhenThuongTapTheNamHienTai.Text = "2. Quản lý khen thưởng tập thể";
             toolStripMenuItem_KhenThuongTapTheNamHienTai.Click += toolStripMenuItem_KhenThuongTapTheNamHienTai_Click;
             // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(22, 25);
+            toolStripMenuItem1.Text = "|";
+            // 
             // quanLyKhenThuongNamCu_ToolStripMenuItem
             // 
             quanLyKhenThuongNamCu_ToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_QuanLyKhenThuongCBCSNamCu, toolStripMenuItem_QuanLyKhenThuongTapTheNamCu });
@@ -110,12 +116,6 @@
             panelContent.Name = "panelContent";
             panelContent.Size = new Size(1264, 652);
             panelContent.TabIndex = 1;
-            // 
-            // toolStripMenuItem1
-            // 
-            toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(22, 25);
-            toolStripMenuItem1.Text = "|";
             // 
             // Form52_QuanLyKhenThuong
             // 

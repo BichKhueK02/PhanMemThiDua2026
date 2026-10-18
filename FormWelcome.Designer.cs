@@ -62,14 +62,86 @@
             panelCard.Size = new Size(790, 460);
             panelCard.TabIndex = 0;
             // 
-            // panelThanhMau
+            // panelNoiDung
             // 
-            panelThanhMau.BackColor = Color.FromArgb(0, 120, 215);
-            panelThanhMau.Dock = DockStyle.Top;
-            panelThanhMau.Location = new Point(0, 0);
-            panelThanhMau.Name = "panelThanhMau";
-            panelThanhMau.Size = new Size(790, 4);
-            panelThanhMau.TabIndex = 0;
+            panelNoiDung.BackColor = Color.FromArgb(248, 250, 252);
+            panelNoiDung.Controls.Add(richTextBox1);
+            panelNoiDung.Dock = DockStyle.Fill;
+            panelNoiDung.Location = new Point(0, 116);
+            panelNoiDung.Name = "panelNoiDung";
+            panelNoiDung.Padding = new Padding(34, 18, 34, 14);
+            panelNoiDung.Size = new Size(790, 270);
+            panelNoiDung.TabIndex = 2;
+            // 
+            // richTextBox1
+            // 
+            richTextBox1.BackColor = Color.White;
+            richTextBox1.BorderStyle = BorderStyle.None;
+            richTextBox1.Dock = DockStyle.Fill;
+            richTextBox1.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            richTextBox1.ForeColor = Color.FromArgb(51, 65, 85);
+            richTextBox1.Location = new Point(34, 18);
+            richTextBox1.Margin = new Padding(0);
+            richTextBox1.Name = "richTextBox1";
+            richTextBox1.ReadOnly = true;
+            richTextBox1.ScrollBars = RichTextBoxScrollBars.Vertical;
+            richTextBox1.Size = new Size(722, 238);
+            richTextBox1.TabIndex = 20;
+            richTextBox1.Text = "";
+            // 
+            // panelFooter
+            // 
+            panelFooter.BackColor = Color.White;
+            panelFooter.Controls.Add(btn_BatDau);
+            panelFooter.Dock = DockStyle.Bottom;
+            panelFooter.Location = new Point(0, 386);
+            panelFooter.Name = "panelFooter";
+            panelFooter.Padding = new Padding(34, 12, 34, 20);
+            panelFooter.Size = new Size(790, 74);
+            panelFooter.TabIndex = 3;
+            // 
+            // btn_BatDau
+            // 
+            btn_BatDau.Cursor = Cursors.Hand;
+            btn_BatDau.Dock = DockStyle.Right;
+            btn_BatDau.Location = new Point(621, 12);
+            btn_BatDau.Margin = new Padding(0);
+            btn_BatDau.Name = "btn_BatDau";
+            btn_BatDau.OverrideDefault.Back.Color1 = Color.FromArgb(0, 120, 215);
+            btn_BatDau.OverrideDefault.Back.Color2 = Color.FromArgb(0, 120, 215);
+            btn_BatDau.OverrideDefault.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            btn_BatDau.OverrideDefault.Border.Color1 = Color.FromArgb(0, 120, 215);
+            btn_BatDau.OverrideDefault.Border.Color2 = Color.FromArgb(0, 120, 215);
+            btn_BatDau.OverrideDefault.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom | Krypton.Toolkit.PaletteDrawBorders.Left | Krypton.Toolkit.PaletteDrawBorders.Right;
+            btn_BatDau.OverrideDefault.Border.Rounding = 7F;
+            btn_BatDau.OverrideDefault.Border.Width = 1;
+            btn_BatDau.OverrideDefault.Content.ShortText.Color1 = Color.White;
+            btn_BatDau.OverrideDefault.Content.ShortText.Color2 = Color.White;
+            btn_BatDau.OverrideDefault.Content.ShortText.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btn_BatDau.Size = new Size(135, 42);
+            btn_BatDau.StateCommon.Back.Color1 = Color.FromArgb(0, 120, 215);
+            btn_BatDau.StateCommon.Back.Color2 = Color.FromArgb(0, 120, 215);
+            btn_BatDau.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            btn_BatDau.StateCommon.Border.Color1 = Color.FromArgb(0, 120, 215);
+            btn_BatDau.StateCommon.Border.Color2 = Color.FromArgb(0, 120, 215);
+            btn_BatDau.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom | Krypton.Toolkit.PaletteDrawBorders.Left | Krypton.Toolkit.PaletteDrawBorders.Right;
+            btn_BatDau.StateCommon.Border.Rounding = 7F;
+            btn_BatDau.StateCommon.Border.Width = 1;
+            btn_BatDau.StateCommon.Content.ShortText.Color1 = Color.White;
+            btn_BatDau.StateCommon.Content.ShortText.Color2 = Color.White;
+            btn_BatDau.StateCommon.Content.ShortText.Font = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btn_BatDau.StatePressed.Back.Color1 = Color.FromArgb(0, 84, 166);
+            btn_BatDau.StatePressed.Back.Color2 = Color.FromArgb(0, 84, 166);
+            btn_BatDau.StatePressed.Border.Color1 = Color.FromArgb(0, 84, 166);
+            btn_BatDau.StatePressed.Border.Color2 = Color.FromArgb(0, 84, 166);
+            btn_BatDau.StateTracking.Back.Color1 = Color.FromArgb(0, 102, 204);
+            btn_BatDau.StateTracking.Back.Color2 = Color.FromArgb(0, 102, 204);
+            btn_BatDau.StateTracking.Border.Color1 = Color.FromArgb(0, 102, 204);
+            btn_BatDau.StateTracking.Border.Color2 = Color.FromArgb(0, 102, 204);
+            btn_BatDau.TabIndex = 19;
+            btn_BatDau.Values.DropDownArrowColor = Color.Empty;
+            btn_BatDau.Values.Image = (Image)resources.GetObject("btn_BatDau.Values.Image");
+            btn_BatDau.Values.Text = "Bắt đầu";
             // 
             // panelHeader
             // 
@@ -132,10 +204,10 @@
             label1_TenPhanMem.AutoSize = true;
             label1_TenPhanMem.Font = new Font("Segoe UI Semibold", 17F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1_TenPhanMem.ForeColor = Color.FromArgb(15, 23, 42);
-            label1_TenPhanMem.Location = new Point(0, 3);
+            label1_TenPhanMem.Location = new Point(0, 6);
             label1_TenPhanMem.Margin = new Padding(0);
             label1_TenPhanMem.Name = "label1_TenPhanMem";
-            label1_TenPhanMem.Size = new Size(295, 31);
+            label1_TenPhanMem.Size = new Size(292, 31);
             label1_TenPhanMem.TabIndex = 1;
             label1_TenPhanMem.Text = "PHẦN MỀM THI ĐUA 2026";
             label1_TenPhanMem.TextAlign = ContentAlignment.MiddleLeft;
@@ -154,96 +226,14 @@
             label2_TinCayAnToan.Text = "Tin cậy • An toàn • Bảo mật • Phù hợp mọi máy tính";
             label2_TinCayAnToan.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // panelNoiDung
+            // panelThanhMau
             // 
-            panelNoiDung.BackColor = Color.FromArgb(248, 250, 252);
-            panelNoiDung.Controls.Add(richTextBox1);
-            panelNoiDung.Dock = DockStyle.Fill;
-            panelNoiDung.Location = new Point(0, 116);
-            panelNoiDung.Name = "panelNoiDung";
-            panelNoiDung.Padding = new Padding(34, 18, 34, 14);
-            panelNoiDung.Size = new Size(790, 270);
-            panelNoiDung.TabIndex = 2;
-            // 
-            // richTextBox1
-            // 
-            richTextBox1.BackColor = Color.White;
-            richTextBox1.BorderStyle = BorderStyle.None;
-            richTextBox1.Dock = DockStyle.Fill;
-            richTextBox1.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            richTextBox1.ForeColor = Color.FromArgb(51, 65, 85);
-            richTextBox1.Location = new Point(34, 18);
-            richTextBox1.Margin = new Padding(0);
-            richTextBox1.Name = "richTextBox1";
-            richTextBox1.ReadOnly = true;
-            richTextBox1.ScrollBars = RichTextBoxScrollBars.Vertical;
-            richTextBox1.Size = new Size(722, 238);
-            richTextBox1.TabIndex = 20;
-            richTextBox1.Text = "";
-            // 
-            // panelFooter
-            // 
-            panelFooter.BackColor = Color.White;
-            panelFooter.Controls.Add(btn_BatDau);
-            panelFooter.Dock = DockStyle.Bottom;
-            panelFooter.Location = new Point(0, 386);
-            panelFooter.Name = "panelFooter";
-            panelFooter.Padding = new Padding(34, 12, 34, 20);
-            panelFooter.Size = new Size(790, 74);
-            panelFooter.TabIndex = 3;
-            // 
-            // btn_BatDau
-            // 
-            btn_BatDau.Cursor = Cursors.Hand;
-            btn_BatDau.Dock = DockStyle.Right;
-            btn_BatDau.Location = new Point(621, 12);
-            btn_BatDau.Margin = new Padding(0);
-            btn_BatDau.Name = "btn_BatDau";
-            btn_BatDau.OverrideDefault.Back.Color1 = Color.FromArgb(0, 120, 215);
-            btn_BatDau.OverrideDefault.Back.Color2 = Color.FromArgb(0, 120, 215);
-            btn_BatDau.OverrideDefault.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-            btn_BatDau.OverrideDefault.Border.Color1 = Color.FromArgb(0, 120, 215);
-            btn_BatDau.OverrideDefault.Border.Color2 = Color.FromArgb(0, 120, 215);
-            btn_BatDau.OverrideDefault.Border.DrawBorders =
-                Krypton.Toolkit.PaletteDrawBorders.Top |
-                Krypton.Toolkit.PaletteDrawBorders.Bottom |
-                Krypton.Toolkit.PaletteDrawBorders.Left |
-                Krypton.Toolkit.PaletteDrawBorders.Right;
-            btn_BatDau.OverrideDefault.Border.Rounding = 7F;
-            btn_BatDau.OverrideDefault.Border.Width = 1;
-            btn_BatDau.OverrideDefault.Content.ShortText.Color1 = Color.White;
-            btn_BatDau.OverrideDefault.Content.ShortText.Color2 = Color.White;
-            btn_BatDau.OverrideDefault.Content.ShortText.Font =
-                new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btn_BatDau.Size = new Size(135, 42);
-            btn_BatDau.StateCommon.Back.Color1 = Color.FromArgb(0, 120, 215);
-            btn_BatDau.StateCommon.Back.Color2 = Color.FromArgb(0, 120, 215);
-            btn_BatDau.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-            btn_BatDau.StateCommon.Border.Color1 = Color.FromArgb(0, 120, 215);
-            btn_BatDau.StateCommon.Border.Color2 = Color.FromArgb(0, 120, 215);
-            btn_BatDau.StateCommon.Border.DrawBorders =
-                Krypton.Toolkit.PaletteDrawBorders.Top |
-                Krypton.Toolkit.PaletteDrawBorders.Bottom |
-                Krypton.Toolkit.PaletteDrawBorders.Left |
-                Krypton.Toolkit.PaletteDrawBorders.Right;
-            btn_BatDau.StateCommon.Border.Rounding = 7F;
-            btn_BatDau.StateCommon.Border.Width = 1;
-            btn_BatDau.StateCommon.Content.ShortText.Color1 = Color.White;
-            btn_BatDau.StateCommon.Content.ShortText.Color2 = Color.White;
-            btn_BatDau.StateCommon.Content.ShortText.Font =
-                new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btn_BatDau.StateTracking.Back.Color1 = Color.FromArgb(0, 102, 204);
-            btn_BatDau.StateTracking.Back.Color2 = Color.FromArgb(0, 102, 204);
-            btn_BatDau.StateTracking.Border.Color1 = Color.FromArgb(0, 102, 204);
-            btn_BatDau.StateTracking.Border.Color2 = Color.FromArgb(0, 102, 204);
-            btn_BatDau.StatePressed.Back.Color1 = Color.FromArgb(0, 84, 166);
-            btn_BatDau.StatePressed.Back.Color2 = Color.FromArgb(0, 84, 166);
-            btn_BatDau.StatePressed.Border.Color1 = Color.FromArgb(0, 84, 166);
-            btn_BatDau.StatePressed.Border.Color2 = Color.FromArgb(0, 84, 166);
-            btn_BatDau.TabIndex = 19;
-            btn_BatDau.Values.DropDownArrowColor = Color.Empty;
-            btn_BatDau.Values.Image = (Image)resources.GetObject("btn_BatDau.Values.Image");
-            btn_BatDau.Values.Text = "Bắt đầu";
+            panelThanhMau.BackColor = Color.FromArgb(0, 120, 215);
+            panelThanhMau.Dock = DockStyle.Top;
+            panelThanhMau.Location = new Point(0, 0);
+            panelThanhMau.Name = "panelThanhMau";
+            panelThanhMau.Size = new Size(790, 4);
+            panelThanhMau.TabIndex = 0;
             // 
             // FormWelcome
             // 

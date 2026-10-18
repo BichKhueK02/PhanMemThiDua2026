@@ -171,17 +171,46 @@ namespace PhanMemThiDua2026
             {
                 if (KiemTraTrangThaiSanSangCuaHeThongCSDL())
                 {
+                    var cau = ChonCauNhatKyKhoiDong();
                     Module_NhatKy.GhiNhatKy(
-                        taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
-                            ? "System (Quyền cao nhất)"
-                            : Module_TaiKhoan.TenTaiKhoan_RAM,
-                        hanhDong: "Kiểm tra và khởi động CSDL",
-                        ghiChu: "Hệ thống sẵn sàng");
+                        taiKhoan: string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System (Quyền cao nhất)" : Module_TaiKhoan.TenTaiKhoan_RAM,
+                        hanhDong: cau.HanhDong,
+                        ghiChu: cau.GhiChu
+                    );
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
+            }
+        }
+        private static readonly (string HanhDong, string GhiChu)[] _cauNhatKyKhoiDong =
+        {
+            ("Khởi tạo dữ liệu thành công!", "Kết luận: Dữ liệu đã được xác nhận và sẵn sàng sử dụng."),
+            ("Hoàn tất kiểm tra hệ thống!", "Kết luận: Các thành phần cần thiết đã đáp ứng yêu cầu."),
+            ("Xác nhận môi trường hoạt động!", "Kết luận: Phần mềm đủ điều kiện thực hiện nghiệp vụ."),
+            ("Thiết lập phiên làm việc thành công!", "Kết luận: Các bước chuẩn bị ban đầu đã hoàn tất."),
+            ("Hoàn tất xác thực dữ liệu!", "Kết luận: Quyền truy cập được kiểm tra theo cấu hình hiện hành."),
+            ("Khởi tạo chức năng nghiệp vụ!", "Kết luận: Hệ thống đã chuyển sang trạng thái hoạt động."),
+            ("Hoàn thành quy trình khởi động!", "Kết luận: Phần mềm sẵn sàng tiếp nhận thao tác người dùng.")
+        };
+        private static readonly HashSet<string> _nhatKyDaChon = new(StringComparer.Ordinal);
+        private static readonly object _khoaNhatKy = new();
+        private static (string HanhDong, string GhiChu) ChonCauNhatKyKhoiDong()
+        {
+            lock (_khoaNhatKy)
+            {
+                var danhSach = _cauNhatKyKhoiDong
+                    .Where(x => !_nhatKyDaChon.Contains(x.HanhDong + "\0" + x.GhiChu))
+                    .ToArray();
+                if (danhSach.Length == 0)
+                {
+                    _nhatKyDaChon.Clear();
+                    danhSach = _cauNhatKyKhoiDong;
+                }
+                var cau = danhSach[Random.Shared.Next(danhSach.Length)];
+                _nhatKyDaChon.Add(cau.HanhDong + "\0" + cau.GhiChu);
+                return cau;
             }
         }
         private static void TaoThuMucNeuChuaCo()

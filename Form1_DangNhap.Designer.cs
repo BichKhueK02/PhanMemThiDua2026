@@ -326,19 +326,14 @@
             // 
             // lblChaoMung
             // 
-            // 
-            // lblChaoMung
-            // 
             lblChaoMung.Anchor = AnchorStyles.None;
             lblChaoMung.AutoSize = true;
             lblChaoMung.BackColor = Color.Transparent;
-            // Cú pháp Font với kiểu chữ thường (Regular): (tên font, kích thước, kiểu chữ, đơn vị)
-            lblChaoMung.Font = new Font("Segoe UI", 16F, FontStyle.Regular, GraphicsUnit.Point);
-            // Đổi màu chữ thành màu xanh lá theo yêu cầu
+            lblChaoMung.Font = new Font("Segoe UI", 16F);
             lblChaoMung.ForeColor = Color.Green;
-            lblChaoMung.Location = new Point(69, 315);
+            lblChaoMung.Location = new Point(76, 315);
             lblChaoMung.Name = "lblChaoMung";
-            lblChaoMung.Size = new Size(201, 30);
+            lblChaoMung.Size = new Size(187, 30);
             lblChaoMung.TabIndex = 1;
             lblChaoMung.Text = "Chào mừng trở lại";
             // 

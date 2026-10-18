@@ -71,7 +71,7 @@
             quanLyThiDuaCBCS_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
             quanLyThiDuaCBCS_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyThiDuaCBCS_ToolStripMenuItem.Image");
             quanLyThiDuaCBCS_ToolStripMenuItem.Name = "quanLyThiDuaCBCS_ToolStripMenuItem";
-            quanLyThiDuaCBCS_ToolStripMenuItem.Size = new Size(235, 26);
+            quanLyThiDuaCBCS_ToolStripMenuItem.Size = new Size(238, 26);
             quanLyThiDuaCBCS_ToolStripMenuItem.Text = "Quản lý thi đua CBCS";
             quanLyThiDuaCBCS_ToolStripMenuItem.Click += quanLyThiDuaCBCS_ToolStripMenuItem_Click;
             // 
@@ -80,7 +80,7 @@
             quanLyThiDuaTapThe_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
             quanLyThiDuaTapThe_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyThiDuaTapThe_ToolStripMenuItem.Image");
             quanLyThiDuaTapThe_ToolStripMenuItem.Name = "quanLyThiDuaTapThe_ToolStripMenuItem";
-            quanLyThiDuaTapThe_ToolStripMenuItem.Size = new Size(235, 26);
+            quanLyThiDuaTapThe_ToolStripMenuItem.Size = new Size(238, 26);
             quanLyThiDuaTapThe_ToolStripMenuItem.Text = "Quản lý thi đua tập thể";
             quanLyThiDuaTapThe_ToolStripMenuItem.Click += quanLyThiDuaTapThe_ToolStripMenuItem_Click;
             // 
@@ -104,7 +104,7 @@
             quanLyThiDuaCBCSNamCu_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
             quanLyThiDuaCBCSNamCu_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyThiDuaCBCSNamCu_ToolStripMenuItem.Image");
             quanLyThiDuaCBCSNamCu_ToolStripMenuItem.Name = "quanLyThiDuaCBCSNamCu_ToolStripMenuItem";
-            quanLyThiDuaCBCSNamCu_ToolStripMenuItem.Size = new Size(290, 26);
+            quanLyThiDuaCBCSNamCu_ToolStripMenuItem.Size = new Size(293, 26);
             quanLyThiDuaCBCSNamCu_ToolStripMenuItem.Text = "Quản lý thi đua CBCS năm cũ";
             quanLyThiDuaCBCSNamCu_ToolStripMenuItem.Click += quanLyThiDuaCBCSNamCu_ToolStripMenuItem_Click;
             // 
@@ -113,7 +113,7 @@
             quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
             quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Image");
             quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Name = "quanLyThiDuaTapTheNamCu_ToolStripMenuItem";
-            quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Size = new Size(290, 26);
+            quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Size = new Size(293, 26);
             quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Text = "Quản lý thi đua tập thể năm cũ";
             quanLyThiDuaTapTheNamCu_ToolStripMenuItem.Click += quanLyThiDuaTapTheNamCu_ToolStripMenuItem_Click;
             // 

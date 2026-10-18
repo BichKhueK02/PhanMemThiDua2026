@@ -181,7 +181,7 @@
             comboBox_ChonCSDLNamCu.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_ChonCSDLNamCu.Font = new Font("Segoe UI", 9.792F);
             comboBox_ChonCSDLNamCu.FormattingEnabled = true;
-            comboBox_ChonCSDLNamCu.Location = new Point(154, 12);
+            comboBox_ChonCSDLNamCu.Location = new Point(154, 13);
             comboBox_ChonCSDLNamCu.Margin = new Padding(2, 3, 2, 3);
             comboBox_ChonCSDLNamCu.Name = "comboBox_ChonCSDLNamCu";
             comboBox_ChonCSDLNamCu.Size = new Size(259, 25);

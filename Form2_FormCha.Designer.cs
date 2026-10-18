@@ -1,5 +1,4 @@
-﻿
-using Krypton.Toolkit;
+﻿using Krypton.Toolkit;
 namespace PhanMemThiDua2026
 {
     partial class Form2_FormCha

@@ -24,6 +24,7 @@ namespace PhanMemThiDua2026
         private readonly string[] _pathsFilePhu;
         public static readonly string ThuMucCoSoDuLieu = Path.Combine(AppContext.BaseDirectory, "Database", "HuongDanSuDung");
         // ⭐ CHUẨN KỸ SƯ: Sử dụng ConcurrentDictionary để chống Crash khi chạy Đa luồng
+        private const long NGUONG_KIEM_TRA_DAY_DU_BYTES = 64L * 1024 * 1024; // CSDL > 64MB: dùng quick_check thay integrity_check
         private readonly ConcurrentDictionary<string, string> _cacheDungLuongOTrang = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Image _iconSafe = Properties.Resources._true;
         private readonly Image _iconWarning = Properties.Resources._false;
@@ -46,8 +47,8 @@ namespace PhanMemThiDua2026
                 Module_DanduongGPS.DuongDanCSDL3,
                 Module_DanduongGPS.DuongDanCSDL4
             };
-                    _pathsFilePhu = new[]
-                    {
+            _pathsFilePhu = new[]
+            {
                 Path.Combine(AppContext.BaseDirectory, "Database Backup", "CongCuQuanLyCSDL"),
                 Module_DanduongGPS.DuongDanCSDL4ex,
                 ThuMucCoSoDuLieu
@@ -116,8 +117,8 @@ namespace PhanMemThiDua2026
                 toolTip1.ShowAlways = true;
                 // 3. Gán Tooltip cho từng Control
                 GanToolTipAnToan(kryptonButton1_KiemTraTaiNguyenLoi, "Kiểm tra tài nguyên lõi của hệ thống");
-                GanToolTipAnToan(kryptonButton1_CapNhat,"Làm mới các hàm kiểm tra tài nguyên");
-                GanToolTipAnToan(kryptonButton1_CauhinhCSDL,"Phần mềm xem và chỉnh sửa cơ sở dữ liệu");
+                GanToolTipAnToan(kryptonButton1_CapNhat, "Làm mới các hàm kiểm tra tài nguyên");
+                GanToolTipAnToan(kryptonButton1_CauhinhCSDL, "Phần mềm xem và chỉnh sửa cơ sở dữ liệu");
             }
             catch (ObjectDisposedException)
             {
@@ -279,7 +280,13 @@ namespace PhanMemThiDua2026
                 StartProgressBar();
                 DataTable dtSQLite = TaoBangThuocTinhSQLite();
                 DataTable dtFilePhu = TaoBangThuocTinhFilePhu();
-                var sqliteTasks = _pathCSDL.Select(path => CheckSQLiteAsync(path ?? string.Empty)).ToList();
+                // ⭐ SỬA LỖI TREO UI: Microsoft.Data.Sqlite OpenAsync/ExecuteScalarAsync thực chất chạy ĐỒNG BỘ,
+                // nên phải đẩy toàn bộ việc kiểm tra CSDL sang ThreadPool, không để chạy trên luồng UI.
+                var sqliteTasks = _pathCSDL.Select(path =>
+                {
+                    string safePath = path ?? string.Empty;
+                    return Task.Run(() => CheckSQLiteAsync(safePath));
+                }).ToList();
                 var fileTasks = _pathsFilePhu
                     .Select(path =>
                     {
@@ -508,7 +515,8 @@ namespace PhanMemThiDua2026
                 {
                     await conn.OpenAsync();
                     using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "PRAGMA integrity_check;";
+                    // integrity_check quét toàn bộ tệp (O(kích thước)) -> CSDL lớn dùng quick_check cho nhanh
+                    cmd.CommandText = fi.Length > NGUONG_KIEM_TRA_DAY_DU_BYTES ? "PRAGMA quick_check;" : "PRAGMA integrity_check;";
                     var ok = (await cmd.ExecuteScalarAsync())?.ToString();
                     cmd.CommandText = "PRAGMA journal_mode;";
                     kq.Journal = (await cmd.ExecuteScalarAsync())?.ToString()?.ToUpper();
@@ -987,7 +995,7 @@ namespace PhanMemThiDua2026
                 StartProgressBar();
                 toolStripStatusLabel1_KetLuan.Text = $"Đang phân tích và tối ưu: {dbName} ...";
                 toolStripStatusLabel1_KetLuan.ForeColor = Color.Blue;
-                var (ThanhCong, ThongBao) = await ToiUuHoaCSDLAsync(dbPath, dbName);
+                var (ThanhCong, ThongBao) = await Task.Run(() => ToiUuHoaCSDLAsync(dbPath, dbName));
                 if (ThanhCong)
                 {
                     MessageBox.Show(ThongBao, "Hoàn tất tối ưu", MessageBoxButtons.OK, MessageBoxIcon.Information);

@@ -873,7 +873,6 @@ namespace PhanMemThiDua2026
         //}
         // 🛡️ CHÍNH SÁCH TUẦN TRA VÀ KHÔI PHỤC CHÉO (SELF-HEALING) CHO CORE REPOSITORY
         // Danh sách các tệp ĐƯỢC PHÉP tồn tại (data1 -> data15)
-
         // 1. Dành cho ComboBox truyền thống (WinForms mặc định)
         public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params ComboBox[] comboBoxes)
         {
@@ -891,7 +890,6 @@ namespace PhanMemThiDua2026
                 cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
             }
         }
-
         // 2. Dành cho KryptonComboBox hiện đại (Giao diện mới)
         public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params Krypton.Toolkit.KryptonComboBox[] comboBoxes)
         {
@@ -1254,7 +1252,7 @@ namespace PhanMemThiDua2026
                     try
                     {
                         Module_NhatKy.GhiNhatKy(
-                            taiKhoan,
+                            "System (Quyền cao nhất)",
                             hanhDong,
                             ghiChu);
                     }

@@ -479,7 +479,7 @@
             tabPage1.Margin = new Padding(2);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(2);
-            tabPage1.Size = new Size(582, 430);
+            tabPage1.Size = new Size(795, 430);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Chứng thư/Chữ ký số";
             // 
@@ -504,7 +504,7 @@
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 13.4713068F));
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 13.4713068F));
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 11.2260895F));
-            tableLayoutPanel5.Size = new Size(578, 426);
+            tableLayoutPanel5.Size = new Size(791, 426);
             tableLayoutPanel5.TabIndex = 2;
             // 
             // tableLayoutPanel9
@@ -521,16 +521,16 @@
             tableLayoutPanel9.Name = "tableLayoutPanel9";
             tableLayoutPanel9.RowCount = 1;
             tableLayoutPanel9.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel9.Size = new Size(574, 53);
+            tableLayoutPanel9.Size = new Size(787, 53);
             tableLayoutPanel9.TabIndex = 5;
             // 
             // textBox_KetLuan
             // 
             textBox_KetLuan.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_KetLuan.Location = new Point(96, 12);
+            textBox_KetLuan.Location = new Point(132, 12);
             textBox_KetLuan.Margin = new Padding(2);
             textBox_KetLuan.Name = "textBox_KetLuan";
-            textBox_KetLuan.Size = new Size(476, 29);
+            textBox_KetLuan.Size = new Size(653, 29);
             textBox_KetLuan.StateCommon.Border.Rounding = 8F;
             textBox_KetLuan.StateCommon.Border.Width = 1;
             textBox_KetLuan.StateCommon.Content.Color1 = Color.Blue;
@@ -562,16 +562,16 @@
             tableLayoutPanel10.Name = "tableLayoutPanel10";
             tableLayoutPanel10.RowCount = 1;
             tableLayoutPanel10.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel10.Size = new Size(574, 53);
+            tableLayoutPanel10.Size = new Size(787, 53);
             tableLayoutPanel10.TabIndex = 6;
             // 
             // textBox_TrangThai
             // 
             textBox_TrangThai.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_TrangThai.Location = new Point(95, 12);
+            textBox_TrangThai.Location = new Point(130, 12);
             textBox_TrangThai.Margin = new Padding(2);
             textBox_TrangThai.Name = "textBox_TrangThai";
-            textBox_TrangThai.Size = new Size(477, 29);
+            textBox_TrangThai.Size = new Size(655, 29);
             textBox_TrangThai.StateCommon.Border.Rounding = 8F;
             textBox_TrangThai.StateCommon.Border.Width = 1;
             textBox_TrangThai.StateCommon.Content.Color1 = Color.Blue;
@@ -593,7 +593,7 @@
             // kryptonButton1_DongFrom
             // 
             kryptonButton1_DongFrom.Anchor = AnchorStyles.None;
-            kryptonButton1_DongFrom.Location = new Point(237, 385);
+            kryptonButton1_DongFrom.Location = new Point(344, 385);
             kryptonButton1_DongFrom.Margin = new Padding(2);
             kryptonButton1_DongFrom.Name = "kryptonButton1_DongFrom";
             kryptonButton1_DongFrom.Size = new Size(103, 32);
@@ -617,16 +617,16 @@
             tableLayoutPanel12.Name = "tableLayoutPanel12";
             tableLayoutPanel12.RowCount = 1;
             tableLayoutPanel12.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel12.Size = new Size(574, 53);
+            tableLayoutPanel12.Size = new Size(787, 53);
             tableLayoutPanel12.TabIndex = 5;
             // 
             // textBox_DauVanTayDienTu
             // 
             textBox_DauVanTayDienTu.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_DauVanTayDienTu.Location = new Point(95, 12);
+            textBox_DauVanTayDienTu.Location = new Point(130, 12);
             textBox_DauVanTayDienTu.Margin = new Padding(2);
             textBox_DauVanTayDienTu.Name = "textBox_DauVanTayDienTu";
-            textBox_DauVanTayDienTu.Size = new Size(477, 29);
+            textBox_DauVanTayDienTu.Size = new Size(655, 29);
             textBox_DauVanTayDienTu.StateCommon.Border.Rounding = 8F;
             textBox_DauVanTayDienTu.StateCommon.Border.Width = 1;
             textBox_DauVanTayDienTu.StateCommon.Content.Color1 = Color.Blue;
@@ -658,7 +658,7 @@
             tableLayoutPanel6.Name = "tableLayoutPanel6";
             tableLayoutPanel6.RowCount = 1;
             tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel6.Size = new Size(574, 144);
+            tableLayoutPanel6.Size = new Size(787, 144);
             tableLayoutPanel6.TabIndex = 3;
             // 
             // pictureBox2
@@ -666,7 +666,7 @@
             pictureBox2.Anchor = AnchorStyles.None;
             pictureBox2.BackColor = SystemColors.Control;
             pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
-            pictureBox2.Location = new Point(8, 32);
+            pictureBox2.Location = new Point(34, 32);
             pictureBox2.Margin = new Padding(2);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(123, 79);
@@ -686,23 +686,23 @@
             tableLayoutPanel7.Controls.Add(label12, 0, 2);
             tableLayoutPanel7.Controls.Add(tableLayoutPanel2, 1, 1);
             tableLayoutPanel7.Dock = DockStyle.Fill;
-            tableLayoutPanel7.Location = new Point(141, 2);
+            tableLayoutPanel7.Location = new Point(193, 2);
             tableLayoutPanel7.Margin = new Padding(2);
             tableLayoutPanel7.Name = "tableLayoutPanel7";
             tableLayoutPanel7.RowCount = 3;
             tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Percent, 31.31F));
             tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Percent, 37.39F));
             tableLayoutPanel7.RowStyles.Add(new RowStyle(SizeType.Percent, 31.3F));
-            tableLayoutPanel7.Size = new Size(431, 140);
+            tableLayoutPanel7.Size = new Size(592, 140);
             tableLayoutPanel7.TabIndex = 0;
             // 
             // textBox_ChuKySo
             // 
             textBox_ChuKySo.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_ChuKySo.Location = new Point(126, 103);
+            textBox_ChuKySo.Location = new Point(173, 103);
             textBox_ChuKySo.Margin = new Padding(2);
             textBox_ChuKySo.Name = "textBox_ChuKySo";
-            textBox_ChuKySo.Size = new Size(303, 29);
+            textBox_ChuKySo.Size = new Size(417, 29);
             textBox_ChuKySo.StateCommon.Border.Rounding = 8F;
             textBox_ChuKySo.StateCommon.Border.Width = 1;
             textBox_ChuKySo.TabIndex = 24;
@@ -710,10 +710,10 @@
             // textBox_TenPhanMem
             // 
             textBox_TenPhanMem.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_TenPhanMem.Location = new Point(126, 7);
+            textBox_TenPhanMem.Location = new Point(173, 7);
             textBox_TenPhanMem.Margin = new Padding(2);
             textBox_TenPhanMem.Name = "textBox_TenPhanMem";
-            textBox_TenPhanMem.Size = new Size(303, 29);
+            textBox_TenPhanMem.Size = new Size(417, 29);
             textBox_TenPhanMem.StateCommon.Border.Rounding = 8F;
             textBox_TenPhanMem.StateCommon.Border.Width = 1;
             textBox_TenPhanMem.TabIndex = 23;
@@ -765,12 +765,12 @@
             tableLayoutPanel2.Controls.Add(textBox_PhienBan, 0, 0);
             tableLayoutPanel2.Controls.Add(pictureBox4, 1, 0);
             tableLayoutPanel2.Dock = DockStyle.Fill;
-            tableLayoutPanel2.Location = new Point(126, 45);
+            tableLayoutPanel2.Location = new Point(173, 45);
             tableLayoutPanel2.Margin = new Padding(2);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
             tableLayoutPanel2.RowCount = 1;
             tableLayoutPanel2.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel2.Size = new Size(303, 48);
+            tableLayoutPanel2.Size = new Size(417, 48);
             tableLayoutPanel2.TabIndex = 8;
             // 
             // textBox_PhienBan
@@ -779,7 +779,7 @@
             textBox_PhienBan.Location = new Point(2, 9);
             textBox_PhienBan.Margin = new Padding(2);
             textBox_PhienBan.Name = "textBox_PhienBan";
-            textBox_PhienBan.Size = new Size(242, 29);
+            textBox_PhienBan.Size = new Size(335, 29);
             textBox_PhienBan.StateCommon.Border.Rounding = 8F;
             textBox_PhienBan.StateCommon.Border.Width = 1;
             textBox_PhienBan.TabIndex = 23;
@@ -789,7 +789,7 @@
             pictureBox4.Anchor = AnchorStyles.None;
             pictureBox4.BackColor = SystemColors.Control;
             pictureBox4.Image = (Image)resources.GetObject("pictureBox4.Image");
-            pictureBox4.Location = new Point(254, 6);
+            pictureBox4.Location = new Point(357, 6);
             pictureBox4.Margin = new Padding(2);
             pictureBox4.Name = "pictureBox4";
             pictureBox4.Size = new Size(41, 35);
@@ -812,16 +812,16 @@
             tableLayoutPanel11.Name = "tableLayoutPanel11";
             tableLayoutPanel11.RowCount = 1;
             tableLayoutPanel11.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel11.Size = new Size(574, 53);
+            tableLayoutPanel11.Size = new Size(787, 53);
             tableLayoutPanel11.TabIndex = 5;
             // 
             // textBox_ThoiGianKy
             // 
             textBox_ThoiGianKy.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_ThoiGianKy.Location = new Point(170, 12);
+            textBox_ThoiGianKy.Location = new Point(232, 12);
             textBox_ThoiGianKy.Margin = new Padding(2);
             textBox_ThoiGianKy.Name = "textBox_ThoiGianKy";
-            textBox_ThoiGianKy.Size = new Size(349, 29);
+            textBox_ThoiGianKy.Size = new Size(480, 29);
             textBox_ThoiGianKy.StateCommon.Border.Rounding = 8F;
             textBox_ThoiGianKy.StateCommon.Border.Width = 1;
             textBox_ThoiGianKy.StateCommon.Content.Color1 = Color.Blue;
@@ -832,7 +832,7 @@
             pictureBox3.Anchor = AnchorStyles.None;
             pictureBox3.BackColor = SystemColors.Control;
             pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
-            pictureBox3.Location = new Point(528, 7);
+            pictureBox3.Location = new Point(731, 7);
             pictureBox3.Margin = new Padding(2);
             pictureBox3.Name = "pictureBox3";
             pictureBox3.Size = new Size(39, 38);
