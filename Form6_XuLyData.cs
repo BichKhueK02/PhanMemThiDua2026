@@ -1,5 +1,4 @@
-﻿///Phiên bản 1
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.ComponentModel;
@@ -9,6 +8,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+
 namespace PhanMemThiDua2026
 {
     public partial class Form6_XuLyData : Form

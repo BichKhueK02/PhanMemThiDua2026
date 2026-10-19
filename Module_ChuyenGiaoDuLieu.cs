@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;

@@ -1,4 +1,5 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -155,6 +156,8 @@ namespace PhanMemThiDua2026
             }
             // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT
             isLoaded = true;
+            // Nạp sẵn thư viện PDFium ở nền (im lặng) để lần mở Hướng dẫn đầu tiên không bị khựng
+            _ = Task.Run(Form32_HuongDanPDF.NapTruocThuVien);
         }
         private void Form2_FormCha_Shown(object? sender, EventArgs e)
         {
@@ -1044,7 +1047,7 @@ namespace PhanMemThiDua2026
             Label1.Text = "Đang chuẩn bị tài liệu hướng dẫn...";
             try
             {
-                string cheDo = Module_HuongDanSuDung.LayCheDoXemHuongDan();
+                string cheDo = await Task.Run(() => Module_HuongDanSuDung.LayCheDoXemHuongDan());   // đọc CSDL ở luồng nền
                 // PDF MODE
                 if (cheDo == "Chế độ pdf")
                 {
@@ -1060,7 +1063,7 @@ namespace PhanMemThiDua2026
                     }
                     try
                     {
-                        string pdfPath = Module_HuongDanSuDung.TimFileHuongDanPdf();
+                        string pdfPath = await Task.Run(() => Module_HuongDanSuDung.TimFileHuongDanPdf());   // tìm/chuẩn bị tệp ở luồng nền
                         if (string.IsNullOrWhiteSpace(pdfPath))
                         {
                             Module_NhatKy.GhiNhatKy(
@@ -1075,17 +1078,19 @@ namespace PhanMemThiDua2026
                         // REUSE EXISTING FORM
                         if (existingPdf != null && !existingPdf.IsDisposed)
                         {
-                            existingPdf.GoiTenEmTrongDem_LoadPdf(pdfPath);
-                            existingPdf.Show();
-                            existingPdf.BringToFront();
-                            _currentChild?.Hide();
-                            _currentChild = existingPdf;
+                            var formTruoc = _currentChild;
+                            TamDungVe(PanelContainer);
+                            try
+                            {
+                                existingPdf.Show();
+                                existingPdf.BringToFront();
+                                if (formTruoc != null && !ReferenceEquals(formTruoc, existingPdf)) formTruoc.Hide();
+                                _currentChild = existingPdf;
+                            }
+                            finally { ChoPhepVe(PanelContainer); }
                             HighlightNavButton(kryptonButton1_HuongDan);
-                            Module_NhatKy.GhiNhatKy(
-                                taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-                                hanhDong: "Chuyển tab Hướng dẫn (PDF)",
-                                ghiChu: "Người dùng tái sử dụng form pdf đã mở."
-                            );
+                            await existingPdf.LoadPdfAsync(pdfPath);   // tệp nạp ở luồng nền; nếu đã nạp đúng tệp này thì tức thì
+                            GhiNhatKyNen("Chuyển tab Hướng dẫn (PDF)", "Người dùng tái sử dụng form pdf đã mở.");
                             return;
                         }
                         // CREATE NEW FORM
@@ -1096,9 +1101,6 @@ namespace PhanMemThiDua2026
                             Dock = DockStyle.Fill,
                             Text = "Hướng dẫn sử dụng"
                         };
-                        _currentChild?.Hide();
-                        PanelContainer.Controls.Add(pdf);
-                        _currentChild = pdf;
                         pdf.FormClosed += (s, ev) =>
                         {
                             if (PanelContainer.IsDisposed) return;
@@ -1111,15 +1113,21 @@ namespace PhanMemThiDua2026
                                 _currentChild = defaultForm;
                             }
                         };
-                        pdf.GoiTenEmTrongDem_LoadPdf(pdfPath);
-                        pdf.Show();
-                        pdf.BringToFront();
+                        var formTruoc2 = _currentChild;
+                        TamDungVe(PanelContainer);
+                        try
+                        {
+                            PanelContainer.Controls.Add(pdf);
+                            pdf.Show();            // hiện form (kèm nhãn "Đang mở...") NGAY, rồi mới nạp tệp
+                            pdf.BringToFront();
+                            formTruoc2?.Hide();
+                            _currentChild = pdf;
+                        }
+                        finally { ChoPhepVe(PanelContainer); }
                         HighlightNavButton(kryptonButton1_HuongDan);
-                        Module_NhatKy.GhiNhatKy(
-                            taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-                            hanhDong: "Mở Hướng dẫn (PDF) thành công",
-                            ghiChu: "Khởi tạo và mở tài liệu PDF thành công từ Form2."
-                        );
+                        await pdf.LoadPdfAsync(pdfPath);   // PdfDocument.Load chạy ở luồng nền -> UI không đứng
+                        if (!pdf.IsDisposed)
+                            GhiNhatKyNen("Mở Hướng dẫn (PDF) thành công", "Khởi tạo và mở tài liệu PDF thành công từ Form2.");
                     }
                     finally
                     {
@@ -1163,6 +1171,16 @@ namespace PhanMemThiDua2026
             {
                 Label1.Text = "Trang Hướng dẫn sử dụng Phần mềm Thi đua 2026";
             }
+        }
+        // Ghi nhật ký ở luồng nền: không để thao tác ghi CSDL chặn giao diện lúc mở hướng dẫn
+        private static void GhiNhatKyNen(string hanhDong, string ghiChu)
+        {
+            string tk = Module_TaiKhoan.TenTaiKhoan_RAM;
+            _ = Task.Run(() =>
+            {
+                try { Module_NhatKy.GhiNhatKy(taiKhoan: tk, hanhDong: hanhDong, ghiChu: ghiChu); }
+                catch (Exception ex) { Debug.WriteLine("[GhiNhatKyNen] " + ex.Message); }
+            });
         }
         public void CapNhatTieuDe(string text)
         {
