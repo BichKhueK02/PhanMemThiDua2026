@@ -45,20 +45,31 @@ namespace PhanMemThiDua2026
         /// (TaoForm42NeuCan / TaoForm44NeuCan thấy form đã có nên dùng lại).
         /// Có thể gọi nhiều lần, an toàn.
         /// </summary>
+        /// 
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern int SendMessage(IntPtr h, int msg, int w, int l);
+        private const int WM_SETREDRAW = 0x000B;
+        private static void TatVe(Control c) { if (c.IsHandleCreated) SendMessage(c.Handle, WM_SETREDRAW, 0, 0); }
+        private static void BatVe(Control c) { if (c.IsHandleCreated) { SendMessage(c.Handle, WM_SETREDRAW, 1, 0); c.Invalidate(true); } }
+        private bool _daNap44, _canNapLai44;
+        public void DanhDauCanNapLaiSoVang() => _canNapLai44 = true;   // Form42 gọi sau khi lưu vào Sổ vàng
+        private void ChuyenForm(Form hien, Form? an)
+        {
+            TatVe(panelContent);
+            try { hien.Show(); hien.BringToFront(); an?.Hide(); }
+            finally { BatVe(panelContent); }
+        }
         public void NapTruocGiaoDien()
         {
             if (_dangDongForm || IsDisposed) return;
             try
             {
                 TaoForm42NeuCan();
-                if (_frm42 != null && !_frm42.IsDisposed) TaoHandleDeQuy(_frm42);
+                if (_frm42 != null && !_frm42.IsDisposed) { TaoHandleDeQuy(_frm42); _frm42.PerformLayout(); }
                 TaoForm44NeuCan();
-                if (_frm44 != null && !_frm44.IsDisposed) TaoHandleDeQuy(_frm44);
+                if (_frm44 != null && !_frm44.IsDisposed) { TaoHandleDeQuy(_frm44); _frm44.PerformLayout(); }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("[Form55.NapTruoc] " + ex.Message);
-            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[Form55.NapTruoc] " + ex.Message); }
         }
         private static void TaoHandleDeQuy(Control c)
         {
@@ -115,61 +126,48 @@ namespace PhanMemThiDua2026
         // HIỂN THỊ FORM 42
         public async Task MoForm42Async()
         {
-            if (_dangDongForm)
-                return;
+            if (_dangDongForm) return;
             await _navigationLock.WaitAsync();
             try
             {
                 TaoForm42NeuCan();
                 Form? formCu = (_frm44 != null && !_frm44.IsDisposed && _frm44.Visible) ? _frm44 : null;
-                if (_frm42 == null || _frm42.IsDisposed)
-                {
-                    formCu?.Hide();   // giữ đúng hành vi cũ khi thoát sớm
-                    return;
-                }
-                _frm42.Show();
-                _frm42.BringToFront();
-                formCu?.Hide();       // ẩn form cũ SAU khi form mới đã hiện (không còn khung hình nền trống)
+                if (_frm42 == null || _frm42.IsDisposed) { formCu?.Hide(); return; }
+                ChuyenForm(_frm42, formCu);
                 CapNhatTieuDeFormChinh($"Quản lý phong trào thi đua Ba Nhất năm {_namHeThong}");
                 if (!_daNapLanDau || _canNapLai)
                 {
+                    _canNapLai = false;
                     await _frm42.DongBoDuLieuLoai1SangBaNhatAsync();
+                    if (_dangDongForm || _frm42.IsDisposed) return;
+                    await Module_BaNhat.CapNhatTinhTrangSoVangAsync();   // chuyển từ Form42.Load sang đây
                     if (_dangDongForm || _frm42.IsDisposed) return;
                     await _frm42.LoadDuLieuToanBoDanhSachBaNhatAsync();
                     _daNapLanDau = true;
-                    _canNapLai = false;
                 }
             }
-            finally
-            {
-                _navigationLock.Release();
-            }
+            finally { _navigationLock.Release(); }
         }
         // HIỂN THỊ FORM 44
         public async Task MoForm44Async()
         {
-            if (_dangDongForm)
-                return;
+            if (_dangDongForm) return;
             await _navigationLock.WaitAsync();
             try
             {
                 TaoForm44NeuCan();
                 Form? formCu = (_frm42 != null && !_frm42.IsDisposed && _frm42.Visible) ? _frm42 : null;
-                if (_frm44 == null || _frm44.IsDisposed)
-                {
-                    formCu?.Hide();   // giữ đúng hành vi cũ khi thoát sớm
-                    return;
-                }
-                _frm44.Show();
-                _frm44.BringToFront();
-                formCu?.Hide();       // ẩn form cũ SAU khi form mới đã hiện (không còn khung hình nền trống)
+                if (_frm44 == null || _frm44.IsDisposed) { formCu?.Hide(); return; }
+                ChuyenForm(_frm44, formCu);
                 CapNhatTieuDeFormChinh($"Sổ vàng vinh danh thi đua Ba Nhất năm {_namHeThong}");
-                await _frm44.LoadDuLieuSoVangBaNhatAsync();
+                if (!_daNap44 || _canNapLai44)
+                {
+                    _canNapLai44 = false;
+                    await _frm44.LoadDuLieuSoVangBaNhatAsync();
+                    _daNap44 = true;
+                }
             }
-            finally
-            {
-                _navigationLock.Release();
-            }
+            finally { _navigationLock.Release(); }
         }
         // MENU - FORM 42
         private async void quanLyThiDuaBaNhat_ToolStripMenuItem_Click(object? sender, EventArgs e)

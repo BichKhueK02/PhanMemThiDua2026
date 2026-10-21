@@ -107,7 +107,7 @@ namespace PhanMemThiDua2026
                 BatDoubleBufferDeQuy(c);
             }
         }
-        private async void Form42_QuanLyThiDuaBaNhat_Load(object? sender, EventArgs e)
+        private void Form42_QuanLyThiDuaBaNhat_Load(object? sender, EventArgs e)
         {
             // 1. KHỞI TẠO DATAGRIDVIEW VÀ CONTEXT MENU
             kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
@@ -130,9 +130,8 @@ namespace PhanMemThiDua2026
             InitToolTips();
             KhoaCacTextBox();
             // 5. TÍNH TOÁN THÔNG TIN HIỂN THỊ
-            await Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(
-                toolStripStatusLabel2_TyLeBaNhat);
-            await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
+            //await Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync( toolStripStatusLabel2_TyLeBaNhat);
+            //await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
             // 6. ĐỒNG BỘ DỮ LIỆU NGUỒN from55 đã lo việc này rồi
             //await DongBoDuLieuLoai1SangBaNhatAsync();
             //// 7. NẠP DỮ LIỆU CHÍNH LÊN GRID
@@ -1261,6 +1260,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 CapNhatTrangThaiDuoiNen(true);
                 // THÊM DÒNG NÀY VÀO ĐỂ TÍNH LẠI TỶ LỆ KHI CÓ NGƯỜI MỚI ĐƯỢC CHUYỂN SANG LOẠI 1:
                 _ = Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(toolStripStatusLabel2_TyLeBaNhat);
+                Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault()?.DanhDauCanNapLai();
             }
             catch (Exception ex)
             {
@@ -1497,6 +1497,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 // Gọi lại hàm thống kê để trả dòng chữ Tổng cộng về bình thường
                 ThongKeSoLuongBaNhat(false);
                 CapNhatTrangThaiDuoiNen(true);
+                Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault()?.DanhDauCanNapLai();
                 //MessageBox.Show("Đã xóa và đồng bộ lại dữ liệu thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // 5. Ghi nhật ký hành động xóa
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa toàn bộ dữ liệu bảng Danh sách Ba Nhất", $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
@@ -1789,6 +1790,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                     toolStripStatusLabel1.Owner?.Refresh();
                 }
                 await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
+                Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault()?.DanhDauCanNapLaiSoVang();
                 await Task.Delay(800);
                 ThongKeSoLuongBaNhat(false);
                 Module_NhatKy.GhiNhatKy(
@@ -1906,6 +1908,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 // 🌟 BỔ SUNG LÀM MỚI TÌNH TRẠNG SỔ VÀNG
                 await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
                 await LoadDuLieuToanBoDanhSachBaNhatAsync();
+                Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault()?.DanhDauCanNapLai();
             }
         }
         /// <summary>

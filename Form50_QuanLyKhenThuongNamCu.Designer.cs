@@ -90,8 +90,8 @@
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 3;
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 23.9353886F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 71.36564F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 4.64783859F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 72.09985F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 3.96475768F));
             tableLayoutPanel1.Size = new Size(1264, 681);
             tableLayoutPanel1.TabIndex = 3;
             // 
@@ -105,7 +105,7 @@
             groupBox5.Margin = new Padding(2, 3, 2, 3);
             groupBox5.Name = "groupBox5";
             groupBox5.Padding = new Padding(2, 3, 2, 3);
-            groupBox5.Size = new Size(1260, 480);
+            groupBox5.Size = new Size(1260, 485);
             groupBox5.TabIndex = 8;
             groupBox5.TabStop = false;
             groupBox5.Text = "4. Thông tin khen thưởng năm cũ của CBCS";
@@ -122,7 +122,7 @@
             tableLayoutPanel8.Name = "tableLayoutPanel8";
             tableLayoutPanel8.RowCount = 1;
             tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel8.Size = new Size(1256, 457);
+            tableLayoutPanel8.Size = new Size(1256, 462);
             tableLayoutPanel8.TabIndex = 0;
             // 
             // kryptonDataGridView1
@@ -135,7 +135,7 @@
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.ReadOnly = true;
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(1252, 451);
+            kryptonDataGridView1.Size = new Size(1252, 456);
             kryptonDataGridView1.TabIndex = 5;
             // 
             // statusStrip1
@@ -234,7 +234,7 @@
             comboBox_ChonCSDLNam.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_ChonCSDLNam.Font = new Font("Segoe UI", 9.792F);
             comboBox_ChonCSDLNam.FormattingEnabled = true;
-            comboBox_ChonCSDLNam.Location = new Point(122, 12);
+            comboBox_ChonCSDLNam.Location = new Point(122, 11);
             comboBox_ChonCSDLNam.Margin = new Padding(2, 3, 2, 3);
             comboBox_ChonCSDLNam.Name = "comboBox_ChonCSDLNam";
             comboBox_ChonCSDLNam.Size = new Size(253, 25);
@@ -402,7 +402,7 @@
             comboBox_TimKiemDonVi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_TimKiemDonVi.Font = new Font("Segoe UI", 9.792F);
             comboBox_TimKiemDonVi.FormattingEnabled = true;
-            comboBox_TimKiemDonVi.Location = new Point(623, 8);
+            comboBox_TimKiemDonVi.Location = new Point(623, 9);
             comboBox_TimKiemDonVi.Margin = new Padding(2, 3, 2, 3);
             comboBox_TimKiemDonVi.Name = "comboBox_TimKiemDonVi";
             comboBox_TimKiemDonVi.Size = new Size(191, 25);
@@ -442,7 +442,7 @@
             comboBox1_HinhThucKT.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_HinhThucKT.Font = new Font("Segoe UI", 9.792F);
             comboBox1_HinhThucKT.FormattingEnabled = true;
-            comboBox1_HinhThucKT.Location = new Point(950, 8);
+            comboBox1_HinhThucKT.Location = new Point(950, 9);
             comboBox1_HinhThucKT.Margin = new Padding(2, 3, 2, 3);
             comboBox1_HinhThucKT.Name = "comboBox1_HinhThucKT";
             comboBox1_HinhThucKT.Size = new Size(202, 25);

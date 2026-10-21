@@ -1,4 +1,6 @@
-﻿using Microsoft.Win32;
+﻿///Phiên bản 2 (Tối ưu hiệu suất do Cloude AI
+///
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -6,7 +8,9 @@ namespace PhanMemThiDua2026
 {
     internal static class Program
     {
+        // ======================================================================
         //  HẰNG SỐ & CẤU HÌNH
+        // ======================================================================
         private const string DeveloperComputerName = "MEOCAM";
         private const int MaxInstancesOnDeveloper = 3;
         private const int MaxInstancesOnClient = 1;
@@ -16,21 +20,21 @@ namespace PhanMemThiDua2026
         private const int ExitInitFailed = 3;
         private const string AdminContact = "Admin TrungKien: 0975.287.973";
         private const string LogFolderName = "PhanMemThiDua2026";
-       // private const int MaxInstancesInBuildOutput = 2; // chạy từ bin\Debug|Release
-        private const int MaxInstancesInstalled = 1;     // bản cài đặt cho người dùng cuối
-        private const int IeEmulationMode = 11001;       // IE11 edge mode cho WebBrowser
-        private const int SlowStartupThresholdMs = 1500; // ngưỡng ghi log "khởi động chậm"
+        private const int IeEmulationMode = 11001;        // IE11 edge mode cho WebBrowser
+        private const int SlowStartupThresholdMs = 1500;  // ngưỡng ghi log "khởi động chậm" (cả khối lõi)
+        private const int SlowStepThresholdMs = 300;      // ngưỡng ghi log từng bước chậm
+        private const int BackgroundStartDelayMs = 1500;  // nhường CPU/đĩa cho Form1 dựng xong rồi mới chạy nền
         private const int BackgroundShutdownWaitMs = 3000;
         private const int LogRetentionDays = 30;
         // Bộ chống "bão lỗi" giao diện: >= 5 lỗi UI trong 5 giây => đóng app an toàn
         private const int UiErrorBurstLimit = 5;
         private const long UiErrorBurstWindowMs = 5000;
-        // Nâng ưu tiên tiến trình KHÔNG làm UI mượt hơn, còn có thể làm máy chậm đi
-        // (tranh CPU với hệ thống/antivirus). Mặc định tắt; đổi thành true nếu thật sự cần.
-        private static readonly bool BoostProcessPriority = false;
+        // ======================================================================
         //  TRẠNG THÁI TOÀN CỤC
+        // ======================================================================
         private static Mutex? _appMutex;
         private static Task? _backgroundTask;
+        private static readonly CancellationTokenSource ShutdownCts = new();
         private static readonly string AppMutexName = BuildMutexName("CORE");
         private static readonly string MsgMutexName = BuildMutexName("MSG");
         private static readonly object FileLogLock = new();
@@ -40,7 +44,9 @@ namespace PhanMemThiDua2026
         private static int _errorDialogOpen;   // 0/1 - chống chồng hộp thoại lỗi
         private static int _uiErrorCount;      // chỉ truy cập từ UI thread
         private static long _uiErrorWindowStart;
+        // ======================================================================
         //  ĐIỂM VÀO
+        // ======================================================================
         [STAThread]
         private static int Main()
         {
@@ -58,8 +64,7 @@ namespace PhanMemThiDua2026
                     ShowSingleInstanceMessage();
                     return ExitAlreadyRunning;
                 }
-                // 4. Chỉ instance chính mới chạm registry / đổi ưu tiên
-                TryBoostPriority();
+                // 4. Phải xong trước khi có WebBrowser đầu tiên được tạo
                 SetBrowserFeatureControl();
                 // 5. Cảnh báo tỷ lệ màn hình: lỗi ở đây không được phép làm sập app
                 RunNonCritical("Kiểm tra tỷ lệ màn hình",
@@ -70,19 +75,14 @@ namespace PhanMemThiDua2026
                     ShowStartupFailure();
                     return ExitInitFailed;
                 }
-                // 7. Nạp theme/màu từ CSDL (thẩm mỹ -> lỗi thì dùng mặc định, không crash)
+                // 7. Nạp theme/màu từ CSDL: cần có TRƯỚC khi Form1 hiện để không bị nháy màu.
                 RunNonCritical("Nạp theme", () => Module_GiaoDien.KhoiDongDocTheme());
                 RunNonCritical("Nạp màu menu chuột phải",
                     () => Module_MenuChuotPhai.KhoiTaoMauTuCSDL(Module_DanduongGPS.DuongDanCSDL2));
-                // 8. Đồng bộ Hướng dẫn sử dụng (không bắt buộc)
-                RunNonCritical("Đồng bộ Hướng dẫn sử dụng", () =>
-                {
-                    Module_HuongDanSuDung.SyncMasterVersion();
-                    Module_HuongDanSuDung.UpdateLocal();
-                });
-                // 9. Tác vụ nền: chạy sau khi giao diện đã hiện (xem hàm để biết lý do)
+                // 8. Tác vụ nền (tường lửa, làm sạch, đồng bộ Hướng dẫn sử dụng...)
+                //    chạy sau khi giao diện đã hiện.
                 ScheduleBackgroundMaintenance();
-                // 10. Giao diện chính
+                // 9. Giao diện chính
                 Application.Run(new Form1());
                 return ExitOk;
             }
@@ -93,33 +93,20 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                // 11. Dọn dẹp luôn chạy, kể cả khi lỗi
+                // 10. Dọn dẹp luôn chạy, kể cả khi lỗi
                 CleanupResources(isPrimaryInstance);
             }
         }
+        // ======================================================================
         //  KHỞI TẠO
+        // ======================================================================
         private static void ConfigureWinForms()
         {
-            // Hàm sinh tự động theo cấu hình .csproj (visual styles, font mặc định, DPI...).
-            // Gọi TRƯỚC để các thiết lập tường minh bên dưới luôn là giá trị cuối cùng.
+            // Initialize() (sinh theo .csproj) đã gọi EnableVisualStyles +
+            // SetCompatibleTextRenderingDefault + font mặc định, nên không gọi lại ở đây.
             ApplicationConfiguration.Initialize();
-            // Mọi thiết lập này phải xong trước khi có bất kỳ cửa sổ nào được tạo.
+            // Mọi thiết lập DPI phải xong trước khi có bất kỳ cửa sổ nào được tạo.
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-        }
-        private static void TryBoostPriority()
-        {
-            if (!BoostProcessPriority) return;
-            try
-            {
-                using Process p = Process.GetCurrentProcess();
-                p.PriorityClass = ProcessPriorityClass.AboveNormal;
-            }
-            catch (Exception ex)
-            {
-                WriteFallbackLog("Không đặt được ưu tiên tiến trình", ex.ToString());
-            }
         }
         // Ghi chú: .GetAwaiter().GetResult() ở đây là BLOCKING có chủ đích. Main() chưa gọi
         // Application.Run nên chưa có WindowsFormsSynchronizationContext -> không deadlock,
@@ -139,7 +126,6 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                // Trước đây chỉ Debug.WriteLine -> bản Release không để lại dấu vết gì.
                 LogException("Core Init Fatal", ex);
                 return false;
             }
@@ -164,30 +150,58 @@ namespace PhanMemThiDua2026
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
         }
-        // Tác vụ nền được hẹn giờ ở lần Idle đầu tiên (sau khi Form1 đã dựng xong) và chạy
-        // TUẦN TỰ trong một task duy nhất -> không tranh writer SQLite với Form1 lúc khởi
-        // tạo, và các bước nền không giẫm chân nhau.
+        // ======================================================================
+        //  TÁC VỤ NỀN
+        // ======================================================================
+        // Hẹn giờ ở lần Idle đầu tiên (sau khi Form1 đã dựng xong), chờ thêm một nhịp
+        // BackgroundStartDelayMs để không tranh CPU/đĩa với Form1, rồi chạy TUẦN TỰ trong
+        // một task duy nhất -> không tranh writer SQLite với Form1 và các bước không giẫm
+        // chân nhau. Khi thoát app, token bị hủy nên các bước chưa chạy sẽ được bỏ qua.
         private static void ScheduleBackgroundMaintenance()
         {
             EventHandler? onFirstIdle = null;
             onFirstIdle = (_, _) =>
             {
                 Application.Idle -= onFirstIdle;
-                _backgroundTask = Task.Run(RunBackgroundMaintenance);
+                _backgroundTask = Task.Run(() => RunBackgroundMaintenanceAsync(ShutdownCts.Token));
             };
             Application.Idle += onFirstIdle;
         }
-        private static void RunBackgroundMaintenance()
+        private static async Task RunBackgroundMaintenanceAsync(CancellationToken ct)
         {
-            RunNonCritical("Tường lửa bảo vệ hệ thống",
-                () => Module_KhoiTaoCSDL.TuongLuaBaoVeHeThong(AppContext.BaseDirectory));
-            RunNonCritical("Chính sách làm sạch",
-                () => Module_KhoiTaoCSDL.ChinhSachLamSach());
-            PruneOldFallbackLogs();
+            try
+            {
+                await Task.Delay(BackgroundStartDelayMs, ct).ConfigureAwait(false);
+                RunBackgroundStep(ct, "Tường lửa bảo vệ hệ thống",
+                    () => Module_KhoiTaoCSDL.TuongLuaBaoVeHeThong(AppContext.BaseDirectory));
+                RunBackgroundStep(ct, "Chính sách làm sạch",
+                    () => Module_KhoiTaoCSDL.ChinhSachLamSach());
+                RunBackgroundStep(ct, "Đồng bộ Hướng dẫn sử dụng", () =>
+                {
+                    Module_HuongDanSuDung.SyncMasterVersion();
+                    Module_HuongDanSuDung.UpdateLocal();
+                });
+                RunBackgroundStep(ct, "Dọn nhật ký cũ", PruneOldFallbackLogs);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ứng dụng đang đóng: bỏ qua các bước còn lại.
+            }
+            catch (Exception ex)
+            {
+                LogException("Tác vụ nền thất bại", ex);
+            }
+        }
+        private static void RunBackgroundStep(CancellationToken ct, string stepName, Action action)
+        {
+            if (ct.IsCancellationRequested) return;
+            RunNonCritical(stepName, action);
         }
         // Chạy một bước KHÔNG bắt buộc: lỗi được ghi nhật ký, ứng dụng vẫn chạy tiếp.
+        // Bước nào chạy quá SlowStepThresholdMs sẽ được ghi vào file log để dễ tìm điểm nghẽn.
         private static void RunNonCritical(string stepName, Action action)
         {
+            long start = Stopwatch.GetTimestamp();
             try
             {
                 action();
@@ -196,8 +210,16 @@ namespace PhanMemThiDua2026
             {
                 LogException($"Bước không bắt buộc thất bại: {stepName}", ex);
             }
+            finally
+            {
+                double ms = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
+                if (ms > SlowStepThresholdMs)
+                    WriteFallbackLog("Bước chạy chậm", $"{stepName}: {ms:F0} ms");
+            }
         }
+        // ======================================================================
         //  SINGLE INSTANCE
+        // ======================================================================
         // Tên mutex xác định (cùng máy -> cùng tên) để các tiến trình nhận ra nhau.
         private static string BuildMutexName(string purpose)
         {
@@ -213,118 +235,49 @@ namespace PhanMemThiDua2026
             }
         }
         /// <summary>
-        /// Giới hạn số instance chạy đồng thời:
-        /// chạy từ thư mục build -> tối đa 2; bản cài đặt/publish -> đúng 1.
+        /// Máy dev (MEOCAM) cho chạy tối đa 3 instance, máy người dùng chỉ 1.
         /// </summary>
-        ///private static bool AcquireInstanceLock()
-        //{
-        //    int maxInstances = IsRunningFromBuildOutput(Environment.ProcessPath ?? Application.ExecutablePath)
-        //        ? MaxInstancesInBuildOutput
-        //        : MaxInstancesInstalled;
-        //    for (int slot = 1; slot <= maxInstances; slot++)
-        //    {
-        //        Mutex? mutex = null;
-        //        try
-        //        {
-        //            // Tạo mutex KHÔNG sở hữu, rồi xin quyền riêng bằng WaitOne: luôn giữ được
-        //            // tham chiếu để giải phóng đúng, kể cả khi gặp AbandonedMutexException.
-        //            mutex = new Mutex(initiallyOwned: false, name: $"{AppMutexName}_Slot{slot}");
-        //            bool acquired;
-        //            try
-        //            {
-        //                acquired = mutex.WaitOne(0);
-        //            }
-        //            catch (AbandonedMutexException)
-        //            {
-        //                // Tiến trình giữ slot trước đó đã crash -> quyền sở hữu chuyển sang ta.
-        //                acquired = true;
-        //            }
-        //            if (acquired)
-        //            {
-        //                _appMutex = mutex;
-        //                return true;
-        //            }
-        //        }
-        //        catch (UnauthorizedAccessException)
-        //        {
-        //            // Slot đang do tiến trình khác quyền giữ (vd: bản chạy Run as Admin,
-        //            // bản này chạy thường) -> coi như slot đã bị chiếm, KHÔNG được crash.
-        //        }
-        //        mutex?.Dispose(); // slot bận, thử slot kế tiếp
-        //    }
-        //    return false;
-        //}
         private static bool AcquireInstanceLock()
-                {
-                    bool isDeveloper = string.Equals(
-                        Environment.MachineName,
-                        DeveloperComputerName,
-                        StringComparison.OrdinalIgnoreCase);
-                    int maxInstances = isDeveloper
-                        ? MaxInstancesOnDeveloper
-                        : MaxInstancesOnClient;
-                    for (int slot = 1; slot <= maxInstances; slot++)
-                    {
-                        Mutex? mutex = null;
-                        try
-                        {
-                            mutex = new Mutex(
-                                initiallyOwned: false,
-                                name: $"{AppMutexName}_Slot{slot}");
-                            bool acquired;
-                            try
-                            {
-                                acquired = mutex.WaitOne(0);
-                            }
-                            catch (AbandonedMutexException)
-                            {
-                                acquired = true;
-                            }
-                            if (acquired)
-                            {
-                                _appMutex = mutex;
-                                return true;
-                            }
-                        }
-                        catch (UnauthorizedAccessException ex)
-                        {
-                            WriteFallbackLog(
-                                "Không thể truy cập Mutex phiên bản",
-                                ex.ToString());
-                        }
-                        catch (Exception ex)
-                        {
-                            WriteFallbackLog(
-                                "Lỗi kiểm soát phiên bản",
-                                ex.ToString());
-                        }
-                        mutex?.Dispose();
-                    }
-                    return false;
-                }
-        // <summary>
-        /// Nhận diện chạy trực tiếp từ thư mục build (bin\Debug|Release, kể cả khi có thư mục
-        /// TFM xen giữa như net8.0-windows). Thư mục "publish" luôn bị loại trừ vì đó là bản
-        /// phát hành, không phải bản dev.
-        /// </summary>
-        private static bool IsRunningFromBuildOutput(string? exePath)
         {
-            string? exeDirectory = Path.GetDirectoryName(exePath);
-            if (string.IsNullOrEmpty(exeDirectory))
-                return false;
-            string[] segments = exeDirectory.Split(
-                new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
-                StringSplitOptions.RemoveEmptyEntries);
-            if (Array.Exists(segments, s => s.Equals("publish", StringComparison.OrdinalIgnoreCase)))
-                return false;
-            for (int i = 0; i < segments.Length - 1; i++)
+            bool isDeveloper = string.Equals(
+                Environment.MachineName,
+                DeveloperComputerName,
+                StringComparison.OrdinalIgnoreCase);
+            int maxInstances = isDeveloper ? MaxInstancesOnDeveloper : MaxInstancesOnClient;
+            for (int slot = 1; slot <= maxInstances; slot++)
             {
-                bool isBin = segments[i].Equals("bin", StringComparison.OrdinalIgnoreCase);
-                bool isConfig =
-                    segments[i + 1].Equals("Debug", StringComparison.OrdinalIgnoreCase) ||
-                    segments[i + 1].Equals("Release", StringComparison.OrdinalIgnoreCase);
-                if (isBin && isConfig)
-                    return true;
+                Mutex? mutex = null;
+                try
+                {
+                    // Tạo mutex KHÔNG sở hữu, rồi xin quyền bằng WaitOne: luôn giữ được
+                    // tham chiếu để giải phóng đúng, kể cả khi gặp AbandonedMutexException.
+                    mutex = new Mutex(initiallyOwned: false, name: $"{AppMutexName}_Slot{slot}");
+                    bool acquired;
+                    try
+                    {
+                        acquired = mutex.WaitOne(0);
+                    }
+                    catch (AbandonedMutexException)
+                    {
+                        // Tiến trình giữ slot trước đó đã crash -> quyền sở hữu chuyển sang ta.
+                        acquired = true;
+                    }
+                    if (acquired)
+                    {
+                        _appMutex = mutex;
+                        return true;
+                    }
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    // Slot do tiến trình khác quyền giữ (vd: bản Run as Admin) -> coi như bận.
+                    WriteFallbackLog("Không thể truy cập Mutex phiên bản", ex.ToString());
+                }
+                catch (Exception ex)
+                {
+                    WriteFallbackLog("Lỗi kiểm soát phiên bản", ex.ToString());
+                }
+                mutex?.Dispose(); // slot bận, thử slot kế tiếp
             }
             return false;
         }
@@ -352,7 +305,9 @@ namespace PhanMemThiDua2026
                 msgMutex.ReleaseMutex();
             }
         }
+        // ======================================================================
         //  XỬ LÝ LỖI TOÀN CỤC
+        // ======================================================================
         private static void ConfigureGlobalExceptionHandlers()
         {
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -421,7 +376,9 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _errorDialogOpen, 0);
             }
         }
+        // ======================================================================
         //  NHẬT KÝ (2 TẦNG: CSDL + FILE DỰ PHÒNG)
+        // ======================================================================
         private static void SafeLog(string user, string action, string note)
         {
             try { Module_NhatKy.GhiNhatKy(user, action, note); } catch { }
@@ -463,10 +420,14 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
+        // ======================================================================
         //  DỌN DẸP & TIỆN ÍCH HỆ THỐNG
+        // ======================================================================
         private static void CleanupResources(bool isPrimary)
         {
-            // 1. Chờ tác vụ nền (tối đa vài giây) để tránh bị kill giữa chừng khi đang ghi CSDL.
+            // 1. Báo tác vụ nền dừng (bước chưa chạy sẽ bị bỏ qua), rồi chờ bước đang chạy
+            //    (nếu có) hoàn tất tối đa vài giây để không bị kill giữa chừng khi ghi CSDL.
+            try { ShutdownCts.Cancel(); } catch { }
             try { _backgroundTask?.Wait(BackgroundShutdownWaitMs); } catch { }
             // 2. Xả hàng đợi nhật ký xuống CSDL.
             try

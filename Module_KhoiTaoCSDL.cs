@@ -1,4 +1,1281 @@
-﻿using System.Diagnostics;
+﻿//using System.Diagnostics;
+//using System.Security.Cryptography;
+//using System.Text;
+//using System.IO;
+//using System.Collections.Generic;
+//using System.Threading.Tasks;
+//namespace PhanMemThiDua2026
+//{
+//    public static class Module_KhoiTaoCSDL
+//    {
+//        // 🔹 STRUCT HỨNG KẾT QUẢ DỌN RÁC
+//        private struct KetQuaDonRac
+//        {
+//            public int SoFileBiXoa;
+//            public int SoThuMucBiXoa;
+//            public int SoLoi;
+//        }
+//        private class ResourceInfo
+//        {
+//            public string BackupName, WinName, DbName;
+//            public ResourceInfo(string b, string w, string d) { BackupName = b; WinName = w; DbName = d; }
+//        }
+//        private const string THU_MUC_CONG_CU = "CongCuQuanLyCSDL";
+//        private const string THU_MUC_HUONG_DAN = "HuongDanSuDung";
+//        // 🌟 THÊM MỚI: Danh sách ánh xạ tệp ẩn -> tệp DLL/Config thực thi
+//        private static readonly Dictionary<string, string> DanhSachThuVienCore = new()
+//        {
+//            { "data6",  "vcruntime140_cor3.dll" },
+//            { "data7",  "wpfgfx_cor3.dll" },
+//            { "data8",  "D3DCompiler_47_cor3.dll" },
+//            { "data9",  "e_sqlite3.dll" },
+//            { "data10", "PenImc_cor3.dll" },
+//            { "data11", "PhanMemThiDua2026.dll.config" },
+//            { "data12", "PresentationNative_cor3.dll" }
+//        };
+//        // ⭐ KHỞI ĐỘNG BẤT ĐỒNG BỘ: Không gây đơ ứng dụng trên máy cấu hình yếu
+//        internal static async Task BinhMinhOSantoriniAsync()
+//        {
+//            await Task.Run(() =>
+//            {
+//                try
+//                {
+//                    BinhMinhOSantoriniCore();
+//                }
+//                catch (Exception ex)
+//                {
+//                    Debug.WriteLine("Lỗi nghiêm trọng khi khởi tạo CSDL: " + ex.Message);
+//                }
+//            });
+//        }
+//        private static void BinhMinhOSantoriniCore()
+//        {
+//            // THÊM DÒNG NÀY VÀO ĐÂY: Tuần tra và khôi phục chéo tệp data1 -> data15 trước
+//            TuanTraVaPhucHoiCoreRepository();
+//            // 🌟 THÊM MỚI: Kích hoạt khôi phục thư viện hệ thống trước tiên (Siêu tốc)
+//            KhoiPhucThuVienHeThong();
+//            string srcDir = Path.Combine(AppContext.BaseDirectory, "Database Backup");
+//            string windowDir = Path.Combine(AppContext.BaseDirectory, "window-x64");
+//            string dbDir = Module_DanduongGPS.ThuMucCoSoDuLieu;
+//            Directory.CreateDirectory(srcDir);
+//            Directory.CreateDirectory(windowDir);
+//            Directory.CreateDirectory(dbDir);
+//            byte[] key = Module_BaoMatAES.HoaVanNoTrenDuongRaChienDich256v1(Module_DanduongGPS.ToiYeuMeoCam1);
+//            var resourceMap = new List<ResourceInfo>
+//            {
+//                new ResourceInfo("cs1.mdf", "cs1", "csdl1.db"),
+//                new ResourceInfo("cs2.mdf", "cs2", "csdl2.db"),
+//                new ResourceInfo("cs3.mdf", "cs3", "csdl3.db"),
+//                new ResourceInfo("cs4.mdf", "cs4", "csdl4.db"),
+//                new ResourceInfo("csex.mdf", "csex", "csdlex.xlsx")
+//            };
+//            foreach (var res in resourceMap)
+//            {
+//                string pBackup = Path.Combine(srcDir, res.BackupName);
+//                string pWin = Path.Combine(windowDir, res.WinName);
+//                string pDb = Path.Combine(dbDir, res.DbName);
+//                bool b = File.Exists(pBackup);
+//                bool d = File.Exists(pDb);
+//                bool w = File.Exists(pWin);
+//                // --- CƠ CHẾ CỨU HỘ MỞ RỘNG ---
+//                if (b) // Backup là nguồn sạch nhất
+//                {
+//                    if (!d) { ThaoGoQuyenReadOnly(pDb); Module_BaoMatAES.GiaiMaCSDL(pBackup, pDb, key); }
+//                    if (!w) { ThaoGoQuyenReadOnly(pWin); Module_BaoMatAES.MaHoaCSDL(pDb, pWin, key); }
+//                }
+//                else if (d) // Backup mất
+//                {
+//                    ThaoGoQuyenReadOnly(pBackup); Module_BaoMatAES.MaHoaCSDL(pDb, pBackup, key);
+//                    if (!w) { ThaoGoQuyenReadOnly(pWin); Module_BaoMatAES.MaHoaCSDL(pDb, pWin, key); }
+//                }
+//                else if (w) // Mất cả Backup và DB
+//                {
+//                    ThaoGoQuyenReadOnly(pDb); Module_BaoMatAES.GiaiMaCSDL(pWin, pDb, key);
+//                    ThaoGoQuyenReadOnly(pBackup); Module_BaoMatAES.MaHoaCSDL(pDb, pBackup, key);
+//                }
+//                // --- BẢO VỆ CÁC TỆP ĐÃ ĐỒNG BỘ ---
+//                if (File.Exists(pBackup)) try { File.SetAttributes(pBackup, FileAttributes.ReadOnly); } catch { }
+//                if (File.Exists(pWin)) try { File.SetAttributes(pWin, FileAttributes.ReadOnly); } catch { }
+//            }
+//            // ĐỒNG BỘ THƯ MỤC CÔNG CỤ & HƯỚNG DẪN
+//            DongBoThuMucHeThong(srcDir, dbDir);
+//            // Thay vì khóa thư mục, khóa các file bên trong thư mục Backup
+//            foreach (var folder in new[] { "CongCuQuanLyCSDL", "HuongDanSuDung" })
+//            {
+//                string path = Path.Combine(srcDir, folder);
+//                if (Directory.Exists(path))
+//                {
+//                    foreach (var file in Directory.GetFiles(path, "*.*", SearchOption.AllDirectories))
+//                    {
+//                        try { File.SetAttributes(file, FileAttributes.ReadOnly); } catch { }
+//                    }
+//                }
+//            }
+//            if (key != null) CryptographicOperations.ZeroMemory(key);
+//        }
+//        // ⭐ MODULE KHÔI PHỤC THƯ VIỆN HỆ THỐNG AN TOÀN (Đã tối ưu đường dẫn)
+//        private static void KhoiPhucThuVienHeThong()
+//        {
+//            try
+//            {
+//                // Tận dụng triệt để các biến/hằng số hệ thống đã khai báo để đồng bộ
+//                string baseDir = AppContext.BaseDirectory;
+//                string repositoryDir = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, THU_MUC_CONG_CU, "CoreDatabaseRepository");
+//                // Bỏ qua nếu kho lưu trữ chưa tồn tại để né Exception
+//                if (!Directory.Exists(repositoryDir)) return;
+//                var danhSachThieu = new List<KeyValuePair<string, string>>();
+//                foreach (var item in DanhSachThuVienCore)
+//                {
+//                    string targetFile = Path.Combine(baseDir, item.Value);
+//                    if (!File.Exists(targetFile))
+//                    {
+//                        string sourceFile = Path.Combine(repositoryDir, item.Key);
+//                        if (File.Exists(sourceFile))
+//                        {
+//                            danhSachThieu.Add(item);
+//                        }
+//                    }
+//                }
+//                // Nếu tất cả DLL/Config đều đầy đủ -> Thoát ngay (0.00ms overhead)
+//                if (danhSachThieu.Count == 0) return;
+//                // Xử lý song song khôi phục DLL bị thiếu cực nhanh
+//                Parallel.ForEach(danhSachThieu, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, item =>
+//                {
+//                    string source = Path.Combine(repositoryDir, item.Key);
+//                    string target = Path.Combine(baseDir, item.Value);
+//                    SaoChepThuVienAnToan(source, target);
+//                });
+//            }
+//            catch (Exception ex)
+//            {
+//                Debug.WriteLine("[Lỗi khôi phục thư viện hệ thống]: " + ex.Message);
+//            }
+//        }
+//        private static void SaoChepThuVienAnToan(string source, string target)
+//        {
+//            try
+//            {
+//                const int bufferSize = 81920; // Tối ưu buffer cho HDD/SSD
+//                using var sourceStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize, FileOptions.SequentialScan);
+//                using var targetStream = new FileStream(target, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.WriteThrough);
+//                sourceStream.CopyTo(targetStream);
+//                File.SetAttributes(target, FileAttributes.Normal); // Đảm bảo quyền truy cập bình thường
+//                Debug.WriteLine($"[ĐÃ KHÔI PHỤC THƯ VIỆN]: {Path.GetFileName(target)}");
+//            }
+//            catch (Exception ex)
+//            {
+//                Debug.WriteLine($"[LỖI SAO CHÉP THƯ VIỆN {target}]: " + ex.Message);
+//            }
+//        }
+//        private static void ThaoGoQuyenReadOnly(string path)
+//        {
+//            if (File.Exists(path))
+//            {
+//                try
+//                {
+//                    FileAttributes attr = File.GetAttributes(path);
+//                    if ((attr & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+//                        File.SetAttributes(path, attr & ~FileAttributes.ReadOnly);
+//                }
+//                catch { }
+//            }
+//        }
+//        private static void DongBoThuMucHeThong(string srcDir, string dbDir)
+//        {
+//            string[] folders = { THU_MUC_CONG_CU, THU_MUC_HUONG_DAN };
+//            List<string> log = new List<string>();
+//            // 1. SYNC 2 CHIỀU
+//            foreach (string folder in folders)
+//            {
+//                string A = Path.Combine(srcDir, folder);
+//                string B = Path.Combine(dbDir, folder);
+//                Directory.CreateDirectory(A);
+//                Directory.CreateDirectory(B);
+//                SyncFolder(A, B, log);
+//                SyncFolder(B, A, log);
+//            }
+//            // 2. SELF HEAL LOOP (2 lần)
+//            for (int i = 0; i < 2; i++)
+//            {
+//                foreach (string folder in folders)
+//                {
+//                    string A = Path.Combine(srcDir, folder);
+//                    string B = Path.Combine(dbDir, folder);
+//                    SyncFolder(A, B, log);
+//                    SyncFolder(B, A, log);
+//                }
+//            }
+//            // 3. VERIFY LOOP (100% MATCH CHECK)
+//            foreach (string folder in folders)
+//            {
+//                string A = Path.Combine(srcDir, folder);
+//                string B = Path.Combine(dbDir, folder);
+//                if (!Directory.Exists(A) || !Directory.Exists(B))
+//                {
+//                    log.Add($"[VERIFY FAIL] Missing folder: {folder} -> FORCE REPAIR");
+//                    CopyDirSafe(A, B, log);
+//                    CopyDirSafe(B, A, log);
+//                }
+//                else
+//                {
+//                    log.Add($"[VERIFY OK] {folder}");
+//                }
+//            }
+//            KiemTraCauTrucThuMuc(srcDir, dbDir, log);
+//        }
+//        private static void SyncFolder(string src, string dst, List<string> log)
+//        {
+//            Directory.CreateDirectory(dst);
+//            foreach (var file in Directory.GetFiles(src))
+//            {
+//                string name = Path.GetFileName(file);
+//                string target = Path.Combine(dst, name);
+//                try
+//                {
+//                    bool shouldCopy = !File.Exists(target) ||
+//                                      File.GetLastWriteTimeUtc(file) > File.GetLastWriteTimeUtc(target) ||
+//                                      new FileInfo(file).Length != (File.Exists(target) ? new FileInfo(target).Length : -1);
+//                    if (shouldCopy)
+//                    {
+//                        Directory.CreateDirectory(Path.GetDirectoryName(target));
+//                        if (File.Exists(target))
+//                        {
+//                            string backup = target + ".syncbak";
+//                            ThaoGoQuyenReadOnly(target);
+//                            File.Copy(target, backup, true);
+//                        }
+//                        // ⭐ ATOMIC WRITE: Ghi gián tiếp qua file tạm để chống mất điện sập nguồn gây lỗi file
+//                        string tempFile = target + ".tmp";
+//                        File.Copy(file, tempFile, true);
+//                        ThaoGoQuyenReadOnly(target);
+//                        File.Move(tempFile, target, true);
+//                        log.Add($"[SYNC FILE] {file} -> {target}");
+//                    }
+//                }
+//                catch (Exception ex)
+//                {
+//                    log.Add($"[ERROR FILE] {file} | {ex.Message}");
+//                }
+//            }
+//            foreach (var dir in Directory.GetDirectories(src))
+//            {
+//                string name = Path.GetFileName(dir);
+//                SyncFolder(dir, Path.Combine(dst, name), log);
+//            }
+//        }
+//        private static void CopyDirSafe(string src, string dst, List<string> log)
+//        {
+//            try
+//            {
+//                Directory.CreateDirectory(dst);
+//                foreach (var file in Directory.GetFiles(src))
+//                {
+//                    string target = Path.Combine(dst, Path.GetFileName(file));
+//                    ThaoGoQuyenReadOnly(target);
+//                    File.Copy(file, target, true);
+//                }
+//                foreach (var dir in Directory.GetDirectories(src))
+//                {
+//                    CopyDirSafe(dir, Path.Combine(dst, Path.GetFileName(dir)), log);
+//                }
+//                log.Add($"[COPY DIR] {src} -> {dst}");
+//            }
+//            catch (Exception ex)
+//            {
+//                log.Add($"[ERROR DIR] {src} | {ex.Message}");
+//            }
+//        }
+//        private static void KiemTraCauTrucThuMuc(string srcDir, string dbDir, List<string> log)
+//        {
+//            string[] folders = { THU_MUC_CONG_CU, THU_MUC_HUONG_DAN };
+//            bool srcHasAny = false;
+//            bool dbHasAny = false;
+//            foreach (string folder in folders)
+//            {
+//                if (Directory.Exists(Path.Combine(srcDir, folder))) srcHasAny = true;
+//                if (Directory.Exists(Path.Combine(dbDir, folder))) dbHasAny = true;
+//            }
+//            if (!srcHasAny && !dbHasAny)
+//            {
+//                log.Add("[CRITICAL WARNING] CẢ 2 VÙNG DATABASE VÀ BACKUP KHÔNG TỒN TẠI THƯ MỤC CORE (CongCuQuanLyCSDL / HuongDanSuDung)");
+//                Debug.WriteLine("[CORE STRUCTURE MISSING] Hệ thống rỗng thư mục lõi công cụ nghiệp vụ.");
+//            }
+//        }
+//        // ⭐ LOCAL QUARANTINE: Chuyển vùng cách ly vào root phần mềm, né lỗi Folder Redirection trên máy AD Domain
+//        // ⭐ BẢO VỆ HỆ THỐNG: Quét dọn tự động chạy ngầm, không block UI
+//        /// <summary>
+//        /// Hàm dọn dẹp tuyệt đối: Chỉ giữ lại các tệp có đuôi *.db.
+//        /// Toàn bộ tệp rác khác (kể cả .db-wal, .db-shm, .tmp, .txt, v.v.) sẽ bị xóa sạch.
+//        /// </summary>
+//        /// <param name="folderPath">Đường dẫn thư mục cần làm sạch (VD: LuuTruThiDua_LichSu)</param>
+//        public static void donRacThuMucBaoVe(string folderPath)
+//        {
+//            try
+//            {
+//                if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
+//                    return;
+//                string[] files = Directory.GetFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly);
+//                foreach (string filePath in files)
+//                {
+//                    FileInfo fi = new FileInfo(filePath);
+//                    // ⭐ FIX BẢO VỆ SQLITE WAL/SHM:
+//                    bool isDbFile = fi.Extension.Equals(".db", StringComparison.OrdinalIgnoreCase) ||
+//                                    fi.Extension.Equals(".sqlite", StringComparison.OrdinalIgnoreCase) ||
+//                                    fi.Extension.Equals(".db-wal", StringComparison.OrdinalIgnoreCase) ||
+//                                    fi.Extension.Equals(".db-shm", StringComparison.OrdinalIgnoreCase);
+//                    // Nếu KHÔNG PHẢI họ file Database thì mới xóa
+//                    if (!isDbFile)
+//                    {
+//                        try
+//                        {
+//                            fi.Attributes = FileAttributes.Normal;
+//                            fi.Delete();
+//                            Debug.WriteLine($"[ĐÃ XÓA TỆP RÁC]: {fi.Name}");
+//                        }
+//                        catch (Exception ex)
+//                        {
+//                            Debug.WriteLine($"[LỖI XÓA TỆP RÁC {fi.Name}]: {ex.Message}");
+//                        }
+//                    }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                Debug.WriteLine($"[LỖI QUÉT THƯ MỤC DỌN RÁC]: {ex.Message}");
+//            }
+//        }
+//        public static void ChinhSachLamSach()
+//        {
+//            string baseDir = Path.GetFullPath(AppContext.BaseDirectory).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+//            // 1. Cấu hình Database Backup
+//            string dir1 = Path.Combine(baseDir, "Database Backup");
+//            var allowFiles1 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "cs1.mdf", "cs2.mdf", "cs3.mdf", "cs4.mdf", "csex.mdf", "NhatKy_LamSach.txt" };
+//            var allowDirs1 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "CongCuQuanLyCSDL", "HuongDanSuDung" };
+//            DonDepVungQuanLy(dir1, allowFiles1, allowDirs1, false, false);
+//            // 2. Cấu hình Database
+//            string dir2 = Path.GetFullPath(string.IsNullOrWhiteSpace(Module_DanduongGPS.ThuMucCoSoDuLieu) ? Path.Combine(baseDir, "Database") : Module_DanduongGPS.ThuMucCoSoDuLieu);
+//            var allowFiles2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx", "NhatKy_LamSach.txt" };
+//            var allowDirs2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Bansaoluu", "CongCuQuanLyCSDL", "HuongDanSuDung", "LuuTruThiDua_LichSu"};
+//            DonDepVungQuanLy(dir2, allowFiles2, allowDirs2, false, true);
+//            // 3. Cấu hình window-x64
+//            string dir3 = Path.Combine(baseDir, "window-x64");
+//            var allowFiles3 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "cs1", "cs2", "cs3", "cs4", "csex", "NhatKy_LamSach.txt" };
+//            DonDepVungQuanLy(dir3, allowFiles3, null, true, false);
+//            // 4. Cấu hình Database\Bansaoluu
+//            string dir4 = Path.Combine(baseDir, "Database", "Bansaoluu");
+//            var allowFiles4 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "NhatKy_LamSach.txt", "GiayPhepCapQuyen_ServiceRestore.dat", "GiayPhepCapQuyen_ServiceBackup.dat" };
+//            DonDepVungQuanLy(dir4, allowFiles4, null, true, false);
+//            // 🌟 5. BỔ SUNG: Dọn dẹp triệt để thư mục Lịch sử thi đua (Chỉ giữ lại *.db)
+//            string dirLichSu = Module_DanduongGPS.ThuMucLichSuThiDua;
+//            donRacThuMucBaoVe(dirLichSu);
+//        }
+//        private static void DonDepVungQuanLy(string dirPath, HashSet<string> allowedFiles, HashSet<string> allowedDirs, bool deleteSubDirs, bool isSQLiteZone)
+//        {
+//            // ⭐ BỘ LỌC AN TOÀN CHUẨN KỸ SƯ: CHẶN HỦY DIỆT FILE KHI ĐANG LẬP TRÌNH/TEST CODE
+//            string currentExePath = AppDomain.CurrentDomain.BaseDirectory;
+//            bool isDevelopmentEnv = currentExePath.Contains(@"\bin\Debug\", StringComparison.OrdinalIgnoreCase) ||
+//                                    currentExePath.Contains(@"\bin\Release\", StringComparison.OrdinalIgnoreCase);
+//            // Nếu đang Debug/Release trong VS, hoặc đường dẫn rỗng -> THOÁT NGAY lập tức để bảo vệ code
+//            if (isDevelopmentEnv || string.IsNullOrWhiteSpace(dirPath))
+//                return;
+//            // Chuẩn hóa và kiểm tra sự tồn tại của thư mục mục tiêu
+//            string currentDir;
+//            try
+//            {
+//                currentDir = Path.GetFullPath(dirPath).TrimEnd('\\', '/') + Path.DirectorySeparatorChar;
+//            }
+//            catch
+//            {
+//                return; // Tránh văng exception do ký tự đường dẫn không hợp lệ
+//            }
+//            if (!Directory.Exists(currentDir))
+//            {
+//                try { Directory.CreateDirectory(currentDir); } catch { return; }
+//            }
+//            List<string> chiTiet = new List<string>();
+//            int fCount = 0, dCount = 0;
+//            string tenTaiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM;
+//            // XỬ LÝ TỆP
+//            try
+//            {
+//                foreach (string file in Directory.GetFiles(currentDir))
+//                {
+//                    FileInfo fi = new FileInfo(file);
+//                    // Tối ưu hóa chuỗi: Dùng Equals thay vì so sánh chuỗi chứa nhiều rác
+//                    if (fi.Name.Equals("NhatKy_LamSach.txt", StringComparison.OrdinalIgnoreCase)) continue;
+//                    // SQLite Zone Check
+//                    if (isSQLiteZone && (fi.Extension.Equals(".db-wal", StringComparison.OrdinalIgnoreCase) ||
+//                                         fi.Extension.Equals(".db-shm", StringComparison.OrdinalIgnoreCase) ||
+//                                         fi.Extension.EndsWith("-wal", StringComparison.OrdinalIgnoreCase) ||
+//                                         fi.Extension.EndsWith("-shm", StringComparison.OrdinalIgnoreCase)))
+//                        continue;
+//                    // Backup Zone Check
+//                    if (currentDir.Contains("Bansaoluu", StringComparison.OrdinalIgnoreCase) &&
+//                        fi.Name.StartsWith("Backup_", StringComparison.OrdinalIgnoreCase) &&
+//                        fi.Extension.Equals(".pmtd", StringComparison.OrdinalIgnoreCase))
+//                        continue;
+//                    // Kiểm tra HashSet loại trừ (Độ phức tạp O(1) cực nhanh)
+//                    if (allowedFiles != null && allowedFiles.Contains(fi.Name)) continue;
+//                    long kichThuoc = fi.Length;
+//                    try
+//                    {
+//                        fi.Attributes = FileAttributes.Normal;
+//                        fi.Delete();
+//                    }
+//                    catch { continue; }
+//                    // ⭐ TỐI ƯU HIỆU NĂNG: Không gọi File.Exists(fi.FullName) một lần nữa vì FileInfo.Refresh() chính xác hơn
+//                    fi.Refresh();
+//                    if (!fi.Exists)
+//                    {
+//                        fCount++;
+//                        chiTiet.Add($"[TỆP] {fi.Name} | Dung lượng: {FormatSize(kichThuoc)} | Thư mục: {currentDir}");
+//                        // Tối ưu allocation: Gom chuỗi tường minh bằng Interpolation nội bộ
+//                        Module_NhatKy.GhiNhatKy(
+//                            taiKhoan: tenTaiKhoan,
+//                            hanhDong: "Xóa file hệ thống (Auto Clean)",
+//                            ghiChu: $"=== Thông tin xóa file ==={Environment.NewLine}" +
+//                                   $"Thư mục xử lý  : {currentDir}{Environment.NewLine}" +
+//                                   $"Tên tệp        : {fi.Name}{Environment.NewLine}" +
+//                                   $"Dung lượng     : {FormatSize(kichThuoc)}{Environment.NewLine}" +
+//                                   $"Loại hành động : Xóa tự động do hệ thống phát hiện file không hợp lệ{Environment.NewLine}" +
+//                                   $"Thời gian      : {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+//                        );
+//                    }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                System.Diagnostics.Debug.WriteLine($"[Lỗi quét file]: {ex.Message}");
+//            }
+//            // XỬ LÝ THƯ MỤC
+//            try
+//            {
+//                foreach (string dir in Directory.GetDirectories(currentDir))
+//                {
+//                    DirectoryInfo di = new DirectoryInfo(dir);
+//                    if (deleteSubDirs || allowedDirs == null || !allowedDirs.Contains(di.Name))
+//                    {
+//                        try
+//                        {
+//                            long folderSize = GetDirSize(di);
+//                            RemoveReadOnlyRecursive(di.FullName);
+//                            di.Delete(true);
+//                            di.Refresh();
+//                            if (!di.Exists)
+//                            {
+//                                dCount++;
+//                                chiTiet.Add($"[Đã xóa Thư mục]: {di.Name}");
+//                                Module_NhatKy.GhiNhatKy(
+//                                    taiKhoan: tenTaiKhoan,
+//                                    hanhDong: "Xóa thư mục hệ thống (Auto Clean)",
+//                                    ghiChu: $"Thông tin xóa thu mục {Environment.NewLine}" +
+//                                           $"Thư mục cha   : {currentDir}{Environment.NewLine}" +
+//                                           $"Tên thư mục   : {di.Name}{Environment.NewLine}" +
+//                                           $"Dung lượng    : {FormatSize(folderSize)}{Environment.NewLine}" +
+//                                           $"Loại thao tác : Xóa toàn bộ thư mục không hợp lệ{Environment.NewLine}" +
+//                                           $"Thời gian     : {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
+//                                );
+//                            }
+//                        }
+//                        catch { chiTiet.Add($"[Lỗi Thư mục]: {di.Name}"); }
+//                    }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                System.Diagnostics.Debug.WriteLine($"[Lỗi quét thư mục]: {ex.Message}");
+//            }
+//            // Ghi báo cáo tổng hợp nếu có biến động dữ liệu
+//            if (fCount > 0 || dCount > 0)
+//            {
+//                try
+//                {
+//                    GhiDeNhatKy(Path.Combine(currentDir, "NhatKy_LamSach.txt"), TaoNoiDungBaoCao(fCount, dCount, 0, chiTiet));
+//                }
+//                catch { /* Bỏ qua lỗi ghi file nhật ký cục bộ nếu thư mục bị khóa */ }
+//            }
+//        }
+//        public static void TuongLuaBaoVeHeThong(string rootPath)
+//        {
+//            string currentExePath = AppDomain.CurrentDomain.BaseDirectory;
+//            // Bỏ qua nếu đang debug
+//            bool isDevelopmentEnv = currentExePath.Contains(@"\bin\Debug\", StringComparison.OrdinalIgnoreCase) ||
+//                                    currentExePath.Contains(@"\bin\Release\", StringComparison.OrdinalIgnoreCase);
+//            if (isDevelopmentEnv || string.IsNullOrWhiteSpace(rootPath) || !Directory.Exists(rootPath))
+//                return;
+//            // 🛡️ CHỐT CHẶN TỬ THẦN: Đảm bảo rootPath phải nằm bên trong thư mục cài đặt gốc.
+//            // Tránh thảm họa truyền nhầm "C:\" làm xóa sạch hệ điều hành.
+//            if (!rootPath.StartsWith(currentExePath, StringComparison.OrdinalIgnoreCase))
+//            {
+//                try { Module_NhatKy.GhiNhatKy("System", "CẢNH BÁO BẢO MẬT", "Phát hiện nỗ lực quét sai thư mục gốc: " + rootPath); } catch { }
+//                return;
+//            }
+//            HashSet<string> allowedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Database", "Database Backup", "window-x64" };
+//            HashSet<string> allowedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+//    {
+//        "D3DCompiler_47_cor3.dll", "e_sqlite3.dll", "PenImc_cor3.dll", "PhanMemThiDua2026.dll.config",
+//        "PhanMemThiDua2026.exe", "PresentationNative_cor3.dll", "ServiceBackup.exe",
+//        "ServiceRestore.exe", "Uninstall_PhanMemThiDua2026.exe", "vcruntime140_cor3.dll",
+//        "wpfgfx_cor3.dll", "NhatKy_LamSach.txt"
+//    };
+//            List<string> chiTiet = new List<string>(32);
+//            int fCount = 0, dCount = 0, eCount = 0;
+//            const int MAX_DELETE_PER_SESSION = 100;
+//            string logPath = Path.Combine(rootPath, "NhatKy_LamSach.txt");
+//            try
+//            {
+//                // 
+//                // 1. XỬ LÝ THƯ MỤC LẠ
+//                // 
+//                try
+//                {
+//                    foreach (string dirPath in Directory.EnumerateDirectories(rootPath))
+//                    {
+//                        if (fCount + dCount >= MAX_DELETE_PER_SESSION) break;
+//                        DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
+//                        if ((dirInfo.Attributes & FileAttributes.ReparsePoint) != 0 || allowedFolders.Contains(dirInfo.Name))
+//                            continue;
+//                        try
+//                        {
+//                            RemoveReadOnlyRecursive(dirInfo.FullName); // Đảm bảo hàm này không văng lỗi
+//                            dirInfo.Delete(true); // Xóa cứng (Hard Delete)
+//                            dCount++;
+//                            chiTiet.Add($"[THƯ MỤC RÁC] Đã tiêu diệt: {dirInfo.Name}");
+//                        }
+//                        catch
+//                        {
+//                            eCount++;
+//                            chiTiet.Add($"[LỖI THƯ MỤC] Bị khóa chặn: {dirInfo.Name}");
+//                        }
+//                    }
+//                }
+//                catch { /* Bỏ qua lỗi Access Denied cấp thư mục gốc nếu có */ }
+//                // 
+//                // 2. XỬ LÝ TỆP TIN LẠ
+//                // 
+//                try
+//                {
+//                    foreach (string filePath in Directory.EnumerateFiles(rootPath))
+//                    {
+//                        if (fCount + dCount >= MAX_DELETE_PER_SESSION) break;
+//                        FileInfo fileInfo = new FileInfo(filePath);
+//                        if (allowedFiles.Contains(fileInfo.Name)) continue;
+//                        bool laTepThucThi = fileInfo.Extension.Equals(".exe", StringComparison.OrdinalIgnoreCase) ||
+//                                            fileInfo.Extension.Equals(".dll", StringComparison.OrdinalIgnoreCase);
+//                        bool daXoaThanhCong = XoaTepVoiCoCheRetry(fileInfo);
+//                        if (!daXoaThanhCong && laTepThucThi)
+//                        {
+//                            // Nếu là tệp thực thi đang chạy ngầm -> Kill tiến trình và thử lại
+//                            try
+//                            {
+//                                if (CuongBucTatTienTrinhDangLockFile(fileInfo.FullName, rootPath))
+//                                {
+//                                    // Sau khi Kill, thử xóa lại với Retry Pattern thay vì Sleep cứng
+//                                    daXoaThanhCong = XoaTepVoiCoCheRetry(fileInfo, retries: 5, delayMs: 100);
+//                                    if (daXoaThanhCong)
+//                                    {
+//                                        chiTiet.Add($"[TIÊU DIỆT SAU KILL] Đã ép xóa: {fileInfo.Name}");
+//                                    }
+//                                }
+//                            }
+//                            catch { }
+//                        }
+//                        if (daXoaThanhCong && !laTepThucThi)
+//                        {
+//                            fCount++;
+//                            chiTiet.Add($"[TỆP RÁC] Đã xóa trực tiếp: {fileInfo.Name}");
+//                        }
+//                        else if (daXoaThanhCong && laTepThucThi)
+//                        {
+//                            fCount++;
+//                            chiTiet.Add($"[TIÊU DIỆT EXE/DLL] Đã xóa trực tiếp: {fileInfo.Name}");
+//                        }
+//                        else
+//                        {
+//                            eCount++;
+//                            chiTiet.Add($"[THẤT BẠI] File đang bị khóa chặt: {fileInfo.Name}");
+//                        }
+//                    }
+//                }
+//                catch { /* Bỏ qua lỗi Access Denied cấp thư mục gốc */ }
+//                // 
+//                // 3. ĐỒNG BỘ GHI NHẬT KÝ
+//                // 
+//                if (fCount > 0 || dCount > 0 || eCount > 0)
+//                {
+//                    GhiDeNhatKy(logPath, TaoNoiDungBaoCao(fCount, dCount, eCount, chiTiet));
+//                    Module_NhatKy.GhiNhatKy("System", "Chính sách tự vệ (Bảo vệ tự động)", $"Xử lý an toàn {fCount} tệp, {dCount} thư mục.");
+//                }
+//                else
+//                {
+//                    // Trả lại môi trường sạch sẽ
+//                    try { if (File.Exists(logPath)) { File.SetAttributes(logPath, FileAttributes.Normal); File.Delete(logPath); } } catch { }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                try { Module_NhatKy.GhiNhatKy("System", "LỖI - Chính sách tự vệ (Bảo vệ tự động)", ex.Message); } catch { }
+//            }
+//        }
+//        // Hàm phụ trợ: Thử xóa file nhiều lần (Retry Pattern), chống crash do Win chưa kịp nhả Handle
+//        private static bool XoaTepVoiCoCheRetry(FileInfo fileInfo, int retries = 3, int delayMs = 50)
+//        {
+//            for (int i = 0; i < retries; i++)
+//            {
+//                try
+//                {
+//                    if (fileInfo.Exists)
+//                    {
+//                        fileInfo.Attributes = FileAttributes.Normal; // Ép gỡ ReadOnly ngay trước khi chém
+//                        fileInfo.Delete(); // Lệnh này KHÔNG chuyển vào thùng rác
+//                    }
+//                    return true;
+//                }
+//                catch (UnauthorizedAccessException)
+//                {
+//                    // Nếu dính lỗi phân quyền chặt từ HĐH, không cần chờ, thoát luôn
+//                    return false;
+//                }
+//                catch (IOException)
+//                {
+//                    // File đang bị lock (IOException), tạm dừng Thread một nhịp rồi thử lại
+//                    if (i < retries - 1) Thread.Sleep(delayMs);
+//                }
+//                catch
+//                {
+//                    return false;
+//                }
+//            }
+//            return false;
+//        }
+//        private static bool CuongBucTatTienTrinhDangLockFile(string filePath, string rootPath)
+//        {
+//            bool daKillThanhCong = false;
+//            try
+//            {
+//                // ⭐ KHAI BÁO BIẾN TRƯỚC VÀ DISPOSE SAU KHI DÙNG TRÁNH LỌT HANDLE GÂY PHÌNH RAM MÁY TRẠM YẾU
+//                var processList = Process.GetProcesses();
+//                foreach (Process p in processList)
+//                {
+//                    try
+//                    {
+//                        if (p.HasExited || p.Id <= 4) continue;
+//                        string processPath = p.MainModule?.FileName;
+//                        if (string.IsNullOrWhiteSpace(processPath) || !processPath.StartsWith(rootPath, StringComparison.OrdinalIgnoreCase))
+//                            continue;
+//                        if (processPath.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+//                        {
+//                            p.Kill();
+//                            p.WaitForExit(1500);
+//                            daKillThanhCong = true;
+//                        }
+//                    }
+//                    catch { }
+//                    finally { p.Dispose(); }
+//                }
+//            }
+//            catch { }
+//            return daKillThanhCong;
+//        }
+//        private static string TaoNoiDungBaoCao(int files, int dirs, int errs, List<string> chiTiet)
+//        {
+//            string tenTaiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System (Quyền cao nhất)" : Module_TaiKhoan.TenTaiKhoan_RAM;
+//            StringBuilder sb = new StringBuilder();
+//            sb.AppendLine();
+//            sb.AppendLine("[BÁO CÁO DỌN DẸP HỆ THỐNG - PHẦN MỀM THI ĐUA 2026]");
+//            sb.AppendLine("-------------------------------------------------------------");
+//            sb.AppendLine($"Tên phần mềm        : PhanMemThiDua2026");
+//            sb.AppendLine($"Phiên bản           : {Module_PhienBan.SoftwareVersion}");
+//            sb.AppendLine($"Cập nhật ngày       : {Module_PhienBan.NgayThangNamHeThong}");
+//            sb.AppendLine($"Người phát triển    : {Module_PhienBan.NguoiPhatTrienPhanMem}");
+//            sb.AppendLine($"Tên tài khoản       : {tenTaiKhoan}");
+//            sb.AppendLine($"Máy tính            : {Environment.MachineName}");
+//            sb.AppendLine($"Thời gian thực hiện : ngày {DateTime.Now:dd/MM/yyyy}, giờ {DateTime.Now:HH:mm:ss}");
+//            sb.AppendLine($"Người thực hiện     : System (Trình bảo trì CSDL)");
+//            sb.AppendLine($"Trạng thái          : Đã dọn dẹp và tối ưu thành công");
+//            sb.AppendLine("-------------------------------------------------------------");
+//            if (files > 0 || dirs > 0 || errs > 0)
+//            {
+//                sb.AppendLine("KẾT QUẢ TỔNG HỢP:");
+//                sb.AppendLine($"- Tệp tin đã xóa   : {files:D2}");
+//                sb.AppendLine($"- Thư mục đã xóa   : {dirs:D2}");
+//                sb.AppendLine($"- Lỗi phát sinh    : {errs:D2}");
+//                sb.AppendLine($"- Lý do            : Đây là thư mục thuộc quyền quản lý");
+//                sb.AppendLine($"                     và bảo vệ của phần mềm");
+//                sb.AppendLine($"                     PhanMemThiDua2026.");
+//                sb.AppendLine($"                     Hệ thống đã tự động loại bỏ");
+//                sb.AppendLine($"                     các tệp/thư mục không liên quan.");
+//            }
+//            else
+//            {
+//                sb.AppendLine("KẾT QUẢ TỔNG HỢP:");
+//                sb.AppendLine("Hệ thống ổn định, không phát hiện");
+//                sb.AppendLine("tệp hoặc thư mục bất thường.");
+//            }
+//            sb.AppendLine("-------------------------------------------------------------");
+//            sb.AppendLine("CHI TIẾT THỰC HIỆN:");
+//            foreach (string item in chiTiet) sb.AppendLine(item);
+//            sb.AppendLine("-------------------------------------------------------------");
+//            sb.AppendLine("Ghi chú: Đây là hoạt động dọn dẹp và bảo trì tệp dữ liệu");
+//            sb.AppendLine("nội bộ do Phần mềm Thi đua 2026 tự động thực hiện độc lập.");
+//            sb.AppendLine("Quy trình này diễn ra an toàn, hoàn toàn giới hạn trong phạm");
+//            sb.AppendLine("vi thư mục ứng dụng và không can thiệp hay tác động đến hệ");
+//            sb.AppendLine("thống hệ điều hành của máy tính.");
+//            sb.AppendLine("-------------------------------------------------------------");
+//            string result = sb.ToString();
+//            sb.Clear();
+//            return result;
+//        }
+//        private static long GetDirSize(DirectoryInfo d)
+//        {
+//            long size = 0;
+//            try
+//            {
+//                foreach (FileInfo fi in d.GetFiles()) size += fi.Length;
+//                foreach (DirectoryInfo di in d.GetDirectories())
+//                {
+//                    if ((di.Attributes & FileAttributes.ReparsePoint) != 0) continue;
+//                    size += GetDirSize(di);
+//                }
+//            }
+//            catch (Exception ex) { Debug.WriteLine(ex.Message); }
+//            return size;
+//        }
+//        private static string FormatSize(long bytes)
+//        {
+//            if (bytes < 1024) return $"{bytes} B";
+//            if (bytes < 1024 * 1024) return $"{(bytes / 1024.0):F1} KB";
+//            return $"{(bytes / (1024.0 * 1024.0)):F1} MB";
+//        }
+//        private static void GhiDeNhatKy(string logPath, string logContent)
+//        {
+//            for (int i = 0; i < 3; i++)
+//            {
+//                try
+//                {
+//                    var dir = Path.GetDirectoryName(logPath);
+//                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+//                    if (File.Exists(logPath)) File.SetAttributes(logPath, FileAttributes.Normal);
+//                    File.WriteAllText(logPath, logContent, Encoding.UTF8);
+//                    return;
+//                }
+//                catch { Thread.Sleep(200); }
+//            }
+//        }
+//        private static void RemoveReadOnlyRecursive(string folder)
+//        {
+//            try
+//            {
+//                foreach (string file in Directory.GetFiles(folder, "*", SearchOption.AllDirectories))
+//                {
+//                    try { File.SetAttributes(file, FileAttributes.Normal); } catch { }
+//                }
+//                foreach (string dir in Directory.GetDirectories(folder, "*", SearchOption.AllDirectories))
+//                {
+//                    try { new DirectoryInfo(dir).Attributes = FileAttributes.Normal; } catch { }
+//                }
+//                new DirectoryInfo(folder).Attributes = FileAttributes.Normal;
+//            }
+//            catch { }
+//        }
+//        private static void LoiThiThamCuaGioCopyFile(string src, string dst)
+//        {
+//            try
+//            {
+//                if (!File.Exists(src)) return;
+//                string name = Path.GetFileName(dst);
+//                if (name.EndsWith(".db-wal", StringComparison.OrdinalIgnoreCase) || name.EndsWith(".db-shm", StringComparison.OrdinalIgnoreCase))
+//                    return;
+//                if (!File.Exists(dst) || File.GetLastWriteTime(src) > File.GetLastWriteTime(dst))
+//                {
+//                    ThaoGoQuyenReadOnly(dst);
+//                    File.Copy(src, dst, true);
+//                }
+//            }
+//            catch { }
+//        }
+//        private static void KimTuThapAiCapCopyDirectory(string src, string dst)
+//        {
+//            try
+//            {
+//                Directory.CreateDirectory(dst);
+//                foreach (string file in Directory.GetFiles(src))
+//                    LoiThiThamCuaGioCopyFile(file, Path.Combine(dst, Path.GetFileName(file)));
+//                foreach (string dir in Directory.GetDirectories(src))
+//                    KimTuThapAiCapCopyDirectory(dir, Path.Combine(dst, Path.GetFileName(dir)));
+//            }
+//            catch { }
+//        }       
+//        // ⭐ QUẢN LÝ COMBOBOX CÂU HỎI BẢO MẬT      
+//        public static readonly string[] DanhSachCauHoiNhom1 = {
+//            "Họ và tên của bạn?", "Bạn sinh ra ở Tỉnh/Thành phố nào?", "Món ăn yêu thích nhất của bạn là gì?",
+//            "Tên trường THPT của bạn?", "Tên thú cưng bạn yêu thích?", "Tên cô người bạn yêu đầu tiên?",
+//            "Tên bộ phim mà bạn yêu thích nhất?", "Công việc đầu tiên bạn làm để kiếm ra tiền?",
+//            "Nghề nghiệp mơ ước của bạn khi còn nhỏ là gì?", "Bạn đã từng đi du lịch nước ngoài chưa?"
+//        };
+//        public static readonly string[] DanhSachCauHoiNhom2 = {
+//            "Tên con vật yêu thích của bạn?", "Giới tính của bạn là Nam hay nữ?", "Bạn vào CAND ngày tháng năm nào?",
+//            "Món quà sinh nhật đầu tiên bạn nhận được là gì?", "Bạn có thích chơi game không?",
+//            "Bạn thích đội bóng hoặc câu lạc bộ thể thao nào?", "Bài hát mà bạn nghe đi nghe lại nhiều nhất thời học sinh là gì?",
+//            "Bạn biết bơi lội không?", "Tên con mèo của bạn là gì?", "Bạn có biết ngôn ngữ lập trình Visual Basic không?",
+//            "Bạn có biết ngôn ngữ lập trình JavaScript không?"
+//        };
+//        private static void ComboBox_SelectedIndexChanged(object sender, EventArgs e)
+//        {
+//            if (sender is ComboBox changedComboBox && changedComboBox.Tag is Tuple<string[], ComboBox[]> config)
+//            {
+//                if (!changedComboBox.Focused) return; // Chống kích hoạt lặp vòng lặp treo máy
+//                string[] danhSachGoc = config.Item1;
+//                ComboBox[] allComboBoxes = config.Item2;
+//                CapNhatDanhSachHienThi(danhSachGoc, allComboBoxes);
+//            }
+//        }
+//        private static void CapNhatDanhSachHienThi(string[] danhSachCauHoiGoc, ComboBox[] comboBoxes)
+//        {
+//            var selectedItems = comboBoxes
+//                .Where(cb => cb != null && cb.SelectedItem != null && !string.IsNullOrWhiteSpace(cb.Text))
+//                .Select(cb => cb.Text)
+//                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+//            foreach (var cb in comboBoxes)
+//            {
+//                if (cb == null) continue;
+//                cb.SelectedIndexChanged -= ComboBox_SelectedIndexChanged;
+//                string currentSelection = cb.Text;
+//                cb.BeginUpdate();
+//                cb.Items.Clear();
+//                foreach (string cauHoi in danhSachCauHoiGoc)
+//                {
+//                    if (!selectedItems.Contains(cauHoi) || cauHoi.Equals(currentSelection, StringComparison.OrdinalIgnoreCase))
+//                    {
+//                        cb.Items.Add(cauHoi);
+//                    }
+//                }
+//                if (!string.IsNullOrEmpty(currentSelection)) cb.Text = currentSelection;
+//                cb.EndUpdate();
+//                cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
+//            }
+//        }
+//        //public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params ComboBox[] comboBoxes)
+//        //{
+//        //    if (comboBoxes == null || comboBoxes.Length == 0 || danhSachCauHoi == null) return;
+//        //    foreach (var cb in comboBoxes)
+//        //    {
+//        //        if (cb == null) continue;
+//        //        cb.SelectedIndexChanged -= ComboBox_SelectedIndexChanged;
+//        //        cb.BeginUpdate();
+//        //        cb.Items.Clear();
+//        //        cb.Items.AddRange(danhSachCauHoi);
+//        //        cb.SelectedIndex = -1;
+//        //        cb.EndUpdate();
+//        //        cb.Tag = new Tuple<string[], ComboBox[]>(danhSachCauHoi, comboBoxes);
+//        //        cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
+//        //    }
+//        //}
+//        // 🛡️ CHÍNH SÁCH TUẦN TRA VÀ KHÔI PHỤC CHÉO (SELF-HEALING) CHO CORE REPOSITORY
+//        // Danh sách các tệp ĐƯỢC PHÉP tồn tại (data1 -> data15)
+//        // 1. Dành cho ComboBox truyền thống (WinForms mặc định)
+//        public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params ComboBox[] comboBoxes)
+//        {
+//            if (comboBoxes == null || comboBoxes.Length == 0 || danhSachCauHoi == null) return;
+//            foreach (var cb in comboBoxes)
+//            {
+//                if (cb == null) continue;
+//                cb.SelectedIndexChanged -= ComboBox_SelectedIndexChanged;
+//                cb.BeginUpdate();
+//                cb.Items.Clear();
+//                cb.Items.AddRange(danhSachCauHoi);
+//                cb.SelectedIndex = -1;
+//                cb.EndUpdate();
+//                cb.Tag = new Tuple<string[], ComboBox[]>(danhSachCauHoi, comboBoxes);
+//                cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
+//            }
+//        }
+//        // 2. Dành cho KryptonComboBox hiện đại (Giao diện mới)
+//        public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params Krypton.Toolkit.KryptonComboBox[] comboBoxes)
+//        {
+//            if (comboBoxes == null || comboBoxes.Length == 0 || danhSachCauHoi == null) return;
+//            foreach (var cb in comboBoxes)
+//            {
+//                if (cb == null) continue;
+//                cb.SelectedIndexChanged -= ComboBox_SelectedIndexChanged;
+//                cb.BeginUpdate();
+//                cb.Items.Clear();
+//                cb.Items.AddRange(danhSachCauHoi);
+//                cb.SelectedIndex = -1;
+//                cb.EndUpdate();
+//                cb.Tag = new Tuple<string[], Krypton.Toolkit.KryptonComboBox[]>(danhSachCauHoi, comboBoxes);
+//                cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
+//            }
+//        }
+//        private static readonly HashSet<string> DanhSachDataHopLe = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+//        {
+//            "data1", "data2", "data3", "data4", "data5",
+//            "data6", "data7", "data8", "data9", "data10",
+//            "data11", "data12"
+//        };
+//        public static void TuanTraVaPhucHoiCoreRepository()
+//        {
+//            try
+//            {
+//                string baseDir = AppContext.BaseDirectory;
+//                // XÁC ĐỊNH 2 VÙNG CHỨA REPOSITORY
+//                string dirDatabase = Path.Combine(
+//                    Module_DanduongGPS.ThuMucCoSoDuLieu,
+//                    THU_MUC_CONG_CU,
+//                    "CoreDatabaseRepository");
+//                string dirBackup = Path.Combine(
+//                    baseDir,
+//                    "Database Backup",
+//                    THU_MUC_CONG_CU,
+//                    "CoreDatabaseRepository");
+//                // Tạo thư mục nếu bị xóa mất
+//                Directory.CreateDirectory(dirDatabase);
+//                Directory.CreateDirectory(dirBackup);
+//                int soTepBiXoa = 0;
+//                int soTepDuocCuu = 0;
+//                int soTepHong = 0;
+//                int soCanhBao = 0;
+//                List<string> chiTietHanhDong = new List<string>();
+//                // HÀM KIỂM TRA FILE CÓ TỒN TẠI VÀ CÓ DỮ LIỆU
+//                bool FileHopLe(string filePath)
+//                {
+//                    try
+//                    {
+//                        if (!File.Exists(filePath))
+//                            return false;
+//                        FileInfo fileInfo = new FileInfo(filePath);
+//                        // File 0 byte → coi là không hợp lệ
+//                        return fileInfo.Length > 0;
+//                    }
+//                    catch (Exception ex)
+//                    {
+//                        Debug.WriteLine(
+//                            $"[TuanTraCoreRepository] " +
+//                            $"Không thể kiểm tra file '{filePath}': {ex.Message}");
+//                        return false;
+//                    }
+//                }
+//                // TÍNH SHA-256 CHO FILE
+//                string LaySHA256(string filePath)
+//                {
+//                    try
+//                    {
+//                        using FileStream stream = new FileStream(
+//                            filePath,
+//                            FileMode.Open,
+//                            FileAccess.Read,
+//                            FileShare.Read);
+//                        using System.Security.Cryptography.SHA256 sha256 =
+//                            System.Security.Cryptography.SHA256.Create();
+//                        byte[] hash = sha256.ComputeHash(stream);
+//                        return Convert.ToHexString(hash);
+//                    }
+//                    catch (Exception ex)
+//                    {
+//                        Debug.WriteLine(
+//                            $"[TuanTraCoreRepository] " +
+//                            $"Không thể tính SHA-256 '{filePath}': {ex.Message}");
+//                        return string.Empty;
+//                    }
+//                }
+//                // SO SÁNH TOÀN VẸN 2 FILE
+//                //
+//                // Bước 1: So sánh kích thước.
+//                // Bước 2: Nếu cùng kích thước → mới tính SHA-256.
+//                //
+//                // Như vậy tránh tính hash không cần thiết.
+//                bool HaiFileGiongNhau(
+//                    string file1,
+//                    string file2)
+//                {
+//                    try
+//                    {
+//                        if (!FileHopLe(file1) ||
+//                            !FileHopLe(file2))
+//                        {
+//                            return false;
+//                        }
+//                        FileInfo info1 = new FileInfo(file1);
+//                        FileInfo info2 = new FileInfo(file2);
+//                        // Kích thước khác → chắc chắn khác
+//                        if (info1.Length != info2.Length)
+//                            return false;
+//                        string hash1 = LaySHA256(file1);
+//                        string hash2 = LaySHA256(file2);
+//                        if (string.IsNullOrEmpty(hash1) ||
+//                            string.IsNullOrEmpty(hash2))
+//                        {
+//                            return false;
+//                        }
+//                        return string.Equals(
+//                            hash1,
+//                            hash2,
+//                            StringComparison.OrdinalIgnoreCase);
+//                    }
+//                    catch (Exception ex)
+//                    {
+//                        Debug.WriteLine(
+//                            $"[TuanTraCoreRepository] " +
+//                            $"Lỗi so sánh toàn vẹn: {ex.Message}");
+//                        return false;
+//                    }
+//                }
+//                // BƯỚC 1:
+//                // TUẦN TRA & TIÊU DIỆT TỆP LẠ
+//                void TieuDietTepLa(
+//                    string thuMucPath,
+//                    string tenVung)
+//                {
+//                    foreach (string filePath in Directory.GetFiles(thuMucPath))
+//                    {
+//                        string fileName =
+//                            Path.GetFileName(filePath);
+//                        // File hợp lệ → giữ nguyên
+//                        if (DanhSachDataHopLe.Contains(fileName))
+//                            continue;
+//                        try
+//                        {
+//                            ThaoGoQuyenReadOnly(filePath);
+//                            File.Delete(filePath);
+//                            soTepBiXoa++;
+//                            chiTietHanhDong.Add(
+//                                $"[TIÊU DIỆT] Đã xóa tệp lạ " +
+//                                $"'{fileName}' tại vùng {tenVung}.");
+//                        }
+//                        catch (Exception ex)
+//                        {
+//                            chiTietHanhDong.Add(
+//                                $"[LỖI XÓA] Không thể xóa tệp lạ " +
+//                                $"'{fileName}' tại {tenVung}: {ex.Message}");
+//                            Debug.WriteLine(
+//                                $"[TuanTraCoreRepository] " +
+//                                $"Lỗi xóa {fileName}: {ex.Message}");
+//                        }
+//                    }
+//                }
+//                TieuDietTepLa(
+//                    dirDatabase,
+//                    "Database Gốc");
+//                TieuDietTepLa(
+//                    dirBackup,
+//                    "Database Backup");
+//                // BƯỚC 2:
+//                // KHÔI PHỤC CHÉO + KIỂM TRA TOÀN VẸN
+//                foreach (string fileName in DanhSachDataHopLe)
+//                {
+//                    string fileInDB =
+//                        Path.Combine(
+//                            dirDatabase,
+//                            fileName);
+//                    string fileInBackup =
+//                        Path.Combine(
+//                            dirBackup,
+//                            fileName);
+//                    // KIỂM TRA THỰC TẾ
+//                    //
+//                    // File tồn tại nhưng 0 byte → exists = false
+//                    bool existsInDB =
+//                        FileHopLe(fileInDB);
+//                    bool existsInBackup =
+//                        FileHopLe(fileInBackup);
+//                    // TH1:
+//                    // BACKUP CÒN - DATABASE MẤT/HỎNG
+//                    if (!existsInDB && existsInBackup)
+//                    {
+//                        try
+//                        {
+//                            File.Copy(
+//                                fileInBackup,
+//                                fileInDB,
+//                                true);
+//                            File.SetAttributes(
+//                                fileInDB,
+//                                FileAttributes.ReadOnly);
+//                            soTepDuocCuu++;
+//                            if (File.Exists(fileInDB))
+//                            {
+//                               // soTepHong++;
+//                                chiTietHanhDong.Add(
+//                                    $"[KHÔI PHỤC] '{fileName}' " +
+//                                    $"được phục hồi từ Backup → Database Gốc.");
+//                            }
+//                        }
+//                        catch (Exception ex)
+//                        {
+//                            chiTietHanhDong.Add(
+//                                $"[LỖI KHÔI PHỤC] Không thể phục hồi " +
+//                                $"'{fileName}' từ Backup → Database: " +
+//                                $"{ex.Message}");
+//                            Debug.WriteLine(
+//                                $"[TuanTraCoreRepository] " +
+//                                $"Lỗi copy {fileName}: {ex.Message}");
+//                        }
+//                        continue;
+//                    }
+//                    // TH2:
+//                    // DATABASE CÒN - BACKUP MẤT/HỎNG
+//                    if (existsInDB && !existsInBackup)
+//                    {
+//                        try
+//                        {
+//                            File.Copy(
+//                                fileInDB,
+//                                fileInBackup,
+//                                true);
+//                            File.SetAttributes(
+//                                fileInBackup,
+//                                FileAttributes.ReadOnly);
+//                            soTepDuocCuu++;
+//                            chiTietHanhDong.Add(
+//                                $"[KHÔI PHỤC] '{fileName}' " +
+//                                $"được sao lưu lại từ Database → Backup.");
+//                        }
+//                        catch (Exception ex)
+//                        {
+//                            chiTietHanhDong.Add(
+//                                $"[LỖI KHÔI PHỤC] Không thể sao lưu " +
+//                                $"'{fileName}' từ Database → Backup: " +
+//                                $"{ex.Message}");
+//                            Debug.WriteLine(
+//                                $"[TuanTraCoreRepository] " +
+//                                $"Lỗi copy {fileName}: {ex.Message}");
+//                        }
+//                        continue;
+//                    }
+//                    // TH3:
+//                    // CẢ DATABASE VÀ BACKUP ĐỀU MẤT/HỎNG
+//                    if (!existsInDB && !existsInBackup)
+//                    {
+//                        soCanhBao++;
+//                        chiTietHanhDong.Add(
+//                            $"[CẢNH BÁO ĐỎ] Tệp cốt lõi " +
+//                            $"'{fileName}' không tồn tại hoặc " +
+//                            $"đã bị hỏng ở cả 2 vùng.");
+//                        Debug.WriteLine(
+//                            $"[TuanTraCoreRepository] " +
+//                            $"CẢNH BÁO ĐỎ: {fileName}");
+//                        continue;
+//                    }
+//                    // TH4:
+//                    // CẢ HAI ĐỀU TỒN TẠI → KIỂM TRA TOÀN VẸN
+//                    if (existsInDB && existsInBackup)
+//                    {
+//                        try
+//                        {
+//                            FileInfo infoDB =
+//                                new FileInfo(fileInDB);
+//                            FileInfo infoBackup =
+//                                new FileInfo(fileInBackup);
+//                            // 4A.
+//                            // KÍCH THƯỚC KHÁC NHAU
+//                            if (infoDB.Length != infoBackup.Length)
+//                            {
+//                                chiTietHanhDong.Add(
+//                                    $"[CẢNH BÁO TOÀN VẸN] " +
+//                                    $"'{fileName}' có kích thước khác nhau " +
+//                                    $"giữa Database ({infoDB.Length:N0} byte) " +
+//                                    $"và Backup ({infoBackup.Length:N0} byte).");
+//                                // Không tự ý ghi đè.
+//                                // Vì chưa biết bên nào là bản đúng.
+//                                soCanhBao++;
+//                                continue;
+//                            }    
+//                            // 4B.
+//                            // CÙNG KÍCH THƯỚC → SO SÁNH SHA-256
+//                            string hashDB =
+//                                LaySHA256(fileInDB);
+//                            string hashBackup =
+//                                LaySHA256(fileInBackup);
+//                            // Không thể tính hash
+//                            if (string.IsNullOrEmpty(hashDB) ||
+//                                string.IsNullOrEmpty(hashBackup))
+//                            {
+//                                soCanhBao++;
+//                                chiTietHanhDong.Add(
+//                                    $"[CẢNH BÁO TOÀN VẸN] " +
+//                                    $"Không thể xác định SHA-256 " +
+//                                    $"của '{fileName}'.");
+//                                continue;
+//                            }                         
+//                            // 4C.
+//                            // HASH GIỐNG → FILE TOÀN VẸN
+//                            if (string.Equals(
+//                                    hashDB,
+//                                    hashBackup,
+//                                    StringComparison.OrdinalIgnoreCase))
+//                            {
+//                                continue;
+//                            } 
+//                            // 4D.
+//                            // HASH KHÁC → DỮ LIỆU ĐÃ LỆCH                          
+//                            soCanhBao++;
+//                            chiTietHanhDong.Add(
+//                                $"[CẢNH BÁO TOÀN VẸN] " +
+//                                $"Hash SHA-256 của '{fileName}' " +
+//                                $"khác nhau giữa Database và Backup. " +
+//                                $"Hệ thống KHÔNG tự ý ghi đè để tránh " +
+//                                $"mất dữ liệu.");
+//                            Debug.WriteLine(
+//                                $"[TuanTraCoreRepository] " +
+//                                $"Hash không khớp: {fileName}");
+//                        }
+//                        catch (Exception ex)
+//                        {
+//                            soCanhBao++;
+//                            chiTietHanhDong.Add(
+//                                $"[LỖI KIỂM TRA TOÀN VẸN] " +
+//                                $"'{fileName}': {ex.Message}");
+//                            Debug.WriteLine(
+//                                $"[TuanTraCoreRepository] " +
+//                                $"Lỗi integrity {fileName}: {ex}");
+//                        }
+//                    }
+//                }
+//                // BƯỚC 3:
+//                // GHI NHẬT KÝ
+//                if (soTepBiXoa > 0 ||
+//                    soTepDuocCuu > 0 ||
+//                    soTepHong > 0 ||
+//                    soCanhBao > 0)
+//                {
+//                    string taiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM;                 
+//                    string hanhDong = "Bảo vệ Core Repository (Tự động)";
+//                    string ghiChu =
+//                        $"Hệ thống đã tiêu diệt {soTepBiXoa} tệp lạ, " +
+//                        $"khôi phục {soTepDuocCuu} tệp, " +
+//                        $"phát hiện {soTepHong} tệp có dấu hiệu không hợp lệ " +
+//                        $"và {soCanhBao} cảnh báo toàn vẹn.\r\n" +
+//                        $"Chi tiết:\r\n" +
+//                        string.Join(
+//                            "\r\n",
+//                            chiTietHanhDong);
+//                    try
+//                    {
+//                        Module_NhatKy.GhiNhatKy(
+//                            "System (Quyền cao nhất)",
+//                            hanhDong,
+//                            ghiChu);
+//                    }
+//                    catch (Exception ex)
+//                    {
+//                        Debug.WriteLine(
+//                            "[TuanTraCoreRepository] " +
+//                            $"Không thể ghi nhật ký: {ex.Message}");
+//                    }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                Debug.WriteLine(
+//                    "[Lỗi Tuần tra Core Repository]: " +
+//                    ex);
+//            }
+//        }
+//    }
+//}
+
+
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.IO;
@@ -8,13 +1285,7 @@ namespace PhanMemThiDua2026
 {
     public static class Module_KhoiTaoCSDL
     {
-        // 🔹 STRUCT HỨNG KẾT QUẢ DỌN RÁC
-        private struct KetQuaDonRac
-        {
-            public int SoFileBiXoa;
-            public int SoThuMucBiXoa;
-            public int SoLoi;
-        }
+        // (Đã gỡ bỏ struct KetQuaDonRac - không được sử dụng ở bất kỳ đâu trong file, là dead code)
         private class ResourceInfo
         {
             public string BackupName, WinName, DbName;
@@ -151,20 +1422,29 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine("[Lỗi khôi phục thư viện hệ thống]: " + ex.Message);
             }
         }
+        // ⭐ FIX LOGIC: Ghi gián tiếp qua file tạm rồi Move nguyên tử (atomic).
+        // Lý do: bản gốc ghi thẳng vào 'target'. Nếu CopyTo bị ngắt giữa chừng (mất điện, AV chặn,
+        // ổ cứng yếu...), 'target' sẽ tồn tại nhưng rỗng/hỏng -> lần sau File.Exists(target) vẫn trả về true
+        // nên hệ thống sẽ không bao giờ phục hồi lại DLL nữa.
         private static void SaoChepThuVienAnToan(string source, string target)
         {
+            string tempTarget = target + ".tmp";
             try
             {
                 const int bufferSize = 81920; // Tối ưu buffer cho HDD/SSD
-                using var sourceStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize, FileOptions.SequentialScan);
-                using var targetStream = new FileStream(target, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.WriteThrough);
-                sourceStream.CopyTo(targetStream);
-                File.SetAttributes(target, FileAttributes.Normal); // Đảm bảo quyền truy cập bình thường
+                using (var sourceStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize, FileOptions.SequentialScan))
+                using (var targetStream = new FileStream(tempTarget, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.WriteThrough))
+                {
+                    sourceStream.CopyTo(targetStream);
+                }
+                File.SetAttributes(tempTarget, FileAttributes.Normal); // Đảm bảo quyền truy cập bình thường
+                File.Move(tempTarget, target, true); // Chỉ thay thế target khi copy đã chắc chắn thành công
                 Debug.WriteLine($"[ĐÃ KHÔI PHỤC THƯ VIỆN]: {Path.GetFileName(target)}");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[LỖI SAO CHÉP THƯ VIỆN {target}]: " + ex.Message);
+                try { if (File.Exists(tempTarget)) File.Delete(tempTarget); } catch { /* dọn file tạm hỏng, best-effort */ }
             }
         }
         private static void ThaoGoQuyenReadOnly(string path)
@@ -179,6 +1459,46 @@ namespace PhanMemThiDua2026
                 }
                 catch { }
             }
+        }
+        // ⭐ Tối ưu / gộp chung: trước đây hàm tính SHA-256 và kiểm tra file hợp lệ được khai báo
+        // lặp lại dưếi dạng local function bên trong TuanTraVaPhucHoiCoreRepository. Chuyển ra đây để
+        // dùng chung cho toàn module, tránh trùng lảp logic và dễ bảo trì hơn.
+        private static string TinhSHA256(string filePath)
+        {
+            try
+            {
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var sha256 = SHA256.Create();
+                byte[] hash = sha256.ComputeHash(stream);
+                return Convert.ToHexString(hash);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[TinhSHA256] Không thể tính SHA-256 '{filePath}': {ex.Message}");
+                return string.Empty;
+            }
+        }
+        // File phải tồn tại và khác 0 byte mới coi là hợp lệ.
+        private static bool FileCoDuLieuHopLe(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath)) return false;
+                return new FileInfo(filePath).Length > 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[FileCoDuLieuHopLe] Không thể kiểm tra '{filePath}': {ex.Message}");
+                return false;
+            }
+        }
+        // Dùng chung cho các hàm dọn dẹp trong file này (TRỪ riêng TuongLuaBaoVeHeThong, hàm đó
+        // giữ nguyên theo yêu cầu, không đổi sang gọi hàm này).
+        private static bool IsDevelopmentEnv()
+        {
+            string currentExePath = AppDomain.CurrentDomain.BaseDirectory;
+            return currentExePath.Contains(@"\bin\Debug\", StringComparison.OrdinalIgnoreCase) ||
+                   currentExePath.Contains(@"\bin\Release\", StringComparison.OrdinalIgnoreCase);
         }
         private static void DongBoThuMucHeThong(string srcDir, string dbDir)
         {
@@ -249,6 +1569,10 @@ namespace PhanMemThiDua2026
                         File.Copy(file, tempFile, true);
                         ThaoGoQuyenReadOnly(target);
                         File.Move(tempFile, target, true);
+                        // ⭐ FIX: xóa file .syncbak ngay sau khi move thành công, tránh rác tồn đọng vĩnh viễn
+                        // (thư mục chứa nó nằm trong allowedDirs nên DonDepVungQuanLy không bao giờ dọn tới).
+                        string backupLeftover = target + ".syncbak";
+                        if (File.Exists(backupLeftover)) { try { File.Delete(backupLeftover); } catch { } }
                         log.Add($"[SYNC FILE] {file} -> {target}");
                     }
                 }
@@ -355,7 +1679,7 @@ namespace PhanMemThiDua2026
             // 2. Cấu hình Database
             string dir2 = Path.GetFullPath(string.IsNullOrWhiteSpace(Module_DanduongGPS.ThuMucCoSoDuLieu) ? Path.Combine(baseDir, "Database") : Module_DanduongGPS.ThuMucCoSoDuLieu);
             var allowFiles2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx", "NhatKy_LamSach.txt" };
-            var allowDirs2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Bansaoluu", "CongCuQuanLyCSDL", "HuongDanSuDung", "LuuTruThiDua_LichSu"};
+            var allowDirs2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Bansaoluu", "CongCuQuanLyCSDL", "HuongDanSuDung", "LuuTruThiDua_LichSu" };
             DonDepVungQuanLy(dir2, allowFiles2, allowDirs2, false, true);
             // 3. Cấu hình window-x64
             string dir3 = Path.Combine(baseDir, "window-x64");
@@ -372,11 +1696,8 @@ namespace PhanMemThiDua2026
         private static void DonDepVungQuanLy(string dirPath, HashSet<string> allowedFiles, HashSet<string> allowedDirs, bool deleteSubDirs, bool isSQLiteZone)
         {
             // ⭐ BỘ LỌC AN TOÀN CHUẨN KỸ SƯ: CHẶN HỦY DIỆT FILE KHI ĐANG LẬP TRÌNH/TEST CODE
-            string currentExePath = AppDomain.CurrentDomain.BaseDirectory;
-            bool isDevelopmentEnv = currentExePath.Contains(@"\bin\Debug\", StringComparison.OrdinalIgnoreCase) ||
-                                    currentExePath.Contains(@"\bin\Release\", StringComparison.OrdinalIgnoreCase);
-            // Nếu đang Debug/Release trong VS, hoặc đường dẫn rỗng -> THOÁT NGAY lập tức để bảo vệ code
-            if (isDevelopmentEnv || string.IsNullOrWhiteSpace(dirPath))
+            // ⭐ Tối ưu: dùng chung IsDevelopmentEnv() thay vì lặp lại đoạn kiểm tra này.
+            if (IsDevelopmentEnv() || string.IsNullOrWhiteSpace(dirPath))
                 return;
             // Chuẩn hóa và kiểm tra sự tồn tại của thư mục mục tiêu
             string currentDir;
@@ -422,7 +1743,12 @@ namespace PhanMemThiDua2026
                         fi.Attributes = FileAttributes.Normal;
                         fi.Delete();
                     }
-                    catch { continue; }
+                    catch (Exception ex)
+                    {
+                        // ⭐ FIX: trước đây lỗi bị nuốt hoàn toàn (catch { continue; }), không có dấu vết gì để chẩn đoán.
+                        Debug.WriteLine($"[DonDepVungQuanLy] Không thể xóa '{fi.Name}': {ex.Message}");
+                        continue;
+                    }
                     // ⭐ TỐI ƯU HIỆU NĂNG: Không gọi File.Exists(fi.FullName) một lần nữa vì FileInfo.Refresh() chính xác hơn
                     fi.Refresh();
                     if (!fi.Exists)
@@ -759,7 +2085,12 @@ namespace PhanMemThiDua2026
                     File.WriteAllText(logPath, logContent, Encoding.UTF8);
                     return;
                 }
-                catch { Thread.Sleep(200); }
+                catch (Exception ex)
+                {
+                    // ⭐ FIX: trước đây catch rỗng, thất bại sau 3 lần thử bị nuốt hoàn toàn, không ai biết để xử lý.
+                    if (i == 2) Debug.WriteLine($"[GhiDeNhatKy] Không thể ghi log '{logPath}' sau 3 lần thử: {ex.Message}");
+                    Thread.Sleep(200);
+                }
             }
         }
         private static void RemoveReadOnlyRecursive(string folder)
@@ -805,7 +2136,7 @@ namespace PhanMemThiDua2026
                     KimTuThapAiCapCopyDirectory(dir, Path.Combine(dst, Path.GetFileName(dir)));
             }
             catch { }
-        }       
+        }
         // ⭐ QUẢN LÝ COMBOBOX CÂU HỎI BẢO MẬT      
         public static readonly string[] DanhSachCauHoiNhom1 = {
             "Họ và tên của bạn?", "Bạn sinh ra ở Tỉnh/Thành phố nào?", "Món ăn yêu thích nhất của bạn là gì?",
@@ -855,22 +2186,7 @@ namespace PhanMemThiDua2026
                 cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
             }
         }
-        //public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params ComboBox[] comboBoxes)
-        //{
-        //    if (comboBoxes == null || comboBoxes.Length == 0 || danhSachCauHoi == null) return;
-        //    foreach (var cb in comboBoxes)
-        //    {
-        //        if (cb == null) continue;
-        //        cb.SelectedIndexChanged -= ComboBox_SelectedIndexChanged;
-        //        cb.BeginUpdate();
-        //        cb.Items.Clear();
-        //        cb.Items.AddRange(danhSachCauHoi);
-        //        cb.SelectedIndex = -1;
-        //        cb.EndUpdate();
-        //        cb.Tag = new Tuple<string[], ComboBox[]>(danhSachCauHoi, comboBoxes);
-        //        cb.SelectedIndexChanged += ComboBox_SelectedIndexChanged;
-        //    }
-        //}
+        // (Đã gỡ bỏ khối code comment-out trùng lặp với NapDuLieuCauHoiBaoMat(ComboBox[]) bên dưới - dead code)
         // 🛡️ CHÍNH SÁCH TUẦN TRA VÀ KHÔI PHỤC CHÉO (SELF-HEALING) CHO CORE REPOSITORY
         // Danh sách các tệp ĐƯỢC PHÉP tồn tại (data1 -> data15)
         // 1. Dành cho ComboBox truyền thống (WinForms mặc định)
@@ -936,90 +2252,9 @@ namespace PhanMemThiDua2026
                 int soTepHong = 0;
                 int soCanhBao = 0;
                 List<string> chiTietHanhDong = new List<string>();
-                // HÀM KIỂM TRA FILE CÓ TỒN TẠI VÀ CÓ DỮ LIỆU
-                bool FileHopLe(string filePath)
-                {
-                    try
-                    {
-                        if (!File.Exists(filePath))
-                            return false;
-                        FileInfo fileInfo = new FileInfo(filePath);
-                        // File 0 byte → coi là không hợp lệ
-                        return fileInfo.Length > 0;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(
-                            $"[TuanTraCoreRepository] " +
-                            $"Không thể kiểm tra file '{filePath}': {ex.Message}");
-                        return false;
-                    }
-                }
-                // TÍNH SHA-256 CHO FILE
-                string LaySHA256(string filePath)
-                {
-                    try
-                    {
-                        using FileStream stream = new FileStream(
-                            filePath,
-                            FileMode.Open,
-                            FileAccess.Read,
-                            FileShare.Read);
-                        using System.Security.Cryptography.SHA256 sha256 =
-                            System.Security.Cryptography.SHA256.Create();
-                        byte[] hash = sha256.ComputeHash(stream);
-                        return Convert.ToHexString(hash);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(
-                            $"[TuanTraCoreRepository] " +
-                            $"Không thể tính SHA-256 '{filePath}': {ex.Message}");
-                        return string.Empty;
-                    }
-                }
-                // SO SÁNH TOÀN VẸN 2 FILE
-                //
-                // Bước 1: So sánh kích thước.
-                // Bước 2: Nếu cùng kích thước → mới tính SHA-256.
-                //
-                // Như vậy tránh tính hash không cần thiết.
-                bool HaiFileGiongNhau(
-                    string file1,
-                    string file2)
-                {
-                    try
-                    {
-                        if (!FileHopLe(file1) ||
-                            !FileHopLe(file2))
-                        {
-                            return false;
-                        }
-                        FileInfo info1 = new FileInfo(file1);
-                        FileInfo info2 = new FileInfo(file2);
-                        // Kích thước khác → chắc chắn khác
-                        if (info1.Length != info2.Length)
-                            return false;
-                        string hash1 = LaySHA256(file1);
-                        string hash2 = LaySHA256(file2);
-                        if (string.IsNullOrEmpty(hash1) ||
-                            string.IsNullOrEmpty(hash2))
-                        {
-                            return false;
-                        }
-                        return string.Equals(
-                            hash1,
-                            hash2,
-                            StringComparison.OrdinalIgnoreCase);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(
-                            $"[TuanTraCoreRepository] " +
-                            $"Lỗi so sánh toàn vẹn: {ex.Message}");
-                        return false;
-                    }
-                }
+                // ⭐ Tối ưu: FileHopLe/LaySHA256/HaiFileGiongNhau trước đây khai báo là local function
+                // (HaiFileGiongNhau thậm chí không hề được gọi ở đâu - dead code). Nay dùng chung
+                // FileCoDuLieuHopLe / TinhSHA256 đã khai báo dùng chung cho cả class.
                 // BƯỚC 1:
                 // TUẦN TRA & TIÊU DIỆT TỆP LẠ
                 void TieuDietTepLa(
@@ -1075,9 +2310,9 @@ namespace PhanMemThiDua2026
                     //
                     // File tồn tại nhưng 0 byte → exists = false
                     bool existsInDB =
-                        FileHopLe(fileInDB);
+                        FileCoDuLieuHopLe(fileInDB);
                     bool existsInBackup =
-                        FileHopLe(fileInBackup);
+                        FileCoDuLieuHopLe(fileInBackup);
                     // TH1:
                     // BACKUP CÒN - DATABASE MẤT/HỎNG
                     if (!existsInDB && existsInBackup)
@@ -1094,7 +2329,7 @@ namespace PhanMemThiDua2026
                             soTepDuocCuu++;
                             if (File.Exists(fileInDB))
                             {
-                               // soTepHong++;
+                                // soTepHong++;
                                 chiTietHanhDong.Add(
                                     $"[KHÔI PHỤC] '{fileName}' " +
                                     $"được phục hồi từ Backup → Database Gốc.");
@@ -1179,13 +2414,13 @@ namespace PhanMemThiDua2026
                                 // Vì chưa biết bên nào là bản đúng.
                                 soCanhBao++;
                                 continue;
-                            }    
+                            }
                             // 4B.
                             // CÙNG KÍCH THƯỚC → SO SÁNH SHA-256
                             string hashDB =
-                                LaySHA256(fileInDB);
+                                TinhSHA256(fileInDB);
                             string hashBackup =
-                                LaySHA256(fileInBackup);
+                                TinhSHA256(fileInBackup);
                             // Không thể tính hash
                             if (string.IsNullOrEmpty(hashDB) ||
                                 string.IsNullOrEmpty(hashBackup))
@@ -1196,7 +2431,7 @@ namespace PhanMemThiDua2026
                                     $"Không thể xác định SHA-256 " +
                                     $"của '{fileName}'.");
                                 continue;
-                            }                         
+                            }
                             // 4C.
                             // HASH GIỐNG → FILE TOÀN VẸN
                             if (string.Equals(
@@ -1205,7 +2440,7 @@ namespace PhanMemThiDua2026
                                     StringComparison.OrdinalIgnoreCase))
                             {
                                 continue;
-                            } 
+                            }
                             // 4D.
                             // HASH KHÁC → DỮ LIỆU ĐÃ LỆCH                          
                             soCanhBao++;
@@ -1238,7 +2473,7 @@ namespace PhanMemThiDua2026
                     soTepHong > 0 ||
                     soCanhBao > 0)
                 {
-                    string taiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM;                 
+                    string taiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM;
                     string hanhDong = "Bảo vệ Core Repository (Tự động)";
                     string ghiChu =
                         $"Hệ thống đã tiêu diệt {soTepBiXoa} tệp lạ, " +

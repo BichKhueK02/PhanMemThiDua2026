@@ -45,6 +45,7 @@ namespace PhanMemThiDua2026
         private class RawCBCS
         {
             public string ID, HoTenE, SoHieuE, DonViE, TinhTrang, KQ_TD, KQ_XL_CB, KQ_XL_DV, T12;
+            public string DonViKey = ""; // Khóa đơn vị đã chuẩn hóa dùng riêng cho bộ lọc
             public string[] Thang = new string[11]; // T1 -> T11
             public string SauThang, TongKet, L1, L2, L3, L4;
             public string GhiChu;
@@ -57,6 +58,7 @@ namespace PhanMemThiDua2026
         private class RawTanBinh
         {
             public string ID, HoTenE, SoHieuE, DonViE, TinhTrang, L1, L2, L3, L4;
+            public string DonViKey = ""; // Khóa đơn vị đã chuẩn hóa dùng riêng cho bộ lọc
             public string GhiChu;
             // ⭐ HAI BIẾN ĐỂ TRỊ 10 LỖI TRÊN:
             public string HoTenSearch;
@@ -453,19 +455,52 @@ namespace PhanMemThiDua2026
                 ApplyFilter_Standard();
             }
         }
+        // Chuẩn hóa tên đơn vị CHỈ để so sánh bộ lọc (không đổi dữ liệu hiển thị / lưu trữ).
+        // Xử lý: Unicode NFC/NFD (chữ Đ, Ộ...), khoảng trắng lạ (NBSP...), các loại dấu gạch ngang,
+        // khoảng trắng thừa quanh dấu '-' và dấu ',' ';', khác biệt hoa/thường.
+        private static string ChuanHoaDonViSoSanh(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return "";
+            string s = input.Normalize(System.Text.NormalizationForm.FormC);
+            var sb = new System.Text.StringBuilder(s.Length);
+            bool prevSpace = false;
+            foreach (char ch in s)
+            {
+                char c = ch;
+                // Các loại gạch ngang Unicode -> '-'
+                if (c == '\u2010' || c == '\u2011' || c == '\u2012' || c == '\u2013' || c == '\u2014' || c == '\u2015' || c == '\u2212')
+                    c = '-';
+                // Mọi loại khoảng trắng (NBSP, tab, zero-width space...) -> khoảng trắng thường
+                if (char.IsWhiteSpace(c) || c == '\u200B' || c == '\u200C' || c == '\u200D' || c == '\uFEFF')
+                    c = ' ';
+                if (c == ' ')
+                {
+                    if (prevSpace) continue; // gộp nhiều khoảng trắng liên tiếp
+                    prevSpace = true;
+                }
+                else prevSpace = false;
+                sb.Append(c);
+            }
+            // Bỏ khoảng trắng quanh '-', ',', ';' để "TRUNG ĐỘI 1 - D2" == "TRUNG ĐỘI 1-D2"
+            string r = sb.ToString().Trim();
+            r = System.Text.RegularExpressions.Regex.Replace(r, @"\s*([-,;])\s*", "$1");
+            return r.ToUpperInvariant();
+        }
         // PHIÊN BẢN 1: STANDARD (Dành cho <= 3000 dòng, ĐÂY CHÍNH LÀ CODE GỐC)
         private void ApplyFilter_Standard()
         {
+            // Bảo vệ luồng và vòng đời của Control
+            if (kryptonDataGridView1 == null || kryptonDataGridView1.IsDisposed) return;
             if (dtDanhSachGoc == null || dtDanhSachGoc.DefaultView.Count == 0)
             {
-                kryptonDataGridView1.RowCount = 0;
+                if (kryptonDataGridView1.RowCount > 0) kryptonDataGridView1.Rows.Clear();
                 toolStripStatusLabel1.Text = "Tổng cộng: 0 " + Module_HeThong.Tu_dong_chi;
                 return;
             }
             string dvFilter = comboBox_TimKiemDonVi.Text?.Trim() ?? "";
             string tenFilter = textBox_TimKiemTheoTen.Text?.Trim() ?? "";
             string tinhTrangFilter = comboBox1_TinhTrang.Text?.Trim() ?? "";
-            // 1. Khai báo biến tenFilterLower ở đây
+            // Chuẩn hóa chuỗi tìm kiếm chữ thường
             string tenFilterLower = tenFilter.ToLowerInvariant();
             if (_dangSetPlaceholder || tenFilterLower == PLACEHOLDER_TIMKIEM.ToLowerInvariant())
             {
@@ -478,42 +513,56 @@ namespace PhanMemThiDua2026
                 _filteredIndexes.Clear();
                 bool hasTen = !string.IsNullOrWhiteSpace(tenFilterLower);
                 bool hasDV = !string.IsNullOrWhiteSpace(dvFilter) && dvFilter != Module_HeThong.Tat_Ca;
+                string dvKey = hasDV ? ChuanHoaDonViSoSanh(dvFilter) : "";
                 bool hasTT = !string.IsNullOrWhiteSpace(tinhTrangFilter) && tinhTrangFilter != Module_HeThong.Tat_Ca;
-                // 2. CHUẨN KỸ SƯ: Kiểm tra an toàn xem DataTable có cột Cache hay không
+                // Kiểm tra an toàn xem DataTable có cột Cache chữ thường hay không
                 bool hasSearchColumn = dtDanhSachGoc.Columns.Contains("HoVaTen_Search");
-                // ⭐ DUYỆT TRÊN DEFAULTVIEW ĐỂ GIỮ NGUYÊN THỨ TỰ SẮP XẾP
+                // Duyệt trên DefaultView để giữ nguyên thứ tự sắp xếp
                 DataView view = dtDanhSachGoc.DefaultView;
                 int count = view.Count;
                 for (int i = 0; i < count; i++)
                 {
                     DataRowView rowView = view[i];
                     // Lọc Đơn vị
-                    if (hasDV && rowView["DonVi"].ToString() != dvFilter) continue;
+                    // if (hasDV && rowView["DonVi"]?.ToString() != dvFilter) continue;
+                    // Lọc Đơn vị (An toàn tuyệt đối với .Trim() và không phân biệt hoa thường)
+                    if (hasDV && ChuanHoaDonViSoSanh(rowView["DonVi"]?.ToString()) != dvKey) continue;
                     // Lọc Tình trạng
-                    if (hasTT && !string.Equals(rowView["TinhTrang"].ToString().Trim(), tinhTrangFilter, StringComparison.OrdinalIgnoreCase)) continue;
-                    // Lọc Họ Tên (Có cơ chế Fallback an toàn tuyệt đối)
+                    if (hasTT && !string.Equals(rowView["TinhTrang"]?.ToString().Trim(), tinhTrangFilter, StringComparison.OrdinalIgnoreCase)) continue;
+                    // Lọc Họ Tên (Cơ chế Fallback an toàn tuyệt đối với Null-check)
                     if (hasTen)
                     {
                         if (hasSearchColumn)
                         {
                             // Tốc độ cao: Dùng thuật toán Contains trên cột chữ thường
-                            if (!rowView["HoVaTen_Search"].ToString().Contains(tenFilterLower)) continue;
+                            string searchVal = rowView["HoVaTen_Search"]?.ToString() ?? "";
+                            if (!searchVal.Contains(tenFilterLower)) continue;
                         }
                         else
                         {
-                            // Dự phòng an toàn: Nếu chưa khởi tạo cột Search, dùng IndexOf trên cột gốc
-                            if (rowView["HoVaTen"].ToString().IndexOf(tenFilter, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                            // Dự phòng an toàn: Dùng IndexOf trên cột gốc
+                            string baseVal = rowView["HoVaTen"]?.ToString() ?? "";
+                            if (baseVal.IndexOf(tenFilter, StringComparison.OrdinalIgnoreCase) < 0) continue;
                         }
                     }
                     _filteredIndexes.Add(i);
                 }
-                kryptonDataGridView1.RowCount = _filteredIndexes.Count;
+                // Thiết lập RowCount an toàn tuyệt đối cho VirtualMode
+                if (_filteredIndexes.Count > 0)
+                {
+                    kryptonDataGridView1.RowCount = _filteredIndexes.Count;
+                }
+                else
+                {
+                    kryptonDataGridView1.Rows.Clear(); // Xóa sạch lưới an toàn khi kết quả lọc = 0
+                }
                 toolStripStatusLabel1.Text = $"Tổng cộng: {_filteredIndexes.Count} {Module_HeThong.Tu_dong_chi}";
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine("Lỗi ApplyFilter_Standard: " + ex.Message);
-                kryptonDataGridView1.RowCount = 0;
+                // ⭐ SỬA LỖI TẠI CATCH: Dùng Rows.Clear() thay vì gán RowCount = 0 để chống văng app khi có exception
+                if (kryptonDataGridView1.RowCount > 0) kryptonDataGridView1.Rows.Clear();
             }
             finally
             {
@@ -601,26 +650,33 @@ namespace PhanMemThiDua2026
             }
             catch { e.Value = string.Empty; }
         }
+
+
         private async void ApplyFilter_DataMax()
         {
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             int totalCount = laTanBinh ? (_dataCacheTanBinh?.Count ?? 0) : (_dataCacheCBCS?.Count ?? 0);
+
             if (totalCount == 0)
             {
-                kryptonDataGridView1.RowCount = 0;
-                // 🟢 ĐỔI MÀU CHỮ: Màu xanh rêu đậm khi chế độ hiệu năng cao đang hoạt động
+                if (kryptonDataGridView1.RowCount > 0) kryptonDataGridView1.Rows.Clear(); // ✅ Xóa lưới an toàn
                 toolStripStatusLabel1.ForeColor = System.Drawing.Color.FromArgb(40, 167, 69);
                 toolStripStatusLabel1.Text = $"Tổng cộng: 0 {Module_HeThong.Tu_dong_chi} [Chế độ hiệu năng cao đang hoạt động...]";
                 return;
             }
+
             string dvFilter = comboBox_TimKiemDonVi.Text?.Trim() ?? "";
             string tenFilterLower = textBox_TimKiemTheoTen.Text?.Trim().ToLowerInvariant() ?? "";
             string tinhTrangFilter = comboBox1_TinhTrang.Text?.Trim() ?? "";
+
             if (_dangSetPlaceholder || tenFilterLower == PLACEHOLDER_TIMKIEM.ToLowerInvariant())
                 tenFilterLower = "";
+
             bool hasTen = !string.IsNullOrWhiteSpace(tenFilterLower);
             bool hasDV = !string.IsNullOrWhiteSpace(dvFilter) && dvFilter != Module_HeThong.Tat_Ca;
+            string dvKey = hasDV ? ChuanHoaDonViSoSanh(dvFilter) : "";
             bool hasTT = !string.IsNullOrWhiteSpace(tinhTrangFilter) && tinhTrangFilter != Module_HeThong.Tat_Ca;
+
             kryptonDataGridView1.SuspendLayout();
             try
             {
@@ -632,7 +688,10 @@ namespace PhanMemThiDua2026
                         for (int i = 0; i < totalCount; i++)
                         {
                             var item = _dataCacheTanBinh[i];
-                            if (hasDV && item.DonViE != dvFilter) continue;
+
+                            // ✅ SỬA ĐÚNG: Lọc Đơn vị an toàn tuyệt đối với .Trim() và không phân biệt hoa/thường
+                            if (hasDV && item.DonViKey != dvKey) continue;
+
                             if (hasTT && !string.Equals(item.TinhTrang, tinhTrangFilter, StringComparison.OrdinalIgnoreCase)) continue;
                             if (hasTen && !item.HoTenSearch.Contains(tenFilterLower)) continue;
                             tempIndexes.Add(i);
@@ -643,7 +702,10 @@ namespace PhanMemThiDua2026
                         for (int i = 0; i < totalCount; i++)
                         {
                             var item = _dataCacheCBCS[i];
-                            if (hasDV && item.DonViE != dvFilter) continue;
+
+                            // ✅ SỬA ĐÚNG: Lọc Đơn vị an toàn tuyệt đối với .Trim() và không phân biệt hoa/thường
+                            if (hasDV && item.DonViKey != dvKey) continue;
+
                             if (hasTT && !string.Equals(item.TinhTrang, tinhTrangFilter, StringComparison.OrdinalIgnoreCase)) continue;
                             if (hasTen && !item.HoTenSearch.Contains(tenFilterLower)) continue;
                             tempIndexes.Add(i);
@@ -651,15 +713,25 @@ namespace PhanMemThiDua2026
                     }
                     return tempIndexes;
                 });
+
                 _filteredIndexes = newFilteredIndexes;
-                kryptonDataGridView1.RowCount = _filteredIndexes.Count;
-                // 🟢 ĐỔI MÀU CHỮ: Áp màu xanh rêu đậm khi hiển thị kết quả lọc hiệu năng cao
+
+                // ✅ AN TOÀN ROWCOUNT: Tránh lỗi ArgumentOutOfRangeException khi kết quả lọc = 0
+                if (_filteredIndexes.Count > 0)
+                {
+                    kryptonDataGridView1.RowCount = _filteredIndexes.Count;
+                }
+                else
+                {
+                    kryptonDataGridView1.Rows.Clear();
+                }
+
                 toolStripStatusLabel1.ForeColor = System.Drawing.Color.FromArgb(25, 135, 84);
                 toolStripStatusLabel1.Text = $"Tổng cộng: {_filteredIndexes.Count} {Module_HeThong.Tu_dong_chi} [Chế độ hiệu năng cao]";
             }
             catch
             {
-                kryptonDataGridView1.RowCount = 0;
+                if (kryptonDataGridView1.RowCount > 0) kryptonDataGridView1.Rows.Clear();
             }
             finally
             {
@@ -797,6 +869,7 @@ namespace PhanMemThiDua2026
                 {
                     item.SoHieuE = SafeDecrypt(item.SoHieuE);
                     item.DonViE = SafeDecrypt(item.DonViE);
+                    item.DonViKey = ChuanHoaDonViSoSanh(item.DonViE);
                     item.HoTenE = SafeDecrypt(item.HoTenE);
                     item.SortPriority = dicDonViUuTien.TryGetValue(item.DonViE, out int p) ? p : int.MaxValue;
                     item.GhiChu = dictGhiChu.TryGetValue(item.SoHieuE, out string gc) ? gc : "";
@@ -908,6 +981,7 @@ namespace PhanMemThiDua2026
                 {
                     item.SoHieuE = SafeDecrypt(item.SoHieuE);
                     item.DonViE = SafeDecrypt(item.DonViE);
+                    item.DonViKey = ChuanHoaDonViSoSanh(item.DonViE);
                     item.HoTenE = SafeDecrypt(item.HoTenE);
                     item.SortPriority = dicDonViUuTien.TryGetValue(item.DonViE, out int p) ? p : int.MaxValue;
                     item.GhiChu = dictGhiChu.TryGetValue(item.SoHieuE, out string gc) ? gc : "";
@@ -1225,7 +1299,7 @@ namespace PhanMemThiDua2026
                         }
                         ramObj.HoTenE = target["HoVaTen"].ToString();
                         ramObj.SoHieuE = target["SoHieu"].ToString();
-                        ramObj.DonViE = target["DonVi"].ToString();
+                        ramObj.DonViE = target["DonVi"].ToString(); ramObj.DonViKey = ChuanHoaDonViSoSanh(ramObj.DonViE);
                         ramObj.TinhTrang = target["TinhTrang"].ToString();
                         ramObj.HoTenSearch = target["HoVaTen_Search"].ToString();
                         if (int.TryParse(target["SortPriority"].ToString(), out int p)) ramObj.SortPriority = p;
@@ -1257,7 +1331,7 @@ namespace PhanMemThiDua2026
                         }
                         ramObj.HoTenE = target["HoVaTen"].ToString();
                         ramObj.SoHieuE = target["SoHieu"].ToString();
-                        ramObj.DonViE = target["DonVi"].ToString();
+                        ramObj.DonViE = target["DonVi"].ToString(); ramObj.DonViKey = ChuanHoaDonViSoSanh(ramObj.DonViE);
                         ramObj.TinhTrang = target["TinhTrang"].ToString();
                         ramObj.HoTenSearch = target["HoVaTen_Search"].ToString();
                         if (int.TryParse(target["SortPriority"].ToString(), out int p)) ramObj.SortPriority = p;
@@ -1928,6 +2002,25 @@ namespace PhanMemThiDua2026
         private void comboBox_TimKiemDonVi_SelectedIndexChanged(object? sender, EventArgs e)
         {
             ApplyFilter();
+#if DEBUG
+            // Chỉ chạy ở bản DEBUG: nếu chọn 1 đơn vị mà lọc ra 0 dòng thì in ra Output để so khớp giá trị thực tế
+            try
+            {
+                string dv = comboBox_TimKiemDonVi.Text?.Trim() ?? "";
+                if (dv.Length > 0 && dv != Module_HeThong.Tat_Ca && _filteredIndexes.Count == 0)
+                {
+                    string Hex(string t) => string.Join(" ", t.Select(c => ((int)c).ToString("X4")));
+                    Debug.WriteLine($"[LocDonVi] Combo = '{dv}' | key = '{ChuanHoaDonViSoSanh(dv)}' | {Hex(dv)}");
+                    IEnumerable<string> cacDv = _isDataMaxMode
+                        ? (Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                            ? _dataCacheTanBinh.Select(x => x.DonViE ?? "") : _dataCacheCBCS.Select(x => x.DonViE ?? ""))
+                        : dtDanhSachGoc.AsEnumerable().Select(r => r["DonVi"]?.ToString() ?? "");
+                    foreach (var d in cacDv.Distinct().Take(30))
+                        Debug.WriteLine($"[LocDonVi]   Data = '{d}' | key = '{ChuanHoaDonViSoSanh(d)}' | {Hex(d)}");
+                }
+            }
+            catch { }
+#endif
         }
         private void KryptonDataGridView1_MouseDown(object? sender, MouseEventArgs e)
         {

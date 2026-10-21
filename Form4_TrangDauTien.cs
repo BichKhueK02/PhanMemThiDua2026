@@ -2144,13 +2144,23 @@ WHERE ID = 1", conn);
                 ThongBao("Lỗi lưu trạng thái tự động ngày/tháng/năm: " + ex.Message);
             }
         }
-        private void Progress_Start()
+        private void CoDinhThanhTienTrinh()
         {
-            if (IsDisposed || Disposing) return;
-            toolStripProgressBar1.Visible = true;
-            toolStripProgressBar1.Minimum = 0;
-            toolStripProgressBar1.Maximum = 100;
-            toolStripProgressBar1.Value = 0;
+            // 1. Khóa cứng kích thước thanh tiến trình
+            var pb = toolStripProgressBar1;
+            pb.AutoSize = false;
+            pb.Size = new Size(120, 16);
+            pb.Margin = new Padding(4, 3, 4, 3);
+            pb.Minimum = 0;
+            pb.Maximum = 100;
+            // 2. Khóa độ rộng label trái để thanh không bị đẩy khi text/ảnh đổi
+            toolStripStatusLabel1.AutoSize = false;
+            toolStripStatusLabel1.Width = 260;   // chỉnh theo độ dài text của CapNhatStatusCSDL
+            toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleLeft;
+            // 3. Bật double buffer cho StatusStrip để hết nhấp nháy
+            typeof(Control).GetProperty("DoubleBuffered",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                ?.SetValue(statusStrip1, true);
         }
         private void Progress_Step(int value)
         {
@@ -2162,6 +2172,12 @@ WHERE ID = 1", conn);
                 newValue = toolStripProgressBar1.Minimum;
             toolStripProgressBar1.Value = newValue;
         }
+        private void Progress_Start()
+        {
+            if (IsDisposed || Disposing) return;
+            toolStripProgressBar1.Value = 0;
+            toolStripProgressBar1.Visible = true;   // kích thước đã khóa nên không còn giãn
+        }
         private void Progress_End()
         {
             if (IsDisposed || Disposing) return;
@@ -2171,29 +2187,12 @@ WHERE ID = 1", conn);
         private async Task Progress_StepAsync(int value)
         {
             if (IsDisposed || Disposing) return;
-            int targetValue = 0;
-            Action calcTarget = () =>
+            int target = Math.Clamp(toolStripProgressBar1.Value + value,
+                                    toolStripProgressBar1.Minimum, toolStripProgressBar1.Maximum);
+            while (!IsDisposed && !Disposing && toolStripProgressBar1.Value < target)
             {
-                targetValue = toolStripProgressBar1.Value + value;
-                if (targetValue > toolStripProgressBar1.Maximum) targetValue = toolStripProgressBar1.Maximum;
-                if (targetValue < toolStripProgressBar1.Minimum) targetValue = toolStripProgressBar1.Minimum;
-            };
-            if (InvokeRequired) Invoke(calcTarget); else calcTarget();
-            while (true)
-            {
-                if (IsDisposed || Disposing) break;
-                bool isReached = false;
-                Action stepUp = () =>
-                {
-                    // Tăng bước nhảy lên 2% mỗi khung hình thay vì 1% để trượt nhanh hơn
-                    toolStripProgressBar1.Value += (toolStripProgressBar1.Value + 2 <= targetValue) ? 2 : 1;
-                    if (toolStripProgressBar1.Value >= targetValue)
-                        isReached = true;
-                };
-                if (InvokeRequired) Invoke(stepUp); else stepUp();
-                if (isReached) break;
-                // ⭐ ÉP XUNG: Giảm từ 15ms xuống còn 5ms
-                await Task.Delay(5);
+                toolStripProgressBar1.Value = Math.Min(toolStripProgressBar1.Value + 2, target);
+                await Task.Delay(15);   // 15ms khớp nhịp timer Windows, 5ms không nhanh hơn mà chỉ tốn CPU
             }
         }
         private async Task Progress_EndAsync()
@@ -2533,16 +2532,17 @@ WHERE ID = 1", conn);
             catch (Exception ex)
             {
                 Module_ThongBao.Loi("Lỗi khi làm mới phần mềm:\n" + ex.Message);
-                Invoke(new Action(() => toolStripProgressBar1.Visible = false));
             }
             finally
             {
-                // Phục hồi giao diện nút bấm
-                kryptonButton_Refresh.Values.Text = textBanDau;
-                kryptonButton_Refresh.Values.Image = anhBanDau;
-                kryptonButton_Refresh.Enabled = true;
-                // Gọi 1 lần duy nhất ở đây là đủ để cập nhật thanh Status
-                Module_TrangThaiHeThong.CapNhatStatusCSDL(statusStrip1, toolStripStatusLabel1);
+                if (!IsDisposed && !Disposing)
+                {
+                    Progress_End();   // luôn đóng thanh tiến trình, kể cả khi lỗi
+                    kryptonButton_Refresh.Values.Text = textBanDau;
+                    kryptonButton_Refresh.Values.Image = anhBanDau;
+                    kryptonButton_Refresh.Enabled = true;
+                    Module_TrangThaiHeThong.CapNhatStatusCSDL(statusStrip1, toolStripStatusLabel1);
+                }
             }
         }
         private async Task TaoBangCheDoXetThiDuaNamNeuChuaCoAsync(SqliteConnection conn, SqliteTransaction tran)

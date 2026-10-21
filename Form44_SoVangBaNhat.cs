@@ -47,7 +47,7 @@ namespace PhanMemThiDua2026
             kryptonTextBox1_SoHieu.TextChanged += (s, e) => CapNhatTrangThaiNut();
             kryptonTextBox1_HoVaTen.TextChanged += (s, e) => CapNhatTrangThaiNut();
         }
-        private async void Form44_SoVangBaNhat_Load(object? sender, EventArgs e)
+        private void Form44_SoVangBaNhat_Load(object? sender, EventArgs e)
         {
             CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_SoHieu);
             CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_PhanLoai);
@@ -56,16 +56,129 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1.CellMouseClick += kryptonDataGridView1_CellMouseClick;
             kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
             kryptonDataGridView1.Dock = DockStyle.Fill;
-            await LoadDuLieuSoVangBaNhatAsync();
-            DinhDangGiaoDienDataGridSoVang();
-            this.SizeChanged += Form44_ResizeOrSizeChanged;
-            kryptonDataGridView1.SizeChanged += Form44_ResizeOrSizeChanged;
-            CapNhatDanhSachDonVi();
-            CapNhatThongKeSoLuong();
+            CauHinhGridMotLan();            // dựng cột + style 1 lần
             CapNhatTrangThaiNut();
             Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             InitToolTips();
+            // KHÔNG nạp dữ liệu ở đây: Form55.MoForm44Async lo việc đó
         }
+        private bool _daCauHinhGrid;
+        private void CauHinhGridMotLan()
+        {
+            if (_daCauHinhGrid) return;
+            var g = kryptonDataGridView1;
+            typeof(DataGridView).GetProperty("DoubleBuffered",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.SetValue(g, true, null);
+            g.AutoGenerateColumns = false;   // quan trọng: không sinh lại cột mỗi lần đổi DataSource
+            g.AllowUserToAddRows = false; g.AllowUserToDeleteRows = false;
+            g.AllowUserToResizeRows = false; g.AllowUserToOrderColumns = false;
+            g.RowHeadersVisible = false; g.ReadOnly = true; g.MultiSelect = false;
+            g.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            g.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+            g.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
+            g.RowTemplate.Height = 36;
+            g.ColumnHeadersHeight = 50;
+            g.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            g.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            g.StateCommon.HeaderColumn.Content.Font = _fontBold9;
+            g.StateCommon.DataCell.Content.Font = _fontRegular9;
+            g.StateCommon.DataCell.Border.Color1 = Color.FromArgb(224, 224, 224);
+            g.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
+            g.StateCommon.DataCell.Border.Width = 1;
+            g.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
+            g.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
+            var giua = DataGridViewContentAlignment.MiddleCenter;
+            var trai = DataGridViewContentAlignment.MiddleLeft;
+            g.Columns.AddRange(
+                Cot("ID", "ID", 40, giua, hien: false),
+                Cot("STT", "STT", 40, giua),
+                Cot("HoVaTen", "Họ và tên", 180, trai),
+                Cot("SoHieu", "Số hiệu", 80, giua),
+                Cot("NamSinh", "Năm sinh", 85, giua),
+                Cot("QueQuan", "Quê quán", 150, trai),
+                Cot("NgayVaoCAND", "Vào CAND", 100, giua),
+                Cot("CapBac", "Cấp bậc", 80, giua),
+                Cot("ChucVu", "Chức vụ", 110, giua),
+                Cot("DonVi", "Đơn vị", 80, giua),
+                Cot("PhanLoai", "Phân loại", 80, giua, hien: false),
+                Cot("GhiChu", "Ghi chú", 120, trai),
+                Cot("ThanhTich", "Thành tích", 180, trai, fill: false),
+                Cot("ThongBaoTrungDoan", "Thông báo E", 120, giua),
+                Cot("SoTTTrongSo", "Số vào sổ", 90, giua),
+                Cot("ThangCongNhan", "Tháng vào sổ", 160, giua));
+            _daCauHinhGrid = true;
+        }
+        private static DataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,
+            DataGridViewContentAlignment canh, bool hien = true, bool fill = true)
+        {
+            var c = new DataGridViewTextBoxColumn
+            {
+                Name = ten,
+                DataPropertyName = ten,
+                HeaderText = tieuDe,
+                SortMode = DataGridViewColumnSortMode.NotSortable,
+                ReadOnly = true,
+                Visible = hien
+            };
+            c.DefaultCellStyle.Alignment = canh;
+            if (fill) { c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill; c.FillWeight = rong; c.MinimumWidth = 40; }
+            else { c.AutoSizeMode = DataGridViewAutoSizeColumnMode.None; c.Width = rong; }
+            return c;
+        }
+        private static DataTable TaoSchemaSoVang()
+        {
+            var dt = new DataTable { Locale = System.Globalization.CultureInfo.InvariantCulture };
+            dt.Columns.Add("ID", typeof(int));
+            dt.Columns.Add("STT", typeof(int));
+            foreach (var c in new[] { "HoVaTen","SoHieu","NamSinh","QueQuan","NgayVaoCAND","CapBac","ChucVu",
+                              "DonVi","PhanLoai","GhiChu","ThanhTich","ThongBaoTrungDoan","SoTTTrongSo","ThangCongNhan" })
+                dt.Columns.Add(c, typeof(string));
+            return dt;
+        }
+        private DataTable DocSoVang(string tenBang)
+        {
+            var dt = TaoSchemaSoVang();
+            using var conn = new SqliteConnection($"Data Source={_csdl2Path};Default Timeout=30");
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $@"SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi,
+                         PhanLoai, GhiChu, ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan
+                         FROM [{tenBang}] ORDER BY STT ASC";
+            using var r = cmd.ExecuteReader();
+            var buf = new object[16];
+            int stt = 1;
+            dt.BeginLoadData();
+            while (r.Read())
+            {
+                buf[0] = r.GetInt32(0); buf[1] = stt++;
+                for (int i = 2; i < 16; i++) buf[i] = r.IsDBNull(i) ? "" : SafeGiaiMa(r.GetString(i));
+                dt.Rows.Add(buf);
+            }
+            dt.EndLoadData();
+            return dt;
+        }
+        public async Task LoadDuLieuSoVangBaNhatAsync()
+        {
+            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+            try
+            {
+                CauHinhGridMotLan();
+                string bang = TenBangHienTai;
+                var dt = await Task.Run(() => DocSoVang(bang));   // DB + AES ở luồng nền
+                if (IsDisposed || kryptonDataGridView1.IsDisposed) return;
+                var g = kryptonDataGridView1;
+                TatVe(g);
+                try { g.DataSource = dt; }
+                finally { BatVe(g); }
+                CapNhatDanhSachDonVi();
+                LocDuLieu();            // áp lại bộ lọc đang gõ (đồng thời cập nhật thống kê)
+            }
+            catch (Exception ex) { Debug.WriteLine($"Lỗi nạp bảng {TenBangHienTai}: " + ex.Message); }
+        }
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern int SendMessage(IntPtr h, int msg, int w, int l);
+        private static void TatVe(Control c) { if (c.IsHandleCreated) SendMessage(c.Handle, 0x000B, 0, 0); }
+        private static void BatVe(Control c) { if (c.IsHandleCreated) { SendMessage(c.Handle, 0x000B, 1, 0); c.Invalidate(true); } }
         private void Form44_ResizeOrSizeChanged(object? sender, EventArgs e)
         {
             if (this.IsDisposed || kryptonDataGridView1 == null || kryptonDataGridView1.IsDisposed) return;
@@ -278,7 +391,7 @@ namespace PhanMemThiDua2026
                 toolTip1.InitialDelay = 300;
                 toolTip1.AutoPopDelay = 2500;
                 toolTip1.ReshowDelay = 100;
-                toolTip1.ShowAlways = true;         
+                toolTip1.ShowAlways = true;
                 // 🌟 TỐI ƯU CẤU TRÚC RAM: Dùng mảng ValueTuple thay cho Dictionary
                 // Triệt tiêu chi phí băm (Hashing Overhead) và dọn sạch Heap Allocation.
                 (System.Windows.Forms.Control? control, string noiDung)[] danhSachToolTip = new (System.Windows.Forms.Control?, string)[]
@@ -325,62 +438,62 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine($"[Lỗi nghiêm trọng tại InitToolTips]: {ex.Message}");
             }
         }
-        public async Task LoadDuLieuSoVangBaNhatAsync()
-        {
-            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
-            try
-            {
-                if (kryptonDataGridView1 != null && kryptonDataGridView1.DataSource != null)
-                {
-                    kryptonDataGridView1.DataSource = null;
-                }
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-                await conn.OpenAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = $"""
-    SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan,
-           NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu,
-           ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan
-    FROM [{TenBangHienTai}]
-    ORDER BY STT ASC
-    """;
-                using var reader = await cmd.ExecuteReaderAsync();
-                var dtSoVang = new DataTable();
-                dtSoVang.Columns.Add("ID", typeof(int));
-                dtSoVang.Columns.Add("STT", typeof(int));
-                string[] columns =
-                {
-    "HoVaTen", "SoHieu", "NamSinh", "QueQuan", "NgayVaoCAND",
-    "CapBac", "ChucVu", "DonVi", "PhanLoai", "GhiChu",
-    "ThanhTich", "ThongBaoTrungDoan", "SoTTTrongSo", "ThangCongNhan"
-};
-                foreach (var column in columns)
-                    dtSoVang.Columns.Add(column, typeof(string));
-                int stt = 1;
-                while (await reader.ReadAsync())
-                {
-                    object[] values = new object[16];
-                    values[0] = reader.GetInt32(0);
-                    values[1] = stt++;
-                    for (int i = 2; i < 16; i++)
-                        values[i] = reader.IsDBNull(i)
-                            ? string.Empty
-                            : SafeGiaiMa(reader.GetString(i));
-                    dtSoVang.Rows.Add(values);
-                }
-                if (kryptonDataGridView1 != null && !kryptonDataGridView1.IsDisposed)
-                {
-                    kryptonDataGridView1.SuspendLayout();
-                    kryptonDataGridView1.DataSource = dtSoVang;
-                    DinhDangGiaoDienDataGridSoVang();
-                    kryptonDataGridView1.ResumeLayout();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Lỗi nạp bảng {TenBangHienTai}: " + ex.Message);
-            }
-        }
+        //        public async Task LoadDuLieuSoVangBaNhatAsync()
+        //        {
+        //            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+        //            try
+        //            {
+        //                if (kryptonDataGridView1 != null && kryptonDataGridView1.DataSource != null)
+        //                {
+        //                    kryptonDataGridView1.DataSource = null;
+        //                }
+        //                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+        //                await conn.OpenAsync();
+        //                using var cmd = conn.CreateCommand();
+        //                cmd.CommandText = $"""
+        //    SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan,
+        //           NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu,
+        //           ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan
+        //    FROM [{TenBangHienTai}]
+        //    ORDER BY STT ASC
+        //    """;
+        //                using var reader = await cmd.ExecuteReaderAsync();
+        //                var dtSoVang = new DataTable();
+        //                dtSoVang.Columns.Add("ID", typeof(int));
+        //                dtSoVang.Columns.Add("STT", typeof(int));
+        //                string[] columns =
+        //                {
+        //    "HoVaTen", "SoHieu", "NamSinh", "QueQuan", "NgayVaoCAND",
+        //    "CapBac", "ChucVu", "DonVi", "PhanLoai", "GhiChu",
+        //    "ThanhTich", "ThongBaoTrungDoan", "SoTTTrongSo", "ThangCongNhan"
+        //};
+        //                foreach (var column in columns)
+        //                    dtSoVang.Columns.Add(column, typeof(string));
+        //                int stt = 1;
+        //                while (await reader.ReadAsync())
+        //                {
+        //                    object[] values = new object[16];
+        //                    values[0] = reader.GetInt32(0);
+        //                    values[1] = stt++;
+        //                    for (int i = 2; i < 16; i++)
+        //                        values[i] = reader.IsDBNull(i)
+        //                            ? string.Empty
+        //                            : SafeGiaiMa(reader.GetString(i));
+        //                    dtSoVang.Rows.Add(values);
+        //                }
+        //                if (kryptonDataGridView1 != null && !kryptonDataGridView1.IsDisposed)
+        //                {
+        //                    kryptonDataGridView1.SuspendLayout();
+        //                    kryptonDataGridView1.DataSource = dtSoVang;
+        //                    DinhDangGiaoDienDataGridSoVang();
+        //                    kryptonDataGridView1.ResumeLayout();
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Debug.WriteLine($"Lỗi nạp bảng {TenBangHienTai}: " + ex.Message);
+        //            }
+        //        }
         private void kryptonDataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.Value != null && e.RowIndex >= 0 && e.ColumnIndex >= 0)
@@ -923,40 +1036,40 @@ namespace PhanMemThiDua2026
             }
         }
         private async void toolStripMenuItem4_NhapDataVaoCSDL_Click(object? sender, EventArgs e)
-                {
-                    DialogResult kq;
-                    using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
-                    {
-                        frm.TopMost = true;
-                        frm.StartPosition = FormStartPosition.CenterScreen;
-                        kq = frm.ShowDialog(this);
-                    }
-                    if (kq != DialogResult.OK)
-                        return;
-                    using (OpenFileDialog ofd = new OpenFileDialog())
-                    {
-                        ofd.Title = "Chọn tệp Excel Sổ Vàng để nạp (Yêu cầu cấu trúc 15 cột)";
-                        ofd.Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm";
-                        ofd.Multiselect = false;
-                        ofd.CheckFileExists = true;
-                        ofd.CheckPathExists = true;
-                        if (ofd.ShowDialog() != DialogResult.OK)
-                            return;
-                        int soDongThanhCong = await Module_BaNhat.NhapDuLieuVaoSoVangTuExcel(
-                            this,
-                            ofd.FileName,
-                            _csdl2Path);
+        {
+            DialogResult kq;
+            using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
+            {
+                frm.TopMost = true;
+                frm.StartPosition = FormStartPosition.CenterScreen;
+                kq = frm.ShowDialog(this);
+            }
+            if (kq != DialogResult.OK)
+                return;
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Title = "Chọn tệp Excel Sổ Vàng để nạp (Yêu cầu cấu trúc 15 cột)";
+                ofd.Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm";
+                ofd.Multiselect = false;
+                ofd.CheckFileExists = true;
+                ofd.CheckPathExists = true;
+                if (ofd.ShowDialog() != DialogResult.OK)
+                    return;
+                int soDongThanhCong = await Module_BaNhat.NhapDuLieuVaoSoVangTuExcel(
+                    this,
+                    ofd.FileName,
+                    _csdl2Path);
                 if (soDongThanhCong > 0)
                 {
                     await ShowTemporaryStatus($"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào Sổ Vàng hệ thống!", 2500);
                     Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Nạp Excel Sổ Vàng bảng {TenBangHienTai} ({soDongThanhCong} dòng)", DateTime.Now.ToString());
                 }
                 await LoadDuLieuSoVangBaNhatAsync();
-                        CapNhatDanhSachDonVi();
-                        CapNhatThongKeSoLuong();
-                        await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
+                CapNhatDanhSachDonVi();
+                CapNhatThongKeSoLuong();
+                await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
             }
-                }
+        }
         private async void toolStripMenuItem_XuatSoVangGoc_Click(object? sender, EventArgs e)
         {
             using var sfd = new SaveFileDialog
@@ -969,6 +1082,6 @@ namespace PhanMemThiDua2026
             string filePathLuu = sfd.FileName;
             // Gọi thẳng hàm xuất từ Module (Hàm đã tự lo Loading và mở tệp nên Form rất gọn)
             await Module_BaNhat.XuatDuLieuGocSoVangRaExcelAsync(this, filePathLuu);
-        }     
+        }
     }
 }

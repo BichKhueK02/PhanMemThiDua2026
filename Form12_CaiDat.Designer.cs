@@ -427,12 +427,12 @@
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.Green;
-            label3.Location = new Point(133, 15);
+            label3.Location = new Point(20, 15);
             label3.Margin = new Padding(2, 0, 2, 0);
             label3.Name = "label3";
-            label3.Size = new Size(103, 17);
+            label3.Size = new Size(216, 17);
             label3.TabIndex = 26;
-            label3.Text = "Ký hiệu báo cáo";
+            label3.Text = "Ký hiệu báo cáo cơ quan ban hành";
             // 
             // tableLayoutPanel6
             // 
@@ -463,12 +463,12 @@
             label6.AutoSize = true;
             label6.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label6.ForeColor = Color.Green;
-            label6.Location = new Point(77, 14);
+            label6.Location = new Point(118, 14);
             label6.Margin = new Padding(2, 0, 2, 0);
             label6.Name = "label6";
-            label6.Size = new Size(160, 17);
+            label6.Size = new Size(119, 17);
             label6.TabIndex = 23;
-            label6.Text = "Cấp Tiểu đoàn/Tổ/Đại đội";
+            label6.Text = "Cơ quan ban hành";
             // 
             // comboBox_TenTieuDoan
             // 
@@ -489,12 +489,12 @@
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.Green;
-            label2.Location = new Point(595, 14);
+            label2.Location = new Point(678, 14);
             label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new Size(250, 17);
+            label2.Size = new Size(167, 17);
             label2.TabIndex = 29;
-            label2.Text = "Ký hiệu đơn vị cấp Tiểu đoàn/Tổ/Đại đội";
+            label2.Text = "Ký hiệu cơ quan ban hành";
             // 
             // comboBox_KyHieu_TenTieuDoan
             // 
@@ -518,7 +518,7 @@
             kryptonButton_CapNhat.StateCommon.Border.Rounding = 4F;
             kryptonButton_CapNhat.TabIndex = 2;
             kryptonButton_CapNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_CapNhat.Values.Text = "...";
+            kryptonButton_CapNhat.Values.Text = "....";
             kryptonButton_CapNhat.Click += kryptonButton_CapNhat_Click;
             // 
             // tableLayoutPanel5
@@ -587,12 +587,12 @@
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.Green;
-            label5.Location = new Point(69, 16);
+            label5.Location = new Point(119, 16);
             label5.Margin = new Padding(2, 0, 2, 0);
             label5.Name = "label5";
-            label5.Size = new Size(168, 17);
+            label5.Size = new Size(118, 17);
             label5.TabIndex = 23;
-            label5.Text = "Trung đoàn/Ban/Tiểu đoàn";
+            label5.Text = "Cơ quan chủ quản";
             // 
             // label12
             // 
@@ -600,12 +600,12 @@
             label12.AutoSize = true;
             label12.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             label12.ForeColor = Color.Green;
-            label12.Location = new Point(871, 16);
+            label12.Location = new Point(989, 16);
             label12.Margin = new Padding(2, 0, 2, 0);
             label12.Name = "label12";
-            label12.Size = new Size(284, 17);
+            label12.Size = new Size(166, 17);
             label12.TabIndex = 30;
-            label12.Text = "Ký hiệu đơn vị cấp Trung đoàn/Ban/Tiểu đoàn";
+            label12.Text = "Ký hiệu cơ quan chủ quản";
             // 
             // comboBox_KyHieu_TenTrungDoan
             // 

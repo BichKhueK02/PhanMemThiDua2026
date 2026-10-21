@@ -26,8 +26,9 @@ namespace PhanMemThiDua2026
         // ⭐ CHUẨN KỸ SƯ: Sử dụng ConcurrentDictionary để chống Crash khi chạy Đa luồng
         private const long NGUONG_KIEM_TRA_DAY_DU_BYTES = 64L * 1024 * 1024; // CSDL > 64MB: dùng quick_check thay integrity_check
         private readonly ConcurrentDictionary<string, string> _cacheDungLuongOTrang = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private readonly Image _iconSafe = Properties.Resources._true;
-        private readonly Image _iconWarning = Properties.Resources._false;
+        // Clone để form này sở hữu bản riêng -> Dispose khi đóng không ảnh hưởng nơi khác
+        private readonly Image _iconSafe = (Image)Properties.Resources._true.Clone();
+        private readonly Image _iconWarning = (Image)Properties.Resources._false.Clone();
         // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
         private static readonly Font _fontGridHeader9Bold = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
         private static readonly Font _fontGridCell9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
@@ -36,6 +37,11 @@ namespace PhanMemThiDua2026
         private static readonly Font _fontFormAoGrid10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private static readonly Font _fontFormAoGrid10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
         private static readonly Font _fontBtn95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
+
+        // Cache kết quả kiểm tra toàn vẹn: chỉ quét lại khi tệp thật sự thay đổi
+        private static readonly ConcurrentDictionary<string, (string Key, string Ok)> _cacheToanVen    = new(StringComparer.OrdinalIgnoreCase);
+        // Cache dung lượng thư mục (10 phút) – nút "Làm mới" sẽ xóa cache này
+        private static readonly ConcurrentDictionary<string, (DateTime Time, long Size)> _cacheKichThuocThuMuc = new(StringComparer.OrdinalIgnoreCase);
         public Form33_KiemTraSucKhoeCSDL()
         {
             InitializeComponent();
@@ -194,6 +200,8 @@ namespace PhanMemThiDua2026
                 return;
             // 2. KHỞI TẠO TOKEN MỚI
             _capNhatCts = new CancellationTokenSource();
+            _cacheKichThuocThuMuc.Clear();
+            _cacheToanVen.Clear();
             CancellationToken token = _capNhatCts.Token;
             Form_Loading? frmLoad = null;
             // 3. LƯU GIAO DIỆN GỐC ĐỂ KHÔI PHỤC
@@ -280,29 +288,31 @@ namespace PhanMemThiDua2026
                 StartProgressBar();
                 DataTable dtSQLite = TaoBangThuocTinhSQLite();
                 DataTable dtFilePhu = TaoBangThuocTinhFilePhu();
-                // ⭐ SỬA LỖI TREO UI: Microsoft.Data.Sqlite OpenAsync/ExecuteScalarAsync thực chất chạy ĐỒNG BỘ,
-                // nên phải đẩy toàn bộ việc kiểm tra CSDL sang ThreadPool, không để chạy trên luồng UI.
+
                 var sqliteTasks = _pathCSDL.Select(path =>
                 {
                     string safePath = path ?? string.Empty;
                     return Task.Run(() => CheckSQLiteAsync(safePath));
                 }).ToList();
-                var fileTasks = _pathsFilePhu
-                    .Select(path =>
-                    {
-                        string safePath = path ?? string.Empty;
-                        return Directory.Exists(safePath)
-                            ? Task.Run(() => CheckFolder(safePath))
-                            : Task.Run(() => CheckFile(safePath));
-                    })
-                    .ToList();
+
+                var fileTasks = _pathsFilePhu.Select(path =>
+                {
+                    string safePath = path ?? string.Empty;
+                    return Task.Run(() =>
+                        Directory.Exists(safePath)
+                            ? CheckFolder(safePath)
+                            : CheckFile(safePath));
+                }).ToList();
+
                 await Task.WhenAll(sqliteTasks.Concat(fileTasks.Cast<Task>()));
                 if (this.IsDisposed) return;
+
                 for (int i = 0; i < sqliteTasks.Count; i++)
                 {
                     var kq = sqliteTasks[i].Result;
                     dtSQLite.Rows.Add(i + 1, _tenCSDL[i], kq.TonTai ? "TRUE" : "FALSE", kq.NgayTao, kq.DungLuong, kq.SucKhoe, kq.TocDo, kq.PhanManh, kq.Journal, kq.QuyenDoc, kq.QuyenGhi, kq.OTrong);
                 }
+
                 for (int i = 0; i < fileTasks.Count; i++)
                 {
                     var kq = fileTasks[i].Result;
@@ -319,6 +329,7 @@ namespace PhanMemThiDua2026
                         kq.OTrong
                     );
                 }
+
                 kryptonDataGridView1.DataSource = dtSQLite;
                 kryptonDataGridView2.DataSource = dtFilePhu;
                 TrangDiemChoEm_FormatDataGridView(kryptonDataGridView1);
@@ -331,6 +342,60 @@ namespace PhanMemThiDua2026
                 if (!this.IsDisposed) toolStripStatusLabel1_KetLuan.Text = $"Lỗi: {ex.Message}";
             }
             finally { if (!this.IsDisposed) StopProgressBar(); }
+        }
+        private KetQuaFileThuong CheckFolder(string path)
+        {
+            var kq = new KetQuaFileThuong();
+            if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+            {
+                kq.TonTai = false;
+                return kq;
+            }
+
+            try
+            {
+                var di = new DirectoryInfo(path);
+                kq.TonTai = true;
+                kq.ODia = Path.GetPathRoot(Path.GetFullPath(path));
+                kq.NgayTao = di.CreationTime.ToString("dd/MM/yyyy HH:mm:ss");
+
+                long folderSize;
+                if (_cacheKichThuocThuMuc.TryGetValue(path, out var cached)
+                    && (DateTime.UtcNow - cached.Time).TotalMinutes < 10)
+                {
+                    folderSize = cached.Size;                 // dùng lại kết quả cũ
+                }
+                else
+                {
+                    folderSize = GetDirectorySizeSafe(di);    // quét thật
+                    _cacheKichThuocThuMuc[path] = (DateTime.UtcNow, folderSize);
+                }
+
+                kq.DungLuong = folderSize > 0 ? FormatSize(folderSize) : "0 KB";
+                kq.OTrong = LayDungLuongOTrang(path);
+
+                try
+                {
+                    string tempFile = Path.Combine(path, Path.GetRandomFileName());
+                    using (new FileStream(tempFile, FileMode.CreateNew, FileAccess.ReadWrite,
+                                          FileShare.None, 4096, FileOptions.DeleteOnClose))
+                    {
+                    }
+                    kq.QuyenGhi = "OK";
+                    kq.QuyenDoc = "OK";
+                }
+                catch
+                {
+                    kq.QuyenGhi = "Không";
+                    kq.QuyenDoc = "Không rõ";
+                }
+            }
+            catch
+            {
+                kq.TonTai = false;
+            }
+
+            return kq;
         }
         private void StartProgressBar()
         {
@@ -516,8 +581,26 @@ namespace PhanMemThiDua2026
                     await conn.OpenAsync();
                     using var cmd = conn.CreateCommand();
                     // integrity_check quét toàn bộ tệp (O(kích thước)) -> CSDL lớn dùng quick_check cho nhanh
-                    cmd.CommandText = fi.Length > NGUONG_KIEM_TRA_DAY_DU_BYTES ? "PRAGMA quick_check;" : "PRAGMA integrity_check;";
-                    var ok = (await cmd.ExecuteScalarAsync())?.ToString();
+                    //cmd.CommandText = fi.Length > NGUONG_KIEM_TRA_DAY_DU_BYTES ? "PRAGMA quick_check;" : "PRAGMA integrity_check;";
+                    //var ok = (await cmd.ExecuteScalarAsync())?.ToString();
+
+                    // Khóa nhận diện: đổi dung lượng / ngày sửa / dung lượng -wal thì mới quét lại
+                    long walLen = File.Exists(path + "-wal") ? new FileInfo(path + "-wal").Length : 0;
+                    string key = $"{fi.Length}|{fi.LastWriteTimeUtc.Ticks}|{walLen}";
+
+                    string? ok;
+                    if (_cacheToanVen.TryGetValue(path, out var cached) && cached.Key == key)
+                    {
+                        ok = cached.Ok;                       // dùng lại kết quả cũ -> gần như tức thì
+                    }
+                    else
+                    {
+                        cmd.CommandText = "PRAGMA quick_check(1);";   // dừng ngay khi gặp lỗi đầu tiên
+                        ok = (await cmd.ExecuteScalarAsync())?.ToString();
+                        if (ok != null) _cacheToanVen[path] = (key, ok);
+                    }
+
+
                     cmd.CommandText = "PRAGMA journal_mode;";
                     kq.Journal = (await cmd.ExecuteScalarAsync())?.ToString()?.ToUpper();
                     cmd.CommandText = "PRAGMA page_count;";
@@ -570,59 +653,25 @@ namespace PhanMemThiDua2026
             }
             return kq;
         }
-        private KetQuaFileThuong CheckFolder(string path)
-        {
-            var kq = new KetQuaFileThuong();
-            if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
-            {
-                kq.TonTai = false;
-                return kq;
-            }
-            try
-            {
-                var di = new DirectoryInfo(path);
-                kq.TonTai = true;
-                kq.ODia = Path.GetPathRoot(Path.GetFullPath(path));
-                kq.NgayTao = di.CreationTime.ToString("dd/MM/yyyy HH:mm:ss");
-                long folderSize = GetDirectorySizeSafe(di);
-                kq.DungLuong = folderSize > 0 ? FormatSize(folderSize) : "0 KB";
-                kq.OTrong = LayDungLuongOTrang(path);
-                try
-                {
-                    string tempFile = Path.Combine(path, Path.GetRandomFileName());
-                    // ⭐ CHUẨN KỸ SƯ: Sử dụng DeleteOnClose để HĐH tự xóa rác nếu App bị Crash ngang
-                    using (new FileStream(tempFile, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, 4096, FileOptions.DeleteOnClose))
-                    {
-                    }
-                    kq.QuyenGhi = "OK";
-                    kq.QuyenDoc = "OK";
-                }
-                catch
-                {
-                    kq.QuyenGhi = "Không";
-                    kq.QuyenDoc = "Không rõ";
-                }
-            }
-            catch
-            {
-                kq.TonTai = false;
-            }
-            return kq;
-        }
-        private long GetDirectorySizeSafe(DirectoryInfo directoryInfo)
+
+        private static long GetDirectorySizeSafe(DirectoryInfo directoryInfo)
         {
             long size = 0;
+            var opt = new EnumerationOptions
+            {
+                RecurseSubdirectories = true,
+                IgnoreInaccessible = true,
+                AttributesToSkip = FileAttributes.ReparsePoint   // tránh vòng lặp symlink
+            };
             try
             {
-                FileInfo[] files = directoryInfo.GetFiles();
-                foreach (FileInfo fi in files) size += fi.Length;
-                DirectoryInfo[] subDirectories = directoryInfo.GetDirectories();
-                foreach (DirectoryInfo subDi in subDirectories) size += GetDirectorySizeSafe(subDi);
+                foreach (var fi in directoryInfo.EnumerateFiles("*", opt))
+                    size += fi.Length;
             }
-            catch (UnauthorizedAccessException) { }
-            catch (Exception) { }
+            catch { }
             return size;
         }
+
         private string FormatSize(long b) => b > 1024 * 1024 ? (b / 1024.0 / 1024.0).ToString("F2") + " MB" : (b / 1024.0).ToString("F2") + " KB";
         private string CoDoc(string p)
         {

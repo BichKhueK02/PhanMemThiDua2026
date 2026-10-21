@@ -2,7 +2,6 @@
 using PdfiumViewer;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -14,41 +13,33 @@ namespace PhanMemThiDua2026
         /// 0 = tắt, luôn giữ trong RAM.
         /// </summary>
         private const int TuGiaiPhongSauPhut = 5;
-
         private PdfViewer pdfViewer = null!;
         private readonly Label _lblDangTai;
-
         // Font tạo lười (lần đầu cần mới tạo, trên luồng UI) để gọi static DamBaoPdfium() từ luồng nền
         // không kéo theo việc khởi tạo Font / Module_HeThong.
         private static Font? _fontDangTai;
         private static Font LayFontDangTai()
             => _fontDangTai ??= new Font(Module_HeThong.TenFontHeThong, 12F, FontStyle.Italic);
-
         // ====== Nạp thư viện PDFium (dùng chung toàn app, thread-safe) ======
         private static readonly object _khoaPdfium = new();
         private static bool _daDangKyPdfium = false;
         private static IntPtr _pdfiumHandle = IntPtr.Zero;
         private static string? _loiPdfium;
-
         // ====== Trạng thái tài liệu đang mở ======
         private int _loadVersion = 0;               // tăng mỗi lần nạp/đóng -> hủy các lần nạp cũ đang chạy nền
         private string? _pathDangMo;
         private long _kichThuocDangMo;
         private DateTime _ngaySuaDangMo;
-
         private Task<bool>? _taskDangNap;           // lần nạp đang chạy (gộp các lần gọi trùng cùng 1 tệp)
         private string? _pathDangNap;
         private string? _pathNho;                   // tệp nạp thành công gần nhất (để tự nạp lại sau khi giải phóng RAM)
         private int _trangKhoiPhuc;                 // trang đang xem lúc giải phóng RAM
         private System.Windows.Forms.Timer? _timerGiaiPhong;
-
         public Form32_HuongDanPDF()
         {
             InitializeComponent();
-
             pdfViewer = new PdfViewer { Dock = DockStyle.Fill, ShowToolbar = true };
             Controls.Add(pdfViewer);
-
             // Nhãn "Đang tải..." phủ lên viewer trong lúc PDF nạp ở luồng nền -> form hiện ra NGAY, không khựng
             _lblDangTai = new Label
             {
@@ -62,7 +53,6 @@ namespace PhanMemThiDua2026
             };
             Controls.Add(_lblDangTai);
             _lblDangTai.BringToFront();
-
             FormClosed += (s, e) =>
             {
                 _timerGiaiPhong?.Stop();
@@ -71,7 +61,6 @@ namespace PhanMemThiDua2026
                 DisposePdf();
             };
         }
-
         /// <summary>
         /// Nạp trước thư viện PDFium (DLL ~vài chục MB, lần nạp đầu là chỗ chậm nhất). Gọi từ luồng nền khi rảnh.
         /// An toàn gọi nhiều lần / từ nhiều luồng.
@@ -81,7 +70,6 @@ namespace PhanMemThiDua2026
             lock (_khoaPdfium)
             {
                 if (_daDangKyPdfium) return true;
-
                 IntPtr daNap = IntPtr.Zero;
                 try
                 {
@@ -93,7 +81,6 @@ namespace PhanMemThiDua2026
                                      "Vui lòng kiểm tra lại thư mục HuongDanSuDung.";
                         return false;
                     }
-
                     // Nạp DLL ngay (nặng nhất) rồi mới đăng ký resolver trả về chính handle này
                     daNap = NativeLibrary.Load(pdfPath);
                     IntPtr handle = daNap;
@@ -101,7 +88,6 @@ namespace PhanMemThiDua2026
                         typeof(PdfDocument).Assembly,
                         (name, assembly, path) =>
                             string.Equals(name, "pdfium.dll", StringComparison.OrdinalIgnoreCase) ? handle : IntPtr.Zero);
-
                     _pdfiumHandle = handle;
                     _daDangKyPdfium = true;
                     _loiPdfium = null;
@@ -119,14 +105,12 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         /// <summary>Nạp sẵn PDFium ở nền, im lặng (Form2 gọi bằng Task.Run sau khi form chính nạp xong).</summary>
         public static void NapTruocThuVien()
         {
             try { DamBaoPdfium(); }
             catch (Exception ex) { Debug.WriteLine("[NapTruocThuVien] " + ex.Message); }
         }
-
         /// <summary>
         /// Nạp PDF: DLL + parse tài liệu chạy ở luồng nền, UI luôn mượt. Bỏ qua nếu đang mở đúng tệp này (chưa đổi).
         /// Gọi trùng cùng 1 tệp khi đang nạp thì dùng chung 1 lần nạp (không parse 2 lần).
@@ -134,16 +118,13 @@ namespace PhanMemThiDua2026
         public async Task<bool> LoadPdfAsync(string path)
         {
             if (IsDisposed) return false;
-
             if (!File.Exists(path))
             {
                 MessageBox.Show("File PDF không tồn tại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
-
             string full = Path.GetFullPath(path);
             var fi = new FileInfo(full);
-
             // Đã mở đúng tệp này và tệp không đổi -> không nạp lại
             if (pdfViewer.Document != null &&
                 string.Equals(_pathDangMo, full, StringComparison.OrdinalIgnoreCase) &&
@@ -152,13 +133,11 @@ namespace PhanMemThiDua2026
                 _lblDangTai.Visible = false;
                 return true;
             }
-
             // Đang nạp đúng tệp này rồi -> chờ chung kết quả
             if (_taskDangNap != null && string.Equals(_pathDangNap, full, StringComparison.OrdinalIgnoreCase))
             {
                 return await _taskDangNap;
             }
-
             int ver = ++_loadVersion;
             _pathDangNap = full;
             Task<bool> job = NapAsync(full, fi.Length, fi.LastWriteTimeUtc, ver);
@@ -176,12 +155,10 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         private async Task<bool> NapAsync(string full, long kichThuoc, DateTime ngaySuaUtc, int ver)
         {
             _lblDangTai.Visible = true;
             _lblDangTai.BringToFront();
-
             PdfDocument? doc = null;
             try
             {
@@ -196,35 +173,29 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine($"Lỗi load PDF: {ex.Message}");
                 if (IsDisposed) return false;
-
                 _lblDangTai.Visible = false;
                 if (!string.IsNullOrEmpty(_loiPdfium))
                     MessageBox.Show(_loiPdfium, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
                 // Fallback: Mở bằng ứng dụng mặc định hệ thống
                 TaTimThayEm_OpenPdfExternally(full);
                 Close();
                 return false;
             }
-
             // Form đã đóng / có lần nạp mới hơn trong lúc chờ -> bỏ kết quả này
             if (IsDisposed || ver != _loadVersion)
             {
                 doc.Dispose();
                 return false;
             }
-
             var cu = pdfViewer.Document;
             pdfViewer.Document = doc;      // gán tài liệu mới TRƯỚC rồi mới giải phóng tài liệu cũ
             try { cu?.Dispose(); } catch { }
-
             // Nạp lại sau khi giải phóng RAM -> trả về đúng trang đang xem (chỉ khi cùng tệp)
             if (_trangKhoiPhuc > 0 && string.Equals(_pathNho, full, StringComparison.OrdinalIgnoreCase))
             {
                 try { pdfViewer.Renderer.Page = _trangKhoiPhuc; } catch { }
             }
             _trangKhoiPhuc = 0;
-
             _pathDangMo = full;
             _pathNho = full;
             _kichThuocDangMo = kichThuoc;
@@ -232,13 +203,11 @@ namespace PhanMemThiDua2026
             _lblDangTai.Visible = false;
             return true;
         }
-
         // Giữ tên cũ cho nơi khác còn gọi (không chờ kết quả)
         public void GoiTenEmTrongDem_LoadPdf(string path)
         {
             _ = LoadPdfAsync(path);
         }
-
         private void TaTimThayEm_OpenPdfExternally(string path)
         {
             try
@@ -250,17 +219,14 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"Không thể mở file: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         // ================= GIẢI PHÓNG RAM KHI ẨN LÂU =================
         protected override void OnVisibleChanged(EventArgs e)
         {
             base.OnVisibleChanged(e);
             if (IsDisposed || pdfViewer == null) return;
-
             if (Visible)
             {
                 _timerGiaiPhong?.Stop();
-
                 // Hiện lại sau khi đã giải phóng RAM mà chưa ai gọi nạp -> tự nạp lại tệp cũ
                 if (pdfViewer.Document == null && _taskDangNap == null
                     && _pathNho != null && File.Exists(_pathNho))
@@ -275,7 +241,6 @@ namespace PhanMemThiDua2026
                 _timerGiaiPhong.Start();
             }
         }
-
         private System.Windows.Forms.Timer TaoTimerGiaiPhong()
         {
             var t = new System.Windows.Forms.Timer { Interval = TuGiaiPhongSauPhut * 60_000 };
@@ -290,7 +255,6 @@ namespace PhanMemThiDua2026
             };
             return t;
         }
-
         private void GiaiPhongTaiLieu(bool giuDuongDan)
         {
             _loadVersion++;   // hủy lần nạp nền đang chờ (nếu có)
@@ -300,11 +264,9 @@ namespace PhanMemThiDua2026
                 _pathNho = null;
                 _trangKhoiPhuc = 0;
             }
-
             try
             {
                 if (!_lblDangTai.IsDisposed) _lblDangTai.Visible = false;
-
                 if (pdfViewer?.Document != null)
                 {
                     var doc = pdfViewer.Document;
@@ -314,7 +276,6 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
-
         /// <summary>Đóng hẳn tài liệu và quên đường dẫn (dùng khi đóng form).</summary>
         public void DisposePdf() => GiaiPhongTaiLieu(giuDuongDan: false);
     }

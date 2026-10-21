@@ -427,37 +427,13 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"[DocDonViBanHanh] Lỗi: {ex.Message}");
             }
         }
-        //private void Form12_Shown(object? sender, EventArgs e)
-        //{
-        //    kryptonButton_CapNhatDanhSachChiHuyD.AutoSize = false;
-        //    // Giữ lại để phòng hờ trường hợp người dùng Alt+Tab
-        //    if (kryptonButton_LuuThongTin != null && kryptonButton_LuuThongTin.CanFocus)
-        //    {
-        //        kryptonButton_LuuThongTin.Focus();
-        //    }
-        //    else
-        //    {
-        //        this.ActiveControl = null;
-        //    }
-        //    KhoiTaoBang_DonViBanHanhToTrinh();
-        //}
-        private async void Form12_Shown(object? sender, EventArgs e)
+        private void Form12_Shown(object? sender, EventArgs e)
         {
             kryptonButton_CapNhatDanhSachChiHuyD.AutoSize = false;
-            if (kryptonButton_LuuThongTin != null && kryptonButton_LuuThongTin.CanFocus)
-            {
+            if (kryptonButton_LuuThongTin?.CanFocus == true)
                 kryptonButton_LuuThongTin.Focus();
-            }
             else
-            {
                 this.ActiveControl = null;
-            }
-            KhoiTaoBang_DonViBanHanhToTrinh();
-            // 🔥 TỰ ĐỘNG LOAD DỮ LIỆU TAB 2 DƯỚI NỀN SAU KHI FORM ĐÃ HIỆN LÊN
-            await Task.Run(() =>
-            {
-                DocVaTaiDuLieuTab2Ngam();
-            });
         }
         // --- HÀM 1: Chỉ đọc dữ liệu phục vụ Tab 1 (Chạy cực nhanh) ---
         private DuLieuKhoiTao DocDuLieuTab1()
@@ -1125,7 +1101,7 @@ PRAGMA busy_timeout=15000;
                 using (var cmd = cn.CreateCommand())
                 {
                     cmd.Transaction = tran;
-                    cmd.CommandText = @"INSERT INTO ThongTin(ID, TenTrungDoan, TenTieuDoan, SoLanChoPhepHienThi, ChoPhepGoiYMatKhau, ChoPhepDupChuotVaoAnh_GoiYMatKhau, textBox1_TenTrungDoanDong1, KyHieuBaoCao) VALUES(1, @TenTrungDoan, @TenTieuDoan, @SoLan, @GoiYPass, @GoiYAnh, @TenTDDong1, @KyHieuBC) ON CONFLICT(ID) DO UPDATE SET TenTrungDoan = excluded.TenTrungDoan, TenTieuDoan = excluded.TenTieuDoan, SoLanChoPhepHienThi = excluded.SoLanChoPhepHienThi, ChoPhepGoiYMatKhau = excluded.ChoPhepGoiYMatKhau, ChoPhepDupChuotVaoAnh_GoiYMatKhau = excluded.ChoPhepDupChuotVaoAnh_GoiYMatKhau, textBox1_TenTrungDoanDong1 = excluded.textBox1_TenTrungDoanDong1, KyHieuBaoCao = excluded.KyHieuBaoCao;";
+                    cmd.CommandText = @"INSERT INTO ThongTin(ID, TenTrungDoan, TenTieuDoan, SoLanChoPhepHienThi, ChoPhepGoiYMatKhau, ChoPhepDupChuotVaoAnh_GoiYMatKhau, textBox1_TenTrungDoanDong1, KyHieuBaoCao) VALUES(1, @TenTrungDoan, @TenTieuDoan, @SoLan, @GoiYPass, @GoiYAnh, @TenTDDong1, @KyHieuBC) ON CONFLICT(ID) DO UPDATE SET TenTrungDoan = excluded.TenTrungDoan, TenTieuDoan = excluded.TenTieuDoan, SoLanChoPhepHienThi = CASE WHEN excluded.SoLanChoPhepHienThi = '' THEN ThongTin.SoLanChoPhepHienThi ELSE excluded.SoLanChoPhepHienThi END, ChoPhepGoiYMatKhau = excluded.ChoPhepGoiYMatKhau, ChoPhepDupChuotVaoAnh_GoiYMatKhau = excluded.ChoPhepDupChuotVaoAnh_GoiYMatKhau, textBox1_TenTrungDoanDong1 = excluded.textBox1_TenTrungDoanDong1, KyHieuBaoCao = excluded.KyHieuBaoCao;";
                     cmd.Parameters.AddWithValue("@TenTrungDoan", SafeEncrypt(uiData.TenTrungDoan));
                     cmd.Parameters.AddWithValue("@TenTieuDoan", SafeEncrypt(uiData.TenTieuDoan));
                     cmd.Parameters.AddWithValue("@SoLan", SafeEncrypt(uiData.SoLanChoPhepHienThi));
@@ -1413,11 +1389,10 @@ PRAGMA busy_timeout=15000;
         //Nút o trang 2
         private void LoadComboBoxCauHinh()
         {
-            comboBox_SoLuongDongChoPhepHienThi.Items.Clear();
-            for (int i = 3; i <= 30; i++)
-            {
-                comboBox_SoLuongDongChoPhepHienThi.Items.Add(i.ToString("D2")); // "D2" tự động pad 2 chữ số
-            }
+            if (comboBox_SoLuongDongChoPhepHienThi.Items.Count > 0) return;   // đã nạp rồi thì thôi
+            var ds = new object[28];
+            for (int i = 3; i <= 30; i++) ds[i - 3] = i.ToString("D2");
+            comboBox_SoLuongDongChoPhepHienThi.Items.AddRange(ds);
         }
         public static void LuuSuKienThoat(string luaChon)
         {
@@ -1786,7 +1761,20 @@ PRAGMA busy_timeout=15000;
             // ⭐ MỚI: TỰ ĐỘNG LOAD FORM KHI BẤM VÀO TAB "CƠ SỞ DỮ LIỆU"
             if (tabControl1.SelectedTab == tabPage3)
             {
-                TuDongNhungFormKiemTraCSDL();
+                if (_form33CSDL == null || _form33CSDL.IsDisposed)
+                {
+                    tabPage3.Controls.Add(new Label
+                    {
+                        Name = "lblDangTaiCSDL",
+                        Text = "Đang tải dữ liệu kiểm tra...",
+                        AutoSize = true,
+                        Location = new Point(20, 20),
+                        ForeColor = Color.Blue,
+                        Font = new Font("Segoe UI", 11F, FontStyle.Italic)
+                    });
+                    tabPage3.Update();   // vẽ ngay dòng chữ này trước khi dựng form nặng
+                }
+                BeginInvoke(new Action(TuDongNhungFormKiemTraCSDL));   // dựng form sau khi tab đã hiển thị
             }
             // CŨ: XỬ LÝ CHO TAB PAGE 4 (Giữ nguyên logic của anh)
             if (tabControl1.SelectedTab == tabPage4)
@@ -2036,15 +2024,69 @@ PRAGMA busy_timeout=15000;
                 Application.Exit(); // Thoát khẩn cấp nếu sai quá 3 lần
             }
         }
+        //private void TuDongNhungFormKiemTraCSDL()
+        //{
+        //    try
+        //    {
+        //        // Kiểm tra an toàn: Form chưa có hoặc đã bị Dispose
+        //        if (_form33CSDL == null || _form33CSDL.IsDisposed)
+        //        {
+        //            // Tạm khóa luồng vẽ UI của tabPage3 để chống chớp giật (Flicker)
+        //            tabPage3.SuspendLayout();
+        //            _form33CSDL = new Form33_KiemTraSucKhoeCSDL
+        //            {
+        //                Text = "Kiểm tra cơ sở dữ liệu",
+        //                TopLevel = false,
+        //                FormBorderStyle = FormBorderStyle.None,
+        //                Dock = DockStyle.Fill
+        //            };
+        //            // Thu hồi RAM triệt để khi người dùng đóng Form33
+        //            _form33CSDL.FormClosed += (s, ev) =>
+        //            {
+        //                if (tabPage3.Controls.Contains(_form33CSDL))
+        //                {
+        //                    tabPage3.Controls.Remove(_form33CSDL);
+        //                }
+        //                _form33CSDL.Dispose(); // Ép hệ thống nhả RAM
+        //                _form33CSDL = null;    // Cắt đứt tham chiếu
+        //            };
+        //            // Thêm vào tabPage3 và mở khóa vẽ UI
+        //            tabPage3.Controls.Add(_form33CSDL);
+        //            tabPage3.ResumeLayout();
+        //        }
+        //        // Hiển thị, đẩy lên trên cùng và cấp quyền Focus
+        //        if (!_form33CSDL.Visible)
+        //        {
+        //            _form33CSDL.Show();
+        //        }
+        //        _form33CSDL.BringToFront();
+        //        _form33CSDL.Focus();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show(
+        //            $"Không thể tải giao diện kiểm tra cơ sở dữ liệu.\nChi tiết: {ex.Message}",
+        //            "Lỗi hệ thống",
+        //            MessageBoxButtons.OK,
+        //            MessageBoxIcon.Error);
+        //    }
+        //}
+
+
+
+
+
+
+        // ===== Giảm chớp: bật DoubleBuffered cho container (không đụng TabControl/Krypton/ComboBox) =====
+
         private void TuDongNhungFormKiemTraCSDL()
         {
             try
             {
-                // Kiểm tra an toàn: Form chưa có hoặc đã bị Dispose
                 if (_form33CSDL == null || _form33CSDL.IsDisposed)
                 {
-                    // Tạm khóa luồng vẽ UI của tabPage3 để chống chớp giật (Flicker)
                     tabPage3.SuspendLayout();
+
                     _form33CSDL = new Form33_KiemTraSucKhoeCSDL
                     {
                         Text = "Kiểm tra cơ sở dữ liệu",
@@ -2052,27 +2094,34 @@ PRAGMA busy_timeout=15000;
                         FormBorderStyle = FormBorderStyle.None,
                         Dock = DockStyle.Fill
                     };
-                    // Thu hồi RAM triệt để khi người dùng đóng Form33
+
                     _form33CSDL.FormClosed += (s, ev) =>
                     {
-                        if (tabPage3.Controls.Contains(_form33CSDL))
+                        if (_form33CSDL != null)
                         {
-                            tabPage3.Controls.Remove(_form33CSDL);
+                            if (tabPage3.Controls.Contains(_form33CSDL))
+                                tabPage3.Controls.Remove(_form33CSDL);
+                            _form33CSDL.Dispose();
+                            _form33CSDL = null;
                         }
-                        _form33CSDL.Dispose(); // Ép hệ thống nhả RAM
-                        _form33CSDL = null;    // Cắt đứt tham chiếu
                     };
-                    // Thêm vào tabPage3 và mở khóa vẽ UI
+
                     tabPage3.Controls.Add(_form33CSDL);
                     tabPage3.ResumeLayout();
                 }
-                // Hiển thị, đẩy lên trên cùng và cấp quyền Focus
+
                 if (!_form33CSDL.Visible)
-                {
                     _form33CSDL.Show();
-                }
+
                 _form33CSDL.BringToFront();
-                _form33CSDL.Focus();
+
+                // Xóa nhãn "Đang tải..." sau khi form đã nhúng xong
+                Control? lbl = tabPage3.Controls["lblDangTaiCSDL"];
+                if (lbl != null)
+                {
+                    tabPage3.Controls.Remove(lbl);
+                    lbl.Dispose();
+                }
             }
             catch (Exception ex)
             {
@@ -2083,7 +2132,6 @@ PRAGMA busy_timeout=15000;
                     MessageBoxIcon.Error);
             }
         }
-        // ===== Giảm chớp: bật DoubleBuffered cho container (không đụng TabControl/Krypton/ComboBox) =====
         private static void BatDoubleBufferDeQuy(Control goc)
         {
             foreach (Control c in goc.Controls)

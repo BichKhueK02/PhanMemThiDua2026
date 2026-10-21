@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-
 namespace PhanMemThiDua2026
 {
     public partial class Form6_XuLyData : Form
