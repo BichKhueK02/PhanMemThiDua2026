@@ -6,6 +6,7 @@ namespace PhanMemThiDua2026
 {
     internal static class Module_DonVi
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         private static List<string> _cacheDonVi;
         // ⭐ HÀM MỚI: TỰ ĐỘNG NHẬN DIỆN BẢNG THEO PHIÊN BẢN PHẦN MỀM
         public static string LayTenBangDonVi()

@@ -946,7 +946,6 @@
             splitContainer1.Size = new Size(1258, 587);
             splitContainer1.SplitterDistance = 258;
             splitContainer1.TabIndex = 3;
-            
             // 
             // Form44_SoVangBaNhat
             // 

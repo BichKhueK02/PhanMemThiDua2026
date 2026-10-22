@@ -6,6 +6,7 @@ namespace PhanMemThiDua2026
 {
     public static class Module_BanQuyen
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         private const string SheetName = "THONG_TIN";
         private static readonly string[] TieuDe =
         {

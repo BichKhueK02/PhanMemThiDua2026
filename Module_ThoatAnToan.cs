@@ -2,6 +2,7 @@
 {
     public static class Module_ThoatAnToan
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         private static bool isExiting = false; // Tránh gọi nhiều lần
         /// Kích hoạt ESC cho Form
         public static void KichHoatESC(Form frm)

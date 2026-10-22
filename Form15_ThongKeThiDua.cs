@@ -650,13 +650,10 @@ namespace PhanMemThiDua2026
             }
             catch { e.Value = string.Empty; }
         }
-
-
         private async void ApplyFilter_DataMax()
         {
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             int totalCount = laTanBinh ? (_dataCacheTanBinh?.Count ?? 0) : (_dataCacheCBCS?.Count ?? 0);
-
             if (totalCount == 0)
             {
                 if (kryptonDataGridView1.RowCount > 0) kryptonDataGridView1.Rows.Clear(); // ✅ Xóa lưới an toàn
@@ -664,19 +661,15 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1.Text = $"Tổng cộng: 0 {Module_HeThong.Tu_dong_chi} [Chế độ hiệu năng cao đang hoạt động...]";
                 return;
             }
-
             string dvFilter = comboBox_TimKiemDonVi.Text?.Trim() ?? "";
             string tenFilterLower = textBox_TimKiemTheoTen.Text?.Trim().ToLowerInvariant() ?? "";
             string tinhTrangFilter = comboBox1_TinhTrang.Text?.Trim() ?? "";
-
             if (_dangSetPlaceholder || tenFilterLower == PLACEHOLDER_TIMKIEM.ToLowerInvariant())
                 tenFilterLower = "";
-
             bool hasTen = !string.IsNullOrWhiteSpace(tenFilterLower);
             bool hasDV = !string.IsNullOrWhiteSpace(dvFilter) && dvFilter != Module_HeThong.Tat_Ca;
             string dvKey = hasDV ? ChuanHoaDonViSoSanh(dvFilter) : "";
             bool hasTT = !string.IsNullOrWhiteSpace(tinhTrangFilter) && tinhTrangFilter != Module_HeThong.Tat_Ca;
-
             kryptonDataGridView1.SuspendLayout();
             try
             {
@@ -688,10 +681,8 @@ namespace PhanMemThiDua2026
                         for (int i = 0; i < totalCount; i++)
                         {
                             var item = _dataCacheTanBinh[i];
-
                             // ✅ SỬA ĐÚNG: Lọc Đơn vị an toàn tuyệt đối với .Trim() và không phân biệt hoa/thường
                             if (hasDV && item.DonViKey != dvKey) continue;
-
                             if (hasTT && !string.Equals(item.TinhTrang, tinhTrangFilter, StringComparison.OrdinalIgnoreCase)) continue;
                             if (hasTen && !item.HoTenSearch.Contains(tenFilterLower)) continue;
                             tempIndexes.Add(i);
@@ -702,10 +693,8 @@ namespace PhanMemThiDua2026
                         for (int i = 0; i < totalCount; i++)
                         {
                             var item = _dataCacheCBCS[i];
-
                             // ✅ SỬA ĐÚNG: Lọc Đơn vị an toàn tuyệt đối với .Trim() và không phân biệt hoa/thường
                             if (hasDV && item.DonViKey != dvKey) continue;
-
                             if (hasTT && !string.Equals(item.TinhTrang, tinhTrangFilter, StringComparison.OrdinalIgnoreCase)) continue;
                             if (hasTen && !item.HoTenSearch.Contains(tenFilterLower)) continue;
                             tempIndexes.Add(i);
@@ -713,9 +702,7 @@ namespace PhanMemThiDua2026
                     }
                     return tempIndexes;
                 });
-
                 _filteredIndexes = newFilteredIndexes;
-
                 // ✅ AN TOÀN ROWCOUNT: Tránh lỗi ArgumentOutOfRangeException khi kết quả lọc = 0
                 if (_filteredIndexes.Count > 0)
                 {
@@ -725,7 +712,6 @@ namespace PhanMemThiDua2026
                 {
                     kryptonDataGridView1.Rows.Clear();
                 }
-
                 toolStripStatusLabel1.ForeColor = System.Drawing.Color.FromArgb(25, 135, 84);
                 toolStripStatusLabel1.Text = $"Tổng cộng: {_filteredIndexes.Count} {Module_HeThong.Tu_dong_chi} [Chế độ hiệu năng cao]";
             }

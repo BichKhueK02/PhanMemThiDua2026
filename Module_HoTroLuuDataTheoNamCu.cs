@@ -11,6 +11,7 @@ namespace PhanMemThiDua2026
     // KHU VỰC CÁC CLASS DTO (DATA TRANSFER OBJECT)
     public class FileLichSuDTO
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public int STT { get; set; }
         public string TenHienThi { get; set; }
         public string DuongDan { get; set; }

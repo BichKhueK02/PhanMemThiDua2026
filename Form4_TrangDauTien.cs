@@ -1588,41 +1588,6 @@ namespace PhanMemThiDua2026
                 cb.Text = value; // Fallback nếu chuỗi từ DB không có sẵn trong Items
             }
         }
-        public async Task CapNhatDanhSachPhanLoaiDeXuatAsync()
-        {
-            string selectedGoc = comboBox1_ChonLoaiDeXuat.Text;
-            try
-            {
-                comboBox1_ChonLoaiDeXuat.BeginUpdate();
-                comboBox1_ChonLoaiDeXuat.Items.Clear();
-                // Đẩy thuật toán duyệt 10.000 dòng xuống luồng phụ
-                List<string> danhSachDaLoc = await Task.Run(() => Form6_XuLyData.LayDanhSachPhanLoaiThucTe());
-                foreach (var item in danhSachDaLoc)
-                {
-                    comboBox1_ChonLoaiDeXuat.Items.Add(item);
-                }
-                if (!string.IsNullOrWhiteSpace(selectedGoc) && comboBox1_ChonLoaiDeXuat.Items.Contains(selectedGoc))
-                {
-                    comboBox1_ChonLoaiDeXuat.Text = selectedGoc;
-                }
-                else if (comboBox1_ChonLoaiDeXuat.Items.Count > 0)
-                {
-                    comboBox1_ChonLoaiDeXuat.SelectedIndex = 0;
-                }
-                else
-                {
-                    comboBox1_ChonLoaiDeXuat.Text = "";
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Lỗi nạp combobox Loại đề xuất: " + ex.Message);
-            }
-            finally
-            {
-                comboBox1_ChonLoaiDeXuat.EndUpdate();
-            }
-        }
         private void CauHoiGiaoDien_PhienBan(bool laTanBinh)
         {
             if (laTanBinh)
@@ -1830,30 +1795,66 @@ WHERE ID = 1", conn);
             CapNhatMauCheckMoThuMuc();
             LuuLuaChonXuatVaCheckBox();
         }
-        private void comboBox1_ChonLoaiDeXuat_SelectedIndexChanged(object? sender, EventArgs e) => LuuLuaChonXuatVaCheckBox();
         private void LoadSettings() => CapNhatMauCheckMoThuMuc();
+        private void ChuanHoaVaGanDeNghi(string rawDeNghi, bool isCheDoNam)
+        {
+            if (string.IsNullOrWhiteSpace(rawDeNghi))
+            {
+                if (com_DeNghi.Items.Count > 0) com_DeNghi.SelectedIndex = 0;
+                return;
+            }
+            string targetVal = rawDeNghi.Trim();
+            if (isCheDoNam)
+            {
+                // Ánh xạ sang chuẩn Năm (ĐVQT, ĐVTT, HTNV, KHTNV, Không PL)
+                targetVal = targetVal.ToUpperInvariant() switch
+                {
+                    "LOẠI 1" or "LOAI 1" or Module_HeThong.Loai_1 => Module_HeThong.XLDV_DVQT,
+                    "LOẠI 2" or "LOAI 2" or Module_HeThong.Loai_2 => Module_HeThong.XLDV_DVTT,
+                    "LOẠI 3" or "LOAI 3" or Module_HeThong.Loai_3 => Module_HeThong.XLDV_HTNV,
+                    "LOẠI 4" or "LOAI 4" or Module_HeThong.Loai_4 => Module_HeThong.XLDV_KHTNV,
+                    _ => Module_HeThong.PL_KHONG_PL
+                };
+            }
+            else
+            {
+                // Ánh xạ sang chuẩn Tháng (Loại 1, Loại 2, Loại 3, Loại 4, Không PL)
+                targetVal = targetVal.ToUpperInvariant() switch
+                {
+                    "ĐVQT" or "DVQT" or Module_HeThong.XLDV_DVQT => Module_HeThong.Loai_1,
+                    "ĐVTT" or "DVTT" or Module_HeThong.XLDV_DVTT => Module_HeThong.Loai_2,
+                    "HTNV" or Module_HeThong.XLDV_HTNV => Module_HeThong.Loai_3,
+                    "KHTNV" or Module_HeThong.XLDV_KHTNV => Module_HeThong.Loai_4,
+                    _ => Module_HeThong.PL_KHONG_PL
+                };
+            }
+            int idx = com_DeNghi.FindStringExact(targetVal);
+            if (idx >= 0)
+            {
+                com_DeNghi.SelectedIndex = idx;
+            }
+            else
+            {
+                com_DeNghi.Text = targetVal;
+            }
+        }
         public void LoadComboBoxDeNghi()
         {
             bool laTanBinh = LaTanBinh();
             bool isCheDoNam = comboBox1_CheDoXetThiDua.Text.Trim().Equals("Năm", StringComparison.OrdinalIgnoreCase);
             bool isKichHoatAnhXa = !laTanBinh && isCheDoNam;
+            // Lưu lại giá trị hiện tại để tiến hành ánh xạ
+            string currentValue = com_DeNghi.Text?.Trim() ?? string.Empty;
             string[] itemsMoi = isKichHoatAnhXa
                 ? new string[] { Module_HeThong.XLDV_DVQT, Module_HeThong.XLDV_DVTT, Module_HeThong.XLDV_HTNV, Module_HeThong.XLDV_KHTNV, Module_HeThong.PL_KHONG_PL }
                 : new string[] { Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4, Module_HeThong.PL_KHONG_PL };
-            int indexCu = com_DeNghi.SelectedIndex;
             com_DeNghi.BeginUpdate();
             try
             {
                 com_DeNghi.Items.Clear();
                 com_DeNghi.Items.AddRange(itemsMoi);
-                if (indexCu >= 0 && indexCu < com_DeNghi.Items.Count)
-                {
-                    com_DeNghi.SelectedIndex = indexCu;
-                }
-                else if (com_DeNghi.Items.Count > 0)
-                {
-                    com_DeNghi.SelectedIndex = 0;
-                }
+                // Ánh xạ giá trị cũ sang tập item mới của chế độ tương ứng
+                ChuanHoaVaGanDeNghi(currentValue, isKichHoatAnhXa);
             }
             finally
             {
@@ -2742,7 +2743,6 @@ WHERE ID = 1", conn);
         {
             string textBanDau = kryptonButton_XuatTatCa.Values.Text;
             Image anhBanDau = kryptonButton_XuatTatCa.Values.Image;
-            // THÊM: Gọi Form_Loading
             Form_Loading frmLoad = new Form_Loading("Đang xuất toàn bộ dữ liệu Excel...");
             try
             {
@@ -2750,7 +2750,6 @@ WHERE ID = 1", conn);
                 kryptonButton_XuatTatCa.Values.Text = "Đang xử lý...";
                 kryptonButton_XuatTatCa.Values.Image = null;
                 await Task.Delay(100);
-                // BẮT ĐẦU CODE GỐC                
                 if (string.IsNullOrWhiteSpace(label11.Text) || label11.Text == "Chọn đường dẫn lưu")
                 {
                     Module_ThongBao.DangXuLy("Bạn chưa chọn thư mục lưu!");
@@ -2762,13 +2761,11 @@ WHERE ID = 1", conn);
                     Module_ThongBao.Loi("Đường dẫn lưu trong cài đặt không hợp lệ!");
                     return;
                 }
-                // THÊM: Bật form loading, chạy ngầm phần tạo file
+                Module_XuatPhanLoai.LinkDanTep = "";   // tránh xem nhầm tệp cũ nếu xuất lỗi
                 this.Enabled = false;
                 frmLoad.Show(this);
                 await Task.Run(() =>
                 {
-                    //string thangHT = Module_XuatPhanLoai.LayThangHeThong();
-                    //string tenThuMuc = $"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {thangHT} NĂM {DateTime.Now:yyyy}";
                     bool laXetNam = Module_HeThong.IsCheDoXetThiDuaNam();
                     string thangHT = Module_XuatPhanLoai.LayThangHeThong();
                     string tenThuMuc = laXetNam
@@ -2776,14 +2773,12 @@ WHERE ID = 1", conn);
                         : $"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {thangHT} NĂM {DateTime.Now:yyyy}";
                     string fullThuMuc = Path.Combine(duongDanGoc, tenThuMuc);
                     Directory.CreateDirectory(fullThuMuc);
-                    // ⭐ GỌI GÁN ICON CHO THƯ MỤC THÁNG VỪA SINH RA
                     Module_HeThong.GanIconThuMuc(fullThuMuc);
                     int sttFile = Directory.GetFiles(fullThuMuc, "*.xlsx").Length + 1;
                     string fileName = $"{sttFile}. DANH SÁCH TẤT CẢ PHÂN LOẠI - {DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
                     string fileXuat = Path.Combine(fullThuMuc, fileName);
                     Module_XuatPhanLoai.XuatTatCaPhanLoai(fileXuat);
                     Module_XuatPhanLoai.LinkDanTep = fileXuat;
-                    //vị trí cập nhật chế độ xét thi đua tháng hoặc năm
                     Module_XuatTongHop.XuatBaoCaoTongHop(fileXuat);
                     try
                     {
@@ -2807,7 +2802,6 @@ WHERE ID = 1", conn);
                     }
                     catch (Exception ex)
                     {
-                        // Gọi Invoke nếu cần bắn thông báo lên Form từ Task.Run
                         this.Invoke(new Action(() => Module_ThongBao.Loi("Lỗi khi kiểm tra thư mục mở tự động:\n" + ex.Message)));
                     }
                     Module_NhatKy.GhiNhatKy(
@@ -2816,7 +2810,6 @@ WHERE ID = 1", conn);
                         ghiChu: $"Thời gian: {SessionInfo.ThoiGianDangNhap:dd-MM-yyyy HH:mm:ss}"
                     );
                 });
-                // KẾT THÚC CODE GỐC
             }
             catch (Exception ex)
             {
@@ -2824,7 +2817,6 @@ WHERE ID = 1", conn);
             }
             finally
             {
-                // THÊM: Đóng form loading
                 frmLoad.Close();
                 this.Enabled = true;
                 this.Focus();
@@ -2837,7 +2829,6 @@ WHERE ID = 1", conn);
         {
             string textBanDau = kryptonButton_XuatDanhSachLoai.Values.Text;
             Image anhBanDau = kryptonButton_XuatDanhSachLoai.Values.Image;
-            // THÊM: Gọi form loading
             Form_Loading frmLoad = new Form_Loading("Đang tạo danh sách theo loại...");
             try
             {
@@ -2845,7 +2836,6 @@ WHERE ID = 1", conn);
                 kryptonButton_XuatDanhSachLoai.Values.Text = "Đang xử lý...";
                 kryptonButton_XuatDanhSachLoai.Values.Image = null;
                 await Task.Delay(100);
-                // BẮT ĐẦU CODE GỐC
                 if (string.IsNullOrWhiteSpace(comboBox1_ChonLoaiDeXuat.Text))
                 {
                     Module_ThongBao.DangXuLy("Bạn chưa chọn phân loại!");
@@ -2861,9 +2851,11 @@ WHERE ID = 1", conn);
                     Module_ThongBao.DangXuLy("Bạn chưa chọn thư mục lưu!");
                     return;
                 }
-                string plChon = comboBox1_ChonLoaiDeXuat.Text.Trim();
+                string plHienThi = comboBox1_ChonLoaiDeXuat.Text.Trim();           // "CSTĐ" / "Loại 1"...
+                string plChon = AnhXaTenPhanLoai(plHienThi, laNam: false);
+                // string plChon = comboBox1_ChonLoaiDeXuat.Text.Trim();
                 int sttFile = 1;
-                // THÊM: Bật Form loading và đưa phần xuất file vào Task.Run
+                Module_XuatPhanLoai.LinkDanTep = "";   // tránh xem nhầm tệp cũ nếu xuất lỗi / không có dữ liệu
                 this.Enabled = false;
                 frmLoad.Show(this);
                 await Task.Run(() =>
@@ -2884,7 +2876,7 @@ WHERE ID = 1", conn);
                                 moThuMuc = giaiMa == "TRUE";
                             }
                         }
-                        if (moThuMuc && !string.IsNullOrWhiteSpace(Module_XuatPhanLoai.LinkDanTep) && System.IO.File.Exists(Module_XuatPhanLoai.LinkDanTep))
+                        if (moThuMuc && !string.IsNullOrWhiteSpace(Module_XuatPhanLoai.LinkDanTep) && File.Exists(Module_XuatPhanLoai.LinkDanTep))
                         {
                             this.Invoke(new Action(() => Module_XuatPhanLoai.MoThuMucVaChonTep(Module_XuatPhanLoai.LinkDanTep)));
                         }
@@ -2899,7 +2891,6 @@ WHERE ID = 1", conn);
                         ghiChu: $"Thời gian: {SessionInfo.ThoiGianDangNhap:dd-MM-yyyy HH:mm:ss}"
                     );
                 });
-                // KẾT THÚC CODE GỐC
             }
             catch (Exception ex)
             {
@@ -2907,7 +2898,6 @@ WHERE ID = 1", conn);
             }
             finally
             {
-                // THÊM: Tắt form Loading
                 frmLoad.Close();
                 this.Enabled = true;
                 this.Focus();
@@ -3286,51 +3276,6 @@ WHERE ID = 1", conn);
             kryptonButton_XuatDanhSachLoai.StateCommon.Content.ShortText.Color1 = mau;
             if (!coDuLieu)
                 ThongBao("Chưa có dữ liệu danh sách. Các tính năng xuất tệp bị vô hiệu hóa.");
-        }
-        public void CapNhatDanhSachPhanLoaiDeXuat()
-        {
-            // Đảm bảo an toàn luồng (nếu Form 6 gọi hàm này từ Task ngầm)
-            if (this.InvokeRequired)
-            {
-                this.Invoke(new Action(CapNhatDanhSachPhanLoaiDeXuat));
-                return;
-            }
-            // Giữ lại text user đang chọn dở để không làm họ bực mình bị mất lựa chọn
-            string selectedGoc = comboBox1_ChonLoaiDeXuat.Text;
-            try
-            {
-                comboBox1_ChonLoaiDeXuat.BeginUpdate();
-                comboBox1_ChonLoaiDeXuat.Items.Clear();
-                // ⭐ LẤY DANH SÁCH ĐÃ ĐƯỢC LỌC VÀ SẮP XẾP CHUẨN (Loại 1 -> Loại 4 -> Không PL) TỪ FORM 6
-                List<string> danhSachDaLoc = Form6_XuLyData.LayDanhSachPhanLoaiThucTe();
-                // Nạp vào ComboBox
-                foreach (var item in danhSachDaLoc)
-                {
-                    comboBox1_ChonLoaiDeXuat.Items.Add(item);
-                }
-                // Phục hồi lại giá trị cũ đang chọn (Nếu giá trị đó vẫn còn tồn tại trong list mới)
-                if (!string.IsNullOrWhiteSpace(selectedGoc) && comboBox1_ChonLoaiDeXuat.Items.Contains(selectedGoc))
-                {
-                    comboBox1_ChonLoaiDeXuat.Text = selectedGoc;
-                }
-                else if (comboBox1_ChonLoaiDeXuat.Items.Count > 0)
-                {
-                    // Nếu giá trị cũ bị xóa mất, tự động lùi về Item đầu tiên (thường là Loại 1)
-                    comboBox1_ChonLoaiDeXuat.SelectedIndex = 0;
-                }
-                else
-                {
-                    comboBox1_ChonLoaiDeXuat.Text = ""; // Bỏ trống nếu DB không có ai bị xếp loại nào
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Lỗi nạp combobox Loại đề xuất từ Form 6: " + ex.Message);
-            }
-            finally
-            {
-                comboBox1_ChonLoaiDeXuat.EndUpdate();
-            }
         }
         private void kryptonButton1_XuatTepPdf_Click(object? sender, EventArgs e)
         {
@@ -3726,20 +3671,25 @@ WHERE ID = 1", conn);
             {
                 string val = comboBox1_CheDoXetThiDua.Text?.Trim() ?? "";
                 Module_HeThong.LuuCheDoXetThiDuaNam(val);
-                LoadComboBoxDeNghi();        // đổi danh sách đề nghị theo Tháng/Năm
-                LoadQuyDinhTheoDeNghi();     // nạp lại tỷ lệ theo bảng tương ứng
-                AnhXaGiaoDienThiDua();
-                // Bảng 1 tô màu theo phanTramLoai -> chỉ cần vẽ lại
-                kryptonDataGridView1.Invalidate();
-                // Bảng 2 tính lại chỉ tiêu và kết luận
-                _allowLoadBang2 = true;
-                if (KiemTraCoDuLieuDanhSach())
-                    await Bang2_Async();
+                LoadComboBoxDeNghi();           // Đổi danh sách đề nghị theo Tháng/Năm
+                CapNhatDanhSachPhanLoaiDeXuat(); // ⭐ Gọi cập nhật & ánh xạ lại danh sách loại đề xuất ngay lập tức
+                LoadQuyDinhTheoDeNghi();        // Nạp lại tỷ lệ theo bảng tương ứng
+                AnhXaGiaoDienThiDua();          // Ánh xạ lại tiêu đề cột, giao diện[cite: 4]
+                kryptonDataGridView1.Invalidate(); 
+        _allowLoadBang2 = true;
+                if (KiemTraCoDuLieuDanhSach()) 
+        {
+                    await Bang2_Async(); 
+        }
+        else
+                {
+                    kryptonDataGridView2.DataSource = null; 
+        }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("[CheDoXetThiDua_Changed] " + ex.Message);
-            }
+    }
         }
         private void kryptonButton_KiemTraTLvaQS_Click(object? sender, EventArgs e)
         {
@@ -3899,6 +3849,126 @@ WHERE ID = 1", conn);
                 if (!IsDisposed) toolStripStatusLabel2.Text = "Phần mềm: (không xác định)";
             }
         }
-        // CÁC HÀM ĐÃ SỬA
+        // =====================================================================
+        // SỬA LỖI: comboBox1_ChonLoaiDeXuat không tự đổi tên khi đổi Tháng <-> Năm
+        // Dán vào Form4_TrangDauTien.cs. Cần: using System.Globalization; using System.Text;
+        //
+        // BƯỚC 1: XÓA 2 hàm cũ:
+        //    - public async Task CapNhatDanhSachPhanLoaiDeXuatAsync()   (khoảng dòng 1591)
+        //    - public void CapNhatDanhSachPhanLoaiDeXuat()              (khoảng dòng 3339)
+        // BƯỚC 2: Dán toàn bộ khối bên dưới vào thay chỗ.
+        // BƯỚC 3: Sửa dòng 1833 (xem cuối file).
+        // =====================================================================
+        // Cờ chặn SelectedIndexChanged khi đang nạp lại Items (tránh ghi "" vào CSDL)
+        private bool _dangNapLoaiDeXuat;
+        /// <summary>Bỏ dấu tiếng Việt: "Loại 1" -> "Loai 1", "CSTĐ" -> "CSTD".</summary>
+        private static string BoDauTiengViet(string s)
+        {
+            string d = s.Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder(d.Length);
+            foreach (char c in d)
+            {
+                if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark) continue;
+                sb.Append(c == 'Đ' ? 'D' : c == 'đ' ? 'd' : c);
+            }
+            return sb.ToString().Normalize(NormalizationForm.FormC);
+        }
+        /// <summary>
+        /// Đổi tên loại về đúng chuẩn của chế độ hiện tại, bất kể tên gốc thuộc chế độ nào.
+        ///   Tháng: Loại 1..4      Năm: CSTĐ, CSTT, HTNV, KHTNV
+        /// Tên lạ (vd "Không PL") giữ nguyên.
+        /// </summary>
+        private static string AnhXaTenPhanLoai(string? raw, bool laNam)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return string.Empty;
+            string ten = raw.Trim();
+            // Chuẩn hóa khóa so sánh: bỏ dấu, in hoa, gộp khoảng trắng
+            string key = string.Join(" ", BoDauTiengViet(ten).ToUpperInvariant()
+                                            .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            int bac = key switch
+            {
+                "LOAI 1" or "CSTD" => 1,
+                "LOAI 2" or "CSTT" => 2,
+                "LOAI 3" or "HTNV" => 3,
+                "LOAI 4" or "KHTNV" => 4,
+                _ => 0
+            };
+            if (bac == 0) return ten;
+            return laNam
+                ? bac switch { 1 => Module_HeThong.PL_CSTD, 2 => Module_HeThong.PL_CSTT, 3 => Module_HeThong.PL_HTNV, _ => Module_HeThong.PL_KHTNV }
+                : bac switch { 1 => Module_HeThong.Loai_1, 2 => Module_HeThong.Loai_2, 3 => Module_HeThong.Loai_3, _ => Module_HeThong.Loai_4 };
+        }
+        /// <summary>Nạp lại Items (đã ánh xạ tên) + khôi phục lựa chọn cũ theo tên mới. Chỉ gọi trên UI thread.</summary>
+        private void NapLaiComboLoaiDeXuat(IEnumerable<string>? nguon, bool laNam)
+        {
+            var cb = comboBox1_ChonLoaiDeXuat;
+            string chonCu = cb.Text?.Trim() ?? string.Empty;
+            // Ánh xạ từng item của nguồn sang chuẩn hiện tại + loại trùng
+            var dsMoi = new List<string>();
+            if (nguon != null)
+            {
+                foreach (var it in nguon)
+                {
+                    string ten = AnhXaTenPhanLoai(it, laNam);
+                    if (ten.Length > 0 && !dsMoi.Contains(ten, StringComparer.OrdinalIgnoreCase))
+                        dsMoi.Add(ten);
+                }
+            }
+            _dangNapLoaiDeXuat = true;
+            cb.BeginUpdate();
+            try
+            {
+                cb.Items.Clear();
+                cb.Items.AddRange(dsMoi.ToArray());
+                int idx = cb.FindStringExact(AnhXaTenPhanLoai(chonCu, laNam));
+                if (idx >= 0) cb.SelectedIndex = idx;
+                else if (cb.Items.Count > 0) cb.SelectedIndex = 0;
+                else cb.Text = string.Empty;
+            }
+            finally
+            {
+                cb.EndUpdate();
+                _dangNapLoaiDeXuat = false;
+            }
+            // Chỉ lưu 1 lần, và chỉ khi giá trị thật sự đổi
+            if (!string.Equals(chonCu, cb.Text?.Trim() ?? string.Empty, StringComparison.Ordinal))
+                LuuLuaChonXuatVaCheckBox();
+        }
+        public void CapNhatDanhSachPhanLoaiDeXuat()
+        {
+            if (IsDisposed || Disposing) return;
+            if (InvokeRequired) { Invoke(new Action(CapNhatDanhSachPhanLoaiDeXuat)); return; }
+            try
+            {
+                // Chế độ lấy TRỰC TIẾP từ comboBox1_CheDoXetThiDua, không phụ thuộc cache của Module_HeThong
+                NapLaiComboLoaiDeXuat(Form6_XuLyData.LayDanhSachPhanLoaiThucTe(), LaCheDoNamCBCS());
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi nạp combobox Loại đề xuất: " + ex.Message);
+            }
+        }
+        public async Task CapNhatDanhSachPhanLoaiDeXuatAsync()
+        {
+            try
+            {
+                List<string> ds = await Task.Run(() => Form6_XuLyData.LayDanhSachPhanLoaiThucTe());
+                if (IsDisposed || Disposing) return;
+                NapLaiComboLoaiDeXuat(ds, LaCheDoNamCBCS());
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi nạp combobox Loại đề xuất: " + ex.Message);
+            }
+        }
+        // ---------------------------------------------------------------------
+        // BƯỚC 3: thay dòng 1833
+        //   private void comboBox1_ChonLoaiDeXuat_SelectedIndexChanged(object? sender, EventArgs e) => LuuLuaChonXuatVaCheckBox();
+        // bằng:
+        private void comboBox1_ChonLoaiDeXuat_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (_dangNapLoaiDeXuat) return;
+            LuuLuaChonXuatVaCheckBox();
+        }
     }
 }

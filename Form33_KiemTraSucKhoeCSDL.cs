@@ -37,7 +37,6 @@ namespace PhanMemThiDua2026
         private static readonly Font _fontFormAoGrid10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private static readonly Font _fontFormAoGrid10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
         private static readonly Font _fontBtn95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
-
         // Cache kết quả kiểm tra toàn vẹn: chỉ quét lại khi tệp thật sự thay đổi
         private static readonly ConcurrentDictionary<string, (string Key, string Ok)> _cacheToanVen    = new(StringComparer.OrdinalIgnoreCase);
         // Cache dung lượng thư mục (10 phút) – nút "Làm mới" sẽ xóa cache này
@@ -288,13 +287,11 @@ namespace PhanMemThiDua2026
                 StartProgressBar();
                 DataTable dtSQLite = TaoBangThuocTinhSQLite();
                 DataTable dtFilePhu = TaoBangThuocTinhFilePhu();
-
                 var sqliteTasks = _pathCSDL.Select(path =>
                 {
                     string safePath = path ?? string.Empty;
                     return Task.Run(() => CheckSQLiteAsync(safePath));
                 }).ToList();
-
                 var fileTasks = _pathsFilePhu.Select(path =>
                 {
                     string safePath = path ?? string.Empty;
@@ -303,16 +300,13 @@ namespace PhanMemThiDua2026
                             ? CheckFolder(safePath)
                             : CheckFile(safePath));
                 }).ToList();
-
                 await Task.WhenAll(sqliteTasks.Concat(fileTasks.Cast<Task>()));
                 if (this.IsDisposed) return;
-
                 for (int i = 0; i < sqliteTasks.Count; i++)
                 {
                     var kq = sqliteTasks[i].Result;
                     dtSQLite.Rows.Add(i + 1, _tenCSDL[i], kq.TonTai ? "TRUE" : "FALSE", kq.NgayTao, kq.DungLuong, kq.SucKhoe, kq.TocDo, kq.PhanManh, kq.Journal, kq.QuyenDoc, kq.QuyenGhi, kq.OTrong);
                 }
-
                 for (int i = 0; i < fileTasks.Count; i++)
                 {
                     var kq = fileTasks[i].Result;
@@ -329,7 +323,6 @@ namespace PhanMemThiDua2026
                         kq.OTrong
                     );
                 }
-
                 kryptonDataGridView1.DataSource = dtSQLite;
                 kryptonDataGridView2.DataSource = dtFilePhu;
                 TrangDiemChoEm_FormatDataGridView(kryptonDataGridView1);
@@ -351,14 +344,12 @@ namespace PhanMemThiDua2026
                 kq.TonTai = false;
                 return kq;
             }
-
             try
             {
                 var di = new DirectoryInfo(path);
                 kq.TonTai = true;
                 kq.ODia = Path.GetPathRoot(Path.GetFullPath(path));
                 kq.NgayTao = di.CreationTime.ToString("dd/MM/yyyy HH:mm:ss");
-
                 long folderSize;
                 if (_cacheKichThuocThuMuc.TryGetValue(path, out var cached)
                     && (DateTime.UtcNow - cached.Time).TotalMinutes < 10)
@@ -370,10 +361,8 @@ namespace PhanMemThiDua2026
                     folderSize = GetDirectorySizeSafe(di);    // quét thật
                     _cacheKichThuocThuMuc[path] = (DateTime.UtcNow, folderSize);
                 }
-
                 kq.DungLuong = folderSize > 0 ? FormatSize(folderSize) : "0 KB";
                 kq.OTrong = LayDungLuongOTrang(path);
-
                 try
                 {
                     string tempFile = Path.Combine(path, Path.GetRandomFileName());
@@ -394,7 +383,6 @@ namespace PhanMemThiDua2026
             {
                 kq.TonTai = false;
             }
-
             return kq;
         }
         private void StartProgressBar()
@@ -583,11 +571,9 @@ namespace PhanMemThiDua2026
                     // integrity_check quét toàn bộ tệp (O(kích thước)) -> CSDL lớn dùng quick_check cho nhanh
                     //cmd.CommandText = fi.Length > NGUONG_KIEM_TRA_DAY_DU_BYTES ? "PRAGMA quick_check;" : "PRAGMA integrity_check;";
                     //var ok = (await cmd.ExecuteScalarAsync())?.ToString();
-
                     // Khóa nhận diện: đổi dung lượng / ngày sửa / dung lượng -wal thì mới quét lại
                     long walLen = File.Exists(path + "-wal") ? new FileInfo(path + "-wal").Length : 0;
                     string key = $"{fi.Length}|{fi.LastWriteTimeUtc.Ticks}|{walLen}";
-
                     string? ok;
                     if (_cacheToanVen.TryGetValue(path, out var cached) && cached.Key == key)
                     {
@@ -599,8 +585,6 @@ namespace PhanMemThiDua2026
                         ok = (await cmd.ExecuteScalarAsync())?.ToString();
                         if (ok != null) _cacheToanVen[path] = (key, ok);
                     }
-
-
                     cmd.CommandText = "PRAGMA journal_mode;";
                     kq.Journal = (await cmd.ExecuteScalarAsync())?.ToString()?.ToUpper();
                     cmd.CommandText = "PRAGMA page_count;";
@@ -653,7 +637,6 @@ namespace PhanMemThiDua2026
             }
             return kq;
         }
-
         private static long GetDirectorySizeSafe(DirectoryInfo directoryInfo)
         {
             long size = 0;
@@ -671,7 +654,6 @@ namespace PhanMemThiDua2026
             catch { }
             return size;
         }
-
         private string FormatSize(long b) => b > 1024 * 1024 ? (b / 1024.0 / 1024.0).ToString("F2") + " MB" : (b / 1024.0).ToString("F2") + " KB";
         private string CoDoc(string p)
         {

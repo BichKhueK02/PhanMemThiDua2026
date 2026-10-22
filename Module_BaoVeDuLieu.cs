@@ -5,6 +5,7 @@ namespace PhanMemThiDua2026
 {
     public static class Module_BaoVeDuLieu
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         //Đây giống như là Firewall - Lớp bảo vệ ở bên trong ứng dụng - Database Firewall
         // 🛡️ ANTI-RACE: Khóa luồng đồng bộ
         private static readonly SemaphoreSlim _khoaTienTrinh = new SemaphoreSlim(1, 1);

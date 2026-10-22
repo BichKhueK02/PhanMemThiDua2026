@@ -9,6 +9,7 @@ namespace PhanMemThiDua2026
     // Dùng 'sealed' để JIT Compiler tối ưu hóa tốc độ gọi hàm
     public sealed class FormAoBase : KryptonForm
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public FormAoBase()
         {
             // Chống giật UI bằng DoubleBuffer tầng sâu.

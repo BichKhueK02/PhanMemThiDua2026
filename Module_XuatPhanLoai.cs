@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Diagnostics;
 using System.Runtime.InteropServices; // <--- Đảm bảo có dòng này ở đầu file
+                                      //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 namespace PhanMemThiDua2026
 {
     public static class Module_XuatPhanLoai
@@ -1390,6 +1391,29 @@ namespace PhanMemThiDua2026
                     }
                 }
                 catch { }
+                //// Xác định tên loại
+                //bool isCheDoNam = Module_HeThong.IsCheDoXetThiDuaNam();
+                //string tenLoaiHienThi = "...";
+                //if (!string.IsNullOrEmpty(deNghiRaw))
+                //{
+                //    if (isCheDoNam)
+                //    {
+                //        tenLoaiHienThi = deNghiRaw.Trim().ToUpperInvariant() switch
+                //        {
+                //            "LOẠI 1" => Module_HeThong.XLDV_DVQT,
+                //            "LOẠI 2" => Module_HeThong.XLDV_DVTT,
+                //            "LOẠI 3" => Module_HeThong.XLDV_HTNV,
+                //            "LOẠI 4" => Module_HeThong.XLDV_KHTNV,
+                //            "KHÔNG PL" => Module_HeThong.PL_KHONG_PL,
+                //            _ => deNghiRaw
+                //        };
+                //    }
+                //    else
+                //    {
+                //        string temp = deNghiRaw.Trim().ToLower();
+                //        tenLoaiHienThi = char.ToUpper(temp[0]) + temp.Substring(1);
+                //    }
+                //}
                 // Xác định tên loại
                 bool isCheDoNam = Module_HeThong.IsCheDoXetThiDuaNam();
                 string tenLoaiHienThi = "...";
@@ -1399,11 +1423,11 @@ namespace PhanMemThiDua2026
                     {
                         tenLoaiHienThi = deNghiRaw.Trim().ToUpperInvariant() switch
                         {
-                            "LOẠI 1" => Module_HeThong.XLDV_DVQT,
-                            "LOẠI 2" => Module_HeThong.XLDV_DVTT,
-                            "LOẠI 3" => Module_HeThong.XLDV_HTNV,
-                            "LOẠI 4" => Module_HeThong.XLDV_KHTNV,
-                            "KHÔNG PL" => Module_HeThong.PL_KHONG_PL,
+                            "LOẠI 1" or "LOAI 1" => Module_HeThong.Loai_1,
+                            "LOẠI 2" or "LOAI 2" => Module_HeThong.Loai_2,
+                            "LOẠI 3" or "LOAI 3" => Module_HeThong.Loai_3,
+                            "LOẠI 4" or "LOAI 4" => Module_HeThong.Loai_4,
+                            "KHÔNG PL" or "KHONG PL" or "KPL" or "KHÔNG PHÂN LOẠI" => Module_HeThong.PL_KHONG_PL,
                             _ => deNghiRaw
                         };
                     }

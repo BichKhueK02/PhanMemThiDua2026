@@ -188,7 +188,7 @@ namespace PhanMemThiDua2026
         {
             ("Khởi tạo dữ liệu thành công!", "Kết luận: Dữ liệu đã được xác nhận và sẵn sàng sử dụng."),
             ("Hoàn tất kiểm tra hệ thống!", "Kết luận: Các thành phần cần thiết đã đáp ứng yêu cầu."),
-            ("Xác nhận môi trường hoạt động!", "Kết luận: Phần mềm đủ điều kiện thực hiện nghiệp vụ."),
+            ("Xác nhận môi trường hoạt động!", "Kết luận: Sẵn sàng khởi động"),
             ("Thiết lập phiên làm việc thành công!", "Kết luận: Các bước chuẩn bị ban đầu đã hoàn tất."),
             ("Hoàn tất xác thực dữ liệu!", "Kết luận: Quyền truy cập được kiểm tra theo cấu hình hiện hành."),
             ("Khởi tạo chức năng nghiệp vụ!", "Kết luận: Hệ thống đã chuyển sang trạng thái hoạt động."),

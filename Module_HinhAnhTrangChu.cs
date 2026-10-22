@@ -3,6 +3,7 @@ namespace PhanMemThiDua2026
 {
     public static class Module_HinhAnhTrangChu
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         private static int _indexHienTai = 1;
         private static readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;       
         // 1. TẦNG LOGIC HÌNH ẢNH (CHẠY NGẦM)

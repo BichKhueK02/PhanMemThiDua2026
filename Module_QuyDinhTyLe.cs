@@ -4,6 +4,7 @@ namespace PhanMemThiDua2026
     internal static class Module_QuyDinhTyLe
     {
         // BIẾN TOÀN CỤC – FORM4 DÙNG TRỰC TIẾP
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public static Dictionary<string, int[]> DeNghiMapping { get; private set; }
             = new Dictionary<string, int[]>();
         private static readonly int[] IDS = { 1, 2, 3 };

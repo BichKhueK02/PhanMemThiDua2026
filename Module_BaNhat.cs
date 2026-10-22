@@ -10,6 +10,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 public class CbcDTO
 {
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+    //0975287973
     public int STT { get; set; }
     public string HoVaTen { get; set; }
     public string SoHieu { get; set; }

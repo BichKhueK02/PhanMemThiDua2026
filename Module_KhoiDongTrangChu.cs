@@ -3,6 +3,7 @@ namespace PhanMemThiDua2026
 {
     internal static class Module_KhoiDongTrangChu
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         private static Form2_FormCha? _form2Instance;
         /// <summary>
         /// Preload Form2_FormCha vào RAM

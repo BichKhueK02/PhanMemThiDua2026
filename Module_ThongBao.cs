@@ -4,6 +4,7 @@ namespace PhanMemThiDua2026
 {
     internal sealed class DongThongBao
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public string Text { get; }
         public Color Mau { get; }
         // Cờ xác định dòng này là tiêu đề cố định (Ghim), không bị tự động xóa

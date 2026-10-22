@@ -190,6 +190,8 @@ namespace PhanMemThiDua2026
             var cu = pdfViewer.Document;
             pdfViewer.Document = doc;      // gán tài liệu mới TRƯỚC rồi mới giải phóng tài liệu cũ
             try { cu?.Dispose(); } catch { }
+            _daChinhMucLuc = false;
+            BeginInvoke(new Action(DatDoRongMucLuc));   // chờ viewer dựng xong mục lục rồi mới chỉnh
             // Nạp lại sau khi giải phóng RAM -> trả về đúng trang đang xem (chỉ khi cùng tệp)
             if (_trangKhoiPhuc > 0 && string.Equals(_pathNho, full, StringComparison.OrdinalIgnoreCase))
             {
@@ -227,6 +229,9 @@ namespace PhanMemThiDua2026
             if (Visible)
             {
                 _timerGiaiPhong?.Stop();
+                // Form vừa hiện mà mục lục chưa được chỉnh độ rộng -> chỉnh ngay
+                if (!_daChinhMucLuc && pdfViewer.Document != null)
+                    BeginInvoke(new Action(DatDoRongMucLuc));
                 // Hiện lại sau khi đã giải phóng RAM mà chưa ai gọi nạp -> tự nạp lại tệp cũ
                 if (pdfViewer.Document == null && _taskDangNap == null
                     && _pathNho != null && File.Exists(_pathNho))
@@ -254,6 +259,40 @@ namespace PhanMemThiDua2026
                 }
             };
             return t;
+        }
+        // ====== Độ rộng panel Mục lục (bookmark) bên trái ======
+        private const double TyLeMucLuc = 0.33;   // 0.33 = 33% chiều rộng form. Muốn rộng hơn thì tăng (vd 0.40)
+        private SplitContainer? _splitMucLuc;
+        private bool _daChinhMucLuc = false;
+        private static SplitContainer? TimSplitContainer(Control goc)
+        {
+            foreach (Control c in goc.Controls)
+            {
+                if (c is SplitContainer sc) return sc;
+                var con = TimSplitContainer(c);
+                if (con != null) return con;
+            }
+            return null;
+        }
+        private void DatDoRongMucLuc()
+        {
+            try
+            {
+                if (IsDisposed || pdfViewer == null) return;
+                _splitMucLuc ??= TimSplitContainer(pdfViewer);
+                var sc = _splitMucLuc;
+                if (sc == null || sc.Panel1Collapsed || sc.Width <= 0) return;
+                int mong = (int)(sc.Width * TyLeMucLuc);
+                int toiDa = sc.Width - sc.Panel2MinSize - sc.SplitterWidth;
+                int d = Math.Max(sc.Panel1MinSize, Math.Min(mong, toiDa));
+                if (d > 0 && sc.SplitterDistance != d)
+                    sc.SplitterDistance = d;
+                _daChinhMucLuc = true;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[DatDoRongMucLuc] " + ex.Message);
+            }
         }
         private void GiaiPhongTaiLieu(bool giuDuongDan)
         {

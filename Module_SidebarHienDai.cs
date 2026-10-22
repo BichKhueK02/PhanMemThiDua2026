@@ -13,6 +13,7 @@ namespace PhanMemThiDua2026
     internal static class Module_SidebarHienDai
     {
         // ===== Bảng màu: sidebar tím lavender nhạt, mục đang chọn là viên tím đậm chữ trắng =====
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public static Color Nen = Color.FromArgb(150, 120, 235);          // nền sidebar
        // public static Color Nen = Color.FromArgb(232, 226, 253);          // nền sidebar
         public static Color ChuThuong = Color.FromArgb(60, 40, 125);      // chữ mục thường

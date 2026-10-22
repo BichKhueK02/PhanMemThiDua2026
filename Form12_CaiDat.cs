@@ -2071,14 +2071,7 @@ PRAGMA busy_timeout=15000;
         //            MessageBoxIcon.Error);
         //    }
         //}
-
-
-
-
-
-
         // ===== Giảm chớp: bật DoubleBuffered cho container (không đụng TabControl/Krypton/ComboBox) =====
-
         private void TuDongNhungFormKiemTraCSDL()
         {
             try
@@ -2086,7 +2079,6 @@ PRAGMA busy_timeout=15000;
                 if (_form33CSDL == null || _form33CSDL.IsDisposed)
                 {
                     tabPage3.SuspendLayout();
-
                     _form33CSDL = new Form33_KiemTraSucKhoeCSDL
                     {
                         Text = "Kiểm tra cơ sở dữ liệu",
@@ -2094,7 +2086,6 @@ PRAGMA busy_timeout=15000;
                         FormBorderStyle = FormBorderStyle.None,
                         Dock = DockStyle.Fill
                     };
-
                     _form33CSDL.FormClosed += (s, ev) =>
                     {
                         if (_form33CSDL != null)
@@ -2105,16 +2096,12 @@ PRAGMA busy_timeout=15000;
                             _form33CSDL = null;
                         }
                     };
-
                     tabPage3.Controls.Add(_form33CSDL);
                     tabPage3.ResumeLayout();
                 }
-
                 if (!_form33CSDL.Visible)
                     _form33CSDL.Show();
-
                 _form33CSDL.BringToFront();
-
                 // Xóa nhãn "Đang tải..." sau khi form đã nhúng xong
                 Control? lbl = tabPage3.Controls["lblDangTaiCSDL"];
                 if (lbl != null)

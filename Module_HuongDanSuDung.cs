@@ -13,6 +13,7 @@ namespace PhanMemThiDua2026
             "version.txt",
             "NhatKy_DonRac.txt" // Phải cho phép file nhật ký tồn tại
         };
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         private const string TenThuMuc = "HuongDanSuDung";
         private const string TenFileHtml = "HuongDanSuDung.html";
         private const string TenFileVersion = "version.txt";

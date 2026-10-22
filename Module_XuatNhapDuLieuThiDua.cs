@@ -10,6 +10,7 @@ namespace PhanMemThiDua2026
     //code chuẩn kỷ sư phần mềm, đảm bảo hệ thống hoạt động 10 năm nữa ổn định
     public class CBCSModel
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public int STT { get; set; }
         public string HoVaTen { get; set; } = "";
         public string SoHieu { get; set; } = "";

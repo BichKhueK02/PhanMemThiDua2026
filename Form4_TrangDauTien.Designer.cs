@@ -83,9 +83,9 @@
             kryptonButton_KiemTraTLvaQS = new Krypton.Toolkit.KryptonButton();
             kryptonButton_Refresh = new Krypton.Toolkit.KryptonButton();
             tableLayoutPanel12 = new TableLayoutPanel();
-            kryptonButton1_XuatTepPdf = new Krypton.Toolkit.KryptonButton();
             kryptonButton_XuatTrinhKy = new Krypton.Toolkit.KryptonButton();
             kryptonButton_XuatTatCa = new Krypton.Toolkit.KryptonButton();
+            kryptonButton1_XuatTepPdf = new Krypton.Toolkit.KryptonButton();
             tableLayoutPanel11 = new TableLayoutPanel();
             pictureBox2 = new PictureBox();
             label11 = new Label();
@@ -546,6 +546,7 @@
             comboBox1_CheDoXetThiDua.RightToLeft = RightToLeft.No;
             comboBox1_CheDoXetThiDua.Size = new Size(84, 23);
             comboBox1_CheDoXetThiDua.TabIndex = 16;
+            comboBox1_CheDoXetThiDua.SelectedIndexChanged += comboBox1_CheDoXetThiDua_SelectedIndexChanged;
             // 
             // label1_CheDoXetThiDuaTanBinh
             // 
@@ -980,12 +981,13 @@
             // tableLayoutPanel12
             // 
             tableLayoutPanel12.ColumnCount = 3;
-            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32.31598F));
-            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34.11131F));
             tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanel12.Controls.Add(kryptonButton1_XuatTepPdf, 2, 0);
+            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
+            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
+            tableLayoutPanel12.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
             tableLayoutPanel12.Controls.Add(kryptonButton_XuatTrinhKy, 0, 0);
             tableLayoutPanel12.Controls.Add(kryptonButton_XuatTatCa, 1, 0);
+            tableLayoutPanel12.Controls.Add(kryptonButton1_XuatTepPdf, 2, 0);
             tableLayoutPanel12.Dock = DockStyle.Fill;
             tableLayoutPanel12.Location = new Point(2, 101);
             tableLayoutPanel12.Margin = new Padding(2, 3, 2, 3);
@@ -995,21 +997,6 @@
             tableLayoutPanel12.Size = new Size(577, 43);
             tableLayoutPanel12.TabIndex = 12;
             // 
-            // kryptonButton1_XuatTepPdf
-            // 
-            kryptonButton1_XuatTepPdf.Anchor = AnchorStyles.None;
-            kryptonButton1_XuatTepPdf.Location = new Point(401, 5);
-            kryptonButton1_XuatTepPdf.Margin = new Padding(2, 3, 2, 3);
-            kryptonButton1_XuatTepPdf.Name = "kryptonButton1_XuatTepPdf";
-            kryptonButton1_XuatTepPdf.RightToLeft = RightToLeft.No;
-            kryptonButton1_XuatTepPdf.Size = new Size(157, 32);
-            kryptonButton1_XuatTepPdf.StateCommon.Border.Rounding = 4F;
-            kryptonButton1_XuatTepPdf.TabIndex = 2;
-            kryptonButton1_XuatTepPdf.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_XuatTepPdf.Values.Image = (Image)resources.GetObject("kryptonButton1_XuatTepPdf.Values.Image");
-            kryptonButton1_XuatTepPdf.Values.Text = "Xuất tệp (*.pdf)";
-            kryptonButton1_XuatTepPdf.Click += kryptonButton1_XuatTepPdf_Click;
-            // 
             // kryptonButton_XuatTrinhKy
             // 
             kryptonButton_XuatTrinhKy.Anchor = AnchorStyles.Left;
@@ -1017,7 +1004,7 @@
             kryptonButton_XuatTrinhKy.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatTrinhKy.Name = "kryptonButton_XuatTrinhKy";
             kryptonButton_XuatTrinhKy.RightToLeft = RightToLeft.No;
-            kryptonButton_XuatTrinhKy.Size = new Size(157, 32);
+            kryptonButton_XuatTrinhKy.Size = new Size(142, 32);
             kryptonButton_XuatTrinhKy.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatTrinhKy.TabIndex = 0;
             kryptonButton_XuatTrinhKy.Values.DropDownArrowColor = Color.Empty;
@@ -1028,17 +1015,32 @@
             // kryptonButton_XuatTatCa
             // 
             kryptonButton_XuatTatCa.Anchor = AnchorStyles.None;
-            kryptonButton_XuatTatCa.Location = new Point(206, 5);
+            kryptonButton_XuatTatCa.Location = new Point(218, 5);
             kryptonButton_XuatTatCa.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatTatCa.Name = "kryptonButton_XuatTatCa";
             kryptonButton_XuatTatCa.RightToLeft = RightToLeft.No;
-            kryptonButton_XuatTatCa.Size = new Size(157, 32);
+            kryptonButton_XuatTatCa.Size = new Size(140, 32);
             kryptonButton_XuatTatCa.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatTatCa.TabIndex = 1;
             kryptonButton_XuatTatCa.Values.DropDownArrowColor = Color.Empty;
             kryptonButton_XuatTatCa.Values.Image = (Image)resources.GetObject("kryptonButton_XuatTatCa.Values.Image");
             kryptonButton_XuatTatCa.Values.Text = "Xuất tất cả";
             kryptonButton_XuatTatCa.Click += kryptonButton_XuatTatCa_Click;
+            // 
+            // kryptonButton1_XuatTepPdf
+            // 
+            kryptonButton1_XuatTepPdf.Anchor = AnchorStyles.None;
+            kryptonButton1_XuatTepPdf.Location = new Point(412, 5);
+            kryptonButton1_XuatTepPdf.Margin = new Padding(2, 3, 2, 3);
+            kryptonButton1_XuatTepPdf.Name = "kryptonButton1_XuatTepPdf";
+            kryptonButton1_XuatTepPdf.RightToLeft = RightToLeft.No;
+            kryptonButton1_XuatTepPdf.Size = new Size(137, 32);
+            kryptonButton1_XuatTepPdf.StateCommon.Border.Rounding = 4F;
+            kryptonButton1_XuatTepPdf.TabIndex = 2;
+            kryptonButton1_XuatTepPdf.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton1_XuatTepPdf.Values.Image = (Image)resources.GetObject("kryptonButton1_XuatTepPdf.Values.Image");
+            kryptonButton1_XuatTepPdf.Values.Text = "Xuất tệp (*.pdf)";
+            kryptonButton1_XuatTepPdf.Click += kryptonButton1_XuatTepPdf_Click;
             // 
             // tableLayoutPanel11
             // 

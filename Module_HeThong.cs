@@ -13,6 +13,7 @@ namespace PhanMemThiDua2026
     internal static class Module_HeThong
     {
         // 1. Dùng chung Font cho toàn hệ thống
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public const string TenFontHeThong = "Segoe UI";
         public const string Font_Times_New_Roman = "Times New Roman";
         public const string TT_DANG_CONG_TAC = "Đang công tác";

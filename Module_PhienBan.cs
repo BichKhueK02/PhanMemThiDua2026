@@ -41,6 +41,7 @@ namespace PhanMemThiDua2026
         {
             return SoftwareVersion;
         }
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public static int GetBuildNumber()
         {
             if (Version.TryParse(SoftwareVersion, out var ver))

@@ -5,6 +5,7 @@ namespace PhanMemThiDua2026
 {
     internal static class Module_DatabaseBackup
     {
+        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         private const string TITLE_VN = "THÔNG TIN CHỨNG THƯ SỐ PHẦN MỀM";
         private const string TITLE_EN = "SOFTWARE DIGITAL CERTIFICATE INFORMATION";
         private static readonly Size SIZE_DA_KY = new Size(1000, 720);
