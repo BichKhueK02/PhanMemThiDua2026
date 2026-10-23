@@ -8,9 +8,7 @@ namespace PhanMemThiDua2026
 {
     internal static class Program
     {
-        // ======================================================================
         //  HẰNG SỐ & CẤU HÌNH
-        // ======================================================================
         private const string DeveloperComputerName = "MEOCAM";
         private const int MaxInstancesOnDeveloper = 3;
         private const int MaxInstancesOnClient = 1;
@@ -29,9 +27,7 @@ namespace PhanMemThiDua2026
         // Bộ chống "bão lỗi" giao diện: >= 5 lỗi UI trong 5 giây => đóng app an toàn
         private const int UiErrorBurstLimit = 5;
         private const long UiErrorBurstWindowMs = 5000;
-        // ======================================================================
         //  TRẠNG THÁI TOÀN CỤC
-        // ======================================================================
         private static Mutex? _appMutex;
         private static Task? _backgroundTask;
         private static readonly CancellationTokenSource ShutdownCts = new();
@@ -44,9 +40,7 @@ namespace PhanMemThiDua2026
         private static int _errorDialogOpen;   // 0/1 - chống chồng hộp thoại lỗi
         private static int _uiErrorCount;      // chỉ truy cập từ UI thread
         private static long _uiErrorWindowStart;
-        // ======================================================================
         //  ĐIỂM VÀO
-        // ======================================================================
         [STAThread]
         private static int Main()
         {
@@ -97,9 +91,7 @@ namespace PhanMemThiDua2026
                 CleanupResources(isPrimaryInstance);
             }
         }
-        // ======================================================================
         //  KHỞI TẠO
-        // ======================================================================
         private static void ConfigureWinForms()
         {
             // Initialize() (sinh theo .csproj) đã gọi EnableVisualStyles +
@@ -150,9 +142,7 @@ namespace PhanMemThiDua2026
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
         }
-        // ======================================================================
         //  TÁC VỤ NỀN
-        // ======================================================================
         // Hẹn giờ ở lần Idle đầu tiên (sau khi Form1 đã dựng xong), chờ thêm một nhịp
         // BackgroundStartDelayMs để không tranh CPU/đĩa với Form1, rồi chạy TUẦN TỰ trong
         // một task duy nhất -> không tranh writer SQLite với Form1 và các bước không giẫm
@@ -217,9 +207,7 @@ namespace PhanMemThiDua2026
                     WriteFallbackLog("Bước chạy chậm", $"{stepName}: {ms:F0} ms");
             }
         }
-        // ======================================================================
         //  SINGLE INSTANCE
-        // ======================================================================
         // Tên mutex xác định (cùng máy -> cùng tên) để các tiến trình nhận ra nhau.
         private static string BuildMutexName(string purpose)
         {
@@ -305,9 +293,7 @@ namespace PhanMemThiDua2026
                 msgMutex.ReleaseMutex();
             }
         }
-        // ======================================================================
         //  XỬ LÝ LỖI TOÀN CỤC
-        // ======================================================================
         private static void ConfigureGlobalExceptionHandlers()
         {
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -376,9 +362,7 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _errorDialogOpen, 0);
             }
         }
-        // ======================================================================
         //  NHẬT KÝ (2 TẦNG: CSDL + FILE DỰ PHÒNG)
-        // ======================================================================
         private static void SafeLog(string user, string action, string note)
         {
             try { Module_NhatKy.GhiNhatKy(user, action, note); } catch { }
@@ -420,9 +404,7 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
-        // ======================================================================
         //  DỌN DẸP & TIỆN ÍCH HỆ THỐNG
-        // ======================================================================
         private static void CleanupResources(bool isPrimary)
         {
             // 1. Báo tác vụ nền dừng (bước chưa chạy sẽ bị bỏ qua), rồi chờ bước đang chạy

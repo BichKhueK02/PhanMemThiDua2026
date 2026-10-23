@@ -341,37 +341,7 @@ namespace PhanMemThiDua2026
             tt.Bong = null;
             b?.Dispose();
         }
-        //private static Bitmap TaoAnhBong(int mw, int mh, int le, float dpi)
-        //{
-        //    const int K = 3;                                     // vẽ ở 1/3 độ phân giải
-        //    int W = mw + 2 * le, H = mh + 2 * le;
-        //    int sw = Math.Max(1, (W + K - 1) / K), sh = Math.Max(1, (H + K - 1) / K);
-        //    float bk = BanKinhBoGoc * dpi;
-        //    using var nho = new Bitmap(sw, sh, PixelFormat.Format32bppPArgb);
-        //    using (var g = Graphics.FromImage(nho))
-        //    {
-        //        g.SmoothingMode = SmoothingMode.AntiAlias;
-        //        g.Clear(Color.Transparent);
-        //        g.ScaleTransform(1f / K, 1f / K);                // vẽ theo toạ độ pixel thật, tự thu nhỏ
-        //        // 1) Bóng chính: mềm, rộng, lệch xuống dưới-phải (ánh sáng từ trên-trái)
-        //        VeBong(g, new RectangleF(le + LechBongX * dpi, le + LechBongY * dpi, mw, mh),
-        //               BanKinhBong * dpi, DoDamBong, 10, bk);
-        //        // 2) Bóng viền: nhỏ, đậm hơn, sát mép -> menu trông "nổi" khỏi nền
-        //        VeBong(g, new RectangleF(le, le + 1 * dpi, mw, mh), 4 * dpi, DoDamVien, 5, bk);
-        //    }
-        //    var kq = new Bitmap(W, H, PixelFormat.Format32bppArgb);
-        //    using (var g = Graphics.FromImage(kq))
-        //    using (var ia = new ImageAttributes())
-        //    {
-        //        ia.SetWrapMode(WrapMode.TileFlipXY);
-        //        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-        //        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-        //        g.DrawImage(nho, new Rectangle(0, 0, W, H), 0, 0, sw, sh, GraphicsUnit.Pixel, ia);
-        //    }
-        //    return kq;
-        //}
-        //
-        //
+     
         private static Bitmap TaoAnhBong(int mw, int mh, int le, float dpi)
         {
             const int K = 3;

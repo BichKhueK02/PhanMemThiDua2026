@@ -141,64 +141,6 @@ namespace PhanMemThiDua2026
                     : "QuyDinhTyLe";
             }
         }
-        //private async Task LoadQuyDinhTyLeAsync()
-        //{
-        //    if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
-        //    try
-        //    {
-        //        using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
-        //        await conn.OpenAsync();
-        //        string tableName = TenBangHienTai;
-        //        // Tự động tạo bảng chống lỗi văng form
-        //        using (var cmdCreate = conn.CreateCommand())
-        //        {
-        //            cmdCreate.CommandText = $@"
-        //CREATE TABLE IF NOT EXISTS [{tableName}] (
-        //    ID INTEGER NOT NULL,
-        //    TenLoaiTapThe TEXT,
-        //    Loai_1 TEXT,
-        //    Loai_2 TEXT,
-        //    Loai_3 TEXT,
-        //    Loai_4 TEXT,
-        //    Khong_PL TEXT,
-        //    PRIMARY KEY(ID AUTOINCREMENT)
-        //);
-        //INSERT OR IGNORE INTO [{tableName}] (ID, TenLoaiTapThe, Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL)
-        //VALUES
-        //(1, '{Module_HeThong.Loai_1}', '0', '0', '0', '0', '0'),
-        //(2, '{Module_HeThong.Loai_2}', '0', '0', '0', '0', '0'),
-        //(3, '{Module_HeThong.Loai_3}', '0', '0', '0', '0', '0');";
-        //            await cmdCreate.ExecuteNonQueryAsync();
-        //        }
-        //        DeNghiMapping.Clear();
-        //        int rows = _txtGrid.GetLength(0);
-        //        int cols = _txtGrid.GetLength(1);
-        //        for (int id = 1; id <= rows; id++)
-        //        {
-        //            int[] values = new int[cols];
-        //            using var cmd = conn.CreateCommand();
-        //            cmd.CommandText = $@"SELECT Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL 
-        //                        FROM [{tableName}] WHERE ID=@id";
-        //            cmd.Parameters.AddWithValue("@id", id);
-        //            using var reader = await cmd.ExecuteReaderAsync();
-        //            if (await reader.ReadAsync())
-        //            {
-        //                for (int i = 0; i < cols; i++)
-        //                {
-        //                    string valStr = reader[i]?.ToString() ?? "0";
-        //                    values[i] = int.TryParse(valStr, out int parsed) ? parsed : 0;
-        //                    _txtGrid[id - 1, i].Text = values[i].ToString();
-        //                }
-        //            }
-        //            DeNghiMapping[$"Loại {id}"] = values;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show("Lỗi khi load dữ liệu tỷ lệ!\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        System.Diagnostics.Debug.WriteLine(ex);
-        //    }
-        //}
         private static readonly string[] CotDuLieuTyLe = { "Loai_1", "Loai_2", "Loai_3", "Loai_4", "Khong_PL" };
         private static readonly System.Text.RegularExpressions.Regex QuyTacTenBangHopLe =
             new(@"^[A-Za-z0-9_]+$", System.Text.RegularExpressions.RegexOptions.Compiled);

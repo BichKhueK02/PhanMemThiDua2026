@@ -260,6 +260,7 @@
             Name = "Form61_TyLeXetThiDuaNam";
             Text = "Khai báo tỷ lệ xét thi đua năm";
             Load += Form61_TyLeXetThiDuaNam_Load;
+            Shown += Form61_TyLeXetThiDuaNam_Shown;
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
             tableLayoutPanel2.ResumeLayout(false);

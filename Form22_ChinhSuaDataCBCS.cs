@@ -28,7 +28,7 @@ namespace PhanMemThiDua2026
             // ⭐ Bật DoubleBuffered để Form vẽ mượt hơn
             this.DoubleBuffered = true;
             // ⭐ SỬA LỖI Ở ĐÂY: Kết nối sự kiện Load để Form nhận lệnh in dữ liệu lên Label
-            this.Load += Form22_ChinhSuaDataCBCS_Load;
+           // this.Load += Form22_ChinhSuaDataCBCS_Load;
             // Chuyển toàn bộ logic nặng sang sự kiện Shown
             this.Shown += Form22_ChinhSuaDataCBCS_Shown;
         }
@@ -103,9 +103,17 @@ namespace PhanMemThiDua2026
         {
             if (this.IsViewOnly)
             {
-                kryptonButton1_CapNhat.Visible = false; // Ẩn nút Cập nhật
-                KhoaGiaoDienNhapLieu(this);            // Khóa toàn bộ các ComboBox
+                KhoaGiaoDienNhapLieu(this);
+                kryptonButton1_CapNhat.Values.Text = "Đóng";
             }
+            else
+            {
+                kryptonButton1_CapNhat.Values.Text = "Cập nhật";
+            }
+            kryptonButton1_CapNhat.Visible = true;
+            kryptonButton1_CapNhat.Enabled = true;   // phòng trường hợp bị khóa nhầm
+            kryptonButton1_CapNhat.BringToFront();
+            kryptonButton1_CapNhat.Invalidate();
         }
         // 👇 HÀM BỔ SUNG ĐỂ FORM 6 "BƠM" DỮ LIỆU MỚI VÀO RAM 
         public async void CapNhatDuLieuMoi(string soHieu, string hoTen, string donVi, string tinhTrang)
@@ -135,6 +143,7 @@ namespace PhanMemThiDua2026
             XoaTrangComboBox(this);
             // 4. Tải lại Data mới
             await LoadDataAsync();
+            ApplyViewOnlyMode();
         }
         // CÁC HÀM TIỆN ÍCH HỖ TRỢ XỬ LÝ GIAO DIỆN HÀNG LOẠT
         private void KhoaGiaoDienNhapLieu(Control parent)
@@ -204,6 +213,8 @@ namespace PhanMemThiDua2026
             {
                 // Cho phép Windows vẽ lại Form. Lúc này tất cả Control đã có đầy đủ data.
                 SendMessage(this.Handle, WM_SETREDRAW, true, 0);
+                // Áp dụng lại SAU khi đã bật vẽ để nút chắc chắn hiện
+                ApplyViewOnlyMode();
                 this.Refresh();
             }
         }
@@ -308,9 +319,14 @@ namespace PhanMemThiDua2026
         }
         private void kryptonButton1_CapNhat_Click(object? sender, EventArgs e)
         {
-            try
+            // Chế độ chỉ xem (từ Form 6): nút chỉ có tác dụng đóng form
+            if (this.IsViewOnly)
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
+                this.Close();
+                return;
+            }
+        try { 
+            using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
                 cn.Open();
                 using (var cmdCheck = new SqliteCommand("SELECT 1 FROM ThiDuaThang WHERE ID = @id LIMIT 1", cn))
                 {

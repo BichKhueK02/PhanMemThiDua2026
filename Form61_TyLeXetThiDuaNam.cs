@@ -47,6 +47,17 @@ namespace PhanMemThiDua2026
             // 3. Tải dữ liệu đã lưu (nếu có) lên Form
             TaiDuLieuTyLe();
         }
+        private void Form61_TyLeXetThiDuaNam_Shown(object sender, EventArgs e)
+        {
+            if (kryptonTextBox1_TyLeXetCSTD == null ||
+                kryptonTextBox1_TyLeXetCSTD.IsDisposed ||
+                !kryptonTextBox1_TyLeXetCSTD.CanFocus)
+                return;
+            kryptonTextBox1_TyLeXetCSTD.Focus();
+            kryptonTextBox1_TyLeXetCSTD.SelectionStart =
+                kryptonTextBox1_TyLeXetCSTD.TextLength;
+            kryptonTextBox1_TyLeXetCSTD.SelectionLength = 0;
+        }
         #region Kiểm tra dữ liệu nhập
         /// <summary>Nội dung đang gõ có hợp lệ không (rỗng được phép): chỉ gồm chữ số, tối đa 3 ký tự, giá trị &lt;= 100.</summary>
         private static bool LaNoiDungNhapHopLe(string text)
