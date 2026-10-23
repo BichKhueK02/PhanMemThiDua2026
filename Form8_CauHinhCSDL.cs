@@ -2,6 +2,8 @@
 using Krypton.Toolkit; // 🟢 BẮT BUỘC THÊM ĐỂ SỬ DỤNG GIAO DIỆN KRYPTON
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -12,24 +14,54 @@ namespace PhanMemThiDua2026
         private int soLanSai = 0;
         private const int MaxSai = 5;
         // 🌟 KHAI BÁO CẤU HÌNH VIỀN UI/UX (CHUẨN WINDOWS 11)
-        private static readonly Color FocusBorderColor = Color.FromArgb(0, 120, 215); // Xanh dương Win 11
-        private static readonly Color NormalBorderColor = Color.Silver;               // Xám bạc mặc định
+        private static readonly Color FocusBorderColor = Color.FromArgb(99, 102, 241); // Chàm (cùng tông nút)
+        private static readonly Color NormalBorderColor = Color.FromArgb(51, 65, 85);  // Xám đậm mặc định
         private const int FocusBorderWidth = 2;                                       // Độ dày khi Focus
         private const int NormalBorderWidth = 1;                                      // Độ dày bình thường
         public Form8_CauHinhCSDL()
         {
             InitializeComponent();
             InitToolTips_CauHinhCSDL();
+            InitBorderlessStyle();
+        }
+        // ===== GIAO DIỆN KHÔNG VIỀN, BO TRÒN, KÉO ĐƯỢC =====
+        private void InitBorderlessStyle()
+        {
+            this.DoubleBuffered = true;
+            this.CancelButton = btn_Thoat; // Esc = Hủy
+            this.Load += (s, e) => ApplyRoundedRegion();
+            this.Resize += (s, e) => ApplyRoundedRegion();
+            foreach (Control c in new Control[] { this, cardPanel, pnlHeader, picLogo, lblTitle, lblSubtitle })
+                c.MouseDown += DragForm_MouseDown;
+        }
+        private void ApplyRoundedRegion()
+        {
+            const int radius = 22;
+            int d = radius * 2;
+            using var path = new GraphicsPath();
+            path.AddArc(0, 0, d, d, 180, 90);
+            path.AddArc(Width - d, 0, d, d, 270, 90);
+            path.AddArc(Width - d, Height - d, d, d, 0, 90);
+            path.AddArc(0, Height - d, d, d, 90, 90);
+            path.CloseFigure();
+            this.Region?.Dispose();
+            this.Region = new Region(path);
+        }
+        [DllImport("user32.dll")] private static extern bool ReleaseCapture();
+        [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+        private void DragForm_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                ReleaseCapture();
+                SendMessage(this.Handle, 0xA1, 0x2, 0); // WM_NCLBUTTONDOWN, HTCAPTION
+            }
         }
         private void Form8_Load(object? sender, EventArgs e)
         {
-            this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
             this.AcceptButton = btn_DangNhap;
-            int h = Text_Admin.Height + 2;
-            foreach (Control btn in new Control[] { btn_DangNhap, btn_Thoat })
-                btn.Height = h;
             LoadTaiKhoanMacDinh();
             CapNhatTrangThaiHienMatKhau();
             // 🌟 KÍCH HOẠT TÍNH NĂNG TÔ MÀU VIỀN TỰ ĐỘNG
@@ -47,6 +79,7 @@ namespace PhanMemThiDua2026
                 // Thiết lập viền mặc định
                 ktb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
                 ktb.StateCommon.Border.Color1 = NormalBorderColor;
+                ktb.StateCommon.Border.Color2 = NormalBorderColor;
                 ktb.StateCommon.Border.Width = NormalBorderWidth;
                 // An toàn: Hủy đăng ký trước khi gắn sự kiện mới
                 ktb.Enter -= Ktb_EnterFocus;
@@ -60,6 +93,7 @@ namespace PhanMemThiDua2026
             if (sender is KryptonTextBox ktb)
             {
                 ktb.StateCommon.Border.Color1 = FocusBorderColor;
+                ktb.StateCommon.Border.Color2 = FocusBorderColor;
                 ktb.StateCommon.Border.Width = FocusBorderWidth;
                 ktb.Refresh(); // Cập nhật UI ngay lập tức
             }
@@ -69,6 +103,7 @@ namespace PhanMemThiDua2026
             if (sender is KryptonTextBox ktb)
             {
                 ktb.StateCommon.Border.Color1 = NormalBorderColor;
+                ktb.StateCommon.Border.Color2 = NormalBorderColor;
                 ktb.StateCommon.Border.Width = NormalBorderWidth;
                 ktb.Refresh();
             }
@@ -204,11 +239,11 @@ namespace PhanMemThiDua2026
                 if (File.Exists(exePath))
                     return exePath;
                 // 4. KIỂM TRA FILE TRONG THƯ MỤC BACKUP
-                string motherExe =Path.Combine(motherFolder, Module_DanduongGPS.TenFileDBBrowserSQLite);
+                string motherExe = Path.Combine(motherFolder, Module_DanduongGPS.TenFileDBBrowserSQLite);
                 if (File.Exists(motherExe))
                     return motherExe;
                 // 5. FALLBACK 1
-                string fallback1 =Path.Combine(Application.StartupPath, Module_DanduongGPS.TenThuMucCongCuQuanLyCSDL, Module_DanduongGPS.TenFileDBBrowserSQLite);
+                string fallback1 = Path.Combine(Application.StartupPath, Module_DanduongGPS.TenThuMucCongCuQuanLyCSDL, Module_DanduongGPS.TenFileDBBrowserSQLite);
                 if (File.Exists(fallback1))
                     return fallback1;
                 // 6. FALLBACK 2
@@ -291,7 +326,7 @@ namespace PhanMemThiDua2026
         //{
         //    bool isChecked = Chex_HienMatKhau.Checked;
         //    Text_Password.UseSystemPasswordChar = !isChecked;
-        //    Chex_HienMatKhau.ForeColor = isChecked ? Color.Green : Color.Red;
+        //    Chex_HienMatKhau.ForeColor = isChecked ? Color.FromArgb(74, 222, 128) : Color.FromArgb(148, 163, 184);
         //}
         private void CapNhatTrangThaiHienMatKhau()
         {
@@ -302,7 +337,7 @@ namespace PhanMemThiDua2026
             // (Tùy chọn) Vẫn giữ UseSystemPasswordChar để đồng bộ với OS
             Text_Password.UseSystemPasswordChar = !isChecked;
             // Đổi màu chữ CheckBox theo trạng thái
-            Chex_HienMatKhau.ForeColor = isChecked ? Color.Green : Color.Red;
+            Chex_HienMatKhau.ForeColor = isChecked ? Color.FromArgb(74, 222, 128) : Color.FromArgb(148, 163, 184);
         }
         // Thay đổi thành async để đợi Gõ Cửa Trái Tim
         private void btn_DangNhap_Click(object? sender, EventArgs e)

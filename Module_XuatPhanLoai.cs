@@ -124,9 +124,7 @@ namespace PhanMemThiDua2026
                     if (wb.Worksheets.Contains(sheetName))
                     {
                         var ws = wb.Worksheet(sheetName);
-                        // -----------------------------------------------------------------
                         // A. Xử lý Ô A6 (Gộp A6:K6 - Tiêu đề danh sách)
-                        // -----------------------------------------------------------------
                         var cellA6 = ws.Cell("A6");
                         string valA6 = cellA6.Value.ToString();
                         if (!string.IsNullOrEmpty(valA6))
@@ -150,9 +148,7 @@ namespace PhanMemThiDua2026
                             }
                             cellA6.SetValue(textA6Moi);
                         }
-                        // -----------------------------------------------------------------
                         // B. Xử lý Cột J (Từ dòng 10 đến dòng cuối)
-                        // -----------------------------------------------------------------
                         int lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
                         if (lastRow >= 10)
                         {
@@ -2322,9 +2318,7 @@ namespace PhanMemThiDua2026
                     if (wb.Worksheets.Contains(sheetName))
                     {
                         var ws = wb.Worksheet(sheetName);
-                        // -----------------------------------------------------------------
                         // A. XỬ LÝ Ô A6 (Tiêu đề danh sách)
-                        // -----------------------------------------------------------------
                         var cellA6 = ws.Cell("A6");
                         string valA6 = cellA6.Value.ToString();
                         if (!string.IsNullOrEmpty(valA6))
@@ -2345,9 +2339,7 @@ namespace PhanMemThiDua2026
                             }
                             cellA6.SetValue(textA6Moi);
                         }
-                        // -----------------------------------------------------------------
                         // B. XỬ LÝ CỘT J (Từ dòng 10 đến dòng cuối)
-                        // -----------------------------------------------------------------
                         int lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
                         if (lastRow >= 10)
                         {

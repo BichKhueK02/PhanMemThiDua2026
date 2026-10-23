@@ -10,6 +10,40 @@ namespace PhanMemThiDua2026
     public sealed class FormAoBase : KryptonForm
     {
         //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+        // Cờ cửa sổ WS_EX_COMPOSITED: Windows vẽ form + TẤT CẢ control con vào 1 bộ đệm rồi mới đưa lên màn hình.
+        // Khi rê chuột, các control Krypton (nút, panel, label nền trong suốt...) vẽ lại từng phần lệch nhau
+        // -> thấy giật/nháy. Bộ đệm chung này làm các lần vẽ đó hiện ra cùng lúc, mượt hơn rõ rệt.
+        private const int WS_EX_COMPOSITED = 0x02000000;
+
+        // Mặc định BẬT, nhưng tự tắt khi chạy qua Remote Desktop (cờ này làm RDP chậm).
+        private bool _chongGiat = !SystemInformation.TerminalServerSession;
+
+        /// <summary>
+        /// Bật/tắt chế độ vẽ bộ đệm chung (WS_EX_COMPOSITED) cho form này.
+        /// Nên đặt NGAY TRONG CONSTRUCTOR của form con (trước khi form hiện).
+        /// Tắt (false) cho form chứa WebView2 / trình xem PDF / video / control vẽ bằng DirectX,
+        /// vì các control kiểu đó tự vẽ bằng GPU và có thể bị trắng hoặc nháy khi chồng bộ đệm chung.
+        /// </summary>
+        public bool ChongGiatBoDemChung
+        {
+            get => _chongGiat;
+            set
+            {
+                if (_chongGiat == value) return;
+                _chongGiat = value;
+                if (IsHandleCreated) RecreateHandle();   // áp dụng ngay nếu form đã hiện (hiếm khi cần)
+            }
+        }
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                if (_chongGiat && !DesignMode) cp.ExStyle |= WS_EX_COMPOSITED;   // không bật trong Designer cho đỡ lỗi hiển thị
+                return cp;
+            }
+        }
         public FormAoBase()
         {
             // Chống giật UI bằng DoubleBuffer tầng sâu.
@@ -25,8 +59,7 @@ namespace PhanMemThiDua2026
             AutoScaleMode = AutoScaleMode.None;
             StartPosition = FormStartPosition.CenterParent;
         }
-        // Đã bỏ: override CreateParams (chỉ trả về base, không đổi gì) và InitializeComponent/FormAoBase_Load
-        // (không nơi nào gọi, Load rỗng). Không ảnh hưởng hành vi.
+        // Đã bỏ: InitializeComponent/FormAoBase_Load (không nơi nào gọi, Load rỗng). Không ảnh hưởng hành vi.
     }
     // LỚP 2: CÔNG CỤ QUẢN LÝ ĐÓNG/MỞ FORM TOÀN HỆ THỐNG
     // Bộ xương sống quản lý vòng đời UI, tiêu diệt Memory Leak và GDI Leak

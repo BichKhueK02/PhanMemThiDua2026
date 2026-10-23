@@ -86,7 +86,6 @@ public static class Module_BaoMatAES
             return Aes.Create(); // Trả về đối tượng mặc định để tránh crash luồng
         }
     }, trackAllValues: true);
-    // ======================================================================
     //  MaHoa / GiaiMa - BẢN TỐI ƯU LẦN 2 (ưu tiên máy yếu)
     //  GIỮ NGUYÊN 100%: AES-CBC + PKCS7, khóa/IV gốc từ _aesLocal, định dạng "v2|" + Base64(IV16 + Cipher),
     //  giải mã v1 (IV mặc định), Trim('\0').Trim(), điều kiện cache, "lỗi => chuỗi rỗng".
@@ -101,7 +100,6 @@ public static class Module_BaoMatAES
     //  4) IV vẫn là ngẫu nhiên CSPRNG, nhưng sinh theo lô 64 IV/lần thay vì gọi hệ điều hành mỗi lượt.
     //  5) Bộ đệm giải mã tạo sẵn dung lượng => không bị "resize" nhiều lần khi nạp lưới vài nghìn dòng.
     //  6) Tự rơi về đường cũ nếu động cơ gặp lỗi (cờ _dongCoHong) => không bao giờ làm hỏng dữ liệu.
-    // ======================================================================
     private static volatile bool _dongCoHong;   // true => dùng đường cũ (EncryptCbc/DecryptCbc 1 lần)
     private static volatile bool _tatDongCo;    // chỉ để đo so sánh trong DoTocDo / KiemTraTuongThichMaHoa
     private const int NGUONG_DONG_CO_MA_HOA = 79; // <= 5 khối AES => động cơ nhanh hơn one-shot (chỉnh bằng DoTocDo nếu cần)

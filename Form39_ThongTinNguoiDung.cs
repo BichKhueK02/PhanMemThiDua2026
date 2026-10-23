@@ -1,10 +1,9 @@
-﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
+
 namespace PhanMemThiDua2026
 {
-    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form39_ThongTinNguoiDung : Form
     {
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
@@ -13,50 +12,87 @@ namespace PhanMemThiDua2026
         private const int MAX_PIXEL_LIMIT = 4096;
         private const int DISPLAY_SIZE = 256;
         // 🚀 CACHE RAM & THREAD SAFETY
+
+        //private static readonly object _avatarLock = new object(); // Khóa luồng cho Cache
         private static readonly Color FocusBorderColor = Color.FromArgb(0, 120, 215); // Win 10/11 Blue
         private static readonly Color NormalBorderColor = Color.Silver;
         private const int FocusBorderWidth = 2;
         private const int NormalBorderWidth = 1;
         private static Form39_ThongTinNguoiDung? _instance;
         private static readonly object _formLock = new object();
-        private bool _isFirstLoad = true;
+        // Cờ nhận diện Form bật lần đầu tiên
+        // private bool _isFirstLoad = true;
         public static class UIHelper
         {
             public static void SafeInvoke(Control ctrl, Action action)
             {
+                // 🛡️ BẢO VỆ 3 LỚP (Đã gỡ bỏ bẫy !ctrl.IsHandleCreated để không bị nuốt ảnh khi load nhanh)
                 if (ctrl == null || ctrl.IsDisposed || ctrl.Disposing) return;
+
                 try
                 {
+                    // InvokeRequired sẽ trả về false nếu Handle chưa được tạo HOẶC đang đứng đúng luồng UI
                     if (ctrl.InvokeRequired)
                     {
                         ctrl.BeginInvoke(action);
                     }
                     else
                     {
+                        // Nếu đang ở luồng UI, cứ mạnh dạn gán thẳng ảnh. 
+                        // WinForms sẽ tự nhớ và hiển thị khi Form render xong.
                         action();
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[UIHelper] Lỗi SafeInvoke: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[UIHelper] Lỗi SafeInvoke: {ex.Message}");
                 }
+            }
+        }
+        public static Form39_ThongTinNguoiDung GetInstance()
+        {
+            lock (_formLock)
+            {
+                // 🛡️ Form đã bị hủy -> tạo mới
+                if (_instance == null || _instance.IsDisposed)
+                {
+                    _instance = new Form39_ThongTinNguoiDung();
+
+                    // 🚀 Tự reset singleton khi form bị đóng thật
+                    _instance.FormClosed += (_, __) =>
+                    {
+                        lock (_formLock)
+                        {
+                            _instance = null;
+                        }
+                    };
+                }
+
+                return _instance;
             }
         }
         public Form39_ThongTinNguoiDung()
         {
             InitializeComponent();
             SetupUI();
-            SetTextBoxesReadOnly(); // 🔒 Khóa ReadOnly toàn bộ ngay khi khởi tạo Form
+            // Thêm dòng này để lắng nghe khi Form ẩn/hiện
             this.VisibleChanged += Form39_ThongTinNguoiDung_VisibleChanged;
         }
-        private async void Form39_ThongTinNguoiDung_Load(object? sender, EventArgs e)
+
+        // Cờ nhận diện Form bật lần đầu tiên
+        private bool _isFirstLoad = true;
+        // Lê Trung Kiên -  Yêu mèo cam
+        private async void Form39_ThongTinNguoiDung_Load(object sender, EventArgs e)
         {
             try
             {
                 InitFocusEffects();
                 this.ActiveControl = kryptonButton1_DongFrom;
                 InitToolTips();
+
+                // Luôn đảm bảo bảng tồn tại
                 KhoiTaoBangAnhAdmin(_csdl1Path);
+
                 // ⭐ GỌI HÀM NẠP TỔNG HỢP Ở LẦN ĐẦU KHỞI TẠO
                 await NapDuLieuMoiNhatToanDien();
             }
@@ -66,15 +102,19 @@ namespace PhanMemThiDua2026
             }
             finally
             {
+                // Đánh dấu đã load xong lần đầu
                 _isFirstLoad = false;
             }
         }
+
         private async void Form39_ThongTinNguoiDung_VisibleChanged(object? sender, EventArgs e)
         {
+            // Cờ _isFirstLoad giúp chặn việc load đè khi Form_Load đang chạy lần đầu
             if (this.Visible && !_isFirstLoad)
             {
                 try
                 {
+                    // Xóa cache để ép kéo data mới
                     Module_DanduongGPS.XoaCacheAvatarToanCuc();
                     await NapDuLieuMoiNhatToanDien();
                 }
@@ -84,35 +124,18 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        public static Form39_ThongTinNguoiDung GetInstance()
-        {
-            lock (_formLock)
-            {
-                if (_instance == null || _instance.IsDisposed)
-                {
-                    _instance = new Form39_ThongTinNguoiDung();
-                    _instance.FormClosed += (_, __) =>
-                    {
-                        lock (_formLock)
-                        {
-                            if (!ReferenceEquals(_instance, null))
-                            {
-                                _instance = null;
-                            }
-                        }
-                    };
-                }
-                return _instance;
-            }
-        }
+
         // ⭐ HÀM GOM CHUNG TRỌNG TÂM: Nạp cả Text lẫn Ảnh
         private async Task NapDuLieuMoiNhatToanDien()
         {
             try
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+                // Cho 2 tác vụ Text và Image chạy song song ép xung
                 var loadTextTask = LoadThongTinVanBanAsync();
                 var loadAvatarTask = LoadAnhDaiDienAsync(cts.Token);
+
                 await Task.WhenAll(loadTextTask, loadAvatarTask);
                 Debug.WriteLine("🔄 [Form39] Đã nạp lại TOÀN BỘ Text và Ảnh mới nhất!");
             }
@@ -123,11 +146,17 @@ namespace PhanMemThiDua2026
         }
         private void HienThiAnh(Image img)
         {
+            // 🚀 SỬ DỤNG UIHELPER CHUẨN XÁC: Truyền đúng PictureBox vào tham số đầu tiên
             UIHelper.SafeInvoke(pictureBox2_AnhDaiDienAdmin, () =>
             {
+                // Bắt lại ảnh cũ đang hiển thị
                 var oldImage = pictureBox2_AnhDaiDienAdmin.Image;
+
+                // Gán ảnh mới và cấu hình hiển thị
                 pictureBox2_AnhDaiDienAdmin.Image = img;
                 pictureBox2_AnhDaiDienAdmin.SizeMode = PictureBoxSizeMode.StretchImage;
+
+                // Giải phóng ảnh cũ khỏi RAM ngay lập tức
                 oldImage?.Dispose();
             });
         }
@@ -137,8 +166,9 @@ namespace PhanMemThiDua2026
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.DoubleBuffered = true;
+            this.DoubleBuffered = true; // Chống giật khung hình
         }
+        // Đặt hàm này trong Form39 hoặc Module_KhoiTaoCSDL
         public static void KhoiTaoBangAnhAdmin(string dbPath)
         {
             try
@@ -146,12 +176,23 @@ namespace PhanMemThiDua2026
                 using var cn = new SqliteConnection($"Data Source={dbPath}");
                 cn.Open();
                 using var cmd = cn.CreateCommand();
-                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS AvatarAdmin (ID INTEGER PRIMARY KEY, ThumbnailAnh BLOB, DuLieuAnh BLOB);";
+                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS AvatarAdmin (
+                                ID INTEGER PRIMARY KEY, 
+                                ThumbnailAnh BLOB, 
+                                DuLieuAnh BLOB
+                            );";
                 cmd.ExecuteNonQuery();
             }
-            catch (Exception ex) { Debug.WriteLine("Lỗi khởi tạo bảng AvatarAdmin: " + ex.Message); }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi khởi tạo bảng AvatarAdmin: " + ex.Message);
+            }
         }
-        // 🔒 Bổ sung ĐẦY ĐỦ tất cả các TextBox lên Form (bao gồm thể loại máy tính)
+
+
+
+   
+        // Cung cấp danh sách Control tĩnh, loại bỏ đệ quy tốn CPU
         private IEnumerable<Control> GetAllTextBoxes()
         {
             return new Control[]
@@ -160,28 +201,8 @@ namespace PhanMemThiDua2026
                 textBox_ThoiGianDangNhap,
                 textBox_TenMayTinh,
                 textBox_TenUserWindows,
-                textbox_SeriaMay,
-                textBox_PhienbanPhanMem,
-                kryptonTextBox1_CapNhatLanCuoi,
-                kryptonTextBox1_TheLoaiMayTinh
+                textbox_SeriaMay
             };
-        }
-        // 🔒 Hàm đặt tất cả TextBox về ReadOnly tuyệt đối
-        private void SetTextBoxesReadOnly()
-        {
-            foreach (var ctrl in GetAllTextBoxes())
-            {
-                if (ctrl == null) continue;
-                if (ctrl is Krypton.Toolkit.KryptonTextBox ktb)
-                {
-                    ktb.ReadOnly = true;
-                }
-                else if (ctrl is TextBox tb)
-                {
-                    tb.ReadOnly = true;
-                    tb.BackColor = SystemColors.Window;
-                }
-            }
         }
         private void InitFocusEffects()
         {
@@ -191,18 +212,21 @@ namespace PhanMemThiDua2026
                 {
                     if (ctrl == null || ctrl.IsDisposed)
                         continue;
+
                     if (ctrl is Krypton.Toolkit.KryptonTextBox ktb)
                     {
+                        // Set trạng thái chuẩn để không bị rách viền trên máy DPI cao
                         ktb.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
                         ktb.StateCommon.Border.Color1 = NormalBorderColor;
                         ktb.StateCommon.Border.Color2 = NormalBorderColor;
                         ktb.StateCommon.Border.Width = NormalBorderWidth;
+
                         ktb.Enter -= KryptonTextBox_EnterFocus;
                         ktb.Leave -= KryptonTextBox_LeaveFocus;
                         ktb.Enter += KryptonTextBox_EnterFocus;
                         ktb.Leave += KryptonTextBox_LeaveFocus;
                     }
-                    else if (ctrl is TextBox tb)
+                    else if (ctrl is TextBox tb) // Hỗ trợ nếu có TextBox WinForms thường
                     {
                         tb.Enter -= StandardTextBox_EnterFocus;
                         tb.Leave -= StandardTextBox_LeaveFocus;
@@ -223,6 +247,7 @@ namespace PhanMemThiDua2026
                 foreach (var ctrl in GetAllTextBoxes())
                 {
                     if (ctrl == null || ctrl.IsDisposed) continue;
+
                     if (ctrl is Krypton.Toolkit.KryptonTextBox ktb)
                     {
                         ktb.Enter -= KryptonTextBox_EnterFocus;
@@ -265,21 +290,28 @@ namespace PhanMemThiDua2026
         {
             if (sender is TextBox tb) tb.BackColor = SystemColors.Window;
         }
+        // =========================================================================
+        // 🚀 CÁC HÀM XỬ LÝ TEXT & DỮ LIỆU CỐT LÕI
+        // =========================================================================
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
-            toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
+            toolTip1.ToolTipTitle = "Gợi ý thao tác";
             toolTip1.ToolTipIcon = ToolTipIcon.Info;
             toolTip1.InitialDelay = 200;
             toolTip1.AutoPopDelay = 3000;
             toolTip1.ReshowDelay = 50;
+
             string tenTaiKhoan = string.IsNullOrWhiteSpace(textBox_TenTaiKhoan.Text)
                                  ? "người dùng"
                                  : textBox_TenTaiKhoan.Text.Trim();
-            var tips = new Dictionary<Control, string>{
+
+            var tips = new Dictionary<Control, string>
+            {
                 { pictureBox2_AnhDaiDienAdmin, $"Ảnh đại diện của tài khoản {tenTaiKhoan}" },
                 { kryptonButton1_DongFrom, "Đóng cửa sổ thông tin người dùng" }
             };
+
             foreach (var tip in tips)
             {
                 if (tip.Key != null) toolTip1.SetToolTip(tip.Key, tip.Value);
@@ -293,14 +325,17 @@ namespace PhanMemThiDua2026
                 textBox_ThoiGianDangNhap.Text = FormatThoiGianDangNhap(SessionInfo.ThoiGianDangNhap);
                 textBox_TenMayTinh.Text = SafeGet(() => Environment.MachineName);
                 textBox_TenUserWindows.Text = SafeGet(() => Environment.UserName);
-                textBox_PhienbanPhanMem.Text = Module_PhienBan.SoftwareVersion ?? "N/A";
-                if (kryptonTextBox1_CapNhatLanCuoi != null)
-                    kryptonTextBox1_CapNhatLanCuoi.Text = Module_PhienBan.NgayThangNamHeThong ?? "N/A";
-                if (kryptonTextBox1_TheLoaiMayTinh != null)
-                    kryptonTextBox1_TheLoaiMayTinh.Text = Module_TrangThaiHeThong.LayLoaiMayTinh();
+                //textBox_PhienbanPhanMem.Text = Module_PhienBan.SoftwareVersion ?? "N/A";
+
+                //if (kryptonTextBox1_CapNhatLanCuoi != null)
+                //    kryptonTextBox1_CapNhatLanCuoi.Text = Module_PhienBan.NgayThangNamHeThong ?? "N/A";
+
                 SetTextBoxesReadOnly();
+
                 textbox_SeriaMay.Text = "Đang kiểm tra...";
                 string uuid = await Task.Run(() => SafeGet(() => Module_TrangThaiHeThong.LayUUIDMayTinh()));
+
+                // 🛡️ BẢO VỆ HANDLE
                 if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
                 {
                     textbox_SeriaMay.Text = uuid;
@@ -309,6 +344,21 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 GhiLogHeThong("Text Load Error", ex);
+            }
+        }
+        private void SetTextBoxesReadOnly()
+        {
+            foreach (var ctrl in GetAllTextBoxes())
+            {
+                if (ctrl is Krypton.Toolkit.KryptonTextBox ktb)
+                {
+                    ktb.ReadOnly = true;
+                }
+                else if (ctrl is TextBox tb)
+                {
+                    tb.ReadOnly = true;
+                    tb.BackColor = SystemColors.Window;
+                }
             }
         }
         private string SafeGet(Func<string> func)
@@ -322,16 +372,20 @@ namespace PhanMemThiDua2026
             {
                 if (dt == default || dt.Year < 2000) return "N/A";
                 dt = dt.ToLocalTime();
-                return $"{dt:HH} giờ {dt:mm} phút {dt:ss} giây, ngày {dt:dd}/{dt:MM}/{dt:yyyy}";
+                return $"{dt:HH} giờ {dt:mm} phút {dt:ss} giây, ngày {dt:dd} tháng {dt:MM} năm {dt:yyyy}";
             }
             catch { return "N/A"; }
         }
+        // =========================================================================
         // 🚀 TỐI ƯU ẢNH (Stream Phòng Ngự & Clone An Toàn Tuyệt Đối)
+        // =========================================================================
         private async Task LoadAnhDaiDienAsync(CancellationToken token)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(_csdl1Path) || !File.Exists(_csdl1Path)) return;
+
+                // 1. Kiểm tra RAM (Cache toàn cục từ Module) trước tiên
                 lock (Module_DanduongGPS.AvatarLock)
                 {
                     if (Module_DanduongGPS.CachedAvatarAdmin != null)
@@ -340,24 +394,31 @@ namespace PhanMemThiDua2026
                         return;
                     }
                 }
+
+                // 2. Không có Cache thì lấy từ DB
                 Image? resizedImage = await LayVaXuLyAnhTuDatabaseAsync(token);
+
                 if (this.IsDisposed || this.Disposing || !this.IsHandleCreated)
                 {
                     resizedImage?.Dispose();
                     return;
                 }
+
                 if (resizedImage != null)
                 {
+                    // Nạp bản sao vào Cache toàn cục
                     lock (Module_DanduongGPS.AvatarLock)
                     {
                         Module_DanduongGPS.CachedAvatarAdmin?.Dispose();
                         Module_DanduongGPS.CachedAvatarAdmin = new Bitmap(resizedImage);
                     }
+
                     HienThiAnh(new Bitmap(resizedImage));
                     resizedImage.Dispose();
                 }
                 else
                 {
+                    // Xóa trắng PictureBox nếu DB không có ảnh
                     UIHelper.SafeInvoke(pictureBox2_AnhDaiDienAdmin, () =>
                     {
                         var oldImage = pictureBox2_AnhDaiDienAdmin.Image;
@@ -372,69 +433,163 @@ namespace PhanMemThiDua2026
                 GhiLogHeThong("Avatar Load Error", ex);
             }
         }
-        // 🛡️ ĐÃ SỬA LỖI ÉP KIỂU "Unable to cast object of type System.String to System.Byte[]"
+
         private async Task<Image?> LayVaXuLyAnhTuDatabaseAsync(CancellationToken token)
         {
             string connString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
             using var conn = new SqliteConnection(connString);
             await conn.OpenAsync(token);
+
+            // Lấy ID = 1
             using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);
             using var reader = await cmd.ExecuteReaderAsync(token);
+
             if (!await reader.ReadAsync(token)) return null;
+
+            // Đọc linh hoạt: cột có thể là BLOB (byte[]) hoặc TEXT (Base64 / data URI / đường dẫn file)
+            // -> KHÔNG ép kiểu cứng (byte[]) nữa để tránh InvalidCastException 'String' -> 'Byte[]'
             int thumbOrdinal = reader.GetOrdinal("ThumbnailAnh");
             int fullOrdinal = reader.GetOrdinal("DuLieuAnh");
-            int targetOrdinal = !reader.IsDBNull(thumbOrdinal) ? thumbOrdinal :
-                                (!reader.IsDBNull(fullOrdinal) ? fullOrdinal : -1);
-            if (targetOrdinal == -1) return null;
-            byte[]? imageBytes = null;
-            object rawVal = reader.GetValue(targetOrdinal);
-            if (rawVal is byte[] bytes)
+
+            // Ưu tiên Thumbnail (nhẹ RAM), hỏng/không đọc được thì tự lùi sang ảnh gốc
+            foreach (int ordinal in new[] { thumbOrdinal, fullOrdinal })
             {
-                imageBytes = bytes;
-            }
-            else if (rawVal is string base64Str)
-            {
-                if (!string.IsNullOrWhiteSpace(base64Str))
+                token.ThrowIfCancellationRequested();
+
+                byte[]? imageBytes = DocDuLieuAnhLinhHoat(reader, ordinal);
+                if (imageBytes == null || imageBytes.Length == 0) continue;
+
+                try
                 {
-                    try { imageBytes = Convert.FromBase64String(base64Str); }
-                    catch { imageBytes = null; }
+                    using var ms = new MemoryStream(imageBytes);
+                    using var tempBmp = Image.FromStream(ms, false, true);
+                    return ResizeImageSafe(tempBmp, DISPLAY_SIZE, DISPLAY_SIZE);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Lỗi chuyển đổi dữ liệu ảnh (cột " + ordinal + "): " + ex.Message);
+                    // thử cột tiếp theo
                 }
             }
-            else
-            {
-                using var stream = reader.GetStream(targetOrdinal);
-                using var msTemp = new MemoryStream();
-                await stream.CopyToAsync(msTemp, token);
-                imageBytes = msTemp.ToArray();
-            }
-            if (imageBytes == null || imageBytes.Length == 0) return null;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Đọc dữ liệu ảnh từ 1 cột SQLite bất kể kiểu lưu trữ:
+        /// BLOB (byte[]), TEXT Base64, TEXT dạng "data:image/...;base64,...", hoặc TEXT là đường dẫn file ảnh.
+        /// Trả về null nếu không giải mã được (không ném lỗi).
+        /// </summary>
+        private static byte[]? DocDuLieuAnhLinhHoat(System.Data.Common.DbDataReader reader, int ordinal)
+        {
             try
             {
-                using var ms = new MemoryStream(imageBytes);
-                using var tempBmp = Image.FromStream(ms, false, true);
-                return ResizeImageSafe(tempBmp, DISPLAY_SIZE, DISPLAY_SIZE);
+                if (reader.IsDBNull(ordinal)) return null;
+
+                object value = reader.GetValue(ordinal);
+
+                if (value is byte[] bytes)
+                    return bytes.Length > 0 ? bytes : null;
+
+                if (value is string text)
+                {
+                    text = text.Trim();
+                    if (text.Length == 0) return null;
+
+                    // data URI: data:image/png;base64,xxxx
+                    if (text.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        int idx = text.IndexOf("base64,", StringComparison.OrdinalIgnoreCase);
+                        if (idx >= 0) text = text.Substring(idx + 7);
+                    }
+
+                    // Base64 thuần
+                    try { return Convert.FromBase64String(text); }
+                    catch (FormatException) { /* không phải Base64 -> thử đường dẫn file */ }
+
+                    // Đường dẫn file ảnh
+                    if (File.Exists(text)) return File.ReadAllBytes(text);
+                }
+
+                return null;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Lỗi chuyển đổi dữ liệu sang Image: " + ex.Message);
+                Debug.WriteLine("Lỗi đọc cột ảnh: " + ex.Message);
                 return null;
             }
         }
+
+
+        //private async Task<Image?> LayVaXuLyAnhTuDatabaseAsync(CancellationToken token)
+        //{
+        //    // 🚀 SQLITE BUSY TIMEOUT: Chờ tối đa 10s nếu file .db đang bị khóa
+        //    string connString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
+        //    using var conn = new SqliteConnection(connString);
+
+        //    await conn.OpenAsync(token);
+
+        //    using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);
+        //    using var reader = await cmd.ExecuteReaderAsync(token);
+
+        //    if (!await reader.ReadAsync(token)) return null;
+
+        //    int thumbOrdinal = reader.GetOrdinal("ThumbnailAnh");
+        //    int fullOrdinal = reader.GetOrdinal("DuLieuAnh");
+        //    int colIndex = !reader.IsDBNull(thumbOrdinal) ? thumbOrdinal :
+        //                   !reader.IsDBNull(fullOrdinal) ? fullOrdinal : -1;
+
+        //    if (colIndex == -1) return null;
+
+        //    using Stream dbStream = reader.GetStream(colIndex);
+
+        //    // 🚀 DEFENSIVE STREAMING: Chống Throw NotSupportedException
+        //    if (!dbStream.CanRead) return null;
+
+        //    try
+        //    {
+        //        if (dbStream.Length == 0 || dbStream.Length > MAX_IMAGE_SIZE) return null;
+        //    }
+        //    catch
+        //    {
+        //        return null; // Bắt an toàn các Provider không hỗ trợ .Length
+        //    }
+
+        //    using var ms = new MemoryStream();
+        //    await dbStream.CopyToAsync(ms, token);
+        //    ms.Position = 0;
+
+        //    // 🚀 SAFE CLONING: Ngắt đứt hoàn toàn khóa GDI+
+        //    using var tempBmp = Image.FromStream(ms, useEmbeddedColorManagement: false, validateImageData: true);
+        //    using var original = new Bitmap(tempBmp);
+
+        //    if (original.Width > MAX_PIXEL_LIMIT || original.Height > MAX_PIXEL_LIMIT)
+        //        return null;
+
+        //    return ResizeImageSafe(original, DISPLAY_SIZE, DISPLAY_SIZE);
+        //}
         private Bitmap ResizeImageSafe(Image img, int maxW, int maxH)
         {
             double ratio = Math.Min((double)maxW / img.Width, (double)maxH / img.Height);
             int newW = Math.Max(1, (int)(img.Width * ratio));
             int newH = Math.Max(1, (int)(img.Height * ratio));
+
             var bmp = new Bitmap(newW, newH);
+
             using var g = Graphics.FromImage(bmp);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.SmoothingMode = SmoothingMode.HighQuality;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.CompositingQuality = CompositingQuality.HighQuality;
+
             g.DrawImage(img, 0, 0, newW, newH);
+
             return bmp;
         }
-        private void kryptonButton1_DongFrom_Click(object? sender, EventArgs e)
+        // =========================================================================
+        // 🛑 QUẢN LÝ ĐÓNG FORM (NGỦ ĐÔNG TRÊN RAM & DỌN DẸP RÁC)
+        // =========================================================================
+        private void kryptonButton1_DongFrom_Click(object sender, EventArgs e)
         {
             this.Hide();
         }
@@ -454,21 +609,29 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                RemoveFocusEvents();
+                RemoveFocusEvents(); // 🧹 Triệt tiêu event trước khi hủy form
                 pictureBox2_AnhDaiDienAdmin.Image?.Dispose();
+                // Không dispose _cachedAvatar vì nó là Static. GC sẽ lo khi App tắt.
             }
             catch { }
             base.OnFormClosed(e);
         }
-        // 🛠️ LOGGING VÀO DATABASE
+        // =========================================================================
+        // 🛠️ THREAD-SAFE PROFESSIONAL LOGGING VÀO DATABASE
+        // =========================================================================
         private void GhiLogHeThong(string context, Exception? ex = null)
         {
             try
             {
-                string taiKhoan = string.IsNullOrWhiteSpace(SessionInfo.TenTaiKhoan)
-                    ? "Hệ thống (Exception) - Form39"
-                    : SessionInfo.TenTaiKhoan;
+                // 1. Xác định tài khoản (Fallback an toàn nếu app lỗi trước khi load xong)
+                string taiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
+                    ? "Hệ thống (Exception)"
+                    : Module_TaiKhoan.TenTaiKhoan_RAM;
+
+                // 2. Định dạng Hành động
                 string hanhDong = $"[LỖI Form39] {context}";
+
+                // 3. Xây dựng Ghi chú an toàn cho DB
                 string ghiChu = "Không có Exception chi tiết.";
                 if (ex != null)
                 {
@@ -477,8 +640,11 @@ namespace PhanMemThiDua2026
                     {
                         stackTrace = stackTrace.Substring(0, 800) + "... [Đã cắt bớt]";
                     }
+
                     ghiChu = $"Message: {ex.Message} || StackTrace: {stackTrace}";
                 }
+
+                // 4. Bắn thẳng vào CSDL thông qua Module
                 Module_NhatKy.GhiNhatKy(
                     taiKhoan: taiKhoan,
                     hanhDong: hanhDong,
@@ -487,8 +653,10 @@ namespace PhanMemThiDua2026
             }
             catch (Exception internalEx)
             {
-                Debug.WriteLine($"[CRITICAL] Ghi log CSDL thất bại. Context: {context}. Lỗi: {internalEx.Message}");
+                // Màng bảo vệ cuối: Lỗi DB khi ghi log thì đẩy ra cửa sổ Debug
+                System.Diagnostics.Debug.WriteLine($"[CRITICAL] Ghi log CSDL thất bại. Context: {context}. Lỗi: {internalEx.Message}");
             }
         }
+
     }
 }

@@ -1,6 +1,7 @@
-﻿///PHIÊN BẢN 4 - THÊM NỀN KÍNH MỜ (BLUR) KIỂU EDGE / WINDOWS 11
+﻿///PHIÊN BẢN 5 - SỬA LỖI NỀN ĐEN KHI MENU MỞ QUÁ LÂU (BÓNG ĐỔ / KÍNH MỜ)
 ///
 using Microsoft.Data.Sqlite;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,6 +11,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 namespace PhanMemThiDua2026
@@ -25,6 +27,15 @@ namespace PhanMemThiDua2026
     ///  - BÓNG ĐỔ mềm quanh menu (ánh sáng chiếu từ trên-trái nên bóng lệch xuống dưới-phải), vẽ bằng 1 cửa sổ
     ///    phụ trong suốt nằm ngay dưới menu, tạo khi menu mở và hủy khi menu đóng (không tốn RAM khi không dùng).
     ///  - API công khai không đổi (MenuTheme chỉ thêm tham số tùy chọn doMo).
+    ///
+    /// BẢN 5 (sửa lỗi "nền đen" khi để phần mềm lâu mà menu vẫn đang mở):
+    ///  - Bóng đổ là 1 cửa sổ layered riêng, lớn hơn menu và nằm ra ngoài Desktop. Sau khi tắt màn hình / khóa máy /
+    ///    ngủ / đổi cấu hình màn hình, Windows có thể làm mất ảnh của cửa sổ này -> hiện 1 khung ĐEN quanh menu.
+    ///  - Giờ menu đang mở sẽ được GIÁM SÁT: tự đóng (và hủy bóng + ảnh nền) khi khóa máy, đăng xuất, ngủ/thức dậy,
+    ///    đổi cấu hình màn hình, hoặc khi người dùng không thao tác quá TuDongDongSauGiay giây.
+    ///  - Bóng đổ tự ẩn khi nhận WM_DISPLAYCHANGE; dọn dẹp cả khi menu bị ẩn/hủy mà không có sự kiện Closed.
+    ///  - Hien() báo lỗi đúng khi UpdateLayeredWindow thất bại (không để cửa sổ bóng trống nằm lại).
+    ///  - Chỉ đăng ký SystemEvents + Timer khi CÓ menu đang mở, menu đóng hết là gỡ ngay (không rò rỉ, không tốn tài nguyên).
     /// </summary>
     internal static class Module_MenuChuotPhai
     {
@@ -57,6 +68,12 @@ namespace PhanMemThiDua2026
         /// </summary>
         public static bool BatBongDo { get; set; } =
             SystemInformation.UIEffectsEnabled && !SystemInformation.TerminalServerSession;
+        /// <summary>
+        /// Menu bị bỏ quên (người dùng không gõ phím/không di chuột) quá số giây này sẽ tự đóng. 0 = tắt.
+        /// Tự đóng giúp tránh khung đen do Windows mất ảnh cửa sổ bóng sau khi màn hình tắt/khóa máy.
+        /// </summary>
+        public static int TuDongDongSauGiay { get; set; } = 120;
+        private const int ChuKyGiamSatMs = 5000;   // chu kỳ kiểm tra menu bị bỏ quên (chỉ chạy khi có menu đang mở)
         private static readonly Font FontMenu = new Font(Module_HeThong.TenFontHeThong, 10f, FontStyle.Regular);
         private static readonly Padding PaddingItem = new Padding(6, 6, 6, 6); // item cao thoáng hơn
         // ===== Trạng thái gắn kèm từng dropdown (thay cho _daGan + closure + Timer riêng) =====
@@ -226,6 +243,8 @@ namespace PhanMemThiDua2026
             dd.Opening += Fade_Opening;
             dd.Opened += Fade_Opened;
             dd.Closed += Fade_Closed;
+            dd.VisibleChanged += Fade_VisibleChanged;   // menu bị ẩn mà không có Closed -> vẫn dọn
+            dd.Disposed += Fade_Disposed;
         }
         // Chủ đề hiện tại có dùng nền kính mờ và tính năng đang bật không
         private static bool CanNenMo() => BatNenMo && LayGoiChuDe(MauHienTai).Theme.DoMo > 0;
@@ -245,15 +264,29 @@ namespace PhanMemThiDua2026
             if (BatBongDo) HienBong(dd);                                    // sau khi chụp nền để ảnh chụp không dính bóng
             if (BatHieuUngMo) BatDauFade(dd);
             else DatDoMo(dd, 1.0);
+            DangKyGiamSat(dd);                                              // theo dõi để dọn bóng/nền khi menu bị bỏ quên
         }
         private static void Fade_Closed(object? sender, ToolStripDropDownClosedEventArgs e)
         {
-            if (sender is not ToolStripDropDown dd) return;
+            if (sender is ToolStripDropDown dd) DonDep(dd);
+        }
+        private static void Fade_VisibleChanged(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripDropDown dd && !dd.Visible) DonDep(dd);
+        }
+        private static void Fade_Disposed(object? sender, EventArgs e)
+        {
+            if (sender is ToolStripDropDown dd) DonDep(dd);
+        }
+        // Dọn toàn bộ tài nguyên của 1 lần mở menu. An toàn khi gọi nhiều lần (idempotent).
+        private static void DonDep(ToolStripDropDown dd)
+        {
             HuyFade(dd);
-            if (dd.Opacity < 1.0) dd.Opacity = 1.0;
+            HuyGiamSat(dd);
             var tt = LayTrangThai(dd);
             GiaiPhongNen(tt);                           // trả RAM ngay khi menu đóng
-            HuyBong(tt);
+            HuyBong(tt);                                // hủy cửa sổ bóng -> không thể còn khung đen sót lại
+            try { if (!dd.IsDisposed && dd.Opacity < 1.0) dd.Opacity = 1.0; } catch { }
         }
         private static void GiaiPhongNen(TrangThai tt)
         {
@@ -313,6 +346,99 @@ namespace PhanMemThiDua2026
             dd.Opacity = v;
             LayTrangThai(dd).Bong?.DatDoMo(v);
         }
+        //  GIÁM SÁT MENU ĐANG MỞ (chống nền đen khi để menu mở quá lâu)
+        private static readonly List<ToolStripDropDown> _dangMo = new(4);
+        private static System.Windows.Forms.Timer? _timerGiamSat;
+        private static SynchronizationContext? _ctxGiaoDien;      // để đưa sự kiện hệ thống (luồng khác) về luồng giao diện
+        private static bool _daDangKySuKien;
+        private static readonly SendOrPostCallback _dongTatCaCb = _ => DongTatCaMenu();
+        private static void DangKyGiamSat(ToolStripDropDown dd)
+        {
+            if (!_dangMo.Contains(dd)) _dangMo.Add(dd);
+            if (_timerGiamSat == null)
+            {
+                _timerGiamSat = new System.Windows.Forms.Timer { Interval = ChuKyGiamSatMs };
+                _timerGiamSat.Tick += GiamSat_Tick;
+            }
+            if (!_timerGiamSat.Enabled) _timerGiamSat.Start();
+            if (_daDangKySuKien) return;
+            _ctxGiaoDien = SynchronizationContext.Current;
+            try
+            {
+                SystemEvents.SessionSwitch += SuKien_Phien;
+                SystemEvents.PowerModeChanged += SuKien_Nguon;
+                SystemEvents.DisplaySettingsChanged += SuKien_ManHinh;
+                _daDangKySuKien = true;
+            }
+            catch { HuySuKienHeThong(); }
+        }
+        private static void HuyGiamSat(ToolStripDropDown dd)
+        {
+            _dangMo.Remove(dd);
+            if (_dangMo.Count == 0) NgungGiamSat();
+        }
+        // Hết menu đang mở -> dừng timer và gỡ sự kiện tĩnh của hệ thống (tránh rò rỉ, không tốn tài nguyên lúc rảnh)
+        private static void NgungGiamSat()
+        {
+            _timerGiamSat?.Stop();
+            HuySuKienHeThong();
+        }
+        private static void HuySuKienHeThong()
+        {
+            try
+            {
+                SystemEvents.SessionSwitch -= SuKien_Phien;
+                SystemEvents.PowerModeChanged -= SuKien_Nguon;
+                SystemEvents.DisplaySettingsChanged -= SuKien_ManHinh;
+            }
+            catch { }
+            _daDangKySuKien = false;
+        }
+        // Các sự kiện SystemEvents chạy ở luồng khác -> chỉ Post về luồng giao diện, không đụng vào control ở đây
+        private static void SuKien_Phien(object? sender, SessionSwitchEventArgs e) => _ctxGiaoDien?.Post(_dongTatCaCb, null);
+        private static void SuKien_ManHinh(object? sender, EventArgs e) => _ctxGiaoDien?.Post(_dongTatCaCb, null);
+        private static void SuKien_Nguon(object? sender, PowerModeChangedEventArgs e)
+        {
+            if (e.Mode == PowerModes.Suspend || e.Mode == PowerModes.Resume) _ctxGiaoDien?.Post(_dongTatCaCb, null);
+        }
+        private static void GiamSat_Tick(object? sender, EventArgs e)
+        {
+            // Dọn menu đã bị ẩn/hủy mà không báo
+            for (int i = _dangMo.Count - 1; i >= 0; i--)
+            {
+                var dd = _dangMo[i];
+                if (dd.IsDisposed || !dd.Visible) DonDep(dd);
+            }
+            if (_dangMo.Count == 0) { NgungGiamSat(); return; }
+            int gioiHan = TuDongDongSauGiay;
+            if (gioiHan > 0 && ThoiGianKhongThaoTacMs() >= gioiHan * 1000L) DongTatCaMenu();
+        }
+        // Thời gian từ lần gõ phím/di chuột gần nhất trên toàn hệ thống (ms)
+        private static long ThoiGianKhongThaoTacMs()
+        {
+            var li = new Nat.LASTINPUTINFO { cbSize = (uint)Marshal.SizeOf<Nat.LASTINPUTINFO>() };
+            if (!Nat.GetLastInputInfo(ref li)) return 0;
+            return unchecked((uint)Environment.TickCount - li.dwTime);   // đúng cả khi bộ đếm tick quay vòng
+        }
+        private static void DongTatCaMenu()
+        {
+            if (_dangMo.Count == 0) return;
+            var ds = _dangMo.ToArray();                  // Close() sẽ làm _dangMo thay đổi qua DonDep
+            foreach (var dd in ds) DongMenuGoc(dd);
+            foreach (var dd in ds) if (_dangMo.Contains(dd)) DonDep(dd);   // phòng khi Close không phát sự kiện
+        }
+        // Đóng menu gốc (kéo theo các submenu)
+        private static void DongMenuGoc(ToolStripDropDown dd)
+        {
+            try
+            {
+                if (dd.IsDisposed) return;
+                ToolStripDropDown goc = dd;
+                while (goc.OwnerItem?.Owner is ToolStripDropDown cha) goc = cha;
+                if (goc.Visible) goc.Close(ToolStripDropDownCloseReason.AppFocusChange);
+            }
+            catch { }
+        }
         //  BÓNG ĐỔ
         // Bóng là 1 cửa sổ phụ trong suốt, xuyên chuột, nằm ngay DƯỚI menu trong thứ tự z, vẽ bằng ảnh có alpha.
         // Ảnh bóng được vẽ ở độ phân giải 1/3 rồi phóng lại => viền mềm tự nhiên mà gần như không tốn CPU (~1ms).
@@ -341,7 +467,7 @@ namespace PhanMemThiDua2026
             tt.Bong = null;
             b?.Dispose();
         }
-     
+
         private static Bitmap TaoAnhBong(int mw, int mh, int le, float dpi)
         {
             const int K = 3;
@@ -412,7 +538,7 @@ namespace PhanMemThiDua2026
             private const int WS_POPUP = unchecked((int)0x80000000);
             private const int WS_EX_TOPMOST = 0x00000008, WS_EX_TRANSPARENT = 0x00000020, WS_EX_TOOLWINDOW = 0x00000080,
                               WS_EX_LAYERED = 0x00080000, WS_EX_NOACTIVATE = 0x08000000;
-            private const int WM_NCHITTEST = 0x0084, WM_MOUSEACTIVATE = 0x0021;
+            private const int WM_NCHITTEST = 0x0084, WM_MOUSEACTIVATE = 0x0021, WM_DISPLAYCHANGE = 0x007E;
             private const uint SWP_NOACTIVATE = 0x0010, SWP_SHOWWINDOW = 0x0040;
             private const int ULW_ALPHA = 0x00000002;
             private byte _alpha = 255;
@@ -433,23 +559,27 @@ namespace PhanMemThiDua2026
             {
                 if (m.Msg == WM_NCHITTEST) { m.Result = (IntPtr)(-1); return; }      // HTTRANSPARENT: chuột đi xuyên qua
                 if (m.Msg == WM_MOUSEACTIVATE) { m.Result = (IntPtr)3; return; }     // MA_NOACTIVATE
+                if (m.Msg == WM_DISPLAYCHANGE) Nat.ShowWindow(Handle, 0);            // màn hình đổi/thức dậy: ẩn bóng, tránh khung đen
                 base.WndProc(ref m);
             }
             public void Hien(Bitmap anh, Point viTri, IntPtr duoiCuaSo, byte alpha)
             {
                 _alpha = alpha;
                 IntPtr dcMan = Nat.GetDC(IntPtr.Zero);
+                if (dcMan == IntPtr.Zero) throw new InvalidOperationException("Không lấy được DC màn hình.");
                 IntPtr dcBo = Nat.CreateCompatibleDC(dcMan);
                 IntPtr hBmp = IntPtr.Zero, cu = IntPtr.Zero;
                 try
                 {
+                    if (dcBo == IntPtr.Zero) throw new InvalidOperationException("Không tạo được DC bộ nhớ.");
                     hBmp = anh.GetHbitmap(Color.FromArgb(0));
                     cu = Nat.SelectObject(dcBo, hBmp);
                     var kichThuoc = new Nat.SIZE { CX = anh.Width, CY = anh.Height };
                     var nguon = new Nat.POINT();
                     var dich = new Nat.POINT { X = viTri.X, Y = viTri.Y };
                     var blend = new Nat.BLENDFUNCTION { BlendOp = 0, BlendFlags = 0, SourceConstantAlpha = _alpha, AlphaFormat = 1 };
-                    Nat.UpdateLayeredWindow(Handle, dcMan, ref dich, ref kichThuoc, dcBo, ref nguon, 0, ref blend, ULW_ALPHA);
+                    if (!Nat.UpdateLayeredWindow(Handle, dcMan, ref dich, ref kichThuoc, dcBo, ref nguon, 0, ref blend, ULW_ALPHA))
+                        throw new Win32Exception(Marshal.GetLastWin32Error());   // lỗi -> HienBong sẽ hủy cửa sổ bóng
                     // Đặt ngay DƯỚI menu trong thứ tự z, không giành focus
                     Nat.SetWindowPos(Handle, duoiCuaSo, viTri.X, viTri.Y, anh.Width, anh.Height, SWP_NOACTIVATE | SWP_SHOWWINDOW);
                 }
@@ -490,6 +620,9 @@ namespace PhanMemThiDua2026
                 IntPtr hdcSrc, IntPtr pptSrc, int crKey, ref BLENDFUNCTION pblend, int dwFlags);
             [DllImport("user32.dll", SetLastError = true)]
             public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+            [StructLayout(LayoutKind.Sequential)] public struct LASTINPUTINFO { public uint cbSize; public uint dwTime; }
+            [DllImport("user32.dll")] public static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+            [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
             [DllImport("user32.dll")] public static extern IntPtr GetDC(IntPtr hWnd);
             [DllImport("user32.dll")] public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
             [DllImport("gdi32.dll")] public static extern IntPtr CreateCompatibleDC(IntPtr hDC);

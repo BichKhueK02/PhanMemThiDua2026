@@ -24,6 +24,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form5_QuenPass));
             pnlRoot = new BufferedPanel();
             pnlCard = new WebCardPanel();
             pnlRight = new BufferedPanel();
@@ -397,6 +398,7 @@
             PictureBox2.BackColor = Color.White;
             PictureBox2.Cursor = Cursors.Hand;
             PictureBox2.Dock = DockStyle.Fill;
+            PictureBox2.Image = (Image)resources.GetObject("PictureBox2.Image");
             PictureBox2.Location = new Point(22, 22);
             PictureBox2.Name = "PictureBox2";
             PictureBox2.Size = new Size(96, 96);

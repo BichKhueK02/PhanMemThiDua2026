@@ -334,14 +334,26 @@ namespace PhanMemThiDua2026
         private void KryptonDataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (_cacheThongKe == null || e.RowIndex < 0 || e.RowIndex >= _cacheThongKe.Count) return;
+
             var item = _cacheThongKe[e.RowIndex];
+
             if (item.IsSystem)
             {
                 if (e.CellStyle.BackColor != _systemBackColor)
                 {
                     e.CellStyle.BackColor = _systemBackColor;
-                    e.CellStyle.ForeColor = _systemForeColor;
+                    e.CellStyle.ForeColor = _systemForeColor; // Hệ thống: Màu đỏ đậm
                 }
+            }
+            else if (item.IsCurrentUser)
+            {
+                // ⭐ "Đang sử dụng": Tô chữ màu Xanh Lá Cây (ForestGreen/DarkGreen)
+                e.CellStyle.ForeColor = Color.ForestGreen;
+            }
+            else
+            {
+                // ⭐ "Ngừng sử dụng": Tô chữ màu Xanh Nước Biển (RoyalBlue/MediumBlue)
+                e.CellStyle.ForeColor = Color.RoyalBlue;
             }
         }
         // ⭐ VẼ ICON TÙY CHỈNH KẾT HỢP VỚI VIRTUAL MODE
@@ -382,6 +394,7 @@ namespace PhanMemThiDua2026
                     e.CellBounds.Width - (textStartX - e.CellBounds.X),
                     e.CellBounds.Height);
                 // 5. Xác định màu Text
+                // 5. Xác định màu Text
                 Color textColor;
                 if ((e.State & DataGridViewElementStates.Selected) == DataGridViewElementStates.Selected)
                 {
@@ -389,9 +402,18 @@ namespace PhanMemThiDua2026
                 }
                 else
                 {
-                    if (item.IsSystem) textColor = Color.DarkRed;
-                    else if (item.IsCurrentUser) textColor = Color.FromArgb(0, 102, 204);
-                    else textColor = e.CellStyle.ForeColor;
+                    if (item.IsSystem)
+                    {
+                        textColor = Color.DarkRed; // Hệ thống: Đỏ đậm
+                    }
+                    else if (item.IsCurrentUser)
+                    {
+                        textColor = Color.ForestGreen; // ⭐ Đang sử dụng: Xanh lá cây
+                    }
+                    else
+                    {
+                        textColor = Color.RoyalBlue; // ⭐ Ngừng sử dụng: Xanh nước biển
+                    }
                 }
                 // 6. Vẽ Text (System và User hiện tại in Đậm)
                 FontStyle style = (item.IsSystem || item.IsCurrentUser) ? FontStyle.Bold : FontStyle.Regular;

@@ -668,7 +668,7 @@
             xuatNhatKy_ToolStripMenuItem.Name = "xuatNhatKy_ToolStripMenuItem";
             xuatNhatKy_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
             xuatNhatKy_ToolStripMenuItem.Size = new Size(224, 28);
-            xuatNhatKy_ToolStripMenuItem.Text = "Xuất nhật ký";
+            xuatNhatKy_ToolStripMenuItem.Text = "Xuất tệp excel nhật ký";
             xuatNhatKy_ToolStripMenuItem.Click += xuatNhatKy_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
