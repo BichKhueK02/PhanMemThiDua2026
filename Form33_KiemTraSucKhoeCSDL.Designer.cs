@@ -369,6 +369,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1264, 681);
+            ContextMenuStrip = contextMenuStrip1;
             Controls.Add(tableLayoutPanel1);
             Controls.Add(statusStrip1);
             Icon = (Icon)resources.GetObject("$this.Icon");

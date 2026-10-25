@@ -500,6 +500,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1264, 681);
+            ContextMenuStrip = contextMenuStrip1;
             Controls.Add(tableLayoutPanel1);
             Name = "Form50_QuanLyKhenThuongNamCu";
             Text = "Form50_ThongKeKhenThuongNamCu";

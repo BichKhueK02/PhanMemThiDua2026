@@ -10,15 +10,12 @@ namespace PhanMemThiDua2026
     public sealed class FormAoBase : KryptonForm
     {
         //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-
         // Cờ cửa sổ WS_EX_COMPOSITED: Windows vẽ form + TẤT CẢ control con vào 1 bộ đệm rồi mới đưa lên màn hình.
         // Khi rê chuột, các control Krypton (nút, panel, label nền trong suốt...) vẽ lại từng phần lệch nhau
         // -> thấy giật/nháy. Bộ đệm chung này làm các lần vẽ đó hiện ra cùng lúc, mượt hơn rõ rệt.
         private const int WS_EX_COMPOSITED = 0x02000000;
-
         // Mặc định BẬT, nhưng tự tắt khi chạy qua Remote Desktop (cờ này làm RDP chậm).
         private bool _chongGiat = !SystemInformation.TerminalServerSession;
-
         /// <summary>
         /// Bật/tắt chế độ vẽ bộ đệm chung (WS_EX_COMPOSITED) cho form này.
         /// Nên đặt NGAY TRONG CONSTRUCTOR của form con (trước khi form hiện).

@@ -467,7 +467,6 @@ namespace PhanMemThiDua2026
             tt.Bong = null;
             b?.Dispose();
         }
-
         private static Bitmap TaoAnhBong(int mw, int mh, int le, float dpi)
         {
             const int K = 3;

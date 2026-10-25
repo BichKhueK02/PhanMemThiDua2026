@@ -1,6 +1,4 @@
-﻿
-
-namespace PhanMemThiDua2026
+﻿namespace PhanMemThiDua2026
 {
     partial class Form9_GoCaiDat
     {

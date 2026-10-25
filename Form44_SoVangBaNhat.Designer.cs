@@ -93,8 +93,8 @@
             tableLayoutPanel6 = new TableLayoutPanel();
             kryptonButton1_Thoat = new Krypton.Toolkit.KryptonButton();
             kryptonButton_RefershCSDL = new Krypton.Toolkit.KryptonButton();
-            toolTip1 = new ToolTip(components);
             splitContainer1 = new SplitContainer();
+            toolTip1 = new ToolTip(components);
             tableLayoutPanel3.SuspendLayout();
             tableLayoutPanel4.SuspendLayout();
             tableLayoutPanel10.SuspendLayout();
@@ -952,6 +952,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1264, 681);
+            ContextMenuStrip = contextMenuStrip1;
             Controls.Add(statusStrip1);
             Controls.Add(tableLayoutPanel1);
             Name = "Form44_SoVangBaNhat";

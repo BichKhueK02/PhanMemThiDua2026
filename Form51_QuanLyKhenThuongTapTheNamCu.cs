@@ -109,7 +109,8 @@ namespace PhanMemThiDua2026
                         CapNhatTrangThaiNutThaoTac();
                         // 10. KHỞI TẠO TOOLTIP
                         InitToolTips();
-                    }
+                        Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
+            }
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"Lỗi Form51_Load: {ex.Message}");

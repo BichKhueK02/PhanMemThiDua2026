@@ -32,7 +32,7 @@ namespace PhanMemThiDua2026
             // Cho phép click vào thông tin tác giả trên StatusStrip
             toolStripStatusLabel1.Click += ToolStripStatusLabel1_Click;
         }
-        private void Form5_Load(object? sender, EventArgs e)
+        private async void Form5_Load(object? sender, EventArgs e)
         {
             // 1. CẤU HÌNH CỬA SỔ
             DoubleBuffered = true;
@@ -49,6 +49,132 @@ namespace PhanMemThiDua2026
             toolStripStatusLabel1.Spring = true;
             toolStripStatusLabel1.TextAlign = ContentAlignment.MiddleRight;
             toolStripStatusLabel1.IsLink = true;
+            // ⭐ GỌI HÀM TẢI ẢNH ĐẠI DIỆN LÊN PictureBox2
+            await LoadAnhDaiDienAsync();
+        }
+        private async Task LoadAnhDaiDienAsync()
+        {
+            try
+            {
+                Image? img = null;
+                // 1. Thử đọc ảnh từ CSDL (bảng AvatarAdmin ID = 1)
+                if (!string.IsNullOrWhiteSpace(_csdl1Path) && File.Exists(_csdl1Path))
+                {
+                    try
+                    {
+                        using var conn = new SqliteConnection($"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;");
+                        await conn.OpenAsync();
+                        using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);
+                        using var reader = await cmd.ExecuteReaderAsync();
+                        if (await reader.ReadAsync())
+                        {
+                            int thumbOrdinal = reader.GetOrdinal("ThumbnailAnh");
+                            int fullOrdinal = reader.GetOrdinal("DuLieuAnh");
+                            foreach (int ordinal in new[] { thumbOrdinal, fullOrdinal })
+                            {
+                                byte[]? imageBytes = DocDuLieuAnhLinhHoat(reader, ordinal);
+                                if (imageBytes != null && imageBytes.Length > 0)
+                                {
+                                    try
+                                    {
+                                        using var ms = new MemoryStream(imageBytes);
+                                        using var tempBmp = Image.FromStream(ms, false, true);
+                                        img = new Bitmap(tempBmp);
+                                        break; // Đã đọc thành công ảnh từ DB
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Lỗi đọc ảnh từ CSDL: " + ex.Message);
+                    }
+                }
+                // 2. Nếu CSDL không có ảnh, lấy ảnh mặc định từ Resources (ac.png)
+                if (img == null && Properties.Resources.ac != null)
+                {
+                    img = new Bitmap(Properties.Resources.ac);
+                }
+                // 3. Hiển thị lên PictureBox2 an toàn
+                if (PictureBox2 != null)
+                {
+                    if (PictureBox2.InvokeRequired)
+                    {
+                        PictureBox2.Invoke(new Action(() =>
+                        {
+                            var oldImage = PictureBox2.Image;
+                            PictureBox2.Image = img;
+                            PictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+                            oldImage?.Dispose();
+                        }));
+                    }
+                    else
+                    {
+                        var oldImage = PictureBox2.Image;
+                        PictureBox2.Image = img;
+                        PictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+                        oldImage?.Dispose();
+                    }
+                }
+                else
+                {
+                    img?.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Lỗi tải ảnh Form5: " + ex.Message);
+                // Fallback an toàn nếu có lỗi
+                try
+                {
+                    if (PictureBox2 != null && Properties.Resources.ac != null)
+                    {
+                        PictureBox2.Image = new Bitmap(Properties.Resources.ac);
+                        PictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+                    }
+                }
+                catch { }
+            }
+        }
+        private static byte[]? DocDuLieuAnhLinhHoat(System.Data.Common.DbDataReader reader, int ordinal)
+        {
+            try
+            {
+                if (reader.IsDBNull(ordinal)) return null;
+                object value = reader.GetValue(ordinal);
+                if (value is byte[] bytes)
+                    return bytes.Length > 0 ? bytes : null;
+                if (value is string text)
+                {
+                    text = text.Trim();
+                    if (text.Length == 0) return null;
+                    if (text.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        int idx = text.IndexOf("base64,", StringComparison.OrdinalIgnoreCase);
+                        if (idx >= 0) text = text.Substring(idx + 7);
+                    }
+                    try { return Convert.FromBase64String(text); }
+                    catch (FormatException) { }
+                    if (File.Exists(text)) return File.ReadAllBytes(text);
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Lỗi đọc cột ảnh: " + ex.Message);
+                return null;
+            }
+        }
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            try
+            {
+                PictureBox2.Image?.Dispose();
+            }
+            catch { }
+            base.OnFormClosed(e);
         }
         private void SetupReadOnlyBox(Krypton.Toolkit.KryptonTextBox tb)
         {

@@ -334,9 +334,7 @@ namespace PhanMemThiDua2026
         private void KryptonDataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
         {
             if (_cacheThongKe == null || e.RowIndex < 0 || e.RowIndex >= _cacheThongKe.Count) return;
-
             var item = _cacheThongKe[e.RowIndex];
-
             if (item.IsSystem)
             {
                 if (e.CellStyle.BackColor != _systemBackColor)

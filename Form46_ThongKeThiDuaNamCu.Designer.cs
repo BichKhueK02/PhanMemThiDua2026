@@ -521,6 +521,7 @@
             // 
             kryptonDataGridView1.BorderStyle = BorderStyle.None;
             kryptonDataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
             kryptonDataGridView1.Dock = DockStyle.Fill;
             kryptonDataGridView1.Location = new Point(0, 0);
             kryptonDataGridView1.Margin = new Padding(2, 3, 2, 3);
@@ -585,6 +586,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1264, 681);
+            ContextMenuStrip = contextMenuStrip1;
             Controls.Add(statusStrip1);
             Controls.Add(tableLayoutPanel1);
             Name = "Form46_ThongKeThiDuaNamCu";

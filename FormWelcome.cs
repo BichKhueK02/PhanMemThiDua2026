@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-
     public partial class FormWelcome : Form
     {
         public FormWelcome()
@@ -39,7 +38,6 @@ namespace PhanMemThiDua2026
                 "  — Nhóm phát triển —";
             richTextBox1.ReadOnly = true;
             richTextBox1.BorderStyle = BorderStyle.None;
-
             // Tô màu + in đậm các tiêu đề cho dễ nhìn
             Font headFont = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold);
             foreach (var title in new[] { "CHỨC NĂNG CHÍNH", "THÔNG TIN PHÁT TRIỂN", "  — Nhóm phát triển —" })
@@ -70,7 +68,6 @@ namespace PhanMemThiDua2026
             ApplyRoundedRegion();
             this.ResumeLayout(false);
         }
-
         // ===== Bo góc form =====
         private void ApplyRoundedRegion()
         {
@@ -85,7 +82,6 @@ namespace PhanMemThiDua2026
             this.Region?.Dispose();
             this.Region = new Region(path);
         }
-
         // ===== Kéo form =====
         [DllImport("user32.dll")] private static extern bool ReleaseCapture();
         [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
@@ -97,7 +93,6 @@ namespace PhanMemThiDua2026
                 SendMessage(this.Handle, 0xA1, 0x2, 0); // WM_NCLBUTTONDOWN, HTCAPTION
             }
         }
-
         private void FormWelcome_Load(object? sender, EventArgs e)
         {
             // Focus vào nút Bắt đầu, tránh con trỏ nhấp nháy trong RichTextBox
@@ -106,7 +101,6 @@ namespace PhanMemThiDua2026
                 btn_BatDau.Focus();
             }
         }
-
         private void btn_BatDau_Click(object? sender, EventArgs e)
         {
             try
@@ -123,7 +117,6 @@ namespace PhanMemThiDua2026
                 this.Close();
             }
         }
-
         // Chặn Alt + F4: đổi thành bấm nút Bắt đầu để luồng cập nhật không bị gãy
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -134,7 +127,6 @@ namespace PhanMemThiDua2026
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
-
         // ===== 5. GIẢI PHÓNG KHI ĐÓNG FORM =====
         private void FormWelcome_FormClosing(object? sender, FormClosingEventArgs e)
         {

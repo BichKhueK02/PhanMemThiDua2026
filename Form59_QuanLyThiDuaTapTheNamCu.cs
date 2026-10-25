@@ -33,6 +33,7 @@ namespace PhanMemThiDua2026
                 KhoiTaoDanhSachTextBox();
                 KhoiTaoComboBoxThangVaPhanLoai();
                 InitToolTips();
+                Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
                 DinhDangGiaoDienDataGridTongKetThang(kryptonDataGridView1);
                 // 2. Tải danh sách CSDL bất đồng bộ
                 await TaiDanhSachCoSoDuLieuNamCuAsync();

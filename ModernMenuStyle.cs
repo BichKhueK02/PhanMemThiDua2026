@@ -60,7 +60,6 @@ namespace PhanMemThiDua2026
             }
             menu.Invalidate();
         }
-
         //  RENDERER
         private sealed class ModernMenuRenderer : ToolStripProfessionalRenderer
         {
