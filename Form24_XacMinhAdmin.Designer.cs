@@ -191,7 +191,7 @@ namespace PhanMemThiDua2026
             label_DangNhapPhu.Name = "label_DangNhapPhu";
             label_DangNhapPhu.Size = new Size(402, 34);
             label_DangNhapPhu.TabIndex = 1;
-            label_DangNhapPhu.Text = "Nhập mật khẩu xác thựctài khoản quản trị.";
+            label_DangNhapPhu.Text = "Nhập mật khẩu xác thực tài khoản quản trị.";
             label_DangNhapPhu.TextAlign = ContentAlignment.TopLeft;
             //
             // label1

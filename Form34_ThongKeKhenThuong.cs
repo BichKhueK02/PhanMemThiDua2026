@@ -49,6 +49,7 @@ namespace PhanMemThiDua2026
             public string GhiChu_Khen { get; set; }
             public string GhiChu_DanhSach { get; set; }
             public string DanhSachDVKhen_An { get; set; }
+            public int STT_DanhSach { get; set; } = int.MaxValue; // STT trong CSDL2.DanhSach, dùng để sắp xếp đúng thứ tự danh sách gốc
             public HashSet<string> TapDVKhen { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         }
         public class KhenThuongExportDTO
@@ -660,27 +661,100 @@ namespace PhanMemThiDua2026
                 pb.Visible = false;
             }
         }
+        // Khóa sắp xếp (giống Form15): Đơn vị (ưu tiên) -> Đơn vị (chuẩn hóa) -> Đang công tác trước -> STT trong DanhSach -> ID -> vị trí gốc (ổn định)
+        private readonly struct KhoaSapXep : IComparable<KhoaSapXep>
+        {
+            public readonly int Pri;
+            public readonly string Dv;
+            public readonly int Rank;
+            public readonly int Stt;
+            public readonly long Id;
+            public readonly int Pos;   // vị trí trong danh sách đầu vào
+            public KhoaSapXep(int pri, string dv, int rank, int stt, long id, int pos)
+            { Pri = pri; Dv = dv; Rank = rank; Stt = stt; Id = id; Pos = pos; }
+            public int CompareTo(KhoaSapXep o)
+            {
+                int c = Pri.CompareTo(o.Pri); if (c != 0) return c;
+                c = string.CompareOrdinal(Dv, o.Dv); if (c != 0) return c;
+                c = Rank.CompareTo(o.Rank); if (c != 0) return c;
+                c = Stt.CompareTo(o.Stt); if (c != 0) return c;
+                c = Id.CompareTo(o.Id); if (c != 0) return c;
+                return Pos.CompareTo(o.Pos);
+            }
+        }
+        // Bảng có cột này không? (bảng DanhSach cũ có thể chưa có cột STT)
+        private static bool CoCot(SqliteConnection conn, string tenBang, string tenCot)
+        {
+            using var cmd = new SqliteCommand($"PRAGMA table_info({tenBang})", conn);
+            using var rd = cmd.ExecuteReader();
+            while (rd.Read())
+                if (string.Equals(Convert.ToString(rd["name"], CultureInfo.InvariantCulture), tenCot, StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
+        }
+        // Chuẩn hóa tên đơn vị CHỈ để so sánh/sắp xếp (không đổi dữ liệu hiển thị / lưu trữ).
+        // Xử lý: Unicode NFC/NFD, khoảng trắng lạ (NBSP...), các loại gạch ngang, khoảng trắng quanh '-' ',' ';', hoa/thường.
+        private static string ChuanHoaDonViSoSanh(string? input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return "";
+            string s = input.Normalize(NormalizationForm.FormC);
+            var sb = new StringBuilder(s.Length);
+            bool prevSpace = false, lastSep = false;
+            foreach (char ch in s)
+            {
+                char c = ch;
+                if (c == '\u2010' || c == '\u2011' || c == '\u2012' || c == '\u2013' || c == '\u2014' || c == '\u2015' || c == '\u2212')
+                    c = '-';
+                if (char.IsWhiteSpace(c) || c == '\u200B' || c == '\u200C' || c == '\u200D' || c == '\uFEFF')
+                    c = ' ';
+                if (c == ' ')
+                {
+                    if (sb.Length == 0 || prevSpace || lastSep) continue; // bỏ khoảng trắng đầu / liên tiếp / sau dấu phân cách
+                    prevSpace = true;
+                    sb.Append(' ');
+                    continue;
+                }
+                if (c == '-' || c == ',' || c == ';')
+                {
+                    if (prevSpace) { sb.Length--; prevSpace = false; } // bỏ khoảng trắng trước dấu phân cách
+                    sb.Append(c);
+                    lastSep = true;
+                    continue;
+                }
+                prevSpace = false;
+                lastSep = false;
+                sb.Append(c);
+            }
+            if (prevSpace && sb.Length > 0) sb.Length--;
+            return sb.ToString().ToUpperInvariant();
+        }
         private KetQuaTai TaiDanhSachTuCSDL(CancellationToken ct)
         {
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem()
                 .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
             string tableThiDua = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
             // 1. Danh sách gốc (CSDL2)
-            var dictDanhSach = new Dictionary<string, (string HoTen, string DonVi, string GhiChu)>(StringComparer.Ordinal);
+            var dictDanhSach = new Dictionary<string, (string HoTen, string DonVi, string GhiChu, int Stt)>(StringComparer.Ordinal);
             if (File.Exists(_csdl2Path))
             {
                 using var cn2 = new SqliteConnection($"Data Source={_csdl2Path}");
                 cn2.Open();
-                using var cmd = new SqliteCommand("SELECT SoHieu, HoVaTen, DonVi, GhiChu FROM DanhSach", cn2);
+                // Bảng DanhSach cũ chưa có cột STT thì vẫn nạp bình thường (STT = lớn nhất, xếp theo ID như trước)
+                bool coCotSTT = CoCot(cn2, "DanhSach", "STT");
+                using var cmd = new SqliteCommand(coCotSTT
+                    ? "SELECT SoHieu, HoVaTen, DonVi, GhiChu, STT FROM DanhSach"
+                    : "SELECT SoHieu, HoVaTen, DonVi, GhiChu FROM DanhSach", cn2);
                 using var rd = cmd.ExecuteReader();
                 while (rd.Read())
                 {
                     ct.ThrowIfCancellationRequested();
                     string sh = SafeDecrypt(DocChuoi(rd, 0));
                     if (sh.Length == 0) continue;
+                    int sttDoc = int.MaxValue;
+                    if (coCotSTT && int.TryParse(DocChuoi(rd, 4).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int sttGoc)) sttDoc = sttGoc;
                     dictDanhSach[sh] = (SafeDecrypt(DocChuoi(rd, 1)),
                                         SafeDecrypt(DocChuoi(rd, 2)),
-                                        SafeDecrypt(DocChuoi(rd, 3)));
+                                        SafeDecrypt(DocChuoi(rd, 3)),
+                                        sttDoc);
                 }
             }
             // 2. CSDL4: DÙNG CHUNG 1 kết nối (trước đây mở 3 kết nối) và KHÔNG "CREATE TABLE IF NOT EXISTS"
@@ -747,21 +821,35 @@ namespace PhanMemThiDua2026
                         SoLuong_Khen = khen.SoLuong,
                         GhiChu_Khen = khen.GhiChu ?? "",
                         GhiChu_DanhSach = coGoc ? goc.GhiChu : "",
+                        STT_DanhSach = coGoc ? goc.Stt : int.MaxValue,
                         TapDVKhen = tapDV ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase),
                         DanhSachDVKhen_An = tapDV != null ? string.Join(", ", tapDV) : ""
                     });
                 }
             }
-            // 4. Sắp xếp theo thứ tự ưu tiên đơn vị.
+            // 4. Sắp xếp giống Form15: Đơn vị (ưu tiên) -> Đơn vị (chuẩn hóa) -> Đang công tác trước -> STT trong DanhSach -> ID.
             //    Dùng TryAdd + OrdinalIgnoreCase: ToDictionary cũ sẽ NÉM LỖI (làm hỏng cả lần tải)
             //    nếu danh sách ưu tiên có 2 đơn vị trùng tên.
             var uuTien = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             foreach (var dv in Module_DonVi.LayDanhSachDonViUuTienArray())
                 if (!string.IsNullOrWhiteSpace(dv)) uuTien.TryAdd(dv, uuTien.Count);
-            var daSapXep = list
-                .OrderBy(r => uuTien.TryGetValue(r.DonVi ?? "", out int idx) ? idx : int.MaxValue)
-                .ThenBy(r => r.ID)
-                .ToList();
+            var thongTinDonVi = new Dictionary<string, (int Pri, string Key)>(StringComparer.Ordinal); // mỗi đơn vị chỉ tính 1 lần
+            var khoa = new KhoaSapXep[list.Count];
+            for (int i = 0; i < khoa.Length; i++)
+            {
+                var r = list[i];
+                string donVi = r.DonVi ?? "";
+                if (!thongTinDonVi.TryGetValue(donVi, out var di))
+                {
+                    di = (uuTien.TryGetValue(donVi, out int pri) ? pri : int.MaxValue, ChuanHoaDonViSoSanh(donVi));
+                    thongTinDonVi[donVi] = di;
+                }
+                int rank = string.Equals((r.TinhTrang ?? "").Trim(), Module_HeThong.TT_DANG_CONG_TAC, StringComparison.OrdinalIgnoreCase) ? 0 : 1;
+                khoa[i] = new KhoaSapXep(di.Pri, di.Key, rank, r.STT_DanhSach, r.ID, i);
+            }
+            Array.Sort(khoa);
+            var daSapXep = new List<ThongTinKhenThuongCBCS>(khoa.Length);
+            foreach (var k in khoa) daSapXep.Add(list[k.Pos]);
             // Lấy luôn danh sách đơn vị chuẩn ở luồng nền (trước đây gọi DB ngay trên luồng UI)
             var donViChuan = Module_DonVi.GetDanhSachDonVi() ?? new List<string>();
             return new KetQuaTai(daSapXep, donViChuan);
@@ -856,7 +944,7 @@ namespace PhanMemThiDua2026
             string v = cb?.Text?.Trim() ?? "";
             return string.Equals(v, Module_HeThong.Tat_Ca, StringComparison.Ordinal) ? "" : v;
         }
-        private static string DocChuoi(SqliteDataReader rd, int i)=> rd.IsDBNull(i) ? "" : (Convert.ToString(rd.GetValue(i), CultureInfo.InvariantCulture) ?? "");
+        private static string DocChuoi(SqliteDataReader rd, int i) => rd.IsDBNull(i) ? "" : (Convert.ToString(rd.GetValue(i), CultureInfo.InvariantCulture) ?? "");
         // PHẦN 6 — LƯỚI: ĐỊNH DẠNG MỘT LẦN, VẼ NHANH, CHỌN NHIỀU DÒNG KHÔNG TỐN RAM
         private void DinhDangDataGridHienDai()
         {
@@ -1288,7 +1376,7 @@ namespace PhanMemThiDua2026
         }
         /// Hàm phân tích chi tiết khen thưởng dựa trên dữ liệu đang hiển thị trên DataGridView (đã qua bộ lọc)
         // (khai báo event: thêm dấu ? cho đúng nullable)
-      //public event Action<Form, string>? YeuCauLongFormVaoPanel;
+        //public event Action<Form, string>? YeuCauLongFormVaoPanel;
         // PHẦN 8 — PHÂN TÍCH / THỐNG KÊ: dùng TapDVKhen thay vì Split(',')
         public void HienThiPhanTichKhenThuong()
         {

@@ -107,7 +107,7 @@ namespace PhanMemThiDua2026
                 BatDoubleBufferDeQuy(c);
             }
         }
-        private void Form42_QuanLyThiDuaBaNhat_Load(object? sender, EventArgs e)
+        private async void Form42_QuanLyThiDuaBaNhat_Load(object? sender, EventArgs e)
         {
             // 1. KHỞI TẠO DATAGRIDVIEW VÀ CONTEXT MENU
             kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
@@ -118,7 +118,7 @@ namespace PhanMemThiDua2026
             // 2. ĐĂNG KÝ EVENT NHẬP LIỆU
             richTextBox1_ThanhTich.TextChanged += richTextBox1_ThanhTich_TextChanged;
             if (textBox_TimKiemTheoTen != null)
-                textBox_TimKiemTheoTen.TextChanged += (s, ev) => KhoiDongLocTre(); // debounce: không lọc theo từng phím
+                textBox_TimKiemTheoTen.TextChanged += (s, ev) => KhoiDongLocTre();
             if (comboBox_TimKiemDonVi != null)
                 comboBox_TimKiemDonVi.SelectedIndexChanged += (s, ev) => ThucHienLocDuLieu();
             if (comboBox1_DeNghi != null)
@@ -129,19 +129,19 @@ namespace PhanMemThiDua2026
             // 4. KHỞI TẠO TOOLTIP / TRẠNG THÁI NHẸ
             InitToolTips();
             KhoaCacTextBox();
-            // 5. TÍNH TOÁN THÔNG TIN HIỂN THỊ
-            //await Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync( toolStripStatusLabel2_TyLeBaNhat);
-            //await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
-            // 6. ĐỒNG BỘ DỮ LIỆU NGUỒN from55 đã lo việc này rồi
-            //await DongBoDuLieuLoai1SangBaNhatAsync();
-            //// 7. NẠP DỮ LIỆU CHÍNH LÊN GRID
-            //await LoadDuLieuToanBoDanhSachBaNhatAsync();
+            // 5. TÍNH TOÁN VÀ HIỂN THỊ TỶ LỆ BA NHẤT NGAY KHI MỞ FORM
+            await Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(toolStripStatusLabel2_TyLeBaNhat);
+            await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
+            // 6. ĐỒNG BỘ DỮ LIỆU NGUỒN
+            await DongBoDuLieuLoai1SangBaNhatAsync();
+            // 7. NẠP DỮ LIỆU CHÍNH LÊN GRID
+            await LoadDuLieuToanBoDanhSachBaNhatAsync();
             kryptonDataGridView1.RowTemplate.Height = 36;
             kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
             // 8. CẬP NHẬT TRẠNG THÁI UI SAU KHI CÓ DỮ LIỆU
             KiemTraHienThiNutCoChu();
             CapNhatTrangThaiNut();
-            CapNhatTrangThaiDuoiNen(false); // tỷ lệ đã tính ở bước 5 phía trên
+            CapNhatTrangThaiDuoiNen(false);
             CapNhatSoLuongKyTu();
         }
         private void Form42_QuanLyThiDuaBaNhat_Shown(object? sender, EventArgs e)
@@ -253,31 +253,70 @@ namespace PhanMemThiDua2026
         private void kryptonDataGridView1_CellMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
         {
             // Chỉ xử lý nếu là chuột phải và click vào một dòng hợp lệ
-            if (e.Button == MouseButtons.Right && e.RowIndex >= 0)
+            if (e.Button != MouseButtons.Right || e.RowIndex < 0) return;
+            var g = kryptonDataGridView1;
+            if (g == null || g.IsDisposed || e.RowIndex >= g.Rows.Count) return;
+            try
             {
                 // 1. Chọn dòng mà người dùng vừa chuột phải
-                kryptonDataGridView1.ClearSelection();
-                kryptonDataGridView1.Rows[e.RowIndex].Selected = true;
-                // 2. Di chuyển con trỏ (CurrentCell) về ô đó
-                kryptonDataGridView1.CurrentCell = kryptonDataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                // 3. Đổ dữ liệu lên TextBox như hành vi CellClick
-                // Gọi lại hàm đổ dữ liệu bạn đã viết sẵn (hoặc có thể trích xuất hàm đó ra riêng)
-                DataGridViewRow row = kryptonDataGridView1.Rows[e.RowIndex];
-                textBox_SoHieu.Tag = row.Cells["ID"].Value;
-                textBox_STT.Text = row.Cells["STT"].Value?.ToString();
-                textBox_HoVaTen.Text = row.Cells["HoVaTen"].Value?.ToString();
-                textBox_SoHieu.Text = row.Cells["SoHieu"].Value?.ToString();
-                textBox_NamSinh.Text = row.Cells["NamSinh"].Value?.ToString();
-                textBox_QueQuan.Text = row.Cells["QueQuan"].Value?.ToString();
-                textBox_NgayVaoCAND.Text = row.Cells["NgayVaoCAND"].Value?.ToString();
-                kryptonTextBox1_CapBac.Text = row.Cells["CapBac"].Value?.ToString();
-                kryptonTextBox1_ChucVu.Text = row.Cells["ChucVu"].Value?.ToString();
-                kryptonTextBox1_DonVi.Text = row.Cells["DonVi"].Value?.ToString();
-                kryptonTextBox1_PhanLoai.Text = row.Cells["PhanLoai"].Value?.ToString();
-                textBox_GhiChu.Text = row.Cells["GhiChu"].Value?.ToString();
-                string deNghiDb = row.Cells["DeNghi"].Value?.ToString() ?? "";
-                comboBox_DeNghiBaNhat.Text = deNghiDb.Trim().Equals("X", StringComparison.OrdinalIgnoreCase) ? "Đề nghị" : "";
-                richTextBox1_ThanhTich.Text = row.Cells["ThanhTich"].Value?.ToString();
+                g.ClearSelection();
+                g.Rows[e.RowIndex].Selected = true;
+                // 2. Đưa con trỏ về ô vừa bấm (chỉ khi ô đó nhìn thấy được, tránh lỗi với cột ẩn)
+                if (e.ColumnIndex >= 0 && g.Columns[e.ColumnIndex].Visible)
+                    g.CurrentCell = g.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[CellMouseClick] " + ex);
+            }
+            // 3. Đổ dữ liệu dòng lên các ô nhập (dùng chung với CellClick)
+            DoDuLieuDongLenForm(e.RowIndex);
+        }
+        // Lấy giá trị của một cột trên dòng lưới. Ưu tiên đọc từ nguồn dữ liệu (DataTable luôn có đủ cột
+        // kể cả cột ẩn), dự phòng đọc từ ô của lưới. Không bao giờ ném lỗi "Column named ... cannot be found".
+        private static object? LayGiaTriDong(DataGridViewRow row, string tenCot)
+        {
+            if (row.DataBoundItem is DataRowView drv && drv.Row.Table.Columns.Contains(tenCot))
+            {
+                object v = drv[tenCot];
+                return v == DBNull.Value ? null : v;
+            }
+            var g = row.DataGridView;
+            if (g != null && g.Columns.Contains(tenCot))
+                return row.Cells[tenCot].Value;
+            return null;
+        }
+        // Đổ dữ liệu dòng đang chọn lên các ô nhập ở phần "3. Cập nhật thông tin".
+        // Dùng chung cho CellClick (bấm/đúp chuột trái) và CellMouseClick (chuột phải).
+        private void DoDuLieuDongLenForm(int rowIndex)
+        {
+            var g = kryptonDataGridView1;
+            if (g == null || g.IsDisposed || rowIndex < 0 || rowIndex >= g.Rows.Count) return;
+            try
+            {
+                DataGridViewRow row = g.Rows[rowIndex];
+                if (row.IsNewRow) return;
+                string Chuoi(string tenCot) => LayGiaTriDong(row, tenCot)?.ToString() ?? "";
+                textBox_SoHieu.Tag = LayGiaTriDong(row, "ID");
+                textBox_STT.Text = Chuoi("STT");
+                textBox_HoVaTen.Text = Chuoi("HoVaTen");
+                textBox_SoHieu.Text = Chuoi("SoHieu");
+                textBox_NamSinh.Text = Chuoi("NamSinh");
+                textBox_QueQuan.Text = Chuoi("QueQuan");
+                textBox_NgayVaoCAND.Text = Chuoi("NgayVaoCAND");
+                kryptonTextBox1_CapBac.Text = Chuoi("CapBac");
+                kryptonTextBox1_ChucVu.Text = Chuoi("ChucVu");
+                kryptonTextBox1_DonVi.Text = Chuoi("DonVi");
+                kryptonTextBox1_PhanLoai.Text = Chuoi("PhanLoai");
+                textBox_GhiChu.Text = Chuoi("GhiChu");
+                richTextBox1_ThanhTich.Text = Chuoi("ThanhTich");
+                // Ô "Đề nghị": cột DeNghi = "X" thì hiện "Đề nghị", ngược lại để trống
+                comboBox_DeNghiBaNhat.Text = Chuoi("DeNghi").Trim().Equals("X", StringComparison.OrdinalIgnoreCase)
+                    ? "Đề nghị" : "";
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[DoDuLieuDongLenForm] " + ex);
             }
         }
         // GHI CHÚ: bản gốc tính chuỗi thống kê nhưng KHÔNG gán vào control nào (có TODO), nên phần tính toán
@@ -975,13 +1014,25 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 Cot("PhanLoai", "Phân loại", 90, giua, hien: false),
                 Cot("DeNghi", "Đề nghị", 70, giua, readOnly: false),
                 Cot("TinhTrang", "Tình trạng", 120, giua),
-                Cot("GhiChu", "Ghi chú", 0, trai, fill: true, minW: 100),
-                Cot("ThanhTich", "Thành tích", 0, trai, readOnly: false, fill: true, minW: 150));
+                Cot("GhiChu", "Ghi chú", GhiChuMin, trai, minW: GhiChuMin),
+                Cot("ThanhTich", "Thành tích", ThanhTichMin, trai, readOnly: false, minW: ThanhTichMin));
+            g.Columns["HoVaTen"]!.Frozen = true;          // cuộn ngang vẫn thấy STT + Họ tên
+            g.CellToolTipTextNeeded += kryptonDataGridView1_CellToolTipTextNeeded;
             _daCauHinhGrid = true;
         }
+        private const int GhiChuMin = 190, ThanhTichMin = 240;
+        // Chữ trên lưới bị cắt ở 25 ký tự -> rê chuột để xem đầy đủ
+        private void kryptonDataGridView1_CellToolTipTextNeeded(object? sender, DataGridViewCellToolTipTextNeededEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            var g = kryptonDataGridView1;
+            string n = g.Columns[e.ColumnIndex].Name;
+            if (n != "GhiChu" && n != "ThanhTich" && n != "QueQuan") return;
+            if (g.Rows[e.RowIndex].Cells[e.ColumnIndex].Value is string s && s.Length > 25)
+                e.ToolTipText = s;
+        }
         private static DataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,
-            DataGridViewContentAlignment canh, bool readOnly = true, bool hien = true,
-            bool fill = false, int minW = 50)
+         DataGridViewContentAlignment canh, bool readOnly = true, bool hien = true, int minW = 0)
         {
             var c = new DataGridViewTextBoxColumn
             {
@@ -990,44 +1041,22 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 HeaderText = tieuDe,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 ReadOnly = readOnly,
-                Visible = hien
+                Visible = hien,
+                // Fill: các cột tự chia đều chiều ngang còn lại theo tỷ trọng (FillWeight = độ rộng mong muốn),
+                // luôn lấp kín lưới, tự co giãn khi đổi kích thước form, không còn khoảng trống bên phải.
+                AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                FillWeight = rong,
+                MinimumWidth = minW > 0 ? minW : Math.Max(30, rong * 6 / 10)
             };
             c.DefaultCellStyle.Alignment = canh;
-            c.DefaultCellStyle.WrapMode = DataGridViewTriState.False;   // đã cắt 25 ký tự, không cần wrap
-            if (fill) { c.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill; c.FillWeight = 50; c.MinimumWidth = minW; }
-            else { c.AutoSizeMode = DataGridViewAutoSizeColumnMode.None; c.Width = rong; }
+            c.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+            c.Width = rong;
             return c;
         }
         private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
-            DataGridViewRow row = kryptonDataGridView1.Rows[e.RowIndex];
-            textBox_SoHieu.Tag = row.Cells["ID"].Value;
-            textBox_STT.Text = row.Cells["STT"].Value?.ToString();
-            textBox_HoVaTen.Text = row.Cells["HoVaTen"].Value?.ToString();
-            textBox_SoHieu.Text = row.Cells["SoHieu"].Value?.ToString();
-            textBox_NamSinh.Text = row.Cells["NamSinh"].Value?.ToString();
-            textBox_QueQuan.Text = row.Cells["QueQuan"].Value?.ToString();
-            textBox_NgayVaoCAND.Text = row.Cells["NgayVaoCAND"].Value?.ToString();
-            kryptonTextBox1_CapBac.Text = row.Cells["CapBac"].Value?.ToString();
-            kryptonTextBox1_ChucVu.Text = row.Cells["ChucVu"].Value?.ToString();
-            kryptonTextBox1_DonVi.Text = row.Cells["DonVi"].Value?.ToString();
-            kryptonTextBox1_PhanLoai.Text = row.Cells["PhanLoai"].Value?.ToString();
-            textBox_GhiChu.Text = row.Cells["GhiChu"].Value?.ToString();
-            richTextBox1_ThanhTich.Text = row.Cells["ThanhTich"].Value?.ToString();
-            // (Bổ sung vào gần chỗ lấy GhiChu, ThanhTich)
-            string tinhTrangDb = row.Cells["TinhTrang"].Value?.ToString() ?? "";
-            // Nếu bạn có ô TextBox cho Tình Trạng, mở khóa dòng bên dưới:
-            // textBox_TinhTrang.Text = tinhTrangDb;
-            string deNghiDb = row.Cells["DeNghi"].Value?.ToString() ?? "";
-            if (deNghiDb.Trim().Equals("X", StringComparison.OrdinalIgnoreCase))
-            {
-                comboBox_DeNghiBaNhat.Text = "Đề nghị";
-            }
-            else
-            {
-                comboBox_DeNghiBaNhat.Text = "";
-            }
+            DoDuLieuDongLenForm(e.RowIndex);
         }
         private async void kryptonButton_LuuDataDeNghi_Click(object? sender, EventArgs e)
         {
@@ -1108,9 +1137,10 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 // Đồng bộ DataGridView
                 foreach (DataGridViewRow row in kryptonDataGridView1.Rows)
                 {
-                    if (row.IsNewRow || row.Cells["ID"].Value == null)
+                    object? giaTriId = row.IsNewRow ? null : LayGiaTriDong(row, "ID");
+                    if (giaTriId == null)
                         continue;
-                    if (Convert.ToInt32(row.Cells["ID"].Value) == idBaNhat)
+                    if (Convert.ToInt32(giaTriId) == idBaNhat)
                     {
                         row.Cells["DeNghi"].Value = deNghi;
                         row.Cells["ThanhTich"].Value = thanhTich; // Đồng bộ luôn thành tích (có thể đã rỗng) lên DataGrid

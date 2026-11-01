@@ -59,9 +59,9 @@ namespace PhanMemThiDua2026
             // 🎨 BO TRÒN GIAO DIỆN: áp cho form cha và tự động cho mọi form con (kể cả control tạo sau)
             // Sidebar kiểu web hiện đại (viên thuốc bo tròn, hover sáng, mục đang chọn màu trắng)
             Module_SidebarHienDai.KhoiTao(PanelLeft,
-                kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
-                kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
-                kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
+            kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
+            kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
+            kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
             checkBox1_TuDongAnMenu.ForeColor = Module_SidebarHienDai.ChuThuong;
             Module_GiaoDienBoTron.ApDung(this);
             // === THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ICON TASKBAR ===
@@ -1371,6 +1371,7 @@ namespace PhanMemThiDua2026
             try { PanelLeft.Width = rongMoi; }
             finally { ResumeLayout(true); ChoPhepVe(PanelContainer); }
         }
+       
     }
 }
 public static class UIHelper

@@ -1254,4 +1254,15 @@ public static class Module_BaoMatAES
             return string.Empty;
         }
     }
+    // Thêm vào trong class Module_BaoMatAES (nếu chưa có sẵn hàm công khai lấy khóa):
+    public static byte[] LayKhoaHeThongDungChung()
+    {
+        // Tận dụng cơ chế sinh khóa 256-bit chuẩn đang chạy ngầm của hệ thống
+        string mKpassKey = Encoding.UTF8.GetString(Convert.FromBase64String("eWVLZGV4aUZfNjIwMmF1RGlpaFRtZU1uYWhQ"));
+        string k1 = Module_DanduongGPS.ToiYeuMeoCam1;
+        string k2 = Module_DanduongGPS.ToiYeuMeoCam2;
+        string rawKeyFromGPS = TraLaiTenChoMeoCam(k1 + k2);
+        string keyFinal = !string.IsNullOrEmpty(rawKeyFromGPS) ? rawKeyFromGPS : TraLaiTenChoMeoCam(mKpassKey);
+        return VanLyDocHanhTaoKey256(keyFinal);
+    }
 }
