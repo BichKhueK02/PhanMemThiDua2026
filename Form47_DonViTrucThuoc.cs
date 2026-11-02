@@ -24,6 +24,13 @@ namespace PhanMemThiDua2026
         public Form47_DonViTrucThuoc()
         {
             InitializeComponent();
+            // Cho phép kéo giãn form bằng chuột
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.MaximizeBox = true;
+            this.MinimizeBox = true;
+            this.MinimumSize = new Size(800, 500);
+            this.Size = new Size(1000, 600);
+            this.StartPosition = FormStartPosition.CenterScreen;
             // Cấu hình chống giật lag lưới
             typeof(DataGridView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
                 ?.SetValue(kryptonDataGridView1, true, null);
