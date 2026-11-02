@@ -1371,7 +1371,6 @@ namespace PhanMemThiDua2026
             try { PanelLeft.Width = rongMoi; }
             finally { ResumeLayout(true); ChoPhepVe(PanelContainer); }
         }
-       
     }
 }
 public static class UIHelper

@@ -134,8 +134,8 @@ namespace PhanMemThiDua2026
                 kryptonDataGridView1.Columns["ID"].Visible = false;
                 CauHinhCotGrid("STT", "STT", 60, DataGridViewContentAlignment.MiddleCenter);
                 CauHinhCotGrid("TenDonVi", "Tên đơn vị trực thuộc", 250, DataGridViewContentAlignment.MiddleLeft);
-                CauHinhCotGrid("KyHieu", "Ký hiệu", 120, DataGridViewContentAlignment.MiddleCenter);
-                CauHinhCotGrid("ThoiGian", "Thời gian", 150, DataGridViewContentAlignment.MiddleCenter);
+                CauHinhCotGrid("KyHieu", "Ký hiệu", 100, DataGridViewContentAlignment.MiddleCenter);
+                CauHinhCotGrid("ThoiGian", "Thời gian", 170, DataGridViewContentAlignment.MiddleCenter);
                 kryptonDataGridView1.Columns["STT"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                 kryptonDataGridView1.Columns["KyHieu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                 kryptonDataGridView1.Columns["ThoiGian"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
@@ -416,17 +416,17 @@ namespace PhanMemThiDua2026
         // 3. TỐI ƯU HÀM CẬP NHẬT LABEL ĐẾM
         private void CapNhatTongCongDonViLabel()
         {
-            if (label_tongCongDonViTrucThuoc == null) return;
-            int count = _danhSachDonVi.Count; // Khỏi đếm trên lưới, đếm trên List
-            if (count > 0)
+            int count = _danhSachDonVi.Count;
+            if (toolStripStatusLabel1 != null)
             {
-                label_tongCongDonViTrucThuoc.Text = $"Tổng các đơn vị trực thuộc: {count} đơn vị";
-                label_tongCongDonViTrucThuoc.Visible = true;
-            }
-            else
-            {
-                label_tongCongDonViTrucThuoc.Text = string.Empty;
-                label_tongCongDonViTrucThuoc.Visible = false;
+                if (count > 0)
+                {
+                    toolStripStatusLabel1.Text = $"Tổng số đơn vị trực thuộc: {count} đơn vị";
+                }
+                else
+                {
+                    toolStripStatusLabel1.Text = "Không có đơn vị nào.";
+                }
             }
         }
         private async void kryptonButton1_Xoa_Click(object sender, EventArgs e)
