@@ -46,6 +46,9 @@ namespace PhanMemThiDua2026
         [DllImport("gdi32.dll")]
         private static extern bool DeleteObject(IntPtr obj);
         private enum KetQuaXacThuc { Sai, Admin, ThanhVien }
+        private readonly Task<(int Nam, string PhienBan)> _taiNhanh;
+        private readonly Task<CauHinhKhoiDong> _taiCauHinh;
+        private readonly Task _taiNong;
         private sealed class CauHinhKhoiDong
         {
             public string? GoiY;   // ChoPhepGoiYMatKhau (đang mã hóa)
@@ -71,6 +74,12 @@ namespace PhanMemThiDua2026
             _cs1Doc = TaoChuoiKetNoi(_csdl1Path, "ReadOnly", 10);
             _cs1Ghi = TaoChuoiKetNoi(_csdl1Path, "ReadWrite", 5);
             _cs2Doc = TaoChuoiKetNoi(_csdl2Path, "ReadOnly", 10);
+
+            string p1 = _csdl1Path, p2 = _csdl2Path, c1 = _cs1Doc, c2 = _cs2Doc;
+            _taiNhanh = Task.Run(() => (Module_HeThong.LayNamHeThong(), Module_TaiKhoan.LayPhienBanPhanMem()));
+            _taiCauHinh = Task.Run(() => DocCauHinhKhoiDong(p1, p2, c1, c2));
+            _taiNong = Task.Run(Module_BaoMatAES.KhoiDongNong);
+            
             InitializeComponent();
             ApplyPerformanceTuning();
             this.Load += Form1_Load;
@@ -103,10 +112,11 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                label3_HienThiTenPhanMem.Text = "Phần mềm thi đua năm " + Module_HeThong.LayNamHeThong();
+                var (nam, phienBan) = _taiNhanh.GetAwaiter().GetResult();
+                label3_HienThiTenPhanMem.Text = "Phần mềm thi đua năm " + nam;   // dùng nam, không gọi lại hàm
                 text_MatKhau.UseSystemPasswordChar = true;
                 this.CenterToScreen();
-                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem();
+                //string phienBan = Module_TaiKhoan.LayPhienBanPhanMem();
                 bool laTanBinh = LaPhienBanTanBinh(phienBan);
                 if (laTanBinh) label1_ThongBaoPhienBan.Text = phienBan;
                 label1_ThongBaoPhienBan.Visible = laTanBinh;
@@ -146,28 +156,18 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                // Chờ khung hình đầu vẽ xong (máy yếu vẽ chậm hơn) rồi mới làm việc nền
-                await Task.Delay(250);
+                CauHinhKhoiDong cfg = await _taiCauHinh;   // đã đọc xong từ lâu, không cần Delay(250)
+                await _taiNong;
                 if (IsDisposed) return;
+
                 InitToolTips();
-                // 1 lượt đọc nền duy nhất cho cả 2 CSDL (thay cho 3 tác vụ mở kết nối riêng lẻ,
-                // trong đó có 1 lệnh đọc đồng bộ trên luồng UI). Chỉ ĐỌC chuỗi thô ở luồng nền;
-                // giải mã và gán UI làm trên luồng UI (không đổi mô hình luồng của Module_BaoMatAES).
-                string p1 = _csdl1Path, p2 = _csdl2Path, c1 = _cs1Doc, c2 = _cs2Doc;
-                // Làm nóng thư viện mật mã (nạp bcrypt + JIT) SONG SONG với việc đọc CSDL -> lần giải mã đầu tiên trên luồng UI không bị khựng.
-                // Idempotent: nếu nơi khác (Program.cs) đã gọi KhoiDongNong thì gọi thêm lần này vô hại.
-                Task tacVuNong = Task.Run(Module_BaoMatAES.KhoiDongNong);
-                CauHinhKhoiDong cfg = await Task.Run(() => DocCauHinhKhoiDong(p1, p2, c1, c2));
-                await tacVuNong;   // KhoiDongNong tự bắt mọi lỗi, không ném ngoại lệ
-                if (IsDisposed) return;
                 ApDungCauHinhKhoiDong(cfg);
-                // SAU KHI DB XONG VÀ CPU RẢNH: nạp trước Form 2 (chia nhỏ từng bước trên luồng UI)
+
+                await Task.Delay(800);   // để người dùng gõ tài khoản trước, rồi mới nạp Form2
+                if (IsDisposed) return;
                 _ = Form2Preloader.NapTruocAsync(() => IsDisposed);
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("[Lỗi Load Ngầm Form 1]: " + ex.Message);
-            }
+            catch (Exception ex) { Debug.WriteLine("[Lỗi Load Ngầm Form 1]: " + ex.Message); }
         }
         /// <summary>Chạy ở luồng nền. Mỗi giá trị đọc cô lập lỗi: thiếu cột/bảng chỉ làm giá trị đó = null.</summary>
         private static CauHinhKhoiDong DocCauHinhKhoiDong(string p1, string p2, string cs1, string cs2)

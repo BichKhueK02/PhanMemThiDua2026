@@ -323,10 +323,23 @@
             // 
             // listBox1
             // 
+            // listBox1.Dock = DockStyle.Fill;
+            // listBox1.Font = new Font("Times New Roman", 10.9439993F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            // listBox1.FormattingEnabled = true;
+            // listBox1.ItemHeight = 17;
+            // listBox1.Location = new Point(2, 3);
+            // listBox1.Margin = new Padding(2, 3, 2, 3);
+            // listBox1.Name = "listBox1";
+            // listBox1.Size = new Size(325, 357);
+            // listBox1.TabIndex = 0;
+            // // 
+            // // listBox1
+            // 
             listBox1.Dock = DockStyle.Fill;
-            listBox1.Font = new Font("Times New Roman", 10.9439993F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            // Thay đổi từ Times New Roman 10.9439993F sang Segoe UI 9.75F hoặc 10F
+            listBox1.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
             listBox1.FormattingEnabled = true;
-            listBox1.ItemHeight = 17;
+            listBox1.ItemHeight = 22;
             listBox1.Location = new Point(2, 3);
             listBox1.Margin = new Padding(2, 3, 2, 3);
             listBox1.Name = "listBox1";

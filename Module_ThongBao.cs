@@ -258,7 +258,7 @@ namespace PhanMemThiDua2026
             _listBox.BeginUpdate();
             try
             {
-                _listBox.ItemHeight = 22;
+                _listBox.ItemHeight = 23;
                 // Xóa các dòng ghim cũ
                 for (int i = _listBox.Items.Count - 1; i >= 0; i--)
                 {

@@ -23,6 +23,7 @@ namespace PhanMemThiDua2026
         // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
         private static readonly Font _fontRegular9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
         private static readonly Font _fontBold9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
+
         private string TenBangHienTai
         {
             get
@@ -37,13 +38,18 @@ namespace PhanMemThiDua2026
         public Form44_SoVangBaNhat()
         {
             InitializeComponent();
+            // Form44_SoVangBaNhat
+            kryptonTextBox1_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
             GiaoDienForm42_44Web.ApDung(this);
             Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
             // Đăng ký sự kiện Shown cho Form44_SoVangBaNhat
             this.Shown += Form44_SoVangBaNhat_Shown;
             // Trong sự kiện Load hoặc Constructor
-            kryptonTextBox1_TimKiemTheoTen.TextChanged += (s, e) => LocDuLieu();
-            comboBox_TimKiemDonVi.SelectedIndexChanged += (s, e) => LocDuLieu();
+            //kryptonTextBox1_TimKiemTheoTen.TextChanged += (s, e) => LocDuLieu();
+            //comboBox_TimKiemDonVi.SelectedIndexChanged += (s, e) => LocDuLieu();
+            kryptonTextBox1_TimKiemTheoTen.TextChanged += BoLoc_Changed;
+            comboBox_TimKiemDonVi.SelectedIndexChanged += BoLoc_Changed;
+
             // ⭐ ĐĂNG KÝ SỰ KIỆN THEO DÕI ẨN HÀN NÚT Ở ĐÂY
             kryptonTextBox1_SoHieu.TextChanged += (s, e) => CapNhatTrangThaiNut();
             kryptonTextBox1_HoVaTen.TextChanged += (s, e) => CapNhatTrangThaiNut();
@@ -716,25 +722,28 @@ namespace PhanMemThiDua2026
         }
         private void CapNhatThongKeSoLuong()
         {
-            // Kiểm tra số lượng dòng thực tế đang hiển thị trên lưới
-            // Lưu ý: Nếu DataGridView có thuộc tính AllowUserToAddRows = true, 
-            // Rows.Count sẽ bao gồm cả dòng trống cuối cùng, nên ta cần trừ đi 1.
-            int soLuong = kryptonDataGridView1.Rows.Count;
-            if (kryptonDataGridView1.AllowUserToAddRows)
+            int tong = 0, hienThi = 0; bool dangLoc = false;
+            if (kryptonDataGridView1.DataSource is DataTable dt)
             {
-                soLuong--;
+                tong = dt.Rows.Count;
+                hienThi = dt.DefaultView.Count;
+                dangLoc = dt.DefaultView.RowFilter.Length > 0;
             }
-            if (soLuong > 0)
+            string dc = Module_HeThong.Tu_dong_chi;
+            if (tong == 0)
             {
-                // Trường hợp có dữ liệu
-                toolStripStatusLabel1_ThongBao.Text = $"Tổng cộng: {soLuong} {Module_HeThong.Tu_dong_chi}";
-                toolStripStatusLabel1_ThongBao.ForeColor = Color.DarkBlue; // Màu chữ cho đẹp
+                toolStripStatusLabel1_ThongBao.ForeColor = Color.Red;
+                toolStripStatusLabel1_ThongBao.Text = $"Sổ vàng hiện chưa có {dc} nào đề nghị biểu dương phong trào thi đua \"Ba Nhất\" trong CAND";
+            }
+            else if (dangLoc)
+            {
+                toolStripStatusLabel1_ThongBao.ForeColor = Color.Blue;
+                toolStripStatusLabel1_ThongBao.Text = $"Tổng quân số: {tong} {dc} | Kết quả tìm kiếm: {hienThi} {dc}";
             }
             else
             {
-                // Trường hợp không có dữ liệu
-                toolStripStatusLabel1_ThongBao.Text = $"Sổ vàng hiện chưa có {Module_HeThong.Tu_dong_chi} nào đề nghị biểu dương phong trào thi đua \"Ba Nhất\" trong CAND";
-                toolStripStatusLabel1_ThongBao.ForeColor = Color.Red; // Màu đỏ cho nổi bật
+                toolStripStatusLabel1_ThongBao.ForeColor = Color.DarkBlue;
+                toolStripStatusLabel1_ThongBao.Text = $"Tổng cộng: {tong} {dc}";
             }
         }
         private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
@@ -756,32 +765,77 @@ namespace PhanMemThiDua2026
                 return "[Lỗi giải mã]";
             }
         }
+        //private void LocDuLieu()
+        //{
+        //    var dt = kryptonDataGridView1.DataSource as DataTable;
+        //    if (dt == null) return;
+        //    kryptonDataGridView1.BindingContext[dt].SuspendBinding();
+        //    try
+        //    {
+        //        string filter = "";
+        //        string ten = kryptonTextBox1_TimKiemTheoTen.Text.Replace("'", "''");
+        //        if (!string.IsNullOrWhiteSpace(ten))
+        //            filter += $"HoVaTen LIKE '%{ten}%'";
+        //        string donVi = comboBox_TimKiemDonVi.Text;
+        //        if (!string.IsNullOrWhiteSpace(donVi) && donVi != Module_HeThong.Tat_Ca)
+        //        {
+        //            if (filter.Length > 0) filter += " AND ";
+        //            filter += $"DonVi = '{donVi.Replace("'", "''")}'";
+        //        }
+        //        dt.DefaultView.RowFilter = filter;
+        //        CapNhatThongKeSoLuong();
+        //        // XÓA DÒNG CapNhatDanhSachDonVi(); Ở ĐÂY NẾU CÒN
+        //    }
+        //    finally
+        //    {
+        //        kryptonDataGridView1.BindingContext[dt].ResumeBinding();
+        //    }
+        //}
+        private bool _dangDatLaiLoc;
+        private void BoLoc_Changed(object? s, EventArgs e) => LocDuLieu();
+
+        private static string EscapeLike(string s)
+        {
+            var sb = new StringBuilder(s.Length + 8);
+            foreach (char ch in s)
+            {
+                if (ch is '*' or '%' or '[' or ']') sb.Append('[').Append(ch).Append(']');
+                else sb.Append(ch);
+            }
+            return sb.ToString();
+        }
+
         private void LocDuLieu()
         {
-            var dt = kryptonDataGridView1.DataSource as DataTable;
-            if (dt == null) return;
-            kryptonDataGridView1.BindingContext[dt].SuspendBinding();
+            if (_dangDatLaiLoc) return;
+            if (kryptonDataGridView1.DataSource is not DataTable dt) return;
+
+            var dk = new List<string>(2);
+            string ten = kryptonTextBox1_TimKiemTheoTen.Text.Trim();
+            if (ten.Length > 0)
+                dk.Add($"HoVaTen LIKE '%{EscapeLike(ten.Replace("'", "''"))}%'");
+
+            if (comboBox_TimKiemDonVi.SelectedIndex > 0 && comboBox_TimKiemDonVi.SelectedItem is string donVi)
+                dk.Add($"DonVi = '{donVi.Replace("'", "''")}'");
+
+            try { dt.DefaultView.RowFilter = string.Join(" AND ", dk); }
+            catch (Exception ex) { Debug.WriteLine("[LOC] " + ex.Message); dt.DefaultView.RowFilter = string.Empty; }
+
+            CapNhatThongKeSoLuong();
+        }
+
+        private void DatLaiBoLoc()
+        {
+            _dangDatLaiLoc = true;
             try
             {
-                string filter = "";
-                string ten = kryptonTextBox1_TimKiemTheoTen.Text.Replace("'", "''");
-                if (!string.IsNullOrWhiteSpace(ten))
-                    filter += $"HoVaTen LIKE '%{ten}%'";
-                string donVi = comboBox_TimKiemDonVi.Text;
-                if (!string.IsNullOrWhiteSpace(donVi) && donVi != Module_HeThong.Tat_Ca)
-                {
-                    if (filter.Length > 0) filter += " AND ";
-                    filter += $"DonVi = '{donVi.Replace("'", "''")}'";
-                }
-                dt.DefaultView.RowFilter = filter;
-                CapNhatThongKeSoLuong();
-                // XÓA DÒNG CapNhatDanhSachDonVi(); Ở ĐÂY NẾU CÒN
+                kryptonTextBox1_TimKiemTheoTen.Clear();
+                if (comboBox_TimKiemDonVi.Items.Count > 0) comboBox_TimKiemDonVi.SelectedIndex = 0;
             }
-            finally
-            {
-                kryptonDataGridView1.BindingContext[dt].ResumeBinding();
-            }
+            finally { _dangDatLaiLoc = false; }
+            LocDuLieu();
         }
+
         private void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e)
         {
             kryptonTextBox1_TimKiemTheoTen.TextChanged -= (s, ev) => LocDuLieu(); // Tạm ngắt sự kiện để tránh lọc thừa
@@ -793,54 +847,88 @@ namespace PhanMemThiDua2026
             CapNhatThongKeSoLuong();
             kryptonTextBox1_TimKiemTheoTen.TextChanged += (s, ev) => LocDuLieu(); // Bật lại sự kiện
         }
+        //private void CapNhatDanhSachDonVi()
+        //{
+        //    var dt = kryptonDataGridView1.DataSource as DataTable;
+        //    if (dt == null) return;
+        //    // 1. Lưu lại giá trị hiện tại
+        //    string currentSelection = comboBox_TimKiemDonVi.Text;
+        //    // 2. Bỏ bộ lọc tạm thời để lấy TOÀN BỘ danh sách đơn vị có trong Grid
+        //    var dataView = dt.DefaultView;
+        //    var currentFilter = dataView.RowFilter;
+        //    dataView.RowFilter = string.Empty;
+        //    // 3. Trích xuất các đơn vị thực tế ĐANG CÓ trong dữ liệu (HashSet giúp tìm kiếm cực nhanh)
+        //    var distinctTable = dataView.ToTable(true, "DonVi");
+        //    HashSet<string> cacDonViCoTrongData = new HashSet<string>();
+        //    foreach (DataRow row in distinctTable.Rows)
+        //    {
+        //        if (row["DonVi"] != DBNull.Value && !string.IsNullOrWhiteSpace(row["DonVi"].ToString()))
+        //        {
+        //            cacDonViCoTrongData.Add(row["DonVi"].ToString().Trim());
+        //        }
+        //    }
+        //    // 4. Lấy danh sách chuẩn (đã sắp xếp đúng thứ tự) từ Module_DonVi
+        //    List<string> danhSachChuan = Module_DonVi.GetDanhSachDonVi();
+        //    // 5. Nạp vào ComboBox
+        //    comboBox_TimKiemDonVi.Items.Clear();
+        //    comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
+        //    // BƯỚC QUAN TRỌNG: Duyệt theo danh sách CHUẨN. 
+        //    // Nếu đơn vị chuẩn nào có xuất hiện trong Data thì mới thêm vào ComboBox.
+        //    // Việc này đảm bảo: Chỉ hiện đơn vị có dữ liệu VÀ giữ đúng thứ tự của Module_DonVi.
+        //    foreach (string donViChuan in danhSachChuan)
+        //    {
+        //        if (cacDonViCoTrongData.Contains(donViChuan))
+        //        {
+        //            comboBox_TimKiemDonVi.Items.Add(donViChuan);
+        //            cacDonViCoTrongData.Remove(donViChuan); // Xóa đi để đánh dấu là đã xử lý
+        //        }
+        //    }
+        //    // (Tùy chọn an toàn): Nhỡ có đơn vị nào bị gõ sai tên trong CSDL (không khớp danh sách chuẩn)
+        //    // Ta vẫn thêm nó vào cuối ComboBox để người dùng không bị mất dữ liệu lọc
+        //    foreach (string donViThua in cacDonViCoTrongData)
+        //    {
+        //        comboBox_TimKiemDonVi.Items.Add(donViThua);
+        //    }
+        //    // 6. Trả lại trạng thái cũ
+        //    dataView.RowFilter = currentFilter;
+        //    if (comboBox_TimKiemDonVi.Items.Contains(currentSelection))
+        //        comboBox_TimKiemDonVi.SelectedItem = currentSelection;
+        //    else
+        //        comboBox_TimKiemDonVi.SelectedIndex = 0;
+        //}
+
         private void CapNhatDanhSachDonVi()
         {
-            var dt = kryptonDataGridView1.DataSource as DataTable;
-            if (dt == null) return;
-            // 1. Lưu lại giá trị hiện tại
-            string currentSelection = comboBox_TimKiemDonVi.Text;
-            // 2. Bỏ bộ lọc tạm thời để lấy TOÀN BỘ danh sách đơn vị có trong Grid
-            var dataView = dt.DefaultView;
-            var currentFilter = dataView.RowFilter;
-            dataView.RowFilter = string.Empty;
-            // 3. Trích xuất các đơn vị thực tế ĐANG CÓ trong dữ liệu (HashSet giúp tìm kiếm cực nhanh)
-            var distinctTable = dataView.ToTable(true, "DonVi");
-            HashSet<string> cacDonViCoTrongData = new HashSet<string>();
-            foreach (DataRow row in distinctTable.Rows)
+            if (kryptonDataGridView1.DataSource is not DataTable dt) return;
+
+            string? dangChon = comboBox_TimKiemDonVi.SelectedIndex > 0
+                ? comboBox_TimKiemDonVi.SelectedItem as string : null;
+
+            var coTrongData = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DataRow r in dt.Rows)
             {
-                if (row["DonVi"] != DBNull.Value && !string.IsNullOrWhiteSpace(row["DonVi"].ToString()))
+                string v = (r["DonVi"] as string)?.Trim() ?? "";
+                if (v.Length > 0) coTrongData.Add(v);
+            }
+
+            _dangDatLaiLoc = true;
+            try
+            {
+                comboBox_TimKiemDonVi.BeginUpdate();
+                try
                 {
-                    cacDonViCoTrongData.Add(row["DonVi"].ToString().Trim());
+                    comboBox_TimKiemDonVi.Items.Clear();
+                    comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
+                    foreach (string chuan in Module_DonVi.GetDanhSachDonVi())
+                        if (coTrongData.Remove(chuan)) comboBox_TimKiemDonVi.Items.Add(chuan);
+                    foreach (string thua in coTrongData) comboBox_TimKiemDonVi.Items.Add(thua);
+
+                    int vt = dangChon == null ? 0 : comboBox_TimKiemDonVi.Items.IndexOf(dangChon);
+                    comboBox_TimKiemDonVi.SelectedIndex = vt >= 0 ? vt : 0;
                 }
+                finally { comboBox_TimKiemDonVi.EndUpdate(); }
             }
-            // 4. Lấy danh sách chuẩn (đã sắp xếp đúng thứ tự) từ Module_DonVi
-            List<string> danhSachChuan = Module_DonVi.GetDanhSachDonVi();
-            // 5. Nạp vào ComboBox
-            comboBox_TimKiemDonVi.Items.Clear();
-            comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
-            // BƯỚC QUAN TRỌNG: Duyệt theo danh sách CHUẨN. 
-            // Nếu đơn vị chuẩn nào có xuất hiện trong Data thì mới thêm vào ComboBox.
-            // Việc này đảm bảo: Chỉ hiện đơn vị có dữ liệu VÀ giữ đúng thứ tự của Module_DonVi.
-            foreach (string donViChuan in danhSachChuan)
-            {
-                if (cacDonViCoTrongData.Contains(donViChuan))
-                {
-                    comboBox_TimKiemDonVi.Items.Add(donViChuan);
-                    cacDonViCoTrongData.Remove(donViChuan); // Xóa đi để đánh dấu là đã xử lý
-                }
-            }
-            // (Tùy chọn an toàn): Nhỡ có đơn vị nào bị gõ sai tên trong CSDL (không khớp danh sách chuẩn)
-            // Ta vẫn thêm nó vào cuối ComboBox để người dùng không bị mất dữ liệu lọc
-            foreach (string donViThua in cacDonViCoTrongData)
-            {
-                comboBox_TimKiemDonVi.Items.Add(donViThua);
-            }
-            // 6. Trả lại trạng thái cũ
-            dataView.RowFilter = currentFilter;
-            if (comboBox_TimKiemDonVi.Items.Contains(currentSelection))
-                comboBox_TimKiemDonVi.SelectedItem = currentSelection;
-            else
-                comboBox_TimKiemDonVi.SelectedIndex = 0;
+            finally { _dangDatLaiLoc = false; }
         }
         private async void kryptonButton_RefershCSDL_Click(object? sender, EventArgs e)
         {

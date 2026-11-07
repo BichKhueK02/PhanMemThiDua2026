@@ -245,35 +245,51 @@ namespace PhanMemThiDua2026
                 }
             });
         }
+
         private static void BinhMinhOSantoriniCore()
         {
             lock (_khoaBaoTri)
             {
-                // Tuần tra và khôi phục chéo tệp data1 -> data12 trước
-                TuanTraVaPhucHoiCoreRepository();
-                // Khôi phục thư viện hệ thống
+                // 1. Chỉ khôi phục các tệp Core Repository bị thiếu,
+                // không thực hiện kiểm tra toàn vẹn và băm SHA-256.
+                TuanTraVaPhucHoiCoreRepository(kiemTraToanVen: false);
+
+                // 2. Khôi phục thư viện hệ thống.
                 KhoiPhucThuVienHeThong();
+
                 string srcDir = Path.Combine(AppContext.BaseDirectory, THU_MUC_BACKUP);
                 string windowDir = Path.Combine(AppContext.BaseDirectory, THU_MUC_WINDOW);
                 string dbDir = Module_DanduongGPS.ThuMucCoSoDuLieu;
+
                 Directory.CreateDirectory(srcDir);
                 Directory.CreateDirectory(windowDir);
                 Directory.CreateDirectory(dbDir);
+
                 var loi = new List<string>();
                 byte[]? key = null;
+
                 try
                 {
-                    key = Module_BaoMatAES.HoaVanNoTrenDuongRaChienDich256v1(Module_DanduongGPS.ToiYeuMeoCam1);
+                    key = Module_BaoMatAES.HoaVanNoTrenDuongRaChienDich256v1(
+                        Module_DanduongGPS.ToiYeuMeoCam1);
+
                     foreach (var res in DanhSachTaiNguyen)
                     {
-                        // Mỗi tài nguyên tự xử lý lỗi: 1 tệp hỏng không được chặn các tệp còn lại và bước đồng bộ thư mục
+                        // Mỗi tài nguyên tự xử lý lỗi độc lập.
+                        // Một tệp lỗi không làm gián đoạn các tệp còn lại.
                         try
                         {
-                            KhoiPhucMotTaiNguyen(res, srcDir, windowDir, dbDir, key);
+                            KhoiPhucMotTaiNguyen(
+                                res,
+                                srcDir,
+                                windowDir,
+                                dbDir,
+                                key);
                         }
                         catch (Exception ex)
                         {
                             string m = $"[LỖI KHÔI PHỤC] {res.Db}: {ex.Message}";
+
                             Debug.WriteLine(m);
                             loi.Add(m);
                         }
@@ -281,26 +297,60 @@ namespace PhanMemThiDua2026
                 }
                 finally
                 {
-                    if (key != null) CryptographicOperations.ZeroMemory(key);   // luôn xóa khóa khỏi RAM, kể cả khi có lỗi
+                    // Xóa khóa khỏi RAM sau khi hoàn tất xử lý.
+                    if (key != null)
+                        CryptographicOperations.ZeroMemory(key);
                 }
+
+                // 3. Ghi nhật ký nếu có tài nguyên khôi phục thất bại.
                 if (loi.Count > 0)
                 {
-                    try { Module_NhatKy.GhiNhatKy(TEN_TAI_KHOAN_HE_THONG, "LỖI - Khôi phục CSDL khi khởi động", string.Join("\r\n", loi)); } catch { }
+                    try
+                    {
+                        Module_NhatKy.GhiNhatKy(
+                            TEN_TAI_KHOAN_HE_THONG,
+                            "LỖI - Khôi phục CSDL khi khởi động",
+                            string.Join("\r\n", loi));
+                    }
+                    catch
+                    {
+                        // Không để lỗi ghi nhật ký chặn quá trình khởi động.
+                    }
                 }
-                // Đồng bộ thư mục công cụ & hướng dẫn
+
+                // Không đồng bộ thư mục công cụ và hướng dẫn.
+                // Không khóa ReadOnly các tệp trong thư mục Backup.
+            }
+        }
+
+        public static void BaoTriSauKhoiDong()
+        {
+            lock (_khoaBaoTri)   // lock có tính reentrant nên gọi lồng an toàn
+            {
+                TuanTraVaPhucHoiCoreRepository(kiemTraToanVen: true);
+
+                string srcDir = Path.Combine(AppContext.BaseDirectory, THU_MUC_BACKUP);
+                string dbDir = Module_DanduongGPS.ThuMucCoSoDuLieu;
                 DongBoThuMucHeThong(srcDir, dbDir);
-                // Khóa các file bên trong thư mục công cụ của Backup (không khóa thư mục)
+
                 foreach (var folder in ThuMucDongBo)
                 {
                     string path = Path.Combine(srcDir, folder);
                     if (!Directory.Exists(path)) continue;
                     foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
                     {
-                        try { File.SetAttributes(file, FileAttributes.ReadOnly); } catch { }
+                        try
+                        {
+                            var a = File.GetAttributes(file);
+                            if ((a & FileAttributes.ReadOnly) == 0)          // chỉ ghi khi cần
+                                File.SetAttributes(file, a | FileAttributes.ReadOnly);
+                        }
+                        catch { }
                     }
                 }
             }
         }
+
         private static void KhoiPhucMotTaiNguyen(TaiNguyenCSDL res, string srcDir, string windowDir, string dbDir, byte[] key)
         {
             string pBackup = Path.Combine(srcDir, res.Backup);
@@ -1132,26 +1182,48 @@ namespace PhanMemThiDua2026
             public int CanhBao;
             public readonly List<string> ChiTiet = new();
         }
-        public static void TuanTraVaPhucHoiCoreRepository()
+
+        public static void TuanTraVaPhucHoiCoreRepository(bool kiemTraToanVen = true)
         {
             lock (_khoaBaoTri)
             {
                 try
                 {
                     string baseDir = AppContext.BaseDirectory;
+
                     // 2 vùng chứa repository
-                    string dirDatabase = Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, THU_MUC_CONG_CU, THU_MUC_REPOSITORY);
-                    string dirBackup = Path.Combine(baseDir, THU_MUC_BACKUP, THU_MUC_CONG_CU, THU_MUC_REPOSITORY);
+                    string dirDatabase = Path.Combine(
+                        Module_DanduongGPS.ThuMucCoSoDuLieu,
+                        THU_MUC_CONG_CU,
+                        THU_MUC_REPOSITORY);
+
+                    string dirBackup = Path.Combine(
+                        baseDir,
+                        THU_MUC_BACKUP,
+                        THU_MUC_CONG_CU,
+                        THU_MUC_REPOSITORY);
+
                     Directory.CreateDirectory(dirDatabase);
                     Directory.CreateDirectory(dirBackup);
+
                     var kq = new KetQuaTuanTra();
-                    // BƯỚC 1: tiêu diệt tệp lạ
+
+                    // BƯỚC 1: Tiêu diệt tệp lạ
                     TieuDietTepLa(dirDatabase, "Database Gốc", kq);
                     TieuDietTepLa(dirBackup, "Database Backup", kq);
-                    // BƯỚC 2: khôi phục chéo + kiểm tra toàn vẹn
+
+                    // BƯỚC 2: Khôi phục chéo + kiểm tra toàn vẹn (nếu được yêu cầu)
                     foreach (string fileName in DanhSachDataTheoThuTu)
-                        KiemTraMotTep(fileName, dirDatabase, dirBackup, kq);
-                    // BƯỚC 3: ghi nhật ký
+                    {
+                        KiemTraMotTep(
+                            fileName,
+                            dirDatabase,
+                            dirBackup,
+                            kq,
+                            kiemTraToanVen);
+                    }
+
+                    // BƯỚC 3: Ghi nhật ký
                     GhiNhatKyTuanTra(kq);
                 }
                 catch (Exception ex)
@@ -1160,6 +1232,7 @@ namespace PhanMemThiDua2026
                 }
             }
         }
+
         private static void TieuDietTepLa(string thuMucPath, string tenVung, KetQuaTuanTra kq)
         {
             foreach (string filePath in Directory.GetFiles(thuMucPath))
@@ -1180,7 +1253,7 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        private static void KiemTraMotTep(string fileName, string dirDatabase, string dirBackup, KetQuaTuanTra kq)
+        private static void KiemTraMotTep(string fileName, string dirDatabase, string dirBackup, KetQuaTuanTra kq, bool kiemTraToanVen)
         {
             string fileInDB = Path.Combine(dirDatabase, fileName);
             string fileInBackup = Path.Combine(dirBackup, fileName);
@@ -1235,6 +1308,8 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"[TuanTraCoreRepository] CẢNH BÁO ĐỎ: {fileName}");
                 return;
             }
+            // THÊM DÒNG NÀY: Nếu không yêu cầu kiểm tra toàn vẹn thì dừng lại luôn, tránh băm SHA-256 lúc khởi động
+            if (!kiemTraToanVen) return;
             // TH4: CẢ HAI ĐỀU TỒN TẠI → KIỂM TRA TOÀN VẸN
             try
             {

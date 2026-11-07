@@ -57,6 +57,8 @@ namespace PhanMemThiDua2026
         public Form42_QuanLyThiDuaBaNhat()
         {
             InitializeComponent();
+            // Form42_QuanLyThiDuaBaNhat
+            textBox_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
             GiaoDienForm42_44Web.ApDung(this);
             // Chỉ là tinh chỉnh hiển thị (không đổi luồng/logic): bật DoubleBuffered sớm cho các khối bố cục + lưới
             BatDoubleBufferDeQuy(this);
@@ -118,12 +120,11 @@ namespace PhanMemThiDua2026
             Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             // 2. ĐĂNG KÝ EVENT NHẬP LIỆU
             richTextBox1_ThanhTich.TextChanged += richTextBox1_ThanhTich_TextChanged;
-            if (textBox_TimKiemTheoTen != null)
-                textBox_TimKiemTheoTen.TextChanged += (s, ev) => KhoiDongLocTre();
-            if (comboBox_TimKiemDonVi != null)
-                comboBox_TimKiemDonVi.SelectedIndexChanged += (s, ev) => ThucHienLocDuLieu();
-            if (comboBox1_DeNghi != null)
-                comboBox1_DeNghi.SelectedIndexChanged += (s, ev) => ThucHienLocDuLieu();
+            // Bộ lọc: dựng sẵn mục "Tất cả" + gắn sự kiện đúng 1 lần, TRƯỚC mọi lệnh await bên dưới
+            KhoiTaoBoLoc();
+            // Nạp SỚM danh sách đơn vị (chạy nền) để người dùng chọn được đơn vị ngay khi form vừa mở,
+            // không phải chờ các bước tính toán/đồng bộ/nạp lưới phía sau
+            _ = NapSomDanhSachDonViAsync();
             // 3. THIẾT LẬP TRẠNG THÁI UI BAN ĐẦU
             AcceptButton = kryptonButton_LuuDataDeNghi;
             toolStripProgressBar1_LamMoi.Visible = false;
@@ -385,10 +386,10 @@ namespace PhanMemThiDua2026
                 TatVe(g);
                 try
                 {
-                    g.DataSource = dtBaNhat;      // cột đã dựng sẵn, chỉ đổi nguồn dữ liệu
-                    NapDuLieuBoLoc(dtBaNhat);     // nạp lại combobox lọc (có cờ _dangNapBoLoc chặn lọc thừa)
-                    _tongQuanSoGoc = tongQuanSoGoc;
-                    CapNhatTrangThaiDuoiNen(true); // cập nhật thanh trạng thái + tính lại tỷ lệ
+                    _tongQuanSoGoc = tongQuanSoGoc;  // gán trước để thanh trạng thái khi lọc luôn đúng số
+                    g.DataSource = dtBaNhat;         // cột đã dựng sẵn, chỉ đổi nguồn dữ liệu
+                    NapDuLieuBoLoc(dtBaNhat);        // nạp lại danh sách đơn vị, GIỮ lựa chọn cũ và áp lại bộ lọc lên bảng mới
+                    CapNhatTrangThaiDuoiNen(true);   // cập nhật thanh trạng thái + tính lại tỷ lệ
                 }
                 finally
                 {
@@ -506,18 +507,33 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
         private void CapNhatTrangThaiDuoiNen(bool tinhLaiTyLe = false)
         {
             if (toolStripStatusLabel1 == null) return;
-            int tong = 0, soDeNghi = 0;
+            int tong = 0, soDeNghi = 0, soHienThi = 0;
+            bool dangLoc = false;
             if (kryptonDataGridView1.DataSource is DataTable dt)
             {
                 tong = dt.Rows.Count;
                 int iDN = dt.Columns["DeNghi"]!.Ordinal;
                 foreach (DataRow r in dt.Rows)
                     if (r[iDN] is string s && s.Trim().Equals("X", StringComparison.OrdinalIgnoreCase)) soDeNghi++;
+                // Bộ lọc đang bật khi RowFilter khác rỗng -> đếm đúng số dòng đang hiển thị trên lưới
+                dangLoc = dt.DefaultView.RowFilter.Length > 0;
+                soHienThi = dt.DefaultView.Count;
             }
-            toolStripStatusLabel1.Text =
-                tong == 0 ? "Chưa có cán bộ, chiến sĩ nào được đề nghị biểu dương trong phong trào thi đua Ba Nhất"
-                : soDeNghi == 0 ? $"Tổng cộng: {tong} {Module_HeThong.Tu_dong_chi}."
-                : $"Tổng cộng: {tong} {Module_HeThong.Tu_dong_chi}, đề nghị: {soDeNghi} {Module_HeThong.Tu_dong_chi}.";
+            if (dangLoc)
+            {
+                // Đang lọc: Tổng quân số | Kết quả tìm kiếm
+                toolStripStatusLabel1.ForeColor = System.Drawing.Color.Blue;
+                toolStripStatusLabel1.Text =
+                    $"Tổng quân số: {_tongQuanSoGoc} {Module_HeThong.Tu_dong_chi} | Kết quả tìm kiếm: {soHienThi} {Module_HeThong.Tu_dong_chi}";
+            }
+            else
+            {
+                toolStripStatusLabel1.ForeColor = System.Drawing.SystemColors.ControlText;
+                toolStripStatusLabel1.Text =
+                    tong == 0 ? "Chưa có cán bộ, chiến sĩ nào được đề nghị biểu dương trong phong trào thi đua Ba Nhất"
+                    : soDeNghi == 0 ? $"Tổng cộng: {tong} {Module_HeThong.Tu_dong_chi}."
+                    : $"Tổng cộng: {tong} {Module_HeThong.Tu_dong_chi}, đề nghị: {soDeNghi} {Module_HeThong.Tu_dong_chi}.";
+            }
             if (tinhLaiTyLe)   // chỉ tính lại khi dữ liệu thật sự đổi (nạp, lưu, làm mới, nhập)
                 _ = Module_BaNhat.TinhToanVaHienThiTyLeBaNhatAsync(toolStripStatusLabel2_TyLeBaNhat);
         }
@@ -586,56 +602,153 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
             try { return Module_BaoMatAES.GiaiMa(cipherText).Trim(); }
             catch { return "[Lỗi giải mã]"; }
         }
-        private void NapDuLieuBoLoc(DataTable dt)
+        // ===================== BỘ LỌC: Tên / Đơn vị / Đề nghị =====================
+        // Quy ước: mục đầu tiên (chỉ số 0) của hai combobox lọc luôn là "Tất cả" = không lọc.
+        // Toàn bộ form đọc lựa chọn theo SelectedIndex / SelectedItem, KHÔNG so sánh chuỗi hiển thị (.Text).
+        private const string TenTatCa = "Tất cả";
+        private const string TenDeNghi = "Đề nghị";
+        private const string TenKhongDeNghi = "Không";
+        private bool _dangNapBoLoc;                    // true khi đang nạp/đặt lại bộ lọc bằng code -> chặn các lượt lọc lẻ tẻ
+        private bool _daGanSuKienBoLoc;                // sự kiện lọc chỉ được gắn đúng 1 lần
+        private System.Windows.Forms.Timer? _timerLoc; // debounce ô gõ tên
+
+        /// <summary>
+        /// Gọi 1 lần ở đầu Load, TRƯỚC mọi lệnh await: dựng sẵn mục "Tất cả" cho 2 combobox và gắn sự kiện lọc
+        /// đúng 1 lần (gỡ trước rồi gắn lại nên không bị đăng ký đôi dù Designer đã gắn handler cùng tên).
+        /// </summary>
+        private void KhoiTaoBoLoc()
         {
+            if (!_daGanSuKienBoLoc)
+            {
+                _daGanSuKienBoLoc = true;
+                textBox_TimKiemTheoTen.TextChanged -= textBox_TimKiemTheoTen_TextChanged;
+                textBox_TimKiemTheoTen.TextChanged += textBox_TimKiemTheoTen_TextChanged;
+                comboBox_TimKiemDonVi.SelectedIndexChanged -= comboBox_TimKiemDonVi_SelectedIndexChanged;
+                comboBox_TimKiemDonVi.SelectedIndexChanged += comboBox_TimKiemDonVi_SelectedIndexChanged;
+                // comboBox1_DeNghi dùng chung handler lọc với combobox Đơn vị
+                comboBox1_DeNghi.SelectedIndexChanged -= comboBox_TimKiemDonVi_SelectedIndexChanged;
+                comboBox1_DeNghi.SelectedIndexChanged += comboBox_TimKiemDonVi_SelectedIndexChanged;
+            }
             _dangNapBoLoc = true;
             try
             {
-                // --- 1. Xử lý cho comboBox_TimKiemDonVi (Dữ liệu động) ---
-                if (comboBox_TimKiemDonVi != null)
+                comboBox_TimKiemDonVi.Items.Clear();
+                comboBox_TimKiemDonVi.Items.Add(TenTatCa);
+                comboBox_TimKiemDonVi.SelectedIndex = 0;
+                comboBox1_DeNghi.Items.Clear();
+                comboBox1_DeNghi.Items.AddRange(new object[] { TenTatCa, TenDeNghi, TenKhongDeNghi });
+                comboBox1_DeNghi.SelectedIndex = 0;
+            }
+            finally { _dangNapBoLoc = false; }
+        }
+
+        /// <summary>
+        /// Gọi ngay sau khi bảng dữ liệu mới được gán vào lưới. Bảng mới luôn chưa có RowFilter, nên hàm này:
+        /// (1) dựng lại danh sách đơn vị từ dữ liệu mới, (2) GIỮ lựa chọn người dùng đang dùng (ô tên, đơn vị, đề nghị),
+        /// (3) áp lại bộ lọc đó lên bảng mới đúng 1 lần -> các ô lọc và lưới không bao giờ lệch nhau.
+        /// </summary>
+        private void NapDuLieuBoLoc(DataTable dt)
+        {
+            // Danh sách đơn vị theo thứ tự xuất hiện trên lưới (đúng thứ tự STT), không trùng
+            // (không phân biệt hoa/thường - khớp cách RowFilter so sánh)
+            var dsDonVi = new List<string>();
+            var daCo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DataRow row in dt.Rows)
+            {
+                // Bỏ qua dòng đệm ảo (ID = -1)
+                if (row["ID"] != DBNull.Value && Convert.ToInt32(row["ID"]) == -1) continue;
+                string dv = (row["DonVi"] as string)?.Trim() ?? "";
+                if (dv.Length > 0 && daCo.Add(dv)) dsDonVi.Add(dv);
+            }
+
+            CapNhatDanhSachDonVi(dsDonVi);
+            ThucHienLocDuLieu(); // áp lại trạng thái các ô lọc lên bảng mới
+        }
+
+        /// <summary>
+        /// Đổ danh sách đơn vị vào combobox: mục 0 luôn là "Tất cả", các mục sau là đơn vị.
+        /// Giữ nguyên đơn vị đang chọn nếu nó vẫn còn trong danh sách mới, ngược lại về "Tất cả".
+        /// Không tự lọc (cờ _dangNapBoLoc chặn sự kiện) - nơi gọi quyết định có lọc hay không.
+        /// </summary>
+        private void CapNhatDanhSachDonVi(List<string> dsDonVi)
+        {
+            // Ghi nhớ đơn vị đang chọn (null = "Tất cả")
+            string? donViDangChon = comboBox_TimKiemDonVi.SelectedIndex > 0
+                ? comboBox_TimKiemDonVi.SelectedItem?.ToString()
+                : null;
+
+            _dangNapBoLoc = true;
+            try
+            {
+                comboBox_TimKiemDonVi.Items.Clear();
+                comboBox_TimKiemDonVi.Items.Add(TenTatCa);
+                foreach (var dv in dsDonVi) comboBox_TimKiemDonVi.Items.Add(dv);
+
+                int viTri = donViDangChon == null
+                    ? -1
+                    : dsDonVi.FindIndex(x => string.Equals(x, donViDangChon, StringComparison.OrdinalIgnoreCase));
+                comboBox_TimKiemDonVi.SelectedIndex = viTri >= 0 ? viTri + 1 : 0;
+
+                // Combobox Đề nghị là danh sách cố định (đã dựng ở KhoiTaoBoLoc) -> giữ nguyên lựa chọn hiện tại
+                if (comboBox1_DeNghi.Items.Count == 0)
                 {
-                    var donViSet = new HashSet<string>();
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        // Bỏ qua dòng đệm ảo (nếu bạn vẫn giữ cách dùng dòng ID = -1)
-                        if (row["ID"] != DBNull.Value && Convert.ToInt32(row["ID"]) == -1) continue;
-                        string donVi = row["DonVi"]?.ToString() ?? "";
-                        if (!string.IsNullOrWhiteSpace(donVi))
-                        {
-                            donViSet.Add(donVi);
-                        }
-                    }
-                    comboBox_TimKiemDonVi.SelectedIndexChanged -= comboBox_TimKiemDonVi_SelectedIndexChanged;
-                    comboBox_TimKiemDonVi.Items.Clear();
-                    comboBox_TimKiemDonVi.Items.Add("--- Tất cả ---");
-                    foreach (var dv in donViSet) comboBox_TimKiemDonVi.Items.Add(dv);
-                    comboBox_TimKiemDonVi.SelectedIndex = 0;
-                    comboBox_TimKiemDonVi.SelectedIndexChanged += comboBox_TimKiemDonVi_SelectedIndexChanged;
-                }
-                // --- 2. Xử lý cho comboBox1_DeNghi (Dữ liệu tĩnh) ---
-                if (comboBox1_DeNghi != null)
-                {
-                    // Giả sử bạn dùng chung hoặc có hàm sự kiện riêng (comboBox1_DeNghi_SelectedIndexChanged)
-                    // Nếu dùng chung hàm ThucHienLocDuLieu, bạn gán sự kiện tương tự ở đây
-                    comboBox1_DeNghi.SelectedIndexChanged -= comboBox_TimKiemDonVi_SelectedIndexChanged; // Nếu dùng chung event lọc
-                    comboBox1_DeNghi.Items.Clear();
-                    comboBox1_DeNghi.Items.AddRange(new object[] { "--- Tất cả ---", "Đề nghị", "Không" });
+                    comboBox1_DeNghi.Items.AddRange(new object[] { TenTatCa, TenDeNghi, TenKhongDeNghi });
                     comboBox1_DeNghi.SelectedIndex = 0;
-                    // comboBox1_DeNghi.SelectedIndexChanged += comboBox_TimKiemDonVi_SelectedIndexChanged; // Gán lại event
                 }
             }
             finally { _dangNapBoLoc = false; }
         }
-        private bool _dangNapBoLoc;
+
+        /// <summary>
+        /// Nạp sớm danh sách đơn vị: chỉ đọc cột DonVi ở luồng nền (nhẹ hơn nhiều so với nạp cả lưới),
+        /// để combobox có đơn vị ngay khi form vừa mở. Khi lưới nạp xong, NapDuLieuBoLoc sẽ dựng lại danh sách
+        /// chính thức từ dữ liệu đã đồng bộ và vẫn giữ lựa chọn của người dùng.
+        /// </summary>
+        private async Task NapSomDanhSachDonViAsync()
+        {
+            string tenBang = TenBangDanhSachBaNhat;
+            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path) || !IsValidIdentifier(tenBang)) return;
+            try
+            {
+                List<string> dsDonVi = await Task.Run(() => DocDanhSachDonViNhanh(tenBang));
+                if (IsDisposed || Disposing) return;
+                // Lưới đã nạp xong trước đó -> danh sách chính thức đã có, bỏ kết quả sớm này để không ghi đè
+                if (kryptonDataGridView1.DataSource is DataTable) return;
+                CapNhatDanhSachDonVi(dsDonVi);
+            }
+            catch (Exception ex)
+            {
+                // Không quan trọng: lưới nạp xong vẫn sẽ dựng danh sách đơn vị như bình thường
+                Debug.WriteLine("[NapSomDonVi] " + ex.Message);
+            }
+        }
+
+        // Đọc danh sách đơn vị (đã giải mã, không trùng, theo thứ tự STT) - chạy ở luồng nền, không đụng giao diện
+        private List<string> DocDanhSachDonViNhanh(string tenBang)
+        {
+            var ds = new List<string>();
+            var daCo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            using var conn = new SqliteConnection($"Data Source={_csdl2Path};Default Timeout=30");
+            conn.Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = $"SELECT DonVi FROM [{tenBang}] WHERE ID <> -1 ORDER BY STT ASC";
+            using var r = cmd.ExecuteReader();
+            while (r.Read())
+            {
+                string dv = SafeGiaiMa(r.IsDBNull(0) ? null : r.GetString(0));
+                if (dv.Length > 0 && daCo.Add(dv)) ds.Add(dv);
+            }
+            return ds;
+        }
+
         // ===== Debounce ô gõ tìm kiếm =====
-        private System.Windows.Forms.Timer? _timerLoc;
         private void KhoiDongLocTre()
         {
             if (_dangNapBoLoc || IsDisposed) return;
             if (_timerLoc == null)
             {
                 _timerLoc = new System.Windows.Forms.Timer { Interval = 150 };
-                _timerLoc.Tick += (s, ev) => ThucHienLocDuLieu();
+                _timerLoc.Tick += (s, ev) => ThucHienLocDuLieu(); // ThucHienLocDuLieu tự dừng timer
             }
             _timerLoc.Stop();
             _timerLoc.Start();
@@ -652,77 +765,75 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
             }
             return sb.ToString();
         }
+        /// <summary>
+        /// Trả về giá trị đang chọn của combobox lọc; null nghĩa là "Tất cả" (không lọc).
+        /// Ưu tiên SelectedIndex/SelectedItem vì ComboBox.Text có thể chưa kịp cập nhật bên trong SelectedIndexChanged.
+        /// </summary>
+        private static string? LayGiaTriLoc(int chiSo, object? mucDangChon, string? chuoiHienThi)
+        {
+            if (chiSo == 0) return null; // mục 0 luôn là "Tất cả"
+            string s = (chiSo > 0 ? mucDangChon?.ToString() : chuoiHienThi)?.Trim() ?? "";
+            return s.Length == 0 || s.Equals(TenTatCa, StringComparison.OrdinalIgnoreCase) ? null : s;
+        }
+
+        /// <summary>
+        /// Đọc trạng thái 3 ô lọc -> dựng 1 chuỗi RowFilter -> áp lên bảng đang bind -> cập nhật thanh trạng thái.
+        /// Luôn lọc theo ĐỦ 3 ô cùng lúc (AND), nên gọi từ ô nào kết quả cũng như nhau.
+        /// </summary>
         private void ThucHienLocDuLieu()
         {
-            _timerLoc?.Stop();
-            if (_dangNapBoLoc) return;
-            if (kryptonDataGridView1.DataSource is DataTable dt)
+            _timerLoc?.Stop(); // hủy lượt lọc trễ đang chờ (nếu có)
+            if (_dangNapBoLoc || IsDisposed) return;
+            if (kryptonDataGridView1.DataSource is not DataTable dt) return;
+
+            var dieuKien = new List<string>(3);
+
+            // 1) Tên: chứa chuỗi đã gõ (đã escape ký tự đặc biệt của LIKE và dấu nháy đơn)
+            string ten = textBox_TimKiemTheoTen.Text.Trim();
+            if (ten.Length > 0)
+                dieuKien.Add($"HoVaTen LIKE '%{EscapeLikeRowFilter(ten.Replace("'", "''"))}%'");
+
+            // 2) Đơn vị: "Tất cả" -> bỏ qua điều kiện này
+            string? donVi = LayGiaTriLoc(
+                comboBox_TimKiemDonVi.SelectedIndex, comboBox_TimKiemDonVi.SelectedItem, comboBox_TimKiemDonVi.Text);
+            if (donVi != null)
+                dieuKien.Add($"DonVi = '{donVi.Replace("'", "''")}'");
+
+            // 3) Đề nghị: 0 = Tất cả, 1 = Đề nghị, 2 = Không
+            switch (comboBox1_DeNghi.SelectedIndex)
             {
-                List<string> dsDieuKien = new List<string>();
-                // Lọc Tên
-                string tenTimKiem = EscapeLikeRowFilter(textBox_TimKiemTheoTen.Text.Trim().Replace("'", "''"));
-                if (!string.IsNullOrEmpty(tenTimKiem))
-                    dsDieuKien.Add($"HoVaTen LIKE '%{tenTimKiem}%'");
-                // Lọc Đơn Vị
-                if (comboBox_TimKiemDonVi != null)
-                {
-                    string donViTimKiem = comboBox_TimKiemDonVi.Text.Trim();
-                    if (!string.IsNullOrEmpty(donViTimKiem) && donViTimKiem != "--- Tất cả ---")
-                        dsDieuKien.Add($"DonVi = '{donViTimKiem.Replace("'", "''")}'");
-                }
-                // Lọc Đề Nghị
-                if (comboBox1_DeNghi != null)
-                {
-                    string deNghiLoc = comboBox1_DeNghi.Text.Trim();
-                    if (deNghiLoc == "Đề nghị")
-                        dsDieuKien.Add("DeNghi = 'X'");
-                    else if (deNghiLoc == "Không")
-                        dsDieuKien.Add("(DeNghi IS NULL OR DeNghi = '')");
-                }
-                // Áp dụng bộ lọc
-                try
-                {
-                    dt.DefaultView.RowFilter = string.Join(" AND ", dsDieuKien);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("[LOC_ERR] " + ex.Message);
-                    dt.DefaultView.RowFilter = string.Empty;
-                }
-                // ⭐ XỬ LÝ CẬP NHẬT TRẠNG THÁI TÌM KIẾM
-                if (toolStripStatusLabel1 != null)
-                {
-                    // Lấy số lượng thực tế đang hiển thị trên lưới (bỏ dòng mới cuối cùng)
-                    int soKetQuaTimKiem = dt.DefaultView.Count; // đếm trực tiếp trên view, khỏi duyệt từng dòng lưới
-                    // Kiểm tra: Có đang áp dụng bộ lọc nào không?
-                    bool dangLoc = dsDieuKien.Count > 0;
-                    if (dangLoc)
-                    {
-                        // Nếu ĐANG lọc, hiển thị: Tổng quân số | Kết quả tìm kiếm
-                        toolStripStatusLabel1.Text = $"Tổng quân số: {_tongQuanSoGoc} {Module_HeThong.Tu_dong_chi} | Kết quả tìm kiếm: {soKetQuaTimKiem} {Module_HeThong.Tu_dong_chi}";
-                        toolStripStatusLabel1.ForeColor = System.Drawing.Color.Blue; // Đổi màu để làm nổi bật trạng thái tìm kiếm (tuỳ chọn)
-                    }
-                    else
-                    {
-                        // Nếu KHÔNG lọc (ô TextBox rỗng, Combobox chọn "Tất cả")
-                        // Gọi lại hàm mặc định để trả về trạng thái hiển thị "Tổng cộng: ... đề nghị: ..."
-                        toolStripStatusLabel1.ForeColor = System.Drawing.SystemColors.ControlText; // Trả lại màu mặc định
-                        CapNhatTrangThaiDuoiNen(false); // đường nóng (mỗi lần lọc): không tính lại tỷ lệ
-                    }
-                }
-                // Vẫn gọi hàm này để cập nhật ngầm nếu bạn có dùng biến thống kê nào khác
+                case 1: dieuKien.Add("DeNghi = 'X'"); break;
+                case 2: dieuKien.Add("(DeNghi IS NULL OR DeNghi <> 'X')"); break;
             }
+
+            string boLoc = string.Join(" AND ", dieuKien);
+            try
+            {
+                dt.DefaultView.RowFilter = boLoc;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[LOC_ERR] " + ex.Message + " | " + boLoc);
+                dt.DefaultView.RowFilter = string.Empty;
+            }
+
+            // Thanh trạng thái do một hàm duy nhất quyết định (tự nhận biết đang lọc hay không)
+            CapNhatTrangThaiDuoiNen(false);
         }
+
+        // Ô gõ tên: lọc trễ 150ms để gõ nhanh không bị giật
         private void textBox_TimKiemTheoTen_TextChanged(object? sender, EventArgs e)
         {
-            ThucHienLocDuLieu();
+            KhoiDongLocTre();
         }
-        // 4. Sự kiện Chọn tìm kiếm Đơn Vị
+
+        // Chọn đơn vị (và cả combobox Đề nghị - dùng chung handler): lọc ngay
         private void comboBox_TimKiemDonVi_SelectedIndexChanged(object? sender, EventArgs e)
         {
             ThucHienLocDuLieu();
         }
-        // 5. Nút Làm mới/Xóa các ô tìm kiếm
+
+        // Tự chọn "Đề nghị" khi người dùng gõ thành tích
         private void richTextBox1_ThanhTich_TextChanged(object? sender, EventArgs e)
         {
             // Bắt buộc phải có Focused: Chỉ kích hoạt khi người dùng trực tiếp gõ vào ô.
@@ -741,19 +852,31 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 }
             }
         }
+        // Nút "Xóa bộ lọc": đưa cả 3 ô về mặc định và lọc lại đúng 1 lần
         private void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e)
         {
-            // 1. Xóa nội dung ô tìm kiếm tên
-            if (textBox_TimKiemTheoTen != null)
-                textBox_TimKiemTheoTen.Text = "";
-            // 2. Đưa combobox Đơn vị về "--- Tất cả ---"
-            if (comboBox_TimKiemDonVi != null && comboBox_TimKiemDonVi.Items.Count > 0)
-                comboBox_TimKiemDonVi.SelectedIndex = 0;
-            // ⭐ 3. Đưa combobox Đề nghị về "--- Tất cả ---"
-            // Khi gán SelectedIndex = 0, nó sẽ tự động kích hoạt sự kiện SelectedIndexChanged 
-            // và chạy hàm ThucHienLocDuLieu() giúp lưới hiển thị lại toàn bộ.
-            if (comboBox1_DeNghi != null && comboBox1_DeNghi.Items.Count > 0)
-                comboBox1_DeNghi.SelectedIndex = 0;
+            DatLaiBoLoc();
+            textBox_TimKiemTheoTen.Focus(); // sẵn sàng gõ tìm kiếm mới
+        }
+
+        /// <summary>
+        /// Đặt lại bộ lọc: ô tên rỗng, đơn vị = "Tất cả", đề nghị = "Tất cả", rồi lọc đúng 1 lần.
+        /// Cờ _dangNapBoLoc chặn 3 sự kiện Text/SelectedIndexChanged bắn lọc lẻ tẻ giữa chừng,
+        /// còn timer debounce được dừng trước để lượt lọc trễ cũ không chạy chen sau khi đã xóa.
+        /// </summary>
+        private void DatLaiBoLoc()
+        {
+            _timerLoc?.Stop();
+            _dangNapBoLoc = true;
+            try
+            {
+                textBox_TimKiemTheoTen.Text = string.Empty;
+                if (comboBox_TimKiemDonVi.Items.Count > 0) comboBox_TimKiemDonVi.SelectedIndex = 0;
+                if (comboBox1_DeNghi.Items.Count > 0) comboBox1_DeNghi.SelectedIndex = 0;
+            }
+            finally { _dangNapBoLoc = false; }
+
+            ThucHienLocDuLieu(); // RowFilter rỗng -> lưới hiện đủ danh sách, thanh trạng thái về "Tổng cộng..."
         }
         private void CapNhatSoLuongKyTu()
         {
@@ -1135,19 +1258,9 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                         MessageBoxIcon.Error);
                     return;
                 }
-                // Đồng bộ DataGridView
-                foreach (DataGridViewRow row in kryptonDataGridView1.Rows)
-                {
-                    object? giaTriId = row.IsNewRow ? null : LayGiaTriDong(row, "ID");
-                    if (giaTriId == null)
-                        continue;
-                    if (Convert.ToInt32(giaTriId) == idBaNhat)
-                    {
-                        row.Cells["DeNghi"].Value = deNghi;
-                        row.Cells["ThanhTich"].Value = thanhTich; // Đồng bộ luôn thành tích (có thể đã rỗng) lên DataGrid
-                        break;
-                    }
-                }
+                // Đồng bộ lên lưới: cập nhật thẳng DataRow nguồn (không qua ô lưới). Khi bộ lọc "Đề nghị/Không"
+                // đang bật, dòng có thể biến mất khỏi lưới ngay khi DeNghi đổi -> ghi qua ô lưới sẽ mất cập nhật thứ hai.
+                CapNhatDongNguonSauKhiLuu(idBaNhat, deNghi, thanhTich);
                 // Cập nhật thống kê và StatusLabel
                 if (toolStripStatusLabel1 != null)
                 {
@@ -1180,6 +1293,23 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 kryptonButton_LuuDataDeNghi.Text = tenGoc;
                 kryptonButton_LuuDataDeNghi.Enabled = true;
                 kryptonButton_LuuDataDeNghi.Refresh();
+            }
+        }
+        /// <summary>
+        /// Ghi DeNghi + ThanhTich mới vào DataRow của bảng nguồn trong 1 lần BeginEdit/EndEdit
+        /// (DataView chỉ lọc lại đúng 1 lần, lưới và bộ lọc luôn nhất quán).
+        /// </summary>
+        private void CapNhatDongNguonSauKhiLuu(int id, string deNghi, string thanhTich)
+        {
+            if (kryptonDataGridView1.DataSource is not DataTable dt) return;
+            foreach (DataRow r in dt.Rows)
+            {
+                if (r["ID"] == DBNull.Value || Convert.ToInt32(r["ID"]) != id) continue;
+                r.BeginEdit();
+                r["DeNghi"] = deNghi;
+                r["ThanhTich"] = thanhTich; // thành tích có thể đã rỗng
+                r.EndEdit();
+                break;
             }
         }
         private async void kryptonButton_RefershCSDL_Click(object? sender, EventArgs e)
@@ -1294,51 +1424,29 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
             }
         }
         private void lamMoiHeThong_Click(object? sender, EventArgs e) => kryptonButton_RefershCSDL.PerformClick();
-        private void xoaTimKiem_Click(object? sender, EventArgs e)
-            => kryptonButton_LamMoiCacOTimKiem.PerformClick();
+        private void xoaTimKiem_Click(object? sender, EventArgs e) => kryptonButton_LamMoiCacOTimKiem.PerformClick();
+
         private void kryptonButton1_ThanhTichTapThe_Click(object? sender, EventArgs e)
         {
-            const string tenGocCuaNut = "Thành tích tập thể";
-            // 1. Hiển thị trạng thái NGAY LẬP TỨC và TỐI ƯU HIỆU SUẤT
-            if (toolStripStatusLabel1 != null)
-            {
-                toolStripStatusLabel1.Text = "Đang mở trang báo cáo tóm tắt kết quả thi đua tập thể phong trào Ba Nhất...";
-                // Thay Refresh() bằng Invalidate + Update để tránh Repaint toàn bộ
-                toolStripStatusLabel1.Owner?.Invalidate();
-                toolStripStatusLabel1.Owner?.Update();
-            }
-            // 2. Kiểm tra Form đã tồn tại chưa
-            Form frm = Application.OpenForms["Form43_TomTatThanhTichBaNhat"];
+            var frm = Application.OpenForms["Form43_TomTatThanhTichBaNhat"];
             if (frm != null)
             {
-                kryptonButton1_ThanhTichTapThe.Text = "Trang đang mở...";
-                if (frm.WindowState == FormWindowState.Minimized)
-                    frm.WindowState = FormWindowState.Normal;
+                if (frm.WindowState == FormWindowState.Minimized) frm.WindowState = FormWindowState.Normal;
                 frm.Activate();
-                frm.Focus();
+                return;
             }
-            else
+            string tenGoc = kryptonButton1_ThanhTichTapThe.Text;
+            kryptonButton1_ThanhTichTapThe.Text = "Trang đang mở...";
+            try
             {
-                kryptonButton1_ThanhTichTapThe.Text = "Trang đang mở...";
-                var newForm = new Form43_TomTatThanhTichBaNhat
-                {
-                    StartPosition = FormStartPosition.CenterScreen
-                };
-                // 3. LẬP TRÌNH HƯỚNG SỰ KIỆN: Khi form này đóng lại, tự động phục hồi UI
-                newForm.FormClosed += (s, ev) =>
-                {
-                    // Trả lại tên nút ban đầu
-                    kryptonButton1_ThanhTichTapThe.Text = tenGocCuaNut;
-                    // TRẢ LẠI THÔNG TIN SỐ LƯỢNG CHO STATUS STRIP NGAY KHI ĐÓNG FORM
-                    ThongKeSoLuongBaNhat(false);
-                    CapNhatTrangThaiDuoiNen(true);
-                };
-                // Mở form lên ngay lập tức
-                //newForm.Show();
-                // Mở dạng hộp thoại Modal, khóa Form nền
+                using var newForm = new Form43_TomTatThanhTichBaNhat { StartPosition = FormStartPosition.CenterScreen };
                 newForm.ShowDialog(this);
             }
-            // (Đã xóa bỏ hoàn toàn await Task.Delay để không cản trở luồng xử lý)
+            finally
+            {
+                kryptonButton1_ThanhTichTapThe.Text = tenGoc;
+                CapNhatTrangThaiDuoiNen(true);
+            }
         }
         private void toolStripMenuItem_ThiDuaTapThe_Click(object? sender, EventArgs e)
         {
@@ -1387,6 +1495,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 try { await cmd.ExecuteNonQueryAsync(); } catch { }
                 // 4. Gọi lại 2 hàm đồng bộ và nạp dữ liệu như bạn yêu cầu
                 await DongBoDuLieuLoai1SangBaNhatAsync();
+                await Module_BaNhat.CapNhatTinhTrangSoVangAsync();   // THÊM
                 await LoadDuLieuToanBoDanhSachBaNhatAsync();
                 if (toolStripStatusLabel1 != null)
                 {
@@ -1404,7 +1513,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE SoHieu=@sh";
                 //MessageBox.Show("Đã xóa và đồng bộ lại dữ liệu thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // 5. Ghi nhật ký hành động xóa
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa toàn bộ dữ liệu bảng Danh sách Ba Nhất", $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
-                lamMoiHeThong.PerformClick();
+                //lamMoiHeThong.PerformClick();
             }
             catch (Exception ex)
             {
