@@ -1,10 +1,8 @@
-﻿
-namespace PhanMemThiDua2026
+﻿namespace PhanMemThiDua2026
 {
     partial class Form47_DonViTrucThuoc
     {
         private System.ComponentModel.IContainer components = null;
-
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -13,9 +11,7 @@ namespace PhanMemThiDua2026
             }
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
-
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
@@ -58,8 +54,8 @@ namespace PhanMemThiDua2026
             tableLayoutPanel1.Location = new Point(0, 0);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
             tableLayoutPanel1.RowCount = 3;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 27.075098F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 67.78656F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 29.249012F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 65.61265F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 5F));
             tableLayoutPanel1.Size = new Size(913, 506);
             tableLayoutPanel1.TabIndex = 1;
@@ -70,9 +66,9 @@ namespace PhanMemThiDua2026
             groupBox_DanhSach.Dock = DockStyle.Fill;
             groupBox_DanhSach.Font = new Font("Segoe UI Semibold", 9.216F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point, 0);
             groupBox_DanhSach.ForeColor = Color.FromArgb(0, 0, 192);
-            groupBox_DanhSach.Location = new Point(3, 140);
+            groupBox_DanhSach.Location = new Point(3, 151);
             groupBox_DanhSach.Name = "groupBox_DanhSach";
-            groupBox_DanhSach.Size = new Size(907, 337);
+            groupBox_DanhSach.Size = new Size(907, 326);
             groupBox_DanhSach.TabIndex = 2;
             groupBox_DanhSach.TabStop = false;
             groupBox_DanhSach.Text = "2. Danh sách đơn vị trực thuộc";
@@ -85,7 +81,7 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1.Location = new Point(3, 20);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
             kryptonDataGridView1.RowHeadersWidth = 53;
-            kryptonDataGridView1.Size = new Size(901, 314);
+            kryptonDataGridView1.Size = new Size(901, 303);
             kryptonDataGridView1.TabIndex = 0;
             // 
             // groupBox_ThongTin
@@ -96,10 +92,10 @@ namespace PhanMemThiDua2026
             groupBox_ThongTin.ForeColor = Color.FromArgb(0, 0, 192);
             groupBox_ThongTin.Location = new Point(3, 3);
             groupBox_ThongTin.Name = "groupBox_ThongTin";
-            groupBox_ThongTin.Size = new Size(907, 131);
+            groupBox_ThongTin.Size = new Size(907, 142);
             groupBox_ThongTin.TabIndex = 1;
             groupBox_ThongTin.TabStop = false;
-            groupBox_ThongTin.Text = "1. Thông tin đơn vị & Thao tác";
+            groupBox_ThongTin.Text = "1. Cập nhật thông tin và ký hiệu đơn vị";
             // 
             // tableLayoutPanel3
             // 
@@ -111,9 +107,9 @@ namespace PhanMemThiDua2026
             tableLayoutPanel3.Location = new Point(3, 20);
             tableLayoutPanel3.Name = "tableLayoutPanel3";
             tableLayoutPanel3.RowCount = 2;
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 50F));
-            tableLayoutPanel3.Size = new Size(901, 108);
+            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 53.7815132F));
+            tableLayoutPanel3.RowStyles.Add(new RowStyle(SizeType.Percent, 46.2184868F));
+            tableLayoutPanel3.Size = new Size(901, 119);
             tableLayoutPanel3.TabIndex = 0;
             // 
             // tableLayoutPanel4
@@ -133,7 +129,7 @@ namespace PhanMemThiDua2026
             tableLayoutPanel4.Name = "tableLayoutPanel4";
             tableLayoutPanel4.RowCount = 1;
             tableLayoutPanel4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel4.Size = new Size(895, 48);
+            tableLayoutPanel4.Size = new Size(895, 58);
             tableLayoutPanel4.TabIndex = 0;
             // 
             // label2
@@ -142,7 +138,7 @@ namespace PhanMemThiDua2026
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label2.ForeColor = Color.FromArgb(0, 0, 192);
-            label2.Location = new Point(56, 15);
+            label2.Location = new Point(56, 20);
             label2.Name = "label2";
             label2.Size = new Size(66, 17);
             label2.TabIndex = 3;
@@ -151,7 +147,7 @@ namespace PhanMemThiDua2026
             // textBox_TenDonVi
             // 
             textBox_TenDonVi.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_TenDonVi.Location = new Point(128, 9);
+            textBox_TenDonVi.Location = new Point(128, 14);
             textBox_TenDonVi.Name = "textBox_TenDonVi";
             textBox_TenDonVi.Size = new Size(387, 29);
             textBox_TenDonVi.StateCommon.Border.Rounding = 8F;
@@ -165,7 +161,7 @@ namespace PhanMemThiDua2026
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label3.ForeColor = Color.FromArgb(0, 0, 192);
-            label3.Location = new Point(624, 15);
+            label3.Location = new Point(624, 20);
             label3.Name = "label3";
             label3.Size = new Size(87, 17);
             label3.TabIndex = 6;
@@ -174,7 +170,7 @@ namespace PhanMemThiDua2026
             // kryptonTextBox_KyHieuDonVi
             // 
             kryptonTextBox_KyHieuDonVi.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            kryptonTextBox_KyHieuDonVi.Location = new Point(717, 9);
+            kryptonTextBox_KyHieuDonVi.Location = new Point(717, 14);
             kryptonTextBox_KyHieuDonVi.Name = "kryptonTextBox_KyHieuDonVi";
             kryptonTextBox_KyHieuDonVi.Size = new Size(175, 29);
             kryptonTextBox_KyHieuDonVi.StateCommon.Border.Rounding = 8F;
@@ -191,11 +187,11 @@ namespace PhanMemThiDua2026
             tableLayoutPanel5.Controls.Add(kryptonButton1_Sua, 1, 0);
             tableLayoutPanel5.Controls.Add(kryptonButton1_Them, 2, 0);
             tableLayoutPanel5.Dock = DockStyle.Fill;
-            tableLayoutPanel5.Location = new Point(3, 57);
+            tableLayoutPanel5.Location = new Point(3, 67);
             tableLayoutPanel5.Name = "tableLayoutPanel5";
             tableLayoutPanel5.RowCount = 1;
             tableLayoutPanel5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel5.Size = new Size(895, 48);
+            tableLayoutPanel5.Size = new Size(895, 49);
             tableLayoutPanel5.TabIndex = 1;
             // 
             // kryptonButton1_Xoa
@@ -264,9 +260,6 @@ namespace PhanMemThiDua2026
             Name = "Form47_DonViTrucThuoc";
             Text = "Danh sách các đơn vị trực thuộc";
             Load += Form47_DonViTrucThuoc_Load;
-
-
-
             tableLayoutPanel1.ResumeLayout(false);
             tableLayoutPanel1.PerformLayout();
             groupBox_DanhSach.ResumeLayout(false);
@@ -280,9 +273,7 @@ namespace PhanMemThiDua2026
             statusStrip1.PerformLayout();
             ResumeLayout(false);
         }
-
         #endregion
-
         private TableLayoutPanel tableLayoutPanel1;
         private GroupBox groupBox_ThongTin;
         private TableLayoutPanel tableLayoutPanel3;

@@ -57,6 +57,7 @@ namespace PhanMemThiDua2026
         public Form42_QuanLyThiDuaBaNhat()
         {
             InitializeComponent();
+            GiaoDienForm42_44Web.ApDung(this);
             // Chỉ là tinh chỉnh hiển thị (không đổi luồng/logic): bật DoubleBuffered sớm cho các khối bố cục + lưới
             BatDoubleBufferDeQuy(this);
             EnableDoubleBuffer(kryptonDataGridView1);

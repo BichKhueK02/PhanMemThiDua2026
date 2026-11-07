@@ -1,4 +1,5 @@
-﻿///
+﻿///Phiên bản 2
+///
 using DocumentFormat.OpenXml;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
@@ -68,6 +69,7 @@ namespace PhanMemThiDua2026
         public Form6_XuLyData()
         {
             InitializeComponent();
+            ApDungGiaoDienWeb();                           // giao diện kiểu web (Form6_XuLyData.GiaoDienWeb.cs) - chỉ trình bày
             BatDoubleBufferDeQuy(this);                    // giảm chớp khi layout/resize các khối lồng nhau
             kryptonDataGridView1.EnableDoubleBuffered(true);   // bật sớm (trước đây chỉ bật trong Load)
             this.KeyPreview = true; // THÊM DÒNG NÀY
@@ -259,6 +261,10 @@ namespace PhanMemThiDua2026
         }
         // Hủy đăng ký sự kiện khi đóng Form để tránh leak bộ nhớ
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _aesCache = new System.Collections.Concurrent.ConcurrentDictionary<string, string>(StringComparer.Ordinal);
+        // -------------------------------------------------------------------------------------
+        // [A] THÊM FIELD (đặt cạnh các field khác ở đầu class, ví dụ sau dòng _refreshCts)
+        // -------------------------------------------------------------------------------------
+        private readonly SemaphoreSlim _reloadGate = new SemaphoreSlim(1, 1);
         private static string GiaiMaSafeCoCache(string? input)
         {
             if (string.IsNullOrWhiteSpace(input)) return "";
@@ -733,12 +739,12 @@ namespace PhanMemThiDua2026
                 dgv.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
                 dgv.StateCommon.DataCell.Border.Width = 1;
                 // Tiêu đề cột (Header) - Màu Xanh Nước Biển (Đậm và rõ nét hơn)
-                dgv.StateCommon.HeaderColumn.Back.Color1 = Color.FromArgb(180, 210, 240); // Xanh biển đậm hơn một tông
-                dgv.StateCommon.HeaderColumn.Back.Color2 = Color.FromArgb(180, 210, 240);
+                dgv.StateCommon.HeaderColumn.Back.Color1 = Color.FromArgb(237, 233, 254); // tím nhạt
+                dgv.StateCommon.HeaderColumn.Back.Color2 = Color.FromArgb(237, 233, 254);
                 // Chữ màu đen than tuyền để tương phản mạnh với nền xanh
-                dgv.StateCommon.HeaderColumn.Content.Color1 = Color.FromArgb(30, 30, 30);
+                dgv.StateCommon.HeaderColumn.Content.Color1 = Color.FromArgb(91, 33, 182);
                 // Viền header cùng tông xanh nhưng đậm hơn một chút để tạo khối viền
-                dgv.StateCommon.HeaderColumn.Border.Color1 = Color.FromArgb(150, 180, 210);
+                dgv.StateCommon.HeaderColumn.Border.Color1 = Color.FromArgb(221, 214, 254);
                 // ⭐ KHI NGƯỜI DÙNG CLICK CHỌN DÒNG (SELECTED)
                 // Nền khi chọn: Xanh dương siêu nhạt (Alice Blue) - Rất dịu mắt
                 dgv.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
@@ -886,9 +892,7 @@ namespace PhanMemThiDua2026
                 bool laTanBinh = KiemTraPhienBanTanBinh();
                 if (laTanBinh)
                 {
-                    // -----------------------------------------------------------------
                     // NHÁNH A: DÀNH CHO TÂN BINH (Sử dụng Form 30)
-                    // -----------------------------------------------------------------
                     if (_frm30ViewInstance == null || _frm30ViewInstance.IsDisposed)
                     {
                         _frm30ViewInstance = new Form30_ChinhSuaDataTanBinh(soHieu, hoTen, donVi, true)
@@ -908,9 +912,7 @@ namespace PhanMemThiDua2026
                 }
                 else
                 {
-                    // -----------------------------------------------------------------
                     // NHÁNH B: DÀNH CHO CÁN BỘ CHIẾN SĨ (Sử dụng Form 22)
-                    // -----------------------------------------------------------------
                     if (_frm22ViewInstance == null || _frm22ViewInstance.IsDisposed)
                     {
                         _frm22ViewInstance = new Form22_ChinhSuaDataCBCS()
@@ -969,13 +971,27 @@ namespace PhanMemThiDua2026
             }
             dgv.CurrentCell = firstVisibleCell;
         }
+        // ======================================================================
+        //  XÓA DỮ LIỆU CBCS (đã tối ưu)
+        //  - Bỏ VACUUM khỏi đường xóa (nút chặn chính). Chỉ nén nền khi thật sự cần.
+        //  - Đánh lại STT bằng 1 câu UPDATE ... FROM O(n log n), chỉ ghi dòng có STT đổi
+        //    (câu cũ dùng subquery tương quan: O(n^2), rất chậm khi STT là khóa chính).
+        //  - Đồng bộ RAM: BeginLoadData/EndLoadData + chỉ ghi ô STT thật sự thay đổi
+        //    (trước đây mỗi lần gán row["STT"] đều bắn sự kiện + dựng lại DataView).
+        //  - Tác vụ phụ (nhật ký, form khác, biểu đồ) chạy SAU khi lưới đã vẽ xong.
+        // ======================================================================
         private bool _dangXuLyXoa = false;
+        // Tuần tự hóa mọi thao tác ghi CSDL2 từ Form6 (xóa / nén nền) -> không bị "database is locked"
+        private static readonly SemaphoreSlim _khoaGhiCSDL2 = new(1, 1);
+        // Chỉ nén (VACUUM) khi số trang trống đủ lớn: >= 500 trang và >= 25% tổng số trang
+        private const int NGUONG_TRANG_TRONG_DE_NEN = 500;
+        private const double TY_LE_TRANG_TRONG_DE_NEN = 0.25;
         private async void kryptonButton_XoaDataCBCS_Click(object? sender, EventArgs e)
         {
             // ===== 1. CHỐNG SPAM VÀ VALIDATE UI (Chạy trên UI Thread) =====
             if (_dangXuLyXoa) return;
             if (string.IsNullOrWhiteSpace(textBox_STT.Text) ||
-                !int.TryParse(textBox_STT.Text.Trim(), out int stt))
+                !int.TryParse(textBox_STT.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int stt))
             {
                 MessageBox.Show("Chưa xác định được dữ liệu dòng cần xử lý.", "Thông báo",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1000,23 +1016,32 @@ namespace PhanMemThiDua2026
                 return;
             }
             _dangXuLyXoa = true;
+            string statusCu = toolStripStatusLabel1.Text;
             toolStripStatusLabel1.Text = "Đang xử lý xóa dữ liệu...";
             this.Cursor = Cursors.WaitCursor;
-            // Cờ đánh dấu Grid có đang bị tạm dừng vẽ hay không -> đảm bảo LUÔN được bật lại
-            bool redrawSuspended = false;
+            kryptonButton_XoaDataCBCS.Enabled = false; // phản hồi tức thì, chặn bấm lặp
+            bool xoaThanhCong = false;
             try
             {
-                // ===== 2. THỰC THI DATABASE TRÊN LUỒNG NGẦM (Không làm đơ Form) =====
-                bool dbSuccess = await Task.Run(() => ThucThiXoaDatabase(csdlPath, stt));
+                // ===== 2. XÓA DATABASE TRÊN LUỒNG NGẦM (nhanh: không còn VACUUM) =====
+                var kq = await Task.Run(() => ThucThiXoaDatabase(csdlPath, stt));
                 // Sau await, Form có thể đã bị đóng -> luôn kiểm tra trước khi đụng vào UI
                 if (this.IsDisposed || !this.IsHandleCreated) return;
-                if (!dbSuccess)
+                if (!kq.DaXoa)
                 {
+                    toolStripStatusLabel1.Text = statusCu;
                     MessageBox.Show("Dữ liệu không tồn tại hoặc đã bị thay đổi bởi người khác.", "Thông báo",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
-                // ===== 3. GHI NHẬT KÝ (Fire and Forget - không được để lỗi văng ra ngoài) =====
+                xoaThanhCong = true;
+                // ===== 3. ĐỒNG BỘ RAM + LƯỚI NGAY LẬP TỨC =====
+                DongBoRamSauKhiXoa(stt);
+                ClearThongTin();
+                CapNhatThongKeToanBoQuanSo();
+                toolStripStatusLabel1.Text = "Xóa dữ liệu thành công.";
+                kryptonDataGridView1.Update(); // vẽ xong lưới trước khi làm các việc phụ bên dưới
+                // ===== 4. CÁC TÁC VỤ PHỤ (không chặn người dùng) =====
                 _ = Task.Run(() =>
                 {
                     try
@@ -1032,66 +1057,23 @@ namespace PhanMemThiDua2026
                         Debug.WriteLine($"Lỗi ghi log: {ex.Message}");
                     }
                 });
-                // ===== 4. ĐỒNG BỘ RAM (Tối ưu, không gọi ReloadDuLieu) =====
-                if (dtDanhSachGoc != null &&
-                    kryptonDataGridView1.IsHandleCreated &&
-                    !kryptonDataGridView1.IsDisposed)
-                {
-                    try
-                    {
-                        // Tạm dừng vẽ Grid (0 = tắt redraw)
-                        SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null!);
-                        redrawSuspended = true;
-                        // 4.1 Xóa dòng khỏi bộ nhớ — so sánh an toàn với DBNull
-                        string sttText = stt.ToString(CultureInfo.InvariantCulture);
-                        var rowToDelete = dtDanhSachGoc.AsEnumerable()
-                            .FirstOrDefault(r => string.Equals(
-                                Convert.ToString(r["STT"], CultureInfo.InvariantCulture),
-                                sttText, StringComparison.Ordinal));
-                        if (rowToDelete != null)
-                        {
-                            dtDanhSachGoc.Rows.Remove(rowToDelete);
-                        }
-                        // 4.2 Đánh lại STT trực tiếp trên RAM để khớp với Database
-                        int newStt = 1;
-                        foreach (DataRow row in dtDanhSachGoc.Rows)
-                        {
-                            // Bỏ qua dòng ảo dưới cùng (nếu có), tránh lỗi khi cột chưa có giá trị
-                            string hoVaTenRow = Convert.ToString(row["HoVaTen"], CultureInfo.InvariantCulture) ?? string.Empty;
-                            if (!string.IsNullOrWhiteSpace(hoVaTenRow))
-                            {
-                                row["STT"] = newStt++;
-                            }
-                        }
-                        dtDanhSachGoc.AcceptChanges();
-                        // 4.3 Cập nhật hiển thị
-                        kryptonDataGridView1.RowCount = dtDanhSachGoc.DefaultView.Count;
-                    }
-                    finally
-                    {
-                        // Luôn bật lại redraw dù có lỗi ở trên hay không -> Grid không bao giờ bị đơ vĩnh viễn
-                        if (redrawSuspended && kryptonDataGridView1.IsHandleCreated && !kryptonDataGridView1.IsDisposed)
-                        {
-                            SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 1, null!);
-                            kryptonDataGridView1.Invalidate();
-                        }
-                    }
-                }
-                // ===== 5. LÀM SẠCH UI VÀ THỐNG KÊ =====
-                ClearThongTin();
                 DataCache.Clear(); // Đánh dấu cache hết hạn để các form khác tự lấy lại data mới
-                CapNhatThongKeToanBoQuanSo();
                 ThongBaoForm4CapNhatLoaiDeXuat();
-                toolStripStatusLabel1.Text = "Xóa dữ liệu thành công.";
-                // Phát tín hiệu: "Dữ liệu đã thay đổi rồi nhé!"
                 Module_DanduongGPS.OnDatabaseChanged?.Invoke();
-                await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
+                _ = Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
+                // Nén CSDL ở nền, chỉ khi file thực sự phình do nhiều trang trống
+                if (kq.CanNen) _ = NenCSDLNenAsync(csdlPath);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Lỗi xóa dữ liệu CBCS: {ex}");
                 if (!this.IsDisposed && this.IsHandleCreated)
                 {
+                    // DB đã xóa nhưng RAM chưa đồng bộ -> nạp lại để lưới không lệch với DB
+                    if (xoaThanhCong)
+                    {
+                        try { kryptonButton_RefershCSDL.PerformClick(); } catch { /* bỏ qua */ }
+                    }
                     MessageBox.Show("Có lỗi xảy ra trong quá trình xử lý dữ liệu.\nChi tiết: " + ex.Message,
                         "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
@@ -1101,44 +1083,180 @@ namespace PhanMemThiDua2026
                 _dangXuLyXoa = false;
                 if (!this.IsDisposed && this.IsHandleCreated)
                 {
+                    kryptonButton_XoaDataCBCS.Enabled = true;
                     this.Cursor = Cursors.Default;
                 }
             }
         }
-        // Hàm xử lý DB cô lập hoàn toàn khỏi UI
-        private bool ThucThiXoaDatabase(string csdlPath, int stt)
+        /// <summary>
+        /// Xóa dòng khỏi DataTable gốc + đánh lại STT trên RAM + cập nhật lưới ảo (Virtual Mode)
+        /// với số lần vẽ lại và số sự kiện DataTable tối thiểu. Phải gọi trên UI thread.
+        /// </summary>
+        private void DongBoRamSauKhiXoa(int stt)
         {
-            using var conn = new SqliteConnection($"Data Source={csdlPath}");
-            conn.Open();
-            using var transaction = conn.BeginTransaction();
+            var dt = dtDanhSachGoc;
+            var grid = kryptonDataGridView1;
+            if (dt == null || grid == null || grid.IsDisposed) return;
+            int ordStt = dt.Columns.IndexOf("STT");
+            int ordTen = dt.Columns.IndexOf("HoVaTen");
+            if (ordStt < 0) return;
+            bool redrawSuspended = false;
             try
             {
-                using (var cmd = new SqliteCommand("DELETE FROM DanhSach WHERE STT = @STT", conn, transaction))
+                if (grid.IsHandleCreated)
                 {
-                    cmd.Parameters.Add("@STT", SqliteType.Integer).Value = stt;
-                    int rows = cmd.ExecuteNonQuery();
-                    if (rows == 0)
+                    SendMessage(grid.Handle, WM_SETREDRAW, 0, null!);
+                    redrawSuspended = true;
+                }
+                // Tắt thông báo/ràng buộc/chỉ mục của DataTable trong lúc sửa hàng loạt
+                dt.BeginLoadData();
+                try
+                {
+                    // Tìm theo số (không cấp phát chuỗi cho từng dòng như bản cũ)
+                    int viTriXoa = -1;
+                    var rows = dt.Rows;
+                    for (int i = 0; i < rows.Count; i++)
                     {
-                        transaction.Rollback();
-                        return false; // Không có gì để xóa
+                        if (DocSoNguyen(rows[i][ordStt]) == stt) { viTriXoa = i; break; }
+                    }
+                    if (viTriXoa >= 0) rows.RemoveAt(viTriXoa);
+                    // Đánh lại STT: bỏ qua dòng ảo (HoVaTen rỗng), CHỈ ghi ô nào thật sự đổi.
+                    // Các dòng đứng trước vị trí xóa không bị ghi gì cả.
+                    int newStt = 1;
+                    for (int i = 0; i < rows.Count; i++)
+                    {
+                        var row = rows[i];
+                        if (ordTen >= 0)
+                        {
+                            object ten = row[ordTen];
+                            if (ten == DBNull.Value || string.IsNullOrWhiteSpace(ten as string ?? Convert.ToString(ten, CultureInfo.InvariantCulture)))
+                                continue;
+                        }
+                        if (DocSoNguyen(row[ordStt]) != newStt) row[ordStt] = newStt;
+                        newStt++;
                     }
                 }
-                // Truyền thẳng transaction vào để tái sử dụng
-                DanhLaiSoThuTu(conn, transaction);
-                transaction.Commit();
-                // Dọn dẹp DB sau khi xóa
-                using (var cmdVacuum = new SqliteCommand("VACUUM;", conn))
+                finally
                 {
-                    cmdVacuum.ExecuteNonQuery();
+                    dt.EndLoadData(); // dựng lại chỉ mục DataView đúng 1 lần
                 }
-                return true;
+                dt.AcceptChanges();
+                // Cập nhật số dòng cho Virtual Mode
+                int soDong = dt.DefaultView.Count;
+                if (grid.RowCount != soDong) grid.RowCount = soDong;
             }
-            catch
+            finally
             {
-                transaction.Rollback();
-                throw;
+                // Bắt buộc bật lại chế độ vẽ để lưới không bao giờ bị đơ vĩnh viễn
+                if (redrawSuspended && grid.IsHandleCreated && !grid.IsDisposed)
+                {
+                    SendMessage(grid.Handle, WM_SETREDRAW, 1, null!);
+                    grid.Invalidate();
+                }
             }
         }
+        // Đọc STT dạng số an toàn (int/long/string/DBNull) -> -1 nếu không đọc được
+        private static int DocSoNguyen(object? v)
+        {
+            switch (v)
+            {
+                case null: return -1;
+                case DBNull: return -1;
+                case int i: return i;
+                case long l: return l is >= int.MinValue and <= int.MaxValue ? (int)l : -1;
+                case string str: return int.TryParse(str.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int r) ? r : -1;
+                default:
+                    try { return Convert.ToInt32(v, CultureInfo.InvariantCulture); }
+                    catch { return -1; }
+            }
+        }
+        private readonly record struct KetQuaXoaDb(bool DaXoa, bool CanNen);
+        // Hàm xử lý DB cô lập hoàn toàn khỏi UI (chạy ngầm an toàn)
+        private KetQuaXoaDb ThucThiXoaDatabase(string csdlPath, int stt)
+        {
+            _khoaGhiCSDL2.Wait();
+            try
+            {
+                using var conn = new SqliteConnection($"Data Source={csdlPath}");
+                conn.Open();
+                bool daXoa;
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        using (var cmd = new SqliteCommand("DELETE FROM DanhSach WHERE STT = @STT", conn, transaction))
+                        {
+                            cmd.Parameters.Add("@STT", SqliteType.Integer).Value = stt;
+                            daXoa = cmd.ExecuteNonQuery() > 0;
+                        }
+                        if (!daXoa)
+                        {
+                            transaction.Rollback();
+                            return new KetQuaXoaDb(false, false);
+                        }
+                        DanhLaiSoThuTu(conn, transaction);
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        try { transaction.Rollback(); } catch { /* transaction đã hỏng/đóng */ }
+                        throw;
+                    }
+                }
+                // Quyết định có cần nén hay không (rất rẻ: chỉ đọc 2 PRAGMA)
+                bool canNen = false;
+                try
+                {
+                    long freelist = LayGiaTriPragma(conn, "freelist_count");
+                    long pageCount = LayGiaTriPragma(conn, "page_count");
+                    canNen = pageCount > 0
+                             && freelist >= NGUONG_TRANG_TRONG_DE_NEN
+                             && (double)freelist / pageCount >= TY_LE_TRANG_TRONG_DE_NEN;
+                }
+                catch { /* không quan trọng */ }
+                return new KetQuaXoaDb(true, canNen);
+            }
+            finally
+            {
+                _khoaGhiCSDL2.Release();
+            }
+        }
+        private static long LayGiaTriPragma(SqliteConnection conn, string ten)
+        {
+            using var cmd = new SqliteCommand($"PRAGMA {ten};", conn);
+            return Convert.ToInt64(cmd.ExecuteScalar(), CultureInfo.InvariantCulture);
+        }
+        /// <summary>
+        /// Nén CSDL (VACUUM) ở nền, không bao giờ chặn UI và không chạy chồng với thao tác xóa khác.
+        /// Lỗi (vd. file đang bị tiến trình khác khóa) chỉ ghi Debug, lần xóa sau sẽ thử lại.
+        /// </summary>
+        private static async Task NenCSDLNenAsync(string csdlPath)
+        {
+            try
+            {
+                await Task.Run(() =>
+                {
+                    // Không chờ lâu: nếu đang có thao tác ghi khác thì bỏ qua lượt này
+                    if (!_khoaGhiCSDL2.Wait(TimeSpan.FromSeconds(1))) return;
+                    try
+                    {
+                        using var conn = new SqliteConnection($"Data Source={csdlPath}");
+                        conn.Open();
+                        using var cmd = new SqliteCommand("VACUUM;", conn);
+                        cmd.ExecuteNonQuery();
+                    }
+                    finally
+                    {
+                        _khoaGhiCSDL2.Release();
+                    }
+                }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Lỗi nén CSDL nền: {ex.Message}");
+            }
+        }
+        /// Xóa trắng các ô thông tin chi tiết
         private void ClearThongTin()
         {
             textBox_STT?.Clear();
@@ -1153,31 +1271,48 @@ namespace PhanMemThiDua2026
             if (comboBox_DonVi != null) comboBox_DonVi.SelectedIndex = -1;
             comboBox_PhanLoai.Text = "";
         }
-        // Nâng cấp: Cho phép nhận Transaction từ ngoài vào. Nếu truyền null, nó tự tạo Transaction.
-        private void DanhLaiSoThuTu(SqliteConnection conn, SqliteTransaction externalTran = null)
+        // Đánh lại STT = 1..N theo thứ tự STT hiện có.
+        // Nhận Transaction từ ngoài vào; nếu truyền null thì tự tạo/commit transaction riêng.
+        // Dùng UPDATE ... FROM (SQLite >= 3.33) + chỉ cập nhật dòng có STT thay đổi => O(n log n).
+        // Nếu SQLite quá cũ không hỗ trợ UPDATE FROM thì tự động dùng câu lệnh cũ (chậm hơn nhưng đúng).
+        private void DanhLaiSoThuTu(SqliteConnection conn, SqliteTransaction? externalTran = null)
         {
+            const string sqlNhanh = @"
+UPDATE DanhSach
+SET STT = o.NewSTT
+FROM (SELECT rowid AS rid, ROW_NUMBER() OVER (ORDER BY STT ASC) AS NewSTT FROM DanhSach) AS o
+WHERE DanhSach.rowid = o.rid AND DanhSach.STT <> o.NewSTT;";
+            const string sqlCu = @"
+WITH Ordered AS (
+    SELECT rowid, ROW_NUMBER() OVER (ORDER BY STT ASC) AS NewSTT
+    FROM DanhSach
+)
+UPDATE DanhSach
+SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             bool isLocalTran = externalTran == null;
-            var tran = isLocalTran ? conn.BeginTransaction() : externalTran;
+            var tran = externalTran ?? conn.BeginTransaction();
             try
             {
-                using var cmd = new SqliteCommand(@"
-        WITH Ordered AS (
-            SELECT rowid, ROW_NUMBER() OVER (ORDER BY STT ASC) AS NewSTT
-            FROM DanhSach
-        )
-        UPDATE DanhSach
-        SET STT = (
-            SELECT NewSTT FROM Ordered 
-            WHERE Ordered.rowid = DanhSach.rowid
-        );", conn, tran);
-                cmd.ExecuteNonQuery();
-                // Chỉ Commit nếu hàm này tự tạo Transaction
+                try
+                {
+                    using var cmd = new SqliteCommand(sqlNhanh, conn, tran);
+                    cmd.ExecuteNonQuery();
+                }
+                catch (SqliteException ex) when (ex.SqliteErrorCode == 1) // SQLITE_ERROR: cú pháp không được hỗ trợ
+                {
+                    using var cmd = new SqliteCommand(sqlCu, conn, tran);
+                    cmd.ExecuteNonQuery();
+                }
                 if (isLocalTran) tran.Commit();
             }
             catch
             {
                 if (isLocalTran) tran.Rollback();
                 throw;
+            }
+            finally
+            {
+                if (isLocalTran) tran.Dispose();
             }
         }
         private void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e)
@@ -1379,7 +1514,7 @@ namespace PhanMemThiDua2026
                 return;
             }
             string stt = textBox_STT.Text?.Trim() ?? "";
-            if (string.IsNullOrEmpty(stt) || !int.TryParse(stt, out _))
+            if (string.IsNullOrEmpty(stt) || !int.TryParse(stt, out int sttSo))
             {
                 MessageBox.Show("STT không hợp lệ. Vui lòng chọn đúng dòng cần lưu.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -1443,15 +1578,16 @@ namespace PhanMemThiDua2026
             }
             string textBanDau = kryptonButton_LuuDataCapNhat.Values.Text;
             Image anhBanDau = kryptonButton_LuuDataCapNhat.Values.Image;
+            bool dangGiuCong = false;  // true khi đang giữ _reloadGate (chỉ được nhả đúng 1 lần)
+            bool daGhiCsdl = false;    // true khi lệnh UPDATE đã commit xong
             try
             {
                 kryptonButton_LuuDataCapNhat.Enabled = false;
                 kryptonButton_LuuDataCapNhat.Values.Text = "Đang lưu...";
                 kryptonButton_LuuDataCapNhat.Values.Image = null;
-                await Task.Delay(50);
-                if (this.IsDisposed) return;
-                // Mã hóa đúng GIÁ TRỊ GỐC (phanLoaiGoc) trước khi đưa vào Database
-                var encryptedData = await Task.Run(() => new
+                // Mã hóa trên luồng nền (đúng GIÁ TRỊ GỐC phanLoaiGoc). Trong lúc await, UI vẫn tự vẽ lại
+                // chữ "Đang lưu..." nên không cần Task.Delay(50) như trước.
+                var banGhi = await Task.Run(() => new BanGhiDaMaHoa
                 {
                     HoVaTen = Module_BaoMatAES.MaHoa(hoVaTenTxt),
                     SoHieu = Module_BaoMatAES.MaHoa(soHieuTxt),
@@ -1465,44 +1601,67 @@ namespace PhanMemThiDua2026
                     GhiChu = Module_BaoMatAES.MaHoa(ghiChuTxt)
                 });
                 if (this.IsDisposed) return;
+                // Giữ cổng để ReloadDuLieu() (nút Làm mới, đổi chế độ xét thi đua...) không chen vào
+                // giữa lúc "ghi CSDL" và "cập nhật RAM" -> tránh vá nhầm vào bảng đã bị thay.
+                await _reloadGate.WaitAsync();
+                dangGiuCong = true;
+                if (this.IsDisposed) return;
                 // 3. LƯU DATABASE
-                using var conn = new SqliteConnection("Data Source=" + csdlPath);
-                await conn.OpenAsync();
-                using var transaction = conn.BeginTransaction();
-                string sql = @"UPDATE DanhSach SET HoVaTen = @HoVaTen, SoHieu = @SoHieu, NamSinh = @NamSinh, QueQuan = @QueQuan, NgayVaoCAND = @NgayVaoCAND, CapBac = @CapBac, ChucVu = @ChucVu, DonVi = @DonVi, PhanLoai = @PhanLoai, GhiChu = @GhiChu WHERE STT = @STT";
-                using var cmd = new SqliteCommand(sql, conn, transaction);
-                cmd.CommandTimeout = 5;
-                cmd.Parameters.Add(new SqliteParameter("@HoVaTen", encryptedData.HoVaTen));
-                cmd.Parameters.Add(new SqliteParameter("@SoHieu", encryptedData.SoHieu));
-                cmd.Parameters.Add(new SqliteParameter("@NamSinh", encryptedData.NamSinh));
-                cmd.Parameters.Add(new SqliteParameter("@QueQuan", encryptedData.QueQuan));
-                cmd.Parameters.Add(new SqliteParameter("@NgayVaoCAND", encryptedData.NgayVaoCAND));
-                cmd.Parameters.Add(new SqliteParameter("@CapBac", encryptedData.CapBac));
-                cmd.Parameters.Add(new SqliteParameter("@ChucVu", encryptedData.ChucVu));
-                cmd.Parameters.Add(new SqliteParameter("@DonVi", encryptedData.DonVi));
-                cmd.Parameters.Add(new SqliteParameter("@PhanLoai", encryptedData.PhanLoai));
-                cmd.Parameters.Add(new SqliteParameter("@GhiChu", encryptedData.GhiChu));
-                cmd.Parameters.Add(new SqliteParameter("@STT", Convert.ToInt32(stt)));
-                if (await cmd.ExecuteNonQueryAsync() <= 0)
+                if (!await LuuDongVaoCsdlAsync(csdlPath, sttSo, banGhi))
                 {
-                    transaction.Rollback();
                     MessageBox.Show("Không tìm thấy dữ liệu để cập nhật.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                transaction.Commit();
-                DataCache.Clear();
-                await ReloadDuLieu();
-                ApplyFilter();
-                CapNhatThongKeToanBoQuanSo();
+                daGhiCsdl = true;
+                DataCache.Clear(); // các form khác (Form4/15/34...) sẽ tự đọc lại dữ liệu mới khi cần
+                // 4. CẬP NHẬT TẠI CHỖ: chỉ sửa đúng 1 dòng trong RAM, KHÔNG dựng lại lưới
+                DataRow? dongDaVa = CapNhatDongTaiCho(sttSo, hoVaTenTxt, donViTxt, phanLoaiGoc, banGhi,
+                                                      out bool donViDoi, out bool phanLoaiDoi);
+                _reloadGate.Release();
+                dangGiuCong = false;
+                string thongBao = "Đã lưu thay đổi thành công!";
+                if (dongDaVa != null)
+                {
+                    if (donViDoi || phanLoaiDoi)
+                    {
+                        // Có thể xuất hiện đơn vị / phân loại mới (hoặc cái cũ hết người) -> nạp lại danh sách
+                        // của 2 ô lọc, giữ nguyên mục đang chọn nếu nó vẫn còn.
+                        LoadComboBoxDonVi();
+                        LoadComboBoxXepLoaiThiDua();
+                    }
+                    // Áp lại bộ lọc hiện tại (chỉ đổi RowFilter khi thật sự khác) + cập nhật thống kê.
+                    // Không đụng tới dòng đang chọn, vị trí cuộn, nội dung ô tìm kiếm, các ô thông tin bên dưới.
+                    ApplyFilter();
+                    if (TimViTriTrongLuoi(dongDaVa) < 0)
+                    {
+                        // Dòng vừa sửa không còn khớp bộ lọc hiện tại (vd: đổi đơn vị / phân loại).
+                        // Bỏ chọn để lưới không trỏ nhầm sang người khác.
+                        kryptonDataGridView1.CurrentCell = null;
+                        kryptonDataGridView1.ClearSelection();
+                        thongBao = "Đã lưu thành công! Dòng vừa sửa không còn nằm trong bộ lọc hiện tại, hãy bỏ lọc để xem lại.";
+                    }
+                    ThongBaoForm15CapNhatGhiChu();
+                }
+                else
+                {
+                    // Dự phòng (hiếm gặp): không vá được dòng trong RAM -> nạp lại toàn bộ như cách cũ để dữ liệu luôn đúng
+                    await ReloadDuLieu();
+                    ApplyFilter();
+                    CapNhatThongKeToanBoQuanSo();
+                }
                 ThongBaoForm4CapNhatLoaiDeXuat();
-                toolStripStatusLabel1.Text = "Đã lưu thay đổi thành công!";
+                toolStripStatusLabel1.Text = thongBao;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi lưu dữ liệu:\n" + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                string tienTo = daGhiCsdl
+                    ? "Dữ liệu ĐÃ được lưu vào CSDL nhưng có lỗi khi cập nhật giao diện (hãy bấm Làm mới):\n"
+                    : "Lỗi khi lưu dữ liệu:\n";
+                MessageBox.Show(tienTo + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
+                if (dangGiuCong) _reloadGate.Release();
                 if (!this.IsDisposed)
                 {
                     kryptonButton_LuuDataCapNhat.Values.Text = textBanDau;
@@ -1510,6 +1669,144 @@ namespace PhanMemThiDua2026
                     kryptonButton_LuuDataCapNhat.Enabled = true;
                 }
             }
+        }
+        // Gói 10 trường đã mã hóa (đúng dạng đang nằm trong CSDL2) để truyền giữa các hàm
+        private sealed class BanGhiDaMaHoa
+        {
+            public string HoVaTen { get; set; } = "";
+            public string SoHieu { get; set; } = "";
+            public string NamSinh { get; set; } = "";
+            public string QueQuan { get; set; } = "";
+            public string NgayVaoCAND { get; set; } = "";
+            public string CapBac { get; set; } = "";
+            public string ChucVu { get; set; } = "";
+            public string DonVi { get; set; } = "";
+            public string PhanLoai { get; set; } = "";
+            public string GhiChu { get; set; } = "";
+        }
+        // Ghi 1 dòng vào CSDL2 trong 1 transaction. Trả về false nếu không có dòng nào bị ảnh hưởng.
+        private static async Task<bool> LuuDongVaoCsdlAsync(string csdlPath, int stt, BanGhiDaMaHoa b)
+        {
+            using var conn = new SqliteConnection("Data Source=" + csdlPath);
+            await conn.OpenAsync();
+            using var transaction = conn.BeginTransaction();
+            const string sql = @"UPDATE DanhSach SET HoVaTen = @HoVaTen, SoHieu = @SoHieu, NamSinh = @NamSinh, QueQuan = @QueQuan, NgayVaoCAND = @NgayVaoCAND, CapBac = @CapBac, ChucVu = @ChucVu, DonVi = @DonVi, PhanLoai = @PhanLoai, GhiChu = @GhiChu WHERE STT = @STT";
+            using var cmd = new SqliteCommand(sql, conn, transaction);
+            cmd.CommandTimeout = 5;
+            cmd.Parameters.Add(new SqliteParameter("@HoVaTen", b.HoVaTen));
+            cmd.Parameters.Add(new SqliteParameter("@SoHieu", b.SoHieu));
+            cmd.Parameters.Add(new SqliteParameter("@NamSinh", b.NamSinh));
+            cmd.Parameters.Add(new SqliteParameter("@QueQuan", b.QueQuan));
+            cmd.Parameters.Add(new SqliteParameter("@NgayVaoCAND", b.NgayVaoCAND));
+            cmd.Parameters.Add(new SqliteParameter("@CapBac", b.CapBac));
+            cmd.Parameters.Add(new SqliteParameter("@ChucVu", b.ChucVu));
+            cmd.Parameters.Add(new SqliteParameter("@DonVi", b.DonVi));
+            cmd.Parameters.Add(new SqliteParameter("@PhanLoai", b.PhanLoai));
+            cmd.Parameters.Add(new SqliteParameter("@GhiChu", b.GhiChu));
+            cmd.Parameters.Add(new SqliteParameter("@STT", stt));
+            if (await cmd.ExecuteNonQueryAsync() <= 0)
+            {
+                transaction.Rollback();
+                return false;
+            }
+            transaction.Commit();
+            return true;
+        }
+        // Vá đúng 1 dòng trong dtDanhSachGoc theo STT (chạy trên luồng UI).
+        // Quy ước cột trong RAM (giống lúc nạp): HoVaTen/DonVi/PhanLoai là chữ thường (đã giải mã),
+        // các cột còn lại giữ dạng mã hóa và được giải mã lười khi vẽ ô.
+        // Trả về dòng đã vá, hoặc null nếu không vá được (khi đó hàm gọi sẽ nạp lại toàn bộ cho chắc).
+        private DataRow? CapNhatDongTaiCho(int stt, string hoVaTen, string donVi, string phanLoai,
+                                           BanGhiDaMaHoa b, out bool donViDoi, out bool phanLoaiDoi)
+        {
+            donViDoi = false;
+            phanLoaiDoi = false;
+            try
+            {
+                DataTable? dt = dtDanhSachGoc;
+                if (dt == null || kryptonDataGridView1 == null || kryptonDataGridView1.IsDisposed) return null;
+                int oStt = dt.Columns.IndexOf("STT");
+                int oDonVi = dt.Columns.IndexOf("DonVi");
+                int oPhanLoai = dt.Columns.IndexOf("PhanLoai");
+                if (oStt < 0) return null;
+                DataView view = dt.DefaultView;
+                DataRow? dong = null;
+                // Đường nhanh: dòng đang được chọn trên lưới thường chính là dòng cần vá
+                int viTriDangChon = kryptonDataGridView1.CurrentCell?.RowIndex ?? -1;
+                if ((uint)viTriDangChon < (uint)view.Count)
+                {
+                    DataRow r = view[viTriDangChon].Row;
+                    if (CungSTT(r, oStt, stt)) dong = r;
+                }
+                // Đường dự phòng: người dùng vừa bấm sang dòng khác trong lúc đang lưu -> tìm theo STT
+                if (dong == null)
+                {
+                    foreach (DataRow r in dt.Rows)
+                    {
+                        if (r.RowState != DataRowState.Deleted && CungSTT(r, oStt, stt))
+                        {
+                            dong = r;
+                            break;
+                        }
+                    }
+                }
+                if (dong == null) return null;
+                string donViCu = oDonVi >= 0 ? (dong[oDonVi]?.ToString() ?? "") : "";
+                string phanLoaiCu = oPhanLoai >= 0 ? (dong[oPhanLoai]?.ToString() ?? "") : "";
+                donViDoi = !string.Equals(donViCu, donVi, StringComparison.Ordinal);
+                phanLoaiDoi = !string.Equals(phanLoaiCu, phanLoai, StringComparison.Ordinal);
+                // BeginEdit/EndEdit: DataView chỉ tính lại bộ lọc 1 lần cho cả dòng
+                dong.BeginEdit();
+                try
+                {
+                    GanChuoi(dong, "HoVaTen", hoVaTen);
+                    GanChuoi(dong, "DonVi", donVi);
+                    GanChuoi(dong, "PhanLoai", phanLoai);
+                    GanChuoi(dong, "SoHieu", b.SoHieu);
+                    GanChuoi(dong, "NamSinh", b.NamSinh);
+                    GanChuoi(dong, "QueQuan", b.QueQuan);
+                    GanChuoi(dong, "NgayVaoCAND", b.NgayVaoCAND);
+                    GanChuoi(dong, "CapBac", b.CapBac);
+                    GanChuoi(dong, "ChucVu", b.ChucVu);
+                    GanChuoi(dong, "GhiChu", b.GhiChu);
+                    dong.EndEdit();
+                }
+                catch
+                {
+                    dong.CancelEdit();
+                    throw;
+                }
+                return dong;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[CapNhatDongTaiCho] " + ex.Message);
+                return null;
+            }
+        }
+        private static void GanChuoi(DataRow r, string tenCot, string giaTri)
+        {
+            int o = r.Table.Columns.IndexOf(tenCot);
+            if (o >= 0) r[o] = giaTri;
+        }
+        private static bool CungSTT(DataRow r, int ordStt, int stt)
+        {
+            if (r.RowState == DataRowState.Deleted || ordStt < 0) return false;
+            object v = r[ordStt];
+            if (v == DBNull.Value) return false; // dòng đệm ảo cuối bảng không có STT
+            return long.TryParse(Convert.ToString(v, CultureInfo.InvariantCulture),
+                                 NumberStyles.Integer, CultureInfo.InvariantCulture, out long n) && n == stt;
+        }
+        // Vị trí hiện tại của dòng trong lưới (đã lọc); -1 nếu dòng đang bị bộ lọc ẩn đi
+        private int TimViTriTrongLuoi(DataRow dong)
+        {
+            DataView? view = dtDanhSachGoc?.DefaultView;
+            if (view == null) return -1;
+            int cur = kryptonDataGridView1.CurrentCell?.RowIndex ?? -1;
+            if ((uint)cur < (uint)view.Count && ReferenceEquals(view[cur].Row, dong)) return cur;
+            for (int i = 0; i < view.Count; i++)
+                if (ReferenceEquals(view[i].Row, dong)) return i;
+            return -1;
         }
         private void lamMoiHeThong_Click(object? sender, EventArgs e)
         {
@@ -1861,6 +2158,15 @@ namespace PhanMemThiDua2026
             {
                 // Có sẵn (đã dựng trước) -> dùng luôn; chưa kịp thì tạo ngay bây giờ
                 var form60 = TimForm60TrongPanel(panel) ?? TaoForm60An(panel);
+                // -------------------------------------------------------------
+                // BỔ SUNG: Đăng ký sự kiện hoặc cơ chế gọi lại dữ liệu cho Form 6
+                // -------------------------------------------------------------
+                if (form60 is Form60_NhapLieuCBCS f60Cast)
+                {
+                    // Nếu Form 60 chưa đăng ký sự kiện đóng/quay lại, ta gắn thêm handler
+                    // (Đảm bảo gọi hàm Load của Form 6 ngay khi Form 60 ẩn đi)
+                    // Lưu ý: Gắn dạng này hoặc dùng Event tùy theo cách bạn thiết kế Form60 bên dưới
+                }
                 // Hiện Form 60 trước, rồi mới ẩn các control khác (không bị chớp nền trống giữa 2 form)
                 panel.SuspendLayout();
                 try
@@ -1893,10 +2199,11 @@ namespace PhanMemThiDua2026
         /// <summary>
         /// Xử lý đóng Form 60 và khôi phục Form 6 siêu tốc
         /// </summary>
+        // -------------------------------------------------------------------------------------
         private void Form60_OnFormClosed(object? sender, FormClosedEventArgs e)
         {
             if (sender is not Form60_NhapLieuCBCS form60) return;
-            // Hủy đăng ký sự kiện ngay lập tức để giải phóng RAM cho GC (Garbage Collector)
+            // Hủy đăng ký sự kiện ngay lập tức để giải phóng RAM cho GC
             form60.FormClosed -= Form60_OnFormClosed;
             var formCha = Application.OpenForms["Form2_FormCha"] as Form2_FormCha;
             var panel = formCha?.Controls["PanelContainer"] as Panel;
@@ -1918,25 +2225,8 @@ namespace PhanMemThiDua2026
                     form6.Show();
                     form6.BringToFront();
                     panel.ResumeLayout(true);
-                    // TÁC VỤ NẠP DỮ LIỆU BẤT ĐỒNG BỘ (Background Update)
-                    // Giúp Form 6 hiện ra NGAY LẬP TỨC mà không bị khựng chờ CSDL
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await form6.ReloadDuLieu();
-                            // Cập nhật lại UI sau khi nạp xong dữ liệu ngầm
-                            form6.BeginInvoke(new Action(() =>
-                            {
-                                form6.CapNhatThongKeToanBoQuanSo();
-                            }));
-                            await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"Lỗi reload ngầm: {ex.Message}");
-                        }
-                    });
+                    // Báo người dùng biết lưới đang được làm mới (Form60 sẽ nạp xong rồi tự cập nhật)
+                    form6.toolStripStatusLabel1.Text = "Đang cập nhật danh sách...";
                 }
             }
             // Ép thu hồi tài nguyên đồ họa (GDI Handles) lập tức
@@ -2935,6 +3225,19 @@ namespace PhanMemThiDua2026
         public async Task ReloadDuLieu()
         {
             if (IsDisposed || !IsHandleCreated) return;
+            await _reloadGate.WaitAsync();
+            try
+            {
+                if (IsDisposed || !IsHandleCreated) return;
+                await ReloadDuLieuNoiBo();
+            }
+            finally
+            {
+                _reloadGate.Release();
+            }
+        }
+        private async Task ReloadDuLieuNoiBo()
+        {
             try
             {
                 // 1. CẬP NHẬT GIAO DIỆN TRƯỚC KHI TẢI
@@ -2951,7 +3254,8 @@ namespace PhanMemThiDua2026
                     // Đọc cấu hình chạy song song với việc Copy() bảng
                     var taskCheDo = Task.Run(() => KiemTraCheDoXetThiDuaNam());
                     // Bắt buộc phải có .Copy() để không làm bẩn DataCache
-                    dtKetQua = DataCache.GetDanhSach().Copy();
+                    // ★ Luôn sắp theo STT: cache có thể không theo thứ tự STT -> đây là nguyên nhân Form6 "load sai"
+                    dtKetQua = SapXepTheoSTT(DataCache.GetDanhSach().Copy());
                     isCheDoNam = await taskCheDo;
                 }
                 else
@@ -2970,14 +3274,17 @@ namespace PhanMemThiDua2026
                     ThemDongTrongAnToan(dtKetQua);
                     return TaoSnapshot(dtKetQua);
                 });
-                dtDanhSachGoc = dtKetQua;
-                _snap = snap;
                 int soLuongThucTe = snap.SoLuongThucTe;
                 // 3. ĐỔ DỮ LIỆU LÊN GIAO DIỆN
                 UIHelper.SafeInvoke(this, () =>
                 {
                     try
                     {
+                        // ★ Gán bảng mới NGAY TRÊN LUỒNG UI, cùng khối với việc đặt RowCount.
+                        //   (Cũ: gán ở luồng nền trước khi lưới đổi RowCount -> lưới ảo (virtual) vẽ giữa chừng
+                        //   bằng bảng mới nhưng số dòng cũ => dòng lệch/sai.)
+                        dtDanhSachGoc = dtKetQua;
+                        _snap = snap;
                         SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null);
                         if (kryptonDataGridView1.Columns.Contains("GhiChu"))
                             kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
@@ -3036,6 +3343,30 @@ namespace PhanMemThiDua2026
                 });
             }
         }
+        /// <summary>
+        /// Sắp xếp thống nhất theo STT ASC, ID ASC (khớp đúng "STT ASC, ID ASC" của Form60).
+        /// Dùng cho cả đường đọc DB lẫn đường lấy từ DataCache.
+        /// </summary>
+        private static DataTable SapXepTheoSTT(DataTable dt)
+        {
+            if (dt == null) return new DataTable();
+            if (dt.Rows.Count < 2) return dt;
+            int oStt = dt.Columns.IndexOf("STT");
+            if (oStt < 0) return dt;
+            int oId = dt.Columns.IndexOf("ID");
+            static long DocSo(DataRow r, int ord)
+            {
+                if (ord < 0) return 0;
+                object v = r[ord];
+                if (v == DBNull.Value) return 0;
+                string s = Convert.ToString(v, CultureInfo.InvariantCulture) ?? "";
+                return long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out long n) ? n : 0;
+            }
+            return dt.AsEnumerable()
+                .OrderBy(r => DocSo(r, oStt))
+                .ThenBy(r => DocSo(r, oId))
+                .CopyToDataTable();
+        }
         private DataTable XuLyDuLieuNgam(string csdlPath)
         {
             if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))
@@ -3046,9 +3377,11 @@ namespace PhanMemThiDua2026
             using var reader = cmd.ExecuteReader();
             DataTable dtRaw = new DataTable();
             dtRaw.Load(reader);
-            string danhSachCot = string.Join(", ", dtRaw.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+            string danhSachCot = string.Join(", ",
+                dtRaw.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
             System.Diagnostics.Debug.WriteLine($"[DEBUG] CSDL có các cột: {danhSachCot}");
-            if (dtRaw.Rows.Count == 0) return dtRaw;
+            if (dtRaw.Rows.Count == 0)
+                return dtRaw;
             // CHỈ GIẢI MÃ NHỮNG CỘT CẦN THIẾT
             string[] cotCanGiaiMaNgay = { "HoVaTen", "DonVi", "PhanLoai" };
             int n = dtRaw.Rows.Count;
@@ -3058,44 +3391,53 @@ namespace PhanMemThiDua2026
                 int ord = dtRaw.Columns.IndexOf(c);
                 if (ord < 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[CẢNH BÁO] Không tìm thấy cột: {c}. Đã bỏ qua giải mã.");
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[CẢNH BÁO] Không tìm thấy cột: {c}. Đã bỏ qua giải mã.");
                     continue;
                 }
                 // Đọc ra mảng 1 lần (tránh tra cột theo tên cho từng dòng)
                 var raw = new string[n];
-                for (int i = 0; i < n; i++) raw[i] = dtRaw.Rows[i][ord]?.ToString() ?? "";
+                for (int i = 0; i < n; i++)
+                    raw[i] = dtRaw.Rows[i][ord]?.ToString() ?? "";
                 if (GIAI_MA_SONG_SONG)
                 {
                     Parallel.For(0, n, i =>
                     {
-                        if (raw[i].Length > 0) raw[i] = GiaiMaSafeCoCache(raw[i]);
+                        if (raw[i].Length > 0)
+                            raw[i] = GiaiMaSafeCoCache(raw[i]);
                     });
                 }
                 else
                 {
                     for (int i = 0; i < n; i++)
-                        if (raw[i].Length > 0) raw[i] = GiaiMaSafeCoCache(raw[i]);
+                        if (raw[i].Length > 0)
+                            raw[i] = GiaiMaSafeCoCache(raw[i]);
                 }
                 for (int i = 0; i < n; i++)
-                    if (raw[i].Length > 0) dtRaw.Rows[i][ord] = raw[i];
+                    if (raw[i].Length > 0)
+                        dtRaw.Rows[i][ord] = raw[i];
             }
             dtRaw.EndLoadData();
-            // Sắp xếp an toàn
-            string[] thuTuUuTien = Module_DonVi.LayDanhSachDonViUuTienArray().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
-            var uuTienMap = thuTuUuTien.Select((dv, index) => new { dv, index }).ToDictionary(x => x.dv, x => x.index);
-            bool coCotDonVi = dtRaw.Columns.Contains("DonVi");
-            return dtRaw.AsEnumerable()
-                .OrderBy(r =>
-                {
-                    string donVi = coCotDonVi ? (r.Field<string>("DonVi") ?? "") : "";
-                    return uuTienMap.TryGetValue(donVi, out int idx) ? idx : int.MaxValue;
-                })
-                .ThenBy(r =>
-                {
-                    var sttVal = r["STT"];
-                    return (sttVal == DBNull.Value || string.IsNullOrWhiteSpace(sttVal.ToString())) ? 0 : Convert.ToInt64(sttVal);
-                })
-                .CopyToDataTable();
+            // Sắp xếp STT theo ID, thống nhất với Form60.
+            return SapXepTheoSTT(dtRaw);
+        }
+        // [E] HÀM MỚI: Form60 gọi sau khi đã ghi xong CSDL2 (gọi từ luồng UI)
+        // -------------------------------------------------------------------------------------
+        public async Task NapLaiSauKhiForm60DongAsync()
+        {
+            DataCache.Clear(); // luôn bỏ cache cũ, kể cả khi form đang đóng/ẩn
+            if (IsDisposed || !IsHandleCreated) return;
+            await ReloadDuLieu();
+            if (IsDisposed || !IsHandleCreated) return;
+            CapNhatThongKeToanBoQuanSo();
+            try
+            {
+                await Module_BieuDoTronTrangChu.CapNhatBieuDoForm4Async();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi cập nhật biểu đồ Form4: " + ex.Message);
+            }
         }
         private void HoanTatLoadGiaoDien()
         {

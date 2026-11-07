@@ -67,6 +67,7 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             Module_HeThong.BocBoTronGiaoDien(listBox1);
+            GiaoDienForm4Web.ApDung(this);
             BatDoubleBuffer(kryptonDataGridView1);
             BatDoubleBuffer(kryptonDataGridView2);
             BatDoubleBufferDeQuy(this);   // TableLayoutPanel/GroupBox/SplitContainer/Panel: giảm chớp khi layout + resize
@@ -679,6 +680,12 @@ namespace PhanMemThiDua2026
                 dgv.DataSource = dt;
                 XayDungOrdinalBang1(dt);   // ordinal cột cho CellFormatting (thay tra tên chuỗi từng ô)
                 dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+
+                // 🌟 CẤU HÌNH MÀU TIÊU ĐỀ BẢNG 1 (Nền tím nhạt, chữ tím đậm)
+                dgv.EnableHeadersVisualStyles = false;
+                dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(238, 232, 255); // Nền tiêu đề tím nhạt
+                dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(75, 20, 130);    // Chữ tiêu đề màu tím đậm
+
                 dgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 dgv.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
@@ -927,6 +934,11 @@ namespace PhanMemThiDua2026
                 SetColumn("KQ Can dat", "KQ Cần đạt", 17);
                 SetColumn("KQ Gui E29", $"KQ Gửi {kyHieuTrungDoan}", 17);
                 SetColumn("Ket luan", "Kết luận", 31);
+
+                // 🌟 CẤU HÌNH MÀU TIÊU ĐỀ BẢNG 2 (Nền tím nhạt, chữ tím đậm)
+                kryptonDataGridView2.EnableHeadersVisualStyles = false;
+                kryptonDataGridView2.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(238, 232, 255); // Nền tiêu đề tím nhạt
+                kryptonDataGridView2.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(75, 20, 130);    // Chữ tiêu đề màu tím đậm
                 float baseSize = kryptonDataGridView2.Font.Size;
                 if (_cachedGridFont != null) baseSize = _cachedGridFont.Size;
                 kryptonDataGridView2.EnableHeadersVisualStyles = false;
@@ -3675,21 +3687,21 @@ WHERE ID = 1", conn);
                 CapNhatDanhSachPhanLoaiDeXuat(); // ⭐ Gọi cập nhật & ánh xạ lại danh sách loại đề xuất ngay lập tức
                 LoadQuyDinhTheoDeNghi();        // Nạp lại tỷ lệ theo bảng tương ứng
                 AnhXaGiaoDienThiDua();          // Ánh xạ lại tiêu đề cột, giao diện[cite: 4]
-                kryptonDataGridView1.Invalidate(); 
-        _allowLoadBang2 = true;
-                if (KiemTraCoDuLieuDanhSach()) 
-        {
-                    await Bang2_Async(); 
-        }
-        else
+                kryptonDataGridView1.Invalidate();
+                _allowLoadBang2 = true;
+                if (KiemTraCoDuLieuDanhSach())
                 {
-                    kryptonDataGridView2.DataSource = null; 
-        }
+                    await Bang2_Async();
+                }
+                else
+                {
+                    kryptonDataGridView2.DataSource = null;
+                }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("[CheDoXetThiDua_Changed] " + ex.Message);
-    }
+            }
         }
         private void kryptonButton_KiemTraTLvaQS_Click(object? sender, EventArgs e)
         {

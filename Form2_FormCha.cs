@@ -64,6 +64,7 @@ namespace PhanMemThiDua2026
             kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
             checkBox1_TuDongAnMenu.ForeColor = Module_SidebarHienDai.ChuThuong;
             Module_GiaoDienBoTron.ApDung(this);
+          
             // === THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ICON TASKBAR ===
             // 🌟 ĐĂNG KÝ SỰ KIỆN: Cứ mỗi khi chữ của Label1 bị đổi, lập tức chạy hàm kiểm tra màu
             Label1.TextChanged += (s, e) => TuDongDoiMauLabelTieuDe();

@@ -227,7 +227,7 @@ namespace PhanMemThiDua2026
                     MessageBox.Show($"Lỗi khi khởi tạo dữ liệu Form: {ex.Message}", "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        /// <summary>Chuẩn bị dữ liệu + giao diện của form (an toàn khi gọi nhiều lần: chỉ chạy 1 lần).</summary>
+        /// <summary>Chuẩn bị dữ liệu + giao diện của form (an toàn khi gọi nhiều lần: chỉ chạy 1 lần).</summary>     
         public Task KhoiTaoAsync() => _taskKhoiTao ??= KhoiTaoNoiBoAsync();
         private sealed class GoiDuLieuKhoiTao
         {
@@ -1343,6 +1343,19 @@ namespace PhanMemThiDua2026
         //  ĐÓNG FORM / ĐỒNG BỘ
         private void kryptonButton1_DongForm_Click(object sender, EventArgs e)
         {
+            try
+            {
+                // 🌟 CHUẨN KỸ SƯ: Tìm lại Form6 đang mở và reset cờ để lần sau bật lên sẽ tự động nạp lại dữ liệu mới nhất
+                var form6 = Application.OpenForms.OfType<Form6_XuLyData>().FirstOrDefault();
+                if (form6 != null && !form6.IsDisposed)
+                {
+                    form6.DaLoadDuLieu = false; // Reset cờ để ép buộc form6 nạp lại dữ liệu mới từ CSDL
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi reset cờ Form6: " + ex.Message);
+            }
             Module_NhatKy.GhiNhatKy(
                 Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin",
                 "Đóng form nhập liệu cán bộ chiến sĩ và tự động đồng bộ dữ liệu từ DanhSach_Nhap vào DanhSach",
@@ -1486,6 +1499,53 @@ namespace PhanMemThiDua2026
         /// Đồng bộ ngược từ DanhSach_Nhap sang DanhSach gốc:
         /// - Đối chiếu theo Số hiệu: đã có thì cập nhật STT/ThuTuSapXep, chưa có thì thêm mới (mã hóa AES).
         /// </summary>
+        private void xoaTimKiem_ToolStripMenuItem_Click(object sender, EventArgs e)
+            => kryptonButton_LamMoiCacOTimKiem.PerformClick();
+        private void lamMoiTrang_ToolStripMenuItem_Click(object sender, EventArgs e)
+            => kryptonButton_RefershCSDL.PerformClick();
+        private void diChuyenLen_ToolStripMenuItem_Click(object sender, EventArgs e)
+            => kryptonButton1_DiChuyenDataCBCSLen.PerformClick();
+        private void diChuyenXuong_ToolStripMenuItem_Click(object sender, EventArgs e)
+            => kryptonButton1_DiChuyenDataCBCSXuong.PerformClick();
+        private void dongFrom_ToolStripMenuItem_Click(object sender, EventArgs e)
+            => kryptonButton1_DongForm.PerformClick();
+        private void xuatTepMau_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (_dangXuLyHuongDan || !_daNapXong || _dtGoc == null) return;
+            _dangXuLyHuongDan = true;
+            try
+            {
+                string msg = "QUY TRÌNH THÊM DỮ LIỆU TỪ TỆP EXCEL:\n\n" +
+                             "  1. Xuất tệp Excel mẫu từ hệ thống.\n" +
+                             "  2. Nhập thông tin vào tệp Excel vừa xuất.\n" +
+                             "  3. Tải tệp đó ngược lại vào phần mềm.\n\n" +
+                             "💡 Mẹo thao tác: Nhấn chuột phải vào lưới danh sách → Chọn \"Nhập kết quả phân loại từ đơn vị\".\n\n" +
+                             $" {Module_HeThong.Tu_dong_chi} có muốn bắt đầu bằng việc xuất tệp Excel mẫu ngay bây giờ không?";
+                if (!HienThiFormAo_XacNhan("HƯỚNG DẪN THÊM DỮ LIỆU", msg)) return;
+                Module_XuatNhapDuLieuThiDua.ThucThiXuatExcel(this, true, _dtGoc);
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Thêm dữ liệu cán bộ", $"Vào lúc {DateTime.Now:HH:mm:ss}");
+            }
+            catch (Exception ex)
+            {
+                HienThiFormAo_Loi("LỖI HỆ THỐNG", $"Đã xảy ra sự cố trong quá trình hướng dẫn:\n{ex.Message}");
+            }
+            finally
+            {
+                _dangXuLyHuongDan = false;
+            }
+        }
+        private bool _tuDongNhapExcelSauKhiDongForm;
+        private void nhapDuLieuTuTepExcel_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _tuDongNhapExcelSauKhiDongForm = true;
+            kryptonButton1_DongForm.PerformClick();
+        }
+        // [2] THAY THẾ NGUYÊN HÀM: DongBoDuLieuSangDanhSachGoc
+        //     Khác bản cũ đúng 2 chỗ (có đánh dấu ★):
+        //     ★ Khóa Số hiệu được Trim ở cả 2 phía (cũ: chỉ Trim phía DanhSach_Nhap -> lệch 1 khoảng trắng là
+        //       bị coi là "người mới" -> chèn trùng, STT cũ giữ nguyên -> thứ tự sai và lưu vào CSDL)
+        //     ★ Cuối transaction đánh lại STT liên tục 1..n (STT ASC, ID ASC) -> không bao giờ còn STT trùng/hở
+        // -------------------------------------------------------------------------------------
         private bool DongBoDuLieuSangDanhSachGoc()
         {
             using var conn = new SqliteConnection(_connectionString);
@@ -1538,16 +1598,17 @@ namespace PhanMemThiDua2026
                     {
                         if (readerGoc["ID"] == DBNull.Value || readerGoc["SoHieu"] == DBNull.Value) continue;
                         long id = Convert.ToInt64(readerGoc["ID"]);
-                        string soHieuGoc = GiaiMaAnToan(readerGoc["SoHieu"]?.ToString() ?? string.Empty);
+                        // ★ Trim khóa phía DanhSach
+                        string soHieuGoc = GiaiMaAnToan(readerGoc["SoHieu"]?.ToString() ?? string.Empty).Trim();
                         if (!string.IsNullOrWhiteSpace(soHieuGoc) && !mapSoHieuToIdGoc.ContainsKey(soHieuGoc))
                             mapSoHieuToIdGoc[soHieuGoc] = id;
                     }
                 }
                 const string updateSql = @"
-    UPDATE DanhSach
-    SET STT = $STT,
-        ThuTuSapXep = $STT
-    WHERE ID = $ID;";
+UPDATE DanhSach
+SET STT = $STT,
+    ThuTuSapXep = $STT
+WHERE ID = $ID;";
                 string insertColumns = string.Join(", ", danhSachCotDongBo.Select(c => $"\"{c}\""));
                 string insertValues = string.Join(", ", danhSachCotDongBo.Select(c => $"${c}"));
                 string insertSql = $"INSERT INTO DanhSach ({insertColumns}) VALUES ({insertValues});";
@@ -1595,6 +1656,17 @@ namespace PhanMemThiDua2026
                         cmdInsert.ExecuteNonQuery();
                     }
                 }
+                // ★ Đánh lại STT liên tục trong CÙNG transaction (an toàn nếu còn dòng lệch/trùng STT từ trước)
+                const string chuanHoaSttSql = @"
+WITH Ranked AS (
+    SELECT ID, ROW_NUMBER() OVER (ORDER BY STT ASC, ID ASC) AS NewSTT
+    FROM DanhSach
+)
+UPDATE DanhSach
+SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
+    ThuTuSapXep = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID);";
+                using (var cmdChuanHoa = new SqliteCommand(chuanHoaSttSql, conn, transaction))
+                    cmdChuanHoa.ExecuteNonQuery();
                 transaction.Commit();
                 _ketQuaDongBo = $"Đã nạp {dtNhap.Rows.Count} CBCS từ DanhSach_Nhap vào DanhSach";
                 return true;
@@ -1605,48 +1677,12 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
-        //  MENU CHUỘT PHẢI
-        private void xoaTimKiem_ToolStripMenuItem_Click(object sender, EventArgs e)
-            => kryptonButton_LamMoiCacOTimKiem.PerformClick();
-        private void lamMoiTrang_ToolStripMenuItem_Click(object sender, EventArgs e)
-            => kryptonButton_RefershCSDL.PerformClick();
-        private void diChuyenLen_ToolStripMenuItem_Click(object sender, EventArgs e)
-            => kryptonButton1_DiChuyenDataCBCSLen.PerformClick();
-        private void diChuyenXuong_ToolStripMenuItem_Click(object sender, EventArgs e)
-            => kryptonButton1_DiChuyenDataCBCSXuong.PerformClick();
-        private void dongFrom_ToolStripMenuItem_Click(object sender, EventArgs e)
-            => kryptonButton1_DongForm.PerformClick();
-        private void xuatTepMau_ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (_dangXuLyHuongDan || !_daNapXong || _dtGoc == null) return;
-            _dangXuLyHuongDan = true;
-            try
-            {
-                string msg = "QUY TRÌNH THÊM DỮ LIỆU TỪ TỆP EXCEL:\n\n" +
-                             "  1. Xuất tệp Excel mẫu từ hệ thống.\n" +
-                             "  2. Nhập thông tin vào tệp Excel vừa xuất.\n" +
-                             "  3. Tải tệp đó ngược lại vào phần mềm.\n\n" +
-                             "💡 Mẹo thao tác: Nhấn chuột phải vào lưới danh sách → Chọn \"Nhập kết quả phân loại từ đơn vị\".\n\n" +
-                             $" {Module_HeThong.Tu_dong_chi} có muốn bắt đầu bằng việc xuất tệp Excel mẫu ngay bây giờ không?";
-                if (!HienThiFormAo_XacNhan("HƯỚNG DẪN THÊM DỮ LIỆU", msg)) return;
-                Module_XuatNhapDuLieuThiDua.ThucThiXuatExcel(this, true, _dtGoc);
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Thêm dữ liệu cán bộ", $"Vào lúc {DateTime.Now:HH:mm:ss}");
-            }
-            catch (Exception ex)
-            {
-                HienThiFormAo_Loi("LỖI HỆ THỐNG", $"Đã xảy ra sự cố trong quá trình hướng dẫn:\n{ex.Message}");
-            }
-            finally
-            {
-                _dangXuLyHuongDan = false;
-            }
-        }
-        private bool _tuDongNhapExcelSauKhiDongForm;
-        private void nhapDuLieuTuTepExcel_ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            _tuDongNhapExcelSauKhiDongForm = true;
-            kryptonButton1_DongForm.PerformClick();
-        }
+        // -------------------------------------------------------------------------------------
+        // [1] THAY THẾ NGUYÊN HÀM: Form60_NhapLieuCBCS_FormClosed
+        //     - Ghi DanhSach_Nhap -> DanhSach chạy NỀN (không đứng UI)
+        //     - Luôn xóa DataCache sau khi ghi (trước đây không xóa -> Form6 nạp lại bản cache cũ)
+        //     - Chỉ MỘT nơi nạp lại Form6 (trước đây Form60 và Form6 cùng nạp, chạy chồng nhau)
+        // -------------------------------------------------------------------------------------
         private async void Form60_NhapLieuCBCS_FormClosed(object sender, FormClosedEventArgs e)
         {
             if (_timerLoc != null)
@@ -1659,14 +1695,17 @@ namespace PhanMemThiDua2026
             if (formCha != null) formCha.CapNhatTieuDe("Trang phân loại thi đua");
             bool yeuCauNhapExcel = _tuDongNhapExcelSauKhiDongForm;
             _tuDongNhapExcelSauKhiDongForm = false;
-            // PHẢI đồng bộ xong TRƯỚC khi handler của Form6 (đăng ký sau) chạy ReloadDuLieu -> giữ nguyên là đồng bộ.
+            // 1. Đồng bộ DanhSach_Nhap -> DanhSach (nền, một transaction). Đợi hàng đợi ghi nền xong trước.
             if (_coThayDoiDuLieu && !_bangNhapHong)
             {
+                Task chuoiGhi = _chuoiGhiDb;
                 try
                 {
-                    // Chờ các lệnh ghi nền còn tồn đọng (thường đã xong từ lâu)
-                    try { _chuoiGhiDb.GetAwaiter().GetResult(); } catch { }
-                    DongBoDuLieuSangDanhSachGoc();
+                    await Task.Run(() =>
+                    {
+                        try { chuoiGhi.GetAwaiter().GetResult(); } catch { }
+                        DongBoDuLieuSangDanhSachGoc();
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -1675,30 +1714,38 @@ namespace PhanMemThiDua2026
                         "Cảnh báo CSDL",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
-                    if (!yeuCauNhapExcel) return;
                 }
             }
-            if (!yeuCauNhapExcel) return;
-            var frm6 = Application.OpenForms.OfType<Form6_XuLyData>().FirstOrDefault();
-            if (frm6 == null || frm6.IsDisposed || frm6.Disposing)
+            // 2. Nạp lại Form6 đúng 1 lần (xóa cache + nạp + thống kê + biểu đồ Form4)
+            var frm6 = TimForm6DangMo();
+            if (frm6 != null)
             {
-                Debug.WriteLine("Không tìm thấy Form6_XuLyData.");
-                return;
-            }
-            try
-            {
-                if (!frm6.IsHandleCreated)
+                try
                 {
-                    Debug.WriteLine("Form6 chưa có Handle.");
-                    return;
+                    frm6.DaLoadDuLieu = false;
+                    await frm6.NapLaiSauKhiForm60DongAsync();
+                    frm6.DaLoadDuLieu = true;
                 }
-                await Task.Delay(300);
-                if (frm6.IsDisposed || frm6.Disposing) return;
-                frm6.YeuCauNhapDuLieuTuFileExcel();
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Lỗi reload Form6 từ Form60: " + ex.Message);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                Debug.WriteLine("Lỗi yêu cầu Form6 nhập Excel: " + ex);
+                DataCache.Clear(); // không có Form6 thì vẫn phải bỏ cache cũ cho các form khác
+            }
+            // 3. Có yêu cầu nhập Excel -> làm sau khi Form6 đã nạp xong (không cần Task.Delay đoán giờ nữa)
+            if (yeuCauNhapExcel && frm6 != null && !frm6.IsDisposed && frm6.IsHandleCreated)
+            {
+                try
+                {
+                    frm6.YeuCauNhapDuLieuTuFileExcel();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine("Lỗi yêu cầu Form6 nhập Excel: " + ex);
+                }
             }
         }
         //  NHÃN THEO PHIÊN BẢN
@@ -1940,6 +1987,14 @@ namespace PhanMemThiDua2026
             }
             transaction.Commit();
             return new KetQuaThem();
+        }
+        // [3] HÀM MỚI (thêm vào class Form60_NhapLieuCBCS): tìm đúng Form6 đang dùng
+        // -------------------------------------------------------------------------------------
+        private static Form6_XuLyData? TimForm6DangMo()
+        {
+            var f = Form6_XuLyData.Instance;
+            if (f != null && !f.IsDisposed) return f;
+            return Application.OpenForms.OfType<Form6_XuLyData>().FirstOrDefault(x => !x.IsDisposed);
         }
     } //Ngoài luồng
     /// <summary>DataGridView thường đã bật double-buffer: vẽ/cuộn nhanh hơn nhiều so với KryptonDataGridView.</summary>
