@@ -588,26 +588,68 @@ namespace PhanMemThiDua2026
             //// Cuộn xuống dòng cuối
             //dgv.FirstDisplayedScrollingRowIndex = dgv.Rows.Count - 1;
         }
+        //private void CapNhatLabelTheoPhienBan()
+        //{
+        //    try
+        //    {
+        //        bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+        //        string doiTuong = laTanBinh ? "Tân binh" : "CBCS";
+        //        kryptonButton1_HuongDanThemDuLieu.Values.Text = laTanBinh ? "Thêm tân binh" : "Thêm CBCS";
+        //        groupBox1_TimKiemThongTinCBCS.Text = $"1. Tìm kiếm thông tin {doiTuong}";
+        //        groupBox3_ThongTinCBCS.Text = $"3. Cập nhật thông tin {doiTuong}";
+        //        textBox_STT.ReadOnly = true;
+        //        textBox_SoHieu.ReadOnly = true;
+        //        Color mauNen = Color.FromArgb(198, 239, 206);
+        //        if (textBox_STT is Krypton.Toolkit.KryptonTextBox kStt) kStt.StateCommon.Back.Color1 = mauNen;
+        //        else textBox_STT.BackColor = mauNen;
+        //        if (textBox_SoHieu is Krypton.Toolkit.KryptonTextBox kSoHieu) kSoHieu.StateCommon.Back.Color1 = mauNen;
+        //        else textBox_SoHieu.BackColor = mauNen;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Lỗi khi cập nhật giao diện theo phiên bản:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        //    }
+        //}
         private void CapNhatLabelTheoPhienBan()
         {
             try
             {
-                bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem()
+                    .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+
                 string doiTuong = laTanBinh ? "Tân binh" : "CBCS";
-                kryptonButton1_HuongDanThemDuLieu.Values.Text = laTanBinh ? "Thêm tân binh" : "Thêm CBCS";
-                groupBox1_TimKiemThongTinCBCS.Text = $"1. Tìm kiếm thông tin {doiTuong}";
-                groupBox3_ThongTinCBCS.Text = $"3. Cập nhật thông tin {doiTuong}";
+
+                kryptonButton1_HuongDanThemDuLieu.Values.Text =
+                    laTanBinh ? "Thêm tân binh" : "Thêm CBCS";
+
+                groupBox1_TimKiemThongTinCBCS.Text =
+                    $"1. Tìm kiếm thông tin {doiTuong}";
+
+                groupBox3_ThongTinCBCS.Text =
+                    $"3. Cập nhật thông tin {doiTuong}";
+
                 textBox_STT.ReadOnly = true;
                 textBox_SoHieu.ReadOnly = true;
+
                 Color mauNen = Color.FromArgb(198, 239, 206);
-                if (textBox_STT is Krypton.Toolkit.KryptonTextBox kStt) kStt.StateCommon.Back.Color1 = mauNen;
-                else textBox_STT.BackColor = mauNen;
-                if (textBox_SoHieu is Krypton.Toolkit.KryptonTextBox kSoHieu) kSoHieu.StateCommon.Back.Color1 = mauNen;
-                else textBox_SoHieu.BackColor = mauNen;
+
+                if (textBox_STT is Krypton.Toolkit.KryptonTextBox kStt)
+                    kStt.StateCommon.Back.Color1 = mauNen;
+                else
+                    textBox_STT.BackColor = mauNen;
+
+                if (textBox_SoHieu is Krypton.Toolkit.KryptonTextBox kSoHieu)
+                    kSoHieu.StateCommon.Back.Color1 = mauNen;
+                else
+                    textBox_SoHieu.BackColor = mauNen;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi cập nhật giao diện theo phiên bản:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Lỗi khi cập nhật giao diện theo phiên bản:\n" + ex.Message,
+                    "Lỗi",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
         private void O_CanhBao_MouseEnter(object? sender, EventArgs e)

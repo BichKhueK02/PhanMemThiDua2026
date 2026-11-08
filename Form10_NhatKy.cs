@@ -1,4 +1,6 @@
-﻿using ClosedXML.Excel;
+﻿///Phiên bản 2
+
+using ClosedXML.Excel;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Data;
@@ -72,6 +74,7 @@ namespace PhanMemThiDua2026
         public Form10_NhatKy()
         {
             InitializeComponent();
+            GiaoDienForm10Web.ApDung(this);   // giao diện kiểu web như Form4 (thẻ, combo bo tròn, nút tím, khung lưới) - chỉ đổi trình bày
             BatDoubleBufferDeQuy(this);   // chỉ tinh chỉnh hiển thị: giảm chớp khi layout/resize các khối lồng nhau
             // BẬT DOUBLE BUFFERING NGAY TẠI ĐÂY
             EnableDoubleBuffered(kryptonDataGridView1);
@@ -360,9 +363,9 @@ namespace PhanMemThiDua2026
             if (data == null)
                 return;
             Color mauNen = Color.White;
-            Color mauNhan = Color.FromArgb(245, 248, 252);
+            Color mauNhan = Color.FromArgb(245, 243, 255);
             Color mauFooter = Color.FromArgb(248, 249, 250);
-            Color mauHanhDong = Color.FromArgb(0, 102, 204);
+            Color mauHanhDong = Color.FromArgb(109, 40, 217);
             Color mauGhiChu = Color.FromArgb(80, 80, 80);
             using (var formAo = new FormAoBase())
             {
@@ -391,6 +394,7 @@ namespace PhanMemThiDua2026
                 };
                 btnClose.StateCommon.Content.ShortText.Font = _fontGridHeader;
                 btnClose.StateCommon.Border.Rounding = 5;
+                GiaoDienForm10Web.KieuNutChinh(btnClose);   // nút tím như các nút khác của trang
                 btnClose.Location = new Point((formAo.ClientSize.Width - btnClose.Width) / 2, 11);
                 panelBottom.Controls.Add(btnClose);
                 var panelContent = new KryptonPanel
@@ -713,42 +717,10 @@ namespace PhanMemThiDua2026
                 dgv.ResumeLayout(true);
             }
         }
-        // 🌟 HÀM MỚI: Tách riêng phần định dạng giao diện "Web Design"
+        // 🌟 Giao diện lưới đồng bộ với Form4: tiêu đề tím nhạt phẳng, đường kẻ nhạt (xem GiaoDienForm10Web.StyleLuoi)
         private void CauHinhStyleWeb(DataGridView dgv)
         {
-            // ÁP DỤNG PHONG CÁCH "WEB DESIGN": CÓ VIỀN MỜ (FLAT BORDER)
-            // 1. Chiều cao và khoảng trống
-            dgv.RowTemplate.Height = 36;
-            dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
-            dgv.AllowUserToResizeRows = false;
-            dgv.ColumnHeadersHeight = 45;
-            dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            // 2. BẬT LẠI VIỀN CHUẨN CỦA DATAGRIDVIEW
-            dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single;
-            dgv.GridColor = Color.FromArgb(224, 224, 224); // Màu xám nhạt tinh tế
-            // Màu nền xen kẽ cực nhạt để dễ đọc
-            dgv.RowsDefaultCellStyle.BackColor = Color.White;
-            dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(248, 250, 252);
-            dgv.BackgroundColor = Color.White;
-            // 3. BẬT LẠI VIỀN CỦA KRYPTON
-            if (dgv is Krypton.Toolkit.KryptonDataGridView kDgv)
-            {
-                kDgv.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
-                kDgv.StateCommon.HeaderColumn.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
-                kDgv.StateCommon.HeaderColumn.Content.Font = _fontGridHeader;
-                kDgv.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                kDgv.StateCommon.DataCell.Content.Font = _fontGridCell;
-                kDgv.StateCommon.DataCell.Content.Padding = new System.Windows.Forms.Padding(6, 8, 6, 8);
-                // ⭐ BẬT VẼ VIỀN (BORDER) VÀ SET MÀU XÁM NHẠT
-                kDgv.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
-                kDgv.StateCommon.DataCell.Border.Color1 = System.Drawing.Color.FromArgb(224, 224, 224);
-                kDgv.StateCommon.DataCell.Border.Width = 1;
-                // Màu chọn dòng (Selection State)
-                kDgv.StateSelected.DataCell.Back.Color1 = System.Drawing.Color.FromArgb(232, 244, 253);
-                kDgv.StateSelected.DataCell.Back.Color2 = System.Drawing.Color.FromArgb(232, 244, 253);
-                kDgv.StateSelected.DataCell.Content.Color1 = System.Drawing.Color.FromArgb(0, 102, 204);
-                kDgv.Margin = new Padding(0, 0, 0, 30);
-            }
+            GiaoDienForm10Web.StyleLuoi(dgv);
         }
         private void CauHinhGridCoBan(DataGridView dgv)
         {
@@ -1587,8 +1559,8 @@ namespace PhanMemThiDua2026
         }
         private void CapNhatMauRadioSapXep()
         {
-            radioButton1_TuAZ.ForeColor = radioButton1_TuAZ.Checked ? Color.Blue : Color.Red;
-            radioButton1_TuZA.ForeColor = radioButton1_TuZA.Checked ? Color.Blue : Color.Red;
+            GiaoDienForm10Web.CapNhatRadio(radioButton1_TuAZ);
+            GiaoDienForm10Web.CapNhatRadio(radioButton1_TuZA);
         }
         private void CapNhatTrangThaiSapXep()
         {

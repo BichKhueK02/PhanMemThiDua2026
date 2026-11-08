@@ -1,81 +1,162 @@
-﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+﻿///Phiên bản 1
+///Phiên bản 2
+
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using Krypton.Toolkit;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
-using Microsoft.Data.Sqlite;
-using Krypton.Toolkit;
-using ClosedXML.Excel; // Nhớ thêm using này
-using System.Diagnostics; // Để mở thư mục
+
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form44_SoVangBaNhat : Form
     {
-        // Sử dụng chung đường dẫn CSDL2 từ module dẫn đường
-        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
+        // ===================== HẰNG / TÀI NGUYÊN DÙNG CHUNG =====================
+        private const int GioiHanHienThiThanhTich = 25;   // lưới chỉ hiện 25 ký tự đầu của "Thành tích"
+
+        // Font tạo 1 lần cho cả chương trình (không rò rỉ GDI handle theo mỗi lần mở form)
         private static readonly Font _fontRegular9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
         private static readonly Font _fontBold9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
 
-        private string TenBangHienTai
+        // Tìm PropertyInfo 1 lần (reflection khá tốn nếu gọi lặp lại)
+        private static readonly System.Reflection.PropertyInfo? _pDoubleBuffered =
+            typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        // Các cột được phép sửa trên form (SoHieu, PhanLoai chỉ-đọc nên KHÔNG ghi lại, tránh mã hóa lại làm lệch khóa so khớp)
+        private static readonly string[] CotSua =
         {
-            get
-            {
-                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
-                    ? "DanhSachTanBinh_SoVangBaNhat"
-                    : "DanhSach_SoVangBaNhat";
-            }
+            "HoVaTen", "NamSinh", "QueQuan", "NgayVaoCAND", "CapBac", "ChucVu", "DonVi",
+            "GhiChu", "ThanhTich", "ThongBaoTrungDoan", "SoTTTrongSo", "ThangCongNhan"
+        };
+
+        // Đường dẫn CSDL luôn đọc mới từ module dẫn đường (không chụp cứng lúc dựng form)
+        private static string DuongDanDb => Module_DanduongGPS.DuongDanCSDL2;
+
+        // Tên bảng theo phiên bản phần mềm: chỉ có 2 giá trị cố định => không thể bị chèn SQL.
+        // LayPhienBanPhanMem() mở SQLite + giải mã nên chỉ gọi 1 lần cho mỗi lượt nạp, không gọi lại ở mỗi lần đọc.
+        private string? _bangSoVang;
+        private string TenBangHienTai => _bangSoVang ??= ChonBangSoVang();
+        private static string ChonBangSoVang()
+        {
+            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
+            return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                ? "DanhSachTanBinh_SoVangBaNhat"
+                : "DanhSach_SoVangBaNhat";
         }
-        private bool _daKhoiTaoToolTip = false;
+
+        private bool _daKhoiTaoToolTip;
+        private bool _daCauHinhGrid;
+        private int _cotThanhTich = -1;
+        private CancellationTokenSource? _ctsLoad;
+
+        // ===================== KHỞI TẠO =====================
         public Form44_SoVangBaNhat()
         {
             InitializeComponent();
-            // Form44_SoVangBaNhat
+
+            // Designer add statusStrip1 trước tableLayoutPanel1 (Dock = Fill) nên bảng bị thanh trạng thái đè mất ~26px đáy.
+            // Đưa vùng Fill lên trước để WinForms dock thanh trạng thái trước, bảng chiếm phần còn lại.
+            tableLayoutPanel1.BringToFront();
+
             kryptonTextBox1_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
             GiaoDienForm42_44Web.ApDung(this);
             Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
-            // Đăng ký sự kiện Shown cho Form44_SoVangBaNhat
-            this.Shown += Form44_SoVangBaNhat_Shown;
-            // Trong sự kiện Load hoặc Constructor
-            //kryptonTextBox1_TimKiemTheoTen.TextChanged += (s, e) => LocDuLieu();
-            //comboBox_TimKiemDonVi.SelectedIndexChanged += (s, e) => LocDuLieu();
-            kryptonTextBox1_TimKiemTheoTen.TextChanged += BoLoc_Changed;
-            comboBox_TimKiemDonVi.SelectedIndexChanged += BoLoc_Changed;
 
-            // ⭐ ĐĂNG KÝ SỰ KIỆN THEO DÕI ẨN HÀN NÚT Ở ĐÂY
+            Shown += Form44_SoVangBaNhat_Shown;
+            Disposed += (s, e) => GiaiPhongTaiNguyen();
+
+            // Bộ lọc: gõ tên thì lọc trễ 150ms (gõ nhanh không giật), đổi đơn vị thì lọc ngay.
+            // Mỗi sự kiện chỉ gắn đúng 1 lần ở đây (không gắn lại trong các nút làm mới).
+            kryptonTextBox1_TimKiemTheoTen.TextChanged += TimKiemTheoTen_TextChanged;
+            comboBox_TimKiemDonVi.SelectedIndexChanged += DonVi_SelectedIndexChanged;
+
+            // Hiện/ẩn nút Lưu, Xóa theo việc đã chọn người hay chưa
             kryptonTextBox1_SoHieu.TextChanged += (s, e) => CapNhatTrangThaiNut();
             kryptonTextBox1_HoVaTen.TextChanged += (s, e) => CapNhatTrangThaiNut();
-        }
-        private void Form44_SoVangBaNhat_Load(object? sender, EventArgs e)
-        {
-            CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_SoHieu);
-            CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_PhanLoai);
+
+            // Sự kiện của lưới: gắn 1 lần
             kryptonDataGridView1.CellFormatting += kryptonDataGridView1_CellFormatting;
-            kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
             kryptonDataGridView1.CellMouseClick += kryptonDataGridView1_CellMouseClick;
             kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
-            kryptonDataGridView1.Dock = DockStyle.Fill;
-            CauHinhGridMotLan();            // dựng cột + style 1 lần
-            CapNhatTrangThaiNut();
-            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
-            InitToolTips();
-            // KHÔNG nạp dữ liệu ở đây: Form55.MoForm44Async lo việc đó
         }
-        private bool _daCauHinhGrid;
+
+        private void GiaiPhongTaiNguyen()
+        {
+            try
+            {
+                _timerLoc?.Stop();
+                _timerLoc?.Dispose();
+                _timerLoc = null;
+                _ctsLoad?.Cancel();
+                _ctsLoad?.Dispose();
+                _ctsLoad = null;
+            }
+            catch { /* dọn dẹp best-effort */ }
+        }
+
+        private void Form44_SoVangBaNhat_Load(object? sender, EventArgs e)
+        {
+            try
+            {
+                CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_STT);
+                CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_SoHieu);
+                CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_PhanLoai);
+
+                kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
+                kryptonDataGridView1.Dock = DockStyle.Fill;
+                CauHinhGridMotLan();            // dựng cột + style 1 lần
+                CapNhatTrangThaiNut();
+                Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
+                InitToolTips();
+                // KHÔNG nạp dữ liệu ở đây: Form55.MoForm44Async lo việc đó
+            }
+            catch (Exception ex) { Debug.WriteLine("[Form44.Load] " + ex); }
+        }
+
+        private void Form44_SoVangBaNhat_Shown(object? sender, EventArgs e) => kryptonTextBox1_TimKiemTheoTen.Focus();
+
+        // ===================== TIỆN ÍCH CSDL =====================
+        // Pooling=false: đóng kết nối là nhả hẳn tệp .db (không làm kẹt sao lưu/khôi phục), giống Module_BaNhat.
+        private static SqliteConnection MoKetNoi(bool chiDoc)
+        {
+            var sb = new SqliteConnectionStringBuilder
+            {
+                DataSource = DuongDanDb,
+                Mode = chiDoc ? SqliteOpenMode.ReadOnly : SqliteOpenMode.ReadWrite,
+                Pooling = false
+            };
+            var cn = new SqliteConnection(sb.ToString());
+            try { cn.Open(); return cn; }
+            catch { cn.Dispose(); throw; }
+        }
+
+        private static string SafeGiaiMa(string? cipherText)
+        {
+            if (string.IsNullOrWhiteSpace(cipherText)) return "";
+            try { return Module_BaoMatAES.GiaiMa(cipherText).Trim(); }
+            catch { return "[Lỗi giải mã]"; }
+        }
+
+        private static void BaoForm55CanNapLai()
+            => Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault()?.DanhDauCanNapLai();
+
+        // ===================== LƯỚI =====================
         private void CauHinhGridMotLan()
         {
             if (_daCauHinhGrid) return;
             var g = kryptonDataGridView1;
-            typeof(DataGridView).GetProperty("DoubleBuffered",
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)?.SetValue(g, true, null);
+            _pDoubleBuffered?.SetValue(g, true, null);
             g.AutoGenerateColumns = false;   // quan trọng: không sinh lại cột mỗi lần đổi DataSource
             g.AllowUserToAddRows = false; g.AllowUserToDeleteRows = false;
             g.AllowUserToResizeRows = false; g.AllowUserToOrderColumns = false;
@@ -94,6 +175,7 @@ namespace PhanMemThiDua2026
             g.StateCommon.DataCell.Border.Width = 1;
             g.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
             g.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
+
             var giua = DataGridViewContentAlignment.MiddleCenter;
             var trai = DataGridViewContentAlignment.MiddleLeft;
             g.Columns.AddRange(
@@ -113,8 +195,10 @@ namespace PhanMemThiDua2026
                 Cot("ThongBaoTrungDoan", "Thông báo E", 120, giua),
                 Cot("SoTTTrongSo", "Số vào sổ", 90, giua),
                 Cot("ThangCongNhan", "Tháng vào sổ", 160, giua));
+            _cotThanhTich = g.Columns["ThanhTich"]!.Index;   // CellFormatting so sánh theo chỉ số, không so chuỗi mỗi ô vẽ
             _daCauHinhGrid = true;
         }
+
         private static DataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,
             DataGridViewContentAlignment canh, bool hien = true, bool fill = true)
         {
@@ -132,575 +216,177 @@ namespace PhanMemThiDua2026
             else { c.AutoSizeMode = DataGridViewAutoSizeColumnMode.None; c.Width = rong; }
             return c;
         }
+
+        private void kryptonDataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex != _cotThanhTich) return;
+            if (e.Value is string s && s.Length > GioiHanHienThiThanhTich)
+            {
+                e.Value = s.Substring(0, GioiHanHienThiThanhTich) + " ...";
+                e.FormattingApplied = true;
+            }
+        }
+
         private static DataTable TaoSchemaSoVang()
         {
-            var dt = new DataTable { Locale = System.Globalization.CultureInfo.InvariantCulture };
+            var dt = new DataTable { Locale = CultureInfo.InvariantCulture };
             dt.Columns.Add("ID", typeof(int));
             dt.Columns.Add("STT", typeof(int));
-            foreach (var c in new[] { "HoVaTen","SoHieu","NamSinh","QueQuan","NgayVaoCAND","CapBac","ChucVu",
-                              "DonVi","PhanLoai","GhiChu","ThanhTich","ThongBaoTrungDoan","SoTTTrongSo","ThangCongNhan" })
+            foreach (var c in new[] { "HoVaTen", "SoHieu", "NamSinh", "QueQuan", "NgayVaoCAND", "CapBac", "ChucVu",
+                                      "DonVi", "PhanLoai", "GhiChu", "ThanhTich", "ThongBaoTrungDoan", "SoTTTrongSo", "ThangCongNhan" })
                 dt.Columns.Add(c, typeof(string));
             return dt;
         }
-        private DataTable DocSoVang(string tenBang)
+
+        // Đọc + giải mã ở luồng nền. Dòng đệm của CSDL (ID = -1) không phải người thật nên bỏ qua (khớp cách Module_BaNhat xử lý).
+        private static DataTable DocSoVang(string tenBang, CancellationToken token)
         {
             var dt = TaoSchemaSoVang();
-            using var conn = new SqliteConnection($"Data Source={_csdl2Path};Default Timeout=30");
-            conn.Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = $@"SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi,
-                         PhanLoai, GhiChu, ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan
-                         FROM [{tenBang}] ORDER BY STT ASC";
+            using var cn = MoKetNoi(true);
+            using var cmd = cn.CreateCommand();
+            cmd.CommandText = $@"SELECT ID, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi,
+                                        PhanLoai, GhiChu, ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan
+                                 FROM [{tenBang}] WHERE ID <> -1 ORDER BY STT ASC, ID ASC";
             using var r = cmd.ExecuteReader();
             var buf = new object[16];
             int stt = 1;
             dt.BeginLoadData();
-            while (r.Read())
+            try
             {
-                buf[0] = r.GetInt32(0); buf[1] = stt++;
-                for (int i = 2; i < 16; i++) buf[i] = r.IsDBNull(i) ? "" : SafeGiaiMa(r.GetString(i));
-                dt.Rows.Add(buf);
+                while (r.Read())
+                {
+                    token.ThrowIfCancellationRequested();
+                    buf[0] = r.GetInt32(0);
+                    buf[1] = stt++;                       // STT hiển thị = thứ tự trong danh sách
+                    for (int i = 1; i < 15; i++)
+                        buf[i + 1] = r.IsDBNull(i) ? "" : SafeGiaiMa(r.GetString(i));
+                    dt.Rows.Add(buf);
+                }
             }
-            dt.EndLoadData();
+            finally { dt.EndLoadData(); }
             return dt;
         }
-        public async Task LoadDuLieuSoVangBaNhatAsync()
+
+        /// <summary>Nạp lại lưới. Lần gọi mới hơn sẽ hủy lần cũ nên chỉ có kết quả mới nhất được ghi vào lưới.</summary>
+        public async Task LoadDuLieuSoVangBaNhatAsync() => await NapLuoiAsync();
+
+        private async Task<bool> NapLuoiAsync()
         {
-            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
+            string db = DuongDanDb;
+            if (string.IsNullOrWhiteSpace(db) || !File.Exists(db)) return false;
+
+            var cu = _ctsLoad;
+            var cts = _ctsLoad = new CancellationTokenSource();
+            cu?.Cancel();
+            cu?.Dispose();
+            var token = cts.Token;
+
             try
             {
                 CauHinhGridMotLan();
-                string bang = TenBangHienTai;
-                var dt = await Task.Run(() => DocSoVang(bang));   // DB + AES ở luồng nền
-                if (IsDisposed || kryptonDataGridView1.IsDisposed) return;
+                // Đọc phiên bản + CSDL + giải mã AES: toàn bộ ở luồng nền, UI không bị chặn
+                var (bang, dt) = await Task.Run(() =>
+                {
+                    string b = ChonBangSoVang();
+                    return (b, DocSoVang(b, token));
+                }, token);
+
+                token.ThrowIfCancellationRequested();
+                if (IsDisposed || kryptonDataGridView1.IsDisposed) return false;
+
+                _bangSoVang = bang;
                 var g = kryptonDataGridView1;
                 TatVe(g);
                 try { g.DataSource = dt; }
                 finally { BatVe(g); }
-                CapNhatDanhSachDonVi();
-                LocDuLieu();            // áp lại bộ lọc đang gõ (đồng thời cập nhật thống kê)
+
+                LamMoiBoLocSauKhiDoiDuLieu();
+                return true;
             }
-            catch (Exception ex) { Debug.WriteLine($"Lỗi nạp bảng {TenBangHienTai}: " + ex.Message); }
+            catch (OperationCanceledException) { return false; }   // có lần nạp mới hơn -> bỏ qua im lặng
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Lỗi nạp bảng Sổ vàng: " + ex);
+                return false;
+            }
         }
+
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr h, int msg, int w, int l);
         private static void TatVe(Control c) { if (c.IsHandleCreated) SendMessage(c.Handle, 0x000B, 0, 0); }
         private static void BatVe(Control c) { if (c.IsHandleCreated) { SendMessage(c.Handle, 0x000B, 1, 0); c.Invalidate(true); } }
-        private void Form44_ResizeOrSizeChanged(object? sender, EventArgs e)
+
+        private static DataRow? TimDong(DataTable dt, int id)
         {
-            if (this.IsDisposed || kryptonDataGridView1 == null || kryptonDataGridView1.IsDisposed) return;
-            this.BeginInvoke(new Action(() => DinhDangGiaoDienDataGridSoVang()));
+            foreach (DataRow r in dt.Rows)
+                if (r["ID"] is int v && v == id) return r;
+            return null;
         }
-        private void Form44_SoVangBaNhat_Shown(object? sender, EventArgs e) => kryptonTextBox1_TimKiemTheoTen.Focus();
-        private void DinhDangGiaoDienDataGridSoVang()
+
+        // ===================== Ô NHẬP / CHỌN DÒNG =====================
+        private void CauHinhKryptonTextBoxChiDoc(KryptonTextBox textBox)
         {
-            if (kryptonDataGridView1 == null) return;
-            // Bật DoubleBuffer giúp chống nháy (Flicker) khi cuộn chuột
-            typeof(DataGridView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-                ?.SetValue(kryptonDataGridView1, true, null);
-            // Cấu hình chung
-            kryptonDataGridView1.AllowUserToAddRows = false;
-            kryptonDataGridView1.AllowUserToDeleteRows = false;
-            kryptonDataGridView1.AllowUserToResizeRows = false;
-            kryptonDataGridView1.AllowUserToOrderColumns = false;
-            kryptonDataGridView1.RowHeadersVisible = false;
-            kryptonDataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            kryptonDataGridView1.MultiSelect = false;
-            kryptonDataGridView1.ReadOnly = true; // Khóa lưới chỉ để xem
-            kryptonDataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
-            // 2. Chế độ Fill: Các cột sẽ tự động co giãn để lấp đầy grid
-            kryptonDataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            // Khung lưới và Header
-            kryptonDataGridView1.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
-            kryptonDataGridView1.RowTemplate.Height = 36;
-            kryptonDataGridView1.ColumnHeadersHeight = 50;
-            kryptonDataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            kryptonDataGridView1.StateCommon.HeaderColumn.Content.Font = _fontBold9;
-            kryptonDataGridView1.StateCommon.DataCell.Content.Font = _fontRegular9;
-            kryptonDataGridView1.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            // Màu sắc và Border
-            kryptonDataGridView1.StateCommon.DataCell.Border.Color1 = Color.FromArgb(224, 224, 224);
-            kryptonDataGridView1.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
-            kryptonDataGridView1.StateCommon.DataCell.Border.Width = 1;
-            kryptonDataGridView1.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
-            kryptonDataGridView1.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
-            if (kryptonDataGridView1.Columns.Count == 0) return;
-            foreach (DataGridViewColumn col in kryptonDataGridView1.Columns)
-                col.SortMode = DataGridViewColumnSortMode.NotSortable;
-            // ĐỊNH DẠNG CHI TIẾT TỪNG CỘT
-            if (kryptonDataGridView1.Columns["ID"] != null)
-                kryptonDataGridView1.Columns["ID"].Visible = false;
-            if (kryptonDataGridView1.Columns["STT"] != null)
-            {
-                kryptonDataGridView1.Columns["STT"].HeaderText = "STT";
-                kryptonDataGridView1.Columns["STT"].Width = 40;
-                kryptonDataGridView1.Columns["STT"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            if (kryptonDataGridView1.Columns["HoVaTen"] != null)
-            {
-                kryptonDataGridView1.Columns["HoVaTen"].HeaderText = "Họ và tên";
-                kryptonDataGridView1.Columns["HoVaTen"].Width = 180;
-                kryptonDataGridView1.Columns["HoVaTen"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            }
-            if (kryptonDataGridView1.Columns["SoHieu"] != null)
-            {
-                kryptonDataGridView1.Columns["SoHieu"].HeaderText = "Số hiệu";
-                kryptonDataGridView1.Columns["SoHieu"].Width = 80;
-                kryptonDataGridView1.Columns["SoHieu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            if (kryptonDataGridView1.Columns["CapBac"] != null)
-            {
-                kryptonDataGridView1.Columns["CapBac"].HeaderText = "Cấp bậc";
-                kryptonDataGridView1.Columns["CapBac"].Width = 80;
-                kryptonDataGridView1.Columns["CapBac"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            if (kryptonDataGridView1.Columns["ChucVu"] != null)
-            {
-                kryptonDataGridView1.Columns["ChucVu"].HeaderText = "Chức vụ";
-                kryptonDataGridView1.Columns["ChucVu"].Width = 110;
-                kryptonDataGridView1.Columns["ChucVu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            if (kryptonDataGridView1.Columns["DonVi"] != null)
-            {
-                kryptonDataGridView1.Columns["DonVi"].HeaderText = "Đơn vị";
-                kryptonDataGridView1.Columns["DonVi"].Width = 80;
-                kryptonDataGridView1.Columns["DonVi"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            // ⭐ MỞ LẠI CÁC CỘT ĐÃ BỊ ẨN
-            if (kryptonDataGridView1.Columns["NamSinh"] != null)
-            {
-                kryptonDataGridView1.Columns["NamSinh"].Visible = true;
-                kryptonDataGridView1.Columns["NamSinh"].HeaderText = "Năm sinh";
-                kryptonDataGridView1.Columns["NamSinh"].Width = 85;
-                kryptonDataGridView1.Columns["NamSinh"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            if (kryptonDataGridView1.Columns["QueQuan"] != null)
-            {
-                kryptonDataGridView1.Columns["QueQuan"].Visible = true;
-                kryptonDataGridView1.Columns["QueQuan"].HeaderText = "Quê quán";
-                kryptonDataGridView1.Columns["QueQuan"].Width = 150;
-                kryptonDataGridView1.Columns["QueQuan"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            }
-            if (kryptonDataGridView1.Columns["NgayVaoCAND"] != null)
-            {
-                kryptonDataGridView1.Columns["NgayVaoCAND"].Visible = true;
-                kryptonDataGridView1.Columns["NgayVaoCAND"].HeaderText = "Vào CAND";
-                kryptonDataGridView1.Columns["NgayVaoCAND"].Width = 100;
-                kryptonDataGridView1.Columns["NgayVaoCAND"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            if (kryptonDataGridView1.Columns["PhanLoai"] != null)
-                kryptonDataGridView1.Columns["PhanLoai"].Visible = false;
-            if (kryptonDataGridView1.Columns["GhiChu"] != null)
-            {
-                kryptonDataGridView1.Columns["GhiChu"].Visible = true;
-                kryptonDataGridView1.Columns["GhiChu"].HeaderText = "Ghi chú";
-                kryptonDataGridView1.Columns["GhiChu"].Width = 120;
-                kryptonDataGridView1.Columns["GhiChu"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            }
-            if (kryptonDataGridView1.Columns["ThangCongNhan"] != null)
-            {
-                kryptonDataGridView1.Columns["ThangCongNhan"].HeaderText = "Tháng vào sổ";
-                kryptonDataGridView1.Columns["ThangCongNhan"].Width = 160;
-                kryptonDataGridView1.Columns["ThangCongNhan"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            if (kryptonDataGridView1.Columns["ThongBaoTrungDoan"] != null)
-            {
-                kryptonDataGridView1.Columns["ThongBaoTrungDoan"].HeaderText = "Thông báo E";
-                kryptonDataGridView1.Columns["ThongBaoTrungDoan"].Width = 120;
-                kryptonDataGridView1.Columns["ThongBaoTrungDoan"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            if (kryptonDataGridView1.Columns["SoTTTrongSo"] != null)
-            {
-                kryptonDataGridView1.Columns["SoTTTrongSo"].HeaderText = "Số vào sổ";
-                kryptonDataGridView1.Columns["SoTTTrongSo"].Width = 90;
-                kryptonDataGridView1.Columns["SoTTTrongSo"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            }
-            // ⭐ CỘT THÀNH TÍCH (Giới hạn độ rộng, không dùng Fill)
-            if (kryptonDataGridView1.Columns["ThanhTich"] != null)
-            {
-                kryptonDataGridView1.Columns["ThanhTich"].HeaderText = "Thành tích";
-                // Thay vì Fill (chiếm hết lưới), ta đặt Width cố định
-                kryptonDataGridView1.Columns["ThanhTich"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                kryptonDataGridView1.Columns["ThanhTich"].Width = 180; // Bạn có thể tùy chỉnh con số này
-                kryptonDataGridView1.Columns["ThanhTich"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            }
-        }
-        private void CauHinhKryptonTextBoxChiDoc(Krypton.Toolkit.KryptonTextBox textBox)
-        {
-            if (textBox == null || textBox.IsDisposed)
-                return;
+            if (textBox == null || textBox.IsDisposed) return;
             textBox.ReadOnly = true;
-            // Màu nền
             textBox.StateCommon.Back.Color1 = Color.LightGreen;
-            // Màu chữ
             textBox.StateCommon.Content.Color1 = Color.DarkGreen;
-            // Font
             textBox.StateCommon.Content.Font = _fontRegular9;
         }
+
         private void kryptonDataGridView1_CellMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
         {
-            // Chỉ xử lý nếu là chuột phải và click vào một dòng hợp lệ
-            if (e.Button == MouseButtons.Right && e.RowIndex >= 0)
+            // Chỉ xử lý chuột phải vào một dòng hợp lệ (chuột trái đã có CellClick)
+            if (e.Button != MouseButtons.Right || e.RowIndex < 0) return;
+            var g = kryptonDataGridView1;
+            if (e.RowIndex >= g.Rows.Count) return;
+            try
             {
-                // 1. Chọn dòng mà người dùng vừa chuột phải
-                kryptonDataGridView1.ClearSelection();
-                kryptonDataGridView1.Rows[e.RowIndex].Selected = true;
-                // 2. Di chuyển con trỏ (CurrentCell) về ô đó
-                kryptonDataGridView1.CurrentCell = kryptonDataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex];
-                // 3. Đổ dữ liệu dùng hàm chung
-                FillDataToControls(kryptonDataGridView1.Rows[e.RowIndex]);
+                g.ClearSelection();
+                g.Rows[e.RowIndex].Selected = true;
+                if (e.ColumnIndex >= 0 && g.Columns[e.ColumnIndex].Visible)
+                    g.CurrentCell = g.Rows[e.RowIndex].Cells[e.ColumnIndex];
             }
+            catch (Exception ex) { Debug.WriteLine("[CellMouseClick] " + ex.Message); }
+            FillDataToControls(g.Rows[e.RowIndex]);
         }
-        // Lê Trung Kiên -  Yêu mèo cam
+
+        private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.RowIndex >= kryptonDataGridView1.Rows.Count) return;
+            FillDataToControls(kryptonDataGridView1.Rows[e.RowIndex]);
+        }
+
+        // Đọc theo nguồn dữ liệu (DataRowView luôn đủ cột kể cả cột ẩn), không đọc từng ô theo tên
+        private static string Truong(DataGridViewRow row, string tenCot)
+            => row.DataBoundItem is DataRowView v && v.Row.Table.Columns.Contains(tenCot)
+                ? v[tenCot]?.ToString() ?? ""
+                : "";
+
         private void FillDataToControls(DataGridViewRow row)
         {
-            // ⭐ THEO Ý TƯỞNG CỦA BẠN: Ép RichTextBox về null ngay lập tức để diệt tận gốc chữ cũ
+            // Ép RichTextBox về null trước để diệt tận gốc chữ/định dạng cũ
             richTextBox1_ThanhTich.Text = null;
-            // Lưu ID để cập nhật/xóa
-            kryptonTextBox1_STT.Tag = row.Cells["ID"].Value;
-            // Đổ dữ liệu vào đúng các control của Form 44 (dùng ?? "" để ép rỗng nếu null)
-            kryptonTextBox1_STT.Text = row.Cells["STT"].Value?.ToString() ?? "";
-            kryptonTextBox1_HoVaTen.Text = row.Cells["HoVaTen"].Value?.ToString() ?? "";
-            kryptonTextBox1_SoHieu.Text = row.Cells["SoHieu"].Value?.ToString() ?? "";
-            kryptonTextBox1_NamSinh.Text = row.Cells["NamSinh"].Value?.ToString() ?? "";
-            kryptonTextBox1_QueQuan.Text = row.Cells["QueQuan"].Value?.ToString() ?? "";
-            kryptonTextBox1_NgayVaoCAND.Text = row.Cells["NgayVaoCAND"].Value?.ToString() ?? "";
-            kryptonTextBox1_CapBac.Text = row.Cells["CapBac"].Value?.ToString() ?? "";
-            kryptonTextBox1_ChucVu.Text = row.Cells["ChucVu"].Value?.ToString() ?? "";
-            kryptonTextBox1_DonVi.Text = row.Cells["DonVi"].Value?.ToString() ?? "";
-            kryptonTextBox1_PhanLoai.Text = row.Cells["PhanLoai"].Value?.ToString() ?? "";
-            kryptonTextBox1_GhiChu.Text = row.Cells["GhiChu"].Value?.ToString() ?? "";
-            // Đổ dữ liệu vào các control còn lại
-            kryptonTextBox1_ThongBaoTrungDoan.Text = row.Cells["ThongBaoTrungDoan"].Value?.ToString() ?? "";
-            kryptonTextBox1_SoTTTrongSo.Text = row.Cells["SoTTTrongSo"].Value?.ToString() ?? "";
-            kryptonTextBox1_ThangCongNhan.Text = row.Cells["ThangCongNhan"].Value?.ToString() ?? "";
-            // ⭐ CHỈ ĐIỀN THÀNH TÍCH MỚI NẾU DÒNG ĐÓ THỰC SỰ CÓ CHỮ
-            string thanhTichMoi = row.Cells["ThanhTich"].Value?.ToString() ?? "";
-            if (!string.IsNullOrEmpty(thanhTichMoi))
-            {
-                richTextBox1_ThanhTich.Text = thanhTichMoi;
-            }
+
+            kryptonTextBox1_STT.Tag = row.DataBoundItem is DataRowView v ? v["ID"] : null;   // ID dùng để lưu/xóa
+            kryptonTextBox1_STT.Text = Truong(row, "STT");
+            kryptonTextBox1_HoVaTen.Text = Truong(row, "HoVaTen");
+            kryptonTextBox1_SoHieu.Text = Truong(row, "SoHieu");
+            kryptonTextBox1_NamSinh.Text = Truong(row, "NamSinh");
+            kryptonTextBox1_QueQuan.Text = Truong(row, "QueQuan");
+            kryptonTextBox1_NgayVaoCAND.Text = Truong(row, "NgayVaoCAND");
+            kryptonTextBox1_CapBac.Text = Truong(row, "CapBac");
+            kryptonTextBox1_ChucVu.Text = Truong(row, "ChucVu");
+            kryptonTextBox1_DonVi.Text = Truong(row, "DonVi");
+            kryptonTextBox1_PhanLoai.Text = Truong(row, "PhanLoai");
+            kryptonTextBox1_GhiChu.Text = Truong(row, "GhiChu");
+            kryptonTextBox1_ThongBaoTrungDoan.Text = Truong(row, "ThongBaoTrungDoan");
+            kryptonTextBox1_SoTTTrongSo.Text = Truong(row, "SoTTTrongSo");
+            kryptonTextBox1_ThangCongNhan.Text = Truong(row, "ThangCongNhan");
+
+            string thanhTich = Truong(row, "ThanhTich");
+            if (thanhTich.Length > 0) richTextBox1_ThanhTich.Text = thanhTich;
         }
-        // 🌟 TỐI ƯU HIỆU SUẤT: Cờ chặn chống gọi hàm lặp lại gây tốn CPU
-        private void InitToolTips()
-        {
-            // Chống gọi lại nhiều lần không cần thiết
-            if (_daKhoiTaoToolTip) return;
-            // An toàn từ gốc: Kiểm tra ToolTip có tồn tại không
-            if (toolTip1 == null) return;
-            try
-            {
-                // ================= CẤU HÌNH CHUNG =================
-                toolTip1.IsBalloon = true;
-                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
-                toolTip1.ToolTipIcon = ToolTipIcon.Info;
-                // UX: Phản hồi nhanh – không gây khó chịu khi rê chuột qua
-                toolTip1.InitialDelay = 300;
-                toolTip1.AutoPopDelay = 2500;
-                toolTip1.ReshowDelay = 100;
-                toolTip1.ShowAlways = true;
-                // 🌟 TỐI ƯU CẤU TRÚC RAM: Dùng mảng ValueTuple thay cho Dictionary
-                // Triệt tiêu chi phí băm (Hashing Overhead) và dọn sạch Heap Allocation.
-                (System.Windows.Forms.Control? control, string noiDung)[] danhSachToolTip = new (System.Windows.Forms.Control?, string)[]
-                {
-                    (kryptonButton_LamMoiCacOTimKiem, "Xóa nội dung tìm kiếm và đặt lại các bộ lọc về trạng thái mặc định"),
-                    (kryptonButton_RefershCSDL,       "Tải lại toàn bộ dữ liệu mới nhất từ cơ sở dữ liệu và làm mới trang"),
-                    (kryptonButton1_XoaCBCS,          "Xóa thông tin cán bộ chiến sĩ đang chọn khỏi danh sách Sổ vàng Ba Nhất"),
-                    (kryptonButton_LuuDataSoVang,     "Lưu hoặc cập nhật thông tin dữ liệu Sổ vàng của cán bộ vào cơ sở dữ liệu"),
-                    (kryptonButton1_Thoat,            "Trở về Trang quản lý thi đua")
-                };
-                // 🌟 XỬ LÝ LỖI PHÂN MẢNH (ISOLATED EXCEPTION)
-                int soLoi = 0;
-                foreach (var (control, noiDung) in danhSachToolTip)
-                {
-                    // Bỏ qua an toàn nếu control chưa kịp render hoặc bị null
-                    if (control == null)
-                    {
-                        soLoi++;
-                        continue;
-                    }
-                    try
-                    {
-                        // Kiểm tra vòng đời của Control trước khi gán API
-                        if (control.IsDisposed) continue;
-                        toolTip1.SetToolTip(control, noiDung);
-                    }
-                    catch
-                    {
-                        // Bẫy lỗi cục bộ: Lỗi ở 1 nút không làm sập vòng lặp gán của các nút khác
-                        soLoi++;
-                    }
-                }
-#if DEBUG
-                // Hệ thống cảnh báo nội bộ dành riêng cho Lập trình viên (Không hiện ở bản Release)
-                if (soLoi > 0)
-                    System.Diagnostics.Debug.WriteLine($"[InitToolTips] Hệ thống bỏ qua {soLoi} control do chưa khởi tạo hoặc bị null.");
-#endif
-                // Đánh dấu hoàn tất để khóa cổng
-                _daKhoiTaoToolTip = true;
-            }
-            catch (Exception ex)
-            {
-                // Bắt lỗi tổng và in ra Output để Lập trình viên theo dõi
-                System.Diagnostics.Debug.WriteLine($"[Lỗi nghiêm trọng tại InitToolTips]: {ex.Message}");
-            }
-        }
-        //        public async Task LoadDuLieuSoVangBaNhatAsync()
-        //        {
-        //            if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
-        //            try
-        //            {
-        //                if (kryptonDataGridView1 != null && kryptonDataGridView1.DataSource != null)
-        //                {
-        //                    kryptonDataGridView1.DataSource = null;
-        //                }
-        //                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-        //                await conn.OpenAsync();
-        //                using var cmd = conn.CreateCommand();
-        //                cmd.CommandText = $"""
-        //    SELECT ID, STT, HoVaTen, SoHieu, NamSinh, QueQuan,
-        //           NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu,
-        //           ThanhTich, ThongBaoTrungDoan, SoTTTrongSo, ThangCongNhan
-        //    FROM [{TenBangHienTai}]
-        //    ORDER BY STT ASC
-        //    """;
-        //                using var reader = await cmd.ExecuteReaderAsync();
-        //                var dtSoVang = new DataTable();
-        //                dtSoVang.Columns.Add("ID", typeof(int));
-        //                dtSoVang.Columns.Add("STT", typeof(int));
-        //                string[] columns =
-        //                {
-        //    "HoVaTen", "SoHieu", "NamSinh", "QueQuan", "NgayVaoCAND",
-        //    "CapBac", "ChucVu", "DonVi", "PhanLoai", "GhiChu",
-        //    "ThanhTich", "ThongBaoTrungDoan", "SoTTTrongSo", "ThangCongNhan"
-        //};
-        //                foreach (var column in columns)
-        //                    dtSoVang.Columns.Add(column, typeof(string));
-        //                int stt = 1;
-        //                while (await reader.ReadAsync())
-        //                {
-        //                    object[] values = new object[16];
-        //                    values[0] = reader.GetInt32(0);
-        //                    values[1] = stt++;
-        //                    for (int i = 2; i < 16; i++)
-        //                        values[i] = reader.IsDBNull(i)
-        //                            ? string.Empty
-        //                            : SafeGiaiMa(reader.GetString(i));
-        //                    dtSoVang.Rows.Add(values);
-        //                }
-        //                if (kryptonDataGridView1 != null && !kryptonDataGridView1.IsDisposed)
-        //                {
-        //                    kryptonDataGridView1.SuspendLayout();
-        //                    kryptonDataGridView1.DataSource = dtSoVang;
-        //                    DinhDangGiaoDienDataGridSoVang();
-        //                    kryptonDataGridView1.ResumeLayout();
-        //                }
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Debug.WriteLine($"Lỗi nạp bảng {TenBangHienTai}: " + ex.Message);
-        //            }
-        //        }
-        private void kryptonDataGridView1_CellFormatting(object? sender, DataGridViewCellFormattingEventArgs e)
-        {
-            if (e.Value != null && e.RowIndex >= 0 && e.ColumnIndex >= 0)
-            {
-                string columnName = kryptonDataGridView1.Columns[e.ColumnIndex].Name;
-                // Giới hạn 25 ký tự cho cột Thành tích
-                if (columnName == "ThanhTich")
-                {
-                    string fullText = e.Value.ToString();
-                    int maxLength = 25;
-                    if (fullText.Length > maxLength)
-                    {
-                        e.Value = fullText.Substring(0, maxLength) + " ...";
-                        e.FormattingApplied = true;
-                    }
-                }
-            }
-        }
-        private void kryptonButton1_Thoat_Click(object? sender, EventArgs e)
-        {
-            // 1. Tìm Form cha (Form2_FormCha)
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null || formCha.IsDisposed) return;
-            // 2. Tìm PanelContainer trên Form cha
-            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-            if (panel == null || panel.IsDisposed) return;
-            // 3. Đóng và dọn sạch cái vỏ Form55 khỏi PanelContainer
-            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
-            if (form55 != null)
-            {
-                panel.Controls.Remove(form55);
-                form55.Close();
-                form55.Dispose();
-            }
-            // 4. Tìm Form6_XuLyData và hiển thị lại trên mặt trước
-            var form6 = panel.Controls.OfType<Form6_XuLyData>().FirstOrDefault();
-            if (form6 != null && !form6.IsDisposed)
-            {
-                form6.Dock = DockStyle.Fill;
-                form6.Show();
-                form6.BringToFront();
-            }
-            // 5. Cập nhật lại tiêu đề hệ thống
-            formCha.CapNhatTieuDe("Trang phân loại thi đua");
-            if (formCha.Label1 != null)
-            {
-                formCha.Label1.Text = "Trang phân loại thi đua";
-            }
-        }
-        private async void kryptonButton_LuuDataSoVang_Click(object? sender, EventArgs e)
-        {
-            if (kryptonTextBox1_STT.Tag == null || !int.TryParse(kryptonTextBox1_STT.Tag.ToString(), out int id))
-            {
-                MessageBox.Show("Vui lòng chọn một cán bộ trong danh sách trước khi lưu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            int soKyTu = richTextBox1_ThanhTich.TextLength;
-            if (soKyTu > Module_BaNhat.GioiHanToiDa)
-            {
-                MessageBox.Show($"Nội dung thành tích hiện có {soKyTu} ký tự,\nvượt quá giới hạn cho phép ({Module_BaNhat.GioiHanToiDa} ký tự).\nVui lòng rút gọn nội dung trước khi lưu.", "Không thể lưu dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                richTextBox1_ThanhTich.Focus();
-                return;
-            }
-            kryptonButton_LuuDataSoVang.Enabled = false;
-            kryptonButton_LuuDataSoVang.Text = "Đang lưu...";
-            try
-            {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-                await conn.OpenAsync();
-                // 🌟 SỬA: Thay thế tên bảng động trong chuỗi lệnh UPDATE
-                string sqlUpdate = $@"
-                UPDATE [{TenBangHienTai}] SET
-                    HoVaTen = @HoVaTen,
-                    SoHieu = @SoHieu,
-                    NamSinh = @NamSinh,
-                    QueQuan = @QueQuan,
-                    NgayVaoCAND = @NgayVaoCAND,
-                    CapBac = @CapBac,
-                    ChucVu = @ChucVu,
-                    DonVi = @DonVi,
-                    PhanLoai = @PhanLoai,
-                    GhiChu = @GhiChu,
-                    ThanhTich = @ThanhTich,
-                    ThongBaoTrungDoan = @TB,
-                    SoTTTrongSo = @SoTT,
-                    ThangCongNhan = @TCN
-                WHERE ID = @ID";
-                using var cmd = new SqliteCommand(sqlUpdate, conn);
-                cmd.Parameters.AddWithValue("@ID", id);
-                (string Name, string Value)[] parameters =
-                {
-                    ("@HoVaTen", kryptonTextBox1_HoVaTen.Text),
-                    ("@SoHieu", kryptonTextBox1_SoHieu.Text),
-                    ("@NamSinh", kryptonTextBox1_NamSinh.Text),
-                    ("@QueQuan", kryptonTextBox1_QueQuan.Text),
-                    ("@NgayVaoCAND", kryptonTextBox1_NgayVaoCAND.Text),
-                    ("@CapBac", kryptonTextBox1_CapBac.Text),
-                    ("@ChucVu", kryptonTextBox1_ChucVu.Text),
-                    ("@DonVi", kryptonTextBox1_DonVi.Text),
-                    ("@PhanLoai", kryptonTextBox1_PhanLoai.Text),
-                    ("@GhiChu", kryptonTextBox1_GhiChu.Text),
-                    ("@ThanhTich", richTextBox1_ThanhTich.Text),
-                    ("@TB", kryptonTextBox1_ThongBaoTrungDoan.Text),
-                    ("@SoTT", kryptonTextBox1_SoTTTrongSo.Text),
-                    ("@TCN", kryptonTextBox1_ThangCongNhan.Text)
-                };
-                foreach (var p in parameters)
-                {
-                    cmd.Parameters.AddWithValue(p.Name, Module_BaoMatAES.MaHoa(p.Value.Trim()));
-                }
-                cmd.Prepare();
-                await cmd.ExecuteNonQueryAsync();
-                // ⭐ BỔ SUNG DÒNG NÀY: Cập nhật lại cột Tình Trạng ngay sau khi Lưu thành công vào Sổ vàng
-                await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
-                await LoadDuLieuSoVangBaNhatAsync();
-                toolStripStatusLabel1_ThongBao.Text = $"Đã lưu thông tin {Module_HeThong.Tu_dong_chi} {kryptonTextBox1_HoVaTen.Text.Trim()} thành công!";
-                await Task.Delay(300);
-                CapNhatThongKeSoLuong();
-                CapNhatDanhSachDonVi();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi khi lưu dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                kryptonButton_LuuDataSoVang.Enabled = true;
-                kryptonButton_LuuDataSoVang.Text = "Lưu dữ liệu";
-            }
-        }
-        private async void kryptonButton1_XoaCBCS_Click(object? sender, EventArgs e)
-        {
-            if (kryptonTextBox1_STT.Tag == null || !int.TryParse(kryptonTextBox1_STT.Tag.ToString(), out int idXoa))
-            {
-                MessageBox.Show("Vui lòng chọn một cán bộ trong danh sách để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            string hoTen = kryptonTextBox1_HoVaTen.Text.Trim();
-            string soHieu = kryptonTextBox1_SoHieu.Text.Trim();
-            string donVi = kryptonTextBox1_DonVi.Text.Trim();
-            string msg = $"Bạn có thực sự muốn xóa {Module_HeThong.Tu_dong_chi}:\n\n" +
-                         $"Họ và tên: {hoTen}\n" +
-                         $"Số hiệu: {soHieu}\n" +
-                         $"Đơn vị: {donVi}\n\n" +
-                         "Hành động này không thể hoàn tác!";
-            var result = MessageBox.Show(msg, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (result != DialogResult.Yes) return;
-            try
-            {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
-                await conn.OpenAsync();
-                using var transaction = conn.BeginTransaction();
-                try
-                {
-                    // 🌟 SỬA 3 LỆNH SQL: Đưa biến TenBangHienTai vào xử lý xóa và sắp xếp lại
-                    string sqlDelete = $"DELETE FROM [{TenBangHienTai}] WHERE ID = @ID";
-                    using (var cmdDelete = new SqliteCommand(sqlDelete, conn, transaction))
-                    {
-                        cmdDelete.Parameters.AddWithValue("@ID", idXoa);
-                        await cmdDelete.ExecuteNonQueryAsync();
-                    }
-                    string sqlSelect = $"SELECT ID FROM [{TenBangHienTai}] ORDER BY STT ASC";
-                    List<int> danhSachID = new List<int>();
-                    using (var cmdSelect = new SqliteCommand(sqlSelect, conn, transaction))
-                    {
-                        using var reader = await cmdSelect.ExecuteReaderAsync();
-                        while (await reader.ReadAsync())
-                        {
-                            danhSachID.Add(reader.GetInt32(0));
-                        }
-                    }
-                    string sqlUpdateSTT = $"UPDATE [{TenBangHienTai}] SET STT = @NewSTT WHERE ID = @ID";
-                    for (int i = 0; i < danhSachID.Count; i++)
-                    {
-                        using var cmdUpdate = new SqliteCommand(sqlUpdateSTT, conn, transaction);
-                        cmdUpdate.Parameters.AddWithValue("@NewSTT", i + 1);
-                        cmdUpdate.Parameters.AddWithValue("@ID", danhSachID[i]);
-                        await cmdUpdate.ExecuteNonQueryAsync();
-                    }
-                    await transaction.CommitAsync();
-                    await LoadDuLieuSoVangBaNhatAsync();
-                    ClearTextBoxes();
-                    toolStripStatusLabel1_ThongBao.Text = $"Đã xóa {Module_HeThong.Tu_dong_chi} {hoTen} thành công!";
-                    await Task.Delay(300);
-                    CapNhatThongKeSoLuong();
-                    CapNhatDanhSachDonVi();
-                    await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
-                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Xóa và xếp lại STT bảng {TenBangHienTai}: {hoTen}", DateTime.Now.ToString());
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    throw ex;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi khi thực hiện: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+
         private void ClearTextBoxes()
         {
             kryptonTextBox1_STT.Tag = null;
@@ -720,6 +406,23 @@ namespace PhanMemThiDua2026
             kryptonTextBox1_SoTTTrongSo.Clear();
             kryptonTextBox1_ThangCongNhan.Clear();
         }
+
+        private bool LayIdDangChon(out int id)
+        {
+            id = 0;
+            return kryptonTextBox1_STT.Tag != null
+                && int.TryParse(Convert.ToString(kryptonTextBox1_STT.Tag, CultureInfo.InvariantCulture), out id);
+        }
+
+        private void CapNhatTrangThaiNut()
+        {
+            bool coDuLieu = !string.IsNullOrWhiteSpace(kryptonTextBox1_SoHieu.Text) &&
+                            !string.IsNullOrWhiteSpace(kryptonTextBox1_HoVaTen.Text);
+            if (kryptonButton1_XoaCBCS.Visible != coDuLieu) kryptonButton1_XoaCBCS.Visible = coDuLieu;
+            if (kryptonButton_LuuDataSoVang.Visible != coDuLieu) kryptonButton_LuuDataSoVang.Visible = coDuLieu;
+        }
+
+        // ===================== THANH TRẠNG THÁI =====================
         private void CapNhatThongKeSoLuong()
         {
             int tong = 0, hienThi = 0; bool dangLoc = false;
@@ -746,53 +449,41 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1_ThongBao.Text = $"Tổng cộng: {tong} {dc}";
             }
         }
-        private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex >= 0)
-            {
-                FillDataToControls(kryptonDataGridView1.Rows[e.RowIndex]);
-            }
-        }
-        private string SafeGiaiMa(string cipherText)
+
+        // Hiện thông báo tạm rồi tự trả về dòng thống kê MÀ KHÔNG chặn luồng thao tác (bản cũ await Task.Delay làm nút bị khóa thêm).
+        // Thông báo mới hơn sẽ vô hiệu hóa lượt trả về của thông báo cũ.
+        private int _tokenThongBao;
+        private async void ThongBaoTam(string noiDung, int ms = 1500)
         {
             try
             {
-                if (string.IsNullOrEmpty(cipherText)) return "";
-                return Module_BaoMatAES.GiaiMa(cipherText).Trim();
+                int token = ++_tokenThongBao;
+                toolStripStatusLabel1_ThongBao.ForeColor = Color.DarkBlue;
+                toolStripStatusLabel1_ThongBao.Text = noiDung;
+                await Task.Delay(ms);
+                if (token == _tokenThongBao && !IsDisposed) CapNhatThongKeSoLuong();
             }
-            catch
-            {
-                return "[Lỗi giải mã]";
-            }
+            catch (Exception ex) { Debug.WriteLine("[ThongBaoTam] " + ex.Message); }
         }
-        //private void LocDuLieu()
-        //{
-        //    var dt = kryptonDataGridView1.DataSource as DataTable;
-        //    if (dt == null) return;
-        //    kryptonDataGridView1.BindingContext[dt].SuspendBinding();
-        //    try
-        //    {
-        //        string filter = "";
-        //        string ten = kryptonTextBox1_TimKiemTheoTen.Text.Replace("'", "''");
-        //        if (!string.IsNullOrWhiteSpace(ten))
-        //            filter += $"HoVaTen LIKE '%{ten}%'";
-        //        string donVi = comboBox_TimKiemDonVi.Text;
-        //        if (!string.IsNullOrWhiteSpace(donVi) && donVi != Module_HeThong.Tat_Ca)
-        //        {
-        //            if (filter.Length > 0) filter += " AND ";
-        //            filter += $"DonVi = '{donVi.Replace("'", "''")}'";
-        //        }
-        //        dt.DefaultView.RowFilter = filter;
-        //        CapNhatThongKeSoLuong();
-        //        // XÓA DÒNG CapNhatDanhSachDonVi(); Ở ĐÂY NẾU CÒN
-        //    }
-        //    finally
-        //    {
-        //        kryptonDataGridView1.BindingContext[dt].ResumeBinding();
-        //    }
-        //}
-        private bool _dangDatLaiLoc;
-        private void BoLoc_Changed(object? s, EventArgs e) => LocDuLieu();
+
+        // ===================== BỘ LỌC =====================
+        private bool _dangDatLaiLoc;                       // true khi đang nạp/đặt lại bộ lọc bằng code -> chặn các lượt lọc lẻ tẻ
+        private System.Windows.Forms.Timer? _timerLoc;     // debounce ô gõ tên
+
+        private void TimKiemTheoTen_TextChanged(object? s, EventArgs e) => KhoiDongLocTre();
+        private void DonVi_SelectedIndexChanged(object? s, EventArgs e) => LocDuLieu();
+
+        private void KhoiDongLocTre()
+        {
+            if (_dangDatLaiLoc || IsDisposed) return;
+            if (_timerLoc == null)
+            {
+                _timerLoc = new System.Windows.Forms.Timer { Interval = 150 };
+                _timerLoc.Tick += (s, ev) => LocDuLieu();   // LocDuLieu tự dừng timer
+            }
+            _timerLoc.Stop();
+            _timerLoc.Start();
+        }
 
         private static string EscapeLike(string s)
         {
@@ -807,7 +498,8 @@ namespace PhanMemThiDua2026
 
         private void LocDuLieu()
         {
-            if (_dangDatLaiLoc) return;
+            _timerLoc?.Stop();                              // hủy lượt lọc trễ đang chờ (nếu có)
+            if (_dangDatLaiLoc || IsDisposed) return;
             if (kryptonDataGridView1.DataSource is not DataTable dt) return;
 
             var dk = new List<string>(2);
@@ -826,6 +518,7 @@ namespace PhanMemThiDua2026
 
         private void DatLaiBoLoc()
         {
+            _timerLoc?.Stop();
             _dangDatLaiLoc = true;
             try
             {
@@ -836,66 +529,12 @@ namespace PhanMemThiDua2026
             LocDuLieu();
         }
 
-        private void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e)
+        // Dựng lại danh sách đơn vị từ dữ liệu hiện có rồi áp lại bộ lọc đúng 1 lần
+        private void LamMoiBoLocSauKhiDoiDuLieu()
         {
-            kryptonTextBox1_TimKiemTheoTen.TextChanged -= (s, ev) => LocDuLieu(); // Tạm ngắt sự kiện để tránh lọc thừa
-            kryptonTextBox1_TimKiemTheoTen.Clear();
-            if (comboBox_TimKiemDonVi.Items.Count > 0)
-                comboBox_TimKiemDonVi.SelectedIndex = 0;
-            var dt = kryptonDataGridView1.DataSource as DataTable;
-            if (dt != null) dt.DefaultView.RowFilter = string.Empty;
-            CapNhatThongKeSoLuong();
-            kryptonTextBox1_TimKiemTheoTen.TextChanged += (s, ev) => LocDuLieu(); // Bật lại sự kiện
+            CapNhatDanhSachDonVi();
+            LocDuLieu();
         }
-        //private void CapNhatDanhSachDonVi()
-        //{
-        //    var dt = kryptonDataGridView1.DataSource as DataTable;
-        //    if (dt == null) return;
-        //    // 1. Lưu lại giá trị hiện tại
-        //    string currentSelection = comboBox_TimKiemDonVi.Text;
-        //    // 2. Bỏ bộ lọc tạm thời để lấy TOÀN BỘ danh sách đơn vị có trong Grid
-        //    var dataView = dt.DefaultView;
-        //    var currentFilter = dataView.RowFilter;
-        //    dataView.RowFilter = string.Empty;
-        //    // 3. Trích xuất các đơn vị thực tế ĐANG CÓ trong dữ liệu (HashSet giúp tìm kiếm cực nhanh)
-        //    var distinctTable = dataView.ToTable(true, "DonVi");
-        //    HashSet<string> cacDonViCoTrongData = new HashSet<string>();
-        //    foreach (DataRow row in distinctTable.Rows)
-        //    {
-        //        if (row["DonVi"] != DBNull.Value && !string.IsNullOrWhiteSpace(row["DonVi"].ToString()))
-        //        {
-        //            cacDonViCoTrongData.Add(row["DonVi"].ToString().Trim());
-        //        }
-        //    }
-        //    // 4. Lấy danh sách chuẩn (đã sắp xếp đúng thứ tự) từ Module_DonVi
-        //    List<string> danhSachChuan = Module_DonVi.GetDanhSachDonVi();
-        //    // 5. Nạp vào ComboBox
-        //    comboBox_TimKiemDonVi.Items.Clear();
-        //    comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
-        //    // BƯỚC QUAN TRỌNG: Duyệt theo danh sách CHUẨN. 
-        //    // Nếu đơn vị chuẩn nào có xuất hiện trong Data thì mới thêm vào ComboBox.
-        //    // Việc này đảm bảo: Chỉ hiện đơn vị có dữ liệu VÀ giữ đúng thứ tự của Module_DonVi.
-        //    foreach (string donViChuan in danhSachChuan)
-        //    {
-        //        if (cacDonViCoTrongData.Contains(donViChuan))
-        //        {
-        //            comboBox_TimKiemDonVi.Items.Add(donViChuan);
-        //            cacDonViCoTrongData.Remove(donViChuan); // Xóa đi để đánh dấu là đã xử lý
-        //        }
-        //    }
-        //    // (Tùy chọn an toàn): Nhỡ có đơn vị nào bị gõ sai tên trong CSDL (không khớp danh sách chuẩn)
-        //    // Ta vẫn thêm nó vào cuối ComboBox để người dùng không bị mất dữ liệu lọc
-        //    foreach (string donViThua in cacDonViCoTrongData)
-        //    {
-        //        comboBox_TimKiemDonVi.Items.Add(donViThua);
-        //    }
-        //    // 6. Trả lại trạng thái cũ
-        //    dataView.RowFilter = currentFilter;
-        //    if (comboBox_TimKiemDonVi.Items.Contains(currentSelection))
-        //        comboBox_TimKiemDonVi.SelectedItem = currentSelection;
-        //    else
-        //        comboBox_TimKiemDonVi.SelectedIndex = 0;
-        //}
 
         private void CapNhatDanhSachDonVi()
         {
@@ -919,8 +558,10 @@ namespace PhanMemThiDua2026
                 {
                     comboBox_TimKiemDonVi.Items.Clear();
                     comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
+                    // Đúng thứ tự của danh sách chuẩn, chỉ giữ đơn vị có dữ liệu
                     foreach (string chuan in Module_DonVi.GetDanhSachDonVi())
                         if (coTrongData.Remove(chuan)) comboBox_TimKiemDonVi.Items.Add(chuan);
+                    // Đơn vị gõ sai tên (không khớp danh sách chuẩn) vẫn đưa xuống cuối để không mất khả năng lọc
                     foreach (string thua in coTrongData) comboBox_TimKiemDonVi.Items.Add(thua);
 
                     int vt = dangChon == null ? 0 : comboBox_TimKiemDonVi.Items.IndexOf(dangChon);
@@ -930,30 +571,244 @@ namespace PhanMemThiDua2026
             }
             finally { _dangDatLaiLoc = false; }
         }
-        private async void kryptonButton_RefershCSDL_Click(object? sender, EventArgs e)
+
+        private void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e) => DatLaiBoLoc();
+
+        // ===================== TOOLTIP =====================
+        private void InitToolTips()
         {
-            // 1. Tạm khóa nút để tránh người dùng nhấn liên tục
-            kryptonButton_RefershCSDL.Enabled = false;
-            string originalText = kryptonButton_RefershCSDL.Text;
-            kryptonButton_RefershCSDL.Text = "Đang tải...";
+            if (_daKhoiTaoToolTip) return;
             try
             {
-                // 2. Làm sạch các ô tìm kiếm để reset lại trạng thái xem toàn bộ
-                kryptonTextBox1_TimKiemTheoTen.TextChanged -= (s, ev) => LocDuLieu(); // Tạm ngắt sự kiện để tránh trigger không cần thiết
-                kryptonTextBox1_TimKiemTheoTen.Clear();
-                if (comboBox_TimKiemDonVi.Items.Count > 0)
-                    comboBox_TimKiemDonVi.SelectedIndex = 0; // Chọn Module_HeThong.Tat_Ca
-                kryptonTextBox1_TimKiemTheoTen.TextChanged += (s, ev) => LocDuLieu(); // Bật lại sự kiện
-                // 3. Nạp lại dữ liệu từ CSDL
-                await LoadDuLieuSoVangBaNhatAsync();
-                // 4. Xóa trắng các ô thông tin chi tiết (để tránh hiển thị dữ liệu cũ)
+                toolTip1.IsBalloon = true;
+                toolTip1.ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac;
+                toolTip1.ToolTipIcon = ToolTipIcon.Info;
+                toolTip1.InitialDelay = 300;
+                toolTip1.AutoPopDelay = 2500;
+                toolTip1.ReshowDelay = 100;
+                toolTip1.ShowAlways = true;
+
+                toolTip1.SetToolTip(kryptonButton_LamMoiCacOTimKiem, "Xóa nội dung tìm kiếm và đặt lại các bộ lọc về trạng thái mặc định");
+                toolTip1.SetToolTip(kryptonButton_RefershCSDL, "Tải lại toàn bộ dữ liệu mới nhất từ cơ sở dữ liệu và làm mới trang");
+                toolTip1.SetToolTip(kryptonButton1_XoaCBCS, "Xóa thông tin cán bộ chiến sĩ đang chọn khỏi danh sách Sổ vàng Ba Nhất");
+                toolTip1.SetToolTip(kryptonButton_LuuDataSoVang, "Lưu hoặc cập nhật thông tin dữ liệu Sổ vàng của cán bộ vào cơ sở dữ liệu");
+                toolTip1.SetToolTip(kryptonButton1_Thoat, "Trở về Trang quản lý thi đua");
+                _daKhoiTaoToolTip = true;
+            }
+            catch (Exception ex) { Debug.WriteLine("[InitToolTips] " + ex.Message); }
+        }
+
+        // ===================== THOÁT TRANG =====================
+        private void kryptonButton1_Thoat_Click(object? sender, EventArgs e)
+        {
+            // 1. Tìm Form cha (Form2_FormCha)
+            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+            if (formCha == null || formCha.IsDisposed) return;
+            // 2. Tìm PanelContainer trên Form cha
+            if (formCha.Controls.Find("PanelContainer", true).FirstOrDefault() is not Panel panel || panel.IsDisposed) return;
+            // 3. Đóng và dọn sạch cái vỏ Form55 khỏi PanelContainer
+            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
+            if (form55 != null)
+            {
+                panel.Controls.Remove(form55);
+                form55.Close();
+                form55.Dispose();
+            }
+            // 4. Tìm Form6_XuLyData và hiển thị lại trên mặt trước
+            var form6 = panel.Controls.OfType<Form6_XuLyData>().FirstOrDefault();
+            if (form6 != null && !form6.IsDisposed)
+            {
+                form6.Dock = DockStyle.Fill;
+                form6.Show();
+                form6.BringToFront();
+            }
+            // 5. Cập nhật lại tiêu đề hệ thống
+            formCha.CapNhatTieuDe("Trang phân loại thi đua");
+            if (formCha.Label1 != null) formCha.Label1.Text = "Trang phân loại thi đua";
+        }
+
+        // ===================== LƯU =====================
+        private static int GhiMotDong(string bang, int id, string[] giaTri)
+        {
+            using var cn = MoKetNoi(false);
+            using var cmd = cn.CreateCommand();
+            cmd.CommandText = $"UPDATE [{bang}] SET {string.Join(", ", CotSua.Select((c, i) => $"{c} = @p{i}"))} WHERE ID = @id";
+            for (int i = 0; i < CotSua.Length; i++)
+                cmd.Parameters.AddWithValue($"@p{i}", Module_BaoMatAES.MaHoa(giaTri[i]));
+            cmd.Parameters.AddWithValue("@id", id);
+            return cmd.ExecuteNonQuery();
+        }
+
+        private async void kryptonButton_LuuDataSoVang_Click(object? sender, EventArgs e)
+        {
+            if (!LayIdDangChon(out int id))
+            {
+                MessageBox.Show("Vui lòng chọn một cán bộ trong danh sách trước khi lưu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            int soKyTu = richTextBox1_ThanhTich.TextLength;
+            if (soKyTu > Module_BaNhat.GioiHanToiDa)
+            {
+                MessageBox.Show($"Nội dung thành tích hiện có {soKyTu} ký tự,\nvượt quá giới hạn cho phép ({Module_BaNhat.GioiHanToiDa} ký tự).\nVui lòng rút gọn nội dung trước khi lưu.",
+                    "Không thể lưu dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                richTextBox1_ThanhTich.Focus();
+                return;
+            }
+
+            var nut = kryptonButton_LuuDataSoVang;
+            string tenGoc = nut.Text;
+            nut.Enabled = false;
+            nut.Text = "Đang lưu...";
+            try
+            {
+                string bang = TenBangHienTai;
+                // Thứ tự khớp CotSua
+                string[] giaTri =
+                {
+                    kryptonTextBox1_HoVaTen.Text.Trim(), kryptonTextBox1_NamSinh.Text.Trim(), kryptonTextBox1_QueQuan.Text.Trim(),
+                    kryptonTextBox1_NgayVaoCAND.Text.Trim(), kryptonTextBox1_CapBac.Text.Trim(), kryptonTextBox1_ChucVu.Text.Trim(),
+                    kryptonTextBox1_DonVi.Text.Trim(), kryptonTextBox1_GhiChu.Text.Trim(), richTextBox1_ThanhTich.Text.Trim(),
+                    kryptonTextBox1_ThongBaoTrungDoan.Text.Trim(), kryptonTextBox1_SoTTTrongSo.Text.Trim(), kryptonTextBox1_ThangCongNhan.Text.Trim()
+                };
+
+                int soDong = await Task.Run(() => GhiMotDong(bang, id, giaTri));   // mã hóa + ghi ở luồng nền
+                if (soDong == 0)
+                {
+                    MessageBox.Show("Không tìm thấy cán bộ cần cập nhật trong Sổ vàng (có thể đã bị xóa).", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Cập nhật thẳng dòng nguồn của lưới (không nạp + giải mã lại cả bảng).
+                // Không cần CapNhatTinhTrangSoVangAsync: Số hiệu không bị ghi lại nên tình trạng "Đã đề nghị" không thể đổi.
+                string donViCu = "";
+                if (kryptonDataGridView1.DataSource is DataTable dt && TimDong(dt, id) is DataRow dong)
+                {
+                    donViCu = dong["DonVi"] as string ?? "";
+                    dong.BeginEdit();
+                    for (int i = 0; i < CotSua.Length; i++) dong[CotSua[i]] = giaTri[i];
+                    dong.EndEdit();
+                }
+                if (!string.Equals(donViCu, kryptonTextBox1_DonVi.Text.Trim(), StringComparison.OrdinalIgnoreCase))
+                    CapNhatDanhSachDonVi();
+                LocDuLieu();
+
+                ThongBaoTam($"Đã lưu thông tin {Module_HeThong.Tu_dong_chi} {giaTri[0]} thành công!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi lưu dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                nut.Enabled = true;
+                nut.Text = tenGoc;
+            }
+        }
+
+        // ===================== XÓA 1 NGƯỜI =====================
+        // 1 kết nối, 1 transaction, 1 lệnh UPDATE dùng lại cho mọi dòng (bản cũ tạo N SqliteCommand).
+        // Dòng đệm ID = -1 (nếu có) không bị đánh lại STT.
+        private static void XoaVaDanhLaiSTT(string bang, int idXoa)
+        {
+            using var cn = MoKetNoi(false);
+            using var tx = cn.BeginTransaction();
+
+            using (var del = cn.CreateCommand())
+            {
+                del.Transaction = tx;
+                del.CommandText = $"DELETE FROM [{bang}] WHERE ID = @id";
+                del.Parameters.AddWithValue("@id", idXoa);
+                del.ExecuteNonQuery();
+            }
+
+            var danhSachId = new List<int>();
+            using (var sel = cn.CreateCommand())
+            {
+                sel.Transaction = tx;
+                sel.CommandText = $"SELECT ID FROM [{bang}] WHERE ID <> -1 ORDER BY STT ASC, ID ASC";
+                using var rd = sel.ExecuteReader();
+                while (rd.Read()) danhSachId.Add(rd.GetInt32(0));
+            }
+
+            using (var upd = cn.CreateCommand())
+            {
+                upd.Transaction = tx;
+                upd.CommandText = $"UPDATE [{bang}] SET STT = @stt WHERE ID = @id";
+                var pStt = upd.Parameters.Add("@stt", SqliteType.Integer);
+                var pId = upd.Parameters.Add("@id", SqliteType.Integer);
+                for (int i = 0; i < danhSachId.Count; i++)
+                {
+                    pStt.Value = i + 1;
+                    pId.Value = danhSachId[i];
+                    upd.ExecuteNonQuery();
+                }
+            }
+            tx.Commit();
+        }
+
+        private async void kryptonButton1_XoaCBCS_Click(object? sender, EventArgs e)
+        {
+            if (!LayIdDangChon(out int idXoa))
+            {
+                MessageBox.Show("Vui lòng chọn một cán bộ trong danh sách để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            string hoTen = kryptonTextBox1_HoVaTen.Text.Trim();
+            string msg = $"Bạn có thực sự muốn xóa {Module_HeThong.Tu_dong_chi}:\n\n" +
+                         $"Họ và tên: {hoTen}\n" +
+                         $"Số hiệu: {kryptonTextBox1_SoHieu.Text.Trim()}\n" +
+                         $"Đơn vị: {kryptonTextBox1_DonVi.Text.Trim()}\n\n" +
+                         "Hành động này không thể hoàn tác!";
+            if (MessageBox.Show(msg, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes) return;
+
+            try
+            {
+                string bang = TenBangHienTai;
+                await Task.Run(() => XoaVaDanhLaiSTT(bang, idXoa));   // lỗi giữa chừng => transaction tự rollback
+
+                // Gỡ dòng + đánh lại STT hiển thị ngay trên bộ nhớ, không nạp + giải mã lại cả bảng
+                if (kryptonDataGridView1.DataSource is DataTable dt)
+                {
+                    var g = kryptonDataGridView1;
+                    TatVe(g);
+                    try
+                    {
+                        if (TimDong(dt, idXoa) is DataRow dong) dt.Rows.Remove(dong);
+                        int stt = 1;
+                        foreach (DataRow r in dt.Rows) r["STT"] = stt++;
+                    }
+                    finally { BatVe(g); }
+                }
                 ClearTextBoxes();
-                // 5. Cập nhật lại các thành phần phụ trợ
-                CapNhatDanhSachDonVi();
-                CapNhatThongKeSoLuong();
-                // 6. Thông báo thành công
-                //toolStripStatusLabel1_ThongBao.Text = "Đã làm mới dữ liệu từ cơ sở dữ liệu.";
-                await ShowTemporaryStatus($"Đã làm mới dữ liệu từ cơ sở dữ liệu.", 1000);
+                LamMoiBoLocSauKhiDoiDuLieu();
+                ThongBaoTam($"Đã xóa {Module_HeThong.Tu_dong_chi} {hoTen} thành công!");
+
+                // Người bị xóa khỏi Sổ vàng => cột "Tình trạng" bên Form42 phải về trống
+                await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
+                BaoForm55CanNapLai();
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Xóa và xếp lại STT bảng {bang}: {hoTen}", DateTime.Now.ToString());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi thực hiện: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // ===================== LÀM MỚI =====================
+        private async void kryptonButton_RefershCSDL_Click(object? sender, EventArgs e)
+        {
+            var nut = kryptonButton_RefershCSDL;
+            if (!nut.Enabled) return;     // chặn bấm liên tục
+            string tenGoc = nut.Text;
+            nut.Enabled = false;
+            nut.Text = "Đang tải...";
+            try
+            {
+                DatLaiBoLoc();                              // ô tìm kiếm + đơn vị về mặc định, lọc đúng 1 lần
+                bool ok = await NapLuoiAsync();             // nạp lại từ CSDL (đọc cả phiên bản phần mềm)
+                ClearTextBoxes();                           // tránh hiển thị dữ liệu cũ
+                if (ok) ThongBaoTam("Đã làm mới dữ liệu từ cơ sở dữ liệu.", 1000);
+                else CapNhatThongKeSoLuong();
             }
             catch (Exception ex)
             {
@@ -961,216 +816,224 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                // 7. Khôi phục lại trạng thái nút
-                kryptonButton_RefershCSDL.Enabled = true;
-                kryptonButton_RefershCSDL.Text = originalText;
+                nut.Enabled = true;
+                nut.Text = tenGoc;
             }
         }
+
         private void lamMoiHeThong_Click(object? sender, EventArgs e) => kryptonButton_RefershCSDL.PerformClick();
         private void xoaTimKiem_Click(object? sender, EventArgs e) => kryptonButton_LamMoiCacOTimKiem.PerformClick();
         private void toolStripMenuItem_ThoatTrang_Click(object? sender, EventArgs e) => kryptonButton1_Thoat.PerformClick();
+
+        // ===================== XÓA TOÀN BỘ =====================
+        private static int DemSoDong(string bang)
+        {
+            using var cn = MoKetNoi(true);
+            using var cmd = cn.CreateCommand();
+            cmd.CommandText = $"SELECT COUNT(*) FROM [{bang}] WHERE ID <> -1";
+            return Convert.ToInt32(cmd.ExecuteScalar(), CultureInfo.InvariantCulture);
+        }
+
+        // Xóa + reset bộ đếm ID trong 1 transaction. Không còn VACUUM: VACUUM viết lại cả tệp .db và khóa độc quyền
+        // (làm đứng giao diện nhiều giây), trong khi xóa vài nghìn dòng chữ ngắn không đáng kể về dung lượng.
+        private static int XoaTatCa(string bang)
+        {
+            using var cn = MoKetNoi(false);
+            using var tx = cn.BeginTransaction();
+            int soDong;
+            using (var cmd = cn.CreateCommand())
+            {
+                cmd.Transaction = tx;
+                cmd.CommandText = $"DELETE FROM [{bang}]";
+                soDong = cmd.ExecuteNonQuery();
+            }
+            try
+            {
+                using var cmd = cn.CreateCommand();
+                cmd.Transaction = tx;
+                cmd.CommandText = "DELETE FROM sqlite_sequence WHERE name = @n";
+                cmd.Parameters.AddWithValue("@n", bang);
+                cmd.ExecuteNonQuery();
+            }
+            catch { /* chưa có sqlite_sequence (bảng chưa từng sinh ID tự tăng) -> bỏ qua, không làm hỏng lệnh xóa */ }
+            tx.Commit();
+            return soDong;
+        }
+
         private async void toolStripMenuItem_XoaChonTatCa_Click(object? sender, EventArgs e)
         {
-            // 1. Kiểm tra đường dẫn CSDL
-            string dbPath = _csdl2Path;
-            if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
+            string db = DuongDanDb;
+            if (string.IsNullOrWhiteSpace(db) || !File.Exists(db))
             {
                 MessageBox.Show("Không tìm thấy tệp cơ sở dữ liệu!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             try
             {
-                // 2. Kiểm tra dữ liệu trước để báo người dùng
-                int soDongTrongBang = 0;
-                using (var conn = new SqliteConnection($"Data Source={dbPath}"))
-                {
-                    conn.Open();
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        // 🌟 SỬA ĐỊNH TUYẾN 1: Đếm số dòng trên bảng động
-                        cmd.CommandText = $"SELECT COUNT(*) FROM [{TenBangHienTai}];";
-                        soDongTrongBang = Convert.ToInt32(cmd.ExecuteScalar());
-                    }
-                }
+                string bang = TenBangHienTai;
+                int soDongTrongBang = await Task.Run(() => DemSoDong(bang));
                 if (soDongTrongBang == 0)
                 {
-                    MessageBox.Show($"Danh sách Sổ vàng hệ thống [{TenBangHienTai}] hiện đang trống.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"Danh sách Sổ vàng hệ thống [{bang}] hiện đang trống.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
-                // 4. Gọi form xác minh quyền admin
+
                 DialogResult kq;
-                using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
+                using (var frm = new Form24_XacMinhAdmin())
                 {
                     frm.TopMost = true;
                     frm.StartPosition = FormStartPosition.CenterScreen;
                     kq = frm.ShowDialog();
                 }
-                if (kq != DialogResult.OK)
-                    return;
-                // 5. Thực hiện xóa
-                int soDongDaXoa = 0;
-                using (var conn = new SqliteConnection($"Data Source={dbPath}"))
-                {
-                    conn.Open();
-                    // Transaction đảm bảo an toàn tuyệt đối
-                    using (var tran = conn.BeginTransaction())
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.Transaction = tran;
-                        // 🌟 SỬA ĐỊNH TUYẾN 2: Xóa toàn bộ dữ liệu trên bảng động
-                        cmd.CommandText = $"DELETE FROM [{TenBangHienTai}];";
-                        soDongDaXoa = cmd.ExecuteNonQuery();
-                        // 🌟 SỬA ĐỊNH TUYẾN 3: Reset lại chỉ số AutoIncrement của ID về 1 cho đúng bảng
-                        cmd.CommandText = $"DELETE FROM sqlite_sequence WHERE name='{TenBangHienTai}';";
-                        cmd.ExecuteNonQuery();
-                        tran.Commit();
-                    }
-                    // Dọn file database (giảm dung lượng file)
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = "VACUUM;";
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                // 6. Ghi nhật ký hệ thống
+                if (kq != DialogResult.OK) return;
+
+                int soDongDaXoa = await Task.Run(() => XoaTatCa(bang));
+
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
-                    $"Xóa toàn bộ dữ liệu Sổ vàng Ba Nhất bảng [{TenBangHienTai}] ({soDongDaXoa} dòng)",
-                    DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
-                );
+                    $"Xóa toàn bộ dữ liệu Sổ vàng Ba Nhất bảng [{bang}] ({soDongDaXoa} dòng)",
+                    DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
                 MessageBox.Show($"Đã xóa thành công {soDongDaXoa} dòng dữ liệu.", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                // 7. Cập nhật lại giao diện
-                kryptonDataGridView1.DataSource = null; // Xóa nguồn dữ liệu
-                ClearTextBoxes();                       // Xóa sạch ô nhập
-                await LoadDuLieuSoVangBaNhatAsync();    // Nạp lại danh sách trống
-                await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
-                CapNhatThongKeSoLuong();                // Cập nhật nhãn thống kê
+
+                ClearTextBoxes();
+                await NapLuoiAsync();                                  // nạp lại danh sách trống (đồng thời cập nhật thống kê)
+                await Module_BaNhat.CapNhatTinhTrangSoVangAsync();     // không còn ai trong Sổ vàng => xóa "Đã đề nghị" bên Form42
+                BaoForm55CanNapLai();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Lỗi khi xóa dữ liệu:\n{ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void CapNhatTrangThaiNut()
+
+        // ===================== XUẤT / NHẬP EXCEL =====================
+        private static string LamSachTenTep(string s)
         {
-            // Kiểm tra xem cả 2 TextBox có dữ liệu (không rỗng hoặc khoảng trắng) hay không
-            bool coDuLieu = !string.IsNullOrWhiteSpace(kryptonTextBox1_SoHieu.Text) &&
-                            !string.IsNullOrWhiteSpace(kryptonTextBox1_HoVaTen.Text);
-            // Điều khiển thuộc tính Visible của 2 nút
-            kryptonButton1_XoaCBCS.Visible = coDuLieu;
-            kryptonButton_LuuDataSoVang.Visible = coDuLieu;
+            foreach (char c in Path.GetInvalidFileNameChars()) s = s.Replace(c, '_');
+            return s;
         }
-        private async Task ShowTemporaryStatus(string message, int durationMs = 1000)
+
+        private static (string tieuDoan, string trungDoan) DocKyHieuDonVi()
         {
-            // 1. Hiển thị thông báo
-            toolStripStatusLabel1_ThongBao.Text = message;
-            toolStripStatusLabel1_ThongBao.ForeColor = Color.DarkBlue;
-            // 2. Chờ một khoảng thời gian (200ms - 1000ms tùy bạn chọn)
-            await Task.Delay(durationMs);
-            // 3. Quay lại trạng thái hiển thị tổng quân số
-            CapNhatThongKeSoLuong();
+            string tieuDoan = "D2", trungDoan = "E08";    // giá trị mặc định khi CSDL chưa có ký hiệu
+            using var cn = MoKetNoi(true);
+            using var cmd = cn.CreateCommand();
+            cmd.CommandText = "SELECT KyHieu_TieuDoan, KyHieu_TrungDoan FROM KyHieu_DonVi WHERE ID = 1";
+            using var rd = cmd.ExecuteReader();
+            if (rd.Read())
+            {
+                string td = SafeGiaiMa(rd.IsDBNull(0) ? null : rd.GetString(0));
+                string e = SafeGiaiMa(rd.IsDBNull(1) ? null : rd.GetString(1));
+                if (!string.IsNullOrWhiteSpace(td)) tieuDoan = td;
+                if (!string.IsNullOrWhiteSpace(e)) trungDoan = e;
+            }
+            return (tieuDoan, trungDoan);
         }
+
         private async void ToolStripMenuItem_XuatDanhSach_Click(object? sender, EventArgs e)
         {
             string textBanDau = ToolStripMenuItem_XuatDanhSach.Text;
-            Image anhBanDau = ToolStripMenuItem_XuatDanhSach.Image;
-            string kyHieuTieuDoan = "D2";
-            string kyHieuTrungDoan = "E08";
+            Image? anhBanDau = ToolStripMenuItem_XuatDanhSach.Image;
             try
             {
-                // 1. LẤY KÝ HIỆU TRONG CSDL (Giữ nguyên logic của bạn để tạo tên File)
-                using (var conn = new SqliteConnection($"Data Source={_csdl2Path}"))
-                {
-                    await conn.OpenAsync();
-                    using var cmdKyHieu = conn.CreateCommand();
-                    cmdKyHieu.CommandText = "SELECT KyHieu_TieuDoan, KyHieu_TrungDoan FROM KyHieu_DonVi WHERE ID = 1";
-                    using var reader = await cmdKyHieu.ExecuteReaderAsync();
-                    if (await reader.ReadAsync())
-                    {
-                        string giaiMaTD = SafeGiaiMa(reader["KyHieu_TieuDoan"]?.ToString() ?? "");
-                        string giaiMaE = SafeGiaiMa(reader["KyHieu_TrungDoan"]?.ToString() ?? "");
-                        if (!string.IsNullOrWhiteSpace(giaiMaTD)) kyHieuTieuDoan = giaiMaTD;
-                        if (!string.IsNullOrWhiteSpace(giaiMaE)) kyHieuTrungDoan = giaiMaE;
-                    }
-                }
-                // 2. CHỌN FILE LƯU
+                // 1. Ký hiệu đơn vị để đặt tên tệp (đọc ở luồng nền)
+                var (kyHieuTieuDoan, kyHieuTrungDoan) = await Task.Run(() => DocKyHieuDonVi());
+
+                // 2. Chọn nơi lưu
                 using var saveFileDialog = new SaveFileDialog
                 {
                     Filter = "Excel Files|*.xlsx",
-                    FileName = $"SỔ VÀNG BA NHẤT CỦA {kyHieuTieuDoan} {DateTime.Now:yyyyMMdd_HHmm}.xlsx",
+                    FileName = LamSachTenTep($"SỔ VÀNG BA NHẤT CỦA {kyHieuTieuDoan} {DateTime.Now:yyyyMMdd_HHmm}") + ".xlsx",
                     Title = "Chọn nơi lưu danh sách Sổ Vàng"
                 };
                 if (saveFileDialog.ShowDialog() != DialogResult.OK) return;
                 string filePath = saveFileDialog.FileName;
-                // 3. KHÓA GIAO DIỆN FORM VÀ GỌI MODULE
+
+                // 3. Khóa nút và gọi module (module tự lo màn hình chờ + mở tệp)
                 ToolStripMenuItem_XuatDanhSach.Enabled = false;
                 ToolStripMenuItem_XuatDanhSach.Text = "Đang xử lý...";
                 ToolStripMenuItem_XuatDanhSach.Image = null;
-                // Gọi thẳng hàm xuất đã được đóng gói trong Module
+
                 await Module_BaNhat.XuatDanhSachSoVangToExcelAsync(this, filePath, TenBangHienTai, kyHieuTrungDoan);
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Đã xuất file sổ vàng thành công tại: {filePath}", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
-                // ⭐ BỔ SUNG GỌI HÀM UX THÔNG BÁO Ở ĐÂY
-                await ShowTemporaryStatus($"Đã xuất file sổ vàng thành công tại: {filePath}", 2000);
+
+                // Module tự báo lỗi nếu có; chỉ ghi nhật ký "thành công" khi tệp thật sự được tạo
+                if (File.Exists(filePath))
+                {
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Đã xuất file sổ vàng thành công tại: {filePath}", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                    ThongBaoTam($"Đã xuất file sổ vàng thành công tại: {filePath}", 2000);
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Lỗi nút xuất sổ vàng: {ex.Message}");
+                Debug.WriteLine($"Lỗi nút xuất sổ vàng: {ex.Message}");
+                MessageBox.Show("Lỗi khi xuất file Sổ vàng: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
-                // 4. PHỤC HỒI TRẠNG THÁI GỐC NÚT BẤM
                 ToolStripMenuItem_XuatDanhSach.Text = textBanDau;
                 ToolStripMenuItem_XuatDanhSach.Image = anhBanDau;
                 ToolStripMenuItem_XuatDanhSach.Enabled = true;
             }
         }
+
         private async void toolStripMenuItem4_NhapDataVaoCSDL_Click(object? sender, EventArgs e)
         {
-            DialogResult kq;
-            using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
+            try
             {
-                frm.TopMost = true;
-                frm.StartPosition = FormStartPosition.CenterScreen;
-                kq = frm.ShowDialog(this);
-            }
-            if (kq != DialogResult.OK)
-                return;
-            using (OpenFileDialog ofd = new OpenFileDialog())
-            {
-                ofd.Title = "Chọn tệp Excel Sổ Vàng để nạp (Yêu cầu cấu trúc 15 cột)";
-                ofd.Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm";
-                ofd.Multiselect = false;
-                ofd.CheckFileExists = true;
-                ofd.CheckPathExists = true;
-                if (ofd.ShowDialog() != DialogResult.OK)
-                    return;
-                int soDongThanhCong = await Module_BaNhat.NhapDuLieuVaoSoVangTuExcel(
-                    this,
-                    ofd.FileName,
-                    _csdl2Path);
-                if (soDongThanhCong > 0)
+                DialogResult kq;
+                using (var frm = new Form24_XacMinhAdmin())
                 {
-                    await ShowTemporaryStatus($"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào Sổ Vàng hệ thống!", 2500);
-                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Nạp Excel Sổ Vàng bảng {TenBangHienTai} ({soDongThanhCong} dòng)", DateTime.Now.ToString());
+                    frm.TopMost = true;
+                    frm.StartPosition = FormStartPosition.CenterScreen;
+                    kq = frm.ShowDialog(this);
                 }
-                await LoadDuLieuSoVangBaNhatAsync();
-                CapNhatDanhSachDonVi();
-                CapNhatThongKeSoLuong();
+                if (kq != DialogResult.OK) return;
+
+                using var ofd = new OpenFileDialog
+                {
+                    Title = "Chọn tệp Excel Sổ Vàng để nạp (Yêu cầu cấu trúc 15 cột)",
+                    Filter = "Excel Files (*.xlsx, *.xlsm)|*.xlsx;*.xlsm",
+                    Multiselect = false,
+                    CheckFileExists = true,
+                    CheckPathExists = true
+                };
+                if (ofd.ShowDialog() != DialogResult.OK) return;
+
+                int soDongThanhCong = await Module_BaNhat.NhapDuLieuVaoSoVangTuExcel(this, ofd.FileName, DuongDanDb);
+                if (soDongThanhCong > 0)
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Nạp Excel Sổ Vàng bảng {TenBangHienTai} ({soDongThanhCong} dòng)", DateTime.Now.ToString());
+
+                await NapLuoiAsync();                                  // đã tự dựng lại đơn vị + bộ lọc + thống kê
+                if (soDongThanhCong > 0)
+                    ThongBaoTam($"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào Sổ Vàng hệ thống!", 2500);
                 await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
+                if (soDongThanhCong > 0) BaoForm55CanNapLai();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi nhập dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
         private async void toolStripMenuItem_XuatSoVangGoc_Click(object? sender, EventArgs e)
         {
-            using var sfd = new SaveFileDialog
+            try
             {
-                Filter = "Excel Files|*.xlsx",
-                FileName = $"DanhSach_Goc_SoVangBaNhat_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
-                Title = "Chọn nơi lưu file Danh sách gốc Sổ Vàng"
-            };
-            if (sfd.ShowDialog() != DialogResult.OK) return;
-            string filePathLuu = sfd.FileName;
-            // Gọi thẳng hàm xuất từ Module (Hàm đã tự lo Loading và mở tệp nên Form rất gọn)
-            await Module_BaNhat.XuatDuLieuGocSoVangRaExcelAsync(this, filePathLuu);
+                using var sfd = new SaveFileDialog
+                {
+                    Filter = "Excel Files|*.xlsx",
+                    FileName = $"DanhSach_Goc_SoVangBaNhat_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
+                    Title = "Chọn nơi lưu file Danh sách gốc Sổ Vàng"
+                };
+                if (sfd.ShowDialog() != DialogResult.OK) return;
+
+                // Hàm trong Module đã tự lo màn hình chờ và mở tệp nên form rất gọn
+                await Module_BaNhat.XuatDuLieuGocSoVangRaExcelAsync(this, sfd.FileName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi xuất file Sổ vàng gốc: " + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
