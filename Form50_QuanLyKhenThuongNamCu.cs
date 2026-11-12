@@ -1,4 +1,7 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+///Phiên bản 2
+///
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using DocumentFormat.OpenXml.Drawing.Charts;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
@@ -52,11 +55,12 @@ namespace PhanMemThiDua2026
         private static readonly Font _fontTitle115Bold = new Font(Module_HeThong.TenFontHeThong, 11.5F, FontStyle.Bold);
         private static readonly Font _fontGrid10Regular = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private static readonly Font _fontGrid10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
-       // private static readonly Font _fontBtn95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
+        // private static readonly Font _fontBtn95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
         //const string ROW_GROUP = "__GROUP__";
         public Form50_QuanLyKhenThuongNamCu()
         {
             InitializeComponent();
+            GiaoDienForm50Web.ApDung(this);   // giao diện kiểu web như Form4 - chỉ đổi trình bày (đây là dòng DUY NHẤT thêm vào code gốc)
             this.KeyPreview = true;
             this.VisibleChanged += Form50_VisibleChanged;
             kryptonDataGridView1.VirtualMode = true;
@@ -355,7 +359,7 @@ namespace PhanMemThiDua2026
                     );
                 }
                 catch (Exception logEx) { System.Diagnostics.Debug.WriteLine("Lỗi ghi nhật ký: " + logEx.Message); }
-              //  MessageBox.Show($"✔ Đã xóa sạch toàn bộ dữ liệu giấy khen của {selectedFile.TenHienThi} thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //  MessageBox.Show($"✔ Đã xóa sạch toàn bộ dữ liệu giấy khen của {selectedFile.TenHienThi} thành công!", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // ⭐ THAY ĐỔI QUAN TRỌNG: Gọi lại hàm LoadDanhSachFileLichSu để ComboBox quét và vứt bỏ tệp vừa xóa sạch (0 dòng)
                 LoadDanhSachFileLichSu();
                 // Nếu ComboBox còn dữ liệu khác, tự động load Grid lên
@@ -1030,7 +1034,7 @@ namespace PhanMemThiDua2026
         }
         private void toolStripMenuItem_Dong_Click(object? sender, EventArgs e)
         {
-           // kryptonButton_Dong.PerformClick();
+            // kryptonButton_Dong.PerformClick();
         }
         private void kryptonButton1_TraCuuKetQuaKhenThuongNamCu_Click(object? sender, EventArgs e)
         {
@@ -1261,158 +1265,158 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Error);
             }
         }
-    private void HienThiFormAo_ChiTietKhenThuong(HistoryGiayKhenDTO data)
+        private void HienThiFormAo_ChiTietKhenThuong(HistoryGiayKhenDTO data)
+        {
+            if (data == null) return;
+            // 1. BẢNG MÀU GIAO DIỆN
+            Color mauNen = Color.White;
+            Color mauNhan = Color.FromArgb(245, 248, 252);
+            Color mauFooter = Color.FromArgb(248, 249, 250);
+            Color mauDangCongTac = Color.FromArgb(34, 139, 34);
+            Color mauChuyenCongTac = Color.FromArgb(211, 47, 47);
+            // 2. LẤY NĂM TỪ COMBOBOX
+            string nam = DateTime.Now.Year.ToString();
+            string giaTriNam = comboBox_ChonCSDLNam?.Text?.Trim() ?? "";
+            if (!string.IsNullOrWhiteSpace(giaTriNam))
             {
-                if (data == null) return;
-                // 1. BẢNG MÀU GIAO DIỆN
-                Color mauNen = Color.White;
-                Color mauNhan = Color.FromArgb(245, 248, 252);
-                Color mauFooter = Color.FromArgb(248, 249, 250);
-                Color mauDangCongTac = Color.FromArgb(34, 139, 34);
-                Color mauChuyenCongTac = Color.FromArgb(211, 47, 47);
-                // 2. LẤY NĂM TỪ COMBOBOX
-                string nam = DateTime.Now.Year.ToString();
-                string giaTriNam = comboBox_ChonCSDLNam?.Text?.Trim() ?? "";
-                if (!string.IsNullOrWhiteSpace(giaTriNam))
-                {
-                    System.Text.RegularExpressions.Match match =
-                        System.Text.RegularExpressions.Regex.Match(giaTriNam, @"\b(19|20)\d{2}\b");
-                    if (match.Success)
-                        nam = match.Value;
-                }
-                // 3. KHOANH VÙNG FORM ẢO
-                using (var formAo = new FormAoBase())
-                {
-                    formAo.Text = $"Chi tiết khen thưởng năm {nam}";
-                    // Mở rộng Form lên 740x600 để có không gian thoải mái cho chữ dãn dòng
-                    formAo.Size = new System.Drawing.Size(740, 600);
-                    formAo.FormBorderStyle = FormBorderStyle.FixedDialog;
-                    formAo.MaximizeBox = false;
-                    formAo.MinimizeBox = false;
-                    formAo.ShowIcon = false;
-                    formAo.ShowInTaskbar = false;
-                    formAo.StartPosition = FormStartPosition.CenterParent;
-                    formAo.BackColor = mauNen;
-                    // 4. FOOTER PANEL & NÚT ĐÓNG
-                    var panelBottom = new Panel
-                    {
-                        Dock = DockStyle.Bottom,
-                        Height = 60,
-                        BackColor = mauFooter
-                    };
-                    var btnClose = new KryptonButton
-                    {
-                        Text = "Đóng",
-                        Width = 120,
-                        Height = 38,
-                        DialogResult = DialogResult.OK,
-                        Anchor = AnchorStyles.None
-                    };
-                    btnClose.StateCommon.Content.ShortText.Font = _fontGrid10Bold;
-                    btnClose.StateCommon.Border.Rounding = 5;
-                    btnClose.Location = new Point((formAo.ClientSize.Width - btnClose.Width) / 2, 11);
-                    panelBottom.Controls.Add(btnClose);
-                    // 5. PANEL NỘI DUNG CHÍNH
-                    var panelContent = new KryptonPanel
-                    {
-                        Dock = DockStyle.Fill,
-                        Padding = new Padding(20, 20, 20, 10)
-                    };
-                    panelContent.StateCommon.Color1 = mauNen;
-                    // 6. DATAGRIDVIEW CẤU HÌNH (TỰ ĐỘNG DÃN DÒNG)
-                    var grid = new KryptonDataGridView
-                    {
-                        Dock = DockStyle.Fill,
-                        ReadOnly = true,
-                        AllowUserToAddRows = false,
-                        AllowUserToDeleteRows = false,
-                        AllowUserToResizeRows = false,
-                        AllowUserToResizeColumns = false,
-                        RowHeadersVisible = false,
-                        ColumnHeadersVisible = false,
-                        SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                        MultiSelect = false,
-                        BackgroundColor = mauNen,
-                        BorderStyle = BorderStyle.None,
-                        AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells,
-                        AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
-                    };
-                    grid.GridStyles.Style = DataGridViewStyle.List;
-                    grid.StateCommon.Background.Color1 = mauNen;
-                    grid.StateCommon.DataCell.Content.Font = _fontGrid10Regular;
-                    grid.RowTemplate.MinimumHeight = 42;
-                    // Cột 0: Tên thông tin
-                    grid.Columns.Add("Ten", "Thông tin");
-                    var cotTen = grid.Columns[0];
-                    cotTen.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
-                    cotTen.Width = 200;
-                    cotTen.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-                    cotTen.DefaultCellStyle.Font = _fontGrid10Bold;
-                    cotTen.DefaultCellStyle.BackColor = mauNhan;
-                    cotTen.DefaultCellStyle.Padding = new Padding(15, 8, 10, 8);
-                    // Cột 1: Giá trị nội dung
-                    grid.Columns.Add("GiaTri", "Nội dung");
-                    var cotGiaTri = grid.Columns[1];
-                    cotGiaTri.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                    cotGiaTri.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
-                    cotGiaTri.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-                    cotGiaTri.DefaultCellStyle.Padding = new Padding(10, 8, 15, 8);
-                    // 7. HÀM THÊM DÒNG DỮ LIỆU
-                    int ThemDong(string ten, string giaTri, Color? mauGiaTri = null, Font fontGiaTri = null)
-                    {
-                        int rowIndex = grid.Rows.Add(
-                            string.IsNullOrWhiteSpace(ten) ? "" : ten.Trim(),
-                            string.IsNullOrWhiteSpace(giaTri) ? "—" : giaTri.Trim());
-                        var rowData = grid.Rows[rowIndex];
-                        if (mauGiaTri.HasValue)
-                            rowData.Cells[1].Style.ForeColor = mauGiaTri.Value;
-                        if (fontGiaTri != null)
-                            rowData.Cells[1].Style.Font = fontGiaTri;
-                        return rowIndex;
-                    }
-                    // 8. NẠP DỮ LIỆU VÀO GRID
-                    ThemDong("Họ và tên", data.HoVaTen, Color.Green, _fontGrid10Bold);
-                    ThemDong("Số hiệu", data.SoHieu);
-                    ThemDong("Đơn vị công tác", data.DonVi);
-                    // Tình trạng công tác
-                    string tinhTrang = data.TinhTrang?.Trim() ?? "";
-                    Color? mauTinhTrang = null;
-                    Font fontTinhTrang = null;
-                    if (tinhTrang.Equals(Module_HeThong.TT_DANG_CONG_TAC, StringComparison.OrdinalIgnoreCase))
-                    {
-                        mauTinhTrang = mauDangCongTac;
-                        fontTinhTrang = _fontGrid10Bold;
-                    }
-                    else if (tinhTrang.Equals(Module_HeThong.TT_CHUYEN_CONG_TAC, StringComparison.OrdinalIgnoreCase))
-                    {
-                        mauTinhTrang = mauChuyenCongTac;
-                        fontTinhTrang = _fontGrid10Bold;
-                    }
-                    ThemDong("Tình trạng", tinhTrang, mauTinhTrang, fontTinhTrang);
-                    // Chi tiết khen thưởng
-                    ThemDong("Hình thức khen", data.HinhThuc_Khen);
-                    ThemDong("Số Quyết định", data.QuyetDinh_Khen);
-                    ThemDong("Ngày ban hành", data.NgayCapQD_Khen);
-                    ThemDong("Đơn vị khen", data.DonVi_Khen);
-                    ThemDong("Về việc", data.VeViec_Khen);
-                    ThemDong("Ghi chú", data.GhiChu_Khen);
-                    // 9. BỐ TRÍ VÀ THÊM DỮ LIỆU VÀO FORM
-                    panelContent.Controls.Add(grid);
-                    formAo.Controls.Add(panelContent);
-                    formAo.Controls.Add(panelBottom);
-                    formAo.AcceptButton = btnClose;
-                    formAo.CancelButton = btnClose;
-                    // 10. UX KHI SHOW FORM
-                    formAo.Shown += (s, e) =>
-                    {
-                        grid.ClearSelection();
-                        if (grid.Rows.Count > 0)
-                            grid.FirstDisplayedScrollingRowIndex = 0;
-                        btnClose.Focus();
-                    };
-                    // 11. HIỂN THỊ DIALOG
-                    formAo.ShowDialog(this);
-                }
+                System.Text.RegularExpressions.Match match =
+                    System.Text.RegularExpressions.Regex.Match(giaTriNam, @"\b(19|20)\d{2}\b");
+                if (match.Success)
+                    nam = match.Value;
             }
+            // 3. KHOANH VÙNG FORM ẢO
+            using (var formAo = new FormAoBase())
+            {
+                formAo.Text = $"Chi tiết khen thưởng năm {nam}";
+                // Mở rộng Form lên 740x600 để có không gian thoải mái cho chữ dãn dòng
+                formAo.Size = new System.Drawing.Size(740, 600);
+                formAo.FormBorderStyle = FormBorderStyle.FixedDialog;
+                formAo.MaximizeBox = false;
+                formAo.MinimizeBox = false;
+                formAo.ShowIcon = false;
+                formAo.ShowInTaskbar = false;
+                formAo.StartPosition = FormStartPosition.CenterParent;
+                formAo.BackColor = mauNen;
+                // 4. FOOTER PANEL & NÚT ĐÓNG
+                var panelBottom = new Panel
+                {
+                    Dock = DockStyle.Bottom,
+                    Height = 60,
+                    BackColor = mauFooter
+                };
+                var btnClose = new KryptonButton
+                {
+                    Text = "Đóng",
+                    Width = 120,
+                    Height = 38,
+                    DialogResult = DialogResult.OK,
+                    Anchor = AnchorStyles.None
+                };
+                btnClose.StateCommon.Content.ShortText.Font = _fontGrid10Bold;
+                btnClose.StateCommon.Border.Rounding = 5;
+                btnClose.Location = new Point((formAo.ClientSize.Width - btnClose.Width) / 2, 11);
+                panelBottom.Controls.Add(btnClose);
+                // 5. PANEL NỘI DUNG CHÍNH
+                var panelContent = new KryptonPanel
+                {
+                    Dock = DockStyle.Fill,
+                    Padding = new Padding(20, 20, 20, 10)
+                };
+                panelContent.StateCommon.Color1 = mauNen;
+                // 6. DATAGRIDVIEW CẤU HÌNH (TỰ ĐỘNG DÃN DÒNG)
+                var grid = new KryptonDataGridView
+                {
+                    Dock = DockStyle.Fill,
+                    ReadOnly = true,
+                    AllowUserToAddRows = false,
+                    AllowUserToDeleteRows = false,
+                    AllowUserToResizeRows = false,
+                    AllowUserToResizeColumns = false,
+                    RowHeadersVisible = false,
+                    ColumnHeadersVisible = false,
+                    SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                    MultiSelect = false,
+                    BackgroundColor = mauNen,
+                    BorderStyle = BorderStyle.None,
+                    AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells,
+                    AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
+                };
+                grid.GridStyles.Style = DataGridViewStyle.List;
+                grid.StateCommon.Background.Color1 = mauNen;
+                grid.StateCommon.DataCell.Content.Font = _fontGrid10Regular;
+                grid.RowTemplate.MinimumHeight = 42;
+                // Cột 0: Tên thông tin
+                grid.Columns.Add("Ten", "Thông tin");
+                var cotTen = grid.Columns[0];
+                cotTen.AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+                cotTen.Width = 200;
+                cotTen.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                cotTen.DefaultCellStyle.Font = _fontGrid10Bold;
+                cotTen.DefaultCellStyle.BackColor = mauNhan;
+                cotTen.DefaultCellStyle.Padding = new Padding(15, 8, 10, 8);
+                // Cột 1: Giá trị nội dung
+                grid.Columns.Add("GiaTri", "Nội dung");
+                var cotGiaTri = grid.Columns[1];
+                cotGiaTri.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                cotGiaTri.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+                cotGiaTri.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                cotGiaTri.DefaultCellStyle.Padding = new Padding(10, 8, 15, 8);
+                // 7. HÀM THÊM DÒNG DỮ LIỆU
+                int ThemDong(string ten, string giaTri, Color? mauGiaTri = null, Font fontGiaTri = null)
+                {
+                    int rowIndex = grid.Rows.Add(
+                        string.IsNullOrWhiteSpace(ten) ? "" : ten.Trim(),
+                        string.IsNullOrWhiteSpace(giaTri) ? "—" : giaTri.Trim());
+                    var rowData = grid.Rows[rowIndex];
+                    if (mauGiaTri.HasValue)
+                        rowData.Cells[1].Style.ForeColor = mauGiaTri.Value;
+                    if (fontGiaTri != null)
+                        rowData.Cells[1].Style.Font = fontGiaTri;
+                    return rowIndex;
+                }
+                // 8. NẠP DỮ LIỆU VÀO GRID
+                ThemDong("Họ và tên", data.HoVaTen, Color.Green, _fontGrid10Bold);
+                ThemDong("Số hiệu", data.SoHieu);
+                ThemDong("Đơn vị công tác", data.DonVi);
+                // Tình trạng công tác
+                string tinhTrang = data.TinhTrang?.Trim() ?? "";
+                Color? mauTinhTrang = null;
+                Font fontTinhTrang = null;
+                if (tinhTrang.Equals(Module_HeThong.TT_DANG_CONG_TAC, StringComparison.OrdinalIgnoreCase))
+                {
+                    mauTinhTrang = mauDangCongTac;
+                    fontTinhTrang = _fontGrid10Bold;
+                }
+                else if (tinhTrang.Equals(Module_HeThong.TT_CHUYEN_CONG_TAC, StringComparison.OrdinalIgnoreCase))
+                {
+                    mauTinhTrang = mauChuyenCongTac;
+                    fontTinhTrang = _fontGrid10Bold;
+                }
+                ThemDong("Tình trạng", tinhTrang, mauTinhTrang, fontTinhTrang);
+                // Chi tiết khen thưởng
+                ThemDong("Hình thức khen", data.HinhThuc_Khen);
+                ThemDong("Số Quyết định", data.QuyetDinh_Khen);
+                ThemDong("Ngày ban hành", data.NgayCapQD_Khen);
+                ThemDong("Đơn vị khen", data.DonVi_Khen);
+                ThemDong("Về việc", data.VeViec_Khen);
+                ThemDong("Ghi chú", data.GhiChu_Khen);
+                // 9. BỐ TRÍ VÀ THÊM DỮ LIỆU VÀO FORM
+                panelContent.Controls.Add(grid);
+                formAo.Controls.Add(panelContent);
+                formAo.Controls.Add(panelBottom);
+                formAo.AcceptButton = btnClose;
+                formAo.CancelButton = btnClose;
+                // 10. UX KHI SHOW FORM
+                formAo.Shown += (s, e) =>
+                {
+                    grid.ClearSelection();
+                    if (grid.Rows.Count > 0)
+                        grid.FirstDisplayedScrollingRowIndex = 0;
+                    btnClose.Focus();
+                };
+                // 11. HIỂN THỊ DIALOG
+                formAo.ShowDialog(this);
+            }
+        }
     }
 }

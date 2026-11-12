@@ -1,4 +1,6 @@
-﻿///Phiên bản 3 (Tối ưu khởi động: bỏ khôi phục CSDL trùng lặp, đẩy tuần tra/đồng bộ nặng xuống nền)
+﻿///Dự án này tôi làm đơn giản là vì đam mê code và lập trình C#, chứ không vì ai cả, không vì cái gì cả!
+
+///Phiên bản 3 (Tối ưu khởi động: bỏ khôi phục CSDL trùng lặp, đẩy tuần tra/đồng bộ nặng xuống nền)
 ///
 using Microsoft.Win32;
 using System.Diagnostics;

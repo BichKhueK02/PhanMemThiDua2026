@@ -1,4 +1,7 @@
-﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+﻿
+///Phiên bản 2
+///
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Microsoft.Data.Sqlite;
 using SQLitePCL;
 using System.Data;
@@ -13,12 +16,12 @@ namespace PhanMemThiDua2026
         private readonly Image _iconActiveUser = Properties.Resources.client_account_template;
         private readonly Image _iconSystemUser = Properties.Resources.ic_default; // Thay bằng icon system của bạn nếu có
         private readonly Image _iconNormalUser = Properties.Resources.ic_user;
-        private readonly Color _headerBackColor = Color.FromArgb(225, 232, 241);
-        private readonly Color _headerForeColor = Color.FromArgb(30, 30, 30);
-        private readonly Color _gridLineColor = Color.FromArgb(210, 210, 210);
-        private readonly Color _selectionBackColor = Color.FromArgb(210, 228, 255);
-        private readonly Color _selectionForeColor = Color.Black;
-        private readonly Color _alternateRowColor = Color.FromArgb(248, 250, 252);
+        private readonly Color _headerBackColor = Color.FromArgb(238, 232, 255);
+        private readonly Color _headerForeColor = Color.FromArgb(75, 20, 130);
+        private readonly Color _gridLineColor = Color.FromArgb(235, 238, 243);
+        private readonly Color _selectionBackColor = Color.FromArgb(239, 246, 255);
+        private readonly Color _selectionForeColor = Color.FromArgb(30, 41, 59);
+        private readonly Color _alternateRowColor = Color.White;   // không tô vạch xen kẽ, giống lưới Form4
         private static readonly Font _headerFont = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
         private static readonly Font _cellFont = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private static readonly Font _cellBoldFont = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
@@ -35,6 +38,8 @@ namespace PhanMemThiDua2026
         public Form25_ThongKeTaiKhoanDaSuDung()
         {
             InitializeComponent();
+            GiaoDienForm25Web.ApDung(this);          // giao diện kiểu web như Form4/Form10 (thẻ, nút tím, khung lưới) - chỉ đổi trình bày
+            this.CancelButton = kryptonButton_Dong;  // tooltip của nút Đóng ghi "Phím tắt: ESC" nhưng trước đây chưa gắn phím này
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -289,6 +294,7 @@ namespace PhanMemThiDua2026
             // FONT ĐẬM CHO CỘT QUAN TRỌNG
             dgv.Columns["TinhTrang"].DefaultCellStyle.Font = _cellBoldFont;
             dgv.Columns["SoLuotHanhDong"].DefaultCellStyle.Font = _cellBoldFont;
+            GiaoDienForm25Web.StyleLuoi(dgv);   // tiêu đề tím nhạt phẳng + đường kẻ nhạt + dòng chọn xanh nhạt (giống Form4/Form10)
             dgv.ResumeLayout();
             _gridInitialized = true;
         }

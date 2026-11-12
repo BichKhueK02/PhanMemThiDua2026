@@ -86,7 +86,8 @@ namespace PhanMemThiDua2026
         public Form15_ThongKeThiDua()
         {
             InitializeComponent();
-            _mauChuTrangThai = toolStripStatusLabel1.ForeColor;
+            GiaoDienForm15Web.ApDung(this);                       // THÊM
+            _mauChuTrangThai = toolStripStatusLabel1.ForeColor;   // giữ nguyên
             BatDoubleBufferDeQuy(this);   // giảm chớp khi layout/resize các container lồng nhau
             Module_TaiKhoan.OnPhienBanThayDoi += Module_TaiKhoan_OnPhienBanThayDoi;
             this.KeyPreview = true;

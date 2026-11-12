@@ -1219,7 +1219,7 @@ namespace PhanMemThiDua2026
             if (btn == null || btn.IsDisposed) return;
             Module_SidebarHienDai.DatTrangThai(btn, false);
         }
-        // ================= PRELOAD AN TOÀN (gọi từ Form2Preloader, trên luồng UI) =================
+        // ================= PRELOAD AN TOÀN (gọi từ GiaoDienForm2Web, trên luồng UI) =================
         internal Task<bool>? TacVuPreloadDuLieu;
         private const bool NapTruocFormConTrangChu = true;  // đặt false nếu Form4 có đọc dữ liệu theo tài khoản ngay trong constructor
         private const bool NapTruocFormConDuLieu = true;     // tạo sẵn trang Dữ liệu (Form6) - trang nặng nhất

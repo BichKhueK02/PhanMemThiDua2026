@@ -165,7 +165,7 @@ namespace PhanMemThiDua2026
 
                 await Task.Delay(800);   // để người dùng gõ tài khoản trước, rồi mới nạp Form2
                 if (IsDisposed) return;
-                _ = Form2Preloader.NapTruocAsync(() => IsDisposed);
+                _ = GiaoDienForm2Web.NapTruocAsync(() => IsDisposed);
             }
             catch (Exception ex) { Debug.WriteLine("[Lỗi Load Ngầm Form 1]: " + ex.Message); }
         }
@@ -709,7 +709,7 @@ namespace PhanMemThiDua2026
             // AUTO LOGIN MỞ FORM 2 SAU KHI FINALLY ĐÃ XỬ LÝ XONG
             if (tuDongDangNhap)
             {
-                var frmTrangChu = Form2Preloader.Lay();
+                var frmTrangChu = GiaoDienForm2Web.Lay();
                 frmTrangChu.ApDungPhienDangNhap();
                 frmTrangChu.Show();
                 // Vẫn giữ this.Hide() cho Form1 (không Close vì Form1 là form khởi chạy ở Program.cs,
@@ -745,7 +745,7 @@ namespace PhanMemThiDua2026
         private void DanhThucFrom2()
         {
             // Lấy Form2 đã nạp trước (nếu chưa có thì tự tạo), gắn phiên đăng nhập rồi hiện
-            var form2 = Form2Preloader.Lay();
+            var form2 = GiaoDienForm2Web.Lay();
             form2.ApDungPhienDangNhap();
             form2.Show();
             form2.BringToFront();

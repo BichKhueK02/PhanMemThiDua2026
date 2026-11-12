@@ -8,7 +8,7 @@ namespace PhanMemThiDua2026
     /// - Chỉ làm những việc KHÔNG phụ thuộc người dùng. Dữ liệu theo tài khoản vẫn nạp sau khi
     ///   đăng nhập (Form2_Load chạy ở lần Show đầu tiên, lúc đó SessionInfo đã có).
     /// </summary>
-    internal static class Form2Preloader
+    internal static class GiaoDienForm2Web
     {
         private static Form2_FormCha? _form2;
         private static bool _dangNap;
