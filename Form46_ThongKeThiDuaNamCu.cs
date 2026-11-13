@@ -36,6 +36,7 @@ namespace PhanMemThiDua2026
         public Form46_ThongKeThiDuaNamCu()
         {
             InitializeComponent();
+            GiaoDienForm46Web.ApDung(this);
             this.KeyPreview = true;
             this.VisibleChanged += Form46_VisibleChanged;
             // ⭐ KÍCH HOẠT VIRTUAL MODE CHUẨN MỰC GIỐNG FORM 15

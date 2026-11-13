@@ -69,7 +69,7 @@ namespace PhanMemThiDua2026
         public Form6_XuLyData()
         {
             InitializeComponent();
-            ApDungGiaoDienWeb();                           // giao diện kiểu web (Form6_XuLyData.GiaoDienWeb.cs) - chỉ trình bày
+            GiaoDienForm6Web.ApDung(this);                        // giao diện kiểu web (Form6_XuLyData.GiaoDienWeb.cs) - chỉ trình bày
             BatDoubleBufferDeQuy(this);                    // giảm chớp khi layout/resize các khối lồng nhau
             kryptonDataGridView1.EnableDoubleBuffered(true);   // bật sớm (trước đây chỉ bật trong Load)
             this.KeyPreview = true; // THÊM DÒNG NÀY

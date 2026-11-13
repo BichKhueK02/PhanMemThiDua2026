@@ -1,23 +1,163 @@
-﻿///Phiên bản 3
+﻿///Phiên bản 4
 using Color = System.Drawing.Color;
 using Font = System.Drawing.Font;
 using System.Drawing.Drawing2D;
+using System.Reflection;
 namespace PhanMemThiDua2026
 {
     // =====================================================================================
-    //  GIAO DIỆN "KIỂU TRANG WEB" CỦA FORM6  —  CHỈ TRÌNH BÀY, KHÔNG CHỨA LOGIC NGHIỆP VỤ
-    //  - ApDungGiaoDienWeb() được gọi 1 lần ngay sau InitializeComponent() (trong constructor).
-    //  - Một số thuộc tính (màu lưới, bo góc ô nhập...) bị code gốc đặt lại trong Form6_Load,
-    //    nên phần "HoanThienGiaoDienSauLoad" được móc vào sự kiện Load SAU Form6_Load để giữ
-    //    đúng giao diện mà KHÔNG phải sửa bất kỳ dòng logic nào.
-    //  - Không đổi tên / kiểu / sự kiện của control nào => code nghiệp vụ giữ nguyên 100%.
-    //  - Mọi kích thước (px) viết theo đơn vị thiết kế 96 DPI; WinForms tự scale theo DPI.
+    //  GIAO DIỆN "KIỂU TRANG WEB" CỦA Form6_XuLyData  —  CHỈ TRÌNH BÀY, KHÔNG CHỨA LOGIC NGHIỆP VỤ
+    //  DẠNG MODULE ĐỘC LẬP (không còn là partial class của form) => Visual Studio không còn coi file này là
+    //  form phụ nên KHÔNG tự sinh file .resx đi kèm. Có thể xóa file Form6_XuLyData.GiaoDienWeb.resx.
+    //
+    //  Cách dùng: trong constructor Form6_XuLyData, thay dòng
+    //        ApDungGiaoDienWeb();
+    //  bằng
+    //        GiaoDienForm6Web.ApDung(this);
+    //  - Các control của form (private trong Designer) được lấy theo TÊN bằng reflection, nên không phải sửa Designer
+    //    hay đổi tên/kiểu/sự kiện control nào => code nghiệp vụ giữ nguyên 100%.
+    //  - Một số thuộc tính (màu lưới, bo góc ô nhập...) bị Form6_Load đặt lại nên phần HoanThienGiaoDienSauLoad
+    //    được móc vào sự kiện Load SAU Form6_Load (đăng ký sau nên chạy sau).
+    //  - Dùng lại OComboWebF4 trong GiaoDienForm4Web.cs (file đó phải còn trong project).
+    //  - Lỗi trình bày không bao giờ làm form không mở được (bọc try/catch).
+    //  - Mọi kích thước (px) viết theo đơn vị thiết kế 96 DPI.
     // =====================================================================================
-    // LƯU Ý: KHÔNG gắn [DesignerCategory("Code")] ở đây — attribute trên partial class áp cho CẢ lớp
-    // (kể cả Form6_XuLyData.cs) nên sẽ làm mất biểu tượng/designer của form.
-    // Việc "file này chỉ là code" được khai báo trong .csproj bằng <SubType>Code</SubType>.
-    public partial class Form6_XuLyData
+    internal sealed class GiaoDienForm6Web
     {
+        private readonly Form _f;
+
+        // ---------- Các control của form (lấy theo tên, cùng tên với Designer) ----------
+        private readonly ComboBox comboBox_ChucVu;
+        private readonly ComboBox comboBox_PhanLoai;
+        private readonly ComboBox comboBox_TimKiemDonVi;
+        private readonly ComboBox comboBox_XepLoaiThiDua;
+        private readonly ContextMenuStrip contextMenuStrip1;
+        private readonly GroupBox groupBox1_TimKiemThongTinCBCS;
+        private readonly GroupBox groupBox2_KhoiLenhDieuKhien;
+        private readonly GroupBox groupBox3_ThongTinCBCS;
+        private readonly Krypton.Toolkit.KryptonButton kryptonButton1_HuongDanThemDuLieu;
+        private readonly Krypton.Toolkit.KryptonButton kryptonButton1_ThiDuaBaNhat;
+        private readonly Krypton.Toolkit.KryptonButton kryptonButton_LamMoiCacOTimKiem;
+        private readonly Krypton.Toolkit.KryptonButton kryptonButton_LuuDataCapNhat;
+        private readonly Krypton.Toolkit.KryptonButton kryptonButton_RefershCSDL;
+        private readonly Krypton.Toolkit.KryptonButton kryptonButton_XoaDataCBCS;
+        private readonly Krypton.Toolkit.KryptonButton kryptonButton_XoaKetQuaPhanLoai;
+        private readonly Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1;
+        private readonly Label label10;
+        private readonly Label label11;
+        private readonly Label label12;
+        private readonly Label label13;
+        private readonly Label label14;
+        private readonly Label label15;
+        private readonly Label label16;
+        private readonly Label label3;
+        private readonly Label label4;
+        private readonly Label label5;
+        private readonly Label label6;
+        private readonly Label label7;
+        private readonly Label label8;
+        private readonly Label label9;
+        private readonly PictureBox pictureBox1;
+        private readonly SplitContainer splitContainer1;
+        private readonly StatusStrip statusStrip1;
+        private readonly TableLayoutPanel tableLayoutPanel1;
+        private readonly TableLayoutPanel tableLayoutPanel2;
+        private readonly TableLayoutPanel tableLayoutPanel3;
+        private readonly TableLayoutPanel tableLayoutPanel5;
+        private readonly TableLayoutPanel tableLayoutPanel6;
+        private readonly TableLayoutPanel tableLayoutPanel8;
+        private readonly TableLayoutPanel tableLayoutPanel9;
+        private readonly ComboBox textBox_CapBac;
+        private readonly ComboBox textBox_DonVi;
+        private readonly Krypton.Toolkit.KryptonTextBox textBox_GhiChu;
+        private readonly Krypton.Toolkit.KryptonTextBox textBox_HoVaTen;
+        private readonly Krypton.Toolkit.KryptonTextBox textBox_NamSinh;
+        private readonly Krypton.Toolkit.KryptonTextBox textBox_NgayVaoCAND;
+        private readonly Krypton.Toolkit.KryptonTextBox textBox_QueQuan;
+        private readonly Krypton.Toolkit.KryptonTextBox textBox_STT;
+        private readonly Krypton.Toolkit.KryptonTextBox textBox_SoHieu;
+        private readonly Krypton.Toolkit.KryptonTextBox textBox_TimKiemTheoTen;
+        private readonly ToolStripStatusLabel toolStripStatusLabel1;
+        private readonly ToolStripStatusLabel toolStripStatusLabel2_KhongPL;
+        private readonly ToolStripStatusLabel toolStripStatusLabel2_Loai1;
+        private readonly ToolStripStatusLabel toolStripStatusLabel2_Loai2;
+        private readonly ToolStripStatusLabel toolStripStatusLabel2_Loai3;
+        private readonly ToolStripStatusLabel toolStripStatusLabel2_Loai4;
+
+        public static void ApDung(Form f)
+        {
+            try { new GiaoDienForm6Web(f).Chay(); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[GiaoDienForm6Web] " + ex.Message); }
+        }
+
+        private GiaoDienForm6Web(Form f)
+        {
+            _f = f;
+            comboBox_ChucVu = Lay<ComboBox>("comboBox_ChucVu");
+            comboBox_PhanLoai = Lay<ComboBox>("comboBox_PhanLoai");
+            comboBox_TimKiemDonVi = Lay<ComboBox>("comboBox_TimKiemDonVi");
+            comboBox_XepLoaiThiDua = Lay<ComboBox>("comboBox_XepLoaiThiDua");
+            contextMenuStrip1 = Lay<ContextMenuStrip>("contextMenuStrip1");
+            groupBox1_TimKiemThongTinCBCS = Lay<GroupBox>("groupBox1_TimKiemThongTinCBCS");
+            groupBox2_KhoiLenhDieuKhien = Lay<GroupBox>("groupBox2_KhoiLenhDieuKhien");
+            groupBox3_ThongTinCBCS = Lay<GroupBox>("groupBox3_ThongTinCBCS");
+            kryptonButton1_HuongDanThemDuLieu = Lay<Krypton.Toolkit.KryptonButton>("kryptonButton1_HuongDanThemDuLieu");
+            kryptonButton1_ThiDuaBaNhat = Lay<Krypton.Toolkit.KryptonButton>("kryptonButton1_ThiDuaBaNhat");
+            kryptonButton_LamMoiCacOTimKiem = Lay<Krypton.Toolkit.KryptonButton>("kryptonButton_LamMoiCacOTimKiem");
+            kryptonButton_LuuDataCapNhat = Lay<Krypton.Toolkit.KryptonButton>("kryptonButton_LuuDataCapNhat");
+            kryptonButton_RefershCSDL = Lay<Krypton.Toolkit.KryptonButton>("kryptonButton_RefershCSDL");
+            kryptonButton_XoaDataCBCS = Lay<Krypton.Toolkit.KryptonButton>("kryptonButton_XoaDataCBCS");
+            kryptonButton_XoaKetQuaPhanLoai = Lay<Krypton.Toolkit.KryptonButton>("kryptonButton_XoaKetQuaPhanLoai");
+            kryptonDataGridView1 = Lay<Krypton.Toolkit.KryptonDataGridView>("kryptonDataGridView1");
+            label10 = Lay<Label>("label10");
+            label11 = Lay<Label>("label11");
+            label12 = Lay<Label>("label12");
+            label13 = Lay<Label>("label13");
+            label14 = Lay<Label>("label14");
+            label15 = Lay<Label>("label15");
+            label16 = Lay<Label>("label16");
+            label3 = Lay<Label>("label3");
+            label4 = Lay<Label>("label4");
+            label5 = Lay<Label>("label5");
+            label6 = Lay<Label>("label6");
+            label7 = Lay<Label>("label7");
+            label8 = Lay<Label>("label8");
+            label9 = Lay<Label>("label9");
+            pictureBox1 = Lay<PictureBox>("pictureBox1");
+            splitContainer1 = Lay<SplitContainer>("splitContainer1");
+            statusStrip1 = Lay<StatusStrip>("statusStrip1");
+            tableLayoutPanel1 = Lay<TableLayoutPanel>("tableLayoutPanel1");
+            tableLayoutPanel2 = Lay<TableLayoutPanel>("tableLayoutPanel2");
+            tableLayoutPanel3 = Lay<TableLayoutPanel>("tableLayoutPanel3");
+            tableLayoutPanel5 = Lay<TableLayoutPanel>("tableLayoutPanel5");
+            tableLayoutPanel6 = Lay<TableLayoutPanel>("tableLayoutPanel6");
+            tableLayoutPanel8 = Lay<TableLayoutPanel>("tableLayoutPanel8");
+            tableLayoutPanel9 = Lay<TableLayoutPanel>("tableLayoutPanel9");
+            textBox_CapBac = Lay<ComboBox>("textBox_CapBac");
+            textBox_DonVi = Lay<ComboBox>("textBox_DonVi");
+            textBox_GhiChu = Lay<Krypton.Toolkit.KryptonTextBox>("textBox_GhiChu");
+            textBox_HoVaTen = Lay<Krypton.Toolkit.KryptonTextBox>("textBox_HoVaTen");
+            textBox_NamSinh = Lay<Krypton.Toolkit.KryptonTextBox>("textBox_NamSinh");
+            textBox_NgayVaoCAND = Lay<Krypton.Toolkit.KryptonTextBox>("textBox_NgayVaoCAND");
+            textBox_QueQuan = Lay<Krypton.Toolkit.KryptonTextBox>("textBox_QueQuan");
+            textBox_STT = Lay<Krypton.Toolkit.KryptonTextBox>("textBox_STT");
+            textBox_SoHieu = Lay<Krypton.Toolkit.KryptonTextBox>("textBox_SoHieu");
+            textBox_TimKiemTheoTen = Lay<Krypton.Toolkit.KryptonTextBox>("textBox_TimKiemTheoTen");
+            toolStripStatusLabel1 = Lay<ToolStripStatusLabel>("toolStripStatusLabel1");
+            toolStripStatusLabel2_KhongPL = Lay<ToolStripStatusLabel>("toolStripStatusLabel2_KhongPL");
+            toolStripStatusLabel2_Loai1 = Lay<ToolStripStatusLabel>("toolStripStatusLabel2_Loai1");
+            toolStripStatusLabel2_Loai2 = Lay<ToolStripStatusLabel>("toolStripStatusLabel2_Loai2");
+            toolStripStatusLabel2_Loai3 = Lay<ToolStripStatusLabel>("toolStripStatusLabel2_Loai3");
+            toolStripStatusLabel2_Loai4 = Lay<ToolStripStatusLabel>("toolStripStatusLabel2_Loai4");
+        }
+
+        private T Lay<T>(string ten) where T : class
+        {
+            var fi = _f.GetType().GetField(ten, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                     ?? throw new MissingFieldException(_f.GetType().Name, ten);
+            return (T)fi.GetValue(_f)!;
+        }
+
         // ---------- BẢNG MÀU (tông Slate + Blue, giống các web admin hiện đại) ----------
         private static readonly Color MauNenTrang = Color.FromArgb(244, 246, 250);   // nền trang
         private static readonly Color MauThe = Color.White;                          // nền thẻ
@@ -48,12 +188,12 @@ namespace PhanMemThiDua2026
         // =====================================================================================
         //  1) ÁP DỤNG GIAO DIỆN (gọi trong constructor, ngay sau InitializeComponent)
         // =====================================================================================
-        private void ApDungGiaoDienWeb()
+        private void Chay()
         {
-            SuspendLayout();
+            _f.SuspendLayout();
             try
             {
-                BackColor = MauNenTrang;
+                _f.BackColor = MauNenTrang;
 
                 DinhBoCucTong();
                 DinhTheGroupBox();
@@ -67,12 +207,12 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                ResumeLayout(true);
+                _f.ResumeLayout(true);
             }
 
             // Các phần bị Form6_Load đặt lại -> áp dụng lại SAU Form6_Load (đăng ký sau nên chạy sau).
-            Load += (s, e) => { HoanThienGiaoDienSauLoad(); CanGiuaNoiDung(); };
-            SizeChanged += (s, e) => CanGiuaNoiDung();
+            _f.Load += (s, e) => { HoanThienGiaoDienSauLoad(); CanGiuaNoiDung(); };
+            _f.SizeChanged += (s, e) => CanGiuaNoiDung();
         }
 
         // ---------- Bố cục tổng: nền trang + khoảng đệm + hàng đầu cố định, phần dưới co giãn ----------
@@ -172,10 +312,10 @@ namespace PhanMemThiDua2026
 
         private void CanGiuaNoiDung()
         {
-            if (IsDisposed || tableLayoutPanel1 == null) return;
-            int toiDa = LogicalToDeviceUnits(RongToiDa);
-            int leToiThieu = LogicalToDeviceUnits(12);
-            int le = Math.Max(leToiThieu, (ClientSize.Width - toiDa) / 2);
+            if (_f.IsDisposed || tableLayoutPanel1 == null) return;
+            int toiDa = _f.LogicalToDeviceUnits(RongToiDa);
+            int leToiThieu = _f.LogicalToDeviceUnits(12);
+            int le = Math.Max(leToiThieu, (_f.ClientSize.Width - toiDa) / 2);
             var p = tableLayoutPanel1.Padding;
             if (p.Left == le && p.Right == le) return;
             tableLayoutPanel1.Padding = new Padding(le, p.Top, le, p.Bottom);

@@ -152,12 +152,59 @@ namespace PhanMemThiDua2026
             => Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault()?.DanhDauCanNapLai();
 
         // ===================== LƯỚI =====================
+        //private void CauHinhGridMotLan()
+        //{
+        //    if (_daCauHinhGrid) return;
+        //    var g = kryptonDataGridView1;
+        //    _pDoubleBuffered?.SetValue(g, true, null);
+        //    g.AutoGenerateColumns = false;   // quan trọng: không sinh lại cột mỗi lần đổi DataSource
+        //    g.AllowUserToAddRows = false; g.AllowUserToDeleteRows = false;
+        //    g.AllowUserToResizeRows = false; g.AllowUserToOrderColumns = false;
+        //    g.RowHeadersVisible = false; g.ReadOnly = true; g.MultiSelect = false;
+        //    g.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+        //    g.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+        //    g.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
+        //    g.RowTemplate.Height = 36;
+        //    g.ColumnHeadersHeight = 50;
+        //    g.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+        //    g.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+        //    g.StateCommon.HeaderColumn.Content.Font = _fontBold9;
+        //    g.StateCommon.DataCell.Content.Font = _fontRegular9;
+        //    g.StateCommon.DataCell.Border.Color1 = Color.FromArgb(224, 224, 224);
+        //    g.StateCommon.DataCell.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
+        //    g.StateCommon.DataCell.Border.Width = 1;
+        //    g.StateSelected.DataCell.Back.Color1 = Color.FromArgb(232, 244, 253);
+        //    g.StateSelected.DataCell.Content.Color1 = Color.FromArgb(0, 102, 204);
+
+        //    var giua = DataGridViewContentAlignment.MiddleCenter;
+        //    var trai = DataGridViewContentAlignment.MiddleLeft;
+        //    g.Columns.AddRange(
+        //        Cot("ID", "ID", 40, giua, hien: false),
+        //        Cot("STT", "STT", 40, giua),
+        //        Cot("HoVaTen", "Họ và tên", 180, trai),
+        //        Cot("SoHieu", "Số hiệu", 80, giua),
+        //        Cot("NamSinh", "Năm sinh", 85, giua),
+        //        Cot("QueQuan", "Quê quán", 150, trai),
+        //        Cot("NgayVaoCAND", "Vào CAND", 100, giua),
+        //        Cot("CapBac", "Cấp bậc", 80, giua),
+        //        Cot("ChucVu", "Chức vụ", 110, giua),
+        //        Cot("DonVi", "Đơn vị", 80, giua),
+        //        Cot("PhanLoai", "Phân loại", 80, giua, hien: false),
+        //        Cot("GhiChu", "Ghi chú", 120, trai),
+        //        Cot("ThanhTich", "Thành tích", 180, trai, fill: false),
+        //        Cot("ThongBaoTrungDoan", "Thông báo E", 120, giua),
+        //        Cot("SoTTTrongSo", "Số vào sổ", 90, giua),
+        //        Cot("ThangCongNhan", "Tháng vào sổ", 160, giua));
+        //    _cotThanhTich = g.Columns["ThanhTich"]!.Index;   // CellFormatting so sánh theo chỉ số, không so chuỗi mỗi ô vẽ
+        //    _daCauHinhGrid = true;
+        //}
+
         private void CauHinhGridMotLan()
         {
             if (_daCauHinhGrid) return;
             var g = kryptonDataGridView1;
             _pDoubleBuffered?.SetValue(g, true, null);
-            g.AutoGenerateColumns = false;   // quan trọng: không sinh lại cột mỗi lần đổi DataSource
+            g.AutoGenerateColumns = false;
             g.AllowUserToAddRows = false; g.AllowUserToDeleteRows = false;
             g.AllowUserToResizeRows = false; g.AllowUserToOrderColumns = false;
             g.RowHeadersVisible = false; g.ReadOnly = true; g.MultiSelect = false;
@@ -178,27 +225,29 @@ namespace PhanMemThiDua2026
 
             var giua = DataGridViewContentAlignment.MiddleCenter;
             var trai = DataGridViewContentAlignment.MiddleLeft;
+
+            // Tinh chỉnh tỷ trọng lần cuối dựa trên ảnh thực tế:
             g.Columns.AddRange(
-                Cot("ID", "ID", 40, giua, hien: false),
-                Cot("STT", "STT", 40, giua),
-                Cot("HoVaTen", "Họ và tên", 180, trai),
-                Cot("SoHieu", "Số hiệu", 80, giua),
-                Cot("NamSinh", "Năm sinh", 85, giua),
-                Cot("QueQuan", "Quê quán", 150, trai),
-                Cot("NgayVaoCAND", "Vào CAND", 100, giua),
-                Cot("CapBac", "Cấp bậc", 80, giua),
-                Cot("ChucVu", "Chức vụ", 110, giua),
-                Cot("DonVi", "Đơn vị", 80, giua),
-                Cot("PhanLoai", "Phân loại", 80, giua, hien: false),
-                Cot("GhiChu", "Ghi chú", 120, trai),
-                Cot("ThanhTich", "Thành tích", 180, trai, fill: false),
-                Cot("ThongBaoTrungDoan", "Thông báo E", 120, giua),
-                Cot("SoTTTrongSo", "Số vào sổ", 90, giua),
-                Cot("ThangCongNhan", "Tháng vào sổ", 160, giua));
-            _cotThanhTich = g.Columns["ThanhTich"]!.Index;   // CellFormatting so sánh theo chỉ số, không so chuỗi mỗi ô vẽ
+                Cot("ID", "ID", 30, giua, hien: false),
+                Cot("STT", "STT", 35, giua),                 // Giữ gọn gàng
+                Cot("HoVaTen", "Họ và tên", 190, trai),       // Đủ thoáng cho tên dài
+                Cot("SoHieu", "Số hiệu", 70, giua),
+                Cot("NamSinh", "Năm sinh", 60, giua),
+                Cot("QueQuan", "Quê quán", 105, trai),       // Thu gọn bớt vì đang dư khoảng trống
+                Cot("NgayVaoCAND", "Vào CAND", 75, giua),
+                Cot("CapBac", "Cấp bậc", 60, giua),          // Thu gọn vì cấp bậc ngắn (H1, U2...)
+                Cot("ChucVu", "Chức vụ", 85, trai),
+                Cot("DonVi", "Đơn vị", 70, giua),
+                Cot("PhanLoai", "Phân loại", 70, giua, hien: false),
+                Cot("GhiChu", "Ghi chú", 75, trai),          // Thu gọn bớt
+                Cot("ThanhTich", "Thành tích", 240, trai),   // TĂNG MẠNH lên 240 để hiển thị trọn vẹn nội dung dài
+                Cot("ThongBaoTrungDoan", "Thông báo E", 75, giua), // Thu gọn bớt
+                Cot("SoTTTrongSo", "Số vào sổ", 70, giua),
+                Cot("ThangCongNhan", "Tháng vào sổ", 85, giua));
+
+            _cotThanhTich = g.Columns["ThanhTich"]!.Index;
             _daCauHinhGrid = true;
         }
-
         private static DataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,
             DataGridViewContentAlignment canh, bool hien = true, bool fill = true)
         {

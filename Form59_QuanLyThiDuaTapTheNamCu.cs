@@ -1,4 +1,4 @@
-﻿ ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
@@ -20,6 +20,7 @@ namespace PhanMemThiDua2026
         public Form59_QuanLyThiDuaTapTheNamCu()
         {
             InitializeComponent();
+            GiaoDienForm59Web.ApDung(this);   // giao diện kiểu web như Form4 - chỉ đổi trình bày (đây là dòng DUY NHẤT thêm vào code gốc)
             // Chỉ đăng ký sự kiện CellClick ở đây
             this.kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;
             InitThangMapping();
