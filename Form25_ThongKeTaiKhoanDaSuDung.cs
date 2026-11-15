@@ -38,7 +38,7 @@ namespace PhanMemThiDua2026
         public Form25_ThongKeTaiKhoanDaSuDung()
         {
             InitializeComponent();
-            GiaoDienForm25Web.ApDung(this);          // giao diện kiểu web như Form4/Form10 (thẻ, nút tím, khung lưới) - chỉ đổi trình bày
+            Module_GiaoDienForm25Web.ApDung(this);          // giao diện kiểu web như Form4/Form10 (thẻ, nút tím, khung lưới) - chỉ đổi trình bày
             this.CancelButton = kryptonButton_Dong;  // tooltip của nút Đóng ghi "Phím tắt: ESC" nhưng trước đây chưa gắn phím này
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -294,7 +294,7 @@ namespace PhanMemThiDua2026
             // FONT ĐẬM CHO CỘT QUAN TRỌNG
             dgv.Columns["TinhTrang"].DefaultCellStyle.Font = _cellBoldFont;
             dgv.Columns["SoLuotHanhDong"].DefaultCellStyle.Font = _cellBoldFont;
-            GiaoDienForm25Web.StyleLuoi(dgv);   // tiêu đề tím nhạt phẳng + đường kẻ nhạt + dòng chọn xanh nhạt (giống Form4/Form10)
+            Module_GiaoDienForm25Web.StyleLuoi(dgv);   // tiêu đề tím nhạt phẳng + đường kẻ nhạt + dòng chọn xanh nhạt (giống Form4/Form10)
             dgv.ResumeLayout();
             _gridInitialized = true;
         }

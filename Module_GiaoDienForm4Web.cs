@@ -7,7 +7,7 @@ namespace PhanMemThiDua2026
     //  GIAO DIỆN "KIỂU TRANG WEB" CHO Form4_TrangDauTien (Trang chủ) — CHỈ TRÌNH BÀY, KHÔNG CÓ LOGIC NGHIỆP VỤ
     //  - Lớp static độc lập (không phải form) => không tạo .resx, KHÔNG cần sửa .csproj.
     //  - Chỉ cần 1 dòng trong constructor Form4_TrangDauTien, ngay SAU InitializeComponent():
-    //        GiaoDienForm4Web.ApDung(this);
+    //        Module_GiaoDienForm4Web.ApDung(this);
     //  - Tìm control theo Name (không phụ thuộc private) => không đổi tên/kiểu/sự kiện của bất kỳ control nào.
     //  - Những thứ code gốc tự điều khiển lúc chạy được GIỮ NGUYÊN: màu chữ nhãn phần trăm / ô "Mở file" /
     //    đường dẫn lưu, cỡ chữ label11, màu header 2 bảng (tím), màu nút xuất khi hết dữ liệu...
@@ -25,7 +25,7 @@ namespace PhanMemThiDua2026
     //  4) Mọi nút dùng theme tím nhạt (nền #EDE9FE, viền #C4B5FD, chữ #6D28D9); nút chính đậm hơn một nấc. Sửa lỗi nút "Lưu thông tin"
     //     sau khi lưu bị chữ trắng trên nền trắng (do trạng thái focus của Krypton dùng nền theme nhưng chữ của nút).
     // =====================================================================================
-    internal static class GiaoDienForm4Web
+    internal static class Module_GiaoDienForm4Web
     {
         private static readonly Color MauNen = Color.FromArgb(244, 246, 250);
         private static readonly Color MauChuNhan = Color.FromArgb(71, 85, 105);

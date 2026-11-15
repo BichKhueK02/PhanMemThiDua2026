@@ -9,13 +9,13 @@ namespace PhanMemThiDua2026
     //  ở tiêu đề, combo bo tròn, nút theme tím nhạt, bảng có khung bo tròn liền mạch + tiêu đề tím nhạt.
     //
     //  KHÔNG ĐỔI CODE GỐC: Form59 chỉ thêm đúng 1 dòng trong constructor (ngay sau InitializeComponent):
-    //        GiaoDienForm59Web.ApDung(this);
+    //        Module_GiaoDienForm59Web.ApDung(this);
     //  - Không sửa Designer, không đổi tên/kiểu/sự kiện của control nào; tìm control theo Name.
     //  - 14 ô tháng, 3 combo, các nút và mọi sự kiện của code gốc giữ nguyên; chỉ đổi cách hiển thị.
-    //  - Dùng lại lớp thẻ TheBoGocF4 và ô combo bo tròn OComboWebF4 trong GiaoDienForm4Web.cs (file đó phải còn trong project).
+    //  - Dùng lại lớp thẻ TheBoGocF4 và ô combo bo tròn OComboWebF4 trong Module_GiaoDienForm4Web.cs (file đó phải còn trong project).
     //  - Mọi bước bọc try/catch: lỗi trình bày không bao giờ làm form không mở được.
     // =====================================================================================
-    internal static class GiaoDienForm59Web
+    internal static class Module_GiaoDienForm59Web
     {
         // ---------- Bảng màu / font: lấy đúng giá trị của Form4 ----------
         private static readonly Color MauNen = Color.FromArgb(244, 246, 250);
@@ -79,7 +79,7 @@ namespace PhanMemThiDua2026
         private static void An(Action viec, string ten)
         {
             try { viec(); }
-            catch (Exception ex) { Debug.WriteLine($"[GiaoDienForm59Web.{ten}] {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm59Web.{ten}] {ex.Message}"); }
         }
 
         private static T? Tim<T>(Control goc, string ten) where T : Control

@@ -6,14 +6,14 @@ namespace PhanMemThiDua2026
     //  GIAO DIỆN "KIỂU TRANG WEB" CHO Form42_QuanLyThiDuaBaNhat VÀ Form44_SoVangBaNhat — CHỈ TRÌNH BÀY, KHÔNG CÓ LOGIC NGHIỆP VỤ
     //  - Lớp static độc lập (không phải form) => không tạo .resx, KHÔNG sửa .csproj.
     //  - Mỗi form chỉ thêm 1 dòng trong constructor, ngay SAU InitializeComponent();
-    //        Form42:  GiaoDienForm42_44Web.ApDung(this);
-    //        Form44:  GiaoDienForm42_44Web.ApDung(this);
+    //        Form42:  Module_GiaoDienForm42_44Web.ApDung(this);
+    //        Form44:  Module_GiaoDienForm42_44Web.ApDung(this);
     //  - Tìm control theo Name => không đổi tên/kiểu/sự kiện của control nào; ô nhập, nút, bảng, menu chuột phải, thanh trạng thái giữ nguyên logic.
-    //  - Dùng lại TheBoGocF4 (thẻ bo góc) và OComboWebF4 (combobox bo tròn) trong GiaoDienForm4Web.cs => file đó phải còn trong project.
+    //  - Dùng lại TheBoGocF4 (thẻ bo góc) và OComboWebF4 (combobox bo tròn) trong Module_GiaoDienForm4Web.cs => file đó phải còn trong project.
     //  - Những thứ code gốc tự điều khiển được giữ nguyên: màu xanh nhạt của ô chỉ-đọc (KhoaCacTextBox), màu nhãn số ký tự, màu chữ thanh trạng thái,
     //    font + chiều cao + độ rộng cột của bảng.
     // =====================================================================================
-    internal static class GiaoDienForm42_44Web
+    internal static class Module_GiaoDienForm42_44Web
     {
         private static readonly Color MauNen = Color.FromArgb(244, 246, 250);
         private static readonly Color MauChuNhan = Color.FromArgb(71, 85, 105);

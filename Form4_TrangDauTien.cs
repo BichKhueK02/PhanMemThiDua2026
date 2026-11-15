@@ -67,7 +67,7 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             Module_HeThong.BocBoTronGiaoDien(listBox1);
-            GiaoDienForm4Web.ApDung(this);
+            Module_GiaoDienForm4Web.ApDung(this);
             BatDoubleBuffer(kryptonDataGridView1);
             BatDoubleBuffer(kryptonDataGridView2);
             BatDoubleBufferDeQuy(this);   // TableLayoutPanel/GroupBox/SplitContainer/Panel: giảm chớp khi layout + resize
@@ -3458,7 +3458,7 @@ WHERE ID = 1", conn);
             }
         }
         /// <summary>
-        /// Gọi từ GiaoDienForm2Web khi form còn ẩn (trước đăng nhập): dựng sẵn phần giao diện không phụ thuộc dữ liệu.
+        /// Gọi từ Module_GiaoDienForm2Web khi form còn ẩn (trước đăng nhập): dựng sẵn phần giao diện không phụ thuộc dữ liệu.
         /// Không đọc CSDL, không hiện hộp thoại.
         /// </summary>
         public void NapTruocGiaoDien()

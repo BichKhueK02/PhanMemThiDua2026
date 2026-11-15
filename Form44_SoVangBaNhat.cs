@@ -1,6 +1,4 @@
 ﻿///Phiên bản 1
-///Phiên bản 2
-
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
@@ -16,7 +14,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -70,7 +67,7 @@ namespace PhanMemThiDua2026
             tableLayoutPanel1.BringToFront();
 
             kryptonTextBox1_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
-            GiaoDienForm42_44Web.ApDung(this);
+            Module_GiaoDienForm42_44Web.ApDung(this);
             Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
 
             Shown += Form44_SoVangBaNhat_Shown;
@@ -105,21 +102,37 @@ namespace PhanMemThiDua2026
             catch { /* dọn dẹp best-effort */ }
         }
 
+        /// <summary>true sau khi lưới đã nạp xong dữ liệu thật ít nhất 1 lần (Form55 dựa vào đây để biết có cần nạp hay không).</summary>
+        public bool DaLoadDuLieu { get; private set; }
+
+        private bool _daChuanBiGiaoDien;
+
+        /// <summary>
+        /// Dựng sẵn phần giao diện KHÔNG cần dữ liệu (ô chỉ-đọc, cột + style lưới, menu chuột phải, tooltip).
+        /// Form55 gọi lúc form còn ẩn (dựng sẵn từng phần lúc rảnh) -> lúc Show thật chỉ còn bố cục. Gọi nhiều lần an toàn.
+        /// </summary>
+        public void ChuanBiGiaoDienTruoc()
+        {
+            if (_daChuanBiGiaoDien || IsDisposed) return;
+            _daChuanBiGiaoDien = true;
+            CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_STT);
+            CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_SoHieu);
+            CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_PhanLoai);
+
+            kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
+            kryptonDataGridView1.Dock = DockStyle.Fill;
+            CauHinhGridMotLan();            // dựng cột + style 1 lần
+            CapNhatTrangThaiNut();
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
+            InitToolTips();
+        }
+
         private void Form44_SoVangBaNhat_Load(object? sender, EventArgs e)
         {
             try
             {
-                CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_STT);
-                CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_SoHieu);
-                CauHinhKryptonTextBoxChiDoc(kryptonTextBox1_PhanLoai);
-
-                kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
-                kryptonDataGridView1.Dock = DockStyle.Fill;
-                CauHinhGridMotLan();            // dựng cột + style 1 lần
-                CapNhatTrangThaiNut();
-                Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
-                InitToolTips();
-                // KHÔNG nạp dữ liệu ở đây: Form55.MoForm44Async lo việc đó
+                ChuanBiGiaoDienTruoc();
+                // KHÔNG nạp dữ liệu ở đây: Form55 lo việc đó (nền, sau khi trang đã hiện)
             }
             catch (Exception ex) { Debug.WriteLine("[Form44.Load] " + ex); }
         }
@@ -148,8 +161,10 @@ namespace PhanMemThiDua2026
             catch { return "[Lỗi giải mã]"; }
         }
 
+        // Sổ vàng đổi chỉ ảnh hưởng cột "Tình trạng" của Form42 (CSDL đã được CapNhatTinhTrangSoVangAsync cập nhật) -> báo nhẹ:
+        // lần quay lại Form42 chỉ vá đúng cột đó, không đồng bộ + đọc lại + bind lại cả bảng.
         private static void BaoForm55CanNapLai()
-            => Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault()?.DanhDauCanNapLai();
+            => Application.OpenForms.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault()?.DanhDauCanLamMoiTinhTrang42();
 
         // ===================== LƯỚI =====================
         //private void CauHinhGridMotLan()
@@ -350,6 +365,7 @@ namespace PhanMemThiDua2026
                 finally { BatVe(g); }
 
                 LamMoiBoLocSauKhiDoiDuLieu();
+                DaLoadDuLieu = true;
                 return true;
             }
             catch (OperationCanceledException) { return false; }   // có lần nạp mới hơn -> bỏ qua im lặng
@@ -655,14 +671,10 @@ namespace PhanMemThiDua2026
             if (formCha == null || formCha.IsDisposed) return;
             // 2. Tìm PanelContainer trên Form cha
             if (formCha.Controls.Find("PanelContainer", true).FirstOrDefault() is not Panel panel || panel.IsDisposed) return;
-            // 3. Đóng và dọn sạch cái vỏ Form55 khỏi PanelContainer
+            // 3. Ẩn Form55 đi thay vì Close/Dispose để GIỮ LẠI TRONG RAM (giống Form42): lần mở sau chỉ còn Show(), không dựng lại 2 form nặng
             var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
-            if (form55 != null)
-            {
-                panel.Controls.Remove(form55);
-                form55.Close();
-                form55.Dispose();
-            }
+            if (form55 != null && !form55.IsDisposed)
+                form55.Hide();
             // 4. Tìm Form6_XuLyData và hiển thị lại trên mặt trước
             var form6 = panel.Controls.OfType<Form6_XuLyData>().FirstOrDefault();
             if (form6 != null && !form6.IsDisposed)

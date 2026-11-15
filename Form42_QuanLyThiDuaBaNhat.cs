@@ -14,7 +14,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -80,7 +79,7 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             textBox_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
-            GiaoDienForm42_44Web.ApDung(this);
+            Module_GiaoDienForm42_44Web.ApDung(this);
 
             // Tinh chỉnh hiển thị: DoubleBuffered sớm cho các khối bố cục + lưới
             BatDoubleBufferDeQuy(this);
@@ -141,22 +140,46 @@ namespace PhanMemThiDua2026
 
         private static void EnableDoubleBuffer(Control ctrl) => _pDoubleBuffered?.SetValue(ctrl, true, null);
 
+        // ===================== CHUẨN BỊ GIAO DIỆN / NẠP DỮ LIỆU KHI MỞ =====================
+        /// <summary>
+        /// true khi Form55 (form cha) điều phối dữ liệu: nạp lưới + đồng bộ nền đúng 1 lần ở Form55, Form42.Load chỉ dựng giao diện.
+        /// false (mặc định) = chạy độc lập như bản cũ: Load tự nạp lưới rồi đồng bộ nền.
+        /// </summary>
+        public bool FormChaQuanLyNapDuLieu { get; set; }
+
+        private bool _daChuanBiGiaoDien;
+
+        /// <summary>
+        /// Dựng sẵn phần giao diện KHÔNG cần dữ liệu: menu chuột phải, bộ lọc, tooltip, ô chỉ-đọc, cột + style lưới.
+        /// Có thể gọi lúc form còn ẩn (Form55 dựng sẵn từng phần lúc rảnh) -> lúc Show thật chỉ còn bố cục + dữ liệu.
+        /// Gọi nhiều lần an toàn (chỉ chạy 1 lần; KhoiTaoBoLoc xóa danh sách đơn vị nên tuyệt đối không được chạy lại sau khi đã nạp dữ liệu).
+        /// </summary>
+        public void ChuanBiGiaoDienTruoc()
+        {
+            if (_daChuanBiGiaoDien || IsDisposed) return;
+            _daChuanBiGiaoDien = true;
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
+            KhoiTaoBoLoc();                       // dựng sẵn mục "Tất cả" + gắn sự kiện lọc đúng 1 lần
+            AcceptButton = kryptonButton_LuuDataDeNghi;
+            InitToolTips();
+            KhoaCacTextBox();
+            CapNhatTrangThaiNut();
+            KiemTraHienThiNutCoChu();
+            CapNhatSoLuongKyTu();
+            CauHinhGridMotLan();                  // dựng cột + style lưới trước, lúc nạp dữ liệu chỉ còn đổi DataSource
+        }
+
         /// <summary>
         /// MỞ FORM NHANH: dựng giao diện xong là nạp lưới NGAY từ CSDL (1 lượt đọc), người dùng thấy dữ liệu và thao tác được liền.
         /// Phần đồng bộ nguồn (Loại 1) + tình trạng Sổ vàng + tỷ lệ chạy nền SAU đó; chỉ khi có thay đổi mới nạp lại / vá lưới.
+        /// Khi được Form55 điều phối (FormChaQuanLyNapDuLieu) thì Load KHÔNG nạp nữa để khỏi đọc + giải mã lặp.
         /// </summary>
         private async void Form42_QuanLyThiDuaBaNhat_Load(object? sender, EventArgs e)
         {
             try
             {
-                Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
-                KhoiTaoBoLoc();                       // dựng sẵn mục "Tất cả" + gắn sự kiện lọc đúng 1 lần
-                AcceptButton = kryptonButton_LuuDataDeNghi;
-                InitToolTips();
-                KhoaCacTextBox();
-                CapNhatTrangThaiNut();
-                KiemTraHienThiNutCoChu();
-                CapNhatSoLuongKyTu();
+                ChuanBiGiaoDienTruoc();
+                if (FormChaQuanLyNapDuLieu) return;
 
                 await LoadDuLieuToanBoDanhSachBaNhatAsync();   // lưới + đơn vị + thống kê + tỷ lệ (kích hoạt ở bước bind)
                 if (IsDisposed) return;
@@ -168,7 +191,8 @@ namespace PhanMemThiDua2026
             }
         }
 
-        private async Task DongBoNenSauKhiMoAsync()
+        /// <summary>Đồng bộ Loại 1 -> tình trạng Sổ vàng; có đổi danh sách thì nạp lại lưới, không đổi thì chỉ vá cột "Tình trạng". Form55 gọi sau khi lưới đã có dữ liệu.</summary>
+        public async Task DongBoNenSauKhiMoAsync()
         {
             bool coDong = await DongBoLoai1CoThayDoiAsync();      // có người mới / bị loại / đổi thông tin so với danh sách Loại 1?
             if (IsDisposed) return;
@@ -177,6 +201,9 @@ namespace PhanMemThiDua2026
             if (coDong) await LoadDuLieuToanBoDanhSachBaNhatAsync();   // danh sách đổi -> nạp lại (hiếm)
             else await LamMoiTinhTrangTrenLuoiAsync();                 // không đổi -> chỉ vá cột "Tình trạng", lưới không bị bind lại
         }
+
+        /// <summary>Chỉ vá cột "Tình trạng" trên lưới theo CSDL (Form44 đã tự cập nhật CSDL sau khi sửa/xóa/nhập Sổ vàng).</summary>
+        public Task LamMoiTinhTrangTrenLuoiNgayAsync() => LamMoiTinhTrangTrenLuoiAsync();
 
         private void Form42_QuanLyThiDuaBaNhat_Shown(object? sender, EventArgs e) => textBox_TimKiemTheoTen.Focus();
 
@@ -547,7 +574,7 @@ namespace PhanMemThiDua2026
             string db = DuongDanDb;
             if (string.IsNullOrWhiteSpace(db) || !File.Exists(db)) return;
 
-            CauHinhGridMotLan();   // tự bỏ qua nếu đã dựng
+            ChuanBiGiaoDienTruoc();   // idempotent: đảm bảo bộ lọc + cột lưới đã dựng TRƯỚC khi bind (KhoiTaoBoLoc không được chạy sau khi đã nạp đơn vị)
 
             // Hủy lần nạp trước (nếu còn chạy) để chỉ có 1 kết quả được ghi vào lưới
             var cu = _ctsLoadDanhSachBaNhat;
@@ -586,6 +613,7 @@ namespace PhanMemThiDua2026
                 {
                     BatVe(g);
                 }
+                DaLoadDuLieu = true;             // lưới đã có dữ liệu thật (Form55 dựa vào đây để biết còn phải nạp lần đầu hay không)
             }
             catch (OperationCanceledException)
             {
@@ -1155,7 +1183,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                 TinhLaiSoDeNghi();
                 CapNhatTrangThaiDuoiNen(true);                       // thống kê + tính lại tỷ lệ (đúng 1 lần)
                 ThongBaoTam("Đã lưu thành công!", 1200);
-                BaoForm55CanNapLai();
+                // Lưới đã được cập nhật ngay trong RAM nên KHÔNG báo Form55 "cần nạp lại" (bản cũ báo => lần quay lại sau đó phải đồng bộ + nạp lại cả bảng)
             }
             catch (Exception ex)
             {
@@ -1317,7 +1345,6 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                 await LoadDuLieuToanBoDanhSachBaNhatAsync();
 
                 ThongBaoTam("Đã xóa và đồng bộ lại dữ liệu thành công!", 1500);
-                BaoForm55CanNapLai();
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa toàn bộ dữ liệu bảng Danh sách Ba Nhất", $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
             }
             catch (Exception ex)
@@ -1533,7 +1560,6 @@ VALUES (@stt, @p0, @sh, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @tb, @sott,
                 await Module_BaNhat.CapNhatTinhTrangSoVangAsync();
                 await LoadDuLieuToanBoDanhSachBaNhatAsync();
                 ThongBaoTam($"Nhập thành công: {soDongThanhCong} {Module_HeThong.Tu_dong_chi} vào CSDL hệ thống", 2000);
-                BaoForm55CanNapLai();
             }
             catch (Exception ex)
             {

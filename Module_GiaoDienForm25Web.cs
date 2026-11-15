@@ -8,15 +8,15 @@ namespace PhanMemThiDua2026
     //  Cùng ngôn ngữ thiết kế với Form4 / Form10: nền trang xám nhạt, thẻ trắng bo góc + thanh nhấn xanh ở tiêu đề,
     //  nút theme tím nhạt, bảng có khung bo tròn liền mạch + tiêu đề tím nhạt.
     //
-    //  - Dùng lại lớp thẻ TheBoGocF4 trong GiaoDienForm4Web.cs (file đó phải còn trong project).
+    //  - Dùng lại lớp thẻ TheBoGocF4 trong Module_GiaoDienForm4Web.cs (file đó phải còn trong project).
     //  - Tìm control theo Name, không đổi tên/kiểu/sự kiện của control nào; KHÔNG sửa Designer.
     //  - Mọi bước bọc try/catch: lỗi trình bày không bao giờ làm form không mở được.
     //
     //  Dùng trong Form25:
-    //     constructor, ngay SAU InitializeComponent():  GiaoDienForm25Web.ApDung(this);
-    //     cuối KhoiTaoGrid(), trước ResumeLayout():     GiaoDienForm25Web.StyleLuoi(dgv);
+    //     constructor, ngay SAU InitializeComponent():  Module_GiaoDienForm25Web.ApDung(this);
+    //     cuối KhoiTaoGrid(), trước ResumeLayout():     Module_GiaoDienForm25Web.StyleLuoi(dgv);
     // =====================================================================================
-    internal static class GiaoDienForm25Web
+    internal static class Module_GiaoDienForm25Web
     {
         // ---------- Bảng màu / font: lấy đúng giá trị của Form4 ----------
         private static readonly Color MauNen = Color.FromArgb(244, 246, 250);
@@ -62,7 +62,7 @@ namespace PhanMemThiDua2026
         private static void An(Action viec, string ten)
         {
             try { viec(); }
-            catch (Exception ex) { Debug.WriteLine($"[GiaoDienForm25Web.{ten}] {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm25Web.{ten}] {ex.Message}"); }
         }
 
         private static T? Tim<T>(Control goc, string ten) where T : Control

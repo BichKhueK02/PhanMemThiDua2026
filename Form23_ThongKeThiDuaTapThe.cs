@@ -23,7 +23,7 @@ namespace PhanMemThiDua2026
             this.StartPosition = FormStartPosition.CenterScreen;
             this.ShowInTaskbar = false;
             InitializeComponent();
-            GiaoDienForm23Web.ApDung(this);
+            Module_GiaoDienForm23Web.ApDung(this);
             comboBox1_ChonThangCanXuat.SelectedIndexChanged += comboBox1_ChonThangCanXuat_SelectedIndexChanged;
             // Đăng ký sự kiện lắng nghe khi tên đơn vị thay đổi từ Module_HeThong
             Module_HeThong.SuKienThayDoiTenDonVi += CapNhatTieuDeGroupBox;

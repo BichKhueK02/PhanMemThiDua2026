@@ -69,7 +69,7 @@ namespace PhanMemThiDua2026
         public Form6_XuLyData()
         {
             InitializeComponent();
-            GiaoDienForm6Web.ApDung(this);                        // giao diện kiểu web (Form6_XuLyData.GiaoDienWeb.cs) - chỉ trình bày
+            Module_GiaoDienForm6Web.ApDung(this);                        // giao diện kiểu web (Form6_XuLyData.GiaoDienWeb.cs) - chỉ trình bày
             BatDoubleBufferDeQuy(this);                    // giảm chớp khi layout/resize các khối lồng nhau
             kryptonDataGridView1.EnableDoubleBuffered(true);   // bật sớm (trước đây chỉ bật trong Load)
             this.KeyPreview = true; // THÊM DÒNG NÀY
@@ -2098,6 +2098,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             base.OnLoad(e);
             Instance = this;
             LenLichChuanBiForm60(1500); // dựng sẵn khung form 60 lúc rảnh để nút "Thêm CBCS/tân binh" mở tức thì
+            LenLichChuanBiForm55(4000); // dựng sẵn trang Ba Nhất (Form55 -> Form42 + Form44) lúc rảnh, sau Form60, để nút Ba Nhất mở tức thì
         }
         // NÚT MENU GỐC: Gọi luồng xuất bình thường
         private void xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem_Click(object? sender, EventArgs e)
@@ -2189,6 +2190,52 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                 Application.Idle += khiRanh;
             };
             timer.Start();
+        }
+        // ===== DỰNG SẴN TRANG BA NHẤT (Form55 chứa Form42 + Form44) =====
+        // Cùng ý tưởng với Form60: tạo Form55 ở trạng thái ẨN trong panel rồi để Form55 tự dựng từng phần nhỏ lúc rảnh.
+        // KHÔNG nạp dữ liệu: dữ liệu Ba Nhất luôn được đồng bộ/nạp lúc người dùng mở trang (luôn mới nhất).
+        private void LenLichChuanBiForm55(int doTreMs)
+        {
+            var timer = new System.Windows.Forms.Timer { Interval = Math.Max(50, doTreMs) };
+            timer.Tick += (s, ev) =>
+            {
+                timer.Stop();
+                timer.Dispose();
+                if (this.IsDisposed) return;
+                EventHandler? khiRanh = null;
+                khiRanh = (s2, ev2) =>
+                {
+                    Application.Idle -= khiRanh;
+                    if (!this.IsDisposed) ChuanBiTruocForm55();
+                };
+                Application.Idle += khiRanh;
+            };
+            timer.Start();
+        }
+
+        private void ChuanBiTruocForm55()
+        {
+            try
+            {
+                if (this.IsDisposed || !this.IsHandleCreated) return;
+                var panel = LayPanelContainerForm60(out _);
+                if (panel == null || panel.IsDisposed) return;
+                if (panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().Any(f => !f.IsDisposed)) return;   // đã có sẵn
+
+                var f55 = new Form55_QuanLyHeThongThiDuaBaNhat
+                {
+                    TopLevel = false,
+                    FormBorderStyle = FormBorderStyle.None,
+                    Dock = DockStyle.Fill
+                };
+                f55.Bounds = panel.ClientRectangle;   // đúng kích thước vùng chứa ngay từ đầu -> lúc hiện không phải bố cục lại
+                panel.Controls.Add(f55);              // đang ẩn nên chưa vẽ gì cả
+                f55.BatDauChuanBiNen();               // Form55 tự dựng Form42 + Form44 từng bước nhỏ (mỗi bước ~8 ms)
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ChuanBiTruocForm55] " + ex.Message);
+            }
         }
         private void kryptonButton1_HuongDanThemDuLieu_Click(object? sender, EventArgs e)
         {
@@ -2803,11 +2850,16 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             {
                 if (ctl is Form frm) frm.Hide();
             }
-            // 4. KIỂM TRA TRONG RAM: Tìm Form55 đã tồn tại chưa
-            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
-            if (form55 == null || form55.IsDisposed)
+            // 4. Tiêu đề lớn: đặt TRƯỚC, để tiêu đề chi tiết do Form55 đặt ngay sau đó là tiêu đề cuối cùng
+            if (formCha.Label1 != null)
             {
-                // Chưa có -> Khởi tạo lần đầu
+                formCha.Label1.Text = "Hệ thống quản lý phong trào thi đua Ba Nhất";
+            }
+            // 5. KIỂM TRA TRONG RAM: Form55 có thể đã được dựng sẵn (ẩn) lúc rảnh hoặc đã mở trước đó
+            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault(f => !f.IsDisposed);
+            if (form55 == null)
+            {
+                // Chưa có -> Khởi tạo lần đầu (Form55.Load hiện khung chờ ngay rồi tự mở trang Ba Nhất)
                 form55 = new Form55_QuanLyHeThongThiDuaBaNhat
                 {
                     TopLevel = false,
@@ -2819,16 +2871,12 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             }
             else
             {
-                // Đã có sẵn trong RAM -> Chỉ việc hiện lại và đồng bộ nhẹ
+                // Đã có sẵn trong RAM -> hiện lại ngay; trang Ba Nhất hiện tức thì, dữ liệu (nếu cần) nạp nền
                 form55.Dock = DockStyle.Fill;
                 form55.Show();
                 form55.BringToFront();
-                await form55.MoForm42Async(); // Kích hoạt nạp lại Tab Form 42 mượt mà
-            }
-            // 5. Cập nhật tiêu đề lớn của phần mềm
-            if (formCha.Label1 != null)
-            {
-                formCha.Label1.Text = "Hệ thống quản lý phong trào thi đua Ba Nhất";
+                try { await form55.MoForm42Async(); }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[MoForm42Async] " + ex.Message); }
             }
         }
         private void KryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)

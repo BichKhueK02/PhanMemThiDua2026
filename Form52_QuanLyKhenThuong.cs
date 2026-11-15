@@ -381,7 +381,7 @@ namespace PhanMemThiDua2026
         }
         /// <summary>
         /// Dựng sẵn các trang con (từng form một, cách nhau một nhịp để giao diện vẫn nhận thao tác).
-        /// Gọi nhiều lần an toàn. Có thể gọi từ GiaoDienForm2Web khi Form52 còn ẩn.
+        /// Gọi nhiều lần an toàn. Có thể gọi từ Module_GiaoDienForm2Web khi Form52 còn ẩn.
         /// </summary>
         internal async Task NapTruocGiaoDienAsync(Func<bool>? huy = null)
         {

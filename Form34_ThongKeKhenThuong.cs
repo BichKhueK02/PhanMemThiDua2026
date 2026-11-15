@@ -133,7 +133,7 @@ namespace PhanMemThiDua2026
             KhoiTaoXoaNhieu();
             KhoiTaoTimerTimKiem();
             DangKyHieuUngVienTextBox();
-            GiaoDienForm34Web.ApDung(this);   // giao diện kiểu web như Form4 - chỉ đổi trình bày (đây là dòng DUY NHẤT thêm vào code gốc)
+            Module_GiaoDienForm34Web.ApDung(this);   // giao diện kiểu web như Form4 - chỉ đổi trình bày (đây là dòng DUY NHẤT thêm vào code gốc)
             Shown += Form34_ThongKeKhenThuong_Shown;
             Disposed += (_, _) => GiaiPhongTaiNguyen();
         }

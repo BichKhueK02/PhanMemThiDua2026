@@ -9,16 +9,16 @@ namespace PhanMemThiDua2026
     //  nút theme tím nhạt (nút "Xóa tất cả" màu đỏ nhạt), bảng có khung bo tròn + tiêu đề tím nhạt có vạch phân cách cột.
     //
     //  KHÔNG ĐỔI CODE GỐC: Form23 chỉ thêm đúng 1 dòng ở CUỐI constructor (sau InitToolTips();):
-    //        GiaoDienForm23Web.ApDung(this);
+    //        Module_GiaoDienForm23Web.ApDung(this);
     //  - Không sửa Designer, không đổi tên/kiểu/sự kiện của control nào; tìm control theo Name.
     //  - Tiêu đề thẻ "1. Cập nhật phân loại/danh hiệu thi đua <tên đơn vị>" do code gốc đổi động (CapNhatTieuDeGroupBox):
     //    GroupBox gốc được giữ lại (không hiển thị) và thẻ mới tự cập nhật theo mỗi khi chữ của nó thay đổi.
     //  - Code gốc chỉnh lưới SAU khi nạp dữ liệu (chiều cao tiêu đề 82, dòng 62, cột Fill); helper không đụng tới các thông số đó,
     //    chỉ áp lại màu tiêu đề/đường kẻ khi cần.
-    //  - Dùng lại TheBoGocF4 và OComboWebF4 trong GiaoDienForm4Web.cs (file đó phải còn trong project).
+    //  - Dùng lại TheBoGocF4 và OComboWebF4 trong Module_GiaoDienForm4Web.cs (file đó phải còn trong project).
     //  - Mọi bước bọc try/catch: lỗi trình bày không bao giờ làm form không mở được.
     // =====================================================================================
-    internal static class GiaoDienForm23Web
+    internal static class Module_GiaoDienForm23Web
     {
         // ===================== TÙY CHỌN =====================
         private const int DemKhungBang = 5;   // khoảng đệm giữa khung bo tròn và bảng
@@ -81,7 +81,7 @@ namespace PhanMemThiDua2026
         private static void An(Action viec, string ten)
         {
             try { viec(); }
-            catch (Exception ex) { Debug.WriteLine($"[GiaoDienForm23Web.{ten}] {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm23Web.{ten}] {ex.Message}"); }
         }
 
         private static T? Tim<T>(Control goc, string ten) where T : Control
@@ -380,7 +380,7 @@ namespace PhanMemThiDua2026
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("[GiaoDienForm23Web.TieuDe] " + ex.Message);
+                    Debug.WriteLine("[Module_GiaoDienForm23Web.TieuDe] " + ex.Message);
                 }
             }
         }

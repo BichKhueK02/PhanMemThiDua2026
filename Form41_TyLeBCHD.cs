@@ -15,8 +15,6 @@ namespace PhanMemThiDua2026
     public partial class Form41_TyLeBCHD : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private readonly Color _focusColor = Color.FromArgb(0, 120, 215);
-        private readonly Color _normalColor = Color.FromArgb(200, 200, 200);
         public static event Action? OnQuyDinhBCHChanged;
         private CancellationTokenSource? _ctsLuuDuLieu;
         private static readonly object _logLock = new object();
@@ -43,6 +41,7 @@ namespace PhanMemThiDua2026
         public Form41_TyLeBCHD()
         {
             InitializeComponent();
+            Module_GiaoDienForm41Web.ApDung(this);
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -302,16 +301,12 @@ namespace PhanMemThiDua2026
         private void TextBox_Enter(object? sender, EventArgs e)
         {
             if (sender is not KryptonTextBox tb) return;
-            tb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
-            tb.StateCommon.Border.Rounding = 4;
-            tb.StateCommon.Border.Width = 2;
-            tb.StateCommon.Border.Color1 = _focusColor;
+            Module_GiaoDienForm41Web.VienFocus(tb, true);
         }
         private void TextBox_Leave(object? sender, EventArgs e)
         {
             if (sender is not KryptonTextBox tb) return;
-            tb.StateCommon.Border.Width = 1;
-            tb.StateCommon.Border.Color1 = _normalColor;
+            Module_GiaoDienForm41Web.VienFocus(tb, false);
         }
         private void GanSuKienFocusTextBox()
         {

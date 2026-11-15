@@ -13,16 +13,16 @@ namespace PhanMemThiDua2026
     //  Cách dùng: trong constructor Form6_XuLyData, thay dòng
     //        ApDungGiaoDienWeb();
     //  bằng
-    //        GiaoDienForm6Web.ApDung(this);
+    //        Module_GiaoDienForm6Web.ApDung(this);
     //  - Các control của form (private trong Designer) được lấy theo TÊN bằng reflection, nên không phải sửa Designer
     //    hay đổi tên/kiểu/sự kiện control nào => code nghiệp vụ giữ nguyên 100%.
     //  - Một số thuộc tính (màu lưới, bo góc ô nhập...) bị Form6_Load đặt lại nên phần HoanThienGiaoDienSauLoad
     //    được móc vào sự kiện Load SAU Form6_Load (đăng ký sau nên chạy sau).
-    //  - Dùng lại OComboWebF4 trong GiaoDienForm4Web.cs (file đó phải còn trong project).
+    //  - Dùng lại OComboWebF4 trong Module_GiaoDienForm4Web.cs (file đó phải còn trong project).
     //  - Lỗi trình bày không bao giờ làm form không mở được (bọc try/catch).
     //  - Mọi kích thước (px) viết theo đơn vị thiết kế 96 DPI.
     // =====================================================================================
-    internal sealed class GiaoDienForm6Web
+    internal sealed class Module_GiaoDienForm6Web
     {
         private readonly Form _f;
 
@@ -86,11 +86,11 @@ namespace PhanMemThiDua2026
 
         public static void ApDung(Form f)
         {
-            try { new GiaoDienForm6Web(f).Chay(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[GiaoDienForm6Web] " + ex.Message); }
+            try { new Module_GiaoDienForm6Web(f).Chay(); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[Module_GiaoDienForm6Web] " + ex.Message); }
         }
 
-        private GiaoDienForm6Web(Form f)
+        private Module_GiaoDienForm6Web(Form f)
         {
             _f = f;
             comboBox_ChucVu = Lay<ComboBox>("comboBox_ChucVu");
@@ -427,7 +427,7 @@ namespace PhanMemThiDua2026
             CanNutTheoO(kryptonButton_LuuDataCapNhat, new Padding(10, 0, 0, 0));
         }
 
-        // ---------- 4 ComboBox: ô chọn + danh sách sổ xuống bo tròn (dùng chung OComboWebF4 / PopupDanhSachF4 trong GiaoDienForm4Web.cs) ----------
+        // ---------- 4 ComboBox: ô chọn + danh sách sổ xuống bo tròn (dùng chung OComboWebF4 / PopupDanhSachF4 trong Module_GiaoDienForm4Web.cs) ----------
         // ComboBox gốc vẫn còn nguyên (Items, Text, SelectedIndex, sự kiện, Enabled/Visible do logic điều khiển); chỉ được ẩn hình và
         // thay bằng ô vẽ tay đặt đúng vị trí. Chọn trên ô mới sẽ gán SelectedIndex của ComboBox gốc nên mọi sự kiện chạy như cũ.
         private void DinhComboBoTron()

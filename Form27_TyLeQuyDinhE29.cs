@@ -32,6 +32,7 @@ namespace PhanMemThiDua2026
         public Form27_TyLeQuyDinhE29()
         {
             InitializeComponent();
+            Module_GiaoDienForm27Web.ApDung(this);
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
@@ -466,16 +467,12 @@ WHERE ID BETWEEN 1 AND @soHang";
         private void TextBox_Enter(object? sender, EventArgs e)
         {
             if (sender is not KryptonTextBox tb) return;
-            tb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
-            tb.StateCommon.Border.Rounding = 4; // bo góc nhẹ nhìn chuyên nghiệp
-            tb.StateCommon.Border.Width = 2;
-            tb.StateCommon.Border.Color1 = _focusColor;
+            Module_GiaoDienForm27Web.VienFocus(tb, true);
         }
         private void TextBox_Leave(object? sender, EventArgs e)
         {
             if (sender is not KryptonTextBox tb) return;
-            tb.StateCommon.Border.Width = 1;
-            tb.StateCommon.Border.Color1 = _normalColor;
+            Module_GiaoDienForm27Web.VienFocus(tb, false);
         }
         private void GanSuKienFocusTextBox()
         {

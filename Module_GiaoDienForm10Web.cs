@@ -5,21 +5,21 @@ namespace PhanMemThiDua2026
 {
     // =====================================================================================
     //  GIAO DIỆN "KIỂU TRANG WEB" CHO Form10_NhatKy (Nhật ký phần mềm) — CHỈ TRÌNH BÀY, KHÔNG CÓ LOGIC NGHIỆP VỤ
-    //  Cùng ngôn ngữ thiết kế với Form4 (GiaoDienForm4Web): nền trang xám nhạt, thẻ trắng bo góc + thanh nhấn xanh ở tiêu đề,
+    //  Cùng ngôn ngữ thiết kế với Form4 (Module_GiaoDienForm4Web): nền trang xám nhạt, thẻ trắng bo góc + thanh nhấn xanh ở tiêu đề,
     //  combo bo tròn, nút theme tím nhạt, bảng có khung bo tròn liền mạch + tiêu đề tím nhạt.
     //
     //  - Lớp static độc lập, không tạo .resx, KHÔNG cần sửa .csproj, KHÔNG sửa Designer.
-    //  - Dùng lại các lớp vẽ của GiaoDienForm4Web.cs: TheBoGocF4 (thẻ bo góc), OComboWebF4 (combo bo tròn).
-    //    => file GiaoDienForm4Web.cs phải còn trong project (Form4 đang dùng nó nên chắc chắn còn).
+    //  - Dùng lại các lớp vẽ của Module_GiaoDienForm4Web.cs: TheBoGocF4 (thẻ bo góc), OComboWebF4 (combo bo tròn).
+    //    => file Module_GiaoDienForm4Web.cs phải còn trong project (Form4 đang dùng nó nên chắc chắn còn).
     //  - Tìm control theo Name (không phụ thuộc private) => không đổi tên/kiểu/sự kiện của control nào.
     //  - Mọi bước bọc try/catch: lỗi trình bày không bao giờ làm form không mở được.
     //
     //  Dùng trong Form10_NhatKy:
-    //     constructor, ngay SAU InitializeComponent():   GiaoDienForm10Web.ApDung(this);
-    //     CauHinhStyleWeb(dgv):                          GiaoDienForm10Web.StyleLuoi(dgv);
-    //     CapNhatMauRadioSapXep():                       GiaoDienForm10Web.CapNhatRadio(radio);
+    //     constructor, ngay SAU InitializeComponent():   Module_GiaoDienForm10Web.ApDung(this);
+    //     CauHinhStyleWeb(dgv):                          Module_GiaoDienForm10Web.StyleLuoi(dgv);
+    //     CapNhatMauRadioSapXep():                       Module_GiaoDienForm10Web.CapNhatRadio(radio);
     // =====================================================================================
-    internal static class GiaoDienForm10Web
+    internal static class Module_GiaoDienForm10Web
     {
         // ---------- Bảng màu / font: lấy đúng giá trị của Form4 ----------
         private static readonly Color MauNen = Color.FromArgb(244, 246, 250);
@@ -75,7 +75,7 @@ namespace PhanMemThiDua2026
         private static void An(Action viec, string ten)
         {
             try { viec(); }
-            catch (Exception ex) { Debug.WriteLine($"[GiaoDienForm10Web.{ten}] {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm10Web.{ten}] {ex.Message}"); }
         }
 
         private static T? Tim<T>(Control goc, string ten) where T : Control

@@ -15,6 +15,7 @@ namespace PhanMemThiDua2026
         public Form45_TyLeBaNhat()
         {
             InitializeComponent();
+            Module_GiaoDienForm45Web.ApDung(this);
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;

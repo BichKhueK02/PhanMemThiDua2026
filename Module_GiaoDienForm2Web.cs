@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 namespace PhanMemThiDua2026
 {
     /// <summary>
@@ -8,7 +8,7 @@ namespace PhanMemThiDua2026
     /// - Chỉ làm những việc KHÔNG phụ thuộc người dùng. Dữ liệu theo tài khoản vẫn nạp sau khi
     ///   đăng nhập (Form2_Load chạy ở lần Show đầu tiên, lúc đó SessionInfo đã có).
     /// </summary>
-    internal static class GiaoDienForm2Web
+    internal static class Module_GiaoDienForm2Web
     {
         private static Form2_FormCha? _form2;
         private static bool _dangNap;

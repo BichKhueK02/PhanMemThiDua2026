@@ -1,4 +1,6 @@
-﻿//TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
+﻿///Phiên bản 2
+///
+//TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
 using System.Collections;
 using System.Diagnostics;
 using System.Security.Cryptography;
@@ -15,8 +17,7 @@ namespace PhanMemThiDua2026
         private const string THU_MUC_WINDOW = "window-x64";
         private const string THU_MUC_DATABASE = "Database";
         private const string THU_MUC_BAN_SAO_LUU = "Bansaoluu";
-        private const string THU_MUC_LUUTRUTHIDUA_LICHSU = "LuuTruThiDua_LichSu"; 
-       // private const string THU_MUC_THONGTUHUONGDAN_MAHOA = "ThongTuHuongDan_MaHoa";       
+        private const string THU_MUC_LUUTRUTHIDUA_LICHSU = "LuuTruThiDua_LichSu";
         private const string TEN_NHAT_KY_LAM_SACH = "NhatKy_LamSach.txt";
         private const string TEN_TAI_KHOAN_HE_THONG = "System (Quyền cao nhất)";
         private const string HAU_TO_TAM = ".tmp";
@@ -91,10 +92,14 @@ namespace PhanMemThiDua2026
         }
         private static void DatReadOnly(string path)
         {
-            if (File.Exists(path))
+            try
             {
-                try { File.SetAttributes(path, FileAttributes.ReadOnly); } catch { }
+                // Chỉ ghi thuộc tính khi thật sự khác: tránh I/O + quét diệt virus mỗi lần mở app
+                var attr = File.GetAttributes(path);
+                if (attr != FileAttributes.ReadOnly)
+                    File.SetAttributes(path, FileAttributes.ReadOnly);
             }
+            catch { /* tệp không tồn tại / không đủ quyền: bỏ qua như bản cũ */ }
         }
         private static void XoaTepBestEffort(string path)
         {

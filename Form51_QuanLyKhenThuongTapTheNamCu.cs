@@ -42,7 +42,7 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             Module_HeThong.BocBoTronGiaoDien(richTextBox1_NoiDungKhenThuong);
-            GiaoDienForm51Web.ApDung(this);
+            Module_GiaoDienForm51Web.ApDung(this);
         }
         private async void Form51_QuanLyKhenThuongTapTheNamCu_Load(object? sender, EventArgs e)
                 {

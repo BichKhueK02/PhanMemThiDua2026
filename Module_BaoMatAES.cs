@@ -50,40 +50,66 @@ public static class Module_BaoMatAES
                 // Thay vì FailFast gây crash, ta có thể throw nhẹ nhàng hơn hoặc xử lý khác
                 // Debugger.Break(); 
             }
-            // 2. Fallback Key (Dùng Base64 để ẩn mắt thường, không gây lỗi memory)
-            string mKpassKey = Encoding.UTF8.GetString(Convert.FromBase64String("eWVLZGV4aUZfNjIwMmF1RGlpaFRtZU1uYWhQ"));
-            string mKpasssalt = Encoding.UTF8.GetString(Convert.FromBase64String("VklkZXhpRl82MjAyYXVEaWloVG1lTW5haFA="));
+
             Aes aes = Aes.Create();
-            // 3. Lấy nguyên liệu từ GPS
+
+            // 2. ✅ CÁCH MỚI: Lấy nguyên liệu từ GPS (Primary Source)
             string k1 = Module_DanduongGPS.ToiYeuMeoCam1;
             string k2 = Module_DanduongGPS.ToiYeuMeoCam2;
             string i1 = Module_DanduongGPS.ToiCanChuIVMeoCam1;
             string i2 = Module_DanduongGPS.ToiCanChuIVMeoCam2;
-            //Cách viết 1
-            // 4. Kỹ thuật "Phòng thủ 1 lớp" đã được tối ưu từ 3 lớp (Kết quả đầu ra chính xác 100% như cũ)
+
+            // 3. ✅ KỸ THUẬT: Phòng thủ 1 lớp (tối ưu từ 3 lớp)
             string rawKeyFromGPS = TraLaiTenChoMeoCam(k1 + k2);
             string rawIVFromGPS = TraLaiTenChoMeoCam(i1 + i2);
-            string keyFinal = !string.IsNullOrEmpty(rawKeyFromGPS) ? rawKeyFromGPS : TraLaiTenChoMeoCam(mKpassKey);
-            string ivFinal = !string.IsNullOrEmpty(rawIVFromGPS) ? rawIVFromGPS : TraLaiTenChoMeoCam(mKpasssalt);
-            // 5. Chuyển thành Byte array - ĐÂY LÀ NƠI CẦN BẢO VỆ
-            byte[] keyBytes = VanLyDocHanhTaoKey256(keyFinal);
-            byte[] ivBytes = BaoCatSaharaTaoIV(ivFinal);
+
+            // 4. ✅ KIỂM TRA: GPS Key có hợp lệ không?
+            if (string.IsNullOrEmpty(rawKeyFromGPS) || string.IsNullOrEmpty(rawIVFromGPS))
+            {
+                // ❌ KHÔNG sử dụng hard-coded fallback key - throw exception để biết vấn đề
+                Debug.WriteLine("[Lỗi Mật Mã] GPS key không khả dụng:");
+                Debug.WriteLine($"  - rawKeyFromGPS: {(string.IsNullOrEmpty(rawKeyFromGPS) ? "RỖNG" : "OK")}");
+                Debug.WriteLine($"  - rawIVFromGPS: {(string.IsNullOrEmpty(rawIVFromGPS) ? "RỖNG" : "OK")}");
+
+                throw new InvalidOperationException(
+                    "⛔ CẢNH BÁO BẢO MẬT: GPS key không khả dụng. Không sử dụng hard-coded fallback.\n" +
+                    "Hệ thống mã hóa không thể hoạt động. Vui lòng kiểm tra cấu hình Module_DanduongGPS.");
+            }
+
+            // 5. ✅ CHUYỂN THÀNH BYTE ARRAY
+            byte[] keyBytes = VanLyDocHanhTaoKey256(rawKeyFromGPS);
+            byte[] ivBytes = BaoCatSaharaTaoIV(rawIVFromGPS);
+
             aes.Key = keyBytes;
             aes.IV = (byte[])ivBytes.Clone();
-            // 6. XÓA SẠCH DỮ LIỆU NHẠY CẢM TRÊN MẢNG BYTE (Cách chuẩn, không gây crash)
-            // CryptographicOperations.ZeroMemory là hàm an toàn nhất của .NET
+
+            // 6. ✅ XÓA SẠCH DỮ LIỆU NHẠY CẢM TRÊN MẢNG BYTE
             CryptographicOperations.ZeroMemory(keyBytes);
             CryptographicOperations.ZeroMemory(ivBytes);
+
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
-            // Reset các biến tạm về rỗng (An toàn hơn gán null)
-            k1 = k2 = i1 = i2 = rawKeyFromGPS = rawIVFromGPS = keyFinal = ivFinal = string.Empty;
+
+            // 7. ✅ RESET CÁC BIẾN TẠM VỀ RỖNG
+            k1 = k2 = i1 = i2 = rawKeyFromGPS = rawIVFromGPS = string.Empty;
+
+            Debug.WriteLine("[OK] Hệ thống mã hóa AES khởi tạo thành công (GPS key).");
             return aes;
+        }
+        catch (InvalidOperationException invOpEx)
+        {
+            // ⛔ Lỗi bảo mật - không trả về mặc định, để crash rõ ràng
+            Debug.WriteLine($"[Lỗi Bảo Mật Nghiêm Trọng] {invOpEx.Message}");
+            throw; // Re-throw để caller biết vấn đề
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("Lỗi khởi tạo AES: " + ex.Message);
-            return Aes.Create(); // Trả về đối tượng mặc định để tránh crash luồng
+            Debug.WriteLine($"[Lỗi] Khởi tạo AES thất bại: {ex.Message}");
+            Debug.WriteLine($"[Chi tiết] {ex.InnerException?.Message}");
+
+            // ⛔ Throw exception thay vì trả về mặc định
+            throw new CryptographicException(
+                "Hệ thống mã hóa không thể khởi tạo. Ứng dụng không thể hoạt động an toàn.", ex);
         }
     }, trackAllValues: true);
     //  MaHoa / GiaiMa - BẢN TỐI ƯU LẦN 2 (ưu tiên máy yếu)

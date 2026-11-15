@@ -1,6 +1,4 @@
-﻿///Dự án này tôi làm đơn giản là vì đam mê code và lập trình C#, chứ không vì ai cả, không vì cái gì cả!
-
-///Phiên bản 3 (Tối ưu khởi động: bỏ khôi phục CSDL trùng lặp, đẩy tuần tra/đồng bộ nặng xuống nền)
+﻿///Phiên bản 3 (Tối ưu khởi động: bỏ khôi phục CSDL trùng lặp, đẩy tuần tra/đồng bộ nặng xuống nền)
 ///
 using Microsoft.Win32;
 using System.Diagnostics;
@@ -72,6 +70,9 @@ namespace PhanMemThiDua2026
                 RunNonCritical("Kiểm tra tỷ lệ màn hình",
                     () => Module_KhoiDongTrangChu.KiemTraVaCanhBaoTyLeManHinh());
 
+                // 5b. Làm nóng song song: nhân CPU còn lại nạp sẵn SQLite/AES/Krypton trong lúc luồng chính khởi tạo CSDL.
+                KhoiDongNongSongSong();
+
                 // 6. Hệ thống lõi + CSDL (bắt buộc)
                 if (!InitializeCore())
                 {
@@ -79,17 +80,24 @@ namespace PhanMemThiDua2026
                     return ExitInitFailed;
                 }
 
-                // 7. Nạp theme/màu từ CSDL: cần có TRƯỚC khi Form1 hiện để không bị nháy màu.
-                RunNonCritical("Nạp theme", () => Module_GiaoDien.KhoiDongDocTheme());
-                RunNonCritical("Nạp màu menu chuột phải",
-                    () => Module_MenuChuotPhai.KhoiTaoMauTuCSDL(Module_DanduongGPS.DuongDanCSDL2));
+                // 7. Theme/màu menu + bảng nhật ký chạy SONG SONG với việc dựng Form1 (thay vì nối đuôi nhau).
+                //    Vẫn chờ xong TRƯỚC Application.Run nên Form1 không bị nháy màu như trước.
+                var tacVuSong = new[]
+                {
+                    Task.Run(() => RunNonCritical("Nạp theme", () => Module_GiaoDien.KhoiDongDocTheme())),
+                    Task.Run(() => RunNonCritical("Nạp màu menu chuột phải",
+                        () => Module_MenuChuotPhai.KhoiTaoMauTuCSDL(Module_DanduongGPS.DuongDanCSDL2))),
+                    Task.Run(() => RunNonCritical("Tạo bảng nhật ký", () => Module_NhatKy.TaoBangNhatKy())),
+                };
 
                 // 8. Tác vụ nền (tuần tra/đồng bộ CSDL, tường lửa, làm sạch, đồng bộ Hướng dẫn...)
                 //    chạy sau khi giao diện đã hiện.
                 ScheduleBackgroundMaintenance();
 
-                // 9. Giao diện chính
-                Application.Run(new Form1());
+                // 9. Giao diện chính: dựng Form1 trên luồng chính trong lúc các tác vụ ở bước 7 đang chạy nền.
+                var form1 = new Form1();
+                try { Task.WaitAll(tacVuSong); } catch { /* lỗi từng bước đã được RunNonCritical ghi nhật ký */ }
+                Application.Run(form1);
                 return ExitOk;
             }
             catch (Exception ex)
@@ -102,6 +110,37 @@ namespace PhanMemThiDua2026
                 // 10. Dọn dẹp luôn chạy, kể cả khi lỗi
                 CleanupResources(isPrimaryInstance);
             }
+        }
+
+        //  LÀM NÓNG SONG SONG
+        // Chạy ở thread pool, fire-and-forget; lỗi ở đây không bao giờ ảnh hưởng ứng dụng.
+        // Mục đích: những bước "lần đầu" tốn kém (nạp thư viện native SQLite, bcrypt của AES, nạp assembly Krypton,
+        // JIT) diễn ra trên các nhân CPU khác, nên khi luồng chính cần tới thì đã sẵn sàng.
+        private static void KhoiDongNongSongSong()
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    using var cn = new Microsoft.Data.Sqlite.SqliteConnection("Data Source=:memory:");
+                    cn.Open();
+                    using var cmd = cn.CreateCommand();
+                    cmd.CommandText = "SELECT 1";
+                    cmd.ExecuteScalar();
+                }
+                catch { }
+            });
+            Task.Run(() => { try { Module_BaoMatAES.KhoiDongNong(); } catch { } });
+            Task.Run(() =>
+            {
+                try
+                {
+                    // Chỉ nạp assembly (không chạy hàm dựng tĩnh, không đụng UI)
+                    _ = typeof(Krypton.Toolkit.KryptonButton).Assembly;
+                    _ = typeof(BCrypt.Net.BCrypt).Assembly;
+                }
+                catch { }
+            });
         }
 
         //  KHỞI TẠO
@@ -130,7 +169,7 @@ namespace PhanMemThiDua2026
                 Module_DanduongGPS.XinTraLaiThoiGianNapKeyBase64();
                 Module_DanduongGPS.LoiChaoTuSiberia();
                 Module_DanduongGPS.HanhTrinhToiColombiaAsync().GetAwaiter().GetResult();
-                Module_NhatKy.TaoBangNhatKy();
+                // TaoBangNhatKy đã chuyển sang chạy song song ở Main (bước 7).
                 return true;
             }
             catch (Exception ex)
@@ -345,6 +384,12 @@ namespace PhanMemThiDua2026
             AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             {
                 var ex = e.ExceptionObject as Exception;
+                if (LaLoiPostVaoFormDaDong(ex))
+                {
+                    // Tiếp nối await bị gửi về form đã đóng (thường gặp lúc thoát app): vô hại, chỉ ghi nhật ký.
+                    LogException("Cảnh báo (bỏ qua) - tiếp nối async gửi vào form đã đóng", ex);
+                    return;
+                }
                 LogException("Fatal Error", ex);
                 ShowErrorDialogOnce("Lỗi Hệ Thống", ex?.Message ?? "Ứng dụng buộc phải đóng.");
             };
@@ -356,6 +401,11 @@ namespace PhanMemThiDua2026
                 e.SetObserved();
             };
         }
+
+        private static bool LaLoiPostVaoFormDaDong(Exception? ex)
+            => ex is InvalidOperationException
+               && ex.Message.Contains("window handle has been created", StringComparison.OrdinalIgnoreCase)
+               && (ex.StackTrace?.Contains("WindowsFormsSynchronizationContext.Post", StringComparison.Ordinal) ?? false);
 
         private static void HandleUiThreadException(Exception ex)
         {

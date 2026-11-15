@@ -10,16 +10,16 @@ namespace PhanMemThiDua2026
     //
     //  KHÔNG ĐỔI CODE GỐC: Form15 chỉ thêm đúng 1 dòng trong constructor, ngay sau InitializeComponent() và TRƯỚC dòng chụp
     //  _mauChuTrangThai:
-    //        GiaoDienForm15Web.ApDung(this);
+    //        Module_GiaoDienForm15Web.ApDung(this);
     //  - Không sửa Designer, không đổi tên/kiểu/sự kiện của control nào; tìm control theo Name.
     //  - Code gốc định dạng lưới LÚC CHẠY (ApDungDinhDangGridThongKe tạo lại style tiêu đề/dòng mỗi lần nạp). Lớp BoDinhDangLuoi
     //    không sửa hàm đó mà lắng nghe các sự kiện đổi style của lưới và áp lại màu ngay sau đó (có chốt chống lặp).
     //    Độ rộng cột, chiều cao tiêu đề (85px), font, màu nhấn từng cột (Tổng loại, Tuần/Tháng...) vẫn do code gốc quyết định.
-    //  - Dùng lại lớp thẻ TheBoGocF4 và ô combo bo tròn OComboWebF4 trong GiaoDienForm4Web.cs (file đó phải còn trong project).
+    //  - Dùng lại lớp thẻ TheBoGocF4 và ô combo bo tròn OComboWebF4 trong Module_GiaoDienForm4Web.cs (file đó phải còn trong project).
     //  - Mọi bước bọc try/catch: lỗi trình bày không bao giờ làm form không mở được.
     //  - Muốn đổi diện mạo: chỉnh khối "BẢNG MÀU" và "TÙY CHỌN" ngay bên dưới.
     // =====================================================================================
-    internal static class GiaoDienForm15Web
+    internal static class Module_GiaoDienForm15Web
     {
         // ===================== TÙY CHỌN =====================
         // true = khung bảng có dòng tiêu đề "3. Bảng thống kê kết quả thi đua"; false = khung gọn, tiêu đề cột sát mép như lưới Form42/44
@@ -95,7 +95,7 @@ namespace PhanMemThiDua2026
         private static void An(Action viec, string ten)
         {
             try { viec(); }
-            catch (Exception ex) { Debug.WriteLine($"[GiaoDienForm15Web.{ten}] {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm15Web.{ten}] {ex.Message}"); }
         }
 
         private static T? Tim<T>(Control goc, string ten) where T : Control
@@ -465,7 +465,7 @@ namespace PhanMemThiDua2026
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("[GiaoDienForm15Web.TieuDe] " + ex.Message);   // lỗi vẽ thêm: bỏ qua, lưới vẫn hiển thị bình thường
+                    Debug.WriteLine("[Module_GiaoDienForm15Web.TieuDe] " + ex.Message);   // lỗi vẽ thêm: bỏ qua, lưới vẫn hiển thị bình thường
                 }
             }
 

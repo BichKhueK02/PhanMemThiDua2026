@@ -9,7 +9,7 @@ namespace PhanMemThiDua2026
     //  combo bo tròn, nút theme tím nhạt (nút "Xóa" đỏ nhạt), bảng khung bo tròn + tiêu đề tím nhạt có vạch phân cách cột.
     //
     //  KHÔNG ĐỔI CODE GỐC: Form49 chỉ thêm đúng 1 dòng ở CUỐI constructor (sau Module_HeThong.BocBoTronGiaoDien(richTextBox1_NoiDungKhenThuong);):
-    //        GiaoDienForm49Web.ApDung(this);
+    //        Module_GiaoDienForm49Web.ApDung(this);
     //  - Không sửa Designer, không đổi tên/kiểu/sự kiện của control nào; tìm control theo Name.
     //  - Code gốc định dạng lưới trong Load (CauHinhGridCoBan / CauHinhStyleWeb / CauHinhCotGrid, chạy 1 lần): màu chọn dòng, font, đường kẻ ô.
     //    Helper áp lại màu của mình ngay khi form hiện (sự kiện Shown, sau Load) và khi lưới layout lại; cột, độ rộng, chiều cao,
@@ -17,10 +17,10 @@ namespace PhanMemThiDua2026
     //  - Ô STT được code gốc khóa chỉ-đọc và tô nền xanh nhạt khi Load -> helper KHÔNG đụng tới nền, chỉ đổi khung.
     //  - 2 combo "Hình thức" / "Đơn vị khen thưởng" ở khung nhập là combo gõ được (DropDown): giữ nguyên combo gốc,
     //    chỉ đổi font; các combo tìm kiếm (DropDownList) được thay bằng ô combo bo tròn OComboWebF4.
-    //  - Dùng lại TheBoGocF4 và OComboWebF4 trong GiaoDienForm4Web.cs (file đó phải còn trong project).
+    //  - Dùng lại TheBoGocF4 và OComboWebF4 trong Module_GiaoDienForm4Web.cs (file đó phải còn trong project).
     //  - Mọi bước bọc try/catch: lỗi trình bày không bao giờ làm form không mở được.
     // =====================================================================================
-    internal static class GiaoDienForm49Web
+    internal static class Module_GiaoDienForm49Web
     {
         // ===================== TÙY CHỌN =====================
         private const int DemKhungBang = 5;     // khoảng đệm giữa khung bo tròn và bảng
@@ -88,7 +88,7 @@ namespace PhanMemThiDua2026
         private static void An(Action viec, string ten)
         {
             try { viec(); }
-            catch (Exception ex) { Debug.WriteLine($"[GiaoDienForm49Web.{ten}] {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm49Web.{ten}] {ex.Message}"); }
         }
 
         private static T? Tim<T>(Control goc, string ten) where T : Control
@@ -599,7 +599,7 @@ namespace PhanMemThiDua2026
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine("[GiaoDienForm49Web.TieuDe] " + ex.Message);
+                    Debug.WriteLine("[Module_GiaoDienForm49Web.TieuDe] " + ex.Message);
                 }
             }
         }
@@ -696,9 +696,9 @@ namespace PhanMemThiDua2026
                 ov.Content.ShortText.Color1 = m.Chu;
             }
             b.StateDisabled.Back.Color1 = Color.FromArgb(245, 243, 255); b.StateDisabled.Back.Color2 = Color.FromArgb(245, 243, 255);
-            b.StateDisabled.Border.Color1 = Color.FromArgb(221, 214, 254); b.StateDisabled.Border.Color2 = Color.FromArgb(221, 214, 254);
-            b.StateDisabled.Content.ShortText.Color1 = Color.FromArgb(167, 139, 250);
-            b.Cursor = Cursors.Hand;
-        }
-    }
-}
+                                      b.StateDisabled.Border.Color1 = Color.FromArgb(221, 214, 254); b.StateDisabled.Border.Color2 = Color.FromArgb(221, 214, 254);
+                                      b.StateDisabled.Content.ShortText.Color1 = Color.FromArgb(167, 139, 250);
+                                      b.Cursor = Cursors.Hand;
+                                  }
+                              }
+                         }
