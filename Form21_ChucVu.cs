@@ -14,6 +14,7 @@ namespace PhanMemThiDua2026
         public Form21_ChucVu()
         {
             InitializeComponent();
+            Module_GiaoDienForm21Web.ApDung(this);   // Form21: Module_GiaoDienForm21Web.ApDung(this);
             // Ẩn icon trên Taskbar
             this.ShowInTaskbar = false;
             Load += Form21_ChucVu_Load; // Vẫn giữ nguyên tên hàm Load của đồng chí Module_HeThong.Tu_dong_chi

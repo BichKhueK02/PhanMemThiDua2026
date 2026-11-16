@@ -19,6 +19,7 @@ namespace PhanMemThiDua2026
         public Form61_TyLeXetThiDuaNam()
         {
             InitializeComponent();
+            Module_GiaoDienForm61Web.ApDung(this);
             _connectionString = new SqliteConnectionStringBuilder
             {
                 DataSource = Module_DanduongGPS.DuongDanCSDL2

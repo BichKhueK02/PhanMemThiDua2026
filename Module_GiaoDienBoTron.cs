@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Reflection;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 namespace PhanMemThiDua2026
@@ -50,10 +51,14 @@ namespace PhanMemThiDua2026
             if (_daXuLy.TryGetValue(c, out _)) return;
             _daXuLy.Add(c, new object());
             // Control thêm vào sau (form con tạo giao diện lúc Load...) cũng được bo
-            c.ControlAdded += (s, e) =>
+            // Control "lá" (nút, nhãn, ô nhập chuẩn...) không bao giờ được thêm con về sau -> khỏi móc sự kiện
+            if (!LaControlLa(c))
             {
-                if (e.Control != null) XuLy(e.Control);
-            };
+                c.ControlAdded += (s, e) =>
+                {
+                    if (e.Control != null) XuLy(e.Control);
+                };
+            }
             if (!(c.Tag is string tag && tag == TheKhongBoGoc))
             {
                 try { ApDungKieu(c); }
@@ -61,6 +66,9 @@ namespace PhanMemThiDua2026
             }
             foreach (Control con in c.Controls) XuLy(con);
         }
+        private static bool LaControlLa(Control c) =>
+            c is ButtonBase or Label or TextBoxBase or ComboBox or ListControl or PictureBox
+                or ProgressBar or ScrollBar or DateTimePicker or NumericUpDown;
         private static void ApDungKieu(Control c)
         {
             string? ns = c.GetType().Namespace;
@@ -89,18 +97,42 @@ namespace PhanMemThiDua2026
         // ------------------------------------------------------------------
         //  KRYPTON  (dùng reflection để không phụ thuộc phiên bản Krypton)
         // ------------------------------------------------------------------
+        // Cache theo KIỂU control: trước đây mỗi control Krypton gọi 3 lần GetProperty (reflection) + Convert,
+        // với hàng trăm control mỗi form thì tốn hàng chục ms trên luồng giao diện lúc dựng/nạp trước form.
+        private sealed class ThongTinRounding
+        {
+            public PropertyInfo? StateCommon, Border, Rounding;
+        }
+        private static readonly ConcurrentDictionary<Type, ThongTinRounding?> _cacheRounding = new();
+        private static ThongTinRounding? LayThongTinRounding(Type t)
+        {
+            return _cacheRounding.GetOrAdd(t, kieu =>
+            {
+                try
+                {
+                    var sc = kieu.GetProperty("StateCommon");
+                    var bd = sc?.PropertyType.GetProperty("Border");
+                    var rd = bd?.PropertyType.GetProperty("Rounding");
+                    if (sc == null || bd == null || rd == null || !rd.CanWrite) return null;
+                    return new ThongTinRounding { StateCommon = sc, Border = bd, Rounding = rd };
+                }
+                catch { return null; }
+            });
+        }
         private static void DatRoundingKrypton(Control c)
         {
             try
             {
-                object? stateCommon = c.GetType().GetProperty("StateCommon")?.GetValue(c);
-                object? border = stateCommon?.GetType().GetProperty("Border")?.GetValue(stateCommon);
-                PropertyInfo? pi = border?.GetType().GetProperty("Rounding");
-                if (border != null && pi != null && pi.CanWrite)
-                {
-                    object val = Convert.ChangeType(BanKinhKrypton, pi.PropertyType);
-                    pi.SetValue(border, val);
-                }
+                var tt = LayThongTinRounding(c.GetType());
+                if (tt == null) return;
+                object? stateCommon = tt.StateCommon!.GetValue(c);
+                object? border = stateCommon == null ? null : tt.Border!.GetValue(stateCommon);
+                if (border == null) return;
+                object val = Convert.ChangeType(BanKinhKrypton, tt.Rounding!.PropertyType);
+                // Chỉ ghi khi khác: mỗi lần ghi Krypton phải tính lại palette + vẽ lại control
+                object? hienTai = tt.Rounding.GetValue(border);
+                if (hienTai != null && hienTai.Equals(val)) return;
+                tt.Rounding.SetValue(border, val);
             }
             catch { /* control không có Border.Rounding thì bỏ qua */ }
         }
@@ -254,17 +286,25 @@ namespace PhanMemThiDua2026
             c.ParentChanged += (s, e) => Lam();
             Lam();
         }
+        private static void VeLaiQuanh(Control? parent, Rectangle b)
+        {
+            if (parent == null || parent.IsDisposed || !parent.IsHandleCreated || b.IsEmpty) return;
+            // Chỉ vô hiệu hóa dải quanh viền (không vô hiệu cả control cha như trước)
+            parent.Invalidate(Rectangle.Inflate(b, 8, 8));
+        }
         private static void GanVienNgoai(Control c)
         {
             Control? parent = null;
+            Rectangle cuoi = c.Bounds;
             void DangKy()
             {
                 if (parent != null && _vienCon.TryGetValue(parent, out var cu))
                 {
                     cu.Remove(c);
-                    parent.Invalidate();
+                    VeLaiQuanh(parent, cuoi);
                 }
                 parent = c.Parent;
+                cuoi = c.Bounds;
                 if (parent == null) return;
                 if (!_vienCon.TryGetValue(parent, out var ds))
                 {
@@ -273,13 +313,20 @@ namespace PhanMemThiDua2026
                     parent.Paint += VeVienCon;
                 }
                 if (!ds.Contains(c)) ds.Add(c);
-                parent.Invalidate();
+                VeLaiQuanh(parent, cuoi);
             }
-            void CapNhat() => c.Parent?.Invalidate();
+            void CapNhat()
+            {
+                Rectangle moi = c.Bounds;
+                if (moi == cuoi) return;
+                VeLaiQuanh(c.Parent, cuoi);   // xóa viền ở vị trí cũ
+                VeLaiQuanh(c.Parent, moi);    // vẽ viền ở vị trí mới
+                cuoi = moi;
+            }
             c.ParentChanged += (s, e) => DangKy();
             c.SizeChanged += (s, e) => CapNhat();
             c.LocationChanged += (s, e) => CapNhat();
-            c.VisibleChanged += (s, e) => CapNhat();
+            c.VisibleChanged += (s, e) => VeLaiQuanh(c.Parent, c.Bounds);
             DangKy();
         }
         private static void VeVienCon(object? sender, PaintEventArgs e)
@@ -307,12 +354,15 @@ namespace PhanMemThiDua2026
         private static void BoGocRegion(Control c, Func<int> banKinh)
         {
             BatDoubleBuffer(c);
+            Size daDat = Size.Empty;
             void Cap()
             {
                 if (c.Width < 6 || c.Height < 6) return;
+                if (c.Size == daDat && c.Region != null) return;   // cùng kích thước: không tạo lại Region
                 using var path = TaoDuong(new RectangleF(0, 0, c.Width, c.Height), Px(c, banKinh()));
-                c.Region = new Region(path);
-                c.Invalidate();
+                c.Region = new Region(path);   // setter của WinForms tự giải phóng Region cũ
+                daDat = c.Size;
+                if (c.IsHandleCreated) c.Invalidate();
             }
             c.SizeChanged += (s, e) => Cap();
             Cap();

@@ -66,48 +66,7 @@ namespace PhanMemThiDua2026
         private static readonly bool BatDoubleBufferToanCay = false;
         private static readonly PropertyInfo? _piDoubleBuffered =
             typeof(Control).GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
-        // ===== Nhật ký hiệu năng: ghi NỀN qua hàng đợi (không IO trên luồng UI). Đặt false khi xong đo đạc =====
-        private const bool GhiNhatKyHieuNang = true;
-        private static readonly Stopwatch _dongHoHieuNang = Stopwatch.StartNew();
-        private static readonly ConcurrentQueue<string> _hangLog = new();
-        private static int _dangXaLog;
-        private static long _mocBam;
-        public static void GhiHieuNang(string moTa)
-        {
-            if (!GhiNhatKyHieuNang) return;
-            try
-            {
-                string dong = $"{DateTime.Now:HH:mm:ss.fff} [{_dongHoHieuNang.ElapsedMilliseconds,9} ms] {moTa}";
-                Debug.WriteLine("[Form60] " + dong);
-                _hangLog.Enqueue(dong);
-                if (Interlocked.CompareExchange(ref _dangXaLog, 1, 0) == 0)
-                    ThreadPool.QueueUserWorkItem(_ => XaNhatKy());
-            }
-            catch { /* ghi nhật ký không được làm hỏng chức năng */ }
-        }
-        private static void XaNhatKy()
-        {
-            try
-            {
-                var sb = new StringBuilder();
-                while (_hangLog.TryDequeue(out var d)) sb.AppendLine(d);
-                if (sb.Length > 0)
-                    File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "Form60_hieunang.log"), sb.ToString());
-            }
-            catch { }
-            finally
-            {
-                Interlocked.Exchange(ref _dangXaLog, 0);
-                if (!_hangLog.IsEmpty && Interlocked.CompareExchange(ref _dangXaLog, 1, 0) == 0)
-                    ThreadPool.QueueUserWorkItem(_ => XaNhatKy());
-            }
-        }
-        /// <summary>Form6 gọi ngay khi người dùng bấm nút -> đo được "bấm -> form hiện xong".</summary>
-        public static void DanhDauThoiDiemBam()
-        {
-            _mocBam = Stopwatch.GetTimestamp();
-            GhiHieuNang("=== BẤM NÚT mở form 60 ===");
-        }
+
         protected override CreateParams CreateParams
         {
             get
@@ -129,7 +88,6 @@ namespace PhanMemThiDua2026
             DangKyCacSuKien();
             CuaSo_KhoiTaoStatusStrip();
             DinhDangDataGridViewHienDai();   // dựng cột + giao diện lưới đúng 1 lần ngay từ đầu (lúc form còn ẩn)
-            GhiHieuNang($"Constructor Form60 xong: {swKhoiTao.ElapsedMilliseconds} ms");
         }
         //  LOGO
         private static Image? TaoLogoThuNho()
@@ -247,7 +205,6 @@ namespace PhanMemThiDua2026
                 // 1. Việc nặng (đọc, giải mã AES, dựng bảng RAM, khởi động ghi bảng nhập) chạy NỀN
                 GoiDuLieuKhoiTao goi = await Task.Run(NapDuLieuNen);
                 if (IsDisposed || Disposing) return;
-                GhiHieuNang($"Khởi tạo: nạp dữ liệu nền xong {sw.ElapsedMilliseconds} ms ({goi.Bang.Rows.Count} dòng)");
                 sw.Restart();
                 // 2. Việc nhẹ trên luồng UI
                 _chuoiGhiDb = goi.GhiBangNhap;
@@ -269,7 +226,6 @@ namespace PhanMemThiDua2026
                 GanDuLieuLenGrid(goi.Bang);
                 long tLuoi = sw.ElapsedMilliseconds - tCombo;
                 CapNhatThanhTrangThaiStatusStrip(goi.Bang.DefaultView.Count);
-                GhiHieuNang($"Khởi tạo (luồng UI): combo {tCombo} ms, gán lưới {tLuoi} ms");
                 if (!IsHandleCreated) TaoHandleDeQuy(this);
                 GanSuKienToanCuc();           // gắn sự kiện lọc SAU CÙNG để lúc nạp không kích hoạt lọc thừa
                 ThuLenLichViecPhu();
@@ -531,7 +487,6 @@ namespace PhanMemThiDua2026
                 _loiBangNhap = ex.Message;
                 _bangNhapHong = true;
             }
-            GhiHieuNang($"Ghi nền bảng DanhSach_Nhap xong: {sw.ElapsedMilliseconds} ms ({dong.Count} dòng)");
         }
         //  HÀNG ĐỢI GHI CSDL TUẦN TỰ
         /// <summary>Xếp một việc CSDL vào hàng đợi: chạy nền, đúng thứ tự, không bao giờ chồng nhau.</summary>
@@ -621,8 +576,6 @@ namespace PhanMemThiDua2026
         private void Form60_NhapLieuCBCS_Shown(object sender, EventArgs e)
         {
             textBox_HoVaTen.Focus();
-            if (_mocBam != 0)
-                GhiHieuNang($"Form60 đã hiện xong (Shown): {(Stopwatch.GetTimestamp() - _mocBam) * 1000 / Stopwatch.Frequency} ms kể từ lúc bấm");
         }
         protected override void OnVisibleChanged(EventArgs e)
         {
@@ -645,7 +598,6 @@ namespace PhanMemThiDua2026
                 long tTip = sw.ElapsedMilliseconds;
                 try { Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1); }
                 catch (Exception ex) { Debug.WriteLine("[MenuChuotPhai] " + ex.Message); }
-                GhiHieuNang($"Việc phụ sau khi hiện: tooltip {tTip} ms, menu chuột phải {sw.ElapsedMilliseconds - tTip} ms");
             };
             tm.Start();
         }

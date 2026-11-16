@@ -117,6 +117,7 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             BatDoubleBufferDeQuy(this);   // giảm chớp khi layout/resize các TableLayoutPanel/GroupBox lồng nhau
+            Module_GiaoDienForm12Web.ApDung(this);   // giao diện kiểu web (module GiaoDienForm12Web.cs + Module_TabWeb.cs) - chỉ trình bày
             // Đã bỏ this.UpdateStyles(): không có lệnh SetStyle nào đi trước nên gọi nó chỉ tốn thêm
             // một lượt gửi WM_STYLECHANGED / vẽ lại toàn form.
         }

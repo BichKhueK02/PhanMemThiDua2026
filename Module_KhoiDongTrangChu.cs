@@ -1,73 +1,24 @@
 ﻿using System.Diagnostics;
 namespace PhanMemThiDua2026
 {
+    /// <summary>
+    /// Bản rút gọn: chỉ giữ việc cảnh báo tỷ lệ màn hình (Program gọi).
+    /// Phần PreloadForm2/GetForm2 cũ đã bỏ vì không còn dùng (việc nạp trước Form2 do Module_GiaoDienForm2Web đảm nhiệm)
+    /// và còn gọi BeginInvoke khi form chưa có handle nên sẽ lỗi nếu bị gọi.
+    /// </summary>
     internal static class Module_KhoiDongTrangChu
     {
-        //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-        private static Form2_FormCha? _form2Instance;
-        /// <summary>
-        /// Preload Form2_FormCha vào RAM
-        /// </summary>
-        public static void PreloadForm2()
-        {
-            if (_form2Instance != null && !_form2Instance.IsDisposed)
-                return;
-            _form2Instance = new Form2_FormCha();
-            _form2Instance.BeginInvoke(new Action(() =>
-            {
-                try
-                {
-                    // Tạo control để render UI nhẹ
-                    _form2Instance.CreateControl();
-                    _form2Instance.Refresh();
-                    Debug.WriteLine("Form2 preload thành công.");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Lỗi preload Form2: " + ex.Message);
-                }
-            }));
-            // Preload form con Form15_ThongKeThiDua
-            Task.Run(() =>
-            {
-                try
-                {
-                    _form2Instance.BeginInvoke(new Action(() =>
-                    {
-                        if (!_form2Instance.Controls.ContainsKey("Form15_ThongKeThiDua"))
-                        {
-                            _form2Instance.OpenChildForm<Form15_ThongKeThiDua>("");
-                        }
-                    }));
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Preload Form15 lỗi: " + ex.Message);
-                }
-            });
-        }
-        /// <summary>
-        /// Lấy instance Form2 đã preload
-        /// </summary>
-        public static Form2_FormCha? GetForm2()
-        {
-            if (_form2Instance == null || _form2Instance.IsDisposed)
-                PreloadForm2();
-            return _form2Instance;
-        }
         public static void KiemTraVaCanhBaoTyLeManHinh()
         {
             try
             {
                 float dpiX;
-                // Lấy DPI thực tế của màn hình chính bằng Graphics Hwnd(0)
+                // Lấy DPI thực tế của màn hình chính
                 using (Graphics graphics = Graphics.FromHwnd(IntPtr.Zero))
                 {
                     dpiX = graphics.DpiX;
                 }
-                // Tính toán phần trăm Scale (100% = 96 DPI)
-                float scalePercentage = (dpiX / 96f) * 100f;
-                // Nếu tỷ lệ >= 150%
+                float scalePercentage = (dpiX / 96f) * 100f; // 100% = 96 DPI
                 if (scalePercentage >= 150f)
                 {
                     MessageBox.Show(

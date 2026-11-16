@@ -14,7 +14,9 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private Form14? formTinhToan;
-        private Panel? piePanel;
+        //private Panel? piePanel;
+
+        private BieuDoTron3D? piePanel;
         private int highlightedSlice = -1;
         private Dictionary<string, int> pieData = new Dictionary<string, int>();
         private int[] loai1;
@@ -2273,72 +2275,35 @@ WHERE ID = 1", conn);
         {
             piePanel?.Invalidate();
         }
-        private void PiePanel_Paint(object? sender, PaintEventArgs e)
+
+
+
+        // =====================================================================
+        // KHU VỰC XỬ LÝ BIỂU ĐỒ 3D (ĐÃ TỐI ƯU THEO CHUẨN CONTROL)
+        // =====================================================================
+
+        // 1. KHỞI TẠO CONTROL BIỂU ĐỒ (Dùng BieuDoTron3D thay vì Panel tự vẽ)
+        private void KhoiTaoPieChart()
         {
-            if (piePanel == null || pieData == null || pieData.Count == 0) return;
-            var g = e.Graphics;
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            string[] labels = pieData.Keys.ToArray();
-            double[] values = pieData.Values.Select(v => (double)v).ToArray();
-            double total = values.Sum();
-            _pieFont ??= new Font(Module_HeThong.TenFontHeThong, 9, FontStyle.Bold);
-            var font = _pieFont;
-            if (total <= 0)
+            if (piePanel != null && !piePanel.IsDisposed) return;
+
+            piePanel = new BieuDoTron3D
             {
-                string msg = "Không có dữ liệu để vẽ.";
-                var textSize = g.MeasureString(msg, font);
-                g.DrawString(msg, font, Brushes.Gray, (piePanel.Width - textSize.Width) / 2, (piePanel.Height - textSize.Height) / 2);
-                return;
-            }
-            Color[] colors = {
-        Color.FromArgb(102, 204, 102),
-        Color.FromArgb(255, 105, 180),
-        Color.FromArgb(135, 206, 250),
-        Color.FromArgb(255, 165, 0),
-        Color.FromArgb(192, 192, 192)
-    };
-            int padding = 20;
-            int size = Math.Min(piePanel.Width, piePanel.Height) - padding;
-            Rectangle pieRect = new Rectangle(padding / 2, padding / 2, size, size);
-            float startAngle = 0f;
-            for (int i = 0; i < values.Length; i++)
-            {
-                float sweepAngle = (float)(values[i] / total * 360.0);
-                if (sweepAngle <= 0) continue;
-                float offsetX = 0, offsetY = 0;
-                if (i == highlightedSlice)
-                {
-                    double midAngle = startAngle + sweepAngle / 2;
-                    double rad = Math.PI * midAngle / 180.0;
-                    offsetX = (float)(10 * Math.Cos(rad));
-                    offsetY = (float)(10 * Math.Sin(rad));
-                }
-                Rectangle sliceRect = new Rectangle(pieRect.X + (int)offsetX, pieRect.Y + (int)offsetY, pieRect.Width, pieRect.Height);
-                var shadowRect = sliceRect;
-                shadowRect.Offset(3, 3);
-                g.FillPie(Brushes.Gray, shadowRect, startAngle, sweepAngle);
-                using var brush = new System.Drawing.Drawing2D.LinearGradientBrush(sliceRect, Color.White, colors[i], 45f);
-                g.FillPie(brush, sliceRect, startAngle, sweepAngle);
-                g.DrawPie(Pens.White, sliceRect, startAngle, sweepAngle);
-                double mid = startAngle + sweepAngle / 2;
-                double radMid = Math.PI * mid / 180.0;
-                float centerX = sliceRect.Left + sliceRect.Width / 2f;
-                float centerY = sliceRect.Top + sliceRect.Height / 2f;
-                float labelRadius = size / 3f;
-                float labelX = centerX + (float)(labelRadius * Math.Cos(radMid));
-                float labelY = centerY + (float)(labelRadius * Math.Sin(radMid));
-                string text = $"{labels[i]}: {values[i]} ({values[i] / total:P0})";
-                Brush textBrush = values[i] / total > 0.2 ? Brushes.White : Brushes.Black;
-                var textSize = g.MeasureString(text, font);
-                g.DrawString(text, font, textBrush, labelX - textSize.Width / 2, labelY - textSize.Height / 2);
-                startAngle += sweepAngle;
-            }
+                Dock = DockStyle.Fill,
+                NguonDuLieu = () => pieData
+            };
+
+            pieChart.Controls.Add(piePanel);
+            piePanel.BringToFront();
         }
+
+        // 2. ĐỌC LẠI DỮ LIỆU TỪ CSDL VÀ YÊU CẦU VẼ LẠI (Giữ nguyên)
         public async Task RefreshPieChartAsync()
         {
             string csdl2Path = _csdl2Path;
             if (string.IsNullOrWhiteSpace(csdl2Path))
                 return;
+
             pieData = await Task.Run(() =>
             {
                 int l1 = 0, l2 = 0, l3 = 0, l4 = 0, kpl = 0;
@@ -2369,30 +2334,24 @@ WHERE ID = 1", conn);
                 {
                 }
                 return new Dictionary<string, int>
-        {
-            {Module_HeThong.Loai_1, l1 },
-            {Module_HeThong.Loai_2, l2 },
-            {Module_HeThong.Loai_3, l3 },
-            {Module_HeThong.Loai_4, l4 },
-            {Module_HeThong.PL_KHONG_PL, kpl }
-        };
+                {
+                    {Module_HeThong.Loai_1, l1 },
+                    {Module_HeThong.Loai_2, l2 },
+                    {Module_HeThong.Loai_3, l3 },
+                    {Module_HeThong.Loai_4, l4 },
+                    {Module_HeThong.PL_KHONG_PL, kpl }
+                };
             });
+
+            // Yêu cầu Control tự vẽ lại (nó sẽ tự check dữ liệu mới và chạy hiệu ứng)
             if (piePanel != null && !piePanel.IsDisposed)
                 piePanel.Invalidate();
         }
-        private void KhoiTaoPieChart()
-        {
-            if (piePanel != null) return;
-            piePanel = new DoubleBufferedPanel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = Color.White
-            };
-            piePanel.Paint += PiePanel_Paint;
-            pieChart.Controls.Clear();
-            pieChart.Controls.Add(piePanel);
-            piePanel.Invalidate();   // pieData có thể đã có sẵn từ Bang1_Async
-        }
+
+        // 3. XÓA HOÀN TOÀN CÁC HÀM SAU (vì Control BieuDoTron3D đã tự xử lý):
+        // - private void PiePanel_Paint(...) -> XÓA
+        // - private void PiePanel_MouseMove(...) -> XÓA
+        // - private void PiePanel_MouseLeave(...) -> XÓA
         //Thuật toán khác
         private void kryptonButton_MayTinh_Click(object sender, EventArgs e)
         {

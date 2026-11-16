@@ -86,8 +86,8 @@ namespace PhanMemThiDua2026
         public Form15_ThongKeThiDua()
         {
             InitializeComponent();
-            Module_GiaoDienForm15Web.ApDung(this);                       // THÊM
-            _mauChuTrangThai = toolStripStatusLabel1.ForeColor;   // giữ nguyên
+            Module_GiaoDienForm15Web.ApDung(this);
+            _mauChuTrangThai = toolStripStatusLabel1.ForeColor;
             BatDoubleBufferDeQuy(this);   // giảm chớp khi layout/resize các container lồng nhau
             Module_TaiKhoan.OnPhienBanThayDoi += Module_TaiKhoan_OnPhienBanThayDoi;
             this.KeyPreview = true;
@@ -426,22 +426,44 @@ namespace PhanMemThiDua2026
                 _isDataMaxMode = dataMax;
                 Interlocked.Increment(ref _locSeq);   // hủy các lần lọc đang chờ trên dữ liệu cũ
                 _filteredIndexes = new List<int>();   // chỉ số lọc cũ không còn đúng
-                grid.DataSource = null;
-                grid.Columns.Clear();                 // xóa cột -> lưới về 0 dòng
+                // Chữ ký cấu trúc cột: nếu không đổi (F5, sửa 1 dòng, đồng bộ...) thì GIỮ NGUYÊN cột + định dạng,
+                // chỉ thay dữ liệu -> không xóa/dựng lại ~40 cột, không nháy lưới, giữ vị trí cuộn và cột đang rộng.
+                string chuKy = TaoChuKyCot(bang, cotPhatSinh, laTanBinh);
+                bool giuCot = grid.Columns.Count > 0 && chuKy == _chuKyCot;
+                if (!giuCot)
+                {
+                    grid.DataSource = null;
+                    grid.Columns.Clear();             // xóa cột -> lưới về 0 dòng
+                }
                 var bangCu = dtDanhSachGoc;
                 dtDanhSachGoc = bang;
                 bangCu?.Dispose();
                 ganBoDem();
                 _cotPhatSinhCacheThongKe = cotPhatSinh;
                 _sttCache = stt;
-                ThemCotVaoLuoi(bang, laTanBinh);
-                ApDungDinhDangGridThongKe();
+                if (!giuCot)
+                {
+                    ThemCotVaoLuoi(bang, laTanBinh);
+                    ApDungDinhDangGridThongKe();
+                    _chuKyCot = chuKy;
+                }
                 DungBanDoCot();
             }
             finally
             {
                 grid.ResumeLayout();
             }
+        }
+        private string _chuKyCot = "";
+        // Gồm: loại dữ liệu, năm hệ thống (đổi tiêu đề cột), tên các cột và cột phát sinh
+        private static string TaoChuKyCot(DataTable bang, List<string> cotPhatSinh, bool laTanBinh)
+        {
+            var sb = new System.Text.StringBuilder(512);
+            sb.Append(laTanBinh ? 'T' : 'C').Append('|').Append(Module_HeThong.LayNamHeThong()).Append('|');
+            foreach (DataColumn c in bang.Columns) sb.Append(c.ColumnName).Append(',');
+            sb.Append('|');
+            foreach (var p in cotPhatSinh) sb.Append(p).Append(',');
+            return sb.ToString();
         }
         // Thêm cột đúng thứ tự hiển thị ngay từ đầu -> không phải chỉnh DisplayIndex từng cột (rất chậm)
         private void ThemCotVaoLuoi(DataTable bang, bool laTanBinh)
@@ -1279,7 +1301,10 @@ namespace PhanMemThiDua2026
             Rectangle headerBounds = new Rectangle(e.RowBounds.Left, e.RowBounds.Top, grid.RowHeadersWidth, e.RowBounds.Height);
             // Khi chỉ vẽ lại vùng ô dữ liệu (cuộn ngang) thì cột số thứ tự không cần vẽ lại
             if (!e.ClipBounds.IntersectsWith(headerBounds)) return;
-            e.Graphics.DrawString((e.RowIndex + 1).ToString(), grid.Font, _rowHeaderBrush, headerBounds, _rowHeaderFormat);
+            // TextRenderer (GDI) nhanh và nét hơn DrawString (GDI+) khi vẽ hàng chục dòng mỗi khung hình
+            TextRenderer.DrawText(e.Graphics, (e.RowIndex + 1).ToString(), grid.Font, headerBounds,
+                grid.RowHeadersDefaultCellStyle.ForeColor,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
         }
         // =====================================================================
         //  CẬP NHẬT MỘT DÒNG

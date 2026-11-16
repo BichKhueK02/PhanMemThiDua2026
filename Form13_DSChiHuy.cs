@@ -9,9 +9,13 @@ namespace PhanMemThiDua2026
     public partial class Form13_DSChiHuy : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private readonly Color _focusColor = Color.FromArgb(0, 120, 215);
-        private readonly Color _hoverColor = Color.FromArgb(100, 180, 255); // 🌟 Thêm màu Hover
-        private readonly Color _normalColor = Color.FromArgb(200, 200, 200);
+
+
+        // 1) Ba màu viền của form lấy từ module (hết viền xanh dương)
+        private readonly Color _focusColor = Module_GiaoDienForm13Web.MauVienChon;
+        private readonly Color _hoverColor = Module_GiaoDienForm13Web.MauVienHover;
+        private readonly Color _normalColor = Module_GiaoDienForm13Web.MauVienO;
+
         private KryptonTextBox[] hovatenTextBoxes = Array.Empty<KryptonTextBox>();
         private KryptonTextBox[] chucvuTextBoxes = Array.Empty<KryptonTextBox>();
         private KryptonTextBox[] tatCaTextBoxes = Array.Empty<KryptonTextBox>();
@@ -25,6 +29,8 @@ namespace PhanMemThiDua2026
             KhoiTaoTextBox();
             GanSuKien();
             InitToolTips();
+            // 2) Cuối constructor, sau InitToolTips();
+            Module_GiaoDienForm13Web.ApDung(this);
         }
         private void Form13_Load(object? sender, EventArgs e)
         {
@@ -357,6 +363,8 @@ namespace PhanMemThiDua2026
                 {
                     col.SortMode = DataGridViewColumnSortMode.NotSortable;
                 }
+                // 3) Cuối khối try của DinhDangGrid(), sau vòng lặp tắt sort
+                Module_GiaoDienForm13Web.StyleLuoi(grid);
             }
             finally
             {

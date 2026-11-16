@@ -14,6 +14,7 @@ namespace PhanMemThiDua2026
         public Form20_DonVi()
         {
             InitializeComponent();
+            Module_GiaoDienForm20Web.ApDung(this);   // Form21: Module_GiaoDienForm21Web.ApDung(this);
             Load += Form20_DonVi_Load;
             kryptonDataGridView1_DanhSach_DonVi.CellClick += kryptonDataGridView1_DanhSach_DonVi_CellClick;
             // Đăng ký sự kiện tự vẽ giao diện cho ô

@@ -1,6 +1,4 @@
-﻿
-
-///Phiên bản 2
+﻿///Phiên bản 2
 using Krypton.Toolkit;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -53,9 +51,83 @@ namespace PhanMemThiDua2026
             SendMessage(c.Handle, WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
             c.Invalidate(true);
         }
+        // ===== HIỆN FORM2 "MỘT PHÁT LÀ XONG" (cloak đến khi dựng + vẽ xong) =====
+        // Trước đây Form2.Show() hiện ngay rồi mới dựng/vẽ dần (Form2_Load, trang chủ Form4, bố cục khi phóng to)
+        // -> người dùng thấy giao diện "vẽ từng mảng" + khựng. Giờ: cửa sổ vẫn Show bình thường (nên vẫn dựng và vẽ
+        // đầy đủ vào bề mặt của DWM) nhưng bị "cloak" (ẩn khỏi màn hình). Khi đã nạp xong thì bỏ cloak: hiện nguyên vẹn.
+        // Không dùng Opacity (đổi Opacity có thể tạo lại handle cả cây control). Windows không hỗ trợ cloak -> bỏ qua, chạy như cũ.
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+        private const int DWMWA_CLOAK = 13;
+        private const int CLOAK_TOI_THIEU_MS = 180;   // đủ để khung hình đầu được vẽ xong
+        private const int CLOAK_TOI_DA_MS = 2200;     // chốt chặn: luôn hiện dù có chuyện gì
+        private bool _daCloak, _daHienXong;
+        private System.Windows.Forms.Timer? _timerHien;
+        private Stopwatch? _swHien;
+        private Action? _sauKhiHien;
+        /// <summary>Chạy hành động khi Form2 đã hiện thật sự (vd. Form1 chỉ ẩn đi lúc này để không bị khoảng trống).</summary>
+        public void SauKhiHienXong(Action hanhDong)
+        {
+            if (_daCloak) _sauKhiHien += hanhDong;
+            else hanhDong();
+        }
+        protected override void SetVisibleCore(bool value)
+        {
+            bool lanDau = value && !_daHienXong && !_daCloak && !DesignMode;
+            if (lanDau) BatCloak();
+            base.SetVisibleCore(value);
+            if (lanDau && _daCloak) BatDauChoHien();
+        }
+        private void BatCloak()
+        {
+            try
+            {
+                IntPtr h = Handle;
+                int v = 1;
+                if (DwmSetWindowAttribute(h, DWMWA_CLOAK, ref v, sizeof(int)) == 0) _daCloak = true;
+            }
+            catch { _daCloak = false; }
+        }
+        private void BatDauChoHien()
+        {
+            _swHien = Stopwatch.StartNew();
+            _timerHien = new System.Windows.Forms.Timer { Interval = 30 };
+            _timerHien.Tick += (s, e) =>
+            {
+                long ms = _swHien!.ElapsedMilliseconds;
+                // Sẵn sàng: Form2_Load xong (isLoaded) + khung hình đầu đã có thời gian vẽ, hoặc hết hạn chốt chặn
+                if ((isLoaded && ms >= CLOAK_TOI_THIEU_MS) || ms >= CLOAK_TOI_DA_MS) GoCloak();
+            };
+            _timerHien.Start();
+        }
+        private void GoCloak()
+        {
+            var t = _timerHien; _timerHien = null;
+            if (t != null) { t.Stop(); t.Dispose(); }
+            if (!_daCloak) return;
+            _daCloak = false;
+            _daHienXong = true;
+            try
+            {
+                if (IsHandleCreated)
+                {
+                    int v = 0;
+                    DwmSetWindowAttribute(Handle, DWMWA_CLOAK, ref v, sizeof(int));
+                }
+            }
+            catch { }
+            var cb = _sauKhiHien; _sauKhiHien = null;
+            try { cb?.Invoke(); } catch (Exception ex) { Debug.WriteLine("[Form2] SauKhiHienXong: " + ex.Message); }
+        }
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            if (_daCloak && !IsDisposed && Disposing) { var t = _timerHien; _timerHien = null; t?.Stop(); t?.Dispose(); }
+            base.OnHandleDestroyed(e);
+        }
         public Form2_FormCha()
         {
             InitializeComponent();
+            Module_AnhDongNhe.ApDung(pictureBox3);   // GIF động 640x480 trong ô 82x35: co sẵn khung hình, chạy nhẹ (hết vẽ lại liên tục)
             ApplyPerformanceTuning();
             // 🎨 BO TRÒN GIAO DIỆN: áp cho form cha và tự động cho mọi form con (kể cả control tạo sau)
             // Sidebar kiểu web hiện đại (viên thuốc bo tròn, hover sáng, mục đang chọn màu trắng)
@@ -122,20 +194,48 @@ namespace PhanMemThiDua2026
         {
             if (_loadExecuted) return;
             _loadExecuted = true;
-            // 1. KHỞI TẠO DỮ LIỆU NGƯỜI DÙNG
-            KhoiTaoDuLieuNguoiDung();
-            // 2. KHỞI TẠO GIAO DIỆN
-            KhoiTaoGiaoDien();
-            // 3. THIẾT LẬP TRẠNG THÁI MENU
+            var sw = Stopwatch.StartNew();
+            // 1. ĐỌC CSDL Ở LUỒNG NỀN: trước đây NapTaiKhoan + LayNamHeThong + LayPhienBan (3 lần mở SQLite + giải mã AES)
+            //    chạy thẳng trên luồng giao diện lúc Show -> form đăng nhập đứng hình trước khi Form2 kịp hiện.
+            var (nam, phienBan) = await Task.Run(DocThongTinKhoiDongNen);
+            if (IsDisposed) return;
+            Debug.WriteLine($"[Form2_Load] đọc CSDL nền: {sw.ElapsedMilliseconds} ms");
+            // 2. KHỞI TẠO DỮ LIỆU NGƯỜI DÙNG (tài khoản đã nạp ở bước 1)
+            KhoiTaoDuLieuNguoiDung(daNapTaiKhoan: true);
+            // 3. KHỞI TẠO GIAO DIỆN
+            KhoiTaoGiaoDien(nam, phienBan);
+            // 4. THIẾT LẬP TRẠNG THÁI MENU
             checkBox1_TuDongAnMenu.Checked = AppRuntime.TuDongAnMenu;
-            // 4. KHỞI TẠO TIMER VÀ EVENT
+            // 5. KHỞI TẠO TIMER VÀ EVENT
             KhoiTaoTimerTuDongAnMenu();
             DangKySuKienTuDongAnMenu();
             _ = Task.Run(EnsureSuKienThoatTonTai);   // CREATE TABLE + INSERT: không cần chặn luồng UI lúc mở form
-            // 5. CẬP NHẬT UI BAN ĐẦU
+            // 6. CẬP NHẬT UI BAN ĐẦU
             CapNhatMuiTenGiaoDien();
-            // 6. PRELOAD DỮ LIỆU CSDL Ở NỀN
-            // Nếu đã nạp trước (từ lúc ở form đăng nhập) thì chỉ cần chờ nó xong, không nạp lại
+            // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT -> lớp "cloak" được gỡ ngay, form đăng nhập nhường chỗ.
+            //    (Trước đây bước này còn CHỜ nạp xong danh sách CSDL; nếu người dùng đăng nhập sớm thì cloak
+            //     chờ tới 2,2 giây trong lúc form đăng nhập đứng yên -> cảm giác "khựng một lúc mới vào được".)
+            isLoaded = true;
+            Debug.WriteLine($"[Form2_Load] sẵn sàng hiện: {sw.ElapsedMilliseconds} ms");
+            // 8. VIỆC NỀN, KHÔNG CHẶN VIỆC HIỆN FORM
+            _ = Task.Run(Form32_HuongDanPDF.NapTruocThuVien);   // PDFium: lần mở Hướng dẫn đầu tiên không bị khựng
+            _ = HoanTatPreloadDuLieuAsync();                    // danh sách CSDL (DataLoader)
+            SauKhiHienXong(() => _ = NapTruocTrangConSauKhiHienAsync());   // các trang nặng: dựng khi đã hiện + người dùng rảnh
+        }
+        /// <summary>Chạy ở luồng nền: các lần đọc CSDL mà Form2_Load cần (mỗi hàm tự mở/đóng kết nối riêng, an toàn đa luồng).</summary>
+        private static (int Nam, string PhienBan) DocThongTinKhoiDongNen()
+        {
+            try { Module_TaiKhoan.NapTaiKhoanTuCSDL(); }
+            catch (Exception ex) { Debug.WriteLine("[Form2_Load] NapTaiKhoan: " + ex.Message); }
+            int nam = Module_HeThong.LayNamHeThong();
+            string phienBan = "";
+            try { phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? ""; }
+            catch (Exception ex) { Debug.WriteLine("[Form2_Load] LayPhienBan: " + ex.Message); }
+            return (nam, phienBan);
+        }
+        /// <summary>Chờ (không chặn UI) việc nạp danh sách CSDL xong; nếu chưa có ai nạp thì nạp ở nền.</summary>
+        private async Task HoanTatPreloadDuLieuAsync()
+        {
             bool daCoDuLieu = false;
             if (TacVuPreloadDuLieu != null)
             {
@@ -146,20 +246,10 @@ namespace PhanMemThiDua2026
             {
                 await Task.Run(() =>
                 {
-                    try
-                    {
-                        DataLoader.PreloadDanhSach(_csdl2Path);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine(ex);
-                    }
+                    try { DataLoader.PreloadDanhSach(_csdl2Path); }
+                    catch (Exception ex) { Debug.WriteLine(ex); }
                 });
             }
-            // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT
-            isLoaded = true;
-            // Nạp sẵn thư viện PDFium ở nền (im lặng) để lần mở Hướng dẫn đầu tiên không bị khựng
-            _ = Task.Run(Form32_HuongDanPDF.NapTruocThuVien);
         }
         private void Form2_FormCha_Shown(object? sender, EventArgs e)
         {
@@ -189,9 +279,9 @@ namespace PhanMemThiDua2026
                     Label1.ForeColor = Color.Blue;
             }
         }
-        public void KhoiTaoDuLieuNguoiDung()
+        public void KhoiTaoDuLieuNguoiDung(bool daNapTaiKhoan = false)
         {
-            Module_TaiKhoan.NapTaiKhoanTuCSDL();
+            if (!daNapTaiKhoan) Module_TaiKhoan.NapTaiKhoanTuCSDL();   // Form2_Load đã nạp ở luồng nền thì bỏ qua
             sidebarWidth = PanelLeft.Width;
             string ten = SessionInfo.TenTaiKhoan;
             DateTime thoiGian = SessionInfo.ThoiGianDangNhap;
@@ -286,15 +376,13 @@ namespace PhanMemThiDua2026
                 }
             });
         }
-        private void KhoiTaoGiaoDien()
+        private void KhoiTaoGiaoDien(int namHienTai, string phienBan)
         {
-            int namHienTai = Module_HeThong.LayNamHeThong();
             OpenChildForm<Form4_TrangDauTien>(
                 $"PHẦN MỀM THI ĐUA NĂM {namHienTai}");
             // 🚀 TỐI ƯU UX: ẨN NÚT KHEN THƯỞNG NẾU LÀ TÂN BINH
             try
             {
-                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
                 bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
                 // Nếu là Tân binh -> Visible = false (Ẩn nút)
                 // Nếu là CBCS -> Visible = true (Hiện nút)
@@ -1230,101 +1318,124 @@ namespace PhanMemThiDua2026
             bool Dung() => huy() || IsDisposed || Visible;
             if (Dung()) return;
             var sw = Stopwatch.StartNew();
+            // Mỗi bước nặng chỉ chạy khi người dùng đã ngừng gõ/bấm một lúc (Module_NhuongUI) -> không còn
+            // cảnh bấm Đăng nhập trúng đúng khối đang dựng form. Việc dài được chia lát ~8 ms.
+            // Đang đèn đỏ (người dùng vừa bấm Đăng nhập) thì dừng ở nhịp này; hết đèn đỏ mới hỏi tiếp "người dùng có rảnh không".
+            async Task<bool> Nhuong()
+            {
+                await Module_UuTienDangNhap.NhuongAsync();
+                return await Module_NhuongUI.ChoRanhAsync(Dung);
+            }
             // B1: tạo handle cửa sổ + toàn bộ control con (form vẫn ẩn, Form2_Load CHƯA chạy)
+            if (!await Nhuong()) return;
             _ = Handle;
-            TaoHandleDeQuy(this);
+            if (!await Module_NhuongUI.TaoHandleTheoLatAsync(this, Dung)) return;
             Debug.WriteLine($"[Preload] handle Form2: {sw.ElapsedMilliseconds} ms");
-            await Task.Delay(15);
-            if (Dung()) return;
             // B2: tạo sẵn trang chủ (Form4), cho vào cache _forms để OpenChildForm dùng lại
             Form? trangChu = null;
             if (NapTruocFormConTrangChu)
             {
-                try { trangChu = NapTruocFormCon<Form4_TrangDauTien>(); }
+                if (!await Nhuong()) return;
+                try
+                {
+                    trangChu = await NapTruocFormConAsync<Form4_TrangDauTien>(Dung);
+                    if (trangChu is Form4_TrangDauTien f4 && !Dung()) f4.NapTruocGiaoDien();
+                }
                 catch (Exception ex) { Debug.WriteLine("[Preload] Form4: " + ex.Message); }
-                if (trangChu is Form4_TrangDauTien f4) f4.NapTruocGiaoDien();
             }
             Debug.WriteLine($"[Preload] Form4: {sw.ElapsedMilliseconds} ms");
-            await Task.Delay(15);
-            if (Dung()) return;
-            // B2b: tạo sẵn trang Dữ liệu (Form6) - cũng chưa Show nên Form6_Load chưa chạy
-            Form? trangDuLieu = null;
+            // (Các trang nặng: Dữ liệu / Thống kê / Cài đặt / Nhật ký được dựng SAU khi Form2 đã hiện: NapTruocTrangConSauKhiHienAsync.
+            //  Trước đây dựng hết ở đây, ngay lúc người dùng đang nhập mật khẩu -> dễ trùng đúng lúc bấm Đăng nhập.)
+            // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh). Chỉ cần Form2 + trang chủ (trang hiện đầu tiên);
+            // các trang còn lại vẽ thử ở lần mở đầu chỉ tốn vài ms nên không cần ép vẽ bitmap lớn lúc này.
+            if (NapTruocVeThuGiaoDien)
+            {
+                if (!await Nhuong()) return;
+                VeThu(this);
+                if (trangChu != null)
+                {
+                    if (!await Nhuong()) return;
+                    VeThu(trangChu);
+                }
+            }
+            Debug.WriteLine($"[Preload] vẽ thử: {sw.ElapsedMilliseconds} ms");
+        }
+        private bool _daNapTruocTrangCon;
+        /// <summary>
+        /// Chạy SAU khi Form2 đã hiện (gọi từ Form2_Load qua SauKhiHienXong): dựng sẵn các trang nặng lúc người dùng rảnh.
+        /// Mỗi bước chờ "đèn đỏ" + "người dùng rảnh" (Module_NhuongUI). Bấm sang trang nào chưa dựng thì OpenChildForm dựng ngay
+        /// như bình thường; trang đang dựng dở mà được bấm vào thì dừng chia lát để Show lo phần còn lại.
+        /// </summary>
+        internal async Task NapTruocTrangConSauKhiHienAsync()
+        {
+            if (_daNapTruocTrangCon) return;
+            _daNapTruocTrangCon = true;
+            bool Dung() => IsDisposed || _isClosing;
+            async Task<bool> Nhuong()
+            {
+                await Module_UuTienDangNhap.NhuongAsync();
+                return await Module_NhuongUI.ChoRanhAsync(Dung);
+            }
+            var sw = Stopwatch.StartNew();
+            // Trang Dữ liệu (Form6) - chưa Show nên Form6_Load chưa chạy
             if (NapTruocFormConDuLieu)
             {
-                try { trangDuLieu = NapTruocFormCon<Form6_XuLyData>(); }
+                if (!await Nhuong()) return;
+                try { await NapTruocFormConAsync<Form6_XuLyData>(Dung); }
                 catch (Exception ex) { Debug.WriteLine("[Preload] Form6: " + ex.Message); }
             }
             Debug.WriteLine($"[Preload] Form6: {sw.ElapsedMilliseconds} ms");
-            await Task.Delay(15);
-            if (Dung()) return;
-            // B2c: tạo sẵn trang Cài đặt (Form12) - chưa Show nên Form12_Load chưa chạy
-            Form? trangCaiDat = null;
-            if (NapTruocFormConCaiDat)
-            {
-                try { trangCaiDat = NapTruocFormCon<Form12>(); }
-                catch (Exception ex) { Debug.WriteLine("[Preload] Form12: " + ex.Message); }
-            }
-            Debug.WriteLine($"[Preload] Form12: {sw.ElapsedMilliseconds} ms");
-            await Task.Delay(15);
-            if (Dung()) return;
-            // B2d: tạo sẵn trang Thống kê: Form53 (form mẹ) rồi Form15 bên trong - chưa Show nên Load chưa chạy
+            // Trang Thống kê: Form53 (form mẹ) rồi Form15 bên trong - chưa Show nên Load chưa chạy
             if (NapTruocFormConThongKe)
             {
+                if (!await Nhuong()) return;
                 try
                 {
-                    var trangThongKe = NapTruocFormCon<Form53_QuanLyKetQuaThiDua>();
-                    if (!Dung()) trangThongKe.NapTruocGiaoDien();
+                    var trangThongKe = await NapTruocFormConAsync<Form53_QuanLyKetQuaThiDua>(Dung);
+                    if (trangThongKe != null && !Dung())
+                    {
+                        if (!await Nhuong()) return;   // NapTruocGiaoDien dựng Form15 bên trong: thêm 1 nhịp nghỉ
+                        trangThongKe.NapTruocGiaoDien();
+                    }
                 }
                 catch (Exception ex) { Debug.WriteLine("[Preload] Form53/15: " + ex.Message); }
             }
             Debug.WriteLine($"[Preload] Form53/15: {sw.ElapsedMilliseconds} ms");
-            await Task.Delay(15);
-            if (Dung()) return;
-            // B2e: tạo sẵn trang Nhật ký (Form10) - chưa Show nên Form10_Load/Shown chưa chạy (chưa đọc CSDL nhật ký)
+            // Trang Cài đặt (Form12) - chưa Show nên Form12_Load chưa chạy
+            if (NapTruocFormConCaiDat)
+            {
+                if (!await Nhuong()) return;
+                try { await NapTruocFormConAsync<Form12>(Dung); }
+                catch (Exception ex) { Debug.WriteLine("[Preload] Form12: " + ex.Message); }
+            }
+            Debug.WriteLine($"[Preload] Form12: {sw.ElapsedMilliseconds} ms");
+            // Trang Nhật ký (Form10) - chưa Show nên Form10_Load/Shown chưa chạy (chưa đọc CSDL nhật ký)
             if (NapTruocFormConNhatKy)
             {
+                if (!await Nhuong()) return;
                 try
                 {
-                    var trangNhatKy = NapTruocFormCon<Form10_NhatKy>();
+                    var trangNhatKy = await NapTruocFormConAsync<Form10_NhatKy>(Dung);
                     // Đọc CSDL nhật ký ở luồng nền ngay bây giờ (form còn ẩn) để lúc bấm mở là có dữ liệu sẵn trên lưới
-                    if (!Dung()) _ = trangNhatKy.NapTruocDuLieuAsync();
+                    if (trangNhatKy != null && !Dung()) _ = trangNhatKy.NapTruocDuLieuAsync();
                 }
                 catch (Exception ex) { Debug.WriteLine("[Preload] Form10: " + ex.Message); }
             }
             Debug.WriteLine($"[Preload] Form10: {sw.ElapsedMilliseconds} ms");
-            await Task.Delay(15);
-            if (Dung()) return;
-            // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh) để lần hiện thật không bị giật
-            if (NapTruocVeThuGiaoDien)
-            {
-                VeThu(this);
-                if (trangChu != null && !Dung()) VeThu(trangChu);
-                await Task.Delay(15);
-                if (trangDuLieu != null && !Dung()) VeThu(trangDuLieu);
-                await Task.Delay(15);
-                if (trangCaiDat != null && !Dung()) VeThu(trangCaiDat);
-            }
-            Debug.WriteLine($"[Preload] vẽ thử: {sw.ElapsedMilliseconds} ms");
         }
-        private T NapTruocFormCon<T>() where T : Form, new()
+        private async Task<T?> NapTruocFormConAsync<T>(Func<bool> dung) where T : Form, new()
         {
             var type = typeof(T);
             if (_forms.TryGetValue(type, out var da) && !da.IsDisposed) return (T)da;
-            var f = new T();
+            var f = new T();                 // khối không chia nhỏ được (InitializeComponent) - đã được chờ lúc rảnh
             _forms[type] = f;
             f.TopLevel = false;
             f.FormBorderStyle = FormBorderStyle.None;
             f.Dock = DockStyle.Fill;
-            PanelContainer.Controls.Add(f);   // chưa Show() -> Form4_Load chưa chạy
-            TaoHandleDeQuy(f);
+            PanelContainer.Controls.Add(f);   // chưa Show() -> Load chưa chạy
+            // Dừng chia lát khi chính trang này đã được hiện (Show lo phần còn lại) hoặc bị hủy
+            await Module_NhuongUI.TaoHandleTheoLatAsync(f, () => dung() || f.IsDisposed || f.Visible);
             return f;
-        }
-        private static void TaoHandleDeQuy(Control c)
-        {
-            string ten = c.GetType().FullName ?? "";
-            if (ten.Contains("WebView2") || ten.Contains("WebBrowser")) return; // control nặng, để lúc cần mới tạo
-            try { _ = c.Handle; } catch { return; }
-            foreach (Control con in c.Controls) TaoHandleDeQuy(con);
         }
         private static void VeThu(Control c)
         {
@@ -1401,8 +1512,8 @@ public static class UIHelper
         public static bool TuDongAnMenu = false;
     }
 }
-/////TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-/////TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+
+///Phiên bản 2
 //using Krypton.Toolkit;
 //using System.Collections.Concurrent;
 //using System.Diagnostics;
@@ -1455,9 +1566,83 @@ public static class UIHelper
 //            SendMessage(c.Handle, WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
 //            c.Invalidate(true);
 //        }
+//        // ===== HIỆN FORM2 "MỘT PHÁT LÀ XONG" (cloak đến khi dựng + vẽ xong) =====
+//        // Trước đây Form2.Show() hiện ngay rồi mới dựng/vẽ dần (Form2_Load, trang chủ Form4, bố cục khi phóng to)
+//        // -> người dùng thấy giao diện "vẽ từng mảng" + khựng. Giờ: cửa sổ vẫn Show bình thường (nên vẫn dựng và vẽ
+//        // đầy đủ vào bề mặt của DWM) nhưng bị "cloak" (ẩn khỏi màn hình). Khi đã nạp xong thì bỏ cloak: hiện nguyên vẹn.
+//        // Không dùng Opacity (đổi Opacity có thể tạo lại handle cả cây control). Windows không hỗ trợ cloak -> bỏ qua, chạy như cũ.
+//        [DllImport("dwmapi.dll")]
+//        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+//        private const int DWMWA_CLOAK = 13;
+//        private const int CLOAK_TOI_THIEU_MS = 180;   // đủ để khung hình đầu được vẽ xong
+//        private const int CLOAK_TOI_DA_MS = 2200;     // chốt chặn: luôn hiện dù có chuyện gì
+//        private bool _daCloak, _daHienXong;
+//        private System.Windows.Forms.Timer? _timerHien;
+//        private Stopwatch? _swHien;
+//        private Action? _sauKhiHien;
+//        /// <summary>Chạy hành động khi Form2 đã hiện thật sự (vd. Form1 chỉ ẩn đi lúc này để không bị khoảng trống).</summary>
+//        public void SauKhiHienXong(Action hanhDong)
+//        {
+//            if (_daCloak) _sauKhiHien += hanhDong;
+//            else hanhDong();
+//        }
+//        protected override void SetVisibleCore(bool value)
+//        {
+//            bool lanDau = value && !_daHienXong && !_daCloak && !DesignMode;
+//            if (lanDau) BatCloak();
+//            base.SetVisibleCore(value);
+//            if (lanDau && _daCloak) BatDauChoHien();
+//        }
+//        private void BatCloak()
+//        {
+//            try
+//            {
+//                IntPtr h = Handle;
+//                int v = 1;
+//                if (DwmSetWindowAttribute(h, DWMWA_CLOAK, ref v, sizeof(int)) == 0) _daCloak = true;
+//            }
+//            catch { _daCloak = false; }
+//        }
+//        private void BatDauChoHien()
+//        {
+//            _swHien = Stopwatch.StartNew();
+//            _timerHien = new System.Windows.Forms.Timer { Interval = 30 };
+//            _timerHien.Tick += (s, e) =>
+//            {
+//                long ms = _swHien!.ElapsedMilliseconds;
+//                // Sẵn sàng: Form2_Load xong (isLoaded) + khung hình đầu đã có thời gian vẽ, hoặc hết hạn chốt chặn
+//                if ((isLoaded && ms >= CLOAK_TOI_THIEU_MS) || ms >= CLOAK_TOI_DA_MS) GoCloak();
+//            };
+//            _timerHien.Start();
+//        }
+//        private void GoCloak()
+//        {
+//            var t = _timerHien; _timerHien = null;
+//            if (t != null) { t.Stop(); t.Dispose(); }
+//            if (!_daCloak) return;
+//            _daCloak = false;
+//            _daHienXong = true;
+//            try
+//            {
+//                if (IsHandleCreated)
+//                {
+//                    int v = 0;
+//                    DwmSetWindowAttribute(Handle, DWMWA_CLOAK, ref v, sizeof(int));
+//                }
+//            }
+//            catch { }
+//            var cb = _sauKhiHien; _sauKhiHien = null;
+//            try { cb?.Invoke(); } catch (Exception ex) { Debug.WriteLine("[Form2] SauKhiHienXong: " + ex.Message); }
+//        }
+//        protected override void OnHandleDestroyed(EventArgs e)
+//        {
+//            if (_daCloak && !IsDisposed && Disposing) { var t = _timerHien; _timerHien = null; t?.Stop(); t?.Dispose(); }
+//            base.OnHandleDestroyed(e);
+//        }
 //        public Form2_FormCha()
 //        {
 //            InitializeComponent();
+//            Module_AnhDongNhe.ApDung(pictureBox3);   // GIF động 640x480 trong ô 82x35: co sẵn khung hình, chạy nhẹ (hết vẽ lại liên tục)
 //            ApplyPerformanceTuning();
 //            // 🎨 BO TRÒN GIAO DIỆN: áp cho form cha và tự động cho mọi form con (kể cả control tạo sau)
 //            // Sidebar kiểu web hiện đại (viên thuốc bo tròn, hover sáng, mục đang chọn màu trắng)
@@ -2040,18 +2225,15 @@ public static class UIHelper
 //            OpenChildForm<Form10_NhatKy>("Trang Nhật ký phần mềm");
 //            if (_currentChild is Form10_NhatKy frm)
 //            {
-//                // 🌟 CHUẨN KỸ SƯ: Chỉ load 1 lần duy nhất, giải phóng UI Thread
-//                if (!frm.DaLoadDuLieu)
+//                // Form10 TỰ nạp dữ liệu (đã nạp sẵn lúc khởi động; chưa kịp thì nạp khi hiện) và tự nạp thêm dòng mới mỗi lần hiện lại.
+//                // Bản cũ ở đây gọi ReloadDuLieuAsync lần nữa, trùng với lần nạp của Form10_Shown => nạp 2-3 lần mỗi lần bấm.
+//                try
 //                {
-//                    try
-//                    {
-//                        await Task.Run(() => frm.ReloadDuLieuAsync());
-//                        frm.DaLoadDuLieu = true;
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        Debug.WriteLine("Lỗi load Form10: " + ex.Message);
-//                    }
+//                    await frm.DamBaoDaNapAsync();
+//                }
+//                catch (Exception ex)
+//                {
+//                    Debug.WriteLine("Lỗi load Form10: " + ex.Message);
 //                }
 //            }
 //            Module_NhatKy.GhiNhatKy(SessionInfo.TenTaiKhoan, "Mở trang nhật ký phần mềm", "Người dùng mở form nhật ký từ Trang chủ");
@@ -2635,96 +2817,98 @@ public static class UIHelper
 //            bool Dung() => huy() || IsDisposed || Visible;
 //            if (Dung()) return;
 //            var sw = Stopwatch.StartNew();
+//            // Mỗi bước nặng chỉ chạy khi người dùng đã ngừng gõ/bấm một lúc (Module_NhuongUI) -> không còn
+//            // cảnh bấm Đăng nhập trúng đúng khối đang dựng form. Việc dài được chia lát ~8 ms.
+//            Task<bool> Nhuong() => Module_NhuongUI.ChoRanhAsync(Dung);
 //            // B1: tạo handle cửa sổ + toàn bộ control con (form vẫn ẩn, Form2_Load CHƯA chạy)
+//            if (!await Nhuong()) return;
 //            _ = Handle;
-//            TaoHandleDeQuy(this);
+//            if (!await Module_NhuongUI.TaoHandleTheoLatAsync(this, Dung)) return;
 //            Debug.WriteLine($"[Preload] handle Form2: {sw.ElapsedMilliseconds} ms");
-//            await Task.Delay(15);
-//            if (Dung()) return;
 //            // B2: tạo sẵn trang chủ (Form4), cho vào cache _forms để OpenChildForm dùng lại
 //            Form? trangChu = null;
 //            if (NapTruocFormConTrangChu)
 //            {
-//                try { trangChu = NapTruocFormCon<Form4_TrangDauTien>(); }
+//                if (!await Nhuong()) return;
+//                try
+//                {
+//                    trangChu = await NapTruocFormConAsync<Form4_TrangDauTien>(Dung);
+//                    if (trangChu is Form4_TrangDauTien f4 && !Dung()) f4.NapTruocGiaoDien();
+//                }
 //                catch (Exception ex) { Debug.WriteLine("[Preload] Form4: " + ex.Message); }
-//                if (trangChu is Form4_TrangDauTien f4) f4.NapTruocGiaoDien();
 //            }
 //            Debug.WriteLine($"[Preload] Form4: {sw.ElapsedMilliseconds} ms");
-//            await Task.Delay(15);
-//            if (Dung()) return;
 //            // B2b: tạo sẵn trang Dữ liệu (Form6) - cũng chưa Show nên Form6_Load chưa chạy
-//            Form? trangDuLieu = null;
 //            if (NapTruocFormConDuLieu)
 //            {
-//                try { trangDuLieu = NapTruocFormCon<Form6_XuLyData>(); }
+//                if (!await Nhuong()) return;
+//                try { await NapTruocFormConAsync<Form6_XuLyData>(Dung); }
 //                catch (Exception ex) { Debug.WriteLine("[Preload] Form6: " + ex.Message); }
 //            }
 //            Debug.WriteLine($"[Preload] Form6: {sw.ElapsedMilliseconds} ms");
-//            await Task.Delay(15);
-//            if (Dung()) return;
-//            // B2c: tạo sẵn trang Cài đặt (Form12) - chưa Show nên Form12_Load chưa chạy
-//            Form? trangCaiDat = null;
-//            if (NapTruocFormConCaiDat)
-//            {
-//                try { trangCaiDat = NapTruocFormCon<Form12>(); }
-//                catch (Exception ex) { Debug.WriteLine("[Preload] Form12: " + ex.Message); }
-//            }
-//            Debug.WriteLine($"[Preload] Form12: {sw.ElapsedMilliseconds} ms");
-//            await Task.Delay(15);
-//            if (Dung()) return;
 //            // B2d: tạo sẵn trang Thống kê: Form53 (form mẹ) rồi Form15 bên trong - chưa Show nên Load chưa chạy
 //            if (NapTruocFormConThongKe)
 //            {
+//                if (!await Nhuong()) return;
 //                try
 //                {
-//                    var trangThongKe = NapTruocFormCon<Form53_QuanLyKetQuaThiDua>();
-//                    if (!Dung()) trangThongKe.NapTruocGiaoDien();
+//                    var trangThongKe = await NapTruocFormConAsync<Form53_QuanLyKetQuaThiDua>(Dung);
+//                    if (trangThongKe != null && !Dung())
+//                    {
+//                        if (!await Nhuong()) return;   // NapTruocGiaoDien dựng Form15 bên trong: thêm 1 nhịp nghỉ
+//                        trangThongKe.NapTruocGiaoDien();
+//                    }
 //                }
 //                catch (Exception ex) { Debug.WriteLine("[Preload] Form53/15: " + ex.Message); }
 //            }
 //            Debug.WriteLine($"[Preload] Form53/15: {sw.ElapsedMilliseconds} ms");
-//            await Task.Delay(15);
-//            if (Dung()) return;
+//            // B2c: tạo sẵn trang Cài đặt (Form12) - chưa Show nên Form12_Load chưa chạy
+//            if (NapTruocFormConCaiDat)
+//            {
+//                if (!await Nhuong()) return;
+//                try { await NapTruocFormConAsync<Form12>(Dung); }
+//                catch (Exception ex) { Debug.WriteLine("[Preload] Form12: " + ex.Message); }
+//            }
+//            Debug.WriteLine($"[Preload] Form12: {sw.ElapsedMilliseconds} ms");
 //            // B2e: tạo sẵn trang Nhật ký (Form10) - chưa Show nên Form10_Load/Shown chưa chạy (chưa đọc CSDL nhật ký)
 //            if (NapTruocFormConNhatKy)
 //            {
-//                try { NapTruocFormCon<Form10_NhatKy>(); }
+//                if (!await Nhuong()) return;
+//                try
+//                {
+//                    var trangNhatKy = await NapTruocFormConAsync<Form10_NhatKy>(Dung);
+//                    // Đọc CSDL nhật ký ở luồng nền ngay bây giờ (form còn ẩn) để lúc bấm mở là có dữ liệu sẵn trên lưới
+//                    if (trangNhatKy != null && !Dung()) _ = trangNhatKy.NapTruocDuLieuAsync();
+//                }
 //                catch (Exception ex) { Debug.WriteLine("[Preload] Form10: " + ex.Message); }
 //            }
 //            Debug.WriteLine($"[Preload] Form10: {sw.ElapsedMilliseconds} ms");
-//            await Task.Delay(15);
-//            if (Dung()) return;
-//            // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh) để lần hiện thật không bị giật
+//            // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh). Chỉ cần Form2 + trang chủ (trang hiện đầu tiên);
+//            // các trang còn lại vẽ thử ở lần mở đầu chỉ tốn vài ms nên không cần ép vẽ bitmap lớn lúc này.
 //            if (NapTruocVeThuGiaoDien)
 //            {
+//                if (!await Nhuong()) return;
 //                VeThu(this);
-//                if (trangChu != null && !Dung()) VeThu(trangChu);
-//                await Task.Delay(15);
-//                if (trangDuLieu != null && !Dung()) VeThu(trangDuLieu);
-//                await Task.Delay(15);
-//                if (trangCaiDat != null && !Dung()) VeThu(trangCaiDat);
+//                if (trangChu != null)
+//                {
+//                    if (!await Nhuong()) return;
+//                    VeThu(trangChu);
+//                }
 //            }
 //            Debug.WriteLine($"[Preload] vẽ thử: {sw.ElapsedMilliseconds} ms");
 //        }
-//        private T NapTruocFormCon<T>() where T : Form, new()
+//        private async Task<T?> NapTruocFormConAsync<T>(Func<bool> dung) where T : Form, new()
 //        {
 //            var type = typeof(T);
 //            if (_forms.TryGetValue(type, out var da) && !da.IsDisposed) return (T)da;
-//            var f = new T();
+//            var f = new T();                 // khối không chia nhỏ được (InitializeComponent) - đã được chờ lúc rảnh
 //            _forms[type] = f;
 //            f.TopLevel = false;
 //            f.FormBorderStyle = FormBorderStyle.None;
 //            f.Dock = DockStyle.Fill;
-//            PanelContainer.Controls.Add(f);   // chưa Show() -> Form4_Load chưa chạy
-//            TaoHandleDeQuy(f);
+//            PanelContainer.Controls.Add(f);   // chưa Show() -> Load chưa chạy
+//            await Module_NhuongUI.TaoHandleTheoLatAsync(f, dung);
 //            return f;
-//        }
-//        private static void TaoHandleDeQuy(Control c)
-//        {
-//            string ten = c.GetType().FullName ?? "";
-//            if (ten.Contains("WebView2") || ten.Contains("WebBrowser")) return; // control nặng, để lúc cần mới tạo
-//            try { _ = c.Handle; } catch { return; }
-//            foreach (Control con in c.Controls) TaoHandleDeQuy(con);
 //        }
 //        private static void VeThu(Control c)
 //        {

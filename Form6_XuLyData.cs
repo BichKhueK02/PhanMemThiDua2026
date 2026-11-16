@@ -69,7 +69,7 @@ namespace PhanMemThiDua2026
         public Form6_XuLyData()
         {
             InitializeComponent();
-            Module_GiaoDienForm6Web.ApDung(this);                        // giao diện kiểu web (Form6_XuLyData.GiaoDienWeb.cs) - chỉ trình bày
+            Module_GiaoDienForm6Web.ApDung(this);                  // giao diện kiểu web (module GiaoDienForm6Web.cs) - chỉ trình bày
             BatDoubleBufferDeQuy(this);                    // giảm chớp khi layout/resize các khối lồng nhau
             kryptonDataGridView1.EnableDoubleBuffered(true);   // bật sớm (trước đây chỉ bật trong Load)
             this.KeyPreview = true; // THÊM DÒNG NÀY
@@ -265,6 +265,59 @@ namespace PhanMemThiDua2026
         // [A] THÊM FIELD (đặt cạnh các field khác ở đầu class, ví dụ sau dòng _refreshCts)
         // -------------------------------------------------------------------------------------
         private readonly SemaphoreSlim _reloadGate = new SemaphoreSlim(1, 1);
+        // ---- Tạm dừng vẽ lưới có ĐẾM LỒNG NHAU ----
+        // Trước đây ReloadDuLieuNoiBo tắt vẽ rồi ApplyFilter (gọi bên trong) lại bật vẽ ở giữa chừng
+        // -> lưới vẽ nửa vời ngay khi còn đang dựng cột. Bộ đếm đảm bảo chỉ bật lại khi lớp ngoài cùng xong.
+        private int _veTamDung;
+        private void TamDungVeLuoi()
+        {
+            var g = kryptonDataGridView1;
+            if (g == null || g.IsDisposed) return;
+            if (_veTamDung++ == 0 && g.IsHandleCreated) SendMessage(g.Handle, WM_SETREDRAW, 0, null);
+        }
+        private void MoLaiVeLuoi()
+        {
+            if (_veTamDung <= 0) return;
+            if (--_veTamDung != 0) return;
+            var g = kryptonDataGridView1;
+            if (g == null || g.IsDisposed || !g.IsHandleCreated) return;
+            SendMessage(g.Handle, WM_SETREDRAW, 1, null);
+            g.Invalidate();
+        }
+        // Bộ nhớ đệm giải mã tăng dần theo thời gian (10 năm dùng) -> chặn trần để không phình RAM
+        private const int TRAN_CACHE_AES = 150_000;
+        // Nạp nóng cache giải mã cho các cột KHÔNG giải mã sẵn (số hiệu, quê quán, chức vụ...) ở luồng nền,
+        // để lúc cuộn lưới luồng giao diện chỉ tra cache, không phải chạy AES.
+        private void NapNongCacheGiaiMaNen()
+        {
+            var dt = dtDanhSachGoc;
+            var ord = _mapOrdinalCot;
+            var daGm = _cotDaGiaiMa;
+            if (dt == null || ord == null || daGm == null) return;
+            var chuoi = new HashSet<string>(StringComparer.Ordinal);
+            int n = dt.Rows.Count;
+            for (int ci = 0; ci < ord.Length && ci < daGm.Length; ci++)
+            {
+                if (daGm[ci] || ord[ci] < 0) continue;
+                int o = ord[ci];
+                for (int i = 0; i < n; i++)
+                {
+                    string s = dt.Rows[i][o]?.ToString() ?? "";
+                    if (s.Length > 0 && !_aesCache.ContainsKey(s)) chuoi.Add(s);
+                }
+            }
+            if (chuoi.Count == 0) return;
+            var ds = new List<string>(chuoi);
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    Parallel.ForEach(ds, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount / 2) },
+                        s => GiaiMaSafeCoCache(s));
+                }
+                catch (Exception ex) { Debug.WriteLine("NapNongCache: " + ex.Message); }
+            });
+        }
         private static string GiaiMaSafeCoCache(string? input)
         {
             if (string.IsNullOrWhiteSpace(input)) return "";
@@ -833,7 +886,7 @@ namespace PhanMemThiDua2026
         }
         // 1. HÀM TẢI VÀ GIẢI MÃ DỮ LIỆU (Chạy tuần tự, không bị rớt chữ)
         // 2. HÀM CĂN CHỈNH BẢNG (Xóa Padding để không bị cắt chữ)
-        private void CanChinhBang()
+        private void CanChinhBang(bool boChonO = true)
         {
             var dgv = kryptonDataGridView1;
             if (dgv.Columns.Count == 0) return;
@@ -875,8 +928,9 @@ namespace PhanMemThiDua2026
                     if (dgv.Columns.Contains(colName)) dgv.Columns[colName].Visible = false;
                 }
                 // ⭐ FIX LỖI CẮT CHỮ: Xóa lớp đệm ảo, trả lại khung hiển thị chuẩn
-                dgv.Padding = new Padding(0);
-                dgv.CurrentCell = null;
+                if (dgv.Padding != Padding.Empty) dgv.Padding = new Padding(0);
+                // Chỉ bỏ chọn ô khi nạp lại dữ liệu; khi chỉ đổi kích thước cửa sổ thì giữ nguyên dòng đang chọn
+                if (boChonO) dgv.CurrentCell = null;
             }
             catch (Exception ex)
             {
@@ -2098,7 +2152,6 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             base.OnLoad(e);
             Instance = this;
             LenLichChuanBiForm60(1500); // dựng sẵn khung form 60 lúc rảnh để nút "Thêm CBCS/tân binh" mở tức thì
-            LenLichChuanBiForm55(4000); // dựng sẵn trang Ba Nhất (Form55 -> Form42 + Form44) lúc rảnh, sau Form60, để nút Ba Nhất mở tức thì
         }
         // NÚT MENU GỐC: Gọi luồng xuất bình thường
         private void xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem_Click(object? sender, EventArgs e)
@@ -2148,7 +2201,6 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                 if (TimForm60TrongPanel(panel) != null) return; // đã có sẵn
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 var f = TaoForm60An(panel);
-                Form60_NhapLieuCBCS.GhiHieuNang($"Dựng sẵn form 60: tạo form mất {sw.ElapsedMilliseconds} ms (luồng UI, lúc rảnh)");
                 // Tạo handle của các control theo từng phần nhỏ (mỗi lần <= 10 ms) để không làm khựng người dùng
                 int soLan = 0;
                 var tm = new System.Windows.Forms.Timer { Interval = 30 };
@@ -2162,7 +2214,6 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                     {
                         tm.Stop();
                         tm.Dispose();
-                        Form60_NhapLieuCBCS.GhiHieuNang($"Dựng sẵn form 60: tạo handle xong sau {soLan} lượt, tổng {sw.ElapsedMilliseconds} ms");
                     }
                 };
                 tm.Start();
@@ -2191,55 +2242,8 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             };
             timer.Start();
         }
-        // ===== DỰNG SẴN TRANG BA NHẤT (Form55 chứa Form42 + Form44) =====
-        // Cùng ý tưởng với Form60: tạo Form55 ở trạng thái ẨN trong panel rồi để Form55 tự dựng từng phần nhỏ lúc rảnh.
-        // KHÔNG nạp dữ liệu: dữ liệu Ba Nhất luôn được đồng bộ/nạp lúc người dùng mở trang (luôn mới nhất).
-        private void LenLichChuanBiForm55(int doTreMs)
-        {
-            var timer = new System.Windows.Forms.Timer { Interval = Math.Max(50, doTreMs) };
-            timer.Tick += (s, ev) =>
-            {
-                timer.Stop();
-                timer.Dispose();
-                if (this.IsDisposed) return;
-                EventHandler? khiRanh = null;
-                khiRanh = (s2, ev2) =>
-                {
-                    Application.Idle -= khiRanh;
-                    if (!this.IsDisposed) ChuanBiTruocForm55();
-                };
-                Application.Idle += khiRanh;
-            };
-            timer.Start();
-        }
-
-        private void ChuanBiTruocForm55()
-        {
-            try
-            {
-                if (this.IsDisposed || !this.IsHandleCreated) return;
-                var panel = LayPanelContainerForm60(out _);
-                if (panel == null || panel.IsDisposed) return;
-                if (panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().Any(f => !f.IsDisposed)) return;   // đã có sẵn
-
-                var f55 = new Form55_QuanLyHeThongThiDuaBaNhat
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-                f55.Bounds = panel.ClientRectangle;   // đúng kích thước vùng chứa ngay từ đầu -> lúc hiện không phải bố cục lại
-                panel.Controls.Add(f55);              // đang ẩn nên chưa vẽ gì cả
-                f55.BatDauChuanBiNen();               // Form55 tự dựng Form42 + Form44 từng bước nhỏ (mỗi bước ~8 ms)
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("[ChuanBiTruocForm55] " + ex.Message);
-            }
-        }
         private void kryptonButton1_HuongDanThemDuLieu_Click(object? sender, EventArgs e)
         {
-            Form60_NhapLieuCBCS.DanhDauThoiDiemBam();
             var swBam = System.Diagnostics.Stopwatch.StartNew();
             var panel = LayPanelContainerForm60(out var formCha);
             if (formCha == null || panel == null) return;
@@ -2278,7 +2282,6 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                 bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
                 string doiTuong = laTanBinh ? "tân binh" : "CBCS";
                 formCha.CapNhatTieuDe($"Trang thêm thông tin {doiTuong} vào phần mềm");
-                Form60_NhapLieuCBCS.GhiHieuNang($"Hàm click xong sau {swBam.ElapsedMilliseconds} ms (đã Show + ẩn form khác)");
             }
             catch (Exception ex)
             {
@@ -2850,16 +2853,11 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             {
                 if (ctl is Form frm) frm.Hide();
             }
-            // 4. Tiêu đề lớn: đặt TRƯỚC, để tiêu đề chi tiết do Form55 đặt ngay sau đó là tiêu đề cuối cùng
-            if (formCha.Label1 != null)
+            // 4. KIỂM TRA TRONG RAM: Tìm Form55 đã tồn tại chưa
+            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
+            if (form55 == null || form55.IsDisposed)
             {
-                formCha.Label1.Text = "Hệ thống quản lý phong trào thi đua Ba Nhất";
-            }
-            // 5. KIỂM TRA TRONG RAM: Form55 có thể đã được dựng sẵn (ẩn) lúc rảnh hoặc đã mở trước đó
-            var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault(f => !f.IsDisposed);
-            if (form55 == null)
-            {
-                // Chưa có -> Khởi tạo lần đầu (Form55.Load hiện khung chờ ngay rồi tự mở trang Ba Nhất)
+                // Chưa có -> Khởi tạo lần đầu
                 form55 = new Form55_QuanLyHeThongThiDuaBaNhat
                 {
                     TopLevel = false,
@@ -2871,12 +2869,16 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             }
             else
             {
-                // Đã có sẵn trong RAM -> hiện lại ngay; trang Ba Nhất hiện tức thì, dữ liệu (nếu cần) nạp nền
+                // Đã có sẵn trong RAM -> Chỉ việc hiện lại và đồng bộ nhẹ
                 form55.Dock = DockStyle.Fill;
                 form55.Show();
                 form55.BringToFront();
-                try { await form55.MoForm42Async(); }
-                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[MoForm42Async] " + ex.Message); }
+                await form55.MoForm42Async(); // Kích hoạt nạp lại Tab Form 42 mượt mà
+            }
+            // 5. Cập nhật tiêu đề lớn của phần mềm
+            if (formCha.Label1 != null)
+            {
+                formCha.Label1.Text = "Hệ thống quản lý phong trào thi đua Ba Nhất";
             }
         }
         private void KryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
@@ -3345,7 +3347,9 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                     var taskCheDo = Task.Run(() => KiemTraCheDoXetThiDuaNam());
                     // Bắt buộc phải có .Copy() để không làm bẩn DataCache
                     // ★ Luôn sắp theo STT: cache có thể không theo thứ tự STT -> đây là nguyên nhân Form6 "load sai"
-                    dtKetQua = SapXepTheoSTT(DataCache.GetDanhSach().Copy());
+                    // Copy + sắp xếp chạy ở luồng nền (trước đây chạy ngay trên luồng giao diện -> khựng khi dữ liệu lớn)
+                    var bangCache = DataCache.GetDanhSach();
+                    dtKetQua = await Task.Run(() => SapXepTheoSTT(bangCache.Copy()));
                     isCheDoNam = await taskCheDo;
                 }
                 else
@@ -3368,6 +3372,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                 // 3. ĐỔ DỮ LIỆU LÊN GIAO DIỆN
                 UIHelper.SafeInvoke(this, () =>
                 {
+                    bool daTamDungVe = false;
                     try
                     {
                         // ★ Gán bảng mới NGAY TRÊN LUỒNG UI, cùng khối với việc đặt RowCount.
@@ -3375,7 +3380,9 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                         //   bằng bảng mới nhưng số dòng cũ => dòng lệch/sai.)
                         dtDanhSachGoc = dtKetQua;
                         _snap = snap;
-                        SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null);
+                        TamDungVeLuoi();
+                        daTamDungVe = true;
+                        if (_aesCache.Count > TRAN_CACHE_AES) _aesCache.Clear();
                         if (kryptonDataGridView1.Columns.Contains("GhiChu"))
                             kryptonDataGridView1.Columns["GhiChu"].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
                         kryptonDataGridView1.DataSource = null;
@@ -3402,10 +3409,12 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                         _isUpdatingCombo = false;
                         ApplyFilter();   // đã tự cập nhật thống kê bên trong
                         KiemTraDuLieu();
+                        NapNongCacheGiaiMaNen();   // giải mã trước các cột còn lại ở luồng nền
                     }
                     finally
                     {
                         _snap = null; // tránh dùng dữ liệu cũ ở lần gọi khác
+                        if (daTamDungVe) MoLaiVeLuoi();
                     }
                 });
                 // Dữ liệu DanhSach đã đổi -> Form15 nhận Ghi chú mới ngay
@@ -3426,7 +3435,6 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                 {
                     if (!IsDisposed && IsHandleCreated)
                     {
-                        SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 1, null);
                         kryptonDataGridView1.Invalidate(); // Refresh() ép vẽ đồng bộ -> thay bằng Invalidate
                         kryptonButton_RefershCSDL.Enabled = true;
                     }
@@ -3880,11 +3888,11 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
         {
             if (_timerResize == null)
             {
-                _timerResize = new System.Windows.Forms.Timer { Interval = 40 };
+                _timerResize = new System.Windows.Forms.Timer { Interval = 90 };
                 _timerResize.Tick += (s, ev) =>
                 {
                     _timerResize!.Stop();
-                    if (!IsDisposed && IsHandleCreated) CanChinhBang();
+                    if (!IsDisposed && IsHandleCreated && Visible) CanChinhBang(false);
                 };
             }
             _timerResize.Stop();
@@ -3926,11 +3934,13 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
         {
             if (dtDanhSachGoc == null || _isUpdatingCombo)
                 return;
+            bool daTamDungVe = false;
             try
             {
                 if (kryptonDataGridView1.IsDisposed)
                     return;
-                SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 0, null);
+                TamDungVeLuoi();
+                daTamDungVe = true;
                 string[] requiredColumns = { "HoVaTen", "DonVi", "PhanLoai" };
                 foreach (string col in requiredColumns)
                 {
@@ -3945,7 +3955,9 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
                 string tenFilter = "";
                 if (!_dangSetPlaceholder && textBox_TimKiemTheoTen.Text != PLACEHOLDER_TIMKIEM)
                 {
-                    tenFilter = (textBox_TimKiemTheoTen.Text ?? "").Trim().Replace("'", "''");
+                    // Thoát ký tự đặc biệt của LIKE ([ ] * %): trước đây gõ "[" hoặc "*" làm DataView ném lỗi cú pháp
+                    tenFilter = (textBox_TimKiemTheoTen.Text ?? "").Trim()
+                        .Replace("'", "''").Replace("[", "[[]").Replace("%", "[%]").Replace("*", "[*]");
                 }
                 string donViFilter = comboBox_TimKiemDonVi?.Text?.Trim() ?? "";
                 string phanLoaiFilter = comboBox_XepLoaiThiDua?.Text?.Trim() ?? "";
@@ -4001,11 +4013,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = DanhSach.rowid);";
             {
                 try
                 {
-                    if (!kryptonDataGridView1.IsDisposed)
-                    {
-                        SendMessage(kryptonDataGridView1.Handle, WM_SETREDRAW, 1, null);
-                        kryptonDataGridView1.Invalidate(); // bỏ Refresh(): không ép vẽ đồng bộ nữa
-                    }
+                    if (daTamDungVe) MoLaiVeLuoi();   // chỉ bật vẽ lại khi lớp ngoài cùng xong (bộ đếm lồng nhau)
                 }
                 catch
                 {
