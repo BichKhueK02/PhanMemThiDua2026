@@ -48,6 +48,38 @@ namespace PhanMemThiDua2026   // <-- đổi theo namespace thật của phần m
                 if (cu != null) CryptographicOperations.ZeroMemory(cu);
             }
         }
+        // Cờ do ServiceBackup / ServiceRestore đặt trong lúc đọc/ghi CSDL (đối tượng hệ thống có tên, không ghi đĩa).
+        // PHẢI trùng Module_KennelServiceCrypto.TEN_CO_DANG_XU_LY của 2 dịch vụ. Dịch vụ bị tắt ngang thì Windows tự gỡ cờ.
+        private const string TEN_CO_DICH_VU_DANG_XU_LY = @"Local\PhanMemThiDua2026_DichVuDangXuLyCSDL";
+        private static bool DichVuDangXuLy()
+        {
+            try
+            {
+                if (!EventWaitHandle.TryOpenExisting(TEN_CO_DICH_VU_DANG_XU_LY, out EventWaitHandle? h)) return false;
+                h.Dispose();
+                return true;
+            }
+            catch (UnauthorizedAccessException) { return true; }   // có cờ nhưng không mở được => coi như đang bận
+            catch { return false; }
+        }
+        /// <summary>
+        /// Gọi lúc phần mềm mẹ khởi động, TRƯỚC khi đụng tới CSDL: nếu dịch vụ sao lưu/khôi phục đang đọc/ghi CSDL thì chờ
+        /// (mở mẹ giữa lúc đang khôi phục => đọc phải CSDL đang bị thay => hỏng/mất dữ liệu). false = người dùng chọn thoát.
+        /// </summary>
+        public static bool ChoDichVuSaoLuuKhoiPhucXong()
+        {
+            while (true)
+            {
+                var sw = Stopwatch.StartNew();
+                while (DichVuDangXuLy() && sw.ElapsedMilliseconds < 5000) Thread.Sleep(200);
+                if (!DichVuDangXuLy()) return true;
+                var kq = MessageBox.Show(
+                    "Chương trình sao lưu / khôi phục dữ liệu đang xử lý cơ sở dữ liệu.\n\n" +
+                    "Vui lòng chờ chương trình đó hoàn tất rồi bấm \"Thử lại\" (hoặc \"Hủy\" để thoát).",
+                    "PhanMemThiDua2026", MessageBoxButtons.RetryCancel, MessageBoxIcon.Information);
+                if (kq != DialogResult.Retry) return false;
+            }
+        }
         /// <summary>Khởi chạy service và trao khóa. Thành công => true (mẹ có thể thoát ngay sau đó).</summary>
         public static bool KhoiChay(string duongDanExe, bool laKhoiPhuc, out string loi)
         {

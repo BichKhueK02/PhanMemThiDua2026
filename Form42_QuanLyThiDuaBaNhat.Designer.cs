@@ -29,8 +29,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form42_QuanLyThiDuaBaNhat));
             statusStrip1 = new StatusStrip();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
-            toolStripProgressBar1_LamMoi = new ToolStripProgressBar();
             toolStripStatusLabel2_TyLeBaNhat = new ToolStripStatusLabel();
+            toolStripProgressBar1_LamMoi = new ToolStripProgressBar();
             ToolStripMenuItem_XuatDanhSach = new ToolStripMenuItem();
             toolStripMenuItem1 = new ToolStripSeparator();
             xoaTimKiem = new ToolStripMenuItem();
@@ -56,6 +56,8 @@
             label3 = new Label();
             label4 = new Label();
             comboBox_TimKiemDonVi = new ComboBox();
+            label_LocGhiChu = new Label();
+            comboBox_LocGhiChu = new ComboBox();
             kryptonButton_LamMoiCacOTimKiem = new Krypton.Toolkit.KryptonButton();
             groupBox2_KhoiLenhDieuKhien = new GroupBox();
             tableLayoutPanel6 = new TableLayoutPanel();
@@ -128,7 +130,7 @@
             statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.Dock = DockStyle.Fill;
             statusStrip1.ImageScalingSize = new Size(21, 21);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripProgressBar1_LamMoi, toolStripStatusLabel2_TyLeBaNhat });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2_TyLeBaNhat, toolStripProgressBar1_LamMoi });
             statusStrip1.Location = new Point(0, 654);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 10, 0);
@@ -143,16 +145,16 @@
             toolStripStatusLabel1.Size = new Size(33, 22);
             toolStripStatusLabel1.Text = "*";
             // 
-            // toolStripProgressBar1_LamMoi
-            // 
-            toolStripProgressBar1_LamMoi.Name = "toolStripProgressBar1_LamMoi";
-            toolStripProgressBar1_LamMoi.Size = new Size(100, 21);
-            // 
             // toolStripStatusLabel2_TyLeBaNhat
             // 
             toolStripStatusLabel2_TyLeBaNhat.Name = "toolStripStatusLabel2_TyLeBaNhat";
             toolStripStatusLabel2_TyLeBaNhat.Size = new Size(32, 22);
             toolStripStatusLabel2_TyLeBaNhat.Text = "Tỷ lệ";
+            // 
+            // toolStripProgressBar1_LamMoi
+            // 
+            toolStripProgressBar1_LamMoi.Name = "toolStripProgressBar1_LamMoi";
+            toolStripProgressBar1_LamMoi.Size = new Size(100, 21);
             // 
             // ToolStripMenuItem_XuatDanhSach
             // 
@@ -311,22 +313,25 @@
             // 
             // tableLayoutPanel5
             // 
-            tableLayoutPanel5.ColumnCount = 7;
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.7096195F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29.9885559F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10.28593F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.6716909F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 9.907022F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.6716909F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 9.765493F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel5.ColumnCount = 9;
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle());
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24F));
+            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58F));
             tableLayoutPanel5.Controls.Add(comboBox1_DeNghi, 5, 0);
             tableLayoutPanel5.Controls.Add(label5, 4, 0);
             tableLayoutPanel5.Controls.Add(textBox_TimKiemTheoTen, 1, 0);
             tableLayoutPanel5.Controls.Add(label3, 0, 0);
             tableLayoutPanel5.Controls.Add(label4, 2, 0);
             tableLayoutPanel5.Controls.Add(comboBox_TimKiemDonVi, 3, 0);
-            tableLayoutPanel5.Controls.Add(kryptonButton_LamMoiCacOTimKiem, 6, 0);
+            tableLayoutPanel5.Controls.Add(label_LocGhiChu, 6, 0);
+            tableLayoutPanel5.Controls.Add(comboBox_LocGhiChu, 7, 0);
+            tableLayoutPanel5.Controls.Add(kryptonButton_LamMoiCacOTimKiem, 8, 0);
             tableLayoutPanel5.Dock = DockStyle.Fill;
             tableLayoutPanel5.Font = new Font("Segoe UI", 9.216F, FontStyle.Regular, GraphicsUnit.Point, 0);
             tableLayoutPanel5.Location = new Point(3, 20);
@@ -342,9 +347,9 @@
             comboBox1_DeNghi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_DeNghi.FormattingEnabled = true;
             comboBox1_DeNghi.Items.AddRange(new object[] { "-- Tất cả --", "Đề nghị", "Không" });
-            comboBox1_DeNghi.Location = new Point(569, 10);
+            comboBox1_DeNghi.Location = new Point(430, 10);
             comboBox1_DeNghi.Name = "comboBox1_DeNghi";
-            comboBox1_DeNghi.Size = new Size(95, 23);
+            comboBox1_DeNghi.Size = new Size(84, 23);
             comboBox1_DeNghi.TabIndex = 2;
             // 
             // label5
@@ -353,7 +358,7 @@
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label5.ForeColor = Color.FromArgb(0, 0, 192);
-            label5.Location = new Point(512, 13);
+            label5.Location = new Point(373, 13);
             label5.Name = "label5";
             label5.Size = new Size(51, 17);
             label5.TabIndex = 30;
@@ -362,10 +367,10 @@
             // textBox_TimKiemTheoTen
             // 
             textBox_TimKiemTheoTen.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            textBox_TimKiemTheoTen.Location = new Point(97, 7);
+            textBox_TimKiemTheoTen.Location = new Point(71, 7);
             textBox_TimKiemTheoTen.Margin = new Padding(3, 0, 3, 0);
             textBox_TimKiemTheoTen.Name = "textBox_TimKiemTheoTen";
-            textBox_TimKiemTheoTen.Size = new Size(216, 29);
+            textBox_TimKiemTheoTen.Size = new Size(147, 29);
             textBox_TimKiemTheoTen.StateCommon.Border.Rounding = 8F;
             textBox_TimKiemTheoTen.StateCommon.Border.Width = 1;
             textBox_TimKiemTheoTen.TabIndex = 0;
@@ -388,7 +393,7 @@
             label4.AutoSize = true;
             label4.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
             label4.ForeColor = Color.FromArgb(0, 0, 192);
-            label4.Location = new Point(345, 13);
+            label4.Location = new Point(224, 13);
             label4.Name = "label4";
             label4.Size = new Size(44, 17);
             label4.TabIndex = 2;
@@ -400,20 +405,43 @@
             comboBox_TimKiemDonVi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_TimKiemDonVi.FormattingEnabled = true;
             comboBox_TimKiemDonVi.Items.AddRange(new object[] { "Tất cả", "BCH", "TTM,D2", "TCT,D2", "THC,D2", "C1,D2", "C2,D2", "C3,D2", "CCG,D2" });
-            comboBox_TimKiemDonVi.Location = new Point(395, 10);
+            comboBox_TimKiemDonVi.Location = new Point(274, 10);
             comboBox_TimKiemDonVi.Name = "comboBox_TimKiemDonVi";
-            comboBox_TimKiemDonVi.Size = new Size(95, 23);
+            comboBox_TimKiemDonVi.Size = new Size(93, 23);
             comboBox_TimKiemDonVi.TabIndex = 1;
+            // 
+            // label_LocGhiChu
+            // 
+            label_LocGhiChu.Anchor = AnchorStyles.Right;
+            label_LocGhiChu.AutoSize = true;
+            label_LocGhiChu.Font = new Font("Segoe UI", 9.216F, FontStyle.Italic, GraphicsUnit.Point, 0);
+            label_LocGhiChu.ForeColor = Color.FromArgb(0, 0, 192);
+            label_LocGhiChu.Location = new Point(520, 13);
+            label_LocGhiChu.Name = "label_LocGhiChu";
+            label_LocGhiChu.Size = new Size(51, 17);
+            label_LocGhiChu.TabIndex = 31;
+            label_LocGhiChu.Text = "Ghi chú";
+            // 
+            // comboBox_LocGhiChu
+            // 
+            comboBox_LocGhiChu.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            comboBox_LocGhiChu.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox_LocGhiChu.FormattingEnabled = true;
+            comboBox_LocGhiChu.Items.AddRange(new object[] { "Tất cả" });
+            comboBox_LocGhiChu.Location = new Point(577, 10);
+            comboBox_LocGhiChu.Name = "comboBox_LocGhiChu";
+            comboBox_LocGhiChu.Size = new Size(102, 23);
+            comboBox_LocGhiChu.TabIndex = 3;
             // 
             // kryptonButton_LamMoiCacOTimKiem
             // 
             kryptonButton_LamMoiCacOTimKiem.Anchor = AnchorStyles.None;
-            kryptonButton_LamMoiCacOTimKiem.Location = new Point(680, 5);
+            kryptonButton_LamMoiCacOTimKiem.Location = new Point(687, 5);
             kryptonButton_LamMoiCacOTimKiem.Name = "kryptonButton_LamMoiCacOTimKiem";
             kryptonButton_LamMoiCacOTimKiem.Size = new Size(48, 32);
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
-            kryptonButton_LamMoiCacOTimKiem.TabIndex = 3;
+            kryptonButton_LamMoiCacOTimKiem.TabIndex = 4;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
             kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
@@ -1089,6 +1117,8 @@
         private Label label8;
         private ComboBox comboBox1_DeNghi;
         private Label label5;
+        private Label label_LocGhiChu;
+        private ComboBox comboBox_LocGhiChu;
         private TableLayoutPanel tableLayoutPanel8;
         private Krypton.Toolkit.KryptonButton kryptonButton1_ThanhTichTapThe;
         private ToolTip toolTip1;

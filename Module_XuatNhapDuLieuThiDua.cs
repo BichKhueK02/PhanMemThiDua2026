@@ -357,29 +357,23 @@ namespace PhanMemThiDua2026
         /// <summary>Ghi ra tệp tạm cùng thư mục rồi đổi tên: lỗi giữa chừng không để lại tệp Excel hỏng/cụt.</summary>
         private static void LuuAnToan(XLWorkbook wb, string filePath) => Module_ExcelAnToan.LuuAnToan(wb, filePath);
         // NHẬP EXCEL (4 hàm cũ -> 1 bộ đọc streaming + 1 bộ ghi CSDL)
+        /// <summary>
+        /// Nạp danh sách từ Excel. Nếu có số hiệu trùng (trong tệp hoặc với CSDL khi nạp thêm) thì
+        /// KHÔNG ghi gì cả và trả về danh sách dòng trùng để người dùng kiểm tra lại tệp.
+        /// </summary>
         public static List<string> NhapDanhSachExcelCBCS(string excelPath, bool xoaDuLieuCu)
         {
             var data = DocDanhSachTuExcel(excelPath, SheetCBCS);
-            var kq = GhiVaoCsdl(data, xoaDuLieuCu, kiemTraSoHieu: false);
-            GhiNhatKyVaMoThuMuc(kq.SoThanhCong, excelPath, "CBCS", isExport: false);
-            return kq.DongTrung; // CBCS không kiểm tra trùng -> luôn rỗng
+            var kq = GhiVaoCsdl(data, xoaDuLieuCu, laTanBinh: false);
+            if (kq.DongTrung.Count == 0) GhiNhatKyVaMoThuMuc(kq.SoThanhCong, excelPath, "CBCS", isExport: false);
+            return kq.DongTrung;
         }
         public static List<string> NhapDanhSachExcelTanBinh(string excelPath, bool xoaDuLieuCu)
         {
             var data = DocDanhSachTuExcel(excelPath, SheetTanBinh);
-            var kq = GhiVaoCsdl(data, xoaDuLieuCu, kiemTraSoHieu: true);
-            GhiNhatKyVaMoThuMuc(kq.SoThanhCong, excelPath, Module_TaiKhoan.TenTB_Hoa, isExport: false);
+            var kq = GhiVaoCsdl(data, xoaDuLieuCu, laTanBinh: true);
+            if (kq.DongTrung.Count == 0) GhiNhatKyVaMoThuMuc(kq.SoThanhCong, excelPath, Module_TaiKhoan.TenTB_Hoa, isExport: false);
             return kq.DongTrung;
-        }
-        public static List<string> NhapDanhSachExcelCBCSFastDataReader(string filePath, bool xoaDuLieuCu)
-        {
-            var data = DocDanhSachTuExcel(filePath, SheetCBCS);
-            return GhiVaoCsdl(data, xoaDuLieuCu, kiemTraSoHieu: false).DongTrung;
-        }
-        public static List<string> NhapDanhSachExcelTanBinhFastDataReader(string filePath, bool xoaDuLieuCu)
-        {
-            var data = DocDanhSachTuExcel(filePath, SheetTanBinh);
-            return GhiVaoCsdl(data, xoaDuLieuCu, kiemTraSoHieu: true).DongTrung;
         }
         /// <summary>
         /// Đọc streaming đúng 1 sheet bằng ExcelDataReader: không nạp cả workbook (ClosedXML) và không
@@ -445,12 +439,15 @@ namespace PhanMemThiDua2026
             return boDauNhay ? s.Trim('\'') : s;
         }
         // GHI CSDL: xóa cũ + nạp mới nằm TRONG CÙNG 1 TRANSACTION
-        private static (List<string> DongTrung, int SoThanhCong) GhiVaoCsdl(List<CBCSModel> data, bool xoaDuLieuCu, bool kiemTraSoHieu)
+        private static (List<string> DongTrung, int SoThanhCong) GhiVaoCsdl(List<CBCSModel> data, bool xoaDuLieuCu, bool laTanBinh)
         {
-            var dongTrung = new List<string>();
+            bool kiemTraSoHieu = laTanBinh; // chỉ Tân binh mới tự cấp số hiệu ID.....
             int soThanhCong = 0;
             using var conn = MoKetNoi(Csdl2Path);
             using var tran = conn.BeginTransaction(); // thoát không Commit => tự Rollback, dữ liệu cũ còn nguyên
+            // Kiểm tra trùng số hiệu TRƯỚC khi xóa/ghi: có trùng là dừng, không nạp dòng nào
+            var dongTrung = TimSoHieuTrung(data, laTanBinh, xoaDuLieuCu ? null : DocSoHieuDaCo(conn, tran));
+            if (dongTrung.Count > 0) return (dongTrung, 0);
             if (xoaDuLieuCu)
             {
                 using var cmdDel = TaoLenh(conn, tran, $"DELETE FROM {Module_TaiKhoan.BangDanhSach}");
@@ -464,18 +461,14 @@ namespace PhanMemThiDua2026
             if (kiemTraSoHieu)
             {
                 // 1 tập duy nhất cho "đã có trong DB" + "đã dùng trong lần nạp này"
-                var daDung = xoaDuLieuCu ? new HashSet<string>() : DocSoHieuDaCo(conn, tran);
+                var daDung = xoaDuLieuCu ? new HashSet<string>(StringComparer.OrdinalIgnoreCase) : DocSoHieuDaCo(conn, tran);
                 // Lượt 1: giữ chỗ các số hiệu "ID..." do người dùng tự nhập -> ID tự sinh không thể chiếm chỗ của chúng
                 for (int i = 0; i < data.Count; i++)
                 {
                     var m = data[i];
                     if (string.IsNullOrWhiteSpace(m.SoHieu) || !m.SoHieu.StartsWith("ID", StringComparison.Ordinal)) continue;
-                    if (daDung.Add(m.SoHieu)) soHieuGan[i] = m.SoHieu;
-                    else
-                    {
-                        boQua[i] = true;
-                        dongTrung.Add($"{m.DongExcel}. {m.HoVaTen} - {m.NamSinh} - {m.QueQuan} - {m.DonVi}: Trùng số hiệu {m.SoHieu}");
-                    }
+                    daDung.Add(m.SoHieu); // đã kiểm tra trùng ở trên -> luôn thêm được
+                    soHieuGan[i] = m.SoHieu;
                 }
                 // Lượt 2: tự sinh ID cho các dòng còn lại
                 int chiSo = 1;
@@ -519,9 +512,35 @@ namespace PhanMemThiDua2026
             object? kq = cmd.ExecuteScalar();
             return kq is null or DBNull ? 1 : Convert.ToInt32(kq, CultureInfo.InvariantCulture) + 1;
         }
+        /// <summary>
+        /// Tìm các dòng có số hiệu trùng: trùng nhau ngay trong tệp, hoặc trùng với CSDL hiện có
+        /// (<paramref name="soHieuCsdl"/> = null khi nạp thay thế toàn bộ). Ô số hiệu trống được bỏ qua;
+        /// với Tân binh chỉ xét số hiệu "ID..." người dùng tự nhập (còn lại phần mềm tự cấp).
+        /// </summary>
+        private static List<string> TimSoHieuTrung(List<CBCSModel> data, bool laTanBinh, HashSet<string>? soHieuCsdl)
+        {
+            var ketQua = new List<string>();
+            var dongDauTien = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var m in data)
+            {
+                string sh = m.SoHieu?.Trim() ?? "";
+                if (sh.Length == 0) continue;
+                if (laTanBinh && !sh.StartsWith("ID", StringComparison.Ordinal)) continue;
+                string moTa = $"Dòng {m.DongExcel}: {m.HoVaTen} - {m.DonVi} - Số hiệu {sh}";
+                if (dongDauTien.TryGetValue(sh, out int dong))
+                    ketQua.Add($"{moTa} (trùng với dòng {dong} trong tệp)");
+                else
+                {
+                    dongDauTien[sh] = m.DongExcel;
+                    if (soHieuCsdl != null && soHieuCsdl.Contains(sh))
+                        ketQua.Add($"{moTa} (đã có trong CSDL)");
+                }
+            }
+            return ketQua;
+        }
         private static HashSet<string> DocSoHieuDaCo(SqliteConnection conn, SqliteTransaction tran)
         {
-            var tap = new HashSet<string>(StringComparer.Ordinal);
+            var tap = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using var cmd = TaoLenh(conn, tran, $"SELECT SoHieu FROM {Module_TaiKhoan.BangDanhSach} WHERE SoHieu IS NOT NULL AND SoHieu <> ''");
             using var rd = cmd.ExecuteReader();
             while (rd.Read())

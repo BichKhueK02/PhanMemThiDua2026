@@ -64,7 +64,7 @@ namespace PhanMemThiDua2026
             // Mọi chỉnh sửa giao diện sau InitializeComponent gom vào 1 lượt tạm dừng bố cục cả cây => dàn trang đúng 1 lần
             Module_TamDungBoCuc.ChayKhongDanTrang(this, () =>
             {
-                textBox_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
+                Module_GiaoDienForm42_44Web.GanChuMoTimKiem(textBox_TimKiemTheoTen, Module_HeThong.Nhap_Tim_Kiem);   // chữ mờ gốc Windows: rê chuột không giật
                 Module_GiaoDienForm42_44Web.ApDung(this);
                 // Tinh chỉnh hiển thị: DoubleBuffered sớm cho các khối bố cục + lưới
                 BatDoubleBufferDeQuy(this);
@@ -195,7 +195,10 @@ namespace PhanMemThiDua2026
             return base.ProcessDialogKey(keyData);
         }
         private bool DangOTrongBoLoc()
-            => textBox_TimKiemTheoTen.ContainsFocus || comboBox_TimKiemDonVi.ContainsFocus || comboBox1_DeNghi.ContainsFocus;
+            => textBox_TimKiemTheoTen.ContainsFocus || comboBox_TimKiemDonVi.ContainsFocus || comboBox1_DeNghi.ContainsFocus
+               || comboBox_LocGhiChu.ContainsFocus
+               // Combobox lọc được phủ bởi ô vẽ tay OComboWebF4 (nằm ở thẻ chứa tableLayoutPanel5) => focus nằm ở ô phủ, không ở ComboBox gốc
+               || (ActiveControl is OComboWebF4 o && o.Parent != null && o.Parent == tableLayoutPanel5.Parent);
         // ===================== TIỆN ÍCH CSDL =====================
         // Pooling=false: đóng kết nối là nhả hẳn tệp .db (không làm kẹt sao lưu/khôi phục), giống Module_BaNhat.
         private static SqliteConnection MoKetNoi(bool chiDoc)
@@ -806,6 +809,8 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                 // comboBox1_DeNghi dùng chung handler lọc với combobox Đơn vị
                 comboBox1_DeNghi.SelectedIndexChanged -= comboBox_TimKiemDonVi_SelectedIndexChanged;
                 comboBox1_DeNghi.SelectedIndexChanged += comboBox_TimKiemDonVi_SelectedIndexChanged;
+                comboBox_LocGhiChu.SelectedIndexChanged -= comboBox_TimKiemDonVi_SelectedIndexChanged;
+                comboBox_LocGhiChu.SelectedIndexChanged += comboBox_TimKiemDonVi_SelectedIndexChanged;
             }
             _dangNapBoLoc = true;
             try
@@ -816,6 +821,9 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                 comboBox1_DeNghi.Items.Clear();
                 comboBox1_DeNghi.Items.AddRange(new object[] { TenTatCa, TenDeNghi, TenKhongDeNghi });
                 comboBox1_DeNghi.SelectedIndex = 0;
+                comboBox_LocGhiChu.Items.Clear();
+                comboBox_LocGhiChu.Items.Add(TenTatCa);
+                comboBox_LocGhiChu.SelectedIndex = 0;
             }
             finally { _dangNapBoLoc = false; }
         }
@@ -830,12 +838,19 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
             // (không phân biệt hoa/thường - khớp cách RowFilter so sánh)
             var dsDonVi = new List<string>();
             var daCo = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            // Ghi chú: các giá trị khác nhau của cột GhiChu (bỏ trùng, bỏ ô trống), xếp A-Z cho dễ tìm
+            var dsGhiChu = new List<string>();
+            var daCoGhiChu = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (DataRow row in dt.Rows)
             {
                 string dv = (row["DonVi"] as string)?.Trim() ?? "";
                 if (dv.Length > 0 && daCo.Add(dv)) dsDonVi.Add(dv);
+                string gc = (row["GhiChu"] as string)?.Trim() ?? "";
+                if (gc.Length > 0 && daCoGhiChu.Add(gc)) dsGhiChu.Add(gc);
             }
+            dsGhiChu.Sort(StringComparer.CurrentCultureIgnoreCase);
             CapNhatDanhSachDonVi(dsDonVi);
+            CapNhatDanhSachGhiChu(dsGhiChu);
             ThucHienLocDuLieu(tinhLaiTyLe: true); // áp lại trạng thái các ô lọc lên bảng mới + cập nhật thanh trạng thái + tính lại tỷ lệ
         }
         /// <summary>
@@ -869,6 +884,33 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                     comboBox1_DeNghi.Items.AddRange(new object[] { TenTatCa, TenDeNghi, TenKhongDeNghi });
                     comboBox1_DeNghi.SelectedIndex = 0;
                 }
+            }
+            finally { _dangNapBoLoc = false; }
+        }
+        /// <summary>
+        /// Đổ danh sách Ghi chú vào combobox lọc: mục 0 là "Tất cả". Giữ lựa chọn cũ nếu vẫn còn, ngược lại về "Tất cả".
+        /// Không tự lọc (cờ _dangNapBoLoc chặn sự kiện) - NapDuLieuBoLoc lọc 1 lần sau khi đổ xong.
+        /// </summary>
+        private void CapNhatDanhSachGhiChu(List<string> dsGhiChu)
+        {
+            var cb = comboBox_LocGhiChu;
+            string? dangChon = cb.SelectedIndex > 0 ? cb.SelectedItem?.ToString() : null;
+            _dangNapBoLoc = true;
+            try
+            {
+                cb.BeginUpdate();
+                try
+                {
+                    cb.Items.Clear();
+                    cb.Items.Add(TenTatCa);
+                    foreach (var gc in dsGhiChu) cb.Items.Add(gc);
+                    int viTri = dangChon == null
+                        ? -1
+                        : dsGhiChu.FindIndex(x => string.Equals(x, dangChon, StringComparison.OrdinalIgnoreCase));
+                    cb.SelectedIndex = viTri >= 0 ? viTri + 1 : 0;
+                    // Ghi chú dài: danh sách sổ xuống (OComboWebF4) tự nới rộng theo mục dài nhất, không cần đặt DropDownWidth
+                }
+                finally { cb.EndUpdate(); }
             }
             finally { _dangNapBoLoc = false; }
         }
@@ -915,7 +957,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
             _timerLoc?.Stop(); // hủy lượt lọc trễ đang chờ (nếu có)
             if (_dangNapBoLoc || IsDisposed) return;
             if (kryptonDataGridView1.DataSource is not DataTable dt) return;
-            var dieuKien = new List<string>(3);
+            var dieuKien = new List<string>(4);
             // 1) Tên: chứa chuỗi đã gõ (đã escape ký tự đặc biệt của LIKE và dấu nháy đơn)
             string ten = textBox_TimKiemTheoTen.Text.Trim();
             if (ten.Length > 0)
@@ -931,6 +973,11 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                 case 1: dieuKien.Add("DeNghi = 'X'"); break;
                 case 2: dieuKien.Add("(DeNghi IS NULL OR DeNghi <> 'X')"); break;
             }
+            // 4) Ghi chú: "Tất cả" -> bỏ qua; còn lại khớp đúng giá trị (RowFilter mặc định không phân biệt hoa/thường)
+            // (đọc theo chỉ số: mục 0 = "Tất cả"; không so chữ vì một ghi chú có thể trùng chữ "Tất cả")
+            string? ghiChu = comboBox_LocGhiChu.SelectedIndex > 0 ? comboBox_LocGhiChu.SelectedItem?.ToString() : null;
+            if (!string.IsNullOrEmpty(ghiChu))
+                dieuKien.Add($"GhiChu = '{ghiChu.Replace("'", "''")}'");
             string boLoc = string.Join(" AND ", dieuKien);
             try
             {
@@ -968,6 +1015,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                 textBox_TimKiemTheoTen.Text = string.Empty;
                 if (comboBox_TimKiemDonVi.Items.Count > 0) comboBox_TimKiemDonVi.SelectedIndex = 0;
                 if (comboBox1_DeNghi.Items.Count > 0) comboBox1_DeNghi.SelectedIndex = 0;
+                if (comboBox_LocGhiChu.Items.Count > 0) comboBox_LocGhiChu.SelectedIndex = 0;
             }
             finally { _dangNapBoLoc = false; }
             ThucHienLocDuLieu(); // RowFilter rỗng -> lưới hiện đủ danh sách, thanh trạng thái về "Tổng cộng..."

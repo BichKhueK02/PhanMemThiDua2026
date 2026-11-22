@@ -801,9 +801,10 @@ namespace PhanMemThiDua2026
                 cmdCreate.CommandText = @"
         CREATE TABLE IF NOT EXISTS SuKien_ThoatPhanMem (
             ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            SuKien_DuọcChon TEXT
+            SuKien_DuocChon TEXT
         );";
                 cmdCreate.ExecuteNonQuery();
+                Module_TenCotKhongDau.ChuanHoaCSDL2(cn);   // CSDL cũ: cột có dấu "SuKien_DuọcChon" -> "SuKien_DuocChon"
                 using var cmdCheck = cn.CreateCommand();
                 cmdCheck.CommandText =
                     "SELECT COUNT(*) FROM SuKien_ThoatPhanMem WHERE ID = 1";
@@ -813,7 +814,7 @@ namespace PhanMemThiDua2026
                     using var cmdInsert = cn.CreateCommand();
                     string maHoa = Module_BaoMatAES.MaHoa("Thoát ngay");
                     cmdInsert.CommandText =
-                        "INSERT INTO SuKien_ThoatPhanMem (SuKien_DuọcChon) VALUES (@v)";
+                        "INSERT INTO SuKien_ThoatPhanMem (SuKien_DuocChon) VALUES (@v)";
                     cmdInsert.Parameters.AddWithValue("@v", maHoa);
                     cmdInsert.ExecuteNonQuery();
                 }
@@ -898,7 +899,7 @@ namespace PhanMemThiDua2026
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText =
-                    "SELECT SuKien_DuọcChon FROM SuKien_ThoatPhanMem WHERE ID = 1";
+                    "SELECT SuKien_DuocChon FROM SuKien_ThoatPhanMem WHERE ID = 1";
                 var result = cmd.ExecuteScalar();
                 if (result != null && !string.IsNullOrWhiteSpace(result.ToString()))
                 {

@@ -2349,6 +2349,7 @@ namespace PhanMemThiDua2026
             MoFormSuaThongTin(rowIndex);
         }
         // Có dữ liệu -> hiện "Sửa thông tin"; không có -> ẩn
+        //TrungKien
         private void CapNhatMenuSuaThongTin()
         {
             try { suaThongTin_ToolStripMenuItem.Visible = kryptonDataGridView1.RowCount > 0; }

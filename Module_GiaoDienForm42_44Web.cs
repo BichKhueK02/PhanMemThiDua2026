@@ -52,6 +52,90 @@ namespace PhanMemThiDua2026
             f.Load += (s, e) => HoanThien(f);
             f.Shown += (s, e) => HoanThien(f);
         }
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, string lParam);
+        private const int EM_SETCUEBANNER = 0x1501;
+        /// <summary>
+        /// Chữ mờ "Nhập tìm kiếm" cho ô KryptonTextBox, KHÔNG dùng CueHint của Krypton:
+        /// CueHint do Krypton tự vẽ đè lên ô ở mỗi lần vẽ lại; rê chuột ngang ô đổi trạng thái Normal <-> Tracking
+        /// => ô vẽ lại, chữ mờ bị vẽ lại theo lề/kiểu của trạng thái mới nên trông giật giật, chập chờn.
+        /// Chữ mờ gốc của Windows (EM_SETCUEBANNER) do chính TextBox con vẽ => đứng yên khi hover, luôn 1 dòng.
+        /// wParam = 1: vẫn hiện chữ mờ khi ô đang có focus (form mở ra là ô tìm kiếm nhận focus ngay).
+        /// </summary>
+        public static void GanChuMoTimKiem(Krypton.Toolkit.KryptonTextBox tb, string chuMo)
+        {
+            tb.CueHint.CueHintText = string.Empty;
+            var o = tb.TextBox;
+            if (o == null) return;
+            void Gan() { if (!o.IsDisposed && o.IsHandleCreated) SendMessage(o.Handle, EM_SETCUEBANNER, (IntPtr)1, chuMo); }
+            Gan();
+            o.HandleCreated += (_, __) => Gan();   // handle có thể được tạo lại (đổi font, RecreateHandle...)
+            VeQuaBoDem.Gan(o);
+        }
+        [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+        private struct PAINTSTRUCT
+        {
+            public IntPtr hdc; public int fErase; public int left, top, right, bottom;
+            public int fRestore, fIncUpdate;
+            [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 32)] public byte[] rgbReserved;
+        }
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern IntPtr BeginPaint(IntPtr hWnd, ref PAINTSTRUCT ps);
+        [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern bool EndPaint(IntPtr hWnd, ref PAINTSTRUCT ps);
+        /// <summary>
+        /// Chống chớp ô nhập bên trong KryptonTextBox khi rê chuột qua.
+        /// Rê chuột vào/ra => Krypton Invalidate() ô con; WM_PAINT của Krypton tô nền THẲNG lên màn hình rồi mới để Windows vẽ chữ
+        /// (cộng thêm WM_ERASEBKGND của TextBox gốc) => có 1 khung hình trống, chữ mờ "Nhập tìm kiếm" nháy lên.
+        /// Ở đây: bỏ WM_ERASEBKGND (Krypton luôn tô kín nền trong WM_PAINT) và chuyển WM_PAINT vào bộ đệm, vẽ xong mới đưa lên 1 lần.
+        /// Vẫn đi qua đúng nhánh vẽ của Krypton (WM_PAINT có wParam = HDC) => chữ, chữ mờ, bôi đen, con trỏ y như cũ.
+        /// </summary>
+        private sealed class VeQuaBoDem : NativeWindow
+        {
+            private const int WM_PAINT = 0x000F, WM_ERASEBKGND = 0x0014;
+            private readonly TextBox _o;
+            private VeQuaBoDem(TextBox o) { _o = o; }
+            public static void Gan(TextBox o)
+            {
+                var v = new VeQuaBoDem(o);
+                void Moc()
+                {
+                    if (o.IsDisposed || !o.IsHandleCreated || v.Handle == o.Handle) return;
+                    if (v.Handle != IntPtr.Zero) v.ReleaseHandle();
+                    v.AssignHandle(o.Handle);
+                }
+                Moc();
+                o.HandleCreated += (_, __) => Moc();   // NativeWindow tự nhả khi handle bị hủy (WM_NCDESTROY)
+            }
+            protected override void WndProc(ref Message m)
+            {
+                if (m.Msg == WM_ERASEBKGND) { m.Result = (IntPtr)1; return; }
+                if (m.Msg == WM_PAINT && m.WParam == IntPtr.Zero && !_o.IsDisposed)
+                {
+                    var ps = new PAINTSTRUCT();
+                    IntPtr hdc = BeginPaint(m.HWnd, ref ps);   // BeginPaint tự ẩn con trỏ nhập, EndPaint hiện lại
+                    try
+                    {
+                        var rc = _o.ClientRectangle;
+                        if (hdc != IntPtr.Zero && rc.Width > 0 && rc.Height > 0)
+                        {
+                            using var bd = BufferedGraphicsManager.Current.Allocate(hdc, rc);
+                            IntPtr hdcDem = bd.Graphics.GetHdc();
+                            try
+                            {
+                                var m2 = Message.Create(m.HWnd, WM_PAINT, hdcDem, IntPtr.Zero);
+                                base.WndProc(ref m2);           // Krypton vẽ nền + chữ vào bộ đệm
+                            }
+                            finally { bd.Graphics.ReleaseHdc(hdcDem); }
+                            bd.Render(hdc);                     // đưa lên màn hình 1 lần
+                        }
+                    }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[VeQuaBoDem] " + ex.Message); }
+                    finally { EndPaint(m.HWnd, ref ps); }
+                    m.Result = IntPtr.Zero;
+                    return;
+                }
+                base.WndProc(ref m);
+            }
+        }
         private static T? Tim<T>(Control goc, string ten) where T : Control
             => goc.Controls.Find(ten, true).OfType<T>().FirstOrDefault();
         private static IEnumerable<T> TatCa<T>(Control goc) where T : Control
@@ -158,7 +242,27 @@ namespace PhanMemThiDua2026
             if (t5 == null) return;
             t5.Margin = new Padding(0);
             t5.ColumnStyles.Clear();
-            if (t5.ColumnCount >= 7)   // Form42: Họ và tên | ô | Đơn vị | combo | Đề nghị | combo | [làm mới]
+            bool coLocGhiChu = t5.ColumnCount >= 9;
+            if (coLocGhiChu)   // Form42: Họ và tên | ô | Đơn vị | combo | Đề nghị | combo | Ghi chú | combo | [làm mới]
+            {
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22F));
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24F));
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 58F));
+                // Thẻ tìm kiếm có thêm 1 cặp nhãn + ô => nới thẻ tìm kiếm (60% -> 66%), thẻ 3 nút lệnh vẫn đủ chỗ
+                var t2 = Tim<TableLayoutPanel>(f, "tableLayoutPanel2");
+                if (t2 != null && t2.ColumnStyles.Count >= 2)
+                {
+                    t2.ColumnStyles[0].Width = 66F;
+                    t2.ColumnStyles[1].Width = 34F;
+                }
+            }
+            else if (t5.ColumnCount >= 7)   // Họ và tên | ô | Đơn vị | combo | Đề nghị | combo | [làm mới]
             {
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42F));
@@ -180,7 +284,7 @@ namespace PhanMemThiDua2026
             t5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             foreach (var l in t5.Controls.OfType<Label>())
             {
-                DinhNhan(l, Anchor_Trai, t5.GetColumn(l) == 0 ? 0 : 16);
+                DinhNhan(l, Anchor_Trai, t5.GetColumn(l) == 0 ? 0 : coLocGhiChu ? 10 : 16);
             }
             foreach (var c in t5.Controls)
             {
@@ -196,9 +300,25 @@ namespace PhanMemThiDua2026
             if (t6 == null) return;
             t6.Margin = new Padding(0);
             t6.ColumnStyles.Clear();
-            for (int i = 0; i < t6.ColumnCount; i++) t6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F / t6.ColumnCount));
             t6.RowStyles.Clear();
             t6.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            if (t6.ColumnCount == 2)
+            {
+                // Form44 (Làm mới | Thoát): nút có độ rộng cố định, dồn sang phải; cột 0 co giãn làm khoảng trống
+                // (chia đôi theo % thì mỗi nút dài gần nửa thẻ, trông thô).
+                const int RongNut = 130, Khe = 8;
+                t6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+                t6.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, RongNut));
+                foreach (var b in t6.Controls.OfType<Krypton.Toolkit.KryptonButton>())
+                {
+                    bool cuoi = t6.GetColumn(b) == 1;
+                    KieuNut(b, b.Name == "kryptonButton1_Thoat" ? NutVien : NutTim);
+                    CanNut(b, new Padding(0, 0, cuoi ? 0 : Khe, 0));
+                    if (!cuoi) { b.Anchor = AnchorStyles.Right; b.Width = RongNut; }
+                }
+                return;
+            }
+            for (int i = 0; i < t6.ColumnCount; i++) t6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F / t6.ColumnCount));
             foreach (var b in t6.Controls.OfType<Krypton.Toolkit.KryptonButton>())
             {
                 bool cuoi = t6.GetColumn(b) == t6.ColumnCount - 1;

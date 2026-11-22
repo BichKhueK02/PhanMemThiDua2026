@@ -62,9 +62,9 @@ namespace PhanMemThiDua2026
             this.VisibleChanged += Form39_ThongTinNguoiDung_VisibleChanged;
         }
         private bool _isFirstLoad = true;
-        // =========================================================================
+
         // 🎨 GIAO DIỆN KHÔNG VIỀN, BO TRÒN, KÉO ĐƯỢC (theo Form8)
-        // =========================================================================
+
         private void InitBorderlessStyle()
         {
             this.DoubleBuffered = true;
@@ -287,9 +287,9 @@ namespace PhanMemThiDua2026
         {
             if (sender is TextBox tb) tb.BackColor = SystemColors.Window;
         }
-        // =========================================================================
+
         // 🚀 CÁC HÀM XỬ LÝ TEXT & DỮ LIỆU CỐT LÕI (GIỮ NGUYÊN)
-        // =========================================================================
+
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
@@ -362,9 +362,9 @@ namespace PhanMemThiDua2026
             }
             catch { return "N/A"; }
         }
-        // =========================================================================
+
         // 🚀 TỐI ƯU ẢNH
-        // =========================================================================
+
         private async Task LoadAnhDaiDienAsync(CancellationToken token)
         {
             try
@@ -485,9 +485,9 @@ namespace PhanMemThiDua2026
             g.DrawImage(img, 0, 0, newW, newH);
             return bmp;
         }
-        // =========================================================================
+
         // 🛑 QUẢN LÝ ĐÓNG FORM
-        // =========================================================================
+
         private void kryptonButton1_DongFrom_Click(object? sender, EventArgs e)
         {
             this.Hide();
@@ -514,9 +514,9 @@ namespace PhanMemThiDua2026
             catch { }
             base.OnFormClosed(e);
         }
-        // =========================================================================
+
         // 🛠️ LOGGING VÀO DATABASE
-        // =========================================================================
+
         private void GhiLogHeThong(string context, Exception? ex = null)
         {
             try

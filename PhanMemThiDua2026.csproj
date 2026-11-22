@@ -7,19 +7,28 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Resources\ic_PhanMem.ico</ApplicationIcon>
     <StartupObject>PhanMemThiDua2026.Program</StartupObject>
-    <Version>1.2.323.0</Version>
-    <AssemblyVersion>1.2.323.0</AssemblyVersion>
-    <FileVersion>1.2.323.0</FileVersion>
-    <Copyright>0975.2879.73</Copyright>
+    <!-- PHIÊN BẢN: NGUỒN DUY NHẤT. Module_PhienBan.SoftwareVersion đọc lại FileVersion này lúc chạy
+         => mỗi lần phát hành chỉ sửa 4 dòng dưới đây (giữ 4 số giống nhau). -->
+    <Version>1.2.352.0</Version>
+    <AssemblyVersion>1.2.352.0</AssemblyVersion>
+    <FileVersion>1.2.352.0</FileVersion>
+    <InformationalVersion>1.2.352.0</InformationalVersion>
+    <!-- Không gắn mã commit git vào "Product version" (tránh dạng 1.2.352.0+a1b2c3...) -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <!-- Tên nhà phát triển ở Company/Copyright; số liên hệ chỉ nằm trong Description
+         (exe chỉ có số điện thoại thay cho tên bị phần mềm diệt virus đánh giá điểm tin cậy thấp). -->
+    <Copyright>Copyright © 2026 TrungKien</Copyright>
     <PackageIcon>icon.ico</PackageIcon>
     <!-- CẤU HÌNH DPI CHUẨN HIỆN ĐẠI (THÊM MỚI VÀO ĐÂY) -->
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
-    <AssemblyTitle>PhanMemThiDua2026</AssemblyTitle>
+    <!-- AssemblyTitle = "File description" trong Properties > Details của exe -->
+    <AssemblyTitle>Phần mềm Thi đua 2026</AssemblyTitle>
     <Title>PhanMemThiDua2026</Title>
-    <Company>@TrungKien</Company>
-    <Product>@TrungKien</Product>
-    <Description>Phan mem Thi dua 2026</Description>
+    <Company>TrungKien</Company>
+    <Authors>TrungKien</Authors>
+    <Product>PhanMemThiDua2026</Product>
+    <Description>Phần mềm quản lý, phân loại thi đua - khen thưởng 2026. Nhà phát triển: TrungKien - Liên hệ: 0975 2879 73</Description>
     <PackageProjectUrl>https://github.com/BichKhueK02/PhanMemThiDua2026</PackageProjectUrl>
   </PropertyGroup>
   <!-- HIỆU NĂNG KHỞI ĐỘNG

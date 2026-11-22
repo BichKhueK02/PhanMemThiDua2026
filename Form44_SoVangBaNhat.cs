@@ -52,7 +52,7 @@ namespace PhanMemThiDua2026
                 // Designer add statusStrip1 trước tableLayoutPanel1 (Dock = Fill) nên bảng bị thanh trạng thái đè mất ~26px đáy.
                 // Đưa vùng Fill lên trước để WinForms dock thanh trạng thái trước, bảng chiếm phần còn lại.
                 tableLayoutPanel1.BringToFront();
-                kryptonTextBox1_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
+                Module_GiaoDienForm42_44Web.GanChuMoTimKiem(kryptonTextBox1_TimKiemTheoTen, Module_HeThong.Nhap_Tim_Kiem);   // chữ mờ gốc Windows: rê chuột không giật
                 Module_GiaoDienForm42_44Web.ApDung(this);
                 Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
             });

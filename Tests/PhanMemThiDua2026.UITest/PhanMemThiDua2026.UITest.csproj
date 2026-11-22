@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- CÔNG CỤ TỰ BẤM THỬ GIAO DIỆN (không dùng AI, không tốn token).
+       Chạy NGAY TRONG thư mục build của phần mềm (bin\<Cấu hình>\net8.0-windows) nên dùng đúng CSDL, khóa, Database
+       của bản build đó: tự đăng nhập, mở từng trang/form, bấm lần lượt mọi nút / mục menu / thẻ tab, tự trả lời hộp thoại,
+       tự điền đường dẫn lưu/mở tệp, rồi ghi báo cáo vào Database\NhatKyNhaPhatTrien\uitest-*.log.
+       Chạy: Tests\PhanMemThiDua2026.UITest\ChayKiemThuGiaoDien.cmd  (hoặc build Release rồi mở PhanMemThiDua2026.UITest.exe)
+       Cấu hình (tài khoản, nút bỏ qua...): uitest.json cạnh exe — KHÔNG đưa lên git (chứa mật khẩu). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <IsPackable>false</IsPackable>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <RootNamespace>PhanMemThiDua2026.UITest</RootNamespace>
+    <!-- Ra cùng thư mục với phần mềm: AppContext.BaseDirectory = thư mục build => Database/khóa của bản build đó. -->
+    <OutputPath>..\..\bin\$(Configuration)\</OutputPath>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Chỉ để build phần mềm mẹ TRƯỚC (cùng cấu hình). Không tham chiếu dll lúc biên dịch: NapPhanMem nạp dll của bản
+         được chọn lúc chạy => test được bản build khác (Debug, bản cũ...). -->
+    <ProjectReference Include="..\..\PhanMemThiDua2026.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="HUONG_DAN_KIEM_THU.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

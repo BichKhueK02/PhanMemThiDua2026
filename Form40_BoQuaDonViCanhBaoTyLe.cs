@@ -29,9 +29,9 @@ namespace PhanMemThiDua2026
             this.MinimizeBox = false;
             this.FormClosing += Form40_BoQuaDonViCanhBaoTyLe_FormClosing;
         }
-        // =====================================================================================
+
         //  LOAD
-        // =====================================================================================
+
         private async void Form40_BoQuaDonViCanhBaoTyLe_Load(object? sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path))
@@ -77,9 +77,9 @@ namespace PhanMemThiDua2026
                 if (!this.IsDisposed) this.UseWaitCursor = false;
             }
         }
-        // =====================================================================================
+
         //  TRUY VẤN CSDL (chạy ở luồng nền, dùng API đồng bộ vì SQLite không có I/O bất đồng bộ thật)
-        // =====================================================================================
+
         private static string TaoChuoiKetNoi(string duongDan)
         {
             // Dùng builder để đường dẫn có ký tự đặc biệt (; ' ...) không làm hỏng chuỗi kết nối
@@ -167,9 +167,9 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
-        // =====================================================================================
+
         //  LƯU & ĐÓNG
-        // =====================================================================================
+
         /// <summary>SỰ KIỆN: Click nút "Đóng và lưu".</summary>
         private async void kryptonButton1_DongFrom_Click(object? sender, EventArgs e)
         {
@@ -267,9 +267,9 @@ namespace PhanMemThiDua2026
             }
             // No: đóng và bỏ thay đổi
         }
-        // =====================================================================================
+
         //  HƯỚNG DẪN
-        // =====================================================================================
+
         private const string NoiDungHuongDan =
             "    PHẦN MỀM THỐNG KÊ & PHÂN TÍCH THI ĐUA CHUYÊN SÂU 2026\n\n" +
             "CHỨC NĂNG: CẤU HÌNH MIỄN TRỪ & BỎ QUA CẢNH BÁO TỶ LỆ\n\n" +

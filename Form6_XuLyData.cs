@@ -1349,7 +1349,7 @@ namespace PhanMemThiDua2026
                 ShortcutKeyDisplayString = "Ctrl+A"
             };
             _mnuChonTatCa.Click += (s, e) => ChonTatCaDongDangHienThi();
-            _mnuXoaDongDaChon = new ToolStripMenuItem("Xóa các CBCS đã chọn")
+            _mnuXoaDongDaChon = new ToolStripMenuItem($"Xóa các {(KiemTraPhienBanTanBinh() ? Module_TaiKhoan.TenTB_Thuong : "CBCS")} đã chọn")
             {
                 Name = "xoaCacCBCSDaChon_ToolStripMenuItem",
                 ShortcutKeyDisplayString = "Delete",
@@ -1449,15 +1449,17 @@ namespace PhanMemThiDua2026
             // Lưới không có CBCS thật nào (trống hoặc chỉ còn dòng đệm) -> ẩn 2 mục chọn/xóa nhiều
             bool coDuLieu = LuoiCoDuLieuThat();
             // Dùng Available (không dùng Visible): Visible luôn trả false khi menu chưa hiện
+            // GetRowCount không dựng đối tượng Row (an toàn cho Virtual Mode khi chọn vài nghìn dòng)
+            int soDong = coDuLieu ? grid.Rows.GetRowCount(DataGridViewElementStates.Selected) : 0;
             _mnuChonTatCa.Available = coDuLieu;
-            _mnuXoaDongDaChon.Available = coDuLieu;
+            // Chỉ hiện "Xóa các ... đã chọn" khi chọn từ 2 dòng trở lên (1 dòng đã có nút xóa riêng)
+            _mnuXoaDongDaChon.Available = coDuLieu && soDong >= 2;
             CapNhatMenuGanPhanLoai(coDuLieu);
             AnVachNganThua(contextMenuStrip1);
             if (!coDuLieu) return;
-            // GetRowCount không dựng đối tượng Row (an toàn cho Virtual Mode khi chọn vài nghìn dòng)
-            int soDong = grid.Rows.GetRowCount(DataGridViewElementStates.Selected);
-            _mnuXoaDongDaChon.Enabled = soDong > 0 && !_dangXuLyXoa;
-            _mnuXoaDongDaChon.Text = soDong > 1 ? $"Xóa {soDong:N0} CBCS đã chọn" : "Xóa các CBCS đã chọn";
+            string doiTuong = KiemTraPhienBanTanBinh() ? Module_TaiKhoan.TenTB_Thuong : "CBCS";
+            _mnuXoaDongDaChon.Enabled = !_dangXuLyXoa;
+            _mnuXoaDongDaChon.Text = $"Xóa {soDong:N0} {doiTuong} đã chọn";
             _mnuChonTatCa.Enabled = grid.RowCount > 0;
         }
         // Có ít nhất 1 dòng ĐANG HIỂN THỊ có họ tên (bỏ qua dòng đệm trống). Dừng ngay khi gặp dòng đầu tiên -> rất rẻ.
@@ -3973,95 +3975,78 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                     return;
                 }
                 //endregion
-                //region BƯỚC 3: XỬ LÝ LOGIC NGƯỜI DÙNG (UI Thread)
+                //region BƯỚC 3: HỎI CÁCH NẠP (UI Thread)
                 // 🟢 MỞ KHÓA TẠM THỜI ĐỂ TƯƠNG TÁC
                 this.UseWaitCursor = false;
                 this.Enabled = true;
                 this.Activate();
-                // 3.1 Cảnh báo hoặc cập nhật báo cáo tóm tắt
-                if (trangThaiBaoCao == -1)
-                {
-                    MessageBox.Show(this, "Không thể giải mã chuỗi dữ liệu cấu hình!\nDữ liệu có thể đã bị chỉnh sửa...", "Lỗi bảo mật", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-                else if (trangThaiBaoCao == 1)
-                {
-                    if (MessageBox.Show(this, "Phát hiện kết quả tóm tắt thi đua trong tháng đi kèm.\nBạn có muốn cập nhật Báo cáo tổng hợp từ file này không?", "Xác nhận cập nhật", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                    {
-                        this.Enabled = false; this.UseWaitCursor = true; this.Update(); // chỉ vẽ lại (không DoEvents: tránh tái nhập sự kiện)
-                        await Task.Run(async () =>
-                        {
-                            using var conn = new Microsoft.Data.Sqlite.SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
-                            await conn.OpenAsync();
-                            using var tran = (SqliteTransaction)await conn.BeginTransactionAsync();
-                            try
-                            {
-                                using var cmd = conn.CreateCommand(); cmd.Transaction = tran;
-                                cmd.CommandText = "UPDATE ThongTin SET TomTatGhiChu = @data WHERE ID = 1";
-                                cmd.Parameters.AddWithValue("@data", dataChuanDeLuu);
-                                await cmd.ExecuteNonQueryAsync(); await tran.CommitAsync();
-                            }
-                            catch { await tran.RollbackAsync(); throw; }
-                        });
-                        this.UseWaitCursor = false; this.Enabled = true; this.Activate();
-                    }
-                }
-                // 3.2 XỬ LÝ ĐIỀU HƯỚNG THÔNG MINH CHO XÓA DỮ LIỆU
-                bool xoaDuLieuCu = false;
-                if (tongSoDongDuLieu > 1500)
-                {
-                    // Tệp lớn: giữ quy ước cũ (xóa sạch rồi nạp lại) nhưng PHẢI được người dùng đồng ý,
-                    // bản trước tự xóa toàn bộ danh sách hiện có mà không hỏi => dễ mất dữ liệu ngoài ý muốn.
-                    var xacNhanXoa = MessageBox.Show(this,
-                        $"Tệp Excel có {tongSoDongDuLieu:N0} dòng (trên 1.500 dòng).\n\n" +
-                        "Với tệp lớn, hệ thống sẽ XÓA TOÀN BỘ danh sách hiện có rồi nạp lại từ tệp này.\n\n" +
-                        "Bạn có chắc chắn muốn tiếp tục?",
-                        "Xác nhận thay thế dữ liệu", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
-                    if (xacNhanXoa != DialogResult.Yes) return;   // finally bên dưới tự mở khóa giao diện
-                    xoaDuLieuCu = true;
-                    string tenHienTai = Module_TaiKhoan.TenTaiKhoan_RAM;
-                    string thongDiepNhatKy = "Hệ thống nạp dữ liệu excel tự động kích hoạt FastDataReader và làm sạch dữ liệu cũ (Tệp > 1500 dòng).";
-                    Module_NhatKy.GhiNhatKy(
-                         taiKhoan: tenHienTai,
-                         hanhDong: thongDiepNhatKy,
-                         ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}"
-                     );
-                }
-                else
-                {
-                    if (MessageBox.Show(this, "Bạn có muốn xóa toàn bộ dữ liệu cũ trước khi nạp không?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                    {
-                        xoaDuLieuCu = true;
-                    }
-                }
+                var cachNap = MessageBox.Show(this,
+                    $"Tệp bạn chọn có khoảng {Math.Max(0, tongSoDongDuLieu - 1):N0} dòng dữ liệu,\n" +
+                    "Bạn muốn nạp dữ liệu như thế nào?\n\n" +
+                    "• Chọn Yes: NẠP THÊM vào dữ liệu hiện có\n" +
+                    "• Chọn No: XÓA TẤT CẢ dữ liệu hiện tại và nạp dữ liệu mới\n" +
+                    "  Để thoát Chọn Cancel",
+                    "Chọn cách nạp dữ liệu",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question,
+                    MessageBoxDefaultButton.Button1);
+                if (cachNap == DialogResult.Cancel) return;
+                bool xoaDuLieuCu = cachNap == DialogResult.No;
                 // 🔴 KHÓA LẠI UI ĐỂ CHẠY BACKGROUND THREAD
                 this.Enabled = false;
                 this.UseWaitCursor = true;
                 this.Update(); // chỉ vẽ lại trạng thái khóa (không DoEvents: tránh tái nhập sự kiện)
                 //endregion
                 //region BƯỚC 4: NẠP DỮ LIỆU CHÍNH (Background Thread)
-                List<string> danhSachTrung = new List<string>();
-                await Task.Run(() =>
+                // Có số hiệu trùng (trong tệp hoặc với CSDL khi nạp thêm) => module không ghi dòng nào và trả về danh sách trùng
+                List<string> danhSachTrung = await Task.Run(() => laTanBinh
+                    ? Module_XuatNhapDuLieuThiDua.NhapDanhSachExcelTanBinh(excelPath, xoaDuLieuCu)
+                    : Module_XuatNhapDuLieuThiDua.NhapDanhSachExcelCBCS(excelPath, xoaDuLieuCu));
+                if (danhSachTrung.Count > 0)
                 {
-                    if (tongSoDongDuLieu > 1500)
+                    this.UseWaitCursor = false; this.Enabled = true; this.Activate();
+                    string msg = $"Phát hiện {danhSachTrung.Count} dòng có số hiệu bị trùng:\n\n{string.Join("\n", danhSachTrung.Take(15))}";
+                    if (danhSachTrung.Count > 15) msg += $"\n...và {danhSachTrung.Count - 15} dòng khác.";
+                    msg += "\n\nHệ thống KHÔNG nạp dữ liệu (dữ liệu hiện tại được giữ nguyên).\nVui lòng kiểm tra lại số hiệu trong tệp Excel rồi nạp lại!";
+                    MessageBox.Show(this, msg, "Trùng số hiệu - Không nạp dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                // ✅ Tự động chạy trích xuất và đồng bộ Sheet Sổ Vàng Ba Nhất
+                await Task.Run(() => Module_BaNhat.NhapDuLieuVaoBangQuanLyBaNhat(excelPath, _csdl2Path));
+                if (xoaDuLieuCu)
+                {
+                    Module_NhatKy.GhiNhatKy(
+                        taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
+                        hanhDong: "Nạp dữ liệu Excel: xóa toàn bộ dữ liệu cũ và nạp dữ liệu mới.",
+                        ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
+                }
+                //endregion
+                //region BƯỚC 4.1: CẬP NHẬT BÁO CÁO TÓM TẮT (chỉ khi đã nạp thành công)
+                this.UseWaitCursor = false; this.Enabled = true; this.Activate();
+                if (trangThaiBaoCao == -1)
+                {
+                    MessageBox.Show(this, "Không thể giải mã chuỗi dữ liệu cấu hình!\nDữ liệu có thể đã bị chỉnh sửa...", "Lỗi bảo mật", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else if (trangThaiBaoCao == 1 &&
+                         MessageBox.Show(this, "Phát hiện kết quả tóm tắt thi đua trong tháng đi kèm.\nBạn có muốn cập nhật Báo cáo tổng hợp từ file này không?", "Xác nhận cập nhật", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    this.Enabled = false; this.UseWaitCursor = true; this.Update();
+                    await Task.Run(async () =>
                     {
-                        Debug.WriteLine($"[Tối Ưu] Kích hoạt FastDataReader cho {tongSoDongDuLieu} dòng.");
-                        // Giữ kết quả dòng trùng (bản trước bỏ qua giá trị trả về => người dùng không biết dòng nào bị loại)
-                        if (laTanBinh)
-                            danhSachTrung = Module_XuatNhapDuLieuThiDua.NhapDanhSachExcelTanBinhFastDataReader(excelPath, xoaDuLieuCu);
-                        else
-                            danhSachTrung = Module_XuatNhapDuLieuThiDua.NhapDanhSachExcelCBCSFastDataReader(excelPath, xoaDuLieuCu);
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"[Tiêu Chuẩn] Kích hoạt ClosedXML cho {tongSoDongDuLieu} dòng.");
-                        if (laTanBinh)
-                            danhSachTrung = Module_XuatNhapDuLieuThiDua.NhapDanhSachExcelTanBinh(excelPath, xoaDuLieuCu);
-                        else
-                            danhSachTrung = Module_XuatNhapDuLieuThiDua.NhapDanhSachExcelCBCS(excelPath, xoaDuLieuCu);
-                    }
-                    // ✅ Tự động chạy trích xuất và đồng bộ Sheet Sổ Vàng Ba Nhất
-                    Module_BaNhat.NhapDuLieuVaoBangQuanLyBaNhat(excelPath, _csdl2Path);
-                });
+                        using var conn = new Microsoft.Data.Sqlite.SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
+                        await conn.OpenAsync();
+                        using var tran = (SqliteTransaction)await conn.BeginTransactionAsync();
+                        try
+                        {
+                            using var cmd = conn.CreateCommand(); cmd.Transaction = tran;
+                            cmd.CommandText = "UPDATE ThongTin SET TomTatGhiChu = @data WHERE ID = 1";
+                            cmd.Parameters.AddWithValue("@data", dataChuanDeLuu);
+                            await cmd.ExecuteNonQueryAsync(); await tran.CommitAsync();
+                        }
+                        catch { await tran.RollbackAsync(); throw; }
+                    });
+                }
+                this.Enabled = false; this.UseWaitCursor = true; this.Update();
                 //endregion
                 //region BƯỚC 5: ĐỒNG BỘ VÀ CLEANUP (UI Thread)
                 DataCache.Clear();
@@ -4077,13 +4062,6 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                 string nhomDoiTuong = laTanBinh ? Module_TaiKhoan.TenTB_Hoa : "CBCS";
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Nạp thành công dữ liệu thi đua {nhomDoiTuong} từ tệp Excel", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
                 this.UseWaitCursor = false; this.Enabled = true; this.Activate();
-                // 🔥 XỬ LÝ KẾT QUẢ HIỂN THỊ TRÊN UI THREAD
-                if (danhSachTrung != null && danhSachTrung.Count > 0)
-                {
-                    string msg = $"Nạp dữ liệu thành công!\nĐã quét tổng cộng: {tongSoDongDuLieu} hồ sơ.\n\nTuy nhiên, các dòng sau bị trùng số hiệu và đã bị bỏ qua:\n\n{string.Join("\n", danhSachTrung.Take(10))}";
-                    if (danhSachTrung.Count > 10) msg += $"\n...và {danhSachTrung.Count - 10} dòng khác.";
-                    MessageBox.Show(this, msg, "Cảnh báo trùng dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
                 //endregion
             }
             catch (Exception mainEx)

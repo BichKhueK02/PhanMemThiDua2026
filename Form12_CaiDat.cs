@@ -323,19 +323,20 @@ namespace PhanMemThiDua2026
                 INSERT OR IGNORE INTO CheDo_XemHuongDan (ID, CheDoXem_HuongDanSD) VALUES (1, 'Chế độ web');
                 CREATE TABLE IF NOT EXISTS MauSacMenuHeThong(ID INTEGER PRIMARY KEY, MauSacNguoiDungChon TEXT);
                 INSERT OR IGNORE INTO MauSacMenuHeThong (ID, MauSacNguoiDungChon) VALUES (1, 'Mặc định');
-                CREATE TABLE IF NOT EXISTS SuKien_ThoatPhanMem(ID INTEGER PRIMARY KEY AUTOINCREMENT, SuKien_DuọcChon TEXT);
+                CREATE TABLE IF NOT EXISTS SuKien_ThoatPhanMem(ID INTEGER PRIMARY KEY AUTOINCREMENT, SuKien_DuocChon TEXT);
                 CREATE TABLE IF NOT EXISTS KyHieu_DonVi(ID INTEGER PRIMARY KEY AUTOINCREMENT, KyHieu_TrungDoan TEXT, KyHieu_TieuDoan TEXT);
                 INSERT OR IGNORE INTO KyHieu_DonVi (ID, KyHieu_TrungDoan, KyHieu_TieuDoan) VALUES (1, '', '');
             ";
                     cmdInit.ExecuteNonQuery();
                 }
+                Module_TenCotKhongDau.ChuanHoaCSDL2(cn);   // CSDL cũ: cột có dấu "SuKien_DuọcChon" -> "SuKien_DuocChon"
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = @"
                 SELECT
                     (SELECT NAM FROM NamHeThong WHERE ID = 1) AS NamHienTai,
                     (SELECT CheDoXem_HuongDanSD FROM CheDo_XemHuongDan WHERE ID = 1) AS CheDoXem,
                     (SELECT MauSacNguoiDungChon FROM MauSacMenuHeThong WHERE ID = 1) AS MauMenu,
-                    (SELECT SuKien_DuọcChon FROM SuKien_ThoatPhanMem WHERE ID = 1) AS SuKienThoat,
+                    (SELECT SuKien_DuocChon FROM SuKien_ThoatPhanMem WHERE ID = 1) AS SuKienThoat,
                     (SELECT KyHieu_TrungDoan FROM KyHieu_DonVi WHERE ID = 1) AS KHTR,
                     (SELECT KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1) AS KHTD;
             ";
@@ -619,15 +620,15 @@ namespace PhanMemThiDua2026
             {
                 using var cn = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = _csdl3Path, Pooling = false }.ToString());
                 cn.Open();
-                Module_NhatKy.DamBaoBangTuDongXoa(cn);   // tạo bảng + sửa cột sai tên do bản cũ Form10 tạo
+                Module_NhatKy.DamBaoBangTuDongXoa(cn);   // tạo bảng + đổi tên cột cũ (có dấu / sai tên) về "Chon_GiaiTri"
                 using var cmdUpdate = cn.CreateCommand();
-                cmdUpdate.CommandText = "UPDATE TuDong_XoaNhatKy SET Chọn_GiaiTri=@luaChon WHERE ID=1";
+                cmdUpdate.CommandText = "UPDATE TuDong_XoaNhatKy SET Chon_GiaiTri=@luaChon WHERE ID=1";
                 cmdUpdate.Parameters.AddWithValue("@luaChon", luaChon);
                 int rowsAffected = cmdUpdate.ExecuteNonQuery();
                 if (rowsAffected == 0)
                 {
                     using var cmdInsert = cn.CreateCommand();
-                    cmdInsert.CommandText = "INSERT INTO TuDong_XoaNhatKy (Chọn_GiaiTri) VALUES (@luaChon)";
+                    cmdInsert.CommandText = "INSERT INTO TuDong_XoaNhatKy (Chon_GiaiTri) VALUES (@luaChon)";
                     cmdInsert.Parameters.AddWithValue("@luaChon", luaChon);
                     cmdInsert.ExecuteNonQuery();
                 }
@@ -645,7 +646,7 @@ namespace PhanMemThiDua2026
                 using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl3Path));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
-                cmd.CommandText = "SELECT Chọn_GiaiTri FROM TuDong_XoaNhatKy WHERE ID=1";
+                cmd.CommandText = "SELECT Chon_GiaiTri FROM TuDong_XoaNhatKy WHERE ID=1";
                 var result = cmd.ExecuteScalar();
                 if (result != null)
                     luaChon = result.ToString()!;
@@ -979,7 +980,7 @@ PRAGMA busy_timeout=15000;
                     sqlBatch.AppendLine("UPDATE CheDo_XemHuongDan SET CheDoXem_HuongDanSD = @cheDo WHERE ID = 1;");
                     cmdBatch.Parameters.AddWithValue("@cheDo", uiData.CheDoXemHuongDan);
                     // Sự kiện thoát
-                    sqlBatch.AppendLine("UPDATE SuKien_ThoatPhanMem SET SuKien_DuọcChon = @suKien WHERE ID = 1;");
+                    sqlBatch.AppendLine("UPDATE SuKien_ThoatPhanMem SET SuKien_DuocChon = @suKien WHERE ID = 1;");
                     cmdBatch.Parameters.AddWithValue("@suKien", Module_BaoMatAES.MaHoa(uiData.SuKienThoatPhanMem));
                     // Màu sắc Menu
                     sqlBatch.AppendLine("INSERT INTO MauSacMenuHeThong (ID, MauSacNguoiDungChon) VALUES (1, @mauMenu) ON CONFLICT(ID) DO UPDATE SET MauSacNguoiDungChon = excluded.MauSacNguoiDungChon;");
@@ -1256,16 +1257,16 @@ PRAGMA busy_timeout=15000;
             //string luaChonMaHoa = Module_BaoMatAES.MaHoa(luaChon);
             //// Update ID = 1 nếu có
             //using var cmdUpdate = cn.CreateCommand();
-            //cmdUpdate.CommandText = "UPDATE SuKien_ThoatPhanMem SET SuKien_DuọcChon = @luaChon WHERE ID = 1";
+            //cmdUpdate.CommandText = "UPDATE SuKien_ThoatPhanMem SET SuKien_DuocChon = @luaChon WHERE ID = 1";
             //cmdUpdate.Parameters.AddWithValue("@luaChon", luaChonMaHoa);
             //int rowsAffected = cmdUpdate.ExecuteNonQuery();
             //// Nếu chưa có record với ID = 1 → insert mới (SQLite tự gán ID)
             //// 1️⃣ Tạo bảng nếu chưa tồn tại
             //// 2️⃣ Kiểm tra xem record ID = 1 có tồn tại không
                     //// Nếu không tồn tại → tạo record mới với giá trị mặc định "Thoát ngay" đã mã hóa
-            //// 3️⃣ Lấy giá trị SuKien_DuọcChon từ ID = 1
+            //// 3️⃣ Lấy giá trị SuKien_DuocChon từ ID = 1
             //using var cmdLoad = cn.CreateCommand();
-            //cmdLoad.CommandText = "SELECT SuKien_DuọcChon FROM SuKien_ThoatPhanMem WHERE ID = 1";
+            //cmdLoad.CommandText = "SELECT SuKien_DuocChon FROM SuKien_ThoatPhanMem WHERE ID = 1";
             //var result = cmdLoad.ExecuteScalar();
             //// 4️⃣ Nếu null (không thể xảy ra) → trả về mặc định
             //if (result == null)

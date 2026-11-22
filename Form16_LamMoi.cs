@@ -33,9 +33,9 @@ namespace PhanMemThiDua2026
             InitToolTips();
             Module_GiaoDienForm16Web.ApDung(this);   // giao diện kiểu web (chỉ trình bày)
         }
-        // =====================================================================================
+
         //  NẠP FORM
-        // =====================================================================================
+
         private async void Form16_LamMoi_Load(object? sender, EventArgs e)
         {
             checkBox1_GuiNguyenLoai1.Checked = _memLoai1;
@@ -100,9 +100,9 @@ namespace PhanMemThiDua2026
             btn_ResetPhanLoai.Text = "Đang thoát an toàn...";
             _cts?.Cancel();
         }
-        // =====================================================================================
+
         //  GIAO DIỆN PHỤ TRỢ
-        // =====================================================================================
+
         private void InitCheckBoxEvents()
         {
             checkBox1_GuiNguyenLoai1.CheckedChanged += (s, e) => { UpdateLabelColors(); _memLoai1 = checkBox1_GuiNguyenLoai1.Checked; };
@@ -138,9 +138,9 @@ namespace PhanMemThiDua2026
             if (checkBox1_GuiNguyenKhongPhanLoai.Checked) set.Add(Module_HeThong.PL_KHONG_PL);
             return set;
         }
-        // =====================================================================================
+
         //  THỰC HIỆN
-        // =====================================================================================
+
         private async void btn_ResetPhanLoai_Click(object? sender, EventArgs e)
         {
             if (_isProcessing) return;

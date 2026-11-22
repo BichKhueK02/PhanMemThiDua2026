@@ -610,7 +610,7 @@ namespace PhanMemThiDua2026
                 {
                     cn.Open();
                     using var cmdSelect = cn.CreateCommand();
-                    cmdSelect.CommandText = "SELECT Chọn_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1";
+                    cmdSelect.CommandText = "SELECT Chon_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1";
                     var result = cmdSelect.ExecuteScalar();
                     if (result != null && result != DBNull.Value) luaChon = result.ToString()!;
                 }
@@ -1318,8 +1318,8 @@ namespace PhanMemThiDua2026
                     await cn.OpenAsync();
                     Module_NhatKy.DamBaoBangTuDongXoa(cn);
                     using var cmd = cn.CreateCommand();
-                    // Cột thật (Form12 ghi) là "Chọn_GiaiTri". Bản trước đọc "Chon_GiaTri" -> lỗi "no such column" bị nuốt => không bao giờ tự xóa.
-                    cmd.CommandText = "SELECT Chọn_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1 LIMIT 1;";
+                    // Cột thật (Form12 ghi) là "Chon_GiaiTri" (DamBaoBangTuDongXoa vừa đổi tên cột cũ có dấu / sai tên về tên này).
+                    cmd.CommandText = "SELECT Chon_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1 LIMIT 1;";
                     var result = await cmd.ExecuteScalarAsync();
                     if (result != null && result != DBNull.Value) luaChon = result.ToString()!;
                 }

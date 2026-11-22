@@ -304,9 +304,9 @@
             // 
             tableLayoutPanel6.ColumnCount = 4;
             tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28.88889F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22.5925922F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.11111F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 27.2222214F));
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23.1481476F));
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.666666F));
+            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26.2962971F));
             tableLayoutPanel6.Controls.Add(kryptonButton1_HuongDanThemDuLieu, 3, 0);
             tableLayoutPanel6.Controls.Add(kryptonButton_XoaKetQuaPhanLoai, 2, 0);
             tableLayoutPanel6.Controls.Add(kryptonButton1_ThiDuaBaNhat, 0, 0);
@@ -322,7 +322,7 @@
             // kryptonButton1_HuongDanThemDuLieu
             // 
             kryptonButton1_HuongDanThemDuLieu.Anchor = AnchorStyles.None;
-            kryptonButton1_HuongDanThemDuLieu.Location = new Point(403, 8);
+            kryptonButton1_HuongDanThemDuLieu.Location = new Point(406, 8);
             kryptonButton1_HuongDanThemDuLieu.Name = "kryptonButton1_HuongDanThemDuLieu";
             kryptonButton1_HuongDanThemDuLieu.Size = new Size(125, 30);
             kryptonButton1_HuongDanThemDuLieu.StateCommon.Border.Rounding = 4F;
@@ -337,7 +337,7 @@
             // kryptonButton_XoaKetQuaPhanLoai
             // 
             kryptonButton_XoaKetQuaPhanLoai.Anchor = AnchorStyles.None;
-            kryptonButton_XoaKetQuaPhanLoai.Location = new Point(281, 8);
+            kryptonButton_XoaKetQuaPhanLoai.Location = new Point(285, 8);
             kryptonButton_XoaKetQuaPhanLoai.Name = "kryptonButton_XoaKetQuaPhanLoai";
             kryptonButton_XoaKetQuaPhanLoai.Size = new Size(108, 30);
             kryptonButton_XoaKetQuaPhanLoai.StateCommon.Border.Rounding = 4F;
@@ -368,7 +368,7 @@
             // kryptonButton_RefershCSDL
             // 
             kryptonButton_RefershCSDL.Anchor = AnchorStyles.None;
-            kryptonButton_RefershCSDL.Location = new Point(161, 8);
+            kryptonButton_RefershCSDL.Location = new Point(162, 8);
             kryptonButton_RefershCSDL.Name = "kryptonButton_RefershCSDL";
             kryptonButton_RefershCSDL.Size = new Size(112, 30);
             kryptonButton_RefershCSDL.StateCommon.Border.Rounding = 4F;

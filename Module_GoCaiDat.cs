@@ -21,6 +21,22 @@ namespace PhanMemThiDua2026
         private const string TIEN_TO_GOI = "PMTDUN3";
         private const string TEN_EXE_GO = "Uninstall_PhanMemThiDua2026.exe";
         private const int PHIEN_BAN_TOI_THIEU = 2;   // trình gỡ cài đặt 1.x dùng tệp khóa cũ, không hiểu giao thức này
+        /// <summary>
+        /// Trình gỡ cài đặt (giai đoạn 1 trong thư mục cài đặt, hoặc giai đoạn 2 chạy từ %TEMP%) đang chạy.
+        /// Phần mềm mẹ KHÔNG được khởi động lúc này: nó sẽ mở CSDL trong thư mục đang bị xóa
+        /// (vd ServiceBackup/ServiceRestore bị trình gỡ yêu cầu đóng và tự mở lại mẹ, hoặc người dùng bấm shortcut).
+        /// </summary>
+        public static bool DangGoCaiDat()
+        {
+            try
+            {
+                Process[] ds = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(TEN_EXE_GO));
+                bool co = ds.Length > 0;
+                foreach (Process p in ds) p.Dispose();
+                return co;
+            }
+            catch { return false; }
+        }
         /// <summary>Dòng yêu cầu giai đoạn 1 (internal để kiểm thử).</summary>
         internal static string TaoGoi(bool giuDuLieu, string thuMucCaiDat)
         {

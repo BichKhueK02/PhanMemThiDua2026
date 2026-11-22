@@ -496,10 +496,17 @@ namespace PhanMemThiDua2026
                 {
                     if (thamSo == null)
                     {
-                        var cotChon = new List<string>();
+                        var cotChon = new List<string>();   // tên cột trong bảng đích
+                        var cotJson = new List<string>();   // tên thuộc tính tương ứng trong tệp JSON
                         foreach (JsonProperty p in dong.EnumerateObject())
                         {
-                            if (cotCuaBang.ContainsKey(p.Name)) cotChon.Add(p.Name);
+                            // Tệp JSON xuất từ CSDL cũ có thể còn tên cột có dấu (vd "SuKien_DuọcChon") => ánh xạ sang tên hiện tại
+                            string tenCot = Module_TenCotKhongDau.TenCotHienTai(tenBang, p.Name);
+                            if (cotCuaBang.ContainsKey(tenCot) && !cotChon.Contains(tenCot, StringComparer.OrdinalIgnoreCase))
+                            {
+                                cotChon.Add(tenCot);
+                                cotJson.Add(p.Name);
+                            }
                         }
                         if (cotChon.Count == 0)
                             throw new InvalidDataException($"Không có cột nào trong tệp JSON khớp với bảng '{tenBang}'. Đã hủy nạp để không mất dữ liệu.");
@@ -515,7 +522,7 @@ namespace PhanMemThiDua2026
                             tham.ParameterName = $"@p{i}";
                             lenh.Parameters.Add(tham);
                             thamSo[i] = tham; // giữ tham chiếu: không tra cứu tham số theo tên ở từng ô dữ liệu
-                            tenCotUtf8[i] = System.Text.Encoding.UTF8.GetBytes(cotChon[i]);
+                            tenCotUtf8[i] = System.Text.Encoding.UTF8.GetBytes(cotJson[i]);
                             laBlob[i] = cotCuaBang[cotChon[i]];
                         }
                         lenh.Prepare();

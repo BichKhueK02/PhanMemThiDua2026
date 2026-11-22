@@ -92,12 +92,12 @@ namespace PhanMemThiDua2026
     //  MODULE
     //
     //  Quy ước gói trên Desktop (cùng thư mục "Database-PhanMemThiDua2026" với các gói csdl1..csdl4):
-    //      Bansaoluu\Backup_*.pmtd                       + sync_info_Bansaoluu.json
+    //      Bansaoluu\Backup_*.bak | Backup_*.pmtd       + sync_info_Bansaoluu.json
     //      LuuTruThiDua_LichSu\*.db                      + sync_info_LuuTruThiDua_LichSu.json
     //  - CHỈ đóng gói khi thư mục trong hệ thống CÓ dữ liệu hợp lệ; không có thì bỏ qua cả khi xuất lẫn khi nhập.
     //  - Tệp xác nhận (sync_info_*.json) ghi tên + dung lượng + SHA-256 của từng tệp, được tạo SAU CÙNG khi mọi tệp đã chép xong:
     //    gói xuất dở dang (không có tệp xác nhận) và gói bị hỏng/bị sửa khi chuyển đi đều bị chặn khi nhập.
-    //  - Bansaoluu chỉ lấy Backup_*.pmtd. Giấy phép cấp quyền dịch vụ (GiayPhepCapQuyen_*.dat) gắn với từng máy và nhật ký
+    //  - Bansaoluu chỉ lấy Backup_*.bak (mới) và Backup_*.pmtd (đời cũ). Giấy phép cấp quyền dịch vụ (GiayPhepCapQuyen_*.dat) gắn với từng máy và nhật ký
     //    làm sạch (NhatKy_LamSach.txt) KHÔNG đi theo gói.
     //  - Tên tệp lấy từ gói là dữ liệu KHÔNG đáng tin: chỉ nhận tên nằm trong danh sách trắng, không có đường dẫn con, không đi theo liên kết.
     // =====================================================================================
@@ -119,8 +119,10 @@ namespace PhanMemThiDua2026
             new(TEN_THU_MUC_BAN_SAO_LUU,
                 "Bản sao lưu cơ sở dữ liệu",
                 () => Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, TEN_THU_MUC_BAN_SAO_LUU),
+                // ServiceBackup tạo Backup_*.bak (định dạng mới); Backup_*.pmtd là bản đời cũ — cả hai đều khôi phục được
                 ten => ten.StartsWith("Backup_", StringComparison.OrdinalIgnoreCase)
-                       && ten.EndsWith(".pmtd", StringComparison.OrdinalIgnoreCase),
+                       && (ten.EndsWith(".bak", StringComparison.OrdinalIgnoreCase)
+                           || ten.EndsWith(".pmtd", StringComparison.OrdinalIgnoreCase)),
                 laSqlite: false),
             new(TEN_THU_MUC_LICH_SU,
                 "Kết quả thi đua, khen thưởng các năm trước",

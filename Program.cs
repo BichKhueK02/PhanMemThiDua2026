@@ -77,6 +77,16 @@ namespace PhanMemThiDua2026
                     ShowSingleInstanceMessage();
                     return ExitAlreadyRunning;
                 }
+                // 3a. Đang gỡ cài đặt => không mở CSDL trong thư mục đang bị xóa
+                if (Module_GoCaiDat.DangGoCaiDat())
+                {
+                    MessageBox.Show("Phần mềm đang được gỡ cài đặt.\nVui lòng chờ trình gỡ cài đặt hoàn tất.",
+                        "PhanMemThiDua2026", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return ExitAlreadyRunning;
+                }
+                // 3b. ServiceBackup / ServiceRestore đang đọc/ghi CSDL => chờ xong mới được mở CSDL
+                if (!Module_CapKhoaDichVu.ChoDichVuSaoLuuKhoiPhucXong())
+                    return ExitAlreadyRunning;
                 // 4. Phải xong trước khi có WebBrowser đầu tiên được tạo
                 SetBrowserFeatureControl();
                 // 5. Cảnh báo tỷ lệ màn hình: lỗi ở đây không được phép làm sập app

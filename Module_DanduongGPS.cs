@@ -258,6 +258,8 @@ namespace PhanMemThiDua2026
             DuongDanCSDL3 = ConDuongToLua("csdl3.db");
             DuongDanCSDL4 = ConDuongToLua("csdl4.db");
             DuongDanCSDL4ex = ConDuongToLua("csdlex.xlsx");
+            // CSDL cũ (bản dự phòng gốc, bản sao lưu, khôi phục...) còn tên cột có dấu => đổi về tên không dấu trước khi dùng
+            Module_TenCotKhongDau.ChuanHoaTatCa();
         }
         // ===================== NHẬT KÝ KHỞI ĐỘNG =====================
         private static readonly (string HanhDong, string GhiChu)[] _cauNhatKyKhoiDong =

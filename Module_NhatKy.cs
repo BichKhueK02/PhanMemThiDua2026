@@ -427,8 +427,8 @@ WHERE ID <
             return Module_BaoMatAES.MaHoa_NhatKy(value);
         }
         /// <summary>
-        /// Tạo bảng TuDong_XoaNhatKy (cột đúng: "Chọn_GiaiTri") nếu chưa có. Bản cũ của Form10 từng tạo bảng với cột
-        /// "Chon_GiaTri" (không dấu) -> Form12 lưu/đọc cột có dấu bị lỗi im lặng. Gặp cột sai thì đổi tên về cột đúng.
+        /// Tạo bảng TuDong_XoaNhatKy (cột: "Chon_GiaiTri", không dấu) nếu chưa có. CSDL cũ có cột "Chọn_GiaiTri" (có dấu)
+        /// hoặc "Chon_GiaTri" (tên sai do bản cũ của Form10 tạo) => đổi tên về "Chon_GiaiTri", giữ nguyên dữ liệu.
         /// </summary>
         public static void DamBaoBangTuDongXoa(SqliteConnection cn)
         {
@@ -436,28 +436,11 @@ WHERE ID <
             {
                 cmd.CommandText = @"CREATE TABLE IF NOT EXISTS TuDong_XoaNhatKy (
                     ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    Chọn_GiaiTri TEXT
+                    Chon_GiaiTri TEXT
                 );";
                 cmd.ExecuteNonQuery();
             }
-            bool coCotDung = false, coCotSai = false;
-            using (var cmd = cn.CreateCommand())
-            {
-                cmd.CommandText = "PRAGMA table_info(TuDong_XoaNhatKy);";
-                using var rd = cmd.ExecuteReader();
-                while (rd.Read())
-                {
-                    string ten = rd.GetString(1);
-                    if (ten == "Chọn_GiaiTri") coCotDung = true;
-                    else if (ten == "Chon_GiaTri") coCotSai = true;
-                }
-            }
-            if (!coCotDung && coCotSai)
-            {
-                using var cmd = cn.CreateCommand();
-                cmd.CommandText = "ALTER TABLE TuDong_XoaNhatKy RENAME COLUMN Chon_GiaTri TO Chọn_GiaiTri;";
-                cmd.ExecuteNonQuery();
-            }
+            Module_TenCotKhongDau.ChuanHoaCSDL3(cn);
         }
         public static void DocVaNapStatusLabelForm10()
         {
@@ -472,7 +455,7 @@ WHERE ID <
                     conn.Open();
                     using (var cmdSelect = conn.CreateCommand())
                     {
-                        cmdSelect.CommandText = "SELECT Chọn_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1 LIMIT 1;";
+                        cmdSelect.CommandText = "SELECT Chon_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1 LIMIT 1;";
                         var result = cmdSelect.ExecuteScalar();
                         if (result != null && result != DBNull.Value)
                             luaChon = result.ToString()!;

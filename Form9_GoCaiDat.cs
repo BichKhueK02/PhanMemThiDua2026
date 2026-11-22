@@ -193,47 +193,24 @@ namespace PhanMemThiDua2026
                 }
                 // Nếu nhập đúng thì reset số lần sai về 0
                 _soLanSai = 0;
-                // ---- ĐÚNG MẬT KHẨU → HỎI GIỮ/XÓA DỮ LIỆU → BÀN GIAO CHO TRÌNH GỠ CÀI ĐẶT ----
-                bool? giuDuLieu = HoiGiuDuLieu();
-                if (giuDuLieu == null) return;   // người dùng hủy
-                string taiKhoan = string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM)
-                    ? "System (Quyền cao nhất)" : Module_TaiKhoan.TenTaiKhoan_RAM;
-                // Ghi nhật ký TRƯỚC khi bàn giao (nếu chọn xóa dữ liệu thì CSDL nhật ký cũng bị xóa)
-                Module_NhatKy.GhiNhatKy(taiKhoan, "Gỡ cài đặt phần mềm",
-                    giuDuLieu.Value ? "Admin xác thực: gỡ chương trình, GIỮ lại dữ liệu." : "Admin xác thực: gỡ chương trình và XÓA toàn bộ dữ liệu.");
-                if (!Module_GoCaiDat.KhoiChay(giuDuLieu.Value, out string loiKhoiChay))
+                // ---- ĐÚNG MẬT KHẨU = ĐÃ XÁC NHẬN → BÀN GIAO NGAY CHO TRÌNH GỠ CÀI ĐẶT, KHÔNG HỎI THÊM ----
+                // Luôn xóa TOÀN BỘ chương trình + dữ liệu (CSDL, bản sao lưu, tệp khóa...). Trình gỡ ép đóng mọi ứng dụng
+                // đang giữ tệp, xóa thư mục cài đặt (và thư mục chứa nó nếu rỗng) rồi đưa về màn hình Desktop.
+                if (!Module_GoCaiDat.KhoiChay(giuDuLieu: false, out string loiKhoiChay))
                 {
                     MessageBox.Show("Không thể bắt đầu gỡ cài đặt:\n" + loiKhoiChay, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Module_NhatKy.GhiNhatKy("System (Quyền cao nhất)", "Gỡ cài đặt phần mềm", "Hủy tiến trình gỡ cài đặt do lỗi khởi chạy!");
                     return;
                 }
-                // Trình gỡ cài đặt chờ phần mềm đóng (không ép tắt): nhả khóa tệp CSDL rồi thoát.
+                // Nhả khóa tệp CSDL + xóa khóa khỏi RAM rồi thoát ngay (quá ~1,5 giây trình gỡ cài đặt sẽ ép đóng).
                 GiaiPhongTruocKhiThoat();
-                Module_ThoatAnToan.ThoatDutKhoat();   // trình gỡ cài đặt chờ phần mềm đóng: Application.Exit có thể lỗi nên không bao giờ đóng
+                Module_ThoatAnToan.ThoatDutKhoat();
             }
             finally
             {
                 // 🌟 MỞ KHÓA LẠI NÚT NẾU CHƯA THOÁT ỨNG DỤNG
                 Btn_GoCaiDat.Enabled = true;
             }
-        }
-        /// <summary>Hỏi giữ hay xóa dữ liệu. true = giữ, false = xóa hết, null = hủy gỡ cài đặt.</summary>
-        private bool? HoiGiuDuLieu()
-        {
-            DialogResult r = MessageBox.Show(this,
-                "Bạn có muốn GIỮ LẠI dữ liệu (cơ sở dữ liệu và các bản sao lưu) sau khi gỡ cài đặt không?\n\n" +
-                "• Có: chỉ gỡ chương trình, giữ lại thư mục Database.\n" +
-                "• Không: xóa TOÀN BỘ, kể cả dữ liệu (không thể khôi phục).\n" +
-                "• Hủy: không gỡ cài đặt.",
-                "Gỡ cài đặt - dữ liệu",
-                MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
-            if (r == DialogResult.Cancel) return null;
-            if (r == DialogResult.Yes) return true;
-            DialogResult x = MessageBox.Show(this,
-                "XÁC NHẬN LẦN CUỐI: toàn bộ dữ liệu sẽ bị xóa vĩnh viễn và KHÔNG thể khôi phục.\n\nTiếp tục xóa?",
-                "Xóa vĩnh viễn dữ liệu",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
-            return x == DialogResult.Yes ? false : (bool?)null;
         }
         /// <summary>Nhả tài nguyên giữ tệp/khóa trước khi thoát để trình gỡ cài đặt xóa được ngay.</summary>
         private static void GiaiPhongTruocKhiThoat()
@@ -265,10 +242,11 @@ namespace PhanMemThiDua2026
                 "    - Nhập đúng mật khẩu Admin để xác thực quyền gỡ cài đặt.\n" +
                 "    - Tick vào ô \"Hiện mật khẩu\" nếu muốn xem lại mật khẩu vừa nhập.\n\n" +
                 "3️. Nút \"Gỡ cài đặt\":\n" +
-                "    - Sau khi xác thực mật khẩu thành công, phần mềm hỏi bạn muốn GIỮ LẠI hay XÓA dữ liệu " +
-                "(thư mục Database), rồi khởi chạy trình gỡ cài đặt " +
+                "    - Sau khi xác thực mật khẩu thành công, phần mềm KHÔNG hỏi thêm: khởi chạy trình gỡ cài đặt " +
                 "(Uninstall_PhanMemThiDua2026.exe) và tự động thoát ứng dụng chính.\n" +
-                "    - Nếu còn ServiceBackup / ServiceRestore đang mở, trình gỡ cài đặt sẽ yêu cầu đóng chúng (không ép tắt).\n\n" +
+                "    - Trình gỡ cài đặt ép đóng ngay mọi ứng dụng đang dùng tệp của phần mềm (kể cả ServiceBackup / ServiceRestore, Excel...), " +
+                "xóa TOÀN BỘ chương trình và dữ liệu (cơ sở dữ liệu, bản sao lưu, tệp khóa), xóa thư mục cài đặt rồi đưa về màn hình Desktop.\n" +
+                "    - ⚠️ Dữ liệu bị xóa vĩnh viễn, KHÔNG thể khôi phục: hãy chép thư mục Database ra nơi khác trước nếu cần giữ.\n\n" +
                 "4️. Nút \"Thoát\":\n" +
                 "    - Đóng cửa sổ này và quay lại phần mềm mà không gỡ cài đặt.\n\n" +
                 "⚠️ Lưu ý bảo mật:\n" +
