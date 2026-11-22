@@ -17,7 +17,7 @@ namespace PhanMemThiDua2026
         private Panel? piePanel;
         //private int highlightedSlice = -1;
         private Dictionary<string, int> pieData = new Dictionary<string, int>();
-        // (MỚI v4) Lát biểu đồ theo quy tắc Bảng 2: diện tích KHÔNG chồng lấn + chú thích dạng "a/b = x%" (xem DatSoLieuBieuDo)
+        // (MỚI v4) Lát biểu đồ theo quy tắc Bảng 2: diện tích KHÔNG chồng lấn + chú thích dạng "a/b = x%" (xem VeBieuDoTuBang2)
         private IReadOnlyList<LatBieuDo>? _latBieuDo;
         // ⭐ THÊM 3 BIẾN NÀY ĐỂ LƯU TRỮ SỐ LIỆU CHI TIẾT CHO BIỂU ĐỒ
         private int phanTramLoai1 = 0;
@@ -526,11 +526,7 @@ namespace PhanMemThiDua2026
                 // Về UI thread: chỉ gán kết quả
                 _dsDonViBoQuaCanhBao = kq.BoQua;
                 _cachedTongBCH = kq.TongBCH;
-                // (v4) Biểu đồ nhận số liệu qua MỘT hàm chung (cùng hàm với RefreshPieChartAsync): lát không chồng lấn + chú thích theo Bảng 2
-                DatSoLieuBieuDo(
-                    kq.PieData.GetValueOrDefault(Module_HeThong.Loai_1), kq.PieData.GetValueOrDefault(Module_HeThong.Loai_2),
-                    kq.PieData.GetValueOrDefault(Module_HeThong.Loai_3), kq.PieData.GetValueOrDefault(Module_HeThong.Loai_4),
-                    kq.PieData.GetValueOrDefault(Module_HeThong.PL_KHONG_PL));
+                // Biểu đồ tròn KHÔNG lấy số ở đây nữa: Bang2_Async (chạy ngay sau) vẽ biểu đồ từ đúng kết quả Bảng 2 (VeBieuDoTuBang2)
                 using (Module_DoHieuNang.Doan("Form4 Bảng 1: đổ lưới HienThiBang1Grid")) HienThiBang1Grid(kq.Bang);
             }
             catch (SqliteException sqlEx)
@@ -605,7 +601,7 @@ namespace PhanMemThiDua2026
             }
             // (v4) Số liệu cho biểu đồ: "Loại 2" ở đây là Loại 2 THUẦN (không gồm Loại 1) => các lát KHÔNG chồng lấn,
             // tổng các lát = tổng quân số. (Bản cũ truyền Loại 2 đã gộp Loại 1 nên Loại 1 bị tính 2 lần: tổng 159 thay vì 137.)
-            // Chuyển sang lát + chú thích theo quy tắc Bảng 2 ở DatSoLieuBieuDo() (chạy trên luồng UI, không đụng biến của Form từ luồng nền).
+            // Chuyển sang lát + chú thích theo quy tắc Bảng 2 ở VeBieuDoTuBang2() (chạy trên luồng UI, không đụng biến của Form từ luồng nền).
             var pie = new Dictionary<string, int>
     {
         { Module_HeThong.Loai_1, l1p },
@@ -837,6 +833,7 @@ namespace PhanMemThiDua2026
                 if (totalRow == null)
                 {
                     Module_TyLeBang2.CongBo(Module_TyLeBang2.Tinh(0, 0, 0, 0, 0, 0, 0, 0));   // (v4) chưa có quân số => báo cáo Excel ghi 0, không đọc nhầm số cũ
+                    VeBieuDoTuBang2(null);
                     kryptonDataGridView2.DataSource = null;
                     _allowLoadBang2 = false;
                     return;
@@ -855,6 +852,7 @@ namespace PhanMemThiDua2026
                 // Module_XuatTongHop ghi sheet "BAO_CAO_TONG_HOP" đúng từ đối tượng này => Excel luôn khớp Bảng 2 đang hiển thị.
                 var kqBang2 = Module_TyLeBang2.Tinh(tongQuanSo, loai1, loai2, loai3, loai4, khongPL, loai1Rate, loai2Rate);
                 Module_TyLeBang2.CongBo(kqBang2);
+                VeBieuDoTuBang2(kqBang2);   // biểu đồ tròn dùng đúng số "KQ Hiện tại" của Bảng 2 này
                 int duDieuKien = kqBang2.DuDieuKien;
                 int kqCanDat_L2_Tong = kqBang2.CanDatLoai2Tong;
                 int kqCanDat_L3 = kqBang2.CanDatLoai3;
@@ -986,12 +984,7 @@ namespace PhanMemThiDua2026
         private void AnhXaGiaoDienThiDua()
         {
             // 🌟 SỬA TẠI ĐÂY: Gọi hàm LayCheDoXetThiDuaNam() hoặc IsCheDoXetThiDuaNam()
-            bool laXetNam = Module_HeThong.IsCheDoXetThiDuaNam();
-            string tenL1 = laXetNam ? Module_HeThong.PL_CSTD : Module_HeThong.Loai_1;
-            string tenL2 = laXetNam ? Module_HeThong.PL_CSTT : Module_HeThong.Loai_2;
-            string tenL3 = laXetNam ? Module_HeThong.PL_HTNV : Module_HeThong.Loai_3;
-            string tenL4 = laXetNam ? Module_HeThong.PL_KHTNV : Module_HeThong.Loai_4;
-            string tenKPL = laXetNam ? Module_HeThong.PL_KHONG_PL : Module_HeThong.PL_KHONG_PL;
+            var (tenL1, tenL2, tenL3, tenL4, tenKPL) = LayTenPhanLoaiHienThi();
             // 1. Ánh xạ Header cho Bảng 1
             if (kryptonDataGridView1?.DataSource != null)
             {
@@ -2316,63 +2309,74 @@ WHERE ID = 1", conn);
             //// 5. Vẽ Loại 4 (Nếu có)
             //// 6. Vẽ Không PL (Nếu có)
         /// <summary>
-        /// (v4) NGUỒN DUY NHẤT của biểu đồ tròn — Bang1_Async và RefreshPieChartAsync đều gọi hàm này (trước đây hai nơi tính khác nhau:
-        /// một nơi gộp Loại 1 vào Loại 2 rồi vẫn vẽ riêng Loại 1 => tổng sai, nơi kia dùng Loại 2 thuần).
-        /// l2Thuan = Loại 2 THUẦN (không gồm Loại 1). Lát không chồng lấn; chú thích và % theo đúng quy tắc Bảng 2 (Module_TyLeBang2).
-        /// Chỉ gọi trên luồng UI.
+        /// NGUỒN DUY NHẤT của biểu đồ tròn: lấy ĐÚNG số "KQ Hiện tại" của Bảng 2 vừa tính (<see cref="KetQuaBang2"/>, Bang2_Async gọi
+        /// ngay sau Module_TyLeBang2.CongBo) => biểu đồ không tự quét CSDL riêng, luôn khớp Bảng 2 đang hiển thị.
+        /// Cách tính % của lát giữ nguyên (Module_TyLeBang2.DungLatBieuDo); chỉ nhãn + ghi chú đổi theo chế độ Tháng/Năm giống cột "Thông tin" Bảng 2.
+        /// kq == null => xóa trắng biểu đồ. Chỉ gọi trên luồng UI.
         /// </summary>
-        private void DatSoLieuBieuDo(int l1, int l2Thuan, int l3, int l4, int kpl)
+        private void VeBieuDoTuBang2(KetQuaBang2? kq)
         {
-            pieData = new Dictionary<string, int>
+            if (kq == null || kq.TongQS <= 0)
             {
-                { Module_HeThong.Loai_1, l1 },
-                { Module_HeThong.Loai_2, l2Thuan },
-                { Module_HeThong.Loai_3, l3 },
-                { Module_HeThong.Loai_4, l4 },
-                { Module_HeThong.PL_KHONG_PL, kpl }
-            };
-            //_pieChiTietLoai1 = l1;
-            //_pieChiTietLoai2_Tong = l1 + l2Thuan;
-            //_pieTongQuanSo = l1 + l2Thuan + l3 + l4 + kpl;
-            _latBieuDo = Module_TyLeBang2.DungLatBieuDo(l1, l2Thuan, l3, l4, kpl,
-                Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4, Module_HeThong.PL_KHONG_PL);
+                pieData = new Dictionary<string, int>();
+                _latBieuDo = null;
+            }
+            else
+            {
+                var (tenL1, tenL2, tenL3, tenL4, tenKPL) = LayTenPhanLoaiHienThi();
+                pieData = new Dictionary<string, int>
+                {
+                    { tenL1, kq.Loai1 },
+                    { tenL2, kq.Loai2 },
+                    { tenL3, kq.Loai3 },
+                    { tenL4, kq.Loai4 },
+                    { tenKPL, kq.KhongPL }
+                };
+                _latBieuDo = Module_TyLeBang2.DungLatBieuDo(kq.Loai1, kq.Loai2, kq.Loai3, kq.Loai4, kq.KhongPL,
+                    tenL1, tenL2, tenL3, tenL4, tenKPL);
+                if (piePanel is BieuDoTron3D bd) bd.GhiChuChuThich = $"{tenL2} gồm cả {tenL1} · % {tenL1} tính trên {tenL2}";
+            }
             if (piePanel != null && !piePanel.IsDisposed) piePanel.Invalidate();
         }
-        // Đếm theo ĐÚNG quy tắc của Bảng 1 (QuetVaTinhBang1): bỏ dòng thiếu Đơn vị; phân loại lạ/trống tính vào "Không PL"
-        // => tổng khớp Bảng 1 và Bảng 2 (bản cũ chỉ đếm khi trùng chữ "Không phân loại" nên tổng có thể thiếu).
-        private (int L1, int L2Thuan, int L3, int L4, int Kpl) DemPhanLoaiTheoBang1(string csdl2Path)
+        /// <summary>Tên 5 nhóm phân loại đang hiển thị (Tháng: Loại 1..4; Năm: CSTĐ/CSTT/HTNV/KHTNV) — dùng chung cho Bảng 1, Bảng 2, biểu đồ.</summary>
+        private static (string L1, string L2, string L3, string L4, string Kpl) LayTenPhanLoaiHienThi()
         {
-            int l1 = 0, l2 = 0, l3 = 0, l4 = 0, kpl = 0;
-            try
-            {
-                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdl2Path));
-                conn.Open();
-                using var cmd = new SqliteCommand($"SELECT DonVi, PhanLoai FROM {Module_TaiKhoan.BangDanhSach}", conn);
-                using var rd = cmd.ExecuteReader();
-                while (rd.Read())
-                {
-                    if (SafeDecrypt(rd.GetValue(0)).Trim().Length == 0) continue;
-                    switch (SafeDecrypt(rd.GetValue(1)).Trim())
-                    {
-                        case Module_HeThong.Loai_1: l1++; break;
-                        case Module_HeThong.Loai_2: l2++; break;
-                        case Module_HeThong.Loai_3: l3++; break;
-                        case Module_HeThong.Loai_4: l4++; break;
-                        default: kpl++; break;
-                    }
-                }
-            }
-            catch (Exception ex) { Debug.WriteLine("DemPhanLoaiTheoBang1: " + ex.Message); }
-            return (l1, l2, l3, l4, kpl);
+            bool laXetNam = Module_HeThong.IsCheDoXetThiDuaNam();
+            return laXetNam
+                ? (Module_HeThong.PL_CSTD, Module_HeThong.PL_CSTT, Module_HeThong.PL_HTNV, Module_HeThong.PL_KHTNV, Module_HeThong.PL_KHONG_PL)
+                : (Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4, Module_HeThong.PL_KHONG_PL);
         }
+        /// <summary>
+        /// Form khác gọi (qua Module_BieuDoTronTrangChu) sau khi dữ liệu CBCS đổi: tính lại Bảng 1 -> Bảng 2 (một lần quét CSDL),
+        /// biểu đồ vẽ từ Bảng 2 => bảng và biểu đồ cùng đổi, không bao giờ lệch nhau. Chờ lượt sau lần nạp lại đang chạy (nếu có).
+        /// </summary>
         public async Task RefreshPieChartAsync()
         {
-            string csdl2Path = _csdl2Path;
-            if (string.IsNullOrWhiteSpace(csdl2Path))
-                return;
-            var c = await Task.Run(() => DemPhanLoaiTheoBang1(csdl2Path));
-            if (IsDisposed || Disposing) return;
-            DatSoLieuBieuDo(c.L1, c.L2Thuan, c.L3, c.L4, c.Kpl);
+            if (string.IsNullOrWhiteSpace(_csdl2Path) || IsDisposed || Disposing) return;
+            await _reloadLock.WaitAsync();
+            try
+            {
+                if (IsDisposed || Disposing) return;
+                if (await Task.Run(KiemTraCoDuLieuDanhSach))
+                {
+                    if (IsDisposed || Disposing) return;
+                    await Bang1_Async();
+                    if (IsDisposed || Disposing) return;
+                    _allowLoadBang2 = true;
+                    await Bang2_Async();
+                }
+                else
+                {
+                    Module_TyLeBang2.CongBo(Module_TyLeBang2.Tinh(0, 0, 0, 0, 0, 0, 0, 0));
+                    VeBieuDoTuBang2(null);
+                    kryptonDataGridView1.DataSource = null;
+                    kryptonDataGridView2.DataSource = null;
+                }
+            }
+            finally
+            {
+                _reloadLock.Release();
+            }
         }
         private void KhoiTaoPieChart()
         {
@@ -2388,7 +2392,7 @@ WHERE ID = 1", conn);
             };
             pieChart.Controls.Clear();
             pieChart.Controls.Add(piePanel);
-            piePanel.Invalidate();   // pieData có thể đã có sẵn từ Bang1_Async
+            VeBieuDoTuBang2(Module_TyLeBang2.Hien);   // Bảng 2 có thể đã tính xong trước khi biểu đồ được tạo
         }
         //Thuật toán khác
         private void kryptonButton_MayTinh_Click(object sender, EventArgs e)
@@ -3487,10 +3491,8 @@ WHERE ID = 1", conn);
                 }
                 else
                 {
-                    pieData = new Dictionary<string, int>();
-                    _latBieuDo = null;
                     Module_TyLeBang2.CongBo(Module_TyLeBang2.Tinh(0, 0, 0, 0, 0, 0, 0, 0));   // (v4) không có quân số => báo cáo Excel ghi 0
-                    piePanel?.Invalidate();
+                    VeBieuDoTuBang2(null);
                     kryptonDataGridView1.DataSource = null;
                     kryptonDataGridView2.DataSource = null;
                 }

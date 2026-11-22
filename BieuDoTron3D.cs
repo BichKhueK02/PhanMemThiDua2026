@@ -38,6 +38,8 @@ namespace PhanMemThiDua2026
         private const float K = 0.56f;          // độ nghiêng: chiều cao elip / chiều rộng elip
         private const double ThoiGianMoMs = 800; // thời gian hiệu ứng "mở ra"
         private string _chuKy = "";
+        private object? _nguonCu;      // đối tượng nguồn (lát / pieData) đã đồng bộ lần trước
+        private string? _ghiChuCu;
         private string[] _nhan = Array.Empty<string>();
         private double[] _giaTri = Array.Empty<double>();
         private double _tong;
@@ -76,6 +78,11 @@ namespace PhanMemThiDua2026
         {
             var lat = NguonLat?.Invoke();
             var src = lat == null ? NguonDuLieu?.Invoke() : null;
+            // OnPaint gọi hàm này ở MỌI khung hình (hiệu ứng 15ms, rê chuột): nguồn vẫn là đúng đối tượng cũ
+            // => bỏ qua, không dựng lại chuỗi chữ ký. Nguồn mới (Form4 luôn tạo danh sách mới khi số liệu đổi) mới so chữ ký.
+            object? nguon = (object?)lat ?? src;
+            if (nguon != null && ReferenceEquals(nguon, _nguonCu) && GhiChuChuThich == _ghiChuCu) return;
+            _nguonCu = nguon; _ghiChuCu = GhiChuChuThich;
             string chuKy = lat != null
                 ? "L|" + string.Join("|", lat.Select(x => $"{x.Nhan}={x.GiaTri}~{x.ChuThich}~{x.NhanTrenLat}~{x.MauIndex}")) + "|" + GhiChuChuThich
                 : (src == null ? "" : string.Join("|", src.Select(kv => kv.Key + "=" + kv.Value)));
