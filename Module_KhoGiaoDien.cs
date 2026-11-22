@@ -110,6 +110,8 @@ namespace PhanMemThiDua2026
         private const long WS_EX_COMPOSITED = 0x02000000L;
         private const uint RDW_INVALIDATE = 0x1, RDW_ERASE = 0x4, RDW_FRAME = 0x400, RDW_ALLCHILDREN = 0x80, RDW_UPDATENOW = 0x100;
         /// <summary>Đặt false nếu thấy lỗi vẽ khi chuyển trang: quay về vẽ lại đồng bộ thường (vẫn nhanh hơn bản cũ).</summary>
+        // Đã đo A/B (hieunang-20261122.log, 09:00 và 09:02): vẽ thường KHÔNG nhanh hơn vẽ tổng hợp (cùng ~100–150 ms/trang
+        // 1748×940) => giữ vẽ tổng hợp (không xé hình). Chi phí nằm ở bản thân việc vẽ các control Krypton/lưới.
         private const bool DungVeTongHop = true;
         /// <summary>
         /// Bật lại vẽ và vẽ NGAY TOÀN BỘ vùng chứa trong 1 lượt (thay cho Invalidate: vẽ dần từng control theo vòng lặp

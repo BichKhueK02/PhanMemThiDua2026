@@ -195,7 +195,8 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                await Form2_LoadCore();
+                using (Module_DoHieuNang.Khoang("Form2_Load (tổng, có await)"))
+                    await Form2_LoadCore();
             }
             catch (Exception ex)
             {
@@ -216,9 +217,11 @@ namespace PhanMemThiDua2026
             if (IsDisposed) return;
             Debug.WriteLine($"[Form2_Load] đọc CSDL nền: {sw.ElapsedMilliseconds} ms");
             // 2. KHỞI TẠO DỮ LIỆU NGƯỜI DÙNG (tài khoản đã nạp ở bước 1)
-            KhoiTaoDuLieuNguoiDung(daNapTaiKhoan: true);
+            using (Module_DoHieuNang.Doan("Form2_Load: KhoiTaoDuLieuNguoiDung"))
+                KhoiTaoDuLieuNguoiDung(daNapTaiKhoan: true);
             // 3. KHỞI TẠO GIAO DIỆN
-            KhoiTaoGiaoDien(nam, phienBan);
+            using (Module_DoHieuNang.Doan("Form2_Load: KhoiTaoGiaoDien"))
+                KhoiTaoGiaoDien(nam, phienBan);
             // 4. THIẾT LẬP TRẠNG THÁI MENU
             checkBox1_TuDongAnMenu.Checked = AppRuntime.TuDongAnMenu;
             // 5. KHỞI TẠO TIMER VÀ EVENT
@@ -559,6 +562,13 @@ namespace PhanMemThiDua2026
                 {
                     return;
                 }
+                // Mỗi lần chuyển trang (khi không có phiên đo nào đang chạy) mở một phiên đo ngắn 3 s: đo cả phần đồng bộ lúc bấm
+                // lẫn các việc chạy tiếp sau đó (Load/dữ liệu/vẽ) -> biết chính xác vì sao "đơ khi chuyển trang".
+                if (!Module_DoHieuNang.DangDo) Module_DoHieuNang.BatDau($"Chuyển trang {type.Name}", toiDaMs: 3000);
+                using var _do = !Module_DoHieuNang.DangDo ? null : Module_DoHieuNang.Doan($"Mở trang {type.Name}" +
+                    (_forms.TryGetValue(type, out var coSan) && !coSan.IsDisposed
+                        ? (Module_KhoGiaoDien.LaTrongKho(coSan) ? " (lấy từ kho)" : " (đã mở trước đó)")
+                        : " (CHƯA có trong kho - dựng mới)"));
                 if (!_forms.TryGetValue(type, out var form) || form.IsDisposed)
                     _forms[type] = form = new T();
                 var formCu = _currentChild;
@@ -570,20 +580,24 @@ namespace PhanMemThiDua2026
                     if (form.FormBorderStyle != FormBorderStyle.None) form.FormBorderStyle = FormBorderStyle.None;
                     if (form.Dock != DockStyle.Fill) form.Dock = DockStyle.Fill;
                     if (!PanelContainer.Controls.Contains(form))
-                        PanelContainer.Controls.Add(form);   // trang dựng sẵn trong KHO: chỉ đổi cha cửa sổ, không dựng/nạp lại
+                    {
+                        // trang dựng sẵn trong KHO: chỉ đổi cha cửa sổ, không dựng/nạp lại
+                        using (Module_DoHieuNang.Doan($"  {type.Name}: đổi cha (kho -> PanelContainer)")) PanelContainer.Controls.Add(form);
+                    }
                     form.BringToFront();   // đưa lên trên TRƯỚC khi Show: tránh layout/vẽ 2 lần như trước (Show rồi mới BringToFront)
-                    form.Show();
-                    formCu?.Hide();        // phủ form mới rồi mới ẩn form cũ -> không bị chớp nền
+                    using (Module_DoHieuNang.Doan($"  {type.Name}: Show")) form.Show();
+                    using (Module_DoHieuNang.Doan($"  {formCu?.GetType().Name}: Hide trang cũ")) formCu?.Hide();        // phủ form mới rồi mới ẩn form cũ -> không bị chớp nền
                     _currentChild = form;
                 }
                 finally
                 {
-                    PanelContainer.ResumeLayout(true);
+                    using (Module_DoHieuNang.Doan($"  {type.Name}: ResumeLayout (dàn trang)")) PanelContainer.ResumeLayout(true);
                     // LUÔN bật lại vẽ, kể cả khi lỗi. Vẽ NGAY cả trang trong 1 lượt (đệm tổng hợp) thay vì để vẽ dần từng control.
-                    Module_KhoGiaoDien.VeLaiNgay(PanelContainer);
+                    using (Module_DoHieuNang.Doan($"  {type.Name}: vẽ lại cả trang (VeLaiNgay)")) Module_KhoGiaoDien.VeLaiNgay(PanelContainer);
                 }
                 if (!string.IsNullOrWhiteSpace(title))
                     Label1.Text = title;
+                Module_DoHieuNang.DoChiPhiVe(form);   // chẩn đoán (chỉ khi PMTD_DO_VE=1)
             }
             finally
             {
@@ -1439,11 +1453,22 @@ namespace PhanMemThiDua2026
         {
             if (_daNapTruocTrangCon) return;
             _daNapTruocTrangCon = true;
+            try { await NapTruocTrangConSauKhiHienCoreAsync(); }
+            finally
+            {
+                // Đo riêng chặng tiếp theo (trang con cấp 2 dựng sẵn ở nền) để biết nó còn làm UI đứng hình không
+                Module_DoHieuNang.BatDau("Sau kho chính: dựng sẵn trang con cấp 2 (Form52/Form53)", toiDaMs: 10000);
+                Module_NhuongUI.BaoKhoChinhXong();   // dù xong hay dừng: mở đường cho trang con cấp 2 (Form52/Form53)
+            }
+        }
+        private async Task NapTruocTrangConSauKhiHienCoreAsync()
+        {
             bool Dung() => IsDisposed || _isClosing;
             var sw = Stopwatch.StartNew();
             // Chờ trang chủ (Form4) nạp xong lần đầu (tối đa 6 giây): không chen việc nặng vào giữa lúc trang chủ đang nạp
             if (_forms.TryGetValue(typeof(Form4_TrangDauTien), out var f4o) && f4o is Form4_TrangDauTien f4)
             {
+                using var _do = Module_DoHieuNang.Khoang("Sau đăng nhập: chờ Trang chủ nạp xong trước khi nạp các trang nền");
                 while (!Dung() && sw.ElapsedMilliseconds < 6000 &&
                        (f4.DangReload || f4.ThoiDiemReloadCuoiUtc == DateTime.MinValue))
                     await Task.Delay(100);
@@ -1453,6 +1478,7 @@ namespace PhanMemThiDua2026
             Module_KhoGiaoDien.DatKichThuoc(PanelContainer.ClientSize);
             await NapKhoAsync(Dung, truocDangNhap: false);
             Form1.GhiDongNhatKyDo($"Kho giao diện sau đăng nhập xong sau {sw.ElapsedMilliseconds} ms (đã có: {string.Join(", ", _daNapKho.Select(t => t.Name.Split('_')[0]))})");
+            Module_DoHieuNang.KetThuc("đã nạp xong các trang nền sau đăng nhập");
         }
         /// <summary>
         /// Nạp các trang vào kho: dựng → Show trong kho ẩn (Load chạy, dữ liệu nạp) → vẽ thật 1 lần → ẩn, chờ được gọi ra.
@@ -1474,11 +1500,13 @@ namespace PhanMemThiDua2026
             async Task<bool> Nhuong()
             {
                 // Đang bấm Đăng nhập -> đứng chờ, nhường hết cho đăng nhập. NGOẠI TRỪ chế độ tăng tốc: lúc đó chính đăng nhập
-                // đang CHỜ kho nạp xong các trang chính (DamBaoTrangChinhTrongKhoAsync) -> không được đứng chờ đèn đỏ của chính mình.
+                // đang CHỜ kho nạp xong Trang chủ (DamBaoTrangChuTrongKhoAsync) -> không được đứng chờ đèn đỏ của chính mình.
                 if (!Module_NhuongUI.TangToc) await Module_UuTienDangNhap.NhuongAsync();
+                // Sau đăng nhập các trang chính không còn được nạp sẵn trước khi vào, nên phải kịp xong trước khi người dùng
+                // bấm tới: chờ rảnh tay ngắn (120 ms) và mỗi bước chờ tối đa 600 ms (trước: 180 ms / 2 s), mỗi bước vẫn chia lát.
                 return truocDangNhap
                     ? await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 120, toiDaMs: 450)
-                    : await Module_NhuongUI.ChoRanhAsync(Dung);
+                    : await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 120, toiDaMs: 600);
             }
             try
             {
@@ -1517,73 +1545,78 @@ namespace PhanMemThiDua2026
                     _daNapKho.Add(type);   // người dùng đã mở trang này trên Form2 -> không cần kho nữa
                     return true;
                 }
-                if (!await Nhuong()) return false;
-                T? f = await NapTruocFormConAsync<T>(Dung);
+                string ten = type.Name;   // tên cho nhật ký đo hiệu năng (Module_DoHieuNang)
+                using var _doTong = Module_DoHieuNang.Khoang($"Kho {ten}: TỔNG bước kho{(Module_NhuongUI.TangToc ? " [tăng tốc]" : "")}");
+                // Thời gian ĐỨNG CHỜ (nhường người dùng / đèn đỏ) được đo riêng: phân biệt "chậm vì làm" với "chậm vì chờ"
+                async Task<bool> NhuongCoDo(string buoc)
+                {
+                    using (Module_DoHieuNang.Khoang($"Kho {ten}: đứng chờ nhường trước {buoc}"))
+                        return await Nhuong();
+                }
+                if (!await NhuongCoDo("dựng")) return false;
+                T? f;
+                using (Module_DoHieuNang.Khoang($"Kho {ten}: dựng (new + tạo handle theo lát)"))
+                    f = await NapTruocFormConAsync<T>(Dung);
                 if (f == null || f.IsDisposed) return !Dung();
                 if (!Module_KhoGiaoDien.LaTrongKho(f)) { _daNapKho.Add(type); return true; }
                 if (Dung()) return false;
-                if (!await Nhuong()) return false;
+                if (!await NhuongCoDo("Load")) return false;
                 if (!Module_KhoGiaoDien.LaTrongKho(f)) { _daNapKho.Add(type); return true; }
                 // Show TRONG KHO (kho đang ẩn): Load chạy + bắt đầu nạp dữ liệu, dàn trang theo đúng cỡ thật,
                 // mọi lệnh Focus() trong Load/Shown đều vô hiệu -> không giật con trỏ khỏi ô mật khẩu.
-                Module_KhoGiaoDien.ShowTrongKho(f);
-                await ChoToiDa(choDuLieu(f), Dung);
+                using (Module_DoHieuNang.Doan($"Kho {ten}: ShowTrongKho (phần đồng bộ của Load)"))
+                    Module_KhoGiaoDien.ShowTrongKho(f);
+                using (Module_DoHieuNang.Khoang($"Kho {ten}: chờ dữ liệu nạp xong"))
+                    await ChoToiDa(choDuLieu(f), Dung);
                 if (Dung()) return false;
                 if (!Module_KhoGiaoDien.LaTrongKho(f)) { _daNapKho.Add(type); return true; }
                 // Vẽ thật 1 lần (lần vẽ đầu là lần chậm nhất) rồi ẩn đi, chờ được gọi ra.
-                if (!await Nhuong()) return false;
+                if (!await NhuongCoDo("vẽ")) return false;
                 if (!Module_KhoGiaoDien.LaTrongKho(f)) { _daNapKho.Add(type); return true; }
-                Module_KhoGiaoDien.VeNong(f);
+                using (Module_DoHieuNang.Doan($"Kho {ten}: vẽ thật lần đầu"))
+                    Module_KhoGiaoDien.VeNong(f);
                 if (Module_KhoGiaoDien.LaTrongKho(f) && !ReferenceEquals(f, _currentChild)) f.Hide();
                 _daNapKho.Add(type);
                 return true;
             }
         }
         /// <summary>
-        /// Các trang CHÍNH phải nằm sẵn trong RAM trước khi Form2 hiện: Trang chủ (Form4), Phân loại (Form6),
-        /// Thống kê (Form53 -> Form15), Khen thưởng (Form52 -> Form34, chỉ bản CBCS), Nhật ký (Form10).
-        /// (Cài đặt - Form12 - không nằm trong danh sách: vẫn nạp tiếp ở nền sau khi vào.)
+        /// Gọi từ form đăng nhập (luồng UI) SAU khi xác thực thành công, TRƯỚC khi hiện Form2, ở chế độ tăng tốc.
+        /// CHỈ bảo đảm Trang chủ (Form4) đã nằm sẵn trong kho (dựng + Load + dữ liệu + vẽ thật 1 lần) để khung hình đầu tiên
+        /// của Form2 đã đầy đủ. Các trang khác (Phân loại, Thống kê, Khen thưởng, Nhật ký, Cài đặt) KHÔNG chặn đăng nhập nữa:
+        /// chúng được nạp tiếp ở nền sau khi Form2 đã hiện (<see cref="NapTruocTrangConSauKhiHienAsync"/>); người dùng bấm
+        /// trang nào chưa có trong kho thì OpenChildForm dựng ngay trang đó (trang đang nằm dở trong kho được "nhấc" ra luôn).
+        /// Trước đây phải chờ đủ 5 trang (đo được 1,5–2,6 s ngồi nhìn % trên nút Đăng nhập).
+        /// Quá <paramref name="toiDaMs"/> thì thôi chờ: Form2 vẫn hiện, Trang chủ được Form2_Load lo nốt như cũ.
+        /// Không bao giờ ném lỗi. Trả true nếu Trang chủ đã sẵn trong kho.
         /// </summary>
-        private List<Type> DanhSachTrangChinh()
+        internal async Task<bool> DamBaoTrangChuTrongKhoAsync(int toiDaMs)
         {
-            var ds = new List<Type>(5);
-            if (NapTruocFormConTrangChu) ds.Add(typeof(Form4_TrangDauTien));
-            if (NapTruocFormConDuLieu) ds.Add(typeof(Form6_XuLyData));
-            if (NapTruocFormConThongKe) ds.Add(typeof(Form53_QuanLyKetQuaThiDua));
-            if (NapTruocFormConKhenThuong && LaBanCBCS()) ds.Add(typeof(Form52_QuanLyKhenThuong));
-            if (NapTruocFormConNhatKy) ds.Add(typeof(Form10_NhatKy));
-            return ds;
-        }
-        /// <summary>
-        /// Gọi từ form đăng nhập (luồng UI) SAU khi xác thực thành công, TRƯỚC khi hiện Form2, ở chế độ tăng tốc:
-        /// làm nốt các trang chính còn thiếu trong kho (dựng + Load + nạp dữ liệu + vẽ thật 1 lần), để vào giao diện chính
-        /// bấm trang nào cũng hiện ngay. Trang đã nạp sẵn lúc người dùng còn gõ mật khẩu thì bỏ qua (tức thì).
-        /// <paramref name="tienDo"/>(đã xong, tổng) để form đăng nhập hiện tiến độ. Quá <paramref name="toiDaMs"/> thì thôi chờ
-        /// (phần còn lại Form2 làm nốt sau khi hiện như cũ). Trả true nếu đủ cả các trang chính.
-        /// </summary>
-        internal async Task<bool> DamBaoTrangChinhTrongKhoAsync(Action<int, int>? tienDo, int toiDaMs = 20000)
-        {
-            if (IsDisposed || _isClosing) return false;
-            var canCo = DanhSachTrangChinh();
-            int DaXong() => canCo.Count(t => _daNapKho.Contains(t));
+            if (IsDisposed || _isClosing || !NapTruocFormConTrangChu) return false;
+            var loaiTrangChu = typeof(Form4_TrangDauTien);
+            bool DaXong() => _daNapKho.Contains(loaiTrangChu);
+            if (DaXong()) return true;   // đã nạp sẵn lúc người dùng còn gõ mật khẩu: vào ngay
+            bool tangTocCu = Module_NhuongUI.TangToc;
             var sw = Stopwatch.StartNew();
-            Task chay = NapKhoAsync(() => false, truocDangNhap: true);   // nối đuôi lượt đang chạy (nếu có), bỏ qua trang đã xong
-            int baoCuoi = -1;
-            while (!IsDisposed && !_isClosing && sw.ElapsedMilliseconds < toiDaMs)
+            try
             {
-                Module_NhuongUI.TangToc = true;   // giữ tăng tốc suốt lượt chờ (lượt dựng Form2 song song có thể vừa tắt nó)
-                int xong = DaXong();
-                if (xong != baoCuoi)
+                // BẬT TĂNG TỐC TRƯỚC KHI gọi NapKhoAsync: hàm này chạy ĐỒNG BỘ tới lệnh await đầu tiên (Nhuong) - nếu lúc đó
+                // TangToc còn false thì bước kho sẽ đứng chờ "đèn đỏ" của CHÍNH lần đăng nhập này (đo được: 3,9 s chờ không).
+                Module_NhuongUI.TangToc = true;
+                // Lượt kho riêng, nối đuôi lượt đang chạy (nếu có) và TỰ DỪNG ngay sau Trang chủ: không kéo theo các trang khác
+                // vào lúc người dùng đang chờ (chúng được làm sau khi Form2 hiện, ở chế độ nhường người dùng).
+                Task chay = NapKhoAsync(DaXong, truocDangNhap: true);
+                while (!DaXong() && !chay.IsCompleted && !IsDisposed && !_isClosing && sw.ElapsedMilliseconds < toiDaMs)
                 {
-                    baoCuoi = xong;
-                    try { tienDo?.Invoke(xong, canCo.Count); } catch { }
+                    Module_NhuongUI.TangToc = true;   // giữ tăng tốc suốt lượt chờ (lượt dựng Form2 song song có thể vừa tắt nó)
+                    await Task.WhenAny(chay, Task.Delay(30));
                 }
-                if (xong >= canCo.Count || chay.IsCompleted) break;
-                await Task.WhenAny(chay, Task.Delay(40));
             }
-            bool du = DaXong() >= canCo.Count;
-            Form1.GhiDongNhatKyDo($"Chờ kho trang chính trước khi vào: {sw.ElapsedMilliseconds} ms ({DaXong()}/{canCo.Count}{(du ? "" : " - chưa đủ, nạp nốt sau khi vào")})");
-            return du;
+            catch (Exception ex) { Debug.WriteLine("[Kho] DamBaoTrangChu: " + ex); }
+            finally { Module_NhuongUI.TangToc = tangTocCu; }
+            bool xong = DaXong();
+            Form1.GhiDongNhatKyDo($"Chờ Trang chủ trước khi vào: {sw.ElapsedMilliseconds} ms ({(xong ? "đã sẵn" : "chưa xong - Form2 nạp nốt sau khi hiện")})");
+            return xong;
         }
         private static bool LaBanCBCS()
         {
@@ -1621,7 +1654,9 @@ namespace PhanMemThiDua2026
         {
             var type = typeof(T);
             if (_forms.TryGetValue(type, out var da) && !da.IsDisposed) return (T)da;
-            var f = new T();                 // khối không chia nhỏ được (InitializeComponent) - đã được chờ lúc rảnh
+            T f;
+            using (Module_DoHieuNang.Doan($"new {type.Name} (InitializeComponent)"))
+                f = new T();                 // khối không chia nhỏ được (InitializeComponent) - đã được chờ lúc rảnh
             _forms[type] = f;
             // Vào KHO (chưa Show -> Load chưa chạy). OpenChildForm sẽ "nhấc" sang PanelContainer khi cần hiện.
             Module_KhoGiaoDien.DuaVaoKho(f);

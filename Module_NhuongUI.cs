@@ -29,6 +29,25 @@ namespace PhanMemThiDua2026
         /// Do Module_GiaoDienForm2Web bật/tắt; luôn được tắt lại khi việc dựng Form2 kết thúc.
         /// </summary>
         public static volatile bool TangToc;
+        // ---------------- Tín hiệu "kho giao diện chính đã nạp xong" ----------------
+        // Các trang con cấp 2 (Form52 dựng sẵn Form49/50/51/34, Form53 dựng sẵn Form23/59/46) trước đây chạy SONG SONG với kho
+        // chính ngay sau đăng nhập => các khối 200–430 ms chen vào đúng lúc người dùng bắt đầu bấm (đo: hieunang 22/11 09:23).
+        // Nay chúng chờ tín hiệu này: kho chính (5 trang hay dùng) xong hẳn rồi mới tới lượt trang con cấp 2.
+        private static readonly TaskCompletionSource _khoChinhXong = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        /// <summary>Form2 gọi khi lượt nạp kho chính sau đăng nhập kết thúc (xong hoặc dừng). Gọi nhiều lần an toàn.</summary>
+        public static void BaoKhoChinhXong() => _khoChinhXong.TrySetResult();
+        /// <summary>
+        /// Chờ (không chặn UI) tới khi kho chính nạp xong, tối đa <paramref name="toiDaMs"/> (quá hạn vẫn cho chạy để không bị bỏ đói).
+        /// Trả false nếu cần dừng hẳn (form đóng...).
+        /// </summary>
+        public static async Task<bool> ChoKhoChinhXongAsync(Func<bool> dung, int toiDaMs = 20000)
+        {
+            var t = _khoChinhXong.Task;
+            var sw = Stopwatch.StartNew();
+            while (!t.IsCompleted && !dung() && sw.ElapsedMilliseconds < toiDaMs)
+                await Task.WhenAny(t, Task.Delay(250));
+            return !dung();
+        }
         /// <summary>Số ms kể từ lần cuối người dùng bấm phím / di chuột (toàn hệ thống). Lỗi thì coi như đã rảnh.</summary>
         public static int MsKeTuLanThaoTacCuoi()
         {
@@ -75,7 +94,15 @@ namespace PhanMemThiDua2026
                 var c = ngan.Pop();
                 string ten = c.GetType().FullName ?? "";
                 if (ten.Contains("WebView2") || ten.Contains("WebBrowser")) continue; // control nặng, để lúc cần mới tạo
-                try { _ = c.Handle; } catch { continue; }
+                try
+                {
+                    if (Module_DoHieuNang.DangDo)
+                    {
+                        using (Module_DoHieuNang.Doan($"tạo handle {c.GetType().Name} '{c.Name}'")) _ = c.Handle;
+                    }
+                    else _ = c.Handle;
+                }
+                catch { continue; }
                 for (int i = c.Controls.Count - 1; i >= 0; i--) ngan.Push(c.Controls[i]);
                 if (TangToc)
                 {

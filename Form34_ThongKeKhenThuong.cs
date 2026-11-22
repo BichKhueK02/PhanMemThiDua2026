@@ -452,12 +452,12 @@ namespace PhanMemThiDua2026
             if (!_daKhoiTao)
             {
                 _daKhoiTao = true;
-                Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
-                CauHinhStatusStrip();
-                LoadComboBoxTinhTrang();
+                using (Module_DoHieuNang.Doan("Form34: TichHopGiaoDien menu chuột phải")) Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
+                using (Module_DoHieuNang.Doan("Form34: CauHinhStatusStrip")) CauHinhStatusStrip();
+                using (Module_DoHieuNang.Doan("Form34: LoadComboBoxTinhTrang")) LoadComboBoxTinhTrang();
                 KhoaCacTextBox();
                 InitToolTips();              // trước đây nằm SAU await -> tooltip chỉ có khi tải xong
-                DinhDangDataGridHienDai();   // 1 lần duy nhất (hàm tự chặn gọi lại)
+                using (Module_DoHieuNang.Doan("Form34: DinhDangDataGridHienDai")) DinhDangDataGridHienDai();   // 1 lần duy nhất (hàm tự chặn gọi lại)
             }
             return _tacVuNapDau ??= ReloadDuLieu();
         }
@@ -668,7 +668,7 @@ namespace PhanMemThiDua2026
                     kq = await Task.Run(() => TaiDanhSachTuCSDL(cts.Token), cts.Token);
                 }
                 if (IsDisposed || Disposing || cts.IsCancellationRequested) return;
-                ApDungDuLieuMoi(kq);
+                using (Module_DoHieuNang.Doan("Form34: ApDungDuLieuMoi (đổ dữ liệu vào lưới)")) ApDungDuLieuMoi(kq);
             }
             catch (OperationCanceledException) { }
             catch (ObjectDisposedException) { }

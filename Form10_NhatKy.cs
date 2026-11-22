@@ -195,10 +195,10 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                KhoiTaoGiaoDienMotLan();
+                using (Module_DoHieuNang.Doan("Form10: KhoiTaoGiaoDienMotLan")) KhoiTaoGiaoDienMotLan();
                 var duLieu = await Task.Run(() => DocThoTuNen());
                 if (IsDisposed) return;
-                AplyDuLieuTho(duLieu);
+                using (Module_DoHieuNang.Doan("Form10: AplyDuLieuTho (đổ dữ liệu + trang đầu)")) AplyDuLieuTho(duLieu);
                 _daKhoiTaoHoanTat = true;
                 BaoTriNenMotLan();
             }
@@ -256,9 +256,9 @@ namespace PhanMemThiDua2026
                 await Task.Run(() => GiaiMaNenSongSong(ds, () => IsDisposed || phien != _phienNap));
                 if (IsDisposed || phien != _phienNap) return;
                 _dangNapComboBox = true;
-                try { LoadComboBoxTaiKhoan(); }
+                try { using (Module_DoHieuNang.Doan("Form10: LoadComboBoxTaiKhoan")) LoadComboBoxTaiKhoan(); }
                 finally { _dangNapComboBox = false; }
-                LoadComboBoxMayTinh();
+                using (Module_DoHieuNang.Doan("Form10: LoadComboBoxMayTinh")) LoadComboBoxMayTinh();
             }
             catch (Exception ex)
             {

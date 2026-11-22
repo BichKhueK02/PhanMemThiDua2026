@@ -140,6 +140,7 @@ namespace PhanMemThiDua2026
 #endif
             // ---- (A) Phần giao diện nhẹ, KHÔNG đụng CSDL: làm ngay trên UI ----
             InitToolTips();
+            Module_ComboWebF12.ApDung(this);   // ô chọn kiểu web: bo góc, không nhấp nháy, không tự bôi xanh
             LoadComboBoxCauHinh();
             comboBox1_TuDongXoaNhatKy.Items.Clear();
             comboBox1_TuDongXoaNhatKy.Items.AddRange(new object[]

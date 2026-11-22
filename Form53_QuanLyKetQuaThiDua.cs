@@ -62,20 +62,24 @@
             try
             {
                 await Task.Delay(300); // để trang đầu hiện hẳn và người dùng có thể thao tác
-                var cacBuoc = new List<Action>();
+                bool Dung() => _isClosing || IsDisposed;
+                // Kho giao diện chính (5 trang hay dùng) nạp xong rồi mới tới lượt các trang con này: không chen vào lúc vừa đăng nhập
+                if (!await Module_NhuongUI.ChoKhoChinhXongAsync(Dung)) return;
+                var cacBuoc = new List<Func<Task>>();
                 if (Module_HoTroLuuDataTheoNamCu.LaPhienBanCBCS())
                 {
-                    cacBuoc.Add(TaoSan<Form23_ThongKeThiDuaTapThe>);
-                    cacBuoc.Add(TaoSan<Form59_QuanLyThiDuaTapTheNamCu>);
+                    cacBuoc.Add(() => TaoSanAsync<Form23_ThongKeThiDuaTapThe>(Dung));
+                    cacBuoc.Add(() => TaoSanAsync<Form59_QuanLyThiDuaTapTheNamCu>(Dung));
                 }
-                cacBuoc.Add(TaoSan<Form46_ThongKeThiDuaNamCu>);
+                cacBuoc.Add(() => TaoSanAsync<Form46_ThongKeThiDuaNamCu>(Dung));
                 foreach (var buoc in cacBuoc)
                 {
-                    if (_isClosing || IsDisposed) return;
+                    if (Dung()) return;
                     // Chờ "đèn đỏ" đăng nhập + người dùng rảnh tay (trang có thể đang được nạp sẵn lúc còn ở màn hình đăng nhập)
                     await Module_UuTienDangNhap.NhuongAsync();
-                    if (!await Module_NhuongUI.ChoRanhAsync(() => _isClosing || IsDisposed)) return;
-                    try { buoc(); }
+                    // Khối new + InitializeComponent (tới ~240 ms) không chia nhỏ được: chỉ làm khi người dùng rời tay hẳn 0,5 s
+                    if (!await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 500, toiDaMs: 10000)) return;
+                    try { await buoc(); }
                     catch (Exception ex)
                     {
                         System.Diagnostics.Debug.WriteLine("[Form53.NapTruocNen] " + ex.Message);
@@ -92,15 +96,16 @@
         ///// Gọi từ Form2 khi Form53 còn ẩn (sau đăng nhập, lúc người dùng rảnh): dựng Form15 + nạp sẵn DỮ LIỆU.
         ///// Lần bấm "Thống kê" đầu tiên hiện ngay bảng đã có dữ liệu, không phải chờ nạp. Gọi trên luồng giao diện.
         ///// </summary>
-        private void TaoSan<T>() where T : Form, new()
+        /// <summary>
+        /// Dựng sẵn 1 trang con (chưa Show). Tạo handle CHIA LÁT thay vì cả cây một mạch (bản cũ chặn UI hàng trăm ms mỗi trang).
+        /// Trang được mở giữa chừng (Visible) thì dừng chia lát: Show tự tạo nốt phần còn lại.
+        /// </summary>
+        private async Task TaoSanAsync<T>(Func<bool> dung) where T : Form, new()
         {
-            Form f = LayHoacTaoForm<T>();
-            if (!f.IsHandleCreated) TaoHandleDeQuy(f);
-        }
-        private static void TaoHandleDeQuy(Control c)
-        {
-            try { _ = c.Handle; } catch { return; }
-            foreach (Control con in c.Controls) TaoHandleDeQuy(con);
+            Form f;
+            using (Module_DoHieuNang.Doan($"Form53 dựng sẵn: {typeof(T).Name} (new + InitializeComponent)")) f = LayHoacTaoForm<T>();
+            if (!f.IsHandleCreated)
+                await Module_NhuongUI.TaoHandleTheoLatAsync(f, () => dung() || f.IsDisposed || f.Visible);
         }
         /// <summary>Lấy form từ RAM cache, chưa có thì tạo mới (chưa Show).</summary>
         private Form LayHoacTaoForm<T>() where T : Form, new()

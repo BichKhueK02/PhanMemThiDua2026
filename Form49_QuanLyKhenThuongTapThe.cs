@@ -265,6 +265,44 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(input)) return "";
             return Module_BaoMatAES.MaHoa(input.Trim());
         }
+        /// <summary>Giá trị các ô nhập của 1 bản ghi khen thưởng tập thể, đọc TRÊN LUỒNG UI rồi mới đưa xuống luồng nền.</summary>
+        private sealed record KhenThuongTapTheNhap(string TenTapThe, string? HinhThuc, string? DonViCap, string SoQuyetDinh,
+            string NgayQuyetDinh, string NguoiKy, string NoiDung, string TienThuong, string NgayCapPhat, string CanBoCapPhat,
+            string NguoiDaiDienNhan, string GhiChu);
+        private KhenThuongTapTheNhap DocKhenThuongTuGiaoDien()
+        {
+            string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
+            if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
+            return new KhenThuongTapTheNhap(
+                kryptonTextBox_TenTapThe.Text,
+                comboBox_HinhThucKhenThuong?.Text,
+                comboBox_DonViKhenThuong?.Text,
+                kryptonTextBox_SoQuyetDinh.Text,
+                kryptonTextBox_NgayQuyetDinh.Text,
+                kryptonTextBox_NguoiKy.Text,
+                richTextBox1_NoiDungKhenThuong.Text,
+                tienThuongStr,
+                kryptonTextBox_NgayCapPhat.Text,
+                kryptonTextBox_CanBoCapPhat.Text,
+                kryptonTextBox_NguoiDaiDienNhan.Text,
+                kryptonTextBox_GhiChu.Text);
+        }
+        /// <summary>Gán 12 tham số dữ liệu (đã mã hóa) - dùng chung cho INSERT và UPDATE. An toàn ở luồng nền.</summary>
+        private void ThemThamSoKhenThuong(SqliteCommand cmd, KhenThuongTapTheNhap kt)
+        {
+            cmd.Parameters.AddWithValue("@TenTapThe", SafeEncrypt(kt.TenTapThe));
+            cmd.Parameters.AddWithValue("@HinhThuc_KhenThuong", SafeEncrypt(kt.HinhThuc));
+            cmd.Parameters.AddWithValue("@DonVi_CapKhenThuong", SafeEncrypt(kt.DonViCap));
+            cmd.Parameters.AddWithValue("@SoQuyetDinh", SafeEncrypt(kt.SoQuyetDinh));
+            cmd.Parameters.AddWithValue("@NgayQuyetDinh", SafeEncrypt(kt.NgayQuyetDinh));
+            cmd.Parameters.AddWithValue("@NguoiKy", SafeEncrypt(kt.NguoiKy));
+            cmd.Parameters.AddWithValue("@NoiDung_KhenThuong", SafeEncrypt(kt.NoiDung));
+            cmd.Parameters.AddWithValue("@TienThuong", SafeEncrypt(kt.TienThuong));
+            cmd.Parameters.AddWithValue("@NgayCapPhat", SafeEncrypt(kt.NgayCapPhat));
+            cmd.Parameters.AddWithValue("@CanBoCapPhat", SafeEncrypt(kt.CanBoCapPhat));
+            cmd.Parameters.AddWithValue("@NguoiDaiDienNhan", SafeEncrypt(kt.NguoiDaiDienNhan));
+            cmd.Parameters.AddWithValue("@GhiChu", SafeEncrypt(kt.GhiChu));
+        }
         // LOAD VÀ CACHE DANH SÁCH ĐƠN VỊ VÀO COMBOBOX
         private async Task LoadComboBoxDonViAsync(bool forceReload = false)
         {
@@ -606,48 +644,39 @@ namespace PhanMemThiDua2026
             kryptonButton_ThemKhenThuong.Enabled = false;
             try
             {
-                string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
-                if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
+                // Đọc ô nhập TRÊN LUỒNG UI; mở kết nối + mã hóa + ghi chạy ở LUỒNG NỀN (Microsoft.Data.Sqlite không có I/O bất
+                // đồng bộ thật: OpenAsync/ExecuteNonQueryAsync trước đây vẫn chạy đồng bộ ngay trên luồng giao diện).
+                var kt = DocKhenThuongTuGiaoDien();
                 string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
-                using (var conn = new SqliteConnection(connectionString))
+                await Task.Run(() =>
                 {
-                    await conn.OpenAsync();
+                    using var conn = new SqliteConnection(connectionString);
+                    conn.Open();
                     using var tran = conn.BeginTransaction();
                     try
                     {
                         int newStt = 1;
                         using (var cmdMaxStt = new SqliteCommand("SELECT COALESCE(MAX(STT), 0) FROM ThongKe_KhenThuongTapThe", conn, tran))
                         {
-                            var maxSttObj = await cmdMaxStt.ExecuteScalarAsync();
+                            var maxSttObj = cmdMaxStt.ExecuteScalar();
                             if (maxSttObj != null && maxSttObj != DBNull.Value)
                             {
                                 newStt = Convert.ToInt32(maxSttObj) + 1;
                             }
                         }
-                        string sqlInsert = @"INSERT INTO ThongKe_KhenThuongTapThe 
-                                     (STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, 
-                                      SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, 
-                                      TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu) 
-                                     VALUES 
-                                     (@STT, @TenTapThe, @HinhThuc_KhenThuong, @DonVi_CapKhenThuong, 
-                                      @SoQuyetDinh, @NgayQuyetDinh, @NguoiKy, @NoiDung_KhenThuong, 
+                        string sqlInsert = @"INSERT INTO ThongKe_KhenThuongTapThe
+                                     (STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong,
+                                      SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong,
+                                      TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu)
+                                     VALUES
+                                     (@STT, @TenTapThe, @HinhThuc_KhenThuong, @DonVi_CapKhenThuong,
+                                      @SoQuyetDinh, @NgayQuyetDinh, @NguoiKy, @NoiDung_KhenThuong,
                                       @TienThuong, @NgayCapPhat, @CanBoCapPhat, @NguoiDaiDienNhan, @GhiChu)";
                         using (var cmd = new SqliteCommand(sqlInsert, conn, tran))
                         {
                             cmd.Parameters.AddWithValue("@STT", newStt);
-                            cmd.Parameters.AddWithValue("@TenTapThe", SafeEncrypt(kryptonTextBox_TenTapThe.Text));
-                            cmd.Parameters.AddWithValue("@HinhThuc_KhenThuong", SafeEncrypt(comboBox_HinhThucKhenThuong?.Text));
-                            cmd.Parameters.AddWithValue("@DonVi_CapKhenThuong", SafeEncrypt(comboBox_DonViKhenThuong?.Text));
-                            cmd.Parameters.AddWithValue("@SoQuyetDinh", SafeEncrypt(kryptonTextBox_SoQuyetDinh.Text));
-                            cmd.Parameters.AddWithValue("@NgayQuyetDinh", SafeEncrypt(kryptonTextBox_NgayQuyetDinh.Text));
-                            cmd.Parameters.AddWithValue("@NguoiKy", SafeEncrypt(kryptonTextBox_NguoiKy.Text));
-                            cmd.Parameters.AddWithValue("@NoiDung_KhenThuong", SafeEncrypt(richTextBox1_NoiDungKhenThuong.Text));
-                            cmd.Parameters.AddWithValue("@TienThuong", SafeEncrypt(tienThuongStr));
-                            cmd.Parameters.AddWithValue("@NgayCapPhat", SafeEncrypt(kryptonTextBox_NgayCapPhat.Text));
-                            cmd.Parameters.AddWithValue("@CanBoCapPhat", SafeEncrypt(kryptonTextBox_CanBoCapPhat.Text));
-                            cmd.Parameters.AddWithValue("@NguoiDaiDienNhan", SafeEncrypt(kryptonTextBox_NguoiDaiDienNhan.Text));
-                            cmd.Parameters.AddWithValue("@GhiChu", SafeEncrypt(kryptonTextBox_GhiChu.Text));
-                            await cmd.ExecuteNonQueryAsync();
+                            ThemThamSoKhenThuong(cmd, kt);
+                            cmd.ExecuteNonQuery();
                         }
                         tran.Commit();
                     }
@@ -656,7 +685,8 @@ namespace PhanMemThiDua2026
                         tran.Rollback();
                         throw;
                     }
-                }
+                });
+                if (IsDisposed) return;
                 _ = ShowHanhDongStatusAsync("✔ Thêm mới dữ liệu thành công!", true);
                 // ================= FIX LỖI Ở ĐÂY =================
                 _globalCache = null; // 1. XÓA SẠCH CACHE CŨ TRÊN RAM
@@ -682,39 +712,29 @@ namespace PhanMemThiDua2026
             kryptonButton_SuaVaLuuKhenThuong.Enabled = false;
             try
             {
-                string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
-                if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
+                // Chụp trên luồng UI: ô nhập + ID đang sửa (người dùng có thể bấm sang dòng khác trong lúc đang ghi)
+                var kt = DocKhenThuongTuGiaoDien();
+                int idSua = _selectedID;
                 string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
-                using (var conn = new SqliteConnection(connectionString))
+                await Task.Run(() =>
                 {
-                    await conn.OpenAsync();
-                    string query = @"UPDATE ThongKe_KhenThuongTapThe SET 
-                             TenTapThe = @TenTapThe, 
-                             HinhThuc_KhenThuong = @HinhThuc_KhenThuong, 
-                             DonVi_CapKhenThuong = @DonVi_CapKhenThuong, SoQuyetDinh = @SoQuyetDinh, 
-                             NgayQuyetDinh = @NgayQuyetDinh, NguoiKy = @NguoiKy, 
-                             NoiDung_KhenThuong = @NoiDung_KhenThuong, TienThuong = @TienThuong, 
-                             NgayCapPhat = @NgayCapPhat, CanBoCapPhat = @CanBoCapPhat, 
-                             NguoiDaiDienNhan = @NguoiDaiDienNhan, GhiChu = @GhiChu 
+                    using var conn = new SqliteConnection(connectionString);
+                    conn.Open();
+                    string query = @"UPDATE ThongKe_KhenThuongTapThe SET
+                             TenTapThe = @TenTapThe,
+                             HinhThuc_KhenThuong = @HinhThuc_KhenThuong,
+                             DonVi_CapKhenThuong = @DonVi_CapKhenThuong, SoQuyetDinh = @SoQuyetDinh,
+                             NgayQuyetDinh = @NgayQuyetDinh, NguoiKy = @NguoiKy,
+                             NoiDung_KhenThuong = @NoiDung_KhenThuong, TienThuong = @TienThuong,
+                             NgayCapPhat = @NgayCapPhat, CanBoCapPhat = @CanBoCapPhat,
+                             NguoiDaiDienNhan = @NguoiDaiDienNhan, GhiChu = @GhiChu
                              WHERE ID = @ID";
-                    using (var cmd = new SqliteCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@ID", _selectedID);
-                        cmd.Parameters.AddWithValue("@TenTapThe", SafeEncrypt(kryptonTextBox_TenTapThe.Text));
-                        cmd.Parameters.AddWithValue("@HinhThuc_KhenThuong", SafeEncrypt(comboBox_HinhThucKhenThuong?.Text));
-                        cmd.Parameters.AddWithValue("@DonVi_CapKhenThuong", SafeEncrypt(comboBox_DonViKhenThuong?.Text));
-                        cmd.Parameters.AddWithValue("@SoQuyetDinh", SafeEncrypt(kryptonTextBox_SoQuyetDinh.Text));
-                        cmd.Parameters.AddWithValue("@NgayQuyetDinh", SafeEncrypt(kryptonTextBox_NgayQuyetDinh.Text));
-                        cmd.Parameters.AddWithValue("@NguoiKy", SafeEncrypt(kryptonTextBox_NguoiKy.Text));
-                        cmd.Parameters.AddWithValue("@NoiDung_KhenThuong", SafeEncrypt(richTextBox1_NoiDungKhenThuong.Text));
-                        cmd.Parameters.AddWithValue("@TienThuong", SafeEncrypt(tienThuongStr));
-                        cmd.Parameters.AddWithValue("@NgayCapPhat", SafeEncrypt(kryptonTextBox_NgayCapPhat.Text));
-                        cmd.Parameters.AddWithValue("@CanBoCapPhat", SafeEncrypt(kryptonTextBox_CanBoCapPhat.Text));
-                        cmd.Parameters.AddWithValue("@NguoiDaiDienNhan", SafeEncrypt(kryptonTextBox_NguoiDaiDienNhan.Text));
-                        cmd.Parameters.AddWithValue("@GhiChu", SafeEncrypt(kryptonTextBox_GhiChu.Text));
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                }
+                    using var cmd = new SqliteCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@ID", idSua);
+                    ThemThamSoKhenThuong(cmd, kt);
+                    cmd.ExecuteNonQuery();
+                });
+                if (IsDisposed) return;
                 _ = ShowHanhDongStatusAsync("✔ Cập nhật dữ liệu thành công!", true);
                 // ================= FIX LỖI Ở ĐÂY =================
                 _globalCache = null; // XÓA SẠCH CACHE CŨ
@@ -744,18 +764,20 @@ namespace PhanMemThiDua2026
             kryptonButton_XoaKhenThuong.Enabled = false;
             try
             {
+                int idXoa = _selectedID;   // chụp trên luồng UI (sau hộp xác nhận)
                 string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
-                using (var conn = new SqliteConnection(connectionString))
+                await Task.Run(() =>
                 {
-                    await conn.OpenAsync();
+                    using var conn = new SqliteConnection(connectionString);
+                    conn.Open();
                     using var tran = conn.BeginTransaction();
                     try
                     {
                         const string query = @"DELETE FROM ""ThongKe_KhenThuongTapThe"" WHERE ID = @ID;";
                         using (var cmd = new SqliteCommand(query, conn, tran))
                         {
-                            cmd.Parameters.Add("@ID", SqliteType.Integer).Value = _selectedID;
-                            await cmd.ExecuteNonQueryAsync();
+                            cmd.Parameters.Add("@ID", SqliteType.Integer).Value = idXoa;
+                            cmd.ExecuteNonQuery();
                         }
                         tran.Commit();
                     }
@@ -764,7 +786,8 @@ namespace PhanMemThiDua2026
                         tran.Rollback();
                         throw;
                     }
-                }
+                });
+                if (IsDisposed) return;
                 await DanhLaiSoThuTuAsync();
                 _ = ShowHanhDongStatusAsync("✔ Xóa dữ liệu thành công!", true);
                 // ================= FIX LỖI Ở ĐÂY =================
@@ -785,9 +808,15 @@ namespace PhanMemThiDua2026
             }
         }
         // CÁC HÀM TIỆN ÍCH & TỐI ƯU CƠ SỞ DỮ LIỆU
-        private async Task DanhLaiSoThuTuAsync()
+        // Chạy ở LUỒNG NỀN (không đụng control): OpenAsync/ExecuteNonQueryAsync của Microsoft.Data.Sqlite vẫn chạy đồng bộ
+        // trên luồng gọi, nên trước đây lệnh UPDATE toàn bảng này chạy ngay trên luồng giao diện.
+        private Task DanhLaiSoThuTuAsync()
         {
             string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
+            return Task.Run(() => DanhLaiSoThuTu(connectionString));
+        }
+        private static async Task DanhLaiSoThuTu(string connectionString)
+        {
             using (var conn = new SqliteConnection(connectionString))
             {
                 await conn.OpenAsync();

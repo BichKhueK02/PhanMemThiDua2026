@@ -22,6 +22,18 @@
     <Description>Phan mem Thi dua 2026</Description>
     <PackageProjectUrl>https://github.com/BichKhueK02/PhanMemThiDua2026</PackageProjectUrl>
   </PropertyGroup>
+  <!-- HIỆU NĂNG KHỞI ĐỘNG
+       - ReadyToRun: khi PUBLISH, biên dịch sẵn phần mềm + mọi thư viện NuGet (Krypton, Sqlite, ClosedXML...) ra mã máy x64.
+         Form1/Form2/các trang không còn phải JIT những InitializeComponent khổng lồ lúc dựng => bớt các khối "đứng hình"
+         trên luồng giao diện (gõ phím ở màn hình đăng nhập không khựng, nạp trước xong sớm hơn). Mã vẫn được tiered JIT
+         tối ưu lại khi chạy nóng nên tốc độ lúc chạy lâu không giảm. Đánh đổi: tệp phát hành lớn hơn.
+         Chỉ áp dụng khi có RuntimeIdentifier (publish win-x64); bản build F5 (Debug/Release thường) không đổi.
+       - TieredPGO: tối ưu theo dữ liệu chạy thật cho mã nóng (mặc định .NET 8 đã bật, ghi rõ để không bị tắt nhầm). -->
+  <PropertyGroup>
+    <PublishReadyToRun Condition="'$(RuntimeIdentifier)' != ''">true</PublishReadyToRun>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
   <!-- ServiceBackup / ServiceRestore là 2 dự án RIÊNG (có .csproj riêng) đặt trong thư mục này để tiện quản lý:
        KHÔNG được biên dịch chung vào phần mềm mẹ (trùng Program/AssemblyInfo => lỗi build). -->
   <!-- Tests\ là dự án kiểm thử xUnit RIÊNG (tham chiếu ngược vào dự án này) => cũng không biên dịch chung. -->

@@ -221,8 +221,9 @@ namespace PhanMemThiDua2026
                 label_tongCongChucVu.Text = "Tổng cộng chức vụ: 0 chức vụ";
             }
         }
-        private void kryptonButton1_Them_Click(object? sender, EventArgs e)
+        private async void kryptonButton1_Them_Click(object? sender, EventArgs e)
         {
+            if (_dangGhiCSDL) return;   // lần bấm trước còn đang ghi ở nền: bỏ qua (chống thêm trùng do bấm 2 lần)
             string tenChucVu = textBox_TenChucVu.Text.Trim();
             if (string.IsNullOrWhiteSpace(tenChucVu))
             {
@@ -235,42 +236,64 @@ namespace PhanMemThiDua2026
                 textBox_TenChucVu.Focus();
                 return;
             }
-            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
+            string csdlPath = _csdl2Path;
+            (int Id, string ThoiGian)? trung;
+            _dangGhiCSDL = true;
+            try
+            {
+                // Đọc - kiểm tra trùng - ghi chạy ở LUỒNG NỀN: CSDL đang bận (sao lưu/nén...) thì giao diện không bị "Not Responding"
+                trung = await Task.Run(() => ThemChucVuDb(csdlPath, tenChucVu));
+            }
+            finally { _dangGhiCSDL = false; }
+            if (IsDisposed) return;
+            if (trung is { } t)
+            {
+                MessageBox.Show(
+                    $"Chức vụ '{tenChucVu}' (ID {t.Id}) đã được tạo ngày {t.ThoiGian}.\nBạn không thể thêm trùng tên, nhưng có thể sửa tên!",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+            // Load lại dữ liệu và chọn dòng cuối
+            LoadDanhSachChucVu();
+            CapNhatLabelTongCongChucVu();
+            ResetInput();
+        }
+        /// <summary>Đang có thao tác Thêm/Sửa/Xóa chạy ở nền (chỉ đọc/ghi trên luồng UI).</summary>
+        private bool _dangGhiCSDL;
+        /// <summary>
+        /// LUỒNG NỀN (không đụng control): kiểm tra trùng tên rồi thêm chức vụ. Trùng => trả (ID, thời gian tạo) của bản ghi
+        /// đã có và KHÔNG ghi gì; thêm được => trả null. Logic y hệt bản chạy trên luồng UI trước đây.
+        /// </summary>
+        private (int Id, string ThoiGian)? ThemChucVuDb(string csdlPath, string tenChucVu)
+        {
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdlPath));
             cn.Open();
             // Kiểm tra tồn tại
-            using var check = cn.CreateCommand();
-            check.CommandText = "SELECT ID, Ten_ChucVu, ThoiGian FROM DanhSach_ChucVu";
-            using var reader = check.ExecuteReader();
-            while (reader.Read())
+            using (var check = cn.CreateCommand())
             {
-                string existingTen = TryGiaiMa(reader.GetString(1));
-                if (string.Equals(existingTen, tenChucVu, StringComparison.OrdinalIgnoreCase))
+                check.CommandText = "SELECT ID, Ten_ChucVu, ThoiGian FROM DanhSach_ChucVu";
+                using var reader = check.ExecuteReader();
+                while (reader.Read())
                 {
-                    int existingID = reader.GetInt32(0);
-                    string tg = TryGiaiMa(reader.GetString(2));
-                    MessageBox.Show(
-                        $"Chức vụ '{tenChucVu}' (ID {existingID}) đã được tạo ngày {tg}.\nBạn không thể thêm trùng tên, nhưng có thể sửa tên!",
-                        "Thông báo",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
-                    );
-                    return;
+                    string existingTen = TryGiaiMa(reader.GetString(1));
+                    if (string.Equals(existingTen, tenChucVu, StringComparison.OrdinalIgnoreCase))
+                        return (reader.GetInt32(0), TryGiaiMa(reader.GetString(2)));
                 }
             }
-            reader.Close();
             // Thêm mới
             using var cmd = cn.CreateCommand();
             cmd.CommandText = "INSERT INTO DanhSach_ChucVu (Ten_ChucVu, ThoiGian) VALUES (@ten, @time)";
             cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenChucVu));
             cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
             cmd.ExecuteNonQuery();
-            // Load lại dữ liệu và chọn dòng cuối
-            LoadDanhSachChucVu();
-            CapNhatLabelTongCongChucVu();
-            ResetInput();
+            return null;
         }
-        private void kryptonButton1_Sua_Click(object? sender, EventArgs e)
+        private async void kryptonButton1_Sua_Click(object? sender, EventArgs e)
         {
+            if (_dangGhiCSDL) return;
             if (!isEditing || _selectedID < 0)
             {
                 MessageBox.Show("Bạn chưa chọn chức vụ để sửa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -282,53 +305,80 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Chưa nhập tên chức vụ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
+            // Chụp giá trị TRƯỚC khi chạy nền: trong lúc chờ người dùng có thể bấm sang dòng khác (đổi _selectedID)
+            int idSua = _selectedID;
+            string csdlPath = _csdl2Path;
+            int? idTrung;
+            _dangGhiCSDL = true;
+            try { idTrung = await Task.Run(() => SuaChucVuDb(csdlPath, idSua, tenChucVuMoi)); }
+            finally { _dangGhiCSDL = false; }
+            if (IsDisposed) return;
+            if (idTrung is int existingID)
+            {
+                MessageBox.Show(
+                    $"Chức vụ '{tenChucVuMoi}' (ID {existingID}) đã tồn tại.\nBạn không thể lưu trùng tên!",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+            LoadDanhSachChucVu(idSua);
+            CapNhatLabelTongCongChucVu();
+            ResetInput();
+        }
+        /// <summary>LUỒNG NỀN: trùng tên với chức vụ khác => trả ID chức vụ đó, KHÔNG ghi; cập nhật được => trả null.</summary>
+        private int? SuaChucVuDb(string csdlPath, int id, string tenChucVuMoi)
+        {
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdlPath));
             cn.Open();
             // Kiểm tra trùng tên
-            using var check = cn.CreateCommand();
-            check.CommandText = "SELECT ID, Ten_ChucVu FROM DanhSach_ChucVu WHERE ID <> @id";
-            check.Parameters.AddWithValue("@id", _selectedID);
-            using var reader = check.ExecuteReader();
-            while (reader.Read())
+            using (var check = cn.CreateCommand())
             {
-                string existingTen = TryGiaiMa(reader.GetString(1));
-                if (string.Equals(existingTen, tenChucVuMoi, StringComparison.OrdinalIgnoreCase))
+                check.CommandText = "SELECT ID, Ten_ChucVu FROM DanhSach_ChucVu WHERE ID <> @id";
+                check.Parameters.AddWithValue("@id", id);
+                using var reader = check.ExecuteReader();
+                while (reader.Read())
                 {
-                    int existingID = reader.GetInt32(0);
-                    MessageBox.Show(
-                        $"Chức vụ '{tenChucVuMoi}' (ID {existingID}) đã tồn tại.\nBạn không thể lưu trùng tên!",
-                        "Thông báo",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
-                    );
-                    return;
+                    string existingTen = TryGiaiMa(reader.GetString(1));
+                    if (string.Equals(existingTen, tenChucVuMoi, StringComparison.OrdinalIgnoreCase))
+                        return reader.GetInt32(0);
                 }
             }
-            reader.Close();
             // Cập nhật
             using var cmd = cn.CreateCommand();
             cmd.CommandText = "UPDATE DanhSach_ChucVu SET Ten_ChucVu=@ten, ThoiGian=@time WHERE ID=@id";
             cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenChucVuMoi));
             cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
-            cmd.Parameters.AddWithValue("@id", _selectedID);
+            cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
-            LoadDanhSachChucVu(_selectedID);
-            CapNhatLabelTongCongChucVu();
-            ResetInput();
+            return null;
         }
-        private void kryptonButton1_Xoa_Click(object? sender, EventArgs e)
+        private async void kryptonButton1_Xoa_Click(object? sender, EventArgs e)
         {
+            if (_dangGhiCSDL) return;
             if (!isEditing || _selectedID < 0)
             {
                 MessageBox.Show("Bạn chưa chọn chức vụ để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
-            cn.Open();
-            using var cmd = cn.CreateCommand();
-            cmd.CommandText = "DELETE FROM DanhSach_ChucVu WHERE ID=@id";
-            cmd.Parameters.AddWithValue("@id", _selectedID);
-            cmd.ExecuteNonQuery();
+            int idXoa = _selectedID;
+            string csdlPath = _csdl2Path;
+            _dangGhiCSDL = true;
+            try
+            {
+                await Task.Run(() =>
+                {
+                    using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdlPath));
+                    cn.Open();
+                    using var cmd = cn.CreateCommand();
+                    cmd.CommandText = "DELETE FROM DanhSach_ChucVu WHERE ID=@id";
+                    cmd.Parameters.AddWithValue("@id", idXoa);
+                    cmd.ExecuteNonQuery();
+                });
+            }
+            finally { _dangGhiCSDL = false; }
+            if (IsDisposed) return;
             LoadDanhSachChucVu();
             CapNhatLabelTongCongChucVu();
             ResetInput();

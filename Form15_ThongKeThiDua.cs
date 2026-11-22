@@ -438,6 +438,7 @@ namespace PhanMemThiDua2026
         // Gắn dữ liệu mới vào lưới (luôn chạy ở luồng giao diện). Chưa lọc: người gọi sẽ lọc sau.
         private void ApDungDuLieuVaoLuoi(DataTable bang, List<string> cotPhatSinh, bool laTanBinh, bool dataMax, Dictionary<string, int>? stt, Action ganBoDem)
         {
+            using var _do = Module_DoHieuNang.Doan("Form15: ApDungDuLieuVaoLuoi (gán bảng + cột vào lưới)");
             var grid = kryptonDataGridView1;
             grid.SuspendLayout();
             try
@@ -828,8 +829,8 @@ namespace PhanMemThiDua2026
             _tamHoanLoc++;
             try
             {
-                LoadComboBoxGhiChu();
-                LoadComboBoxDonVi();
+                using (Module_DoHieuNang.Doan("Form15: LoadComboBoxGhiChu")) LoadComboBoxGhiChu();
+                using (Module_DoHieuNang.Doan("Form15: LoadComboBoxDonVi")) LoadComboBoxDonVi();
                 if (datLaiTinhTrang && comboBox1_TinhTrang != null && comboBox1_TinhTrang.Items.Count > 0)
                     comboBox1_TinhTrang.SelectedIndex = 0;
             }
@@ -1057,6 +1058,7 @@ namespace PhanMemThiDua2026
                 // Trong lúc chờ đã có lần lọc/nạp mới hơn (hoặc form đã đóng) -> bỏ kết quả cũ
                 if (phienLoc != Volatile.Read(ref _locSeq) || IsDisposed || grid.IsDisposed) { NK($"LọcDataMax: bỏ kết quả cũ ({ketQua.Count} dòng)"); return; }
                 NK($"LọcDataMax: {ketQua.Count}/{total} dòng tanBinh={laTanBinh}");
+                using var _do = Module_DoHieuNang.Doan("Form15: cập nhật lưới sau lọc DataMax");
                 grid.SuspendLayout();
                 try
                 {

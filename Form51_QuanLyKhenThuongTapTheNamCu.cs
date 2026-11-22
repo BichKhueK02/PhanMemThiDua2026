@@ -679,18 +679,20 @@ namespace PhanMemThiDua2026
             kryptonButton_XoaKhenThuong.Enabled = false;
             try
             {
+                int idXoa = _selectedID;   // chụp trên luồng UI (sau xác nhận + xác minh Admin)
                 string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_currentDbPath);
-                using (var conn = new SqliteConnection(connectionString))
+                await Task.Run(() =>
                 {
-                    await conn.OpenAsync();
+                    using var conn = new SqliteConnection(connectionString);
+                    conn.Open();
                     using var tran = conn.BeginTransaction();
                     try
                     {
                         const string query = @"DELETE FROM ""ThongKe_KhenThuongTapThe"" WHERE ID = @ID;";
                         using (var cmd = new SqliteCommand(query, conn, tran))
                         {
-                            cmd.Parameters.Add("@ID", SqliteType.Integer).Value = _selectedID;
-                            await cmd.ExecuteNonQueryAsync();
+                            cmd.Parameters.Add("@ID", SqliteType.Integer).Value = idXoa;
+                            cmd.ExecuteNonQuery();
                         }
                         tran.Commit();
                     }
@@ -699,7 +701,8 @@ namespace PhanMemThiDua2026
                         tran.Rollback();
                         throw;
                     }
-                }
+                });
+                if (IsDisposed) return;
                 await DanhLaiSoThuTuAsync();
                 _ = ShowHanhDongStatusAsync("✔ Xóa dữ liệu thành công!", true);
                 _globalCache = null;
@@ -760,10 +763,24 @@ namespace PhanMemThiDua2026
                 string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
                 string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_currentDbPath);
-                // 4. KẾT NỐI VÀ GIAO DỊCH CƠ SỞ DỮ LIỆU
-                using (var conn = new SqliteConnection(connectionString))
+                string sqlInsert = @"INSERT INTO ThongKe_KhenThuongTapThe
+                    (ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong,
+                     SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong,
+                     TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu)
+                    VALUES
+                    (@ID, @STT, @TenTapThe, @HinhThuc_KhenThuong, @DonVi_CapKhenThuong,
+                     @SoQuyetDinh, @NgayQuyetDinh, @NguoiKy, @NoiDung_KhenThuong,
+                     @TienThuong, @NgayCapPhat, @CanBoCapPhat, @NguoiDaiDienNhan, @GhiChu)";
+                // Gán tham số (ĐỌC Ô NHẬP + MÃ HÓA) trên LUỒNG UI bằng đúng hàm helper cũ; lệnh được chuyển xuống luồng nền thực thi
+                // (một SqliteCommand dùng LẦN LƯỢT ở 2 luồng, không đồng thời => an toàn).
+                using var cmd = new SqliteCommand(sqlInsert);
+                GanThamSoVaMaHoaKhenThuong(cmd, tienThuongStr);
+                // 4. KẾT NỐI VÀ GIAO DỊCH CƠ SỞ DỮ LIỆU - ở LUỒNG NỀN (OpenAsync/ExecuteAsync của Microsoft.Data.Sqlite thực chất
+                //    chạy đồng bộ ngay trên luồng gọi => bản cũ chạy trên luồng giao diện)
+                await Task.Run(() =>
                 {
-                    await conn.OpenAsync();
+                    using var conn = new SqliteConnection(connectionString);
+                    conn.Open();
                     using var tran = conn.BeginTransaction();
                     try
                     {
@@ -772,33 +789,23 @@ namespace PhanMemThiDua2026
                         // 🌟 TỐI ƯU HÓA: Gộp 2 lệnh MAX() thành 1 truy vấn duy nhất. Giảm 50% thời gian đọc.
                         string queryMax = "SELECT COALESCE(MAX(ID), 0) AS MaxID, COALESCE(MAX(STT), 0) AS MaxSTT FROM ThongKe_KhenThuongTapThe";
                         using (var cmdMax = new SqliteCommand(queryMax, conn, tran))
-                        using (var reader = await cmdMax.ExecuteReaderAsync())
+                        using (var reader = cmdMax.ExecuteReader())
                         {
-                            if (await reader.ReadAsync())
+                            if (reader.Read())
                             {
                                 newId = Convert.ToInt32(reader["MaxID"]) + 1;
                                 newStt = Convert.ToInt32(reader["MaxSTT"]) + 1;
                             }
                         }
-                        string sqlInsert = @"INSERT INTO ThongKe_KhenThuongTapThe 
-                    (ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, 
-                     SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, 
-                     TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu) 
-                    VALUES 
-                    (@ID, @STT, @TenTapThe, @HinhThuc_KhenThuong, @DonVi_CapKhenThuong, 
-                     @SoQuyetDinh, @NgayQuyetDinh, @NguoiKy, @NoiDung_KhenThuong, 
-                     @TienThuong, @NgayCapPhat, @CanBoCapPhat, @NguoiDaiDienNhan, @GhiChu)";
-                        using (var cmd = new SqliteCommand(sqlInsert, conn, tran))
-                        {
-                            // Gán tham số tự tính
-                            cmd.Parameters.AddWithValue("@ID", newId);
-                            // Kế thừa hàm helper của bạn (Xử lý mã hóa)
-                            GanThamSoVaMaHoaKhenThuong(cmd, tienThuongStr, newStt);
-                            await cmd.ExecuteNonQueryAsync();
-                        }
+                        cmd.Connection = conn;
+                        cmd.Transaction = tran;
+                        // Gán tham số tự tính SAU helper. SỬA LỖI CŨ: bản cũ thêm @ID TRƯỚC rồi mới gọi helper, mà helper gọi
+                        // Parameters.Clear() => mất @ID => "Must add values for the following parameters: @ID" => Thêm luôn thất bại.
+                        cmd.Parameters.AddWithValue("@ID", newId);
+                        AddParam(cmd, "@STT", SqliteType.Integer, newStt);
+                        cmd.ExecuteNonQuery();
                         // Chốt giao dịch
                         tran.Commit();
-                        isDbSuccess = true; // Đánh dấu dữ liệu đã an toàn nằm trong ổ cứng
                     }
                     catch (Exception dbEx)
                     {
@@ -807,7 +814,9 @@ namespace PhanMemThiDua2026
                         // Ném lỗi ra ngoài với thông điệp rõ ràng để catch tổng xử lý
                         throw new Exception("Quá trình ghi vào CSDL thất bại. Đã hoàn tác an toàn (Rollback).", dbEx);
                     }
-                }
+                });
+                isDbSuccess = true; // Đánh dấu dữ liệu đã an toàn nằm trong ổ cứng
+                if (IsDisposed) return;
                 // 5. CẬP NHẬT GIAO DIỆN (Chỉ chạy khi DB đã an toàn)
                 if (isDbSuccess)
                 {
@@ -859,26 +868,29 @@ namespace PhanMemThiDua2026
                 string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
                 string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_currentDbPath);
-                using (var conn = new SqliteConnection(connectionString))
-                {
-                    await conn.OpenAsync();
-                    string query = @"UPDATE ThongKe_KhenThuongTapThe SET 
-             TenTapThe = @TenTapThe, 
-             HinhThuc_KhenThuong = @HinhThuc_KhenThuong, 
-             DonVi_CapKhenThuong = @DonVi_CapKhenThuong, SoQuyetDinh = @SoQuyetDinh, 
-             NgayQuyetDinh = @NgayQuyetDinh, NguoiKy = @NguoiKy, 
-             NoiDung_KhenThuong = @NoiDung_KhenThuong, TienThuong = @TienThuong, 
-             NgayCapPhat = @NgayCapPhat, CanBoCapPhat = @CanBoCapPhat, 
-             NguoiDaiDienNhan = @NguoiDaiDienNhan, GhiChu = @GhiChu 
+                string query = @"UPDATE ThongKe_KhenThuongTapThe SET
+             TenTapThe = @TenTapThe,
+             HinhThuc_KhenThuong = @HinhThuc_KhenThuong,
+             DonVi_CapKhenThuong = @DonVi_CapKhenThuong, SoQuyetDinh = @SoQuyetDinh,
+             NgayQuyetDinh = @NgayQuyetDinh, NguoiKy = @NguoiKy,
+             NoiDung_KhenThuong = @NoiDung_KhenThuong, TienThuong = @TienThuong,
+             NgayCapPhat = @NgayCapPhat, CanBoCapPhat = @CanBoCapPhat,
+             NguoiDaiDienNhan = @NguoiDaiDienNhan, GhiChu = @GhiChu
              WHERE ID = @ID";
-                    using (var cmd = new SqliteCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@ID", _selectedID);
-                        // ⭐ GỌI HÀM HELPER RÚT GỌN CODE
-                        GanThamSoVaMaHoaKhenThuong(cmd, tienThuongStr);
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                }
+                // Gán tham số (đọc ô nhập + mã hóa) trên LUỒNG UI bằng helper cũ; ID chụp ngay lúc bấm.
+                using var cmd = new SqliteCommand(query);
+                // ⭐ GỌI HÀM HELPER RÚT GỌN CODE
+                GanThamSoVaMaHoaKhenThuong(cmd, tienThuongStr);
+                // (Bản cũ thêm @ID TRƯỚC helper; helper gọi Parameters.Clear() => mất @ID. Nay thêm SAU helper.)
+                cmd.Parameters.AddWithValue("@ID", _selectedID);
+                await Task.Run(() =>
+                {
+                    using var conn = new SqliteConnection(connectionString);
+                    conn.Open();
+                    cmd.Connection = conn;
+                    cmd.ExecuteNonQuery();
+                });
+                if (IsDisposed) return;
                 _ = ShowHanhDongStatusAsync("✔ Cập nhật dữ liệu thành công!", true);
                 _globalCache = null;
                 await LoadComboBoxDonViAsync();
@@ -930,26 +942,27 @@ namespace PhanMemThiDua2026
             if (result != DialogResult.Yes) return;
             try
             {
-                using (var conn = new Microsoft.Data.Sqlite.SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_currentDbPath)))
+                string chuoiKetNoi = Module_KetNoiCSDL.ChuoiKetNoi(_currentDbPath);   // đọc trên luồng UI
+                await Task.Run(() =>
                 {
-                    await conn.OpenAsync();
-                    using (var tran = conn.BeginTransaction())
+                    using var conn = new Microsoft.Data.Sqlite.SqliteConnection(chuoiKetNoi);
+                    conn.Open();
+                    using var tran = conn.BeginTransaction();
+                    try
                     {
-                        try
+                        using (var cmd = new SqliteCommand("DELETE FROM ThongKe_KhenThuongTapThe", conn, tran))
                         {
-                            using (var cmd = new SqliteCommand("DELETE FROM ThongKe_KhenThuongTapThe", conn, tran))
-                            {
-                                await cmd.ExecuteNonQueryAsync();
-                            }
-                            tran.Commit();
+                            cmd.ExecuteNonQuery();
                         }
-                        catch
-                        {
-                            tran.Rollback();
-                            throw;
-                        }
+                        tran.Commit();
                     }
-                }
+                    catch
+                    {
+                        tran.Rollback();
+                        throw;
+                    }
+                });
+                if (IsDisposed) return;
                 // ⭐ ĐÃ XÓA LỆNH await DanhLaiSoThuTuAsync(); THEO ĐÚNG YÊU CẦU LOGIC VÌ LÚC NÀY BẢNG TRỐNG
                 _ = ShowHanhDongStatusAsync("✔ Đã xóa sạch toàn bộ dữ liệu!", true);
                 _globalCache = null;
@@ -965,10 +978,16 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Lỗi trong quá trình xóa dữ liệu:\n\n" + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private async Task DanhLaiSoThuTuAsync()
+        // Chạy ở LUỒNG NỀN (không đụng control): bản cũ dùng OpenAsync/ExecuteNonQueryAsync nhưng thực chất chạy đồng bộ
+        // trên luồng giao diện. Đường dẫn CSDL năm cũ đọc ngay lúc gọi (trên luồng UI).
+        private Task DanhLaiSoThuTuAsync()
         {
-            if (string.IsNullOrEmpty(_currentDbPath)) return;
+            if (string.IsNullOrEmpty(_currentDbPath)) return Task.CompletedTask;
             string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_currentDbPath);
+            return Task.Run(() => DanhLaiSoThuTu(connectionString));
+        }
+        private static async Task DanhLaiSoThuTu(string connectionString)
+        {
             using (var conn = new SqliteConnection(connectionString))
             {
                 await conn.OpenAsync();

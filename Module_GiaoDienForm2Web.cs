@@ -45,21 +45,20 @@ namespace PhanMemThiDua2026
             }
         }
         /// <summary>
-        /// Gọi từ luồng UI sau khi xác thực THÀNH CÔNG, trước khi hiện Form2: nạp đủ các trang chính (Form4, Form6,
-        /// Form15, Form34, Form10) vào kho RAM ở chế độ tăng tốc. Nhờ vậy vào giao diện chính là mọi trang đã sẵn,
-        /// không còn cảnh "vào rồi mới nạp từ từ" (trước đây kho chỉ kịp nạp nếu người dùng ngồi chờ ở màn hình đăng nhập
-        /// khoảng 5 giây; đăng nhập nhanh thì mọi trang đều bị dựng sau khi vào -> bấm trang nào cũng giật).
-        /// Không bao giờ ném lỗi. Trả true nếu đủ các trang chính.
+        /// Gọi từ luồng UI sau khi xác thực THÀNH CÔNG, trước khi hiện Form2: chỉ chờ Trang chủ (Form4) sẵn trong kho
+        /// (tối đa <paramref name="toiDaMs"/>). Các trang khác nạp tiếp ở nền SAU khi Form2 đã hiện, không chặn đăng nhập.
+        /// Không bao giờ ném lỗi. Trả true nếu Trang chủ đã sẵn.
         /// </summary>
-        public static async Task<bool> DamBaoKhoTrangChinhAsync(Action<int, int>? tienDo, int toiDaMs = 20000)
+        public static async Task<bool> DamBaoTrangChuAsync(int toiDaMs)
         {
             var f = _form2;
             if (f == null || f.IsDisposed || !_sanSang) return false;   // Form2 chưa dựng xong: Show() tự lo như cũ
-            bool cu = Module_NhuongUI.TangToc;
-            Module_NhuongUI.TangToc = true;
-            try { return await f.DamBaoTrangChinhTrongKhoAsync(tienDo, toiDaMs); }
-            catch (Exception ex) { Debug.WriteLine("[Preload] DamBaoKhoTrangChinh: " + ex); return false; }
-            finally { Module_NhuongUI.TangToc = cu; }
+            // Vô hiệu MỌI lượt nạp trước đang chạy (đổi thế hệ => Het() của chúng = true, tự dừng ở bước kế tiếp).
+            // Không làm vậy thì lượt nạp lúc người dùng còn gõ, ở chế độ tăng tốc, sẽ đi tiếp sang Form6/Form15... NGAY TRONG
+            // lúc người dùng đang chờ vào (đo được: new Form6 chặn 450 ms). Trang chủ còn dở thì lượt chờ dưới đây làm nốt.
+            Interlocked.Increment(ref _theHe);
+            try { return await f.DamBaoTrangChuTrongKhoAsync(toiDaMs); }
+            catch (Exception ex) { Debug.WriteLine("[Preload] DamBaoTrangChu: " + ex); return false; }
         }
         private static async Task ChayAsync(Func<bool> nguoiDungDaRoi)
         {
@@ -86,7 +85,8 @@ namespace PhanMemThiDua2026
                         catch (Exception ex) { Debug.WriteLine("[Preload] DataLoader: " + ex.Message); return false; }
                     });
                     // 2. UI: tạo instance Form2 (trên luồng UI)
-                    f = new Form2_FormCha();
+                    using (Module_DoHieuNang.Doan("new Form2_FormCha (InitializeComponent)"))
+                        f = new Form2_FormCha();
                     f.TacVuPreloadDuLieu = taskDuLieu;
                     _form2 = f;
                     Debug.WriteLine($"[Preload] new Form2: {sw.ElapsedMilliseconds} ms");
@@ -99,7 +99,9 @@ namespace PhanMemThiDua2026
                     }
                 }
                 // 3. UI: handle + trang chủ (+ vẽ thử nếu chưa tăng tốc). Gọi lại nhiều lần vẫn an toàn.
-                bool xong = await f.NapTruocGiaoDienAsync(Het);
+                bool xong;
+                using (Module_DoHieuNang.Khoang($"Form2 nạp trước giao diện (handle + Trang chủ){(Module_NhuongUI.TangToc ? " [tăng tốc]" : "")}"))
+                    xong = await f.NapTruocGiaoDienAsync(Het);
                 if (xong && theHe == Volatile.Read(ref _theHe)) _sanSang = true;
                 Debug.WriteLine($"[Preload] giao diện {(xong ? "sẵn sàng" : "dừng giữa chừng")}: {sw.ElapsedMilliseconds} ms");
                 // 4. KHO GIAO DIỆN: người dùng vẫn đang gõ -> nạp tiếp các trang (Trang chủ, Phân loại, Thống kê, Khen thưởng,

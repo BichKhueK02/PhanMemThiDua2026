@@ -117,7 +117,7 @@ namespace PhanMemThiDua2026
                 Module_DanduongGPS.OnDatabaseChanged += SuKien_DatabaseChanged;
                 label11.TextChanged += (s, ev) => DieuChinhCoChuLabel11();
                 // 2. Nạp cấu hình và dữ liệu nhẹ
-                LoadSettings();
+                using (Module_DoHieuNang.Doan("Form4_Load: LoadSettings")) LoadSettings();
                 // E29 + "đảm bảo bảng" đọc/ghi SQLite ở LUỒNG NỀN, chạy song song với việc đọc checkbox.
                 // Trước đây LoadE29 (mở CSDL2 2 lần + giao dịch ghi CREATE/INSERT) chạy đồng bộ ngay đây, trên luồng giao diện,
                 // nằm gọn trong Form2_Load -> chặn Form2 hiện sau khi bấm Đăng nhập. Microsoft.Data.Sqlite không có I/O
@@ -132,15 +132,15 @@ namespace PhanMemThiDua2026
                 });
                 // (Đã bỏ 3 lệnh GetLoaiTapThe -> loai1/loai2/loai3 không bao giờ được đọc)
                 // Đọc checkbox ở luồng nền: Form hiện ra ngay thay vì chờ SQLite đồng bộ
-                await LoadCheckBoxTuDongChonNgayThangAsync();
+                using (Module_DoHieuNang.Khoang("Form4_Load: đọc checkbox tự chọn ngày tháng")) await LoadCheckBoxTuDongChonNgayThangAsync();
                 if (IsDisposed || Disposing) return;
-                Module_QuyDinhTyLe.ApDungE29(await tacVuE29);
+                using (Module_DoHieuNang.Khoang("Form4_Load: chờ đọc E29")) Module_QuyDinhTyLe.ApDungE29(await tacVuE29);
                 if (IsDisposed || Disposing) return;
                 // 3. Đảm bảo CSDL sẵn sàng
-                await tacVuBang;
+                using (Module_DoHieuNang.Khoang("Form4_Load: chờ đảm bảo bảng CheDoXetThiDuaNam (GHI CSDL2)")) await tacVuBang;
                 if (IsDisposed || Disposing) return;
                 // 4. Nạp dữ liệu chính cuối cùng
-                await ReloadDuLieuAsync();
+                using (Module_DoHieuNang.Khoang("Form4_Load: ReloadDuLieuAsync (TỔNG)")) await ReloadDuLieuAsync();
             }
             catch (Exception ex)
             {
@@ -531,7 +531,7 @@ namespace PhanMemThiDua2026
                     kq.PieData.GetValueOrDefault(Module_HeThong.Loai_1), kq.PieData.GetValueOrDefault(Module_HeThong.Loai_2),
                     kq.PieData.GetValueOrDefault(Module_HeThong.Loai_3), kq.PieData.GetValueOrDefault(Module_HeThong.Loai_4),
                     kq.PieData.GetValueOrDefault(Module_HeThong.PL_KHONG_PL));
-                HienThiBang1Grid(kq.Bang);
+                using (Module_DoHieuNang.Doan("Form4 Bảng 1: đổ lưới HienThiBang1Grid")) HienThiBang1Grid(kq.Bang);
             }
             catch (SqliteException sqlEx)
             {
@@ -3460,30 +3460,30 @@ WHERE ID = 1", conn);
             try
             {
                 bool laTanBinh = LaTanBinh();
-                await CapNhatThongBaoPhanMemAsync();   // trước: mở SQLite đồng bộ trên UI thread
+                using (Module_DoHieuNang.Khoang("Form4 Reload: thông báo phần mềm")) await CapNhatThongBaoPhanMemAsync();   // trước: mở SQLite đồng bộ trên UI thread
                 if (IsDisposed || Disposing) return;
                 // 1. CHẾ ĐỘ THÁNG/NĂM (CBCS)
                 if (!laTanBinh)
                 {
-                    await LoadThongTinCheDoXetThiDuaNamAsync();
+                    using (Module_DoHieuNang.Khoang("Form4 Reload: thông tin chế độ xét năm")) await LoadThongTinCheDoXetThiDuaNamAsync();
                     if (IsDisposed || Disposing) return;
-                    Module_HeThong.LayCheDoXetThiDuaNam(lamMoiTuCSDL: true);
+                    using (Module_DoHieuNang.Doan("Form4 Reload: LayCheDoXetThiDuaNam (đồng bộ)")) Module_HeThong.LayCheDoXetThiDuaNam(lamMoiTuCSDL: true);
                 }
                 // 2. DANH SÁCH ĐỀ NGHỊ + CẤU HÌNH + TỶ LỆ
-                LoadComboBoxDeNghi();
-                await LoadDuLieuCauHinhTongHopAsync();
+                using (Module_DoHieuNang.Doan("Form4 Reload: LoadComboBoxDeNghi")) LoadComboBoxDeNghi();
+                using (Module_DoHieuNang.Khoang("Form4 Reload: cấu hình tổng hợp")) await LoadDuLieuCauHinhTongHopAsync();
                 if (IsDisposed || Disposing) return;
-                SetDeNghiVaTinhTyLe();
+                using (Module_DoHieuNang.Doan("Form4 Reload: SetDeNghiVaTinhTyLe")) SetDeNghiVaTinhTyLe();
                 // 3. BẢNG 1 + BẢNG 2
                 bool coDuLieu = await Task.Run(KiemTraCoDuLieuDanhSach);   // trước: chạy đồng bộ trên UI thread
                 if (IsDisposed || Disposing) return;
                 if (coDuLieu)
                 {
-                    await Bang1_Async();
+                    using (Module_DoHieuNang.Khoang("Form4 Reload: Bảng 1 (tổng)")) await Bang1_Async();
                     if (IsDisposed || Disposing) return;
                     _allowLoadBang2 = true;
                     await Task.Yield();
-                    await Bang2_Async();
+                    using (Module_DoHieuNang.Khoang("Form4 Reload: Bảng 2 (tổng)")) await Bang2_Async();
                 }
                 else
                 {
@@ -3498,19 +3498,19 @@ WHERE ID = 1", conn);
                 // 4. CÁC TÁC VỤ CÒN LẠI
                 // (KiemTraVaDongBoCSDLAsync đã chuyển xuống SAU khối finally: nó mở 4 CSDL + có thể bật MessageBox,
                 //  không được chặn việc hiển thị form và không nên bật hộp thoại khi layout còn đang bị khóa)
-                Module_XuatPhanLoai.NapLinkLuuDuongDanTepXuat();
+                using (Module_DoHieuNang.Doan("Form4 Reload: NapLinkLuuDuongDanTepXuat")) Module_XuatPhanLoai.NapLinkLuuDuongDanTepXuat();
                 KiemTraDuLieuDanhSachVaKhoaNut(coDuLieu);
                 CauHoiGiaoDien_PhienBan(laTanBinh);
-                await LoadDiaDiemAsync();
-                await LoadThongTinAsync();
-                await CapNhatDanhSachPhanLoaiDeXuatAsync();
+                using (Module_DoHieuNang.Khoang("Form4 Reload: địa điểm")) await LoadDiaDiemAsync();
+                using (Module_DoHieuNang.Khoang("Form4 Reload: thông tin")) await LoadThongTinAsync();
+                using (Module_DoHieuNang.Khoang("Form4 Reload: danh sách phân loại đề xuất")) await CapNhatDanhSachPhanLoaiDeXuatAsync();
                 if (IsDisposed || Disposing) return;
                 // 5. HIỆN/ẨN CONTROL CHẾ ĐỘ THI ĐUA
                 if (comboBox1_CheDoXetThiDua != null)
                     comboBox1_CheDoXetThiDua.Visible = !laTanBinh;
                 if (label1_CheDoXetThiDuaTanBinh != null)
                     label1_CheDoXetThiDuaTanBinh.Visible = !laTanBinh;
-                Module_TrangThaiHeThong.CapNhatStatusCSDL(statusStrip1, toolStripStatusLabel1);
+                using (Module_DoHieuNang.Doan("Form4 Reload: CapNhatStatusCSDL")) Module_TrangThaiHeThong.CapNhatStatusCSDL(statusStrip1, toolStripStatusLabel1);
                 chayDongBo = true;
             }
             catch (Exception ex)
@@ -3535,13 +3535,13 @@ WHERE ID = 1", conn);
                     comboBox1_CheDoXetThiDua.SelectedIndexChanged -= comboBox1_CheDoXetThiDua_SelectedIndexChanged;
                     comboBox1_CheDoXetThiDua.SelectedIndexChanged += comboBox1_CheDoXetThiDua_SelectedIndexChanged;
                     toolStripProgressBar1.Visible = false;
-                    this.ResumeLayout(true);
+                    using (Module_DoHieuNang.Doan("Form4 Reload: ResumeLayout (dàn trang)")) this.ResumeLayout(true);
                 }
             }
             // Chạy SAU khi form đã hiển thị xong dữ liệu
             if (chayDongBo && !IsDisposed && !Disposing)
             {
-                try { await KiemTraVaDongBoCSDLAsync(); }
+                try { using (Module_DoHieuNang.Khoang("Form4 Reload: kiểm tra Token CSDL (giữ DangReload)")) await KiemTraVaDongBoCSDLAsync(); }
                 catch (Exception ex) { Debug.WriteLine("KiemTraVaDongBoCSDL lỗi: " + ex.Message); }
             }
         }

@@ -247,7 +247,7 @@ namespace PhanMemThiDua2026
                 }
             }
             catch (Exception ex) { GhiNhatKyLoi("Xuất PL: đọc ChonLoaiBaoCao", ex); }
-            // 3) Đơn vị ban hành tờ trình (chỉ Trình ký CBCS cần)
+            // 3) Đơn vị ban hành tờ trình (Trình ký CBCS + Tân binh/Học viên)
             if (canDonViBanHanh)
             {
                 try
@@ -258,7 +258,8 @@ namespace PhanMemThiDua2026
                     if (kq != null && kq != DBNull.Value)
                     {
                         string v = gm.Lay(kq.ToString());
-                        if (v.Length > 0) tt.TenDonViBanHanh = v;
+                        // Giải mã lỗi => gm.Lay trả lại chính bản mã "v2|/v5|": không in bản mã ra ô A2
+                        if (v.Length > 0 && !Module_BaoMatAES.LaChuoiMa(v)) tt.TenDonViBanHanh = v;
                     }
                 }
                 catch (Exception ex) { GhiNhatKyLoi("Xuất PL: đọc đơn vị ban hành", ex); }
@@ -1161,7 +1162,7 @@ namespace PhanMemThiDua2026
             {
                 dt = DocDanhSach(conn);
                 if (dt.Rows.Count == 0) return TaoKetQuaKhongDuLieu("SDL không có dữ liệu để xuất!");
-                tt = DocThongTinXuat(conn, gm, ctx.LaTanBinh, canNguoiKy: false, canDonViBanHanh: false);
+                tt = DocThongTinXuat(conn, gm, ctx.LaTanBinh, canNguoiKy: false, canDonViBanHanh: true);
                 dtTyLe = DocBangTyLe(conn);
             }
             if (string.IsNullOrWhiteSpace(duongDanLuu)) throw new Exception("Bạn chưa chọn thư mục lưu!");
@@ -1185,6 +1186,7 @@ namespace PhanMemThiDua2026
             var a1 = ws.Cell("A1");
             a1.Value = string.IsNullOrWhiteSpace(tt.TenTieuDoan) ? "" : tt.TenTieuDoan;
             a1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            GachChanTenDonViBanHanh(ws.Range("A2:B2"), tt.TenDonViBanHanh);
             GhiNgayDiaDiemC4(ws, tt);
             int row = 11;
             GhiDongNhom(ws, row, 7, $"DANH SÁCH PHÂN LOẠI {Module_TaiKhoan.TenTB_InHoa}", false);

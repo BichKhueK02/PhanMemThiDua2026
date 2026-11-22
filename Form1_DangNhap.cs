@@ -77,6 +77,11 @@ namespace PhanMemThiDua2026
         private string? _chuNutDangNhap;          // null = chưa đổi chữ nút
         private Stopwatch? _swDangNhap;           // đo từ lúc bấm nút tới lúc Form2 hiện xong (Output -> Debug)
         private long _msXacThuc = -1, _msForm2SanSang = -1, _msXacThucNen = -1;   // các mốc thời gian, ghi ra tệp nhật ký đăng nhập
+        /// <summary>
+        /// Sau khi xác thực đúng: chờ Trang chủ nạp xong tối đa bấy nhiêu ms rồi vào giao diện chính bất kể.
+        /// Máy trung bình dựng Trang chủ từ đầu mất ~0,6–1,2 s (nhật ký đo); quá hạn thì Form2_Load tự nạp nốt Trang chủ.
+        /// </summary>
+        private const int ToiDaChoTrangChuMs = 2500;
         public Form1()
         {
             _cs1Doc = TaoChuoiKetNoi(_csdl1Path, "ReadOnly", 10);
@@ -127,6 +132,7 @@ namespace PhanMemThiDua2026
         // không có chuyện "vẽ rồi mới sửa". Việc nặng chạy nền sau khi form đã hiện.
         private void Form1_Load(object? sender, EventArgs e)
         {
+            using var _do = Module_DoHieuNang.Doan("Form1_Load");
             try
             {
                 var (nam, phienBan) = _taiNhanh.GetAwaiter().GetResult();
@@ -159,6 +165,7 @@ namespace PhanMemThiDua2026
         private void Form1_Show(object? sender, EventArgs e)
         {
             if (IsDisposed) return;
+            Module_DoHieuNang.Moc("Form1 đã hiện (người dùng bắt đầu gõ được)");
             _ = ChayCacTacVuNangNgamAsync();
         }
         private static bool LaPhienBanTanBinh(string? phienBan)
@@ -568,6 +575,10 @@ namespace PhanMemThiDua2026
                 // 3. PHẢN HỒI TỨC THÌ + ĐÈN ĐỎ cho mọi việc nền không khẩn cấp (nạp trước form, tuần tra CSDL...)
                 //    -> CPU/đĩa dành cho đăng nhập; con trỏ chờ + chữ nút cho người dùng biết hệ thống đang xử lý.
                 _swDangNhap = Stopwatch.StartNew();
+                // Phiên đo khởi động dừng ở đây; phiên mới đo riêng chặng "bấm Đăng nhập → giao diện chính → các trang nền"
+                // (kết thúc ở Form2.NapTruocTrangConSauKhiHienAsync).
+                Module_DoHieuNang.KetThuc("bấm Đăng nhập");
+                Module_DoHieuNang.BatDau("Bấm Đăng nhập → giao diện chính → trang nền");
                 _uuTienDangNhap ??= Module_UuTienDangNhap.Bat();
                 _chuNutDangNhap = btn_DangNhap.Values.Text;
                 btn_DangNhap.Values.Text = "Đang đăng nhập...";
@@ -592,6 +603,7 @@ namespace PhanMemThiDua2026
                 var (kq, msBcrypt) = await tacVuXacThuc;
                 if (IsDisposed) return;
                 _msXacThuc = _swDangNhap.ElapsedMilliseconds;
+                Module_DoHieuNang.Moc($"Xác thực xong (luồng nền {_msXacThucNen} ms, về UI {_msXacThuc} ms, BCrypt {msBcrypt} ms)");
                 Debug.WriteLine($"[DangNhap] xác thực xong sau {_msXacThuc} ms (riêng BCrypt {msBcrypt} ms) -> {kq}");
                 if (kq != KetQuaXacThuc.Sai)
                 {
@@ -600,40 +612,16 @@ namespace PhanMemThiDua2026
                     await Task.WhenAny(tacVuChuanBi, Task.Delay(4000));
                     if (IsDisposed) return;
                     _msForm2SanSang = _swDangNhap?.ElapsedMilliseconds ?? -1;
+                    Module_DoHieuNang.Moc("Form2 đã dựng xong (chưa hiện)");
                     Debug.WriteLine($"[DangNhap] Form2 sẵn sàng sau {_swDangNhap?.ElapsedMilliseconds} ms (dựng song song với BCrypt)");
-                    // NẠP ĐỦ CÁC TRANG CHÍNH VÀO RAM TRƯỚC KHI VÀO (Trang chủ, Phân loại, Thống kê, Khen thưởng, Nhật ký).
-                    // Trang nào đã nạp sẵn lúc người dùng còn gõ mật khẩu thì bỏ qua ngay; còn thiếu thì làm nốt ở chế độ tăng tốc,
-                    // nút Đăng nhập hiện tiến độ. Vào giao diện chính rồi bấm trang nào cũng hiện tức thì, không còn nạp dần.
-                    // Tiến độ hiện dạng % TĂNG DẦN ĐỀU: mỗi trang chiếm một khoảng % bằng nhau; trong lúc dựng một trang,
-                    // số % bò chậm dần về sát mốc trang kế (không vượt), xong trang thì đuổi nhanh lên mốc mới.
-                    double ptHien = 0, ptSan = 0, ptTran = 0;
-                    void VePhanTram()
-                    {
-                        if (IsDisposed || btn_DangNhap.IsDisposed) return;
-                        string chu = $"Đang giải mã ({(int)ptHien}%)...";
-                        if (btn_DangNhap.Values.Text == chu) return;
-                        btn_DangNhap.Values.Text = chu;
-                        btn_DangNhap.Update();   // vẽ ngay: luồng giao diện đang bận dựng trang, không chờ lượt vẽ thường
-                    }
-                    using var dongHoPhanTram = new System.Windows.Forms.Timer { Interval = 30 };
-                    dongHoPhanTram.Tick += (_, _) =>
-                    {
-                        if (ptHien < ptSan) ptHien = Math.Min(ptSan, ptHien + Math.Max(1.0, (ptSan - ptHien) * 0.35));
-                        else if (ptHien < ptTran) ptHien += Math.Max(0.05, (ptTran - ptHien) * 0.03);
-                        if (ptHien > ptTran) ptHien = ptTran;
-                        VePhanTram();
-                    };
-                    await Module_GiaoDienForm2Web.DamBaoKhoTrangChinhAsync((xong, tong) =>
-                    {
-                        if (tong <= 0 || xong >= tong) return;
-                        ptSan = xong * 100.0 / tong;
-                        ptTran = Math.Min(99, (xong + 1) * 100.0 / tong - 1);
-                        if (!dongHoPhanTram.Enabled) { VePhanTram(); dongHoPhanTram.Start(); }
-                    });
-                    dongHoPhanTram.Stop();
+                    // CHỈ CHỜ TRANG CHỦ (Form4) rồi vào ngay: khung hình đầu tiên của Form2 đã đầy đủ dữ liệu.
+                    // Các trang khác KHÔNG chặn đăng nhập (trước đây chờ đủ 5 trang: 1,5–2,6 s ngồi nhìn % trên nút):
+                    // Form2 nạp tiếp chúng ở nền sau khi hiện; bấm trang chưa nạp thì trang đó được dựng ngay khi bấm.
+                    // Trang chủ đã nạp sẵn lúc người dùng còn gõ mật khẩu -> trả về tức thì.
+                    await Module_GiaoDienForm2Web.DamBaoTrangChuAsync(ToiDaChoTrangChuMs);
                     if (IsDisposed) return;
-                    if (ptTran > 0) { ptHien = 100; VePhanTram(); }   // đã từng hiện tiến độ -> chốt 100% trước khi vào
-                    Debug.WriteLine($"[DangNhap] kho trang chính sẵn sàng sau {_swDangNhap?.ElapsedMilliseconds} ms");
+                    Debug.WriteLine($"[DangNhap] Trang chủ sẵn sàng sau {_swDangNhap?.ElapsedMilliseconds} ms");
+                    Module_DoHieuNang.Moc("Hết chờ Trang chủ -> hiện Form2");
                 }
                 switch (kq)
                 {
@@ -862,7 +850,23 @@ namespace PhanMemThiDua2026
         private void btn_Thoat_Click(object sender, EventArgs e)
         {
             this.Close();
-            Application.Exit();
+            ThoatPhanMemAnToan();
+        }
+        /// <summary>
+        /// Application.Exit() duyệt Application.OpenForms để đóng lần lượt từng form. Lúc ở màn hình đăng nhập còn nhiều form ẨN
+        /// (Form2 dựng sẵn, kho giao diện, các trang con): một form đóng kéo theo form khác bị hủy => danh sách đổi giữa chừng =>
+        /// "Collection was modified; enumeration operation may not execute" (đã gặp thật: error-20261122.log 08:05, bấm nút X).
+        /// Form1 là form chính của Application.Run nên đóng nó là đủ để kết thúc phần mềm: gặp lỗi này thì đóng Form1 thay vì
+        /// để hộp thoại lỗi hiện ra. Hành vi thoát không đổi.
+        /// </summary>
+        private void ThoatPhanMemAnToan()
+        {
+            try { Application.Exit(); }
+            catch (InvalidOperationException ex)
+            {
+                Debug.WriteLine("[Thoát] Application.Exit: " + ex.Message);
+                try { if (!IsDisposed) Close(); } catch { }
+            }
         }
         private void LinkLabel1_DangKyTaiKhoanMoi_LinkClicked(object? sender, LinkLabelLinkClickedEventArgs e)
         {
@@ -943,7 +947,7 @@ namespace PhanMemThiDua2026
                 }
                 else if (ketQua == DialogResult.Abort)
                 {
-                    Application.Exit();
+                    ThoatPhanMemAnToan();
                 }
                 else
                 {
@@ -962,8 +966,11 @@ namespace PhanMemThiDua2026
             _swDangNhap ??= Stopwatch.StartNew();
             // Lấy Form2 đã nạp trước (nếu chưa có thì tự tạo), gắn phiên đăng nhập rồi hiện
             var form2 = Module_GiaoDienForm2Web.Lay();
-            form2.ApDungPhienDangNhap();
-            form2.Show();
+            using (Module_DoHieuNang.Doan("Form2.ApDungPhienDangNhap + Show (gồm Form2_Load đồng bộ)"))
+            {
+                form2.ApDungPhienDangNhap();
+                form2.Show();
+            }
             Debug.WriteLine($"[DangNhap] Form2.Show() trả về sau {_swDangNhap.ElapsedMilliseconds} ms");
             form2.BringToFront();
             form2.Activate();
@@ -973,6 +980,7 @@ namespace PhanMemThiDua2026
                 if (!IsDisposed) Hide();
                 long msTong = _swDangNhap?.ElapsedMilliseconds ?? -1;
                 Debug.WriteLine($"[DangNhap] Form2 hiện xong sau {msTong} ms");
+                Module_DoHieuNang.Moc($"FORM2 HIỆN XONG TRÊN MÀN HÌNH (tổng từ lúc bấm: {msTong} ms)");
                 GhiThoiGianDangNhapRaTep(_msXacThucNen, _msXacThuc, _msForm2SanSang, msTong);
                 KhoiPhucSauDangNhap();   // tắt đèn đỏ -> việc nạp trước/bảo trì chạy tiếp
             });
@@ -1027,7 +1035,7 @@ namespace PhanMemThiDua2026
             if (demSai >= 3)
             {
                 MessageBox.Show("Hệ thống nghi ngờ truy cập trái phép, phần mềm sẽ thoát!", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Stop);
-                Application.Exit();
+                ThoatPhanMemAnToan();
             }
             else
             {
@@ -1145,7 +1153,7 @@ namespace PhanMemThiDua2026
         private void lblDong_Click(object? sender, EventArgs e)
         {
             this.Close();
-            Application.Exit();
+            ThoatPhanMemAnToan();
         }
         private void lblThuNho_Click(object? sender, EventArgs e)
         {

@@ -188,8 +188,9 @@ namespace PhanMemThiDua2026
             isEditing = false;
             this.AcceptButton = kryptonButton1_Them; // ✅ Enter = Thêm
         }
-        private void kryptonButton1_Them_Click(object? sender, EventArgs e)
+        private async void kryptonButton1_Them_Click(object? sender, EventArgs e)
         {
+            if (_dangGhiCSDL) return;   // lần bấm trước còn đang ghi ở nền: bỏ qua (chống thêm trùng do bấm 2 lần)
             string tenDonVi = textBox_TenDonVi.Text.Trim();
             if (string.IsNullOrWhiteSpace(tenDonVi))
             {
@@ -202,42 +203,64 @@ namespace PhanMemThiDua2026
                 textBox_TenDonVi.Focus();
                 return;
             }
-            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
-            cn.Open();
-            string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
-            // Kiểm tra tồn tại
-            using var check = cn.CreateCommand();
-            check.CommandText = $"SELECT ID, Ten_DonVi, ThoiGian FROM {tenBang}";
-            using var reader = check.ExecuteReader();
-            while (reader.Read())
+            string csdlPath = _csdl2Path;
+            string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến (lấy trên luồng UI như cũ)
+            (int Id, string ThoiGian)? trung;
+            _dangGhiCSDL = true;
+            try
             {
-                string existingTen = TryGiaiMa(reader.GetString(1));
-                if (string.Equals(existingTen, tenDonVi, StringComparison.OrdinalIgnoreCase))
+                // Đọc - kiểm tra trùng - ghi chạy ở LUỒNG NỀN: CSDL đang bận (sao lưu/nén...) thì giao diện không bị "Not Responding"
+                trung = await Task.Run(() => ThemDonViDb(csdlPath, tenBang, tenDonVi));
+            }
+            finally { _dangGhiCSDL = false; }
+            if (IsDisposed) return;
+            if (trung is { } t)
+            {
+                MessageBox.Show(
+                    $"Đơn vị '{tenDonVi}' (ID {t.Id}) đã được tạo ngày {t.ThoiGian}.\nBạn không thể thêm trùng tên, nhưng có thể sửa tên!",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+            // Load lại dữ liệu và chọn dòng cuối
+            LoadDanhSachDonVi();
+            ResetInput();
+        }
+        /// <summary>Đang có thao tác Thêm/Sửa/Xóa chạy ở nền (chỉ đọc/ghi trên luồng UI).</summary>
+        private bool _dangGhiCSDL;
+        /// <summary>
+        /// LUỒNG NỀN (không đụng control): kiểm tra trùng tên rồi thêm đơn vị. Trùng => trả (ID, thời gian tạo) của bản ghi
+        /// đã có và KHÔNG ghi gì; thêm được => trả null. Logic y hệt bản chạy trên luồng UI trước đây.
+        /// </summary>
+        private (int Id, string ThoiGian)? ThemDonViDb(string csdlPath, string tenBang, string tenDonVi)
+        {
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdlPath));
+            cn.Open();
+            // Kiểm tra tồn tại
+            using (var check = cn.CreateCommand())
+            {
+                check.CommandText = $"SELECT ID, Ten_DonVi, ThoiGian FROM {tenBang}";
+                using var reader = check.ExecuteReader();
+                while (reader.Read())
                 {
-                    int existingID = reader.GetInt32(0);
-                    string tg = TryGiaiMa(reader.GetString(2));
-                    MessageBox.Show(
-                        $"Đơn vị '{tenDonVi}' (ID {existingID}) đã được tạo ngày {tg}.\nBạn không thể thêm trùng tên, nhưng có thể sửa tên!",
-                        "Thông báo",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
-                    );
-                    return;
+                    string existingTen = TryGiaiMa(reader.GetString(1));
+                    if (string.Equals(existingTen, tenDonVi, StringComparison.OrdinalIgnoreCase))
+                        return (reader.GetInt32(0), TryGiaiMa(reader.GetString(2)));
                 }
             }
-            reader.Close();
             // Thêm mới
             using var cmd = cn.CreateCommand();
             cmd.CommandText = $"INSERT INTO {tenBang} (Ten_DonVi, ThoiGian) VALUES (@ten, @time)";
             cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenDonVi));
             cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
             cmd.ExecuteNonQuery();
-            // Load lại dữ liệu và chọn dòng cuối
-            LoadDanhSachDonVi();
-            ResetInput();
+            return null;
         }
-        private void kryptonButton1_Sua_Click(object? sender, EventArgs e)
+        private async void kryptonButton1_Sua_Click(object? sender, EventArgs e)
         {
+            if (_dangGhiCSDL) return;
             if (!isEditing || _selectedID < 0)
             {
                 MessageBox.Show("Bạn chưa chọn đơn vị để sửa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -249,55 +272,82 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Chưa nhập tên đơn vị!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
-            cn.Open();
+            // Chụp giá trị TRƯỚC khi chạy nền: trong lúc chờ người dùng có thể bấm sang dòng khác (đổi _selectedID)
+            int idSua = _selectedID;
+            string csdlPath = _csdl2Path;
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
-            // Kiểm tra trùng tên
-            using var check = cn.CreateCommand();
-            check.CommandText = $"SELECT ID, Ten_DonVi FROM {tenBang} WHERE ID <> @id";
-            check.Parameters.AddWithValue("@id", _selectedID);
-            using var reader = check.ExecuteReader();
-            while (reader.Read())
+            int? idTrung;
+            _dangGhiCSDL = true;
+            try { idTrung = await Task.Run(() => SuaDonViDb(csdlPath, tenBang, idSua, tenDonViMoi)); }
+            finally { _dangGhiCSDL = false; }
+            if (IsDisposed) return;
+            if (idTrung is int existingID)
             {
-                string existingTen = TryGiaiMa(reader.GetString(1));
-                if (string.Equals(existingTen, tenDonViMoi, StringComparison.OrdinalIgnoreCase))
+                MessageBox.Show(
+                    $"Đơn vị '{tenDonViMoi}' (ID {existingID}) đã tồn tại.\nBạn không thể lưu trùng tên!",
+                    "Thông báo",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
+            // Load lại dữ liệu, cập nhật label và reset input
+            LoadDanhSachDonVi(idSua);
+            ResetInput();
+        }
+        /// <summary>LUỒNG NỀN: trùng tên với đơn vị khác => trả ID đơn vị đó, KHÔNG ghi; cập nhật được => trả null.</summary>
+        private int? SuaDonViDb(string csdlPath, string tenBang, int id, string tenDonViMoi)
+        {
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdlPath));
+            cn.Open();
+            // Kiểm tra trùng tên
+            using (var check = cn.CreateCommand())
+            {
+                check.CommandText = $"SELECT ID, Ten_DonVi FROM {tenBang} WHERE ID <> @id";
+                check.Parameters.AddWithValue("@id", id);
+                using var reader = check.ExecuteReader();
+                while (reader.Read())
                 {
-                    int existingID = reader.GetInt32(0);
-                    MessageBox.Show(
-                        $"Đơn vị '{tenDonViMoi}' (ID {existingID}) đã tồn tại.\nBạn không thể lưu trùng tên!",
-                        "Thông báo",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
-                    );
-                    return;
+                    string existingTen = TryGiaiMa(reader.GetString(1));
+                    if (string.Equals(existingTen, tenDonViMoi, StringComparison.OrdinalIgnoreCase))
+                        return reader.GetInt32(0);
                 }
             }
-            reader.Close();
             // Cập nhật
             using var cmd = cn.CreateCommand();
             cmd.CommandText = $"UPDATE {tenBang} SET Ten_DonVi=@ten, ThoiGian=@time WHERE ID=@id";
             cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenDonViMoi));
             cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
-            cmd.Parameters.AddWithValue("@id", _selectedID);
+            cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
-            // Load lại dữ liệu, cập nhật label và reset input
-            LoadDanhSachDonVi(_selectedID);
-            ResetInput();
+            return null;
         }
-        private void kryptonButton1_Xoa_Click(object? sender, EventArgs e)
+        private async void kryptonButton1_Xoa_Click(object? sender, EventArgs e)
         {
+            if (_dangGhiCSDL) return;
             if (!isEditing || _selectedID < 0)
             {
                 MessageBox.Show("Bạn chưa chọn đơn vị để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
-            cn.Open();
-            using var cmd = cn.CreateCommand();
+            int idXoa = _selectedID;
+            string csdlPath = _csdl2Path;
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
-            cmd.CommandText = $"DELETE FROM {tenBang} WHERE ID=@id";
-            cmd.Parameters.AddWithValue("@id", _selectedID);
-            cmd.ExecuteNonQuery();
+            _dangGhiCSDL = true;
+            try
+            {
+                await Task.Run(() =>
+                {
+                    using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdlPath));
+                    cn.Open();
+                    using var cmd = cn.CreateCommand();
+                    cmd.CommandText = $"DELETE FROM {tenBang} WHERE ID=@id";
+                    cmd.Parameters.AddWithValue("@id", idXoa);
+                    cmd.ExecuteNonQuery();
+                });
+            }
+            finally { _dangGhiCSDL = false; }
+            if (IsDisposed) return;
             LoadDanhSachDonVi();
             ResetInput();
         }

@@ -487,12 +487,14 @@ WHERE ID <
                         ? $"Tài khoản: {Module_TaiKhoan.TenTaiKhoan_RAM} | Tự động xóa khi đạt {soDongTuCsdl} dòng"
                         : $"Tài khoản: {Module_TaiKhoan.TenTaiKhoan_RAM}";
                     // Tự động dò tìm Form10 trong danh sách các Form đang mở của ứng dụng
-                    // Sử dụng đồng bộ luồng Invoke an toàn để nạp chuỗi văn bản lên UI
+                    // BeginInvoke (KHÔNG chờ): luồng nền chỉ gửi việc cập nhật nhãn sang luồng UI rồi kết thúc. Invoke đồng bộ
+                    // trước đây giữ 1 luồng ThreadPool đứng chờ UI rảnh và có nguy cơ khóa chéo nếu UI đang chờ chính tác vụ này.
                     var f10 = System.Windows.Forms.Application.OpenForms["Form10_NhatKy"] as Form10_NhatKy;
                     if (f10 != null && f10.IsHandleCreated && !f10.IsDisposed)
                     {
-                        f10.Invoke(new Action(() =>
+                        f10.BeginInvoke(new Action(() =>
                         {
+                            if (f10.IsDisposed) return;
                             // Truy cập vào toolStripStatusLabel1 của Form10 thông qua thuộc tính hoặc hàm (Xem hướng dẫn bước 2)
                             f10.CapNhatVanBanStatusLabel(textHienThi);
                         }));

@@ -85,7 +85,14 @@ namespace PhanMemThiDua2026
                 ScheduleBackgroundMaintenance();
                 // 9. Giao diện chính: dựng Form1 trên luồng chính trong lúc các tác vụ ở bước 7 đang chạy nền.
                 var form1 = new Form1();
-                try { Task.WaitAll(tacVuSong); } catch { /* lỗi từng bước đã được RunNonCritical ghi nhật ký */ }
+                // Đo hiệu năng phiên khởi động (Database\NhatKyNhaPhatTrien\hieunang-*.log). new Form1() đã cài
+                // WindowsFormsSynchronizationContext cho luồng này nên đo được độ kẹt UI ngay từ đây. Phiên kết thúc khi bấm Đăng nhập.
+                Module_DoHieuNang.BatDau("Khởi động → màn hình đăng nhập");
+                Module_DoHieuNang.Moc($"new Form1() xong - {MsTuLucMoTienTrinh()} ms kể từ lúc mở phần mềm (gồm khởi tạo CSDL)");
+                using (Module_DoHieuNang.Doan("Chờ theme/màu menu/bảng nhật ký trước Application.Run"))
+                {
+                    try { Task.WaitAll(tacVuSong); } catch { /* lỗi từng bước đã được RunNonCritical ghi nhật ký */ }
+                }
                 Application.Run(form1);
                 return ExitOk;
             }
@@ -99,6 +106,16 @@ namespace PhanMemThiDua2026
                 // 10. Dọn dẹp luôn chạy, kể cả khi lỗi
                 CleanupResources(isPrimaryInstance);
             }
+        }
+        /// <summary>Số ms từ lúc Windows tạo tiến trình tới giờ (-1 nếu không đọc được). Chỉ dùng cho nhật ký đo.</summary>
+        private static long MsTuLucMoTienTrinh()
+        {
+            try
+            {
+                using var p = Process.GetCurrentProcess();
+                return (long)(DateTime.Now - p.StartTime).TotalMilliseconds;
+            }
+            catch { return -1; }
         }
         //  LÀM NÓNG SONG SONG
         // Chạy ở thread pool, fire-and-forget; lỗi ở đây không bao giờ ảnh hưởng ứng dụng.
@@ -138,6 +155,8 @@ namespace PhanMemThiDua2026
             ApplicationConfiguration.Initialize();
             // Mọi thiết lập DPI phải xong trước khi có bất kỳ cửa sổ nào được tạo.
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+            // Chẩn đoán (tắt mặc định): PMTD_KIEM_TRA_LUONG=1 => bắt mọi lần luồng nền chạm control, ghi luong-*.log
+            Module_DoHieuNang.BatKiemTraLuongNeuCan();
         }
         // Ghi chú: .GetAwaiter().GetResult() ở đây là BLOCKING có chủ đích. Main() chưa gọi
         // Application.Run nên chưa có WindowsFormsSynchronizationContext -> không deadlock,
@@ -269,7 +288,8 @@ namespace PhanMemThiDua2026
         {
             if (ct.IsCancellationRequested) return;
             // Người dùng đang bấm Đăng nhập (BCrypt + dựng Form2): nhường CPU/đĩa, xong rồi mới chạy bước kế tiếp.
-            Module_UuTienDangNhap.NhuongNen(ct);
+            using (Module_DoHieuNang.Khoang("Bảo trì nền nhường đăng nhập trước bước: " + stepName))
+                Module_UuTienDangNhap.NhuongNen(ct);
             if (ct.IsCancellationRequested) return;
             // Chế độ "nền" của Windows cho riêng luồng này: hạ cả ưu tiên CPU lẫn ưu tiên I/O đĩa/bộ nhớ trong lúc chạy bước
             // (băm SHA-256 kho lõi, đồng bộ thư mục... rất nặng đĩa, nhất là máy có phần mềm diệt virus quét từng lần mở tệp).
@@ -279,7 +299,8 @@ namespace PhanMemThiDua2026
             catch { /* không hỗ trợ -> chạy ưu tiên thường như cũ */ }
             try
             {
-                RunNonCritical(stepName, action);
+                using (Module_DoHieuNang.Khoang("Bảo trì nền: " + stepName))
+                    RunNonCritical(stepName, action);
             }
             finally
             {
@@ -508,6 +529,7 @@ namespace PhanMemThiDua2026
         {
             // 1. Báo tác vụ nền dừng (bước chưa chạy sẽ bị bỏ qua), rồi chờ bước đang chạy
             //    (nếu có) hoàn tất tối đa vài giây để không bị kill giữa chừng khi ghi CSDL.
+            Module_DoHieuNang.KetThuc("thoát phần mềm", dongBo: true);   // phiên đo còn dở (nếu có) vẫn được ghi báo cáo
             try { ShutdownCts.Cancel(); } catch { }
             try { _backgroundTask?.Wait(BackgroundShutdownWaitMs); } catch { }
             // 2. Xả hàng đợi nhật ký xuống CSDL.

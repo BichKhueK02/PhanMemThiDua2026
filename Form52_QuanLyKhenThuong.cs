@@ -105,7 +105,7 @@ namespace PhanMemThiDua2026
             Form goc;
             try
             {
-                goc = ChuyenTab(t, tieuDe);
+                using (Module_DoHieuNang.Doan($"Form52: ChuyenTab {t.Name} (dựng + Show trang con)")) goc = ChuyenTab(t, tieuDe);
             }
             catch (Exception ex)
             {
@@ -122,7 +122,8 @@ namespace PhanMemThiDua2026
         {
             Form? trangCu = TrangDangHien();
             Form? gocCu = _activeSubForm;
-            Form goc = LayHoacTaoGoc(t);
+            Form goc;
+            using (Module_DoHieuNang.Doan($"Form52: LayHoacTaoGoc {t.Name} (new + InitializeComponent)")) goc = LayHoacTaoGoc(t);
             Form hien = TrangTrenCung(t, goc);
             bool lanDau = _daTungHien.Add(goc);
             panelContent.SuspendLayout();
@@ -132,18 +133,18 @@ namespace PhanMemThiDua2026
                 _activeSubForm = goc;
                 _tieuDe[goc] = tieuDe;
                 hien.BringToFront();
-                Module_KhoGiaoDien.ShowTrongKho(hien);   // = Show(); nằm trong kho ẩn thì vẫn chạy Load
+                using (Module_DoHieuNang.Doan($"Form52: Show {hien.GetType().Name} (Load đồng bộ)")) Module_KhoGiaoDien.ShowTrongKho(hien);   // = Show(); nằm trong kho ẩn thì vẫn chạy Load
                 // Ẩn trang cũ SAU khi trang mới đã hiện (tránh 1 khung hình nền trống)
                 if (trangCu != null && trangCu != hien) trangCu.Hide();
             }
             finally
             {
-                panelContent.ResumeLayout(true);   // chỉ layout 1 lần
+                using (Module_DoHieuNang.Doan("Form52: ResumeLayout panelContent")) panelContent.ResumeLayout(true);   // chỉ layout 1 lần
             }
             // Form_Load của lần Show đầu đã tự nạp dữ liệu -> khỏi tải lại ngay
             if (lanDau) _lanTaiCuoi[t] = Environment.TickCount64;
             CapNhatTieuDeFormChinh(_tieuDe.TryGetValue(hien, out string? td) ? td : tieuDe);
-            hien.Update();   // vẽ ngay trước khi tải dữ liệu
+            using (Module_DoHieuNang.Doan($"Form52: {hien.GetType().Name}.Update (vẽ ngay)")) hien.Update();   // vẽ ngay trước khi tải dữ liệu
             // Tab cũ không có hàm reload: dọn như cũ để lần sau luôn mở bản mới (đã có form dự phòng dựng nền)
             if (gocCu != null && gocCu != goc && !gocCu.IsDisposed && !LaDungLau(gocCu.GetType()))
                 HuyTabDungMotLan(gocCu);
@@ -187,7 +188,7 @@ namespace PhanMemThiDua2026
             try
             {
                 await Task.Delay(500);
-                TaoDuPhong(t);
+                await TaoDuPhongAsync(t, () => IsDisposed || _isClosing);
             }
             catch (Exception ex)
             {
@@ -381,16 +382,23 @@ namespace PhanMemThiDua2026
         private bool LaDungLau(Type t) => LayHamReload(t) != null;
         // ================= PRELOAD AN TOÀN: dựng sẵn form con vào RAM (luồng UI) =================
         // Form dựng sẵn CHƯA Show nên Load chưa chạy; lúc mở thật chỉ bỏ phần tốn kém là dựng control.
-        private void TaoDuPhong(Type t)
+        /// <summary>
+        /// Dựng sẵn 1 trang con dự phòng. Tạo handle CHIA LÁT (Module_NhuongUI.TaoHandleTheoLatAsync) thay vì tạo cả cây một mạch:
+        /// bản cũ (TaoHandleDeQuy) chặn luồng giao diện 200–400 ms mỗi trang (đo: hieunang 22/11 09:23).
+        /// Trang được lấy ra dùng / hiện lên giữa chừng thì dừng chia lát (Show tự tạo nốt phần còn lại).
+        /// </summary>
+        private async Task TaoDuPhongAsync(Type t, Func<bool> dung)
         {
             if (IsDisposed || _isClosing) return;
-            if (_boNho.TryGetValue(t, out Form? dung) && !dung.IsDisposed) return;
+            if (_boNho.TryGetValue(t, out Form? dangDung) && !dangDung.IsDisposed) return;
             if (_formDuPhong.TryGetValue(t, out Form? da) && !da.IsDisposed) return;
             try
             {
-                Form f = _nhaMay[t]();
+                Form f;
+                using (Module_DoHieuNang.Doan($"Form52 dựng sẵn: new {t.Name} (InitializeComponent)")) f = _nhaMay[t]();
                 _formDuPhong[t] = f;
-                if (NapTruocTaoHandle) TaoHandleDeQuy(f);
+                if (NapTruocTaoHandle)
+                    await Module_NhuongUI.TaoHandleTheoLatAsync(f, () => dung() || f.IsDisposed || f.Visible || !_formDuPhong.ContainsValue(f));
             }
             catch (Exception ex)
             {
@@ -409,6 +417,8 @@ namespace PhanMemThiDua2026
             {
                 bool Dung() => IsDisposed || _isClosing || (huy?.Invoke() ?? false);
                 await Task.Delay(600);   // để trang đầu tiên mở xong trước
+                // Kho giao diện chính (5 trang hay dùng) nạp xong rồi mới tới lượt các trang con này: không chen vào lúc vừa đăng nhập
+                if (!await Module_NhuongUI.ChoKhoChinhXongAsync(Dung)) return;
                 foreach (Type t in new[]
                 {
                     typeof(Form49_QuanLyKhenThuongTapThe),
@@ -421,8 +431,10 @@ namespace PhanMemThiDua2026
                     // Mỗi form dựng là 1 khối nặng không chia nhỏ được: chờ "đèn đỏ" đăng nhập + người dùng rảnh tay
                     // (trang này có thể đang được nạp sẵn từ lúc người dùng còn gõ mật khẩu)
                     await Module_UuTienDangNhap.NhuongAsync();
-                    if (!await Module_NhuongUI.ChoRanhAsync(Dung)) return;
-                    TaoDuPhong(t);
+                    // new + InitializeComponent của mỗi trang là 1 khối 40–240 ms không chia nhỏ được: chỉ làm khi người dùng
+                    // đã rời chuột/bàn phím hẳn 0,5 s (trước: 0,18 s - vẫn hay rơi trúng lúc đang thao tác)
+                    if (!await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 500, toiDaMs: 10000)) return;
+                    await TaoDuPhongAsync(t, Dung);
                     await Task.Delay(150);
                 }
             }
@@ -434,11 +446,6 @@ namespace PhanMemThiDua2026
             {
                 _dangNapDuPhong = false;
             }
-        }
-        private static void TaoHandleDeQuy(Control c)
-        {
-            try { _ = c.Handle; } catch { return; }
-            foreach (Control con in c.Controls) TaoHandleDeQuy(con);
         }
         // Đổi phiên bản phần mềm (CBCS <-> Tân binh): bỏ form dựng sẵn + form đang cache (trừ tab đang mở)
         // để lần mở sau dựng mới như ban đầu
