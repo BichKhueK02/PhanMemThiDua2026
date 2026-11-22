@@ -93,7 +93,7 @@ namespace PhanMemThiDua2026
         private static bool LaTanBinh()
         {
             string pb = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            return pb.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            return pb.LaCheDoTanBinh();
         }
         private async void Form28_DataTrungTen_Load(object? sender, EventArgs e)
         {
@@ -215,7 +215,7 @@ namespace PhanMemThiDua2026
             tlpSearch.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 122F));
             tlpSearch.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
             tlpSearch.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            var lblCap = new Label { Text = _laTanBinh ? "HỌ VÀ TÊN TÂN BINH" : "HỌ VÀ TÊN CBCS", Font = fCaption, ForeColor = UiColors.Muted, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft };
+            var lblCap = new Label { Text = _laTanBinh ? $"HỌ VÀ TÊN {Module_TaiKhoan.TenTB_InHoa}" : "HỌ VÀ TÊN CBCS", Font = fCaption, ForeColor = UiColors.Muted, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft };
             tlpSearch.Controls.Add(lblCap, 0, 0);
             tlpSearch.SetColumnSpan(lblCap, 4);
             tlpSearch.Controls.Add(new Label { Text = "\uE721", Font = fIcon, ForeColor = UiColors.Muted, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft }, 0, 1);
@@ -317,7 +317,7 @@ namespace PhanMemThiDua2026
             var detailHost = new Panel { Dock = DockStyle.Fill, BackColor = Color.White, Padding = new Padding(0, 6, 0, 0) };
             _gridDetail = TaoGrid();
             _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "STT", HeaderText = "STT", FillWeight = 6, MinimumWidth = 44, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoTen", HeaderText = _laTanBinh ? "Họ và tên tân binh" : "Họ và tên CBCS", FillWeight = 26, MinimumWidth = 120, SortMode = DataGridViewColumnSortMode.NotSortable });
+            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoTen", HeaderText = _laTanBinh ? $"Họ và tên {Module_TaiKhoan.TenTB_Thuong}" : "Họ và tên CBCS", FillWeight = 26, MinimumWidth = 120, SortMode = DataGridViewColumnSortMode.NotSortable });
             _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "NamSinh", HeaderText = "Năm sinh", FillWeight = 12, MinimumWidth = 70, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "CapBac", HeaderText = "Cấp bậc", FillWeight = 14, MinimumWidth = 70, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "DonVi", HeaderText = "Đơn vị", FillWeight = 30, MinimumWidth = 120, SortMode = DataGridViewColumnSortMode.NotSortable });
@@ -537,7 +537,7 @@ namespace PhanMemThiDua2026
                 conn.Open();
                 ApDungPragmaDoc(conn);
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT rowid, HoVaTen, DonVi FROM DanhSach WHERE HoVaTen IS NOT NULL";
+                cmd.CommandText = $"SELECT rowid, HoVaTen, DonVi FROM {Module_TaiKhoan.BangDanhSach} WHERE HoVaTen IS NOT NULL";
                 using var reader = cmd.ExecuteReader();
                 int count = 0;
                 while (reader.Read())
@@ -638,7 +638,7 @@ namespace PhanMemThiDua2026
                 token.ThrowIfCancellationRequested();
                 int end = Math.Min(start + SqlChunkSize, ids.Count);
                 sb.Clear();
-                sb.Append("SELECT HoVaTen, NamSinh, CapBac, DonVi, SoHieu, GhiChu FROM DanhSach WHERE rowid IN (");
+                sb.Append($"SELECT HoVaTen, NamSinh, CapBac, DonVi, SoHieu, GhiChu FROM {Module_TaiKhoan.BangDanhSach} WHERE rowid IN (");
                 for (int i = start; i < end; i++)
                 {
                     if (i > start) sb.Append(',');
@@ -1052,12 +1052,12 @@ namespace PhanMemThiDua2026
         }
         private void XacDinhPhienBan()
         {
-            _lblVersion.Text = _laTanBinh ? "Phiên bản phần mềm dành cho tân binh" : "Phiên bản phần mềm dành cho CBCS";
+            _lblVersion.Text = _laTanBinh ? $"Phiên bản phần mềm dành cho {Module_TaiKhoan.TenTB_Thuong}" : "Phiên bản phần mềm dành cho CBCS";
         }
         private void SetupPlaceholder()
         {
             if (_txtSearch != null && !_txtSearch.IsDisposed)
-                SendMessage(_txtSearch.Handle, EM_SETCUEBANNER, 1, _laTanBinh ? "Nhập họ và tên tân binh để tìm kiếm (không cần gõ dấu)" : "Nhập họ và tên CBCS để tìm kiếm (không cần gõ dấu)");
+                SendMessage(_txtSearch.Handle, EM_SETCUEBANNER, 1, _laTanBinh ? $"Nhập họ và tên {Module_TaiKhoan.TenTB_Thuong} để tìm kiếm (không cần gõ dấu)" : "Nhập họ và tên CBCS để tìm kiếm (không cần gõ dấu)");
         }
         protected override void OnFormClosing(FormClosingEventArgs e)
         {

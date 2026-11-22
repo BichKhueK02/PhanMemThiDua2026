@@ -703,9 +703,9 @@
             // 
             tableLayoutPanel2.ColumnCount = 4;
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 8.66533852F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58.16733F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.74502F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19.32271F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 49.50199F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21.4143429F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20.4183273F));
             tableLayoutPanel2.Controls.Add(label_DonVi, 3, 0);
             tableLayoutPanel2.Controls.Add(label1_ID_Tanbinh, 2, 0);
             tableLayoutPanel2.Controls.Add(pictureBox1, 0, 0);
@@ -723,12 +723,12 @@
             // 
             label_DonVi.Anchor = AnchorStyles.Left;
             label_DonVi.AutoSize = true;
-            label_DonVi.Font = new Font("Segoe UI Semibold", 16.128F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label_DonVi.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
             label_DonVi.ForeColor = Color.Green;
-            label_DonVi.Location = new Point(811, 13);
+            label_DonVi.Location = new Point(801, 15);
             label_DonVi.Margin = new Padding(2, 0, 2, 0);
             label_DonVi.Name = "label_DonVi";
-            label_DonVi.Size = new Size(75, 30);
+            label_DonVi.Size = new Size(68, 25);
             label_DonVi.TabIndex = 3;
             label_DonVi.Text = "DonVi";
             // 
@@ -736,12 +736,12 @@
             // 
             label1_ID_Tanbinh.Anchor = AnchorStyles.Left;
             label1_ID_Tanbinh.AutoSize = true;
-            label1_ID_Tanbinh.Font = new Font("Segoe UI Semibold", 17.855999F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label1_ID_Tanbinh.Font = new Font("Segoe UI", 14.25F, FontStyle.Bold);
             label1_ID_Tanbinh.ForeColor = Color.Green;
-            label1_ID_Tanbinh.Location = new Point(673, 12);
+            label1_ID_Tanbinh.Location = new Point(586, 15);
             label1_ID_Tanbinh.Margin = new Padding(2, 0, 2, 0);
             label1_ID_Tanbinh.Name = "label1_ID_Tanbinh";
-            label1_ID_Tanbinh.Size = new Size(38, 32);
+            label1_ID_Tanbinh.Size = new Size(32, 25);
             label1_ID_Tanbinh.TabIndex = 2;
             label1_ID_Tanbinh.Text = "ID";
             // 
@@ -786,7 +786,6 @@
         }
         #endregion
         private Krypton.Toolkit.KryptonButton kryptonButton1_CapNhat;
-        private Label label_Thang_12_NamCu;
         private GroupBox groupBox2_ThongTinThiDuaKhenThuongNamHienTai;
         private PictureBox pictureBox1;
         private Label label1_HoVaTen;
@@ -829,7 +828,6 @@
         private Label label14;
         private Label label13;
         private Label label12;
-        private Label label_ID_SoHieu;
         private Label label2;
         private ComboBox combobox_tuan_4_Thang4;
         private ComboBox combobox_tuan_4_Thang5;

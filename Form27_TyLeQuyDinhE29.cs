@@ -1,16 +1,16 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System.Diagnostics;   // Cho Debug.WriteLine
 using System.Data;          // Cho CommandBehavior
+using System.Diagnostics;   // Cho Debug.WriteLine
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form27_TyLeQuyDinhE29 : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private readonly Color _focusColor = Color.FromArgb(0, 120, 215); // xanh chuẩn Win
-        private readonly Color _normalColor = Color.FromArgb(200, 200, 200);
+        //private readonly Color _focusColor = Color.FromArgb(0, 120, 215); // xanh chuẩn Win
+        //private readonly Color _normalColor = Color.FromArgb(200, 200, 200);
         public static event Action? OnQuyDinhChanged;
         // 1. Thêm biến Timer để quản lý thông báo
         private CancellationTokenSource? _ctsLuuDuLieu;
@@ -18,7 +18,7 @@ namespace PhanMemThiDua2026
         private System.Windows.Forms.Timer _timerThongBao;
         public Dictionary<string, int[]> DeNghiMapping { get; private set; }
             = new Dictionary<string, int[]>();
-        private KryptonTextBox[,] _txtGrid;
+        private KryptonTextBox[,] _txtGrid = null!;
         private void InitTextBoxGrid()
         {
             // Cấu trúc: _txtGrid[row, column]
@@ -137,7 +137,7 @@ namespace PhanMemThiDua2026
             get
             {
                 string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                return phienBan.LaCheDoTanBinh()
                     ? "QuyDinhTyLe_TanBinh"
                     : "QuyDinhTyLe";
             }
@@ -170,7 +170,7 @@ namespace PhanMemThiDua2026
             }
             try
             {
-                await using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
+                await using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 await conn.OpenAsync(cancellationToken);
                 // 🌟 GỘP TẠO BẢNG + ĐỌC DỮ LIỆU TRONG 1 TRANSACTION DUY NHẤT
                 // -> Đảm bảo tính toàn vẹn: nếu lỗi giữa chừng, không để lại trạng thái nửa vời
@@ -295,7 +295,7 @@ WHERE ID BETWEEN 1 AND @soHang";
         private async Task SaveQuyDinhTyLeAsync(CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
-            using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             await conn.OpenAsync(ct);
             using var tran = conn.BeginTransaction();
             try
@@ -435,7 +435,7 @@ WHERE ID BETWEEN 1 AND @soHang";
         {
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 conn.Open();
                 string sql = @"SELECT TenTrungDoan, textBox1_TenTrungDoanDong1 
                        FROM ThongTin LIMIT 1";
@@ -449,7 +449,7 @@ WHERE ID BETWEEN 1 AND @soHang";
                     //groupBox_TyLeTheoQuyDinh.Text = $"{tenDayDu} QUY ĐỊNH";
                     groupBox_TyLeTheoQuyDinh.Text =
     TenBangHienTai == "QuyDinhTyLe_TanBinh"
-        ? $"{tenDayDu} QUY ĐỊNH - TỶ LỆ THI ĐUA TÂN BINH"
+        ? $"{tenDayDu} QUY ĐỊNH - TỶ LỆ THI ĐUA {Module_TaiKhoan.TenTB_InHoa}"
         : $"{tenDayDu} QUY ĐỊNH";
                 }
                 // định dạng chữ

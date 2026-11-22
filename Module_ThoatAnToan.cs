@@ -1,5 +1,4 @@
-﻿
-///Phiên bản 2 – ESC hỏi thoát ngay cả khi phần mềm treo (đường thoát độc lập với luồng giao diện), không rò rỉ Form,
+﻿///Phiên bản 2 – ESC hỏi thoát ngay cả khi phần mềm treo (đường thoát độc lập với luồng giao diện), không rò rỉ Form,
 ///đóng đủ mọi Form, không bị FormClosing chặn, luôn có chốt chặn cuối cùng (tự kết thúc tiến trình)
 ///
 using System.Collections.Concurrent;
@@ -201,11 +200,34 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _dangHoi, 0);
             }
         }
-        // ===================== THOÁT =====================
-        /// <summary>Thoát nhẹ nhàng: đóng mọi Form (Form được quyền chặn bằng FormClosing) rồi thoát. Có chốt chặn 10 giây để không bao giờ kẹt vĩnh viễn.</summary>
-        public static void ThoatAnToan() => ThoatCore(khanCap: false, dongForm: true);
         /// <summary>Thoát khẩn cấp: cố đóng Form nhưng KHÔNG để Form nào chặn được; tối đa ~3 giây là tiến trình kết thúc.</summary>
         public static void ThoatKhanCap() => ThoatCore(khanCap: true, dongForm: true);
+        /// <summary>
+        /// Thoát DỨT KHOÁT, không đi qua Application.Exit() và FormClosing. Dùng khi phần mềm BẮT BUỘC phải tắt:
+        ///  - đã bàn giao cho ServiceBackup / ServiceRestore / trình gỡ cài đặt (chúng cần phần mềm mẹ nhả tệp CSDL);
+        ///  - chính sách bảo mật (nhập sai mật khẩu quá số lần).
+        /// LÝ DO: Application.Exit() duyệt Application.OpenForms và gọi FormClosing của từng Form; Form2_FormCha lại Dispose
+        /// các Form con trong FormClosing => "Collection was modified; enumeration operation may not execute" (InvalidOperationException),
+        /// phần mềm KHÔNG thoát. Ngoài ra nếu Cài đặt chọn "Trở về form đăng nhập", Form2 hủy lệnh đóng và mở lại Form đăng nhập.
+        /// Ở đây: ẩn mọi cửa sổ (không đổi danh sách Form), ghi nốt nhật ký (có giới hạn thời gian), rồi Environment.Exit —
+        /// đúng như nhánh "thoát hoàn toàn" của Form2 vẫn làm. Có chốt chặn ~3 giây tự kết thúc tiến trình nếu bước nào kẹt.
+        /// </summary>
+        public static void ThoatDutKhoat()
+        {
+            DatDongHoKetThuc(THOI_GIAN_CHO_KHAN_CAP_MS);
+            try
+            {
+                var ds = new Form[Application.OpenForms.Count];  // sao chép trước rồi mới thao tác
+                for (int i = 0; i < ds.Length; i++) ds[i] = Application.OpenForms[i]!;
+                foreach (var f in ds)
+                {
+                    try { if (f != null && !f.IsDisposed && f.Visible) f.Hide(); } catch { }
+                }
+            }
+            catch { }
+            XaLogToiDa();
+            Environment.Exit(0);
+        }
         private static void ThoatCore(bool khanCap, bool dongForm)
         {
             // Chốt chặn đặt TRƯỚC mọi thứ khác: dù bước nào bên dưới kẹt thì tiến trình vẫn tự kết thúc

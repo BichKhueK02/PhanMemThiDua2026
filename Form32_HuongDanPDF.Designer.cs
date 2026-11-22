@@ -31,7 +31,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.FromArgb(192, 192, 255);
+            BackColor = Color.FromArgb(226, 230, 236);
             ClientSize = new Size(1264, 681);
             Name = "Form32_HuongDanPDF";
             Text = "Form32_HuongDanPDF";

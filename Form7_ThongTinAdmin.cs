@@ -1,7 +1,7 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
-using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 // ==== HẰNG SỐ DÙNG CHUNG (TRÁNH MAGIC STRING RẢI RÁC) ====
 namespace PhanMemThiDua2026
 {
@@ -16,6 +16,8 @@ namespace PhanMemThiDua2026
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MaximizeBox = false;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            // THÊM DÒNG NÀY ĐỂ ÁP DỤNG GIAO DIỆN WEB
+            //Module_GiaoDienForm7Web.ApDung(this);
         }
         private void Form7_Load(object? sender, EventArgs e)
         {
@@ -49,7 +51,7 @@ namespace PhanMemThiDua2026
         }
         #region Thông tin chữ ký số (Textbox + màu)
     private const string PLACEHOLDER = "—";
-    private const string DATE_FORMAT = "dd/MM/yyyy";
+    //private const string DATE_FORMAT = "dd/MM/yyyy";
     /// <summary>
     /// Timeout tối đa cho việc kiểm tra thu hồi chứng chỉ (revocation check) qua mạng.
     /// Tránh treo UI vô thời hạn khi máy không có Internet hoặc CRL server không phản hồi.
@@ -235,46 +237,6 @@ namespace PhanMemThiDua2026
             return cert.Subject;
         }
         #endregion
-        private void pictureBox3_Click(object? sender, EventArgs e) => Module_DatabaseBackup.HienThiThongTinChungThu();
-        private void pictureBox4_Click(object? sender, EventArgs e)
-        {
-            try
-            {
-                string version = Module_PhienBan.SoftwareVersion;
-                string[] parts = version.Split('.');
-                if (parts.Length != 3)
-                {
-                    MessageBox.Show(
-                        $"Phiên bản hiện tại: {version}\nĐịnh dạng phiên bản không hợp lệ.",
-                        "Thông tin phiên bản",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                    return;
-                }
-                string msg =
-                    "PHÂN TÍCH PHIÊN BẢN PHẦN MỀM\n" +
-                    " \n" +
-                    $"Phiên bản hiện tại : {version}\n\n" +
-                    $"• Major : {parts[0]}  (Thay đổi lớn / kiến trúc)\n" +
-                    $"• Minor : {parts[1]}  (Nâng cấp chức năng)\n" +
-                    $"• Build : {parts[2]}  (Lần sửa đổi thứ {parts[2]})\n\n" +
-                    $"{Module_PhienBan.NgayThangNamCapNhat}\n" +
-                    "Trạng thái: Ổn định – đã kiểm thử thực tế.";
-                MessageBox.Show(
-                    msg,
-                    "Khai thác thông tin phiên bản",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    "Không thể hiển thị thông tin phiên bản.\n" + ex.Message,
-                    "Lỗi",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
-        }
         private void InitFocusHighlight(Control parent)
         {
             foreach (Control ctrl in parent.Controls)

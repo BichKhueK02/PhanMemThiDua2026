@@ -1,17 +1,11 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -22,13 +16,12 @@ namespace PhanMemThiDua2026
         // [CẬP NHẬT]: Thêm đường dẫn CSDL2 để đọc bảng cấu hình (ThongTin)
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private const int MAX_SAI = 3;
-        private const int THOI_GIAN_KHOA_PHUT = 5;
+        //private const int THOI_GIAN_KHOA_PHUT = 5;
         private static int _soLanSaiToanCuc = 0;
         private static DateTime _thoiGianMoKhoa = DateTime.MinValue;
         private bool _isProcessing = false;
         // Cờ chống spam nháy đúp chuột liên tục
         private bool _dangXuLyGoiYTaiKhoan = false;
-        private readonly string _cacheUserPath = Path.Combine(Application.StartupPath, "last_admin.txt");
         // 2. UI CONSTANTS
         // Viền ô nhập giữ CÙNG độ dày ở mọi trạng thái (chỉ đổi màu) để chữ không bị xê dịch 1px khi focus
         private static readonly Color FocusBorderColor = Color.FromArgb(99, 102, 241);
@@ -223,14 +216,6 @@ namespace PhanMemThiDua2026
                     if (!string.IsNullOrEmpty(tenTK))
                         return tenTK; // Điền thành công thì thoát hàm ngay, không cần quét Cache nữa
                 }
-                // BƯỚC 3: DỰ PHÒNG (Fallback)
-                // Nếu người dùng thiết lập KHÔNG cho phép (FALSE), ta sẽ lấy lại tên của lần đăng nhập thành công gần nhất từ file ẩn
-                if (File.Exists(_cacheUserPath))
-                {
-                    string savedUser = File.ReadAllText(_cacheUserPath).Trim();
-                    if (!string.IsNullOrEmpty(savedUser))
-                        return savedUser;
-                }
             }
             catch (Exception ex)
             {
@@ -243,7 +228,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrWhiteSpace(_csdl1Path) || !File.Exists(_csdl1Path))
                 return null;
-            string connStr = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;";
+            string connStr = Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path, chiDoc: true, thoiGianCho: 5);
             using var conn = new SqliteConnection(connStr);
             conn.Open();
             const string sql = "SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1";
@@ -261,7 +246,7 @@ namespace PhanMemThiDua2026
                 if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path))
                     return false;
                 // 🛡️ Mở kết nối với Timeout ngắn vì đây chỉ là hàm kiểm tra nhanh
-                using var cn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path, chiDoc: true, thoiGianCho: 5));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = "SELECT ChoPhepGoiYMatKhau FROM ThongTin WHERE ID = 1 LIMIT 1";
@@ -313,7 +298,7 @@ namespace PhanMemThiDua2026
             {
                 if (string.IsNullOrWhiteSpace(_csdl1Path) || !File.Exists(_csdl1Path))
                     return (false, "Không tìm thấy CSDL hệ thống!");
-                using var cn = new SqliteConnection($"Data Source={_csdl1Path}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path));
                 cn.Open();
                 string sql = "SELECT TenTaiKhoan, MatKhau FROM Admin";
                 using var cmd = new SqliteCommand(sql, cn);
@@ -383,11 +368,6 @@ namespace PhanMemThiDua2026
                 if (isSuccess)
                 {
                     _soLanSaiToanCuc = 0;
-                    try
-                    {
-                        File.WriteAllText(_cacheUserPath, tenNhap);
-                    }
-                    catch { }
                     text_MatKhau.Clear(); // xóa mật khẩu khỏi ô nhập trước khi đóng
                     this.DialogResult = DialogResult.OK;
                     this.Close();
@@ -403,7 +383,7 @@ namespace PhanMemThiDua2026
                         "Thông báo",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Stop);
-                    Application.Exit();
+                    Module_ThoatAnToan.ThoatDutKhoat();
                     return;
                 }
                 else

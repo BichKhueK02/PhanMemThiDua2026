@@ -22,7 +22,6 @@ namespace PhanMemThiDua2026
         private static readonly Color MauDauCot = Color.FromArgb(249, 250, 251);
         private static readonly Color MauChonNen = Color.FromArgb(219, 234, 254);
         private static readonly Color MauChonChu = Color.FromArgb(30, 58, 138);
-
         /// <summary>Màu hàng theo mức: 2 = lỗi, 1 = cảnh báo, 0 = tốt, còn lại = đang chờ (trung tính).</summary>
         public static (Color Nen, Color Chu) MauTheoMuc(int muc) => muc switch
         {
@@ -31,7 +30,6 @@ namespace PhanMemThiDua2026
             0 => (Color.FromArgb(236, 253, 245), Color.FromArgb(20, 83, 45)),
             _ => (Color.White, MauChuPhu),
         };
-
         private static readonly Dictionary<(string, float, FontStyle), Font> _fonts = new();
         private static Font LayFont(float co, FontStyle kieu)
         {
@@ -43,7 +41,6 @@ namespace PhanMemThiDua2026
                 return f;
             }
         }
-
         public static void ApDung(Form? f)
         {
             if (f == null) return;
@@ -57,13 +54,11 @@ namespace PhanMemThiDua2026
                 foreach (var g in Tim<DataGridView>(f)) DinhDangLuoi(g);
             });
         }
-
         private static void Chay(string ten, Action a)
         {
             try { a(); }
             catch (Exception ex) { Debug.WriteLine("[GiaoDienForm33Web] " + ten + ": " + ex.Message); }
         }
-
         private static IEnumerable<T> Tim<T>(Control goc) where T : Control
         {
             foreach (Control c in goc.Controls)
@@ -74,7 +69,6 @@ namespace PhanMemThiDua2026
         }
         private static T? Tim<T>(Control goc, string ten) where T : Control
             => goc.Controls.Find(ten, true).OfType<T>().FirstOrDefault();
-
         // ------------------------------------------------------------------
         private static void ChinhNen(Form f)
         {
@@ -86,7 +80,6 @@ namespace PhanMemThiDua2026
                 t1.Padding = new Padding(10, 6, 10, 4);
             }
         }
-
         // Thẻ trắng bo góc chứa người khai thác / phiên bản / 3 nút
         private static void ChinhTheDauTrang(Form f)
         {
@@ -118,7 +111,6 @@ namespace PhanMemThiDua2026
                 lb.ForeColor = MauChuPhu;
             }
         }
-
         private static GraphicsPath HinhBoTron(Rectangle r, int bk)
         {
             int d = bk * 2;
@@ -130,7 +122,6 @@ namespace PhanMemThiDua2026
             p.CloseFigure();
             return p;
         }
-
         private static void ChinhKhung(Form f)
         {
             foreach (var gb in Tim<GroupBox>(f))
@@ -140,7 +131,6 @@ namespace PhanMemThiDua2026
                 gb.Font = LayFont(10.5f, FontStyle.Bold);
             }
         }
-
         private static void ChinhThanhTrangThai(Form f)
         {
             var ss = Tim<StatusStrip>(f, "statusStrip1");
@@ -149,7 +139,6 @@ namespace PhanMemThiDua2026
             ss.ForeColor = MauChuPhu;
             ss.SizingGrip = false;
         }
-
         private static void ChinhNut(Form f)
         {
             foreach (var b in Tim<KryptonButton>(f))
@@ -159,7 +148,6 @@ namespace PhanMemThiDua2026
                 Module_GiaoDienForm12Web.DatKieuNut(b, chinh);
             }
         }
-
         // ------------------------------------------------------------------
         //  BẢNG
         // ------------------------------------------------------------------
@@ -180,7 +168,6 @@ namespace PhanMemThiDua2026
             dgv.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dgv.GridColor = Color.FromArgb(240, 241, 244);
             dgv.ScrollBars = ScrollBars.Both;
-
             var hs = dgv.ColumnHeadersDefaultCellStyle;
             hs.Alignment = DataGridViewContentAlignment.MiddleCenter;
             hs.BackColor = MauDauCot;
@@ -193,7 +180,6 @@ namespace PhanMemThiDua2026
             dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgv.ColumnHeadersHeight = 42;
-
             var ds = dgv.DefaultCellStyle;
             ds.Font = LayFont(9.5f, FontStyle.Regular);
             ds.BackColor = Color.White;
@@ -204,7 +190,6 @@ namespace PhanMemThiDua2026
             ds.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.White;
             dgv.RowTemplate.Height = 38;
-
             if (dgv is KryptonDataGridView k)
             {
                 try
@@ -226,7 +211,6 @@ namespace PhanMemThiDua2026
                 catch (Exception ex) { Debug.WriteLine("[GiaoDienForm33Web] krypton luoi: " + ex.Message); }
             }
         }
-
         private static readonly Dictionary<string, float> _trongSoCot = new(StringComparer.OrdinalIgnoreCase)
         {
             ["Trạng thái"] = 90,
@@ -247,7 +231,6 @@ namespace PhanMemThiDua2026
         {
             "STT", "Đọc", "Ghi", "Quyền đọc", "Quyền ghi", "Ổ đĩa",
         };
-
         /// <summary>Cỡ và căn lề cột. Gọi MỘT LẦN sau khi gán DataSource (cột đã có).</summary>
         public static void DatCot(DataGridView dgv)
         {

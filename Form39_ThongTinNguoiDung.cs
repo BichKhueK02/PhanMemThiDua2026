@@ -8,8 +8,8 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
         // 🔒 SYSTEM LIMITS
-        private const int MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB
-        private const int MAX_PIXEL_LIMIT = 4096;
+        //private const int MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB
+        //private const int MAX_PIXEL_LIMIT = 4096;
         private const int DISPLAY_SIZE = 256;
         // 🌟 CẤU HÌNH VIỀN UI/UX (đồng bộ với Form8)
         private static readonly Color FocusBorderColor = Color.FromArgb(99, 102, 241);  // Chàm
@@ -178,7 +178,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={dbPath}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = @"CREATE TABLE IF NOT EXISTS AvatarAdmin (
@@ -412,7 +412,7 @@ namespace PhanMemThiDua2026
         }
         private async Task<Image?> LayVaXuLyAnhTuDatabaseAsync(CancellationToken token)
         {
-            string connString = $"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=10;Pooling=True;";
+            string connString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path, chiDoc: true, thoiGianCho: 10);
             using var conn = new SqliteConnection(connString);
             await conn.OpenAsync(token);
             using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);

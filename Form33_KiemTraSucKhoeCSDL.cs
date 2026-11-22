@@ -24,14 +24,14 @@ namespace PhanMemThiDua2026
         private readonly string[] _pathsFilePhu;
         public static readonly string ThuMucCoSoDuLieu = Path.Combine(AppContext.BaseDirectory, "Database", "HuongDanSuDung");
         // ⭐ CHUẨN KỸ SƯ: Sử dụng ConcurrentDictionary để chống Crash khi chạy Đa luồng
-        private const long NGUONG_KIEM_TRA_DAY_DU_BYTES = 64L * 1024 * 1024; // CSDL > 64MB: dùng quick_check thay integrity_check
+        //private const long NGUONG_KIEM_TRA_DAY_DU_BYTES = 64L * 1024 * 1024; // CSDL > 64MB: dùng quick_check thay integrity_check
         private readonly ConcurrentDictionary<string, string> _cacheDungLuongOTrang = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         // Clone để form này sở hữu bản riêng -> Dispose khi đóng không ảnh hưởng nơi khác
         private readonly Image _iconSafe = (Image)Properties.Resources._true.Clone();
         private readonly Image _iconWarning = (Image)Properties.Resources._false.Clone();
         // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
-        private static readonly Font _fontGridHeader9Bold = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
-        private static readonly Font _fontGridCell9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
+        //private static readonly Font _fontGridHeader9Bold = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
+        //private static readonly Font _fontGridCell9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
         private static readonly Font _fontFormAoTitle12Bold = new Font(Module_HeThong.TenFontHeThong, 12F, FontStyle.Bold);
         private static readonly Font _fontFormAoMoTa105 = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular);
         private static readonly Font _fontFormAoGrid10 = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
@@ -41,6 +41,11 @@ namespace PhanMemThiDua2026
         private static readonly ConcurrentDictionary<string, (string Key, string Ok)> _cacheToanVen = new(StringComparer.OrdinalIgnoreCase);
         // Cache dung lượng thư mục (10 phút) – nút "Làm mới" sẽ xóa cache này
         private static readonly ConcurrentDictionary<string, (DateTime Time, long Size)> _cacheKichThuocThuMuc = new(StringComparer.OrdinalIgnoreCase);
+        // Cache phân tích dư thừa (trang rỗng + dòng trùng lặp hàng loạt): chỉ quét lại khi tệp thay đổi
+        private static readonly ConcurrentDictionary<string, (string Key, string MoTa)> _cacheLangPhi = new(StringComparer.OrdinalIgnoreCase);
+        private const string TIEN_TO_LANG_PHI_CAO = "Cao";
+        private int _dangThuGon;       // 1 = đang thu gọn CSDL (khóa đóng form / chạy lặp)
+        private ToolStripMenuItem? _menuThuGonTatCa;
         private DataTable _dtSQLite = null!;
         private DataTable _dtFilePhu = null!;
         private int _daKhoiChay;       // 0 = chưa chạy lần kiểm tra đầu tiên
@@ -75,9 +80,30 @@ namespace PhanMemThiDua2026
                 _iconWarning?.Dispose();
             };
             GiaoDienForm33Web.ApDung(this);
+            // Đang thu gọn (giữa chừng tráo tệp CSDL) thì không cho đóng form
+            FormClosing += (s, e) =>
+            {
+                if (Volatile.Read(ref _dangThuGon) == 1 && e.CloseReason == CloseReason.UserClosing)
+                {
+                    e.Cancel = true;
+                    MessageBox.Show("Đang thu gọn CSDL, vui lòng đợi hoàn tất rồi đóng cửa sổ.", "Thông báo",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            };
         }
         private void Form33_KiemTraSucKhoeCSDL_Load(object? sender, EventArgs e)
         {
+            // Menu thu gọn toàn bộ (đặt ngay sau "Thu gọn CSDL đang chọn"), tạo trước khi áp giao diện menu
+            if (_menuThuGonTatCa == null)
+            {
+                _menuThuGonTatCa = new ToolStripMenuItem("Thu gọn toàn bộ CSDL (trước khi chuyển máy)", Properties.Resources.ic_database,
+                    async (s, ev) => await ThuGonCacCSDLAsync(Enumerable.Range(0, _pathCSDL.Length).ToArray()))
+                {
+                    Name = "thuGonTatCa_ToolStripMenuItem"
+                };
+                int viTri = contextMenuStrip1.Items.IndexOf(chayVacuum_ToolStripMenuItem);
+                contextMenuStrip1.Items.Insert(viTri < 0 ? contextMenuStrip1.Items.Count : viTri + 1, _menuThuGonTatCa);
+            }
             Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             label_TenAdminDangNhap.Text = "Người khai thác: " + SessionInfo.TenTaiKhoan;
             toolStripProgressBar1.Visible = false;
@@ -205,7 +231,7 @@ namespace PhanMemThiDua2026
             if (!(sender is DataGridView dgv)) return;
             if (!GridConfig.StatusColumns.Contains(dgv.Columns[e.ColumnIndex].Name)) return;
             string cellValue = e.Value?.ToString() ?? string.Empty;
-            Image icon = GetIconByStatus(cellValue);
+            Image? icon = GetIconByStatus(cellValue);
             DataGridViewPaintParts paintParts = DataGridViewPaintParts.All & ~DataGridViewPaintParts.ContentForeground & ~DataGridViewPaintParts.Border;
             e.Paint(e.CellBounds, paintParts);
             Rectangle cellRect = e.CellBounds;
@@ -213,23 +239,32 @@ namespace PhanMemThiDua2026
             int yIcon = cellRect.Y + (cellRect.Height - GridConfig.IconSize) / 2;
             if (icon != null)
             {
-                e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                e.Graphics!.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                 e.Graphics.DrawImage(icon, xIcon, yIcon, GridConfig.IconSize, GridConfig.IconSize);
             }
             if (!string.IsNullOrEmpty(cellValue))
             {
                 int textOffset = (icon != null) ? (GridConfig.IconSize + GridConfig.Padding) : 0;
                 Rectangle textBounds = new Rectangle(xIcon + textOffset, cellRect.Y, cellRect.Width - textOffset - GridConfig.Padding, cellRect.Height);
-                Color textColor = (e.State & DataGridViewElementStates.Selected) != 0 ? e.CellStyle.SelectionForeColor : e.CellStyle.ForeColor;
+                Color textColor = (e.State & DataGridViewElementStates.Selected) != 0 ? e.CellStyle!.SelectionForeColor : e.CellStyle!.ForeColor;
                 TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding;
-                TextRenderer.DrawText(e.Graphics, cellValue, e.CellStyle.Font, textBounds, textColor, flags);
+                TextRenderer.DrawText(e.Graphics!, cellValue, e.CellStyle!.Font, textBounds, textColor, flags);
             }
             e.Handled = true;
+        }
+        private static bool LaLangPhiCao(string? moTa) => moTa != null && moTa.StartsWith(TIEN_TO_LANG_PHI_CAO + ":", StringComparison.Ordinal);
+        private bool CoCSDLCanThuGon()
+        {
+            if (_dtSQLite == null || !_dtSQLite.Columns.Contains("Mức độ phân mảnh")) return false;
+            foreach (DataRow r in _dtSQLite.Rows)
+                if (LaLangPhiCao(r["Mức độ phân mảnh"]?.ToString())) return true;
+            return false;
         }
         private void UpdateStatusKetLuan(int mucDoLoi)
         {
             if (mucDoLoi == 2) { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Lỗi nghiêm trọng CSDL!"; toolStripStatusLabel1_KetLuan.ForeColor = GiaoDienForm33Web.MauLoi; }
-            else if (mucDoLoi == 1) { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Có tệp phụ cần kiểm tra"; toolStripStatusLabel1_KetLuan.ForeColor = GiaoDienForm33Web.MauCanhBao; }
+            else if (mucDoLoi == 1 && CoCSDLCanThuGon()) { toolStripStatusLabel1_KetLuan.Text = "Kết luận: CSDL đang phình to – chuột phải › \"Thu gọn toàn bộ CSDL\""; toolStripStatusLabel1_KetLuan.ForeColor = GiaoDienForm33Web.MauCanhBao; }
+            else if (mucDoLoi == 1) { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Có mục cần kiểm tra"; toolStripStatusLabel1_KetLuan.ForeColor = GiaoDienForm33Web.MauCanhBao; }
             else { toolStripStatusLabel1_KetLuan.Text = "Kết luận: Hệ thống Sẵn sàng (Tốt)"; toolStripStatusLabel1_KetLuan.ForeColor = GiaoDienForm33Web.MauOk; }
         }
         private async void Form33_KiemTraSucKhoeCSDL_Shown(object? sender, EventArgs e) => await ChayLanDauAsync();
@@ -247,6 +282,7 @@ namespace PhanMemThiDua2026
                 return;
             _cacheKichThuocThuMuc.Clear();
             _cacheToanVen.Clear();
+            _cacheLangPhi.Clear();
             // 2. LƯU GIAO DIỆN GỐC ĐỂ KHÔI PHỤC
             string textGoc = kryptonButton1_CapNhat.Values.Text;
             Image? imageGoc = kryptonButton1_CapNhat.Values.Image;
@@ -288,10 +324,27 @@ namespace PhanMemThiDua2026
         ///  1) NHANH (mili-giây): tệp tồn tại, ngày tạo, dung lượng, quyền, journal, phân mảnh -> điền bảng ngay.
         ///  2) NẶNG (quick_check, quét dung lượng thư mục): chạy song song, xong dòng nào điền dòng đó.
         /// </summary>
-        private async Task RunCheckAsync()
+        // Lượt quét đang chạy: thu gọn CSDL phải hủy + đợi nó xong (kết nối chỉ đọc còn mở sẽ chặn việc tráo tệp)
+        private CancellationTokenSource? _ctsKiemTra;
+        private Task _tacVuKiemTra = Task.CompletedTask;
+        private Task RunCheckAsync()
+        {
+            _tacVuKiemTra = RunCheckCoreAsync();
+            return _tacVuKiemTra;
+        }
+        private async Task HuyVaDoiKiemTraAsync()
+        {
+            Interlocked.Increment(ref _thuTuKiemTra);
+            try { _ctsKiemTra?.Cancel(); } catch (ObjectDisposedException) { }
+            try { await _tacVuKiemTra; } catch { }
+        }
+        private async Task RunCheckCoreAsync()
         {
             if (this.IsDisposed) return;
             int thuTu = Interlocked.Increment(ref _thuTuKiemTra);
+            var cts = new CancellationTokenSource();
+            var ctsCu = Interlocked.Exchange(ref _ctsKiemTra, cts);
+            try { ctsCu?.Cancel(); } catch (ObjectDisposedException) { }
             try
             {
                 _cacheDungLuongOTrang.Clear();
@@ -300,7 +353,7 @@ namespace PhanMemThiDua2026
                 StartProgressBar();
                 DatLaiBangDangKiemTra();
                 var viec = new List<Task>(_pathCSDL.Length + _pathsFilePhu.Length);
-                for (int i = 0; i < _pathCSDL.Length; i++) viec.Add(KiemTraMotCSDLAsync(i, thuTu));
+                for (int i = 0; i < _pathCSDL.Length; i++) viec.Add(KiemTraMotCSDLAsync(i, thuTu, cts.Token));
                 for (int i = 0; i < _pathsFilePhu.Length; i++) viec.Add(KiemTraMotTepPhuAsync(i, thuTu));
                 await Task.WhenAll(viec);
                 if (DaCu(thuTu)) return;
@@ -316,7 +369,7 @@ namespace PhanMemThiDua2026
                 if (!DaCu(thuTu)) StopProgressBar();
             }
         }
-        private async Task KiemTraMotCSDLAsync(int i, int thuTu)
+        private async Task KiemTraMotCSDLAsync(int i, int thuTu, CancellationToken ct)
         {
             try
             {
@@ -324,13 +377,44 @@ namespace PhanMemThiDua2026
                 var kq = await Task.Run(() => DocNhanhSQLite(path));
                 if (DaCu(thuTu)) return;
                 GhiHangSQLite(i, kq);
-                if (!kq.CanQuetSau) return;
-                string sucKhoe = await Task.Run(() => QuetToanVenSQLite(path, kq.KhoaCache, kq.BiKhoa));
-                if (DaCu(thuTu)) return;
-                kq.SucKhoe = sucKhoe;
-                GhiHangSQLite(i, kq);
+                if (kq.CanQuetSau)
+                {
+                    string sucKhoe = await Task.Run(() => QuetToanVenSQLite(path, kq.KhoaCache, kq.BiKhoa));
+                    if (DaCu(thuTu)) return;
+                    kq.SucKhoe = sucKhoe;
+                    GhiHangSQLite(i, kq);
+                }
+                // Phân tích dư thừa (trang rỗng + dòng trùng lặp hàng loạt) chỉ khi CSDL còn đọc được bình thường
+                if (kq.CanQuetLangPhi && !kq.SucKhoe.Contains("Lỗi", StringComparison.OrdinalIgnoreCase))
+                {
+                    string? moTa = await Task.Run(() => PhanTichLangPhi(path, kq.KhoaCache, ct));
+                    if (DaCu(thuTu) || moTa == null) return;
+                    kq.PhanManh = moTa;
+                    GhiHangSQLite(i, kq);
+                }
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex) { Debug.WriteLine("[Form33] CSDL " + i + ": " + ex.Message); }
+        }
+        /// <summary>Quét dư thừa (luồng nền, có thể hủy). null = không phân tích được (giữ nguyên giá trị nhanh).</summary>
+        private static string? PhanTichLangPhi(string path, string khoa, CancellationToken ct)
+        {
+            try
+            {
+                var bc = Module_ThuGonCSDL.PhanTich(path, ct);
+                string moTa = bc.NenThuGon
+                    ? $"{TIEN_TO_LANG_PHI_CAO}: dư thừa ~{bc.TiLeLangPhi:F0}% ({Module_ThuGonCSDL.DinhDang(bc.ByteLangPhiUocTinh)}) – nên thu gọn"
+                    : $"Thấp: {bc.TiLeLangPhi:F1}% ({bc.FreePages:N0} trang rỗng)";
+                _cacheLangPhi[path] = (khoa, moTa);
+                return moTa;
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 9) { throw new OperationCanceledException(); }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[Form33] Phân tích dư thừa: " + ex.Message);
+                return null;
+            }
         }
         private async Task KiemTraMotTepPhuAsync(int i, int thuTu)
         {
@@ -380,7 +464,7 @@ namespace PhanMemThiDua2026
             {
                 var di = new DirectoryInfo(path);
                 kq.TonTai = true;
-                kq.ODia = Path.GetPathRoot(Path.GetFullPath(path));
+                kq.ODia = Path.GetPathRoot(Path.GetFullPath(path))!;
                 kq.NgayTao = di.CreationTime.ToString("dd/MM/yyyy HH:mm:ss");
                 if (_cacheKichThuocThuMuc.TryGetValue(path, out var cached)
                     && (DateTime.UtcNow - cached.Time).TotalMinutes < 10)
@@ -484,6 +568,7 @@ namespace PhanMemThiDua2026
                 if (sucKhoe == DANG_KIEM_TRA) muc = trangThai.Contains("FALSE") ? 2 : -1;
                 else if (trangThai.Contains("FALSE") || sucKhoe.Contains("Lỗi")) muc = 2;
                 else if (quyenGhi != "OK" || sucKhoe.Contains("khóa")) muc = 1;
+                else if (LaLangPhiCao(L("Mức độ phân mảnh"))) muc = 1;   // CSDL phình to: nên thu gọn
                 else muc = 0;
             }
             else
@@ -508,7 +593,7 @@ namespace PhanMemThiDua2026
                 mucDoNghiemTrong = Math.Max(mucDoNghiemTrong, ToMauMotHang(kryptonDataGridView2, i, false));
             return mucDoNghiemTrong;
         }
-        private string MoKetNoiChiDoc(string path) => $"Data Source={path};Mode=ReadOnly;Pooling=False;Default Timeout=10;";
+        private string MoKetNoiChiDoc(string path) => Module_KetNoiCSDL.ChuoiKetNoi(path, chiDoc: true, pooling: false, thoiGianCho: 10);
         private static string GopSucKhoe(string? ok, bool biKhoa)
             => !string.Equals(ok, "ok", StringComparison.OrdinalIgnoreCase) ? "Lỗi hỏng CSDL"
              : biKhoa ? "Đang bị khóa (Locked)" : "Tốt";
@@ -565,6 +650,15 @@ namespace PhanMemThiDua2026
                     kq.SucKhoe = DANG_KIEM_TRA;
                     kq.CanQuetSau = true;
                 }
+                if (_cacheLangPhi.TryGetValue(path, out var lp) && lp.Key == kq.KhoaCache)
+                {
+                    kq.PhanManh = lp.MoTa;            // tệp không đổi -> dùng kết quả phân tích dư thừa cũ
+                }
+                else
+                {
+                    kq.PhanManh += " – đang phân tích…";
+                    kq.CanQuetLangPhi = true;
+                }
             }
             catch (Exception)
             {
@@ -602,7 +696,7 @@ namespace PhanMemThiDua2026
             {
                 var fi = new FileInfo(path);
                 kq.TonTai = true;
-                kq.ODia = Path.GetPathRoot(Path.GetFullPath(path));
+                kq.ODia = Path.GetPathRoot(Path.GetFullPath(path))!;
                 kq.NgayTao = fi.CreationTime.ToString("dd/MM/yyyy HH:mm:ss");
                 kq.DungLuong = FormatSize(fi.Length);
                 kq.QuyenDoc = CoDoc(path);
@@ -662,8 +756,8 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(path)) return "-";
             try
             {
-                string root = Path.GetPathRoot(Path.GetFullPath(path));
-                if (_cacheDungLuongOTrang.TryGetValue(root, out string cachedValue))
+                string root = Path.GetPathRoot(Path.GetFullPath(path))!;
+                if (_cacheDungLuongOTrang.TryGetValue(root, out string? cachedValue))
                 {
                     return cachedValue;
                 }
@@ -833,7 +927,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using (var conn = new SqliteConnection($"Data Source={path};Mode=ReadOnly;Pooling=False;Default Timeout=10;"))
+                using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(path, chiDoc: true, pooling: false, thoiGianCho: 10)))
                 {
                     conn.Open();
                     using var cmd = conn.CreateCommand();
@@ -903,124 +997,140 @@ namespace PhanMemThiDua2026
                 return $"Không thể trích xuất thông tin kỹ thuật sâu.\nCSDL có thể đang bị khóa bởi tiến trình khác.\n\nMã lỗi: {ex.Message}";
             }
         }
-        private string ExecuteScalarString(SqliteCommand cmd, string sql)
+        private string? ExecuteScalarString(SqliteCommand cmd, string sql)
         {
             cmd.CommandText = sql;
             return cmd.ExecuteScalar()?.ToString();
         }
-        // 🚀 HÀM TỐI ƯU CSDL DUY NHẤT (SMART VACUUM - CHỐNG BÀO MÒN SSD & ANTI-CORRUPTION)
-        private async Task<(bool ThanhCong, string ThongBao)> ToiUuHoaCSDLAsync(string dbPath, string dbName)
-        {
-            if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
-            {
-                return (false, $"File CSDL {dbName} không tồn tại!");
-            }
-            try
-            {
-                // Khai báo biến đếm rác ở ngoài khối using để có thể sử dụng ở lệnh return cuối hàm
-                long freeListCount = 0;
-                double tiLeRac = 0.0;
-                var builder = new SqliteConnectionStringBuilder
-                {
-                    DataSource = dbPath,
-                    Mode = SqliteOpenMode.ReadWrite,
-                    Pooling = false,
-                    DefaultTimeout = 30
-                };
-                using (var conn = new SqliteConnection(builder.ConnectionString))
-                {
-                    await conn.OpenAsync();
-                    // 1. KIỂM TRA SỨC KHỎE (INTEGRITY CHECK) TRƯỚC KHI LÀM
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = "PRAGMA integrity_check;";
-                        var integrityResult = (await cmd.ExecuteScalarAsync())?.ToString();
-                        if (!string.Equals(integrityResult, "ok", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return (false, "CSDL đang bị lỗi cấu trúc (Corrupt). TUYỆT ĐỐI KHÔNG DỌN DẸP để bảo vệ dữ liệu còn lại!");
-                        }
-                    }
-                    // 2. ĐO LƯỜNG TỶ LỆ RÁC TRONG DB
-                    long pageCount = 0;
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = "PRAGMA page_count;";
-                        pageCount = Convert.ToInt64(await cmd.ExecuteScalarAsync() ?? 0);
-                        cmd.CommandText = "PRAGMA freelist_count;";
-                        freeListCount = Convert.ToInt64(await cmd.ExecuteScalarAsync() ?? 0);
-                    }
-                    if (pageCount == 0) return (true, "Cơ sở dữ liệu trống, không cần tối ưu.");
-                    tiLeRac = (freeListCount * 100.0) / pageCount;
-                    // 3. CHÍNH SÁCH BẢO VỆ SSD (Chỉ Vacuum khi rác > 15% hoặc số trang rác quá lớn)
-                    if (tiLeRac < 15.0 && freeListCount < 5000)
-                    {
-                        using (var cmd = conn.CreateCommand())
-                        {
-                            cmd.CommandText = "PRAGMA optimize;";
-                            await cmd.ExecuteNonQueryAsync();
-                        }
-                        return (true, $"Mức độ phân mảnh rất thấp ({tiLeRac:F2}%). Hệ thống tự động BỎ QUA lệnh VACUUM và chỉ chạy tối ưu nhẹ (Optimize) để bảo vệ tuổi thọ ổ cứng.");
-                    }
-                    // 4. THỰC THI VACUUM TOÀN PHẦN (Khi thực sự cần thiết)
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
-                        await cmd.ExecuteNonQueryAsync();
-                        cmd.CommandText = "PRAGMA optimize;";
-                        await cmd.ExecuteNonQueryAsync();
-                        cmd.CommandText = "VACUUM;";
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                }
-                return (true, $"Dọn dẹp thành công!\nHệ thống đã thu hồi {freeListCount} trang rác ({tiLeRac:F2}%) trả lại không gian tối đa cho ổ cứng.");
-            }
-            catch (SqliteException sqlEx) when (sqlEx.SqliteErrorCode == 5 || sqlEx.SqliteErrorCode == 6)
-            {
-                return (false, $"CSDL đang bị khóa bởi tiến trình khác (SQLITE_BUSY).\nVui lòng đảm bảo không ai đang ghi dữ liệu khi chạy dọn dẹp.\n\nChi tiết: {sqlEx.Message}");
-            }
-            catch (Exception ex)
-            {
-                return (false, $"Lỗi không xác định khi dọn dẹp: {ex.Message}");
-            }
-        }
-        // 🚀 SỰ KIỆN GỌI MENU DUY NHẤT
+        // ================== THU GỌN CSDL (thay cho "Chạy Vacuum" cũ) ==================
+        // Bản cũ: VACUUM tại chỗ, bỏ qua khi trang rỗng < 15% => KHÔNG xử lý được CSDL phình do dữ liệu nhập lặp (csdl2: 334 MB, 0% trang rỗng),
+        // và VACUUM tại chỗ ghi bản tạm cỡ cả CSDL vào %TEMP%. Nay dùng Module_ThuGonCSDL: khử trùng lặp hàng loạt + VACUUM INTO + tráo tệp có kiểm chứng.
         private async void chayVacuum_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
-            if (kryptonDataGridView1.CurrentRow == null || kryptonDataGridView1.CurrentRow.Index < 0)
+            int rowIndex = kryptonDataGridView1.CurrentRow?.Index ?? -1;
+            if (rowIndex < 0 || rowIndex >= _pathCSDL.Length)
             {
-                MessageBox.Show("Vui lòng chọn một Cơ sở dữ liệu cần dọn dẹp!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Vui lòng chọn một Cơ sở dữ liệu cần thu gọn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            int rowIndex = kryptonDataGridView1.CurrentRow.Index;
-            if (rowIndex >= _pathCSDL.Length) return;
-            string dbPath = _pathCSDL[rowIndex];
-            string dbName = _tenCSDL[rowIndex];
-            var xacNhan = MessageBox.Show($"Bạn có chắc chắn muốn phân tích và dọn dẹp cho:\n[{dbName}]?\n\nLưu ý: Hệ thống sẽ tự động đo lường và quyết định xem có cần thiết dọn dẹp hay không để bảo vệ ổ cứng.",
-                                          "Xác nhận dọn dẹp thông minh", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            await ThuGonCacCSDLAsync(new[] { rowIndex });
+        }
+        private async Task ThuGonCacCSDLAsync(int[] chiSo)
+        {
+            if (chiSo.Length == 0 || IsDisposed) return;
+            if (Volatile.Read(ref _dangThuGon) == 1) return;
+            string dsTen = string.Join("\n", chiSo.Select(i => "  • " + _tenCSDL[i]));
+            var xacNhan = MessageBox.Show(
+                $"Thu gọn cơ sở dữ liệu:\n{dsTen}\n\n" +
+                "Hệ thống sẽ:\n" +
+                "  1. Kiểm tra toàn vẹn (CSDL lỗi thì dừng, không đụng tới).\n" +
+                "  2. Xóa các dòng bị nhập lặp lại hàng loạt (giống hệt nhau trên mọi cột, luôn giữ lại 1 bản).\n" +
+                "  3. Ghi ra tệp mới gọn nhẹ, đối chiếu từng bảng rồi mới thay tệp cũ.\n" +
+                "  4. Chạy Vacuum: dồn dữ liệu, loại bỏ trang trống, giảm dung lượng tệp.\n\n" +
+                "Lưu ý: đóng ServiceBackup / ServiceRestore và các cửa sổ đang nhập liệu trước khi tiếp tục.\n\nTiếp tục?",
+                "Xác nhận thu gọn CSDL", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (xacNhan != DialogResult.Yes) return;
+            if (Interlocked.Exchange(ref _dangThuGon, 1) == 1) return;
+            string? thuMucTam = null;
+            var dong = new List<string>();
+            long tongTruoc = 0, tongSau = 0;
+            bool coLoi = false, coThayDoi = false;
             try
             {
                 chayVacuum_ToolStripMenuItem.Enabled = false;
+                if (_menuThuGonTatCa != null) _menuThuGonTatCa.Enabled = false;
+                kryptonButton1_CapNhat.Enabled = false;
                 StartProgressBar();
-                toolStripStatusLabel1_KetLuan.Text = $"Đang phân tích và tối ưu: {dbName} ...";
-                toolStripStatusLabel1_KetLuan.ForeColor = Color.Blue;
-                var (ThanhCong, ThongBao) = await Task.Run(() => ToiUuHoaCSDLAsync(dbPath, dbName));
-                if (ThanhCong)
+                toolStripStatusLabel1_KetLuan.ForeColor = GiaoDienForm33Web.MauChuPhu;
+                toolStripStatusLabel1_KetLuan.Text = "Đang dừng lượt kiểm tra để thu gọn...";
+                // Kết nối chỉ đọc của lượt kiểm tra đang chạy sẽ chặn việc tráo tệp -> hủy và đợi nó nhả hẳn
+                await HuyVaDoiKiemTraAsync();
+                try { thuMucTam = Module_NhatKyNhaPhatTrien.TaoThuMucTam("ThuGonCSDL"); } catch { thuMucTam = null; }
+                dong.Add("=== KẾT QUẢ THU GỌN ===");
+                foreach (int i in chiSo)
                 {
-                    MessageBox.Show(ThongBao, "Hoàn tất tối ưu", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    await RunCheckAsync();
+                    string path = _pathCSDL[i] ?? string.Empty;
+                    string ten = _tenCSDL[i];
+                    if (IsDisposed) break;
+                    toolStripStatusLabel1_KetLuan.Text = $"Đang thu gọn: {ten} ... (CSDL lớn có thể mất vài chục giây)";
+                    if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                    {
+                        dong.Add($"{ten}: Không tồn tại – bỏ qua");
+                        continue;
+                    }
+                    Module_ThuGonCSDL.KetQuaThuGon kq;
+                    try
+                    {
+                        string? thuMuc = thuMucTam;
+                        kq = await Module_BaoVeDuLieu.ChayDocQuyenAsync(
+                            ct => Module_ThuGonCSDL.ThuGon(path, thuMuc, ct, batBuoc: true), TimeSpan.FromSeconds(30));
+                    }
+                    catch (TimeoutException ex) { dong.Add($"{ten}: {ex.Message}"); coLoi = true; continue; }
+                    catch (OperationCanceledException) { dong.Add($"{ten}: Đã hủy (phần mềm đang thoát) – CSDL giữ nguyên"); coLoi = true; break; }
+                    tongTruoc += kq.TruocByte;
+                    tongSau += kq.SauByte;
+                    coLoi |= !kq.ThanhCong;
+                    coThayDoi |= kq.DaThayDoi;
+                    if (kq.ThanhCong) Module_BaoVeDuLieu.GhiMocThuGon(path);   // thu gọn định kỳ tự động tính lại 6 tháng từ hôm nay
+                    dong.Add($"{ten}: {kq.ThongBao}");
+                    foreach (string chiTiet in kq.ChiTiet) dong.Add("   ↳ " + chiTiet.Replace(": ", " – "));
+                    try { Module_BaoVeDuLieu.GhiNhatKyBaoTri($"[Thu gọn CSDL] {ten}: {kq.ThongBao} | {string.Join(" ; ", kq.ChiTiet)}"); } catch { }
                 }
-                else
-                {
-                    MessageBox.Show(ThongBao, "Không thể dọn dẹp", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    toolStripStatusLabel1_KetLuan.Text = "Tối ưu hóa bị hủy do lỗi hoặc cảnh báo.";
-                    toolStripStatusLabel1_KetLuan.ForeColor = Color.Red;
-                }
+                dong.Add($"Tổng cộng: {Module_ThuGonCSDL.DinhDang(tongTruoc)} → {Module_ThuGonCSDL.DinhDang(tongSau)} (giảm {Module_ThuGonCSDL.DinhDang(Math.Max(0, tongTruoc - tongSau))})");
+                ThemThongTinBanSaoLuu(dong);
+            }
+            catch (Exception ex)
+            {
+                coLoi = true;
+                dong.Add("Lỗi: " + ex.Message);
             }
             finally
             {
-                chayVacuum_ToolStripMenuItem.Enabled = true;
-                StopProgressBar();
+                if (thuMucTam != null) { try { Directory.Delete(thuMucTam, true); } catch { } }
+                Interlocked.Exchange(ref _dangThuGon, 0);
+                if (!IsDisposed)
+                {
+                    chayVacuum_ToolStripMenuItem.Enabled = true;
+                    if (_menuThuGonTatCa != null) _menuThuGonTatCa.Enabled = true;
+                    kryptonButton1_CapNhat.Enabled = true;
+                    StopProgressBar();
+                }
+            }
+            if (IsDisposed) return;
+            if (coThayDoi)
+            {
+                _cacheToanVen.Clear();
+                _cacheLangPhi.Clear();
+                _cacheKichThuocThuMuc.Clear();
+            }
+            HienThiFormAo_ThongBaoLuoi(coLoi ? "THU GỌN CSDL – CÓ MỤC CHƯA HOÀN TẤT" : "THU GỌN CSDL HOÀN TẤT",
+                coLoi ? "Mục nào chưa thu gọn được thì tệp CSDL đó vẫn được giữ NGUYÊN VẸN như trước."
+                      : "Các tệp CSDL đã được kiểm tra toàn vẹn và đối chiếu từng bảng trước khi thay thế.",
+                string.Join("\n", dong));
+            await RunCheckAsync();
+        }
+        /// <summary>Báo dung lượng các thư mục sao lưu (KHÔNG tự xóa: đó là quyết định của người dùng trong ServiceBackup).</summary>
+        private static void ThemThongTinBanSaoLuu(List<string> dong)
+        {
+            var thuMuc = new (string Ten, string DuongDan)[]
+            {
+                ("Database\\Bansaoluu (ServiceBackup)", Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, "Bansaoluu")),
+                (Module_BaoVeDuLieu.TenThuMucBackup + " (tự động, giữ 3 bản/tháng)", Module_BaoVeDuLieu.ThuMucBackup)
+            };
+            dong.Add("=== THƯ MỤC SAO LƯU (không tự xóa) ===");
+            foreach (var (ten, duongDan) in thuMuc)
+            {
+                if (!Directory.Exists(duongDan)) continue;
+                long tong = 0; int soTep = 0;
+                try
+                {
+                    foreach (var fi in new DirectoryInfo(duongDan).EnumerateFiles("*", SearchOption.TopDirectoryOnly)) { tong += fi.Length; soTep++; }
+                }
+                catch { }
+                string goiY = tong >= 50L * 1024 * 1024
+                    ? " – các bản cũ vẫn chứa dữ liệu trước khi thu gọn, khuyến nghị tạo 1 bản sao lưu mới rồi xóa bớt bản cũ"
+                    : "";
+                dong.Add($"{ten}: {Module_ThuGonCSDL.DinhDang(tong)} ({soTep} tệp){goiY}");
             }
         }
         private void lamMoi_ToolStripMenuItem_Click(object? sender, EventArgs e) => kryptonButton1_CapNhat.PerformClick();
@@ -1363,6 +1473,7 @@ namespace PhanMemThiDua2026
         public string OTrong { get; set; } = "-";
         // Điều phối quét 2 giai đoạn
         public bool CanQuetSau { get; set; }
+        public bool CanQuetLangPhi { get; set; }
         public bool BiKhoa { get; set; }
         public string KhoaCache { get; set; } = "";
     }

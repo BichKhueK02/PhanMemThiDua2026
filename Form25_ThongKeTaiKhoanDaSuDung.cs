@@ -1,9 +1,7 @@
-﻿
-///Phiên bản 2
+﻿///Phiên bản 2
 ///
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Microsoft.Data.Sqlite;
-using SQLitePCL;
 using System.Data;
 using System.Diagnostics;
 using System.Reflection;
@@ -30,7 +28,7 @@ namespace PhanMemThiDua2026
         private bool _gridInitialized = false;  // ⭐ KHAI BÁO ẢNH TRÊN RAM (Tối ưu hiệu suất, load 1 lần dùng mãi mãi)
         // ⭐ CHUẨN KỸ SƯ 1: Dùng List Model cho Virtual Mode, tuyệt đối không dùng DataTable
         private List<ThongKeTaiKhoanModel> _cacheThongKe = new List<ThongKeTaiKhoanModel>();
-        private bool _isLoading = false;
+        //private bool _isLoading = false;
         private bool _dangDongForm = false;
         // ⭐ VIRTUAL MODE: TÔ MÀU THEO ĐIỀU KIỆN (Thay thế vòng lặp foreach cũ)
         private readonly Color _systemBackColor = Color.FromArgb(253, 240, 240);
@@ -46,6 +44,7 @@ namespace PhanMemThiDua2026
             this.ShowInTaskbar = false;
             this.StartPosition = FormStartPosition.CenterScreen;
             InitToolTips();
+            Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             // ⭐ CHUẨN KỸ SƯ 2: Đăng ký Virtual Mode trọn gói
             if (kryptonDataGridView1 != null)
             {
@@ -72,7 +71,7 @@ namespace PhanMemThiDua2026
             {
                 if (IsDisposed || !IsHandleCreated)
                     return;
-                _isLoading = true;
+                //_isLoading = true;
                 kryptonDataGridView1.Enabled = false;
                 if (!forceReload && _cacheThongKe != null && _cacheThongKe.Count > 0)
                 {
@@ -207,7 +206,7 @@ namespace PhanMemThiDua2026
             finally
             {
                 if (!IsDisposed) kryptonDataGridView1.Enabled = true;
-                _isLoading = false;
+                //_isLoading = false;
                 _loadLock.Release();
             }
         }
@@ -343,7 +342,7 @@ namespace PhanMemThiDua2026
             var item = _cacheThongKe[e.RowIndex];
             if (item.IsSystem)
             {
-                if (e.CellStyle.BackColor != _systemBackColor)
+                if (e.CellStyle!.BackColor != _systemBackColor)
                 {
                     e.CellStyle.BackColor = _systemBackColor;
                     e.CellStyle.ForeColor = _systemForeColor; // Hệ thống: Màu đỏ đậm
@@ -352,12 +351,12 @@ namespace PhanMemThiDua2026
             else if (item.IsCurrentUser)
             {
                 // ⭐ "Đang sử dụng": Tô chữ màu Xanh Lá Cây (ForestGreen/DarkGreen)
-                e.CellStyle.ForeColor = Color.ForestGreen;
+                e.CellStyle!.ForeColor = Color.ForestGreen;
             }
             else
             {
                 // ⭐ "Ngừng sử dụng": Tô chữ màu Xanh Nước Biển (RoyalBlue/MediumBlue)
-                e.CellStyle.ForeColor = Color.RoyalBlue;
+                e.CellStyle!.ForeColor = Color.RoyalBlue;
             }
         }
         // ⭐ VẼ ICON TÙY CHỈNH KẾT HỢP VỚI VIRTUAL MODE
@@ -387,7 +386,7 @@ namespace PhanMemThiDua2026
                 int xIcon = e.CellBounds.X + paddingLeft;
                 if (iconToDraw != null)
                 {
-                    e.Graphics.DrawImage(iconToDraw, new Rectangle(xIcon, yIcon, iconSize, iconSize));
+                    e.Graphics!.DrawImage(iconToDraw, new Rectangle(xIcon, yIcon, iconSize, iconSize));
                 }
                 // 4. Tính toán vị trí Text
                 int paddingIconText = 6;
@@ -402,7 +401,7 @@ namespace PhanMemThiDua2026
                 Color textColor;
                 if ((e.State & DataGridViewElementStates.Selected) == DataGridViewElementStates.Selected)
                 {
-                    textColor = e.CellStyle.SelectionForeColor;
+                    textColor = e.CellStyle!.SelectionForeColor;
                 }
                 else
                 {
@@ -420,14 +419,13 @@ namespace PhanMemThiDua2026
                     }
                 }
                 // 6. Vẽ Text (System và User hiện tại in Đậm)
-                FontStyle style = (item.IsSystem || item.IsCurrentUser) ? FontStyle.Bold : FontStyle.Regular;
                 Font cellFont =
     (item.IsSystem || item.IsCurrentUser)
     ? _fontBold
     : _fontRegular;
                 {
                     TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding;
-                    TextRenderer.DrawText(e.Graphics, item.TenTaiKhoan, cellFont, textBounds, textColor, flags);
+                    TextRenderer.DrawText(e.Graphics!, item.TenTaiKhoan, cellFont, textBounds, textColor, flags);
                 }
                 // Báo cho DataGridView biết mình đã vẽ xong, không cần vẽ đè lên nữa
                 e.Handled = true;
@@ -449,6 +447,100 @@ namespace PhanMemThiDua2026
                 _dangDongForm = false;
             }
         }
+        // ===================== MENU CHUỘT PHẢI =====================
+        private async void lamMoi_ToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            lamMoi_ToolStripMenuItem.Enabled = false;
+            try
+            {
+                await LoadDuLieuTaiKhoanDaSuDungAsync(forceReload: true);
+            }
+            finally
+            {
+                if (!IsDisposed) lamMoi_ToolStripMenuItem.Enabled = true;
+            }
+        }
+        private void dongForm_ToolStripMenuItem_Click(object? sender, EventArgs e) => kryptonButton_Dong.PerformClick();
+        private async void xuatDuLieuExcel_ToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            var duLieu = _cacheThongKe?.ToList() ?? new List<ThongKeTaiKhoanModel>();   // chụp bản sao để luồng nền không đụng list đang hiển thị
+            if (duLieu.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu trên lưới để xuất tệp!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            using var sfd = new SaveFileDialog
+            {
+                Title = "Chọn nơi lưu tệp excel thống kê tài khoản",
+                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                FileName = $"ThongKeTaiKhoanDaSuDung_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+            };
+            if (sfd.ShowDialog(this) != DialogResult.OK) return;
+            string duongDan = sfd.FileName;
+            xuatDuLieuExcel_ToolStripMenuItem.Enabled = false;
+            Cursor = Cursors.WaitCursor;
+            try
+            {
+                await Task.Run(() => XuatExcelCore(duongDan, duLieu));
+                if (IsDisposed) return;
+                Cursor = Cursors.Default;
+                if (MessageBox.Show($"Đã xuất {duLieu.Count} tài khoản ra tệp excel:\n{duongDan}\n\nBạn có muốn mở tệp ngay không?",
+                        "Xuất dữ liệu thành công", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                {
+                    try { Process.Start(new ProcessStartInfo(duongDan) { UseShellExecute = true }); }
+                    catch (Exception exMo) { Debug.WriteLine($"[Form25] Không mở được tệp: {exMo.Message}"); }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!IsDisposed) Cursor = Cursors.Default;
+                MessageBox.Show("Không thể xuất tệp excel:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                if (!IsDisposed)
+                {
+                    Cursor = Cursors.Default;
+                    xuatDuLieuExcel_ToolStripMenuItem.Enabled = true;
+                }
+            }
+        }
+        private static void XuatExcelCore(string duongDan, List<ThongKeTaiKhoanModel> duLieu)
+        {
+            Module_ExcelAnToan.KiemTraCoTheGhi(duongDan);   // báo sớm nếu tệp đích đang mở trong Excel
+            string[] tieuDe = { "STT", "Tên tài khoản", "Sử dụng lần đầu", "Sử dụng lần cuối", "Tổng hành động", "Tình trạng" };
+            int soCot = tieuDe.Length;
+            var dong = new List<object?[]>(duLieu.Count);
+            foreach (var x in duLieu)
+                dong.Add(new object?[] { x.STT, x.TenTaiKhoan, x.ThoiGianLanDau, x.ThoiGianLanCuoi, x.SoLuotHanhDong, x.TinhTrang });
+            using var wb = new ClosedXML.Excel.XLWorkbook();
+            var ws = wb.Worksheets.Add("TaiKhoanDaSuDung");
+            ws.Cell(1, 1).Value = "THỐNG KÊ TÀI KHOẢN ĐÃ ĐĂNG KÝ SỬ DỤNG PHẦN MỀM";
+            ws.Range(1, 1, 1, soCot).Merge().Style.Font.SetBold().Font.SetFontSize(14)
+                .Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center);
+            ws.Cell(2, 1).Value = $"Ngày xuất: {DateTime.Now:dd/MM/yyyy HH:mm:ss}";
+            ws.Range(2, 1, 2, soCot).Merge().Style.Font.SetItalic()
+                .Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center);
+            const int hangTieuDe = 4;
+            for (int c = 0; c < soCot; c++) ws.Cell(hangTieuDe, c + 1).Value = tieuDe[c];
+            var vungTieuDe = ws.Range(hangTieuDe, 1, hangTieuDe, soCot);
+            vungTieuDe.Style.Font.Bold = true;
+            vungTieuDe.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromArgb(238, 232, 255);
+            vungTieuDe.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+            vungTieuDe.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
+            Module_ExcelAnToan.NapDong(ws, hangTieuDe + 1, 1, dong);
+            int hangCuoi = hangTieuDe + dong.Count;
+            ws.Range(hangTieuDe + 1, 3, hangCuoi, 4).Style.NumberFormat.Format = "dd/MM/yyyy HH:mm:ss";
+            foreach (int c in new[] { 1, 3, 4, 5, 6 })
+                ws.Range(hangTieuDe + 1, c, hangCuoi, c).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+            Module_ExcelAnToan.KeVien(ws.Range(hangTieuDe, 1, hangCuoi, soCot));
+            Module_ExcelAnToan.DatDoRongCot(ws, dong, 1, tieuDe);
+            ws.Column(3).Width = ws.Column(4).Width = 22;   // độ rộng cho ngày giờ (DatDoRongCot đo DateTime theo chuỗi mặc định)
+            ws.SheetView.FreezeRows(hangTieuDe);
+            Module_BanQuyen.DongDauExcel(wb);   // đóng dấu bản quyền + metadata sau khi dựng xong nội dung, ngay trước khi lưu (giống Form10)
+            Module_ExcelAnToan.LuuAnToan(wb, duongDan);
+        }
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
@@ -464,11 +556,11 @@ namespace PhanMemThiDua2026
     public class ThongKeTaiKhoanModel
     {
         public int STT { get; set; }
-        public string TenTaiKhoan { get; set; }
+        public string TenTaiKhoan { get; set; } = null!;
         public DateTime ThoiGianLanDau { get; set; }
         public DateTime ThoiGianLanCuoi { get; set; }
         public int SoLuotHanhDong { get; set; }
-        public string TinhTrang { get; set; }
+        public string TinhTrang { get; set; } = null!;
         // Các cờ bool (Cực kỳ quan trọng để hàm Vẽ UI không phải so sánh chuỗi gây chậm máy)
         public bool IsSystem { get; set; }
         public bool IsDeleted { get; set; }

@@ -1,6 +1,6 @@
-﻿using Color = System.Drawing.Color;
+﻿using System.Diagnostics;
+using Color = System.Drawing.Color;
 using Font = System.Drawing.Font;
-using System.Diagnostics;
 namespace PhanMemThiDua2026
 {
     // =====================================================================================
@@ -26,21 +26,17 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(75, 20, 130);
         private static readonly Color MauKeBang = Color.FromArgb(235, 238, 243);
         private static readonly Color MauVienThe = Color.FromArgb(226, 232, 240);
-
         private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Font FontO = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-
         private const int DemKhungBang = 5;     // khoảng đệm giữa khung bo tròn và bảng (px thiết kế)
         private const int CaoHangChonCsdl = 102;   // hàng thẻ "Chọn CSDL" (gồm khe 10px phía dưới)
         private const int CaoHangCapNhat = 226;    // hàng thẻ "Cập nhật thông tin thi đua" (gồm khe 10px phía dưới)
-
         // (Nền, Hover, Nhấn, Viền, Chữ) — theme tím nhạt của Form4
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutTim =
             (Color.FromArgb(237, 233, 254), Color.FromArgb(221, 214, 254), Color.FromArgb(196, 181, 253), Color.FromArgb(196, 181, 253), Color.FromArgb(109, 40, 217));
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutTimDam =
             (Color.FromArgb(221, 214, 254), Color.FromArgb(196, 181, 253), Color.FromArgb(167, 139, 250), Color.FromArgb(167, 139, 250), Color.FromArgb(91, 33, 182));
-
         // 14 ô hiển thị 12 tháng cũ / 1..11 / 6 tháng đầu năm / tổng kết năm (đúng tên control trong Designer)
         private static readonly string[] CacOThang =
         {
@@ -54,7 +50,6 @@ namespace PhanMemThiDua2026
             "label4", "label2", "label11", "label14", "label17", "label3", "label19", "label18", "label8", "label13",
             "label1", "label5", "label16", "label6"
         };
-
         // ===================== ĐIỂM VÀO =====================
         public static void ApDung(Form f)
         {
@@ -75,16 +70,13 @@ namespace PhanMemThiDua2026
                 f.ResumeLayout(true);
             }
         }
-
         private static void An(Action viec, string ten)
         {
             try { viec(); }
             catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm59Web.{ten}] {ex.Message}"); }
         }
-
         private static T? Tim<T>(Control goc, string ten) where T : Control
             => goc.Controls.Find(ten, true).OfType<T>().FirstOrDefault();
-
         private static IEnumerable<T> TatCa<T>(Control goc) where T : Control
         {
             foreach (Control c in goc.Controls)
@@ -93,7 +85,6 @@ namespace PhanMemThiDua2026
                 foreach (var con in TatCa<T>(c)) yield return con;
             }
         }
-
         // ===================== BỐ CỤC TỔNG =====================
         private static void DinhBoCuc(Form f)
         {
@@ -109,7 +100,6 @@ namespace PhanMemThiDua2026
                 t1.RowStyles.Add(new RowStyle(SizeType.Absolute, CaoHangCapNhat));
                 t1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             }
-
             // Hàng 0: [ảnh | thẻ Chọn CSDL]
             var t2 = Tim<TableLayoutPanel>(f, "tableLayoutPanel2");
             if (t2 != null)
@@ -128,7 +118,6 @@ namespace PhanMemThiDua2026
                 t3.ColumnStyles.Clear();
                 t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             }
-
             // Hàng 1: bảng bọc thẻ Cập nhật
             var t7 = Tim<TableLayoutPanel>(f, "tableLayoutPanel7");
             if (t7 != null)
@@ -139,7 +128,6 @@ namespace PhanMemThiDua2026
                 t7.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             }
         }
-
         // ===================== THẺ =====================
         private static void BocCacThe(Form f)
         {
@@ -159,7 +147,6 @@ namespace PhanMemThiDua2026
             var gb2 = Tim<GroupBox>(f, "groupBox1");
             if (gb2 != null) ThayBangThe(gb2, gb2.Text, new Padding(12, 36, 12, 8), new Padding(0));
         }
-
         /// <summary>
         /// Thay GroupBox / PictureBox nằm trong ô TableLayoutPanel bằng TheBoGocF4 (thẻ trắng bo góc của Form4) đúng ô đó.
         /// GroupBox: chuyển nguyên các control con (kèm mọi sự kiện/logic) sang thẻ rồi bỏ GroupBox rỗng
@@ -168,10 +155,8 @@ namespace PhanMemThiDua2026
         private static TheBoGocF4? ThayBangThe(Control nguon, string tieuDe, Padding padding, Padding margin)
         {
             if (nguon.Parent is not TableLayoutPanel cha) return null;
-
             var vt = cha.GetPositionFromControl(nguon);
             int spanCot = cha.GetColumnSpan(nguon), spanHang = cha.GetRowSpan(nguon);
-
             var the = new TheBoGocF4
             {
                 Name = "the_" + nguon.Name,
@@ -180,7 +165,6 @@ namespace PhanMemThiDua2026
                 TieuDe = tieuDe,
                 Padding = padding
             };
-
             cha.SuspendLayout();
             the.SuspendLayout();
             try
@@ -214,7 +198,6 @@ namespace PhanMemThiDua2026
             }
             return the;
         }
-
         // ===================== THẺ 1: CHỌN CƠ SỞ DỮ LIỆU THI ĐUA TẬP THỂ =====================
         private static void DinhTheChonCsdl(Form f)
         {
@@ -230,7 +213,6 @@ namespace PhanMemThiDua2026
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 136F));
             }
             DinhNhan(Tim<Label>(f, "label10"), true, AnchorStyles.Left);   // Chọn năm
-
             var cb = Tim<ComboBox>(f, "comboBox1_ChonCscdThiDuaTapTheNamCu");
             if (cb != null)
             {
@@ -241,7 +223,6 @@ namespace PhanMemThiDua2026
             NutTrongO(f, "kryptonButton_XoaThiDuaTapThe", NutTim, new Padding(12, 0, 0, 0));      // Xóa
             NutTrongO(f, "kryptonButton1_LamMoi", NutTimDam, new Padding(12, 0, 0, 0));           // Làm mới
         }
-
         // ===================== THẺ 2: CẬP NHẬT THÔNG TIN THI ĐUA =====================
         private static void DinhTheCapNhat(Form f)
         {
@@ -256,7 +237,6 @@ namespace PhanMemThiDua2026
                 t4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
                 t4.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));
             }
-
             // 5 cặp [nhãn | ô]: nhãn rộng cố định (vừa chữ "6 tháng đầu năm"), 5 ô chia đều phần còn lại
             var t10 = Tim<TableLayoutPanel>(f, "tableLayoutPanel10");
             if (t10 != null)
@@ -271,7 +251,6 @@ namespace PhanMemThiDua2026
                 t10.RowStyles.Clear();
                 for (int i = 0; i < 3; i++) t10.RowStyles.Add(new RowStyle(SizeType.Percent, 100F / 3F));
             }
-
             foreach (var ten in CacNhanThang)
             {
                 var lb = Tim<Label>(f, ten);
@@ -279,7 +258,6 @@ namespace PhanMemThiDua2026
                 DinhNhan(lb, false, AnchorStyles.Right);
                 lb.Margin = new Padding(0, 0, 8, 0);   // sát ô nhập của nó
             }
-
             // 14 ô: code gốc chỉ đổ chữ vào; helper chỉ đổi khung (không đụng chữ/nền/chỉ-đọc)
             foreach (var ten in CacOThang)
             {
@@ -289,7 +267,6 @@ namespace PhanMemThiDua2026
                 o.Margin = new Padding(0, 0, 16, 0);   // khe giữa các cặp
                 KieuVienO(o.StateCommon.Border, o.StateActive.Border);
             }
-
             // Hàng điều khiển: nhãn (chữ do code gốc đổi theo tháng) | combo tháng | Chọn phân loại | combo phân loại | nút Cập nhật
             var t6 = Tim<TableLayoutPanel>(f, "tableLayoutPanel6");
             if (t6 != null)
@@ -309,7 +286,6 @@ namespace PhanMemThiDua2026
                 var lb = Tim<Label>(f, ten);
                 if (lb != null) lb.Margin = new Padding(0, 0, 10, 0);
             }
-
             foreach (var ten in new[] { "comboBox1_ChonThang", "comboBox_ChonPhanLoai" })
             {
                 var cb = Tim<ComboBox>(f, ten);
@@ -318,7 +294,6 @@ namespace PhanMemThiDua2026
                 cb.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 cb.Margin = new Padding(0);
             }
-
             var cap = Tim<Krypton.Toolkit.KryptonButton>(f, "kryptonButton_CapNhatThiDuaTapTheNamCu");
             if (cap != null)
             {
@@ -328,7 +303,6 @@ namespace PhanMemThiDua2026
                 cap.Size = new Size(130, 32);
             }
         }
-
         // ===================== COMBO BO TRÒN (dùng OComboWebF4 của Form4) =====================
         // Combo gốc vẫn tồn tại + hoạt động (chỉ bị ẩn hình): DataSource, SelectedItem/SelectedIndexChanged và mọi code gốc chạy như cũ.
         private static void BoTronCacCombo(Form f)
@@ -337,14 +311,12 @@ namespace PhanMemThiDua2026
                 if (cb.GetType() == typeof(ComboBox))
                     OComboWebF4.Gan(cb);
         }
-
         // ===================== LƯỚI =====================
         // Bảng nằm gọn trong 1 thẻ có KHUNG BO TRÒN liền mạch (không cắt góc bằng Region): thẻ vẽ khung + dải tiêu đề cùng màu tiêu đề bảng.
         private static void BocLuoi(Form f)
         {
             var luoi = Tim<DataGridView>(f, "kryptonDataGridView1");
             if (luoi == null || luoi.Parent is not TableLayoutPanel cha) return;
-
             var vt = cha.GetPositionFromControl(luoi);
             const int gap = DemKhungBang;
             var the = new TheBoGocF4
@@ -357,7 +329,6 @@ namespace PhanMemThiDua2026
                 Padding = new Padding(12 + gap, 36 + gap, 12 + gap, 10 + gap),
                 LuoiBang = luoi
             };
-
             cha.SuspendLayout();
             the.SuspendLayout();
             try
@@ -374,7 +345,6 @@ namespace PhanMemThiDua2026
                 the.ResumeLayout(false);
                 cha.ResumeLayout(true);
             }
-
             // ---- Áp màu tiêu đề mới, và GIỮ nó sau khi code gốc định dạng lưới trong Load ----
             bool dangDap = false;
             Krypton.Toolkit.KryptonDataGridView? kLuoi = luoi as Krypton.Toolkit.KryptonDataGridView;
@@ -390,7 +360,6 @@ namespace PhanMemThiDua2026
                 finally { dangDap = false; }
             }
             bool DaDungKieu() => kLuoi != null && kLuoi.StateCommon.HeaderColumn.Back.Color1 == MauTieuDeBang;
-
             // Code gốc (Load -> DinhDangGiaoDienDataGridTongKetThang) chỉ đặt font/đường kẻ/màu chọn dòng, không đụng màu tiêu đề;
             // các mốc áp lại bên dưới chỉ là chốt an toàn.
             luoi.ColumnAdded += (s, e) => { if (!DaDungKieu()) DapKieu(); };
@@ -399,7 +368,6 @@ namespace PhanMemThiDua2026
             luoi.ColumnHeadersHeightChanged += (s, e) => the.Invalidate();
             DapKieu();
         }
-
         // Phần tiêu đề + đường kẻ của lưới (Krypton). Selection, font, màu chữ do code gốc đặt nên không đụng tới.
         private static void StyleKryptonLuoi(Krypton.Toolkit.KryptonDataGridView k)
         {
@@ -413,14 +381,12 @@ namespace PhanMemThiDua2026
             TieuDePhang(k.StateTracking.HeaderColumn.Back, k.StateTracking.HeaderColumn.Border);   // rê chuột lên tiêu đề cũng không đổi sang chuyển sắc
             TieuDePhang(k.StatePressed.HeaderColumn.Back, k.StatePressed.HeaderColumn.Border);
         }
-
         private static void TieuDePhang(Krypton.Toolkit.PaletteBack back, Krypton.Toolkit.PaletteBorder vien)
         {
             back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
             back.Color1 = MauTieuDeBang; back.Color2 = MauTieuDeBang;
             vien.Color1 = MauTieuDeBang; vien.Color2 = MauTieuDeBang;
         }
-
         // ===================== THANH TRẠNG THÁI (KryptonStatusStrip) =====================
         // KryptonStatusStrip vẽ theo theme Krypton (chuyển sắc) nên đặt BackColor không đủ: gán renderer phẳng riêng cho riêng thanh này.
         private static void DinhThanhTrangThai(Form f)
@@ -439,25 +405,21 @@ namespace PhanMemThiDua2026
                 if (it != null) { it.Font = FontNhan; it.ForeColor = MauChuNhan; }
             }
         }
-
         /// <summary>Thanh trạng thái phẳng: nền trắng + 1 đường kẻ phía trên, không gradient, không đổ bóng.</summary>
         private sealed class WebStatusRenderer : ToolStripProfessionalRenderer
         {
             public WebStatusRenderer() { RoundedEdges = false; }
-
             protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
             {
                 using var b = new SolidBrush(Color.White);
                 e.Graphics.FillRectangle(b, e.AffectedBounds);
             }
-
             protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
             {
                 using var p = new Pen(MauVienThe, 1f);
                 e.Graphics.DrawLine(p, 0, 0, e.ToolStrip.Width, 0);
             }
         }
-
         // ===================== TIỆN ÍCH TRÌNH BÀY =====================
         private static void DinhNhan(Label? lb, bool dauHang, AnchorStyles canh)
         {
@@ -467,7 +429,6 @@ namespace PhanMemThiDua2026
             lb.Anchor = canh;
             lb.Margin = new Padding(dauHang ? 0 : 12, 0, 6, 0);
         }
-
         // Viền ô nhập Krypton: xám bo góc 8, khi đang gõ chuyển tím (cùng màu viền combo đang chọn)
         private static void KieuVienO(Krypton.Toolkit.PaletteBorder vien, Krypton.Toolkit.PaletteBorder vienActive)
         {
@@ -477,7 +438,6 @@ namespace PhanMemThiDua2026
             vien.Width = 1;
             vienActive.Color1 = MauVienChon; vienActive.Color2 = MauVienChon;
         }
-
         private static void NutTrongO(Form f, string ten, (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) m, Padding margin)
         {
             var b = Tim<Krypton.Toolkit.KryptonButton>(f, ten);
@@ -487,7 +447,6 @@ namespace PhanMemThiDua2026
             b.Margin = margin;
             b.Height = 32;
         }
-
         private static void KieuNut(Krypton.Toolkit.KryptonButton b, (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) m)
         {
             b.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;

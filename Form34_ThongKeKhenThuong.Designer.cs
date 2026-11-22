@@ -749,8 +749,6 @@
         private ToolStripMenuItem xoaToanBoDuLieu_ToolStripMenuItem;
         private ToolStripSeparator toolStripMenuItem3;
         private ToolStripMenuItem toolStripMenuItem_XuatToanBoDanhSachRaTepExcel;
-        private GroupBox groupBox2;
-        private Krypton.Toolkit.KryptonButton kryptonButton1_QuanLyKhenThuongTapThe;
         private ToolStripMenuItem toolStripMenuItem_LuuKetQuaThiDuaTheoNam;
         private ToolTip toolTip1;
         private ToolStripMenuItem saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem;

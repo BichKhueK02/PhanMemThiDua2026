@@ -38,6 +38,12 @@
             tableLayoutPanel3 = new TableLayoutPanel();
             tableLayoutPanel4 = new TableLayoutPanel();
             pictureBox1 = new PictureBox();
+            contextMenuStrip1 = new ContextMenuStrip(components);
+            lamMoi_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
+            xuatDuLieuExcel_ToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator2 = new ToolStripSeparator();
+            dongForm_ToolStripMenuItem = new ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             groupBox1.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -45,6 +51,7 @@
             tableLayoutPanel3.SuspendLayout();
             tableLayoutPanel4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // statusStrip1
@@ -103,6 +110,7 @@
             // 
             kryptonDataGridView1.BorderStyle = BorderStyle.None;
             kryptonDataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            kryptonDataGridView1.ContextMenuStrip = contextMenuStrip1;
             kryptonDataGridView1.Dock = DockStyle.Fill;
             kryptonDataGridView1.Location = new Point(3, 3);
             kryptonDataGridView1.Name = "kryptonDataGridView1";
@@ -167,7 +175,50 @@
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 5;
             pictureBox1.TabStop = false;
-            // 
+            //
+            // contextMenuStrip1
+            //
+            contextMenuStrip1.Font = new Font("Segoe UI", 9F);
+            contextMenuStrip1.ImageScalingSize = new Size(19, 19);
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { lamMoi_ToolStripMenuItem, toolStripSeparator1, xuatDuLieuExcel_ToolStripMenuItem, toolStripSeparator2, dongForm_ToolStripMenuItem });
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new Size(201, 92);
+            //
+            // lamMoi_ToolStripMenuItem
+            //
+            lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
+            lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
+            lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
+            lamMoi_ToolStripMenuItem.Size = new Size(200, 26);
+            lamMoi_ToolStripMenuItem.Text = "Làm mới";
+            lamMoi_ToolStripMenuItem.Click += lamMoi_ToolStripMenuItem_Click;
+            //
+            // toolStripSeparator1
+            //
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(197, 6);
+            //
+            // xuatDuLieuExcel_ToolStripMenuItem
+            //
+            xuatDuLieuExcel_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieuExcel_ToolStripMenuItem.Image");
+            xuatDuLieuExcel_ToolStripMenuItem.Name = "xuatDuLieuExcel_ToolStripMenuItem";
+            xuatDuLieuExcel_ToolStripMenuItem.Size = new Size(200, 26);
+            xuatDuLieuExcel_ToolStripMenuItem.Text = "Xuất dữ liệu (Tệp excel)";
+            xuatDuLieuExcel_ToolStripMenuItem.Click += xuatDuLieuExcel_ToolStripMenuItem_Click;
+            //
+            // toolStripSeparator2
+            //
+            toolStripSeparator2.Name = "toolStripSeparator2";
+            toolStripSeparator2.Size = new Size(197, 6);
+            //
+            // dongForm_ToolStripMenuItem
+            //
+            dongForm_ToolStripMenuItem.Image = (Image)resources.GetObject("dongForm_ToolStripMenuItem.Image");
+            dongForm_ToolStripMenuItem.Name = "dongForm_ToolStripMenuItem";
+            dongForm_ToolStripMenuItem.Size = new Size(200, 26);
+            dongForm_ToolStripMenuItem.Text = "Đóng form";
+            dongForm_ToolStripMenuItem.Click += dongForm_ToolStripMenuItem_Click;
+            //
             // Form25_ThongKeTaiKhoanDaSuDung
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -176,6 +227,7 @@
             ClientSize = new Size(1264, 681);
             Controls.Add(tableLayoutPanel3);
             Controls.Add(statusStrip1);
+            ContextMenuStrip = contextMenuStrip1;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "Form25_ThongKeTaiKhoanDaSuDung";
             Text = "Thống kê tài khoản đã đăng ký sử dụng phần mềm";
@@ -188,6 +240,7 @@
             tableLayoutPanel3.ResumeLayout(false);
             tableLayoutPanel4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            contextMenuStrip1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -203,5 +256,11 @@
         private TableLayoutPanel tableLayoutPanel3;
         private TableLayoutPanel tableLayoutPanel4;
         private PictureBox pictureBox1;
+        private ContextMenuStrip contextMenuStrip1;
+        private ToolStripMenuItem lamMoi_ToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator1;
+        private ToolStripMenuItem xuatDuLieuExcel_ToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator2;
+        private ToolStripMenuItem dongForm_ToolStripMenuItem;
     }
 }

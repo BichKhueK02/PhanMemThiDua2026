@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Reflection;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -137,7 +132,7 @@ namespace PhanMemThiDua2026
                 _activeSubForm = goc;
                 _tieuDe[goc] = tieuDe;
                 hien.BringToFront();
-                hien.Show();
+                Module_KhoGiaoDien.ShowTrongKho(hien);   // = Show(); nằm trong kho ẩn thì vẫn chạy Load
                 // Ẩn trang cũ SAU khi trang mới đã hiện (tránh 1 khung hình nền trống)
                 if (trangCu != null && trangCu != hien) trangCu.Hide();
             }
@@ -291,9 +286,9 @@ namespace PhanMemThiDua2026
                 if (ep) _canTaiLai.Add(t);   // tải xong sẽ tải thêm 1 vòng nữa
                 return dangChay;
             }
-            // Dữ liệu còn tươi -> khỏi tải lại
+            // Dữ liệu còn tươi (vừa tải, hoặc CSDL không đổi kể từ lần tải trước) -> khỏi tải lại
             if (!ep && _lanTaiCuoi.TryGetValue(t, out long truoc)
-                    && Environment.TickCount64 - truoc < TuoiDuLieuToiDaGiay * 1000L)
+                    && (Environment.TickCount64 - truoc < TuoiDuLieuToiDaGiay * 1000L || DuLieuChuaDoi(t, truoc)))
             {
                 if (form == _activeSubForm) DaLoadDuLieu = true;
                 return Task.CompletedTask;
@@ -313,6 +308,7 @@ namespace PhanMemThiDua2026
                     _canTaiLai.Remove(t);
                     await GoiReloadAsync(form);
                     _lanTaiCuoi[t] = Environment.TickCount64;
+                    _chuKyLanTai[t] = Module_ChuKyCSDL.Lay();
                 }
                 while (_canTaiLai.Contains(t) && !_isClosing && !form.IsDisposed);
             }
@@ -335,6 +331,28 @@ namespace PhanMemThiDua2026
                 if (!_isClosing && form == _activeSubForm) DaLoadDuLieu = !loi;
             }
         }
+        private readonly Dictionary<Type, string> _chuKyLanTai = new();
+        private const int TuoiDuLieuKhongDoiToiDaPhut = 10;
+        private bool DuLieuChuaDoi(Type t, long lanTai)
+            => Environment.TickCount64 - lanTai < TuoiDuLieuKhongDoiToiDaPhut * 60_000L
+               && _chuKyLanTai.TryGetValue(t, out string? ck)
+               && string.Equals(ck, Module_ChuKyCSDL.Lay(), StringComparison.Ordinal);
+        /// <summary>Chờ trang đầu (Form34) nạp xong lần đầu (dùng sau khi Form52 được Show trong kho giao diện).</summary>
+        internal Task ChoTrangDauNapXongAsync()
+            => _boNho.TryGetValue(typeof(Form34_ThongKeKhenThuong), out Form? f) && f is Form34_ThongKeKhenThuong f34 && !f34.IsDisposed
+                ? f34.NapTruocDuLieuAsync()
+                : Task.CompletedTask;
+        /// <summary>Chờ lượt tải đang chạy của tab đang mở, hoặc tải nếu chưa có / đã cũ. Không ép tải lại.</summary>
+        public Task DamBaoDaTaiAsync()
+        {
+            if (_isClosing || IsDisposed || _activeSubForm == null || _activeSubForm.IsDisposed) return Task.CompletedTask;
+            if (CoChiTiet(_activeSubForm.GetType())) return Task.CompletedTask;
+            return TaiDuLieuAsync(_activeSubForm, ep: false);
+        }
+        ///// <summary>
+        ///// Gọi từ Form2 khi Form52 còn ẩn (sau đăng nhập, lúc người dùng rảnh): dựng trang đầu (Form34) + nạp sẵn DỮ LIỆU,
+        ///// để lần bấm "Khen thưởng" đầu tiên hiện ngay bảng đã có dữ liệu. Gọi trên luồng giao diện.
+        ///// </summary>
         private Task GoiReloadAsync(Form f)
         {
             if (f is Form34_ThongKeKhenThuong f34) return f34.ReloadDuLieu();
@@ -400,6 +418,10 @@ namespace PhanMemThiDua2026
                 })
                 {
                     if (Dung()) return;
+                    // Mỗi form dựng là 1 khối nặng không chia nhỏ được: chờ "đèn đỏ" đăng nhập + người dùng rảnh tay
+                    // (trang này có thể đang được nạp sẵn từ lúc người dùng còn gõ mật khẩu)
+                    await Module_UuTienDangNhap.NhuongAsync();
+                    if (!await Module_NhuongUI.ChoRanhAsync(Dung)) return;
                     TaoDuPhong(t);
                     await Task.Delay(150);
                 }
@@ -442,6 +464,7 @@ namespace PhanMemThiDua2026
         private void CapNhatTieuDeFormChinh(string tieuDe)
         {
             if (_isClosing) return;
+            if (Module_KhoGiaoDien.LaTrongKho(this)) return;   // đang nạp sẵn trong kho: không đổi tiêu đề trang người dùng đang xem
             var frmChinh = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
             frmChinh?.CapNhatTieuDe(tieuDe);
         }

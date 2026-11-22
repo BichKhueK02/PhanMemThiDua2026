@@ -79,7 +79,7 @@ namespace PhanMemThiDua2026
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
             string originalText = kryptonButton_TaoTepExcel.Text;
-            Image originalImage = kryptonButton_TaoTepExcel.Values.Image;
+            Image? originalImage = kryptonButton_TaoTepExcel.Values.Image;
             kryptonButton_TaoTepExcel.Text = "Đang xử lý...";
             kryptonButton_TaoTepExcel.Enabled = false;
             kryptonButton_TaoTepExcel.Values.Image = null;
@@ -183,10 +183,10 @@ namespace PhanMemThiDua2026
             if (File.Exists(dbPath))
             {
                 var aesCache = new Dictionary<string, string>(50000, StringComparer.Ordinal);
-                string optConnStr = $"Data Source={dbPath};Mode=ReadOnly;Cache=Shared;Pooling=True;Default Timeout=15;";
+                string optConnStr = Module_KetNoiCSDL.ChuoiKetNoi(dbPath, chiDoc: true, cacheChung: true, thoiGianCho: 15);
                 using var conn = new SqliteConnection(optConnStr);
                 conn.Open();
-                using var cmdGC = new SqliteCommand("SELECT SoHieu, GhiChu FROM DanhSach WHERE LENGTH(TRIM(IFNULL(GhiChu, ''))) > 0", conn);
+                using var cmdGC = new SqliteCommand($"SELECT SoHieu, GhiChu FROM {Module_TaiKhoan.BangDanhSach} WHERE LENGTH(TRIM(IFNULL(GhiChu, ''))) > 0", conn);
                 using var rd = cmdGC.ExecuteReader();
                 while (rd.Read())
                 {
@@ -228,41 +228,27 @@ namespace PhanMemThiDua2026
             title2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             ws.Row(4).Height = 31.8;
             // string[] headers = { "STT", "Họ và tên", "Số hiệu", "Đơn vị", "Cột 1", "Cột 2", "Cột 3", "Cột 4", "Kết quả", "Ghi chú" };
-            for (int i = 0; i < headers.Length; i++)
-            {
-                var cell = ws.Cell(4, i + 1);
-                cell.Value = headers[i];
-                cell.Style.Font.Bold = true;
-                cell.Style.Fill.BackgroundColor = XLColor.LightGray;
-                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            }
-            int rowIndex = 5;
+            for (int i = 0; i < headers.Length; i++) ws.Cell(4, i + 1).Value = headers[i];
+            var vungTieuDe = ws.Range(4, 1, 4, headers.Length);
+            vungTieuDe.Style.Font.Bold = true;
+            vungTieuDe.Style.Fill.BackgroundColor = XLColor.LightGray;
+            vungTieuDe.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            vungTieuDe.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            Module_ExcelAnToan.KeVien(vungTieuDe);
+            // BƯỚC B: CHIẾU DTO -> DÒNG (lười, không tạo List trung gian) và nạp 1 lần bằng InsertData.
+            // Bỏ GC.Collect cưỡng bức mỗi 5000 dòng: chỉ làm chậm, GC của .NET tự xử lý tốt hơn.
             int stt = 1;
-            // BƯỚC B: CHẠY STREAM DỮ LIỆU ĐỂ RÓT VÀO EXCEL MÀ KHÔNG LƯU RAM
-            foreach (var item in exportStream)
+            IEnumerable<object?[]> ChieuDong()
             {
-                token.ThrowIfCancellationRequested();
-                string ghiChu = dictGhiChu.TryGetValue(item.SoHieu, out string? gc) ? gc : "";
-                ws.Cell(rowIndex, 1).Value = stt++;
-                ws.Cell(rowIndex, 2).Value = item.HoTen;
-                ws.Cell(rowIndex, 3).Value = item.SoHieu;
-                ws.Cell(rowIndex, 4).Value = item.DonVi;
-                ws.Cell(rowIndex, 5).Value = item.Cot1;
-                ws.Cell(rowIndex, 6).Value = item.Cot2;
-                ws.Cell(rowIndex, 7).Value = item.Cot3;
-                ws.Cell(rowIndex, 8).Value = item.Cot4;
-                ws.Cell(rowIndex, 9).Value = item.KetQua;
-                ws.Cell(rowIndex, 10).Value = ghiChu;
-                rowIndex++;
-                // DỌN RÁC (COMPACTION) CHỦ ĐỘNG KHI GHI NHIỀU DÒNG
-                if (rowIndex % 5000 == 0)
+                foreach (var item in exportStream)
                 {
-                    System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
-                    GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false, false);
+                    token.ThrowIfCancellationRequested();
+                    string ghiChu = dictGhiChu.TryGetValue(item.SoHieu, out string? gc) ? gc : "";
+                    yield return new object?[] { stt++, item.HoTen, item.SoHieu, item.DonVi, item.Cot1, item.Cot2, item.Cot3, item.Cot4, item.KetQua, ghiChu };
                 }
             }
+            Module_ExcelAnToan.NapDongLuoi(ws, 5, 1, ChieuDong());
+            int rowIndex = 5 + (stt - 1);
             // ĐỊNH DẠNG TỔNG THỂ DỮ LIỆU
             if (stt > 1)
             {
@@ -290,18 +276,14 @@ namespace PhanMemThiDua2026
             ws.Column(10).Width = 26;
             Module_BanQuyen.DongDauExcel(wb);
             // BƯỚC C: SAFE SAVE CHỐNG HỎNG FILE
-            string tempFile = filePath + ".temp.xlsx";
-            wb.SaveAs(tempFile);
             try
             {
-                if (File.Exists(filePath)) File.Delete(filePath);
-                File.Move(tempFile, filePath);
+                Module_ExcelAnToan.LuuAnToan(wb, filePath);
             }
             catch (Exception ex)
             {
                 LogError("Lỗi Ghi đè file Excel (Safe Save)", ex);
-                if (File.Exists(tempFile)) File.Delete(tempFile);
-                throw new Exception("Không thể ghi đè file! Hãy đảm bảo bạn đã đóng file Excel trước khi xuất.", ex);
+                throw;
             }
         }
         // CÁC HÀM TIỆN ÍCH CƠ BẢN (KHÔNG DUPLICATE CODE)
@@ -311,7 +293,7 @@ namespace PhanMemThiDua2026
             if (!File.Exists(dbPath)) return "";
             try
             {
-                using var connInfo = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly;Cache=Shared;Pooling=True");
+                using var connInfo = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath, chiDoc: true, cacheChung: true));
                 connInfo.Open();
                 using var cmdInfo = new SqliteCommand("SELECT TenTieuDoan FROM ThongTin LIMIT 1", connInfo);
                 return SafeDecrypt(cmdInfo.ExecuteScalar()).Trim();

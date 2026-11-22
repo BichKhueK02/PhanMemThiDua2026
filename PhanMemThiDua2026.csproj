@@ -22,6 +22,19 @@
     <Description>Phan mem Thi dua 2026</Description>
     <PackageProjectUrl>https://github.com/BichKhueK02/PhanMemThiDua2026</PackageProjectUrl>
   </PropertyGroup>
+  <!-- ServiceBackup / ServiceRestore là 2 dự án RIÊNG (có .csproj riêng) đặt trong thư mục này để tiện quản lý:
+       KHÔNG được biên dịch chung vào phần mềm mẹ (trùng Program/AssemblyInfo => lỗi build). -->
+  <!-- Tests\ là dự án kiểm thử xUnit RIÊNG (tham chiếu ngược vào dự án này) => cũng không biên dịch chung. -->
+  <ItemGroup>
+    <Compile Remove="ServiceBackup\**;ServiceRestore\**;Tests\**" />
+    <EmbeddedResource Remove="ServiceBackup\**;ServiceRestore\**;Tests\**" />
+    <None Remove="ServiceBackup\**;ServiceRestore\**;Tests\**" />
+    <Content Remove="ServiceBackup\**;ServiceRestore\**;Tests\**" />
+  </ItemGroup>
+  <!-- Cho dự án kiểm thử gọi các lớp internal (Module_KetNoiCSDL, Module_QuyTacPhanLoai...). Không ảnh hưởng bản phát hành. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="PhanMemThiDua2026.Tests" />
+  </ItemGroup>
   <ItemGroup>
     <Content Remove="C:\Users\Asus ROG G531\.nuget\packages\pdfiumviewer.native.x86.v8-xfa\2018.4.8.256\Build\x86\pdfium.dll" />
     <Content Remove="C:\Users\Asus ROG G531\.nuget\packages\pdfiumviewer.native.x86_64.v8-xfa\2018.4.8.256\Build\x64\pdfium.dll" />
@@ -35,7 +48,7 @@
     <PackageReference Include="ExcelDataReader" Version="3.9.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.9.0" />
     <PackageReference Include="Krypton.Toolkit" Version="105.26.4.110" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="11.0.0-preview.3.26207.106" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.15" />
     <PackageReference Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" />
     <PackageReference Include="PdfiumViewer" Version="2.13.0" />
   </ItemGroup>
@@ -45,11 +58,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Update="Properties\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
@@ -58,10 +66,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <None Update="Resources\icon.ico">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
@@ -78,4 +82,16 @@
   <ItemGroup>
     <Folder Include="bin\Release\net8.0-windows\" />
   </ItemGroup>
+  <!-- TỆP KHÓA BẢO MẬT: khóa KHÔNG nằm trong .exe. Khi Build/Publish tệp được chép vào Database\KhoaBaoMat\
+       (KHÔNG gói vào bên trong .exe single-file). Tệp nguồn KhoaBaoMat\ không đưa lên git (.gitignore). -->
+  <ItemGroup Condition="Exists('KhoaBaoMat\PhanMemThiDua2026.pmtdkey')">
+    <None Include="KhoaBaoMat\PhanMemThiDua2026.pmtdkey" Link="Database\KhoaBaoMat\PhanMemThiDua2026.pmtdkey">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
+  </ItemGroup>
+  <Target Name="CanhBaoThieuTepKhoa" BeforeTargets="Build" Condition="!Exists('KhoaBaoMat\PhanMemThiDua2026.pmtdkey')">
+    <Warning Text="Thiếu KhoaBaoMat\PhanMemThiDua2026.pmtdkey: phần mềm sẽ không chạy được nếu không chép tệp khóa vào thư mục phần mềm." />
+  </Target>
 </Project>

@@ -530,7 +530,6 @@
         private ToolTip toolTip1;
         private TableLayoutPanel tableLayoutPanel1;
         private TableLayoutPanel tableLayoutPanel4;
-        private TableLayoutPanel tableLayoutPanel2;
         private TableLayoutPanel tableLayoutPanel15;
         private TableLayoutPanel tableLayoutPanel14;
         private TableLayoutPanel tableLayoutPanel12;

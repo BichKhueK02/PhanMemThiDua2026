@@ -7,22 +7,22 @@ namespace PhanMemThiDua2026
         private static int _indexHienTai = 1;
         private static readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;       
         // 1. TẦNG LOGIC HÌNH ẢNH (CHẠY NGẦM)
-        public static Image LayHinhTiepTheo()
+        public static Image? LayHinhTiepTheo()
         {
             _indexHienTai++;
             if (_indexHienTai > 5) _indexHienTai = 1; // Vòng lặp liên tục từ 1 -> 5
             return TrichXuatHinhAnToan(_indexHienTai);
         }
-        public static Image LayHinhMacDinh()
+        public static Image? LayHinhMacDinh()
         {
             return TrichXuatHinhAnToan(1); // Mặc định luôn lấy hình gốc số 1
         }
-        private static Image TrichXuatHinhAnToan(int index)
+        private static Image? TrichXuatHinhAnToan(int index)
         {
             string name = $"desktop_{index}";
             try
             {
-                object resourceObj = Properties.Resources.ResourceManager.GetObject(name);
+                object? resourceObj = Properties.Resources.ResourceManager.GetObject(name);
                 if (resourceObj is Image img)
                 {
                     // CLONE cực kỳ quan trọng để chống lỗi RAM khi Dispose ở Form2
@@ -40,7 +40,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 cn.Open();
                 // Đảm bảo bảng luôn tồn tại đúng cấu trúc
                 using (var cmdTaoBang = new SqliteCommand(@"
@@ -57,7 +57,7 @@ namespace PhanMemThiDua2026
                 var kq = cmdDoc.ExecuteScalar();
                 if (kq != null && !string.IsNullOrWhiteSpace(kq.ToString()))
                 {
-                    return kq.ToString();
+                    return kq.ToString()!;
                 }
             }
             catch (Exception ex)
@@ -70,7 +70,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 cn.Open();
                 // ⭐ TỐI ƯU HÓA: Dùng UPSERT của SQLite
                 // Chỉ dùng đúng 1 câu lệnh để vừa Insert vừa Update ở đúng dòng ID = 1

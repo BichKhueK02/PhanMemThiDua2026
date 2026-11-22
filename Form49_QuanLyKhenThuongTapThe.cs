@@ -1,16 +1,7 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -24,18 +15,18 @@ namespace PhanMemThiDua2026
         // Biến lưu trạng thái
         private int _selectedID = -1;
         private bool isEditing = false;
-        private List<string> _cachedDonVi = null;
-        private System.Threading.CancellationTokenSource _searchCts;
+        //private List<string> _cachedDonVi = null;
+        private System.Threading.CancellationTokenSource _searchCts = null!;
         private int _msgCounter = 0;
         // LỚP CACHE TOÀN CỤC CHỐNG QUÉT DB
         private class DuLieuCache
         {
             public int ID { get; set; }
-            public string TenTapThe { get; set; }
-            public string DonVi { get; set; }
-            public string HinhThucKhenThuong { get; set; } // <--- THÊM DÒNG NÀY
+            public string TenTapThe { get; set; } = null!;
+            public string DonVi { get; set; } = null!;
+            public string HinhThucKhenThuong { get; set; } = null!;
         }
-        private List<DuLieuCache> _globalCache = null; // Chứa toàn bộ ID, Tên, Đơn vị đã giải mã
+        private List<DuLieuCache>? _globalCache = null; // Chứa toàn bộ ID, Tên, Đơn vị đã giải mã
         public Form49_QuanLyKhenThuongTapThe()
         {
             InitializeComponent();
@@ -231,7 +222,7 @@ namespace PhanMemThiDua2026
         {
             if (_globalCache != null && !forceReload) return;
             _globalCache = new List<DuLieuCache>();
-            string connectionString = $@"Data Source={_csdl4Path};";
+            string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
             using (var conn = new SqliteConnection(connectionString))
             {
                 await conn.OpenAsync();
@@ -253,7 +244,7 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        private string SafeDecrypt(object value)
+        private string SafeDecrypt(object? value)
         {
             if (value == null || value == DBNull.Value) return "";
             string s = value.ToString()?.Trim() ?? "";
@@ -269,7 +260,7 @@ namespace PhanMemThiDua2026
                 return "[Lỗi dữ liệu]";
             }
         }
-        private string SafeEncrypt(string input)
+        private string SafeEncrypt(string? input)
         {
             if (string.IsNullOrWhiteSpace(input)) return "";
             return Module_BaoMatAES.MaHoa(input.Trim());
@@ -283,7 +274,7 @@ namespace PhanMemThiDua2026
             comboBox_TimKiemDonViKhenThuong.TextChanged -= comboBox_TimKiemDonViKhenThuong_TextChanged;
             string currentText = comboBox_TimKiemDonViKhenThuong.Text;
             // Rút trích danh sách Đơn Vị trực tiếp từ RAM (Cực kỳ nhanh)
-            var dsDonVi = _globalCache
+            var dsDonVi = _globalCache!
                 .Where(x => !string.IsNullOrWhiteSpace(x.DonVi) && x.DonVi != "[Lỗi giải mã]")
                 .Select(x => x.DonVi)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -340,12 +331,6 @@ namespace PhanMemThiDua2026
         {
             await DebouncedSearchAsync();
         }
-        public async void ReloadForm49()
-        {
-            await LoadDataToGridAsync();
-        }
-        // LOAD DATA GRID (THUẬT TOÁN 2 CHẶNG)      
-        // HÀM DEBOUNCE TÌM KIẾM (CÓ HỖ TRỢ CANCELLATION TOKEN)        
         private async Task DebouncedSearchAsync()
         {
             // Hủy triệt để lệnh tìm kiếm VÀ vòng lặp DB trước đó
@@ -381,7 +366,7 @@ namespace PhanMemThiDua2026
                 // không có tình trạng "async lambda lồng trong Task.Run".
                 var matchedItems = await Task.Run(() =>
                 {
-                    var query = _globalCache.AsEnumerable();
+                    var query = _globalCache!.AsEnumerable();
                     if (!string.IsNullOrEmpty(keywordTen))
                         query = query.Where(x => x.TenTapThe.ToLower().Contains(keywordTen));
                     if (!string.IsNullOrEmpty(keywordDonVi))
@@ -403,7 +388,7 @@ namespace PhanMemThiDua2026
                 // BƯỚC 2: TRUY VẤN DB CHỈ VỚI CÁC ID ĐÃ KHỚP (I/O-bound)
                 // Await trực tiếp trên async context hiện tại - KHÔNG bọc
                 // trong Task.Run vì ADO.NET/SQLite Async API đã non-blocking.
-                string connectionString = $@"Data Source={_csdl4Path};";
+                string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
                 using (var conn = new SqliteConnection(connectionString))
                 {
                     await conn.OpenAsync(token).ConfigureAwait(false);
@@ -623,7 +608,7 @@ namespace PhanMemThiDua2026
             {
                 string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
-                string connectionString = $@"Data Source={_csdl4Path};";
+                string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
                 using (var conn = new SqliteConnection(connectionString))
                 {
                     await conn.OpenAsync();
@@ -699,7 +684,7 @@ namespace PhanMemThiDua2026
             {
                 string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
-                string connectionString = $@"Data Source={_csdl4Path};";
+                string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
                 using (var conn = new SqliteConnection(connectionString))
                 {
                     await conn.OpenAsync();
@@ -759,7 +744,7 @@ namespace PhanMemThiDua2026
             kryptonButton_XoaKhenThuong.Enabled = false;
             try
             {
-                string connectionString = $@"Data Source={_csdl4Path};";
+                string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
                 using (var conn = new SqliteConnection(connectionString))
                 {
                     await conn.OpenAsync();
@@ -802,7 +787,7 @@ namespace PhanMemThiDua2026
         // CÁC HÀM TIỆN ÍCH & TỐI ƯU CƠ SỞ DỮ LIỆU
         private async Task DanhLaiSoThuTuAsync()
         {
-            string connectionString = $@"Data Source={_csdl4Path};";
+            string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
             using (var conn = new SqliteConnection(connectionString))
             {
                 await conn.OpenAsync();
@@ -854,7 +839,7 @@ namespace PhanMemThiDua2026
         }
         public void KiemTraVaTaoBangThongKeKhenThuongTapThe()
         {
-            string connectionString = $@"Data Source={_csdl4Path};";
+            string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
             using (SqliteConnection conn = new SqliteConnection(connectionString))
             {
                 try
@@ -940,17 +925,6 @@ namespace PhanMemThiDua2026
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;
             }
         }
-        private void kryptonButton1_Thoat_Click(object? sender, EventArgs e)
-        {
-            Form34_ThongKeKhenThuong form34 = Application.OpenForms.OfType<Form34_ThongKeKhenThuong>().FirstOrDefault();
-            if (form34 != null) { form34.Show(); form34.BringToFront(); }
-            else { form34 = new Form34_ThongKeKhenThuong(); form34.Show(); }
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
-                            Module_HeThong.LayNamHeThong();
-            if (formCha != null) { formCha.CapNhatTieuDe(tieuDeForm); }
-            this.Close();
-        }
         private void kryptonButton2_TangCoChuRichText_Click(object? sender, EventArgs e)
         {
             float currentSize = richTextBox1_NoiDungKhenThuong.Font.Size;
@@ -969,7 +943,7 @@ namespace PhanMemThiDua2026
             comboBox1_HinhThucKT.TextChanged -= comboBox1_HinhThucKT_TextChanged;
             string currentText = comboBox1_HinhThucKT.Text;
             // Rút trích danh sách Hình thức trực tiếp từ RAM (Cực kỳ nhanh và tự động bỏ trùng)
-            var dsHinhThuc = _globalCache
+            var dsHinhThuc = _globalCache!
                 .Where(x => !string.IsNullOrWhiteSpace(x.HinhThucKhenThuong) && x.HinhThucKhenThuong != "[Lỗi giải mã]")
                 .Select(x => x.HinhThucKhenThuong)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -991,7 +965,7 @@ namespace PhanMemThiDua2026
                     return;
                 }
                 int tongSoDong = 0;
-                using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_csdl4Path}"))
+                using (var conn = new Microsoft.Data.Sqlite.SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                 {
                     await conn.OpenAsync();
                     using (var cmd = new Microsoft.Data.Sqlite.SqliteCommand("SELECT COUNT(*) FROM ThongKe_KhenThuongTapThe", conn))
@@ -1026,7 +1000,7 @@ namespace PhanMemThiDua2026
             if (result != DialogResult.Yes) return;
             try
             {
-                using (var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_csdl4Path}"))
+                using (var conn = new Microsoft.Data.Sqlite.SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                 {
                     await conn.OpenAsync();
                     using (var tran = conn.BeginTransaction())
@@ -1087,7 +1061,7 @@ namespace PhanMemThiDua2026
             };
             if (sfd.ShowDialog() != DialogResult.OK) return;
             string filePath = sfd.FileName;
-            string textBanDau = xuatDuLieuRaTepExcel_ToolStripMenuItem.Text;
+            string? textBanDau = xuatDuLieuRaTepExcel_ToolStripMenuItem.Text;
             Form_Loading frmLoad = new Form_Loading("Đang tạo tệp Excel, vui lòng đợi...");
             bool isLoadShown = false;
             frmLoad.Icon = this.Icon;
@@ -1174,7 +1148,7 @@ namespace PhanMemThiDua2026
                     ws.PageSetup.Margins.Left = 0.4;
                     ws.PageSetup.Margins.Right = 0.4;
                     Module_BanQuyen.DongDauExcel(wb); 
-                    wb.SaveAs(filePath);
+                    Module_ExcelAnToan.LuuAnToan(wb, filePath);
                 });
                 try
                 {

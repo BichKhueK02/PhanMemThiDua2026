@@ -8,7 +8,7 @@ namespace PhanMemThiDua2026
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4; // Giữ lại vì đường dẫn DB không đổi
         private int _id = -1;               // 👈 Đã xóa readonly
         private string _donVi = "";         // 👈 Đã xóa readonly
-        private Dictionary<string, ComboBox> _cboMapping;
+        private Dictionary<string, ComboBox> _cboMapping = null!;
         // 2. BIẾN BỔ SUNG CHO TÍNH NĂNG XEM TỪ FORM 6
         private string _soHieuTimKiem = ""; // 👈 Đã xóa readonly
         private string _hoTenTimKiem = "";  // 👈 Đã xóa readonly
@@ -40,6 +40,7 @@ namespace PhanMemThiDua2026
         }
         private void Form30_ChinhSuaDataTanBinh_Load(object? sender, EventArgs e)
         {
+            Text = $"Thống kê kết quả thi đua của {Module_TaiKhoan.TenTB_Thuong}";
             TaoDanhSachCombo();
             KhoiTaoGiaTriCombo();
             LoadData(); // Chạy hàm truy xuất dữ liệu
@@ -160,7 +161,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 cn.Open();
                 // NHÁNH 1: Load bằng ID (Giữ nguyên logic cũ của bạn)
                 if (_id != -1)
@@ -220,7 +221,7 @@ namespace PhanMemThiDua2026
                 SetComboBoxColor(item.Value);
             }
         }
-        public static string GiaiMaSafe(string input)
+        public static string GiaiMaSafe(string? input)
         {
             if (string.IsNullOrWhiteSpace(input)) return "";
             try
@@ -243,7 +244,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 cn.Open();
                 List<string> setClauses = new();
                 foreach (var k in _cboMapping.Keys)

@@ -19,8 +19,8 @@ namespace PhanMemThiDua2026
     }
     internal static class Module_ThongBao
     {
-        private static ListBox _listBox;
-        private static System.Windows.Forms.Timer _timer;
+        private static ListBox? _listBox;
+        private static System.Windows.Forms.Timer? _timer;
         // Biến lưu trữ số lượng tối đa đọc từ CSDL
         private static int _soDongCache = -1;
         // Hàm ĐỌC TỪ CSDL ĐÚNG YÊU CẦU
@@ -33,7 +33,7 @@ namespace PhanMemThiDua2026
                 string csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
                 if (!string.IsNullOrWhiteSpace(csdl2Path) && System.IO.File.Exists(csdl2Path))
                 {
-                    using (var conn = new SqliteConnection($"Data Source={csdl2Path};Mode=ReadOnly"))
+                    using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdl2Path, chiDoc: true)))
                     {
                         conn.Open();
                         using (var cmd = conn.CreateCommand())
@@ -197,7 +197,7 @@ namespace PhanMemThiDua2026
                     return;
                 }
                 // TỐI ƯU 1: Dùng Pooling=True và Mode=ReadOnly để đọc file SQLite cực nhanh
-                string connectionString = $"Data Source={csdlPath};Mode=ReadOnly;Pooling=True;";
+                string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(csdlPath, chiDoc: true);
                 using (var conn = new SqliteConnection(connectionString))
                 {
                     // TỐI ƯU 2: Dùng OpenAsync để không gây đơ/khựng giao diện (UI Thread)
@@ -231,7 +231,7 @@ namespace PhanMemThiDua2026
                         string chiHuyD = Dep(Module_BaoMatAES.GiaiMa(reader["ChiHuyD"]?.ToString() ?? ""));
                         string deNghi = Dep(Module_BaoMatAES.GiaiMa(reader["LoaiDeNghi"]?.ToString() ?? ""));
                         // Chế độ xét thi đua lưu text thuần, Fallback về "Tháng" nếu chưa có dữ liệu
-                        string cheDoThiDua = reader["ChoPhepCheDoXetThiDuaNam"]?.ToString();
+                        string? cheDoThiDua = reader["ChoPhepCheDoXetThiDuaNam"]?.ToString();
                         if (string.IsNullOrWhiteSpace(cheDoThiDua))
                         {
                             cheDoThiDua = "Tháng";
@@ -278,7 +278,7 @@ namespace PhanMemThiDua2026
                 _listBox.EndUpdate(); // AN TOÀN 3: Đảm bảo luôn EndUpdate dù có lỗi xảy ra để không đơ ListBox
             }
         }
-        private static void VeDong(object sender, DrawItemEventArgs e)
+        private static void VeDong(object? sender, DrawItemEventArgs e)
         {
             if (_listBox == null ||
                 _listBox.IsDisposed ||
@@ -326,7 +326,7 @@ namespace PhanMemThiDua2026
                     e.Bounds.Height);
                 e.Graphics.DrawString(
                     item.Text,
-                    e.Font,
+                    e.Font!,
                     brushChu,
                     r);
             }

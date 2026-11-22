@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.Collections.Concurrent;
-using System.Data;
 using System.Diagnostics;
 using static PhanMemThiDua2026.Form10_NhatKy;
 namespace PhanMemThiDua2026
@@ -40,7 +39,6 @@ namespace PhanMemThiDua2026
         private static DateTime _lastTaiKhoanRefresh = DateTime.MinValue;
         private static readonly TimeSpan _taiKhoanCacheTime = TimeSpan.FromMinutes(10);
         private static int _backgroundWorkerStarted = 0;
-        private static System.Threading.Timer? _debounceTimer;
         public static event Action? OnNhatKyDaThayDoi;
         private struct LogItem
         {
@@ -84,7 +82,7 @@ namespace PhanMemThiDua2026
                     // Fallback
                     _cachedMachineId = Guid.NewGuid().ToString();
                 }
-                return _cachedMachineId;
+                return _cachedMachineId!;   // try gán từ CSDL, catch gán Guid mới => luôn có giá trị
             }
         }
         public static void TaoBangNhatKy()
@@ -159,7 +157,6 @@ namespace PhanMemThiDua2026
                         return taiKhoan;
                     }
                     using var conn = Module_DanduongGPS.MoKetNoiDoc(dbPath);
-
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = "SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1;";
                     object? result = cmd.ExecuteScalar();
@@ -410,26 +407,6 @@ WHERE ID <
         }
         private static string DocChuoi(SqliteDataReader rd, int i) =>
             rd.IsDBNull(i) ? string.Empty : (Convert.ToString(rd.GetValue(i)) ?? string.Empty);
-        public static DataTable LoadTatCaNhatKy()
-        {
-            var dt = new DataTable();
-            using var conn = new SqliteConnection(ConnectionString);
-            conn.Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT * FROM NhatKyUngDung ORDER BY ID ASC;";
-            using var reader = cmd.ExecuteReader();
-            dt.Load(reader);
-            // Giải mã dữ liệu trước khi trả về GridView
-            foreach (DataRow row in dt.Rows)
-            {
-                row["TenMay"] = GiaiMaAnToan(row["TenMay"].ToString() ?? "");
-                row["ID_CPU"] = GiaiMaAnToan(row["ID_CPU"].ToString() ?? "");
-                row["TaiKhoan"] = GiaiMaAnToan(row["TaiKhoan"].ToString() ?? "");
-                row["HanhDong"] = GiaiMaAnToan(row["HanhDong"].ToString() ?? "");
-                row["GhiChu"] = GiaiMaAnToan(row["GhiChu"].ToString() ?? "");
-            }
-            return dt;
-        }
         private const string PREFIX_AES_V4 = Module_BaoMatAES.PREFIX_STEALTH_V4; // "AES:v4|"
         private const string PREFIX_AES_V2 = Module_BaoMatAES.PREFIX_STEALTH_V2; // "AES:v2|"
         /// <summary>
@@ -448,70 +425,37 @@ WHERE ID <
             return Module_BaoMatAES.MaHoa_NhatKy(value);
         }
         /// <summary>
-        /// Hàm giải mã đa phiên bản (Nhận diện AES:v4|, AES:v2| và v2| chuẩn)
+        /// Tạo bảng TuDong_XoaNhatKy (cột đúng: "Chọn_GiaiTri") nếu chưa có. Bản cũ của Form10 từng tạo bảng với cột
+        /// "Chon_GiaTri" (không dấu) -> Form12 lưu/đọc cột có dấu bị lỗi im lặng. Gặp cột sai thì đổi tên về cột đúng.
         /// </summary>
-        private static string GiaiMaAnToan(string value)
+        public static void DamBaoBangTuDongXoa(SqliteConnection cn)
         {
-            // 1. Guard Clause: Rỗng/Khoảng trắng -> Trả về ngay
-            if (string.IsNullOrWhiteSpace(value)) return value;
-            try
+            using (var cmd = cn.CreateCommand())
             {
-                string result = string.Empty;
-                // 2. PHÂN LUỒNG GIẢI MÃ
-                // --- TRƯỜNG HỢP 1: Chuẩn V4 (AES-GCM) ---
-                if (value.StartsWith(PREFIX_AES_V4, StringComparison.Ordinal))
-                {
-                    // Hàm GiaiMa_NhatKy tự bóc tách "AES:v4|" và giải mã GCM
-                    result = Module_BaoMatAES.GiaiMa_NhatKy(value);
-                }
-                // --- TRƯỜNG HỢP 2: Chuẩn V2 có bọc vỏ "AES:v2|" ---
-                else if (value.StartsWith(PREFIX_AES_V2, StringComparison.Ordinal))
-                {
-                    // Bóc chữ "AES:" ra, còn lại "v2|..." để truyền vào hàm GiaiMa gốc
-                    string v2Payload = value.Substring(4); // Cắt bỏ 4 ký tự "AES:"
-                    result = Module_BaoMatAES.GiaiMa(v2Payload);
-                }
-                // --- TRƯỜNG HỢP 3: Chuẩn V2 gốc "v2|..." hoặc Base64 thuần ---
-                else if (value.StartsWith("v2|", StringComparison.Ordinal))
-                {
-                    result = Module_BaoMatAES.GiaiMa(value);
-                }
-                else
-                {
-                    // Chuỗi thô chưa mã hóa (Plaintext) -> Trả về nguyên bản
-                    return value;
-                }
-                // 3. FAIL-SAFE: Nếu giải mã lỗi (trả về string.Empty), giữ lại chuỗi gốc để không mất dữ liệu
-                return string.IsNullOrEmpty(result) ? value : result;
+                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS TuDong_XoaNhatKy (
+                    ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    Chọn_GiaiTri TEXT
+                );";
+                cmd.ExecuteNonQuery();
             }
-            catch
+            bool coCotDung = false, coCotSai = false;
+            using (var cmd = cn.CreateCommand())
             {
-                // Nuốt ngoại lệ an toàn, tránh crash UI khi gặp dữ liệu log bị rác
-                return value;
+                cmd.CommandText = "PRAGMA table_info(TuDong_XoaNhatKy);";
+                using var rd = cmd.ExecuteReader();
+                while (rd.Read())
+                {
+                    string ten = rd.GetString(1);
+                    if (ten == "Chọn_GiaiTri") coCotDung = true;
+                    else if (ten == "Chon_GiaTri") coCotSai = true;
+                }
             }
-        }
-        public static void XoaTatCaNhatKy()
-        {
-            using var conn = new SqliteConnection(ConnectionString);
-            conn.Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM NhatKyUngDung;";
-            cmd.ExecuteNonQuery();
-        }
-        public static List<string> LayDanhSachTaiKhoan()
-        {
-            var list = new List<string>();
-            using var conn = new SqliteConnection(ConnectionString);
-            conn.Open();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT DISTINCT TaiKhoan FROM NhatKyUngDung WHERE TaiKhoan IS NOT NULL AND TaiKhoan <> '';";
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            if (!coCotDung && coCotSai)
             {
-                string raw = reader.GetString(0);
-                list.Add(GiaiMaAnToan(raw));
+                using var cmd = cn.CreateCommand();
+                cmd.CommandText = "ALTER TABLE TuDong_XoaNhatKy RENAME COLUMN Chon_GiaTri TO Chọn_GiaiTri;";
+                cmd.ExecuteNonQuery();
             }
-            return list;
         }
         public static void DocVaNapStatusLabelForm10()
         {
@@ -529,7 +473,7 @@ WHERE ID <
                         cmdSelect.CommandText = "SELECT Chọn_GiaiTri FROM TuDong_XoaNhatKy WHERE ID = 1 LIMIT 1;";
                         var result = cmdSelect.ExecuteScalar();
                         if (result != null && result != DBNull.Value)
-                            luaChon = result.ToString();
+                            luaChon = result.ToString()!;
                     }
                     int soDongTuCsdl = luaChon switch
                     {

@@ -839,9 +839,6 @@ namespace PhanMemThiDua2026
                 if (!rtb.IsDisposed && !rtb.Disposing) TiepTucVe(rtb);
             }
         }
-        /// <summary>Tương thích cũ: tự lấy thông tin chi tiết (có thể nặng, nếu gọi từ luồng UI sẽ làm đứng giao diện).</summary>
-        public static void InThongTinDatabaseLenRichTextBox(RichTextBox rtb, string duongDanFile, List<string> danhSachBang) =>
-            InThongTinDatabaseLenRichTextBox(rtb, duongDanFile, danhSachBang, null);
         /// <summary>
         /// Bản khuyến nghị: nơi gọi lấy sẵn <paramref name="thongTinChiTiet"/> (LayThongTinChiTietCSDL) ở luồng nền,
         /// hàm này chỉ còn việc vẽ nên không làm đứng giao diện.
@@ -958,101 +955,6 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 Debug.WriteLine("[Heartbeat] " + ex.Message);
-            }
-        }
-        private static bool LaLienKet(string duongDan)
-        {
-            try { return (File.GetAttributes(duongDan) & FileAttributes.ReparsePoint) != 0; }
-            catch { return true; } // không đọc được thuộc tính: coi như không an toàn để xóa
-        }
-        private static void XoaThuMucAnToan(string thuMuc)
-        {
-            var tuyChon = new EnumerationOptions
-            {
-                RecurseSubdirectories = true,
-                IgnoreInaccessible = true,
-                AttributesToSkip = FileAttributes.ReparsePoint // không đi theo liên kết sang nơi khác
-            };
-            foreach (string file in Directory.EnumerateFiles(thuMuc, "*", tuyChon).ToArray())
-            {
-                try { File.SetAttributes(file, FileAttributes.Normal); } catch { }
-            }
-            Directory.Delete(thuMuc, true);
-        }
-        /// <summary>
-        /// Xóa gói dữ liệu trên Desktop nếu bỏ hoang quá <paramref name="soNgayToiDaKhongDung"/> ngày.
-        /// [AN TOÀN] Bản sao lưu còn trong thời hạn giữ (7 ngày) KHÔNG bị xóa: trước đây chính phần này có thể xóa mất
-        /// điểm khôi phục duy nhất của một lần nạp lỗi sau chỉ 2 ngày.
-        /// </summary>
-        public static void KiemTraVaHuyRacHeThong(int soNgayToiDaKhongDung = 2)
-        {
-            try
-            {
-                if (soNgayToiDaKhongDung < 1) soNgayToiDaKhongDung = 1;
-                string thuMucGoc = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), TEN_THU_MUC_GOI);
-                if (!Directory.Exists(thuMucGoc) || LaLienKet(thuMucGoc)) return;
-                // CHỐNG XÓA KHI PHẦN MỀM ĐANG CHẠY (giải phóng các đối tượng Process, trước đây bị bỏ rơi)
-                string tenExe = Path.GetFileNameWithoutExtension(Application.ExecutablePath);
-                Process[] dangChay = Process.GetProcessesByName(tenExe);
-                try
-                {
-                    if (dangChay.Length > 1) return;
-                }
-                finally
-                {
-                    foreach (Process p in dangChay) p.Dispose();
-                }
-                DateTime lanHoatDongCuoi;
-                string touchFile = Path.Combine(thuMucGoc, "system.touch");
-                if (File.Exists(touchFile))
-                {
-                    lanHoatDongCuoi = File.GetLastWriteTimeUtc(touchFile);
-                }
-                else
-                {
-                    var dir = new DirectoryInfo(thuMucGoc);
-                    lanHoatDongCuoi = dir.LastWriteTimeUtc;
-                    try
-                    {
-                        var tuyChon = new EnumerationOptions
-                        {
-                            RecurseSubdirectories = true,
-                            IgnoreInaccessible = true,
-                            AttributesToSkip = FileAttributes.ReparsePoint
-                        };
-                        foreach (FileSystemInfo item in dir.EnumerateFileSystemInfos("*", tuyChon))
-                        {
-                            if (item.LastWriteTimeUtc > lanHoatDongCuoi) lanHoatDongCuoi = item.LastWriteTimeUtc;
-                        }
-                    }
-                    catch { }
-                }
-                if ((DateTime.UtcNow - lanHoatDongCuoi).TotalDays < soNgayToiDaKhongDung) return;
-                string thuMucBackup = Path.Combine(thuMucGoc, TEN_THU_MUC_BACKUP);
-                DateTime mocBackupMoi = DateTime.Now.AddDays(-SO_NGAY_GIU_BACKUP);
-                bool conBackupMoi = Directory.Exists(thuMucBackup)
-                    && Directory.EnumerateFiles(thuMucBackup, "*.bak").Any(f => File.GetLastWriteTime(f) > mocBackupMoi);
-                if (!conBackupMoi)
-                {
-                    XoaThuMucAnToan(thuMucGoc);
-                    Debug.WriteLine($"[SYSTEM CLEANUP] Đã xóa: {thuMucGoc}");
-                    return;
-                }
-                // Còn bản sao lưu trong hạn: xóa mọi thứ khác, giữ lại thư mục sao lưu
-                foreach (string muc in Directory.EnumerateFileSystemEntries(thuMucGoc).ToArray())
-                {
-                    if (string.Equals(Path.GetFileName(muc), TEN_THU_MUC_BACKUP, StringComparison.OrdinalIgnoreCase)) continue;
-                    try
-                    {
-                        if (Directory.Exists(muc)) { if (!LaLienKet(muc)) XoaThuMucAnToan(muc); }
-                        else { File.SetAttributes(muc, FileAttributes.Normal); File.Delete(muc); }
-                    }
-                    catch (Exception ex) { Debug.WriteLine("[SYSTEM CLEANUP] " + ex.Message); }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("[KiemTraVaHuyRacHeThong] " + ex.Message);
             }
         }
         // ==================== LỊCH SỬ NẠP TRONG CSDL3 (ID = 1) ====================

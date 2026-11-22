@@ -1,7 +1,4 @@
 ﻿using ClosedXML.Excel;
-using Microsoft.Data.Sqlite;
-using System;
-using System.IO;
 namespace PhanMemThiDua2026
 {
     public static class Module_BanQuyen
@@ -69,8 +66,8 @@ namespace PhanMemThiDua2026
                 try { machineName = Environment.MachineName; } catch { }
                 // ⭐ Đóng dấu phiên bản bằng AES để chống can thiệp file Excel
                 string phienBanHienTai = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                bool laTanBinh = phienBanHienTai.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-                string textPhienBan = laTanBinh ? "Phần mềm dành cho Tân binh" : "Phần mềm dành cho CBCS";
+                bool laTanBinh = phienBanHienTai.LaCheDoTanBinh();
+                string textPhienBan = laTanBinh ? $"Phần mềm dành cho {Module_TaiKhoan.TenTB_Hoa}" : "Phần mềm dành cho CBCS";
                 string[] giaTri =
                 {
                     "Phần mềm Thi đua 2026",
@@ -110,23 +107,11 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
+        // Chỉ nhúng DẤU VÂN TAY Token vào Excel (đủ để đối chiếu nguồn gốc tệp), không nhúng chuỗi Token đã mã hóa
+        // vì ai có phần mềm cũng giải mã được chuỗi đó ra Token gốc.
         private static string DocTokenAnToan()
         {
-            try
-            {
-                string dbPath = Module_DanduongGPS.DuongDanCSDL1;
-                if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return "";
-                using var conn = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly;Pooling=True;Cache=Shared;");
-                conn.Open();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT Token FROM Admin WHERE ID = 1 LIMIT 1";
-                object result = cmd.ExecuteScalar();
-                if (result == null || result == DBNull.Value) return "";
-                string token = result.ToString();
-                if (string.IsNullOrWhiteSpace(token)) return "";
-                if (token.Length > 200) token = token.Substring(0, 200);
-                return token;
-            }
+            try { return Module_TokenCSDL.LayDauVanTay(); }
             catch { return ""; }
         }
     }

@@ -1,13 +1,9 @@
 ﻿using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Globalization;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Drawing.Drawing2D;
 namespace PhanMemThiDua2026
 {
     internal static class Module_HeThong
@@ -51,14 +47,6 @@ namespace PhanMemThiDua2026
         public const string Ngay_Thang_Nam = "dd/MM/yyyy";
         private const int ID_NAM_HE_THONG = 1;
         private static string DbPath => Module_DanduongGPS.DuongDanCSDL2;
-        // Mảng chuẩn 5 loại (Dành cho Form46_ThongKeThiDuaNamCu - CSDL Năm)
-        public static readonly object[] DanhSach_PhanLoai_Chuan = {
-            PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV, PL_KHONG_PL
-        };
-        // Mảng có thêm chuỗi rỗng ở đầu (Dành cho Form22, Form30)
-        public static readonly object[] DanhSach_PhanLoai_CoRong = {
-            "", PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV
-        };
         // Mảng có thêm "Tất cả" (Dành cho Form46 - Bộ lọc tìm kiếm)
         public static readonly object[] DanhSach_PhanLoai_TatCa = {
             "Tất cả", PL_CSTD, PL_CSTT, PL_HTNV, PL_KHTNV, PL_KHONG_PL
@@ -154,7 +142,7 @@ namespace PhanMemThiDua2026
             {
                 if (!File.Exists(DbPath))
                     return DateTime.Now.Year;
-                using var conn = new SqliteConnection($"Data Source={DbPath}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(DbPath));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
@@ -163,7 +151,7 @@ namespace PhanMemThiDua2026
                     WHERE ID = @id 
                     LIMIT 1;";
                 cmd.Parameters.AddWithValue("@id", ID_NAM_HE_THONG);
-                object result = cmd.ExecuteScalar();
+                object? result = cmd.ExecuteScalar();
                 if (result != null && result != DBNull.Value)
                 {
                     int nam = Convert.ToInt32(result);
@@ -179,71 +167,11 @@ namespace PhanMemThiDua2026
             }
             return DateTime.Now.Year;
         }
-        // 2. Lưu năm hệ thống
-        /// Yêu Mèo Cam 🐈
-        public static void LuuNamHeThong(int nam)
-        {
-            // Chặn dữ liệu rác/lỗi từ đầu vào
-            if (nam < 2000 || nam > 2100)
-                throw new ArgumentOutOfRangeException(nameof(nam), "Năm hệ thống không hợp lệ (Giới hạn: 2000 - 2100).");
-            try
-            {
-                using var conn = new SqliteConnection($"Data Source={DbPath}");
-                conn.Open();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"
-                    INSERT OR REPLACE INTO NamHeThong (ID, NAM)
-                    VALUES (@id, @nam);";
-                cmd.Parameters.AddWithValue("@id", ID_NAM_HE_THONG);
-                cmd.Parameters.AddWithValue("@nam", nam);
-                cmd.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[Lỗi CSDL - LuuNamHeThong]: {ex.Message}");
-                throw new Exception($"Lỗi gián đoạn khi lưu năm hệ thống: {ex.Message}", ex);
-            }
-        }
-        // 3. Lấy danh sách biên độ năm
-        public static List<int> LayDanhSachNam(int bienDo = 5)
-        {
-            int namTrungTam = LayNamHeThong();
-            var ds = new List<int>(bienDo * 2 + 1); // Cấp phát tĩnh trước để tối ưu phân bổ vùng nhớ
-            int min = namTrungTam - bienDo;
-            int max = namTrungTam + bienDo;
-            for (int i = min; i <= max; i++)
-            {
-                ds.Add(i);
-            }
-            return ds;
-        }
-        /// <summary>
-        /// Cập nhật trạng thái hiển thị của Menu Item dựa trên phiên bản phần mềm (Tân binh / CBCS)
-        /// </summary>
-        // 1. Khai báo Event thông báo khi phiên bản/chế độ thay đổi
-        public static event EventHandler OnPhienBanChanged;
-        // 2. Hàm kích hoạt Event này (gọi từ Form 12 khi lưu cài đặt)
-        public static void ThongBaoThayDoiPhienBan()
-        {
-            OnPhienBanChanged?.Invoke(null, EventArgs.Empty);
-        }
-        /// <summary>
-        /// Hàm kiểm tra và ẩn/hiện ToolStripMenuItem dựa trên phiên bản phần mềm
-        /// </summary>
-        /// <param name="menuItem">ToolStripMenuItem cần ẩn/hiện</param>
-        public static void CapNhatMenuPhanLoaiThang(ToolStripMenuItem menuItem)
-        {
-            if (menuItem == null) return;
-            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty;
-            bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-            // Tân binh -> Hiện (true), CBCS -> Ẩn (false)
-            menuItem.Visible = laTanBinh;
-        }
         /// <summary>
         /// ============================ QUẢN LÝ TÊN ĐƠN VỊ HIỆN TẠI =========================
         /// </summary>
         public static string TenDonViHienTai { get; private set; } = string.Empty;
-        public static event Action SuKienThayDoiTenDonVi;
+        public static event Action? SuKienThayDoiTenDonVi;
         public static string LayTenDonViChuan(bool lamMoiTuCSDL = false)
         {
             // Nếu đã có trong RAM và không yêu cầu đọc lại từ CSDL -> Trả về luôn
@@ -254,7 +182,7 @@ namespace PhanMemThiDua2026
                 return string.Empty;
             try
             {
-                using var cn = new SqliteConnection($"Data Source={dbPath}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin ORDER BY ID ASC LIMIT 1";
@@ -298,7 +226,7 @@ namespace PhanMemThiDua2026
         /// Sự kiện phát ra toàn hệ thống khi Chế độ xét thi đua bị thay đổi.
         /// Tất cả các Form đang mở có thể đăng ký sự kiện này để tự động cập nhật lại UI.
         /// </summary>
-        public static event Action SuKienThayDoiCheDoXetThiDua;
+        public static event Action? SuKienThayDoiCheDoXetThiDua;
         /// <summary>
         /// HÀM 1: Đọc giá trị từ CSDL2 (ID = 1, cột ChoPhepCheDoXetThiDuaNam).
         /// Trả về "Năm" hoặc "Tháng" (văn bản thuần không mã hóa).
@@ -306,6 +234,8 @@ namespace PhanMemThiDua2026
         /// <param name="lamMoiTuCSDL">True: Buộc đọc lại từ CSDL2; False: Lấy từ RAM Cache</param>
         public static string LayCheDoXetThiDuaNam(bool lamMoiTuCSDL = false)
         {
+            // Tân binh chỉ xét theo tuần/tháng: không để cờ "Năm" của CBCS (vẫn lưu trong CSDL) áp sang
+            if (Module_TaiKhoan.LaPhienBanTanBinh()) return "Tháng";
             if (!lamMoiTuCSDL && !string.IsNullOrEmpty(_cheDoXetThiDuaNamCache))
                 return _cheDoXetThiDuaNamCache;
             string dbPath = Module_DanduongGPS.DuongDanCSDL2;
@@ -316,11 +246,11 @@ namespace PhanMemThiDua2026
             }
             try
             {
-                using var conn = new SqliteConnection($"Data Source={dbPath}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT ChoPhepCheDoXetThiDuaNam FROM CheDo_XetThiDuaNam WHERE ID = 1 LIMIT 1;";
-                object result = cmd.ExecuteScalar();
+                object? result = cmd.ExecuteScalar();
                 if (result != null && result != DBNull.Value)
                 {
                     string val = result.ToString()?.Trim() ?? "";
@@ -362,7 +292,7 @@ namespace PhanMemThiDua2026
             string valToSave = giaTri?.Trim().Equals("Năm", StringComparison.OrdinalIgnoreCase) == true ? "Năm" : "Tháng";
             try
             {
-                using var conn = new SqliteConnection($"Data Source={dbPath}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                 conn.Open();
                 // 1. Tạo bảng nếu chưa tồn tại
                 using (var cmdCreateTable = conn.CreateCommand())
@@ -401,11 +331,11 @@ namespace PhanMemThiDua2026
         /// </summary>
         public static bool IsKichHoatAnhXa(bool lamMoiTuCSDL = false)
         {
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().LaCheDoTanBinh();
             bool isCBCS = !laTanBinh;
             return isCBCS && IsCheDoXetThiDuaNam(lamMoiTuCSDL);
         }
-        public static async Task<bool> LuuCheDoXetThiDuaNamAsync(string giaTri, SqliteConnection conn = null, SqliteTransaction tran = null)
+        public static async Task<bool> LuuCheDoXetThiDuaNamAsync(string giaTri, SqliteConnection? conn = null, SqliteTransaction? tran = null)
         {
             string valToSave = giaTri?.Trim().Equals("Năm", StringComparison.OrdinalIgnoreCase) == true ? "Năm" : "Tháng";
             try
@@ -415,10 +345,10 @@ namespace PhanMemThiDua2026
                 {
                     string dbPath = Module_DanduongGPS.DuongDanCSDL2;
                     if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return false;
-                    conn = new SqliteConnection($"Data Source={dbPath}");
+                    conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                     await conn.OpenAsync();
                 }
-                using (var cmd = conn.CreateCommand())
+                using (var cmd = conn!.CreateCommand())
                 {
                     if (tran != null) cmd.Transaction = tran;
                     cmd.CommandText = @"
@@ -442,7 +372,7 @@ namespace PhanMemThiDua2026
         /// <summary>
         /// Sự kiện phát ra toàn hệ thống khi Tháng/Năm hoặc Thông tin cấu hình bị thay đổi
         /// </summary>
-        public static event Action SuKienThayDoiThoiGianHeThong;
+        public static event Action? SuKienThayDoiThoiGianHeThong;
         /// <summary>
         /// Hàm phát thông báo làm mới thời gian hệ thống và xóa Cache dữ liệu chung
         /// </summary>
@@ -477,7 +407,7 @@ namespace PhanMemThiDua2026
             string cheDo = "Tháng";
             string thang = "";
             string nam = DateTime.Now.Year.ToString(); // Mặc định năm hiện tại nếu rỗng
-            using (var conn = new SqliteConnection($"Data Source={csdlPath}"))
+            using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdlPath)))
             {
                 await conn.OpenAsync();
                 // 1. Đọc Năm hệ thống (Bảng NamHeThong - Không mã hóa)
@@ -542,10 +472,6 @@ namespace PhanMemThiDua2026
             parent.ResumeLayout();
         }
         public static event Action? SuKienThayDoiDanhSachPhanLoai;
-        public static void ThongBaoThayDoiPhanLoai()
-        {
-            SuKienThayDoiDanhSachPhanLoai?.Invoke();
-        }
         ///Lắng nghe và phát hiện thư mục Database-PhanMemThiDua2026 ngoài Desktop
         ///
         /// 
@@ -1025,34 +951,6 @@ namespace PhanMemThiDua2026
                 {
                     System.Diagnostics.Debug.WriteLine($"[Lỗi kiểm tra nội dung thư mục chuyển giao]: {ex.Message}");
                     return false;
-                }
-            }
-            /// <summary>
-            /// Hàm phụ trợ: Kiểm tra thư mục mẹ có rỗng không và có chứa ít nhất 1 trong các tệp/thư mục csdl1, csdl2, csdl3, csdl4 hay không
-            /// </summary>
-            // Hàm tạo đường bo góc (đặt trong cùng class)
-            private static GraphicsPath TaoDuongBoGoc(Rectangle rect, int banKinh)
-            {
-                int d = banKinh * 2;
-                var path = new GraphicsPath();
-                path.AddArc(rect.X, rect.Y, d, d, 180, 90);                       // góc trên trái
-                path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);               // góc trên phải
-                path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);        // góc dưới phải
-                path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);               // góc dưới trái
-                path.CloseFigure();
-                return path;
-            }
-            private static void MoFormChuyenGiao(Form2_FormCha formCha)
-            {
-                try
-                {
-                    // Gọi form chuyển giao dữ liệu đảm bảo nằm trong form cha (hoặc mở dạng con tùy architecture của bạn)
-                    // Ví dụ nếu bạn dùng cơ chế OpenChildForm cho Form31:
-                    formCha.OpenChildForm<Form31_ChuyenGiaoDuLieu>("Trang Chuyển giao dữ liệu");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(formCha, "Không thể mở trang chuyển giao dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

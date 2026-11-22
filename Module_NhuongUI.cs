@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     /// <summary>
@@ -24,6 +23,12 @@ namespace PhanMemThiDua2026
         }
         [DllImport("user32.dll")]
         private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+        /// <summary>
+        /// Chế độ TĂNG TỐC: bật khi người dùng đã bấm Đăng nhập. Lúc này người dùng đang CHỜ nên không nhường nữa:
+        /// bỏ qua chờ "rảnh tay", chia lát dài hơn và nhường bằng Task.Yield (không chờ đồng hồ ~15 ms của Task.Delay).
+        /// Do Module_GiaoDienForm2Web bật/tắt; luôn được tắt lại khi việc dựng Form2 kết thúc.
+        /// </summary>
+        public static volatile bool TangToc;
         /// <summary>Số ms kể từ lần cuối người dùng bấm phím / di chuột (toàn hệ thống). Lỗi thì coi như đã rảnh.</summary>
         public static int MsKeTuLanThaoTacCuoi()
         {
@@ -41,6 +46,7 @@ namespace PhanMemThiDua2026
         /// </summary>
         public static async Task<bool> ChoRanhAsync(Func<bool> dung, int ranhMs = 180, int toiDaMs = 2000)
         {
+            if (TangToc) return !dung();   // người dùng đang chờ đăng nhập: chạy ngay
             var sw = Stopwatch.StartNew();
             while (true)
             {
@@ -62,6 +68,7 @@ namespace PhanMemThiDua2026
             var ngan = new Stack<Control>();
             ngan.Push(goc);
             var sw = Stopwatch.StartNew();
+            int soLatYield = 0;
             while (ngan.Count > 0)
             {
                 if (dung()) return false;
@@ -70,9 +77,29 @@ namespace PhanMemThiDua2026
                 if (ten.Contains("WebView2") || ten.Contains("WebBrowser")) continue; // control nặng, để lúc cần mới tạo
                 try { _ = c.Handle; } catch { continue; }
                 for (int i = c.Controls.Count - 1; i >= 0; i--) ngan.Push(c.Controls[i]);
-                if (sw.ElapsedMilliseconds >= latMs)
+                if (TangToc)
                 {
-                    await Task.Delay(1);   // trả luồng UI cho phím/chuột
+                    // Tăng tốc: lát 30 ms, nhường bằng Yield (Task.Delay(1) thực tế chờ ~15 ms mỗi lần => làm chậm gần gấp đôi)
+                    if (sw.ElapsedMilliseconds >= 30)
+                    {
+                        await Task.Yield();
+                        sw.Restart();
+                    }
+                }
+                else if (sw.ElapsedMilliseconds >= latMs)
+                {
+                    // Task.Delay(1) thực tế chờ ~15 ms (độ phân giải đồng hồ Windows) => lát 8 ms làm + 15 ms chờ: gần 2/3 thời gian
+                    // ngồi không. Khi người dùng KHÔNG thao tác: nhường bằng Yield (gần như tức thì), cứ ~4 lát mới Delay một lần để
+                    // vẽ/timer vẫn chạy. Người dùng vừa gõ/di chuột thì quay lại Delay(1) mỗi lát như cũ (không giật phím).
+                    if (MsKeTuLanThaoTacCuoi() >= 300 && ++soLatYield < 4)
+                    {
+                        await Task.Yield();
+                    }
+                    else
+                    {
+                        soLatYield = 0;
+                        await Task.Delay(1);   // trả luồng UI cho phím/chuột
+                    }
                     sw.Restart();
                 }
             }

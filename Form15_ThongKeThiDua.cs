@@ -15,7 +15,7 @@ namespace PhanMemThiDua2026
         private static readonly Font _fontGridHeader = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
         private static readonly Font _fontGridCell = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular);
         private static readonly Font _fontGridHighlight = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
-        public bool DaLoadDuLieu { get; set; } = false;
+        //public bool DaLoadDuLieu { get; set; } = false;
         private DataTable? dtDanhSachGoc;
         private List<string> _cotPhatSinhCacheThongKe = new List<string>();
         private bool _dangMoThongKeTapThe = false;
@@ -40,7 +40,10 @@ namespace PhanMemThiDua2026
         // Cache phiên bản đang hiển thị (CBCS/Tân binh): không gọi lại hàm đọc phiên bản cho từng ô
         private bool? _hienThiTanBinh = null;
         private bool HienThiTanBinh => _hienThiTanBinh ??= LaTanBinhHienTai();
-        private static bool LaTanBinhHienTai() => (Module_TaiKhoan.LayPhienBanPhanMem() ?? "").Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+        private static bool LaTanBinhHienTai() => (Module_TaiKhoan.LayPhienBanPhanMem() ?? "").LaCheDoTanBinh();
+        // Nhật ký chẩn đoán quá trình nạp (Database\NhatKyNhaPhatTrien\form15-yyyyMMdd.log): ghi từng bước + lỗi bị nuốt
+        internal static void NK(string noiDung) =>
+            Module_NhatKyNhaPhatTrien.GhiDong("form15", $"[T{Environment.CurrentManagedThreadId}] {noiDung}");
         private bool _isDataMaxMode = false; // Cờ theo dõi đang chạy chế độ thường hay DataMax
         // Bộ nhớ đệm dữ liệu thô cho chế độ DataMax
         private List<RawCBCS> _dataCacheCBCS = new List<RawCBCS>();
@@ -107,9 +110,21 @@ namespace PhanMemThiDua2026
                 BatDoubleBufferDeQuy(c);
             }
         }
+        private bool _daHienLanDau = false;
         private void Form15_ThongKeThiDua_Load(object? sender, EventArgs e)
         {
-            if (_isInitialized) return;
+            if (_daHienLanDau) return;
+            _daHienLanDau = true;
+            KhoiTaoMotLan();   // đã nạp sẵn lúc form còn ẩn thì bỏ qua
+            DatConTroLanDau();
+        }
+        /// <summary>
+        /// Phần khởi tạo không cần form đang hiện (định dạng lưới, menu...). Idempotent.
+        /// Form53 gọi khi nạp sẵn dữ liệu lúc form còn ẩn, trước khi gọi ReloadData.
+        /// </summary>
+        internal void KhoiTaoMotLan()
+        {
+            if (_isInitialized || IsDisposed) return;
             DinhDangDataGirdView_HienThi();
             // Không dùng thanh tiến trình khi nạp dữ liệu
             toolStripProgressBar1_LamMoi.Visible = false;
@@ -120,6 +135,9 @@ namespace PhanMemThiDua2026
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             CapNhatQuyenMenuTheoPhienBan();
             _isInitialized = true;
+        }
+        private void DatConTroLanDau()
+        {
             // Đưa con trỏ vào ô tìm kiếm
             this.BeginInvoke(new Action(() =>
             {
@@ -172,6 +190,7 @@ namespace PhanMemThiDua2026
                     this.BeginInvoke(new Action(() => Module_TaiKhoan_OnPhienBanThayDoi(sender, e)));
                     return;
                 }
+                _sttCache = null; // STT/Ghi chú lấy từ bảng gốc khác (DanhSach <-> DanhSachTanBinh)
                 CapNhatQuyenMenuTheoPhienBan();
                 Module_HoTroLuuDataTheoNamCu.CapNhatAnHienMenuDongBo(dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem);
                 await LamMoiDuLieuAsync();
@@ -190,6 +209,7 @@ namespace PhanMemThiDua2026
         private void contextMenuStrip1_Opening(object? sender, CancelEventArgs e)
         {
             CapNhatMenuSuaThongTin();
+            CapNhatMenuXoaDuLieu();
             Module_HoTroLuuDataTheoNamCu.CapNhatAnHienMenuDongBo(dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem);
         }
         private Action SafeAction(Action action)
@@ -265,7 +285,7 @@ namespace PhanMemThiDua2026
                     InitPlaceholderTimKiem();
             };
             _timKiemTimer = new System.Windows.Forms.Timer();
-            _timKiemTimer.Interval = 300; // Trễ 300ms: gõ xong mới lọc
+            _timKiemTimer.Interval = 200; // Trễ 200ms: gõ xong mới lọc
             _timKiemTimer.Tick += (s, ev) =>
             {
                 _timKiemTimer?.Stop();
@@ -290,10 +310,10 @@ namespace PhanMemThiDua2026
                 try
                 {
                     var raw = new List<(string sh, string gc, int stt)>();
-                    using (var cn2 = new SqliteConnection($"Data Source={_csdl2Path}"))
+                    using (var cn2 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path)))
                     {
                         cn2.Open();
-                        using var cmd = new SqliteCommand(dungSTT ? "SELECT SoHieu, GhiChu, STT FROM DanhSach" : "SELECT SoHieu, GhiChu FROM DanhSach", cn2);
+                        using var cmd = new SqliteCommand(dungSTT ? $"SELECT SoHieu, GhiChu, STT FROM {Module_TaiKhoan.BangDanhSach}" : $"SELECT SoHieu, GhiChu FROM {Module_TaiKhoan.BangDanhSach}", cn2);
                         using var rd = cmd.ExecuteReader();
                         while (rd.Read())
                         {
@@ -355,7 +375,7 @@ namespace PhanMemThiDua2026
         {
             if (!File.Exists(_csdl4Path)) return null;
             var dt = new DataTable();
-            using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+            using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
             {
                 cn.Open();
                 using var cmd = new SqliteCommand(laTanBinh ? "SELECT * FROM ThiDuaThang_TanBinh" : "SELECT * FROM ThiDuaThang", cn);
@@ -385,7 +405,7 @@ namespace PhanMemThiDua2026
                 string ht = SafeDecrypt(row[oHt]?.ToString());
                 int pri = dicUuTien.TryGetValue(dv, out int p) ? p : int.MaxValue;
                 string gc = dictGhiChu.TryGetValue(sh, out string? g) ? g : "";
-                kq[i] = (ht, sh, dv, gc, pri, ChuanHoaDonViSoSanh(dv), ht.ToLowerInvariant());
+                kq[i] = (ht, sh, dv, gc, pri, ChuanHoaDonViSoSanh(dv), BoLocDanhSach.ChuanHoaTimKiem(ht));
             });
             int cHt = oHt, cSh = oSh, cDv = oDv;
             int cGc = dt.Columns["GhiChu"]!.Ordinal, cPri = dt.Columns[COT_UU_TIEN]!.Ordinal;
@@ -574,13 +594,6 @@ namespace PhanMemThiDua2026
                       : d.CotPhatSinh.TryGetValue(ten, out string? w) ? w : string.Empty;
         }
         // ----- API công khai giữ nguyên tên: nạp + lọc ngay (đồng bộ) -----
-        public void LoadThongKe_CBCS()
-        {
-            var g = DocGoiThuong(false);
-            if (g == null) return;
-            ApDungGoiThuong(g);
-            ApplyFilter_Standard();
-        }
         public void LoadThongKe_TanBinh()
         {
             var g = DocGoiThuong(true);
@@ -603,7 +616,7 @@ namespace PhanMemThiDua2026
             var ds = new List<RawCBCS>();
             var schema = new DataTable();
             var phatSinh = new List<string>();
-            using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+            using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
             {
                 cn.Open();
                 using var cmd = new SqliteCommand("SELECT * FROM ThiDuaThang", cn);
@@ -662,7 +675,7 @@ namespace PhanMemThiDua2026
                 it.HoTenE = SafeDecrypt(it.HoTenE);
                 it.SortPriority = dicUuTien.TryGetValue(it.DonViE, out int p) ? p : int.MaxValue;
                 it.GhiChu = gc != null && gc.TryGetValue(it.SoHieuE, out string? g) ? g : "";
-                it.HoTenSearch = it.HoTenE.ToLowerInvariant();
+                it.HoTenSearch = BoLocDanhSach.ChuanHoaTimKiem(it.HoTenE);
             });
             ds = ds.OrderBy(x => x.SortPriority).ThenBy(x => x.IdSo).ToList();
             return (ds, schema, phatSinh, dl?.STT);
@@ -672,7 +685,7 @@ namespace PhanMemThiDua2026
             var ds = new List<RawTanBinh>();
             var schema = new DataTable();
             var phatSinh = new List<string>();
-            using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+            using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
             {
                 cn.Open();
                 using var cmd = new SqliteCommand("SELECT * FROM ThiDuaThang_TanBinh", cn);
@@ -729,7 +742,7 @@ namespace PhanMemThiDua2026
                 it.HoTenE = SafeDecrypt(it.HoTenE);
                 it.SortPriority = dicUuTien.TryGetValue(it.DonViE, out int p) ? p : int.MaxValue;
                 it.GhiChu = gc != null && gc.TryGetValue(it.SoHieuE, out string? g) ? g : "";
-                it.HoTenSearch = it.HoTenE.ToLowerInvariant();
+                it.HoTenSearch = BoLocDanhSach.ChuanHoaTimKiem(it.HoTenE);
             });
             ds = ds.OrderBy(x => x.SortPriority).ThenBy(x => x.IdSo).ToList();
             return (ds, schema, phatSinh, dl?.STT);
@@ -757,17 +770,6 @@ namespace PhanMemThiDua2026
             });
         }
         // ----- API công khai giữ nguyên tên: nạp + lọc ngay -----
-        public async Task LoadThongKe_CBCS_DataMax()
-        {
-            await NapDataMaxCBCSAsync();
-            await LocLaiAsync();
-        }
-        public async Task LoadThongKe_TanBinh_DataMax()
-        {
-            await NapDataMaxTanBinhAsync();
-            await LocLaiAsync();
-        }
-        // Chọn chế độ theo quân số rồi nạp (chưa lọc: người gọi sẽ lọc đúng 1 lần)
         private async Task DieuPhoiLoadDuLieuAsync(bool laTanBinh)
         {
             string tableName = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
@@ -775,13 +777,14 @@ namespace PhanMemThiDua2026
             {
                 try
                 {
-                    using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
+                    using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                     cn.Open();
                     using var cmd = new SqliteCommand($"SELECT COUNT(ID) FROM {tableName}", cn);
                     return Convert.ToInt32(cmd.ExecuteScalar());
                 }
-                catch { return 0; }
+                catch (Exception ex) { NK($"DieuPhoi: LỖI đếm {tableName}: {ex.Message}"); return 0; }
             });
+            NK($"DieuPhoi: {tableName} = {tongSo} dòng -> {(tongSo > NGUONG_DU_LIEU ? "DataMax" : "thường")}");
             if (IsDisposed) return;
             if (tongSo > NGUONG_DU_LIEU)
             {
@@ -887,14 +890,25 @@ namespace PhanMemThiDua2026
         {
             public bool CoTen, CoDv, CoTT, CoGC, GCTrong;
             public string TenLower = "", DvKey = "", TinhTrang = "", GCKey = "";
+            public string[] Tu = Array.Empty<string>();   // các từ khóa tên đã bỏ dấu; từ nào cũng phải có mặt
+            public bool KhopTen(string? s)
+            {
+                if (Tu.Length == 0) return true;
+                s ??= "";
+                for (int t = 0; t < Tu.Length; t++)
+                    if (s.IndexOf(Tu[t], StringComparison.Ordinal) < 0) return false;
+                return true;
+            }
         }
         private BoLoc LayBoLoc()
         {
             var b = new BoLoc();
-            string ten = (textBox_TimKiemTheoTen.Text ?? "").Trim().ToLowerInvariant();
-            if (_dangSetPlaceholder || ten == PLACEHOLDER_TIMKIEM.ToLowerInvariant()) ten = "";
+            string tenGoc = (textBox_TimKiemTheoTen.Text ?? "").Trim();
+            if (_dangSetPlaceholder || string.Equals(tenGoc, PLACEHOLDER_TIMKIEM, StringComparison.OrdinalIgnoreCase)) tenGoc = "";
+            string ten = BoLocDanhSach.ChuanHoaTimKiem(tenGoc);   // bỏ dấu + chữ thường: "nguyen van" khớp "Nguyễn Văn"
             b.TenLower = ten;
-            b.CoTen = ten.Length > 0;
+            b.Tu = ten.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            b.CoTen = b.Tu.Length > 0;
             string dv = comboBox_TimKiemDonVi.Text?.Trim() ?? "";
             b.CoDv = !string.IsNullOrWhiteSpace(dv) && dv != Module_HeThong.Tat_Ca;
             b.DvKey = b.CoDv ? ChuanHoaDonViSoSanh(dv) : "";
@@ -919,7 +933,29 @@ namespace PhanMemThiDua2026
         }
         private void XoaLuoi()
         {
-            if (kryptonDataGridView1.RowCount > 0) kryptonDataGridView1.Rows.Clear();
+            if (kryptonDataGridView1.RowCount > 0) Module_LuoiAo.DatSoDong(kryptonDataGridView1, 0, boChon: true);
+        }
+        // Áp kết quả lọc lên lưới: tắt vẽ + đổi số dòng theo cách nhanh. Cùng đúng tập dòng (cùng thứ tự) thì không đụng tới lưới.
+        // (RowCount giảm từng dòng là nguyên nhân lọc 6000 người xuống ~3800 người mất hàng chục giây.)
+        private void CapNhatLuoiSauLoc(List<int> ketQua)
+        {
+            var grid = kryptonDataGridView1;
+            var cu = _filteredIndexes;
+            bool giongHet = cu != null && cu.Count == ketQua.Count && grid.RowCount == ketQua.Count;
+            if (giongHet)
+            {
+                for (int i = 0; i < ketQua.Count; i++)
+                    if (cu![i] != ketQua[i]) { giongHet = false; break; }
+            }
+            _filteredIndexes = ketQua;
+            if (giongHet) return;
+            // Số dòng đổi nhiều = đã sang tập người khác -> bỏ chọn; đổi ít (vd: sửa 1 dòng) thì giữ nguyên dòng đang chọn
+            // Lưới ảo tô chọn theo SỐ THỨ TỰ dòng, không theo người: đang chọn nhiều dòng mà tập dòng đổi
+            // thì các dòng đang tô đã là người khác -> luôn bỏ chọn để tránh xóa nhầm.
+            bool boChon = cu == null || Math.Abs(cu.Count - ketQua.Count) > 64 || ketQua.Count == 0
+                || grid.Rows.GetRowCount(DataGridViewElementStates.Selected) > 1;
+            using var _ = Module_LuoiAo.TamDungVe(grid);
+            Module_LuoiAo.DatSoDong(grid, ketQua.Count, boChon);
         }
         // CHẾ ĐỘ THƯỜNG (<= 3000 dòng): lọc đồng bộ trên DefaultView
         private void ApplyFilter_Standard()
@@ -956,19 +992,18 @@ namespace PhanMemThiDua2026
                     if (bl.CoGC && !KhopGhiChu(oGC >= 0 ? r[oGC]?.ToString() : "", bl.GCTrong, bl.GCKey)) continue;
                     if (bl.CoTen)
                     {
-                        string s = oTenSearch >= 0 ? r[oTenSearch]?.ToString() ?? "" : (r[oTen]?.ToString() ?? "").ToLowerInvariant();
-                        if (!s.Contains(bl.TenLower)) continue;
+                        string s = oTenSearch >= 0 ? r[oTenSearch]?.ToString() ?? "" : BoLocDanhSach.ChuanHoaTimKiem(r[oTen]?.ToString());
+                        if (!bl.KhopTen(s)) continue;
                     }
                     ketQua.Add(i);
                 }
                 if (ketQua.Count > 1) ketQua = new List<int>(SapXepChiSo(ketQua, TaoBoLaySXHienTai()));
-                _filteredIndexes = ketQua;
-                if (ketQua.Count > 0) grid.RowCount = ketQua.Count;
-                else XoaLuoi();
+                CapNhatLuoiSauLoc(ketQua);
                 DatTrangThai(ketQua.Count, false);
             }
             catch (Exception ex)
             {
+                NK("LọcThường LỖI: " + ex);
                 Debug.WriteLine("Lỗi ApplyFilter_Standard: " + ex.Message);
                 _filteredIndexes = new List<int>();
                 XoaLuoi();
@@ -1010,7 +1045,7 @@ namespace PhanMemThiDua2026
                         if (bl.CoDv && donViKey != bl.DvKey) continue;
                         if (bl.CoTT && !string.Equals(tinhTrang, bl.TinhTrang, StringComparison.OrdinalIgnoreCase)) continue;
                         if (bl.CoGC && !KhopGhiChu(ghiChu, bl.GCTrong, bl.GCKey)) continue;
-                        if (bl.CoTen && !(hoTenSearch ?? "").Contains(bl.TenLower)) continue;
+                        if (bl.CoTen && !bl.KhopTen(hoTenSearch)) continue;
                         tam.Add(i);
                     }
                     if (tam.Count <= 1) return tam;
@@ -1020,13 +1055,12 @@ namespace PhanMemThiDua2026
                     return new List<int>(SapXepChiSo(tam, lay));
                 });
                 // Trong lúc chờ đã có lần lọc/nạp mới hơn (hoặc form đã đóng) -> bỏ kết quả cũ
-                if (phienLoc != Volatile.Read(ref _locSeq) || IsDisposed || grid.IsDisposed) return;
+                if (phienLoc != Volatile.Read(ref _locSeq) || IsDisposed || grid.IsDisposed) { NK($"LọcDataMax: bỏ kết quả cũ ({ketQua.Count} dòng)"); return; }
+                NK($"LọcDataMax: {ketQua.Count}/{total} dòng tanBinh={laTanBinh}");
                 grid.SuspendLayout();
                 try
                 {
-                    _filteredIndexes = ketQua;
-                    if (ketQua.Count > 0) grid.RowCount = ketQua.Count;
-                    else XoaLuoi();
+                    CapNhatLuoiSauLoc(ketQua);
                     DatTrangThai(ketQua.Count, true);
                 }
                 finally
@@ -1037,6 +1071,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
+                NK("LọcDataMax LỖI: " + ex);
                 Debug.WriteLine("Lỗi ApplyFilter_DataMax: " + ex.Message);
                 if (!IsDisposed && !grid.IsDisposed)
                 {
@@ -1086,20 +1121,26 @@ namespace PhanMemThiDua2026
         {
             if (IsDisposed || !IsHandleCreated) return;
             // Chống bấm/gọi liên tục và chống chạy chồng khi đang nạp dở
-            if ((DateTime.Now - _lastReload).TotalMilliseconds < 500) return;
-            if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1) return;
+            if ((DateTime.Now - _lastReload).TotalMilliseconds < 500) { NK("ReloadData: bỏ qua (gọi lại < 500ms)"); return; }
+            if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1) { NK("ReloadData: bỏ qua (đang bận)"); return; }
             _lastReload = DateTime.Now;
+            var sw = Stopwatch.StartNew();
             try
             {
                 bool laTanBinh = LaTanBinhHienTai();
+                NK($"ReloadData: BẮT ĐẦU tanBinh={laTanBinh} visible={Visible}");
                 await Task.Run(CapNhatThongKe); // đồng bộ CSDL ở luồng nền, không đơ giao diện
+                NK($"ReloadData: xong CapNhatThongKe {sw.ElapsedMilliseconds}ms");
                 if (IsDisposed || !IsHandleCreated) return;
                 await DieuPhoiLoadDuLieuAsync(laTanBinh);
+                NK($"ReloadData: xong nạp {sw.ElapsedMilliseconds}ms");
                 if (IsDisposed || !IsHandleCreated) return;
                 await NapLaiBoLocVaLocAsync(datLaiTinhTrang: true);
+                NK($"ReloadData: XONG {sw.ElapsedMilliseconds}ms, lưới={kryptonDataGridView1.RowCount} dòng");
             }
             catch (Exception ex)
             {
+                NK("ReloadData LỖI: " + ex);
                 Debug.WriteLine("Lỗi ReloadData Thống Kê: " + ex.Message);
                 MessageBox.Show($"Lỗi nạp dữ liệu thống kê:\n{ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -1126,11 +1167,14 @@ namespace PhanMemThiDua2026
             if (IsDisposed || !IsHandleCreated) return;
             if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1)
             {
+                NK("LamMoi: đang bận -> hẹn chạy lại");
                 _canLamMoiLai = true;
                 return;
             }
+            var sw = Stopwatch.StartNew();
             try
             {
+                NK($"LamMoi: BẮT ĐẦU visible={Visible}");
                 UseWaitCursor = true;
                 toolStripStatusLabel1.ForeColor = _mauChuTrangThai;
                 toolStripStatusLabel1.Text = "Đang làm mới dữ liệu...";
@@ -1140,13 +1184,17 @@ namespace PhanMemThiDua2026
                     CapNhatThongKe();
                     return LaTanBinhHienTai();
                 });
+                NK($"LamMoi: xong CapNhatThongKe {sw.ElapsedMilliseconds}ms tanBinh={laTanBinh}");
                 if (IsDisposed) return;
                 await DieuPhoiLoadDuLieuAsync(laTanBinh);
+                NK($"LamMoi: xong nạp {sw.ElapsedMilliseconds}ms");
                 if (IsDisposed) return;
                 await NapLaiBoLocVaLocAsync(datLaiTinhTrang: false); // lọc xong sẽ tự cập nhật dòng "Tổng cộng"
+                NK($"LamMoi: XONG {sw.ElapsedMilliseconds}ms, lưới={kryptonDataGridView1.RowCount} dòng");
             }
             catch (Exception ex)
             {
+                NK("LamMoi LỖI: " + ex);
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi Làm mới (F5)", ex.ToString());
                 MessageBox.Show(
                     "Đã xảy ra lỗi hệ thống khi làm mới dữ liệu!\nChi tiết đã được ghi vào Nhật ký.",
@@ -1322,7 +1370,7 @@ namespace PhanMemThiDua2026
                 string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
                 // 1. Đọc bản ghi mới nhất: tên cột -> giá trị (các cột AES đã giải mã)
                 Dictionary<string, string> giaTri;
-                using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                 {
                     cn.Open();
                     using var cmd = new SqliteCommand($"SELECT * FROM {tenBang} WHERE ID=@id", cn);
@@ -1376,7 +1424,7 @@ namespace PhanMemThiDua2026
             string hoTen = giaTri.TryGetValue("HoVaTen", out string? ht) ? ht : "";
             if (dt.Columns.Contains(COT_UU_TIEN)) dong[COT_UU_TIEN] = TinhUuTienDonVi(donVi);
             if (dt.Columns.Contains(COT_DV_KEY)) dong[COT_DV_KEY] = ChuanHoaDonViSoSanh(donVi);
-            if (dt.Columns.Contains(COT_TEN_SEARCH)) dong[COT_TEN_SEARCH] = hoTen.ToLowerInvariant();
+            if (dt.Columns.Contains(COT_TEN_SEARCH)) dong[COT_TEN_SEARCH] = BoLocDanhSach.ChuanHoaTimKiem(hoTen);
             dong.EndEdit();
             if (moi) dt.Rows.Add(dong);
             dong.AcceptChanges();
@@ -1402,7 +1450,7 @@ namespace PhanMemThiDua2026
                 o.HoTenE = Lay("HoVaTen"); o.SoHieuE = Lay("SoHieu"); o.DonViE = Lay("DonVi");
                 o.DonViKey = ChuanHoaDonViSoSanh(o.DonViE);
                 o.TinhTrang = Lay("TinhTrang");
-                o.HoTenSearch = o.HoTenE.ToLowerInvariant();
+                o.HoTenSearch = BoLocDanhSach.ChuanHoaTimKiem(o.HoTenE);
                 o.SortPriority = TinhUuTienDonVi(o.DonViE);
                 o.KQ_TD = Lay("KQ_ThiDua_Nam_Cu"); o.KQ_XL_CB = Lay("KQ_XepLoaiCB_Nam_Cu"); o.KQ_XL_DV = Lay("KQ_XepLoaiDangVien_Nam_Cu");
                 o.T12 = Lay("Thang_12_Nam_Cu");
@@ -1421,7 +1469,7 @@ namespace PhanMemThiDua2026
                 o.HoTenE = Lay("HoVaTen"); o.SoHieuE = Lay("SoHieu"); o.DonViE = Lay("DonVi");
                 o.DonViKey = ChuanHoaDonViSoSanh(o.DonViE);
                 o.TinhTrang = Lay("TinhTrang");
-                o.HoTenSearch = o.HoTenE.ToLowerInvariant();
+                o.HoTenSearch = BoLocDanhSach.ChuanHoaTimKiem(o.HoTenE);
                 o.SortPriority = TinhUuTienDonVi(o.DonViE);
                 o.L1 = Lay("TS_Loai1"); o.L2 = Lay("TS_Loai2"); o.L3 = Lay("TS_Loai3"); o.L4 = Lay("TS_Loai4");
                 for (int m = 2; m <= 6; m++)
@@ -1461,63 +1509,59 @@ namespace PhanMemThiDua2026
                 bool laTanBinh = LaTanBinhHienTai();
                 string tableDich = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
                 string ttDang = Module_HeThong.TT_DANG_CONG_TAC, ttChuyen = Module_HeThong.TT_CHUYEN_CONG_TAC;
-                static string TaoKeySoSanh(string ht, string sh, string dv)
+                // BƯỚC 1: CSDL2 (gốc) theo thứ tự ID. KHÔNG gộp người trùng Số hiệu: gốc có 6.000 dòng thì thống kê phải có 6.000 dòng
+                var goc = new List<Module_DongBoThiDua.Nguoi>();
+                var gocMaHoa = new List<(string encHt, string encSh, string encDv)>();
+                using (var cn2 = Module_DanduongGPS.MoKetNoiDoc(_csdl2Path))
                 {
-                    // Có Số hiệu thì chỉ dùng Số hiệu làm khóa; chưa có (tân binh mới) thì dùng Họ tên + Đơn vị
-                    string safeSh = sh?.Trim().ToLower() ?? "";
-                    if (!string.IsNullOrEmpty(safeSh)) return $"SH_{safeSh}";
-                    return $"NAME_{ht?.Replace(" ", "").ToLower() ?? ""}|{dv?.Replace(" ", "").ToLower() ?? ""}";
-                }
-                // BƯỚC 1: CSDL2 (gốc) - giải mã để làm chuẩn; khóa trùng chỉ lấy dòng đầu
-                var dictGoc = new Dictionary<string, (string encHt, string encSh, string encDv)>();
-                var listGoc = new List<(string Key, string encHt, string encSh, string encDv)>();
-                using (var cn2 = new SqliteConnection($"Data Source={_csdl2Path}"))
-                {
-                    cn2.Open();
-                    using var cmd = new SqliteCommand("SELECT HoVaTen, SoHieu, DonVi FROM DanhSach", cn2);
+                    using var cmd = new SqliteCommand($"SELECT HoVaTen, SoHieu, DonVi FROM {Module_TaiKhoan.BangDanhSach} ORDER BY ID", cn2);
                     using var rd = cmd.ExecuteReader();
                     while (rd.Read())
                     {
                         string encHt = rd["HoVaTen"]?.ToString() ?? "", encSh = rd["SoHieu"]?.ToString() ?? "", encDv = rd["DonVi"]?.ToString() ?? "";
-                        string plainHt = SafeDecrypt(encHt), plainSh = SafeDecrypt(encSh);
-                        if (string.IsNullOrWhiteSpace(plainHt) && string.IsNullOrWhiteSpace(plainSh)) continue;
-                        string key = TaoKeySoSanh(plainHt, plainSh, SafeDecrypt(encDv));
-                        if (dictGoc.TryAdd(key, (encHt, encSh, encDv))) listGoc.Add((key, encHt, encSh, encDv));
+                        string plainHt = Module_DongBoThiDua.GiaiMaAnToan(encHt), plainSh = Module_DongBoThiDua.GiaiMaAnToan(encSh);
+                        if (Module_DongBoThiDua.BoQua(plainHt, plainSh)) continue;
+                        goc.Add(new Module_DongBoThiDua.Nguoi(plainHt, plainSh, Module_DongBoThiDua.GiaiMaAnToan(encDv)));
+                        gocMaHoa.Add((encHt, encSh, encDv));
                     }
                 }
-                // BƯỚC 2: CSDL4 (đích) - đối chiếu với CSDL2
-                var daCo = new HashSet<string>();
-                var idChuyenCongTac = new List<int>();
-                var idDangCongTac = new List<int>();
-                var idCanDongBoThongTin = new List<(int id, string encHt, string encDv)>();
-                using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path}"))
+                // BƯỚC 2: CSDL4 (đích) theo thứ tự ID
+                var dich = new List<Module_DongBoThiDua.Nguoi>();
+                var dichInfo = new List<(int id, string tt)>();
+                using (var cn4 = Module_DanduongGPS.MoKetNoiDoc(_csdl4Path))
                 {
-                    cn4.Open();
-                    using var cmd = new SqliteCommand($"SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang FROM {tableDich}", cn4);
+                    using var cmd = new SqliteCommand($"SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang FROM {tableDich} ORDER BY ID", cn4);
                     using var rd = cmd.ExecuteReader();
                     while (rd.Read())
                     {
                         int id = Convert.ToInt32(rd["ID"]);
                         string tt = rd["TinhTrang"]?.ToString()?.Trim() ?? "";
-                        string encHt = rd["HoVaTen"]?.ToString() ?? "", encSh = rd["SoHieu"]?.ToString() ?? "", encDv = rd["DonVi"]?.ToString() ?? "";
-                        string key = TaoKeySoSanh(SafeDecrypt(encHt), SafeDecrypt(encSh), SafeDecrypt(encDv));
-                        daCo.Add(key);
-                        if (dictGoc.TryGetValue(key, out var goc))
-                        {
-                            if (tt != ttDang) idDangCongTac.Add(id); // quay lại danh sách gốc
-                            if (encHt != goc.encHt || encDv != goc.encDv) idCanDongBoThongTin.Add((id, goc.encHt, goc.encDv));
-                        }
-                        else if (tt != ttChuyen)
-                        {
-                            idChuyenCongTac.Add(id); // không còn trong danh sách gốc
-                        }
+                        dich.Add(new Module_DongBoThiDua.Nguoi(
+                            Module_DongBoThiDua.GiaiMaAnToan(rd["HoVaTen"]?.ToString()),
+                            Module_DongBoThiDua.GiaiMaAnToan(rd["SoHieu"]?.ToString()),
+                            Module_DongBoThiDua.GiaiMaAnToan(rd["DonVi"]?.ToString())));
+                        dichInfo.Add((id, tt));
                     }
                 }
-                // BƯỚC 3: người có ở CSDL2 mà chưa có ở CSDL4
-                var canThem = listGoc.Where(x => !daCo.Contains(x.Key)).ToList();
+                // BƯỚC 3: ghép MỘT-MỘT (cùng quy tắc với Form17) rồi chia việc
+                int[] ghep = Module_DongBoThiDua.GhepMotMot(goc, dich, out bool[] daGhep);
+                var idChuyenCongTac = new List<int>();
+                var idDangCongTac = new List<int>();
+                var idCanDongBoThongTin = new List<(int id, string encHt, string encDv)>();
+                var canThem = new List<int>(); // chỉ số trong danh sách gốc
+                for (int i = 0; i < goc.Count; i++)
+                {
+                    int j = ghep[i];
+                    if (j < 0) { canThem.Add(i); continue; }
+                    int id = dichInfo[j].id;
+                    if (dichInfo[j].tt != ttDang) idDangCongTac.Add(id); // quay lại danh sách gốc
+                    if (!string.Equals(dich[j].Ht, goc[i].Ht, StringComparison.Ordinal) || !string.Equals(dich[j].Dv, goc[i].Dv, StringComparison.Ordinal))
+                        idCanDongBoThongTin.Add((id, gocMaHoa[i].encHt, gocMaHoa[i].encDv));
+                }
+                for (int j = 0; j < dich.Count; j++)
+                    if (!daGhep[j] && dichInfo[j].tt != ttChuyen) idChuyenCongTac.Add(dichInfo[j].id); // không còn trong danh sách gốc
                 // BƯỚC 4: ghi vào CSDL4 trong một giao dịch
-                using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
-                cn.Open();
+                using var cn = Module_DanduongGPS.MoKetNoiDoc(_csdl4Path);
                 using var tran = cn.BeginTransaction();
                 try
                 {
@@ -1529,11 +1573,11 @@ namespace PhanMemThiDua2026
                         var pSh = cmdIns.Parameters.Add("@sh", SqliteType.Text);
                         var pDv = cmdIns.Parameters.Add("@dv", SqliteType.Text);
                         cmdIns.Parameters.Add("@tt", SqliteType.Text).Value = ttDang;
-                        foreach (var x in canThem)
+                        foreach (int i in canThem)
                         {
-                            pHt.Value = x.encHt;
-                            pSh.Value = x.encSh;
-                            pDv.Value = x.encDv;
+                            pHt.Value = gocMaHoa[i].encHt;
+                            pSh.Value = gocMaHoa[i].encSh;
+                            pDv.Value = gocMaHoa[i].encDv;
                             cmdIns.ExecuteNonQuery();
                         }
                     }
@@ -1595,9 +1639,11 @@ namespace PhanMemThiDua2026
                     tran.Commit();
                 }
                 catch { tran.Rollback(); throw; }
+                NK($"CapNhatThongKe: {tableDich} gốc={goc.Count} đích={dich.Count} thêm={canThem.Count} chuyểnCT={idChuyenCongTac.Count}");
             }
             catch (Exception ex)
             {
+                NK("CapNhatThongKe LỖI: " + ex);
                 Debug.WriteLine("Lỗi đồng bộ: " + ex.Message);
             }
         }
@@ -1718,7 +1764,7 @@ namespace PhanMemThiDua2026
                 };
                 grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(252, 252, 252);
                 grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                grid.MultiSelect = false;
+                grid.MultiSelect = true; // cho phép chọn nhiều dòng (Ctrl/Shift + chuột, Ctrl+A) để xóa hàng loạt
                 // 3. ĐỘ RỘNG VÀ CĂN LỀ
                 if (grid.Columns.Contains("HoVaTen"))
                 {
@@ -1836,7 +1882,8 @@ namespace PhanMemThiDua2026
         // =====================================================================
         private async void kryptonButton_CapNhat_Click(object? sender, EventArgs e)
         {
-            if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1) return;
+            if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1) { NK("DongBo(F6): bỏ qua (đang bận)"); return; }
+            NK("DongBo(F6): BẮT ĐẦU");
             string textBanDau = kryptonButton_CapNhat.Values.Text;
             Image? anhBanDau = kryptonButton_CapNhat.Values.Image;
             Form_Loading frmLoad = new Form_Loading("Đang tải dữ liệu từ CSDL, vui lòng đợi...");
@@ -1858,7 +1905,8 @@ namespace PhanMemThiDua2026
                 await NapLaiBoLocVaLocAsync(datLaiTinhTrang: false);
                 try
                 {
-                    string noiDungTB = "Đồng bộ dữ liệu từ DanhSach csdl2 sang bảng ở csdl4 - Thống kê thành công!";
+                    //string noiDungTB = "Đồng bộ dữ liệu csdl2 sang csdl4 thành công!";
+                    string noiDungTB = "Đồng bộ csdl2 → csdl4 xong!";
                     Module_ThongBao.ThanhCong(noiDungTB);
                     Module_NhatKy.GhiNhatKy(
                         Module_TaiKhoan.TenTaiKhoan_RAM,
@@ -1869,10 +1917,12 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
+                NK("DongBo(F6) LỖI: " + ex);
                 try { Module_ThongBao.Loi("Lỗi cập nhật: " + ex.Message); } catch { }
             }
             finally
             {
+                NK($"DongBo(F6): KẾT THÚC, lưới={kryptonDataGridView1.RowCount} dòng");
                 frmLoad.Close();
                 this.Enabled = true;
                 kryptonDataGridView1.Invalidate(); // lưới ảo vẽ lại dữ liệu đang có trên RAM
@@ -1910,6 +1960,9 @@ namespace PhanMemThiDua2026
             if (hit.RowIndex < 0 || hit.RowIndex >= dgv.RowCount) return;
             int cot = hit.ColumnIndex >= 0 ? hit.ColumnIndex : dgv.Columns.GetFirstColumn(DataGridViewElementStates.Visible)?.Index ?? -1;
             if (cot < 0) return;
+            // Bấm chuột phải vào dòng đang nằm trong vùng chọn nhiều -> giữ nguyên vùng chọn
+            if ((dgv.Rows.GetRowState(hit.RowIndex) & DataGridViewElementStates.Selected) != 0
+                && dgv.Rows.GetRowCount(DataGridViewElementStates.Selected) > 1) return;
             dgv.ClearSelection();
             dgv.CurrentCell = dgv.Rows[hit.RowIndex].Cells[cot];
             dgv.Rows[hit.RowIndex].Selected = true;
@@ -2163,30 +2216,6 @@ namespace PhanMemThiDua2026
             return view != null && actualIndex < view.Count ? view[actualIndex]["ID"]?.ToString() ?? "" : "";
         }
         // Form con vừa sửa xong: đọc lại dòng đó rồi đưa con trỏ về đúng dòng trên lưới
-        public async void ChildRowUpdated(string id)
-        {
-            if (string.IsNullOrEmpty(id)) return;
-            await RefreshRowFromDbAsync(id); // chờ lọc xong để _filteredIndexes là bản mới nhất
-            try
-            {
-                var ds = _filteredIndexes;
-                int rowIndexOnGrid = -1;
-                for (int i = 0; i < ds.Count; i++)
-                {
-                    if (LayIdTheoChiSo(ds[i]) == id) { rowIndexOnGrid = i; break; }
-                }
-                var grid = kryptonDataGridView1;
-                if (rowIndexOnGrid < 0 || rowIndexOnGrid >= grid.Rows.Count) return;
-                grid.ClearSelection();
-                grid.Rows[rowIndexOnGrid].Selected = true;
-                var cot = grid.Columns.GetFirstColumn(DataGridViewElementStates.Visible);
-                if (cot != null) grid.CurrentCell = grid.Rows[rowIndexOnGrid].Cells[cot.Index];
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Lỗi Focus dòng sau cập nhật: " + ex.Message);
-            }
-        }
         private void MoFormSuaThongTin(int rowIndex)
         {
             try
@@ -2242,7 +2271,7 @@ namespace PhanMemThiDua2026
                         frm.ShowDialog();
                         if (frm.DialogResult == DialogResult.OK)
                         {
-                            using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                            using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                             {
                                 cn.Open();
                                 CapNhatTongLoai_Cho(idInt, cn);
@@ -2265,7 +2294,7 @@ namespace PhanMemThiDua2026
                         frm22.ShowDialog();
                         if (frm22.DialogResult == DialogResult.OK)
                         {
-                            using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                            using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                             {
                                 cn.Open();
                                 CapNhatTongLoai_Cho(idInt, cn);
@@ -2322,6 +2351,18 @@ namespace PhanMemThiDua2026
             try { suaThongTin_ToolStripMenuItem.Visible = kryptonDataGridView1.RowCount > 0; }
             catch { suaThongTin_ToolStripMenuItem.Visible = false; }
         }
+        // Hiện số dòng đang chọn trên mục "Xóa dữ liệu CBCS"
+        private void CapNhatMenuXoaDuLieu()
+        {
+            try
+            {
+                int soChon = kryptonDataGridView1.Rows.GetRowCount(DataGridViewElementStates.Selected);
+                xoaDuLieu_ToolStripMenuItem.Text = soChon > 1
+                    ? $"Xóa dữ liệu CBCS ({soChon:N0} dòng đã chọn)"
+                    : "Xóa dữ liệu CBCS";
+            }
+            catch { xoaDuLieu_ToolStripMenuItem.Text = "Xóa dữ liệu CBCS"; }
+        }
         private void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e)
         {
             DatLaiBoLocVeMacDinh();
@@ -2334,6 +2375,12 @@ namespace PhanMemThiDua2026
         private void xemThongKeThiDuaTapThe_Click(object? sender, EventArgs e)
         {
             if (_dangMoThongKeTapThe) return; // chống click đúp
+            // Thống kê tập thể chỉ có ở phiên bản CBCS (Form53 đã ẩn menu; chặn thêm phím tắt Ctrl+T)
+            if (LaTanBinhHienTai())
+            {
+                Module_ThongBao.Info("Thống kê thi đua tập thể chỉ áp dụng cho phiên bản CBCS.");
+                return;
+            }
             _dangMoThongKeTapThe = true;
             try
             {
@@ -2354,46 +2401,11 @@ namespace PhanMemThiDua2026
                 Debug.WriteLine($"Lỗi mở form thống kê tập thể: {ex.Message}");
             }
         }
-        private void xoaCot_ToolStripMenuItem_Click(object? sender, EventArgs e)
-        {
-            bool laTanBinh = HienThiTanBinh;
-            string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
-            // Cột cấm xóa: cột cơ bản của bảng + GhiChu (cột ảo lấy từ CSDL2)
-            var cotCamXoa = (laTanBinh ? CotCoBanTanBinh : CotCoBanCBCS).Append("GhiChu");
-            if (!File.Exists(_csdl4Path))
-            {
-                MessageBox.Show("Không tìm thấy CSDL!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (kryptonDataGridView1.CurrentCell == null)
-            {
-                MessageBox.Show("Vui lòng chọn cột cần xóa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            string tenCot = kryptonDataGridView1.Columns[kryptonDataGridView1.CurrentCell.ColumnIndex].Name;
-            if (cotCamXoa.Contains(tenCot, StringComparer.OrdinalIgnoreCase))
-            {
-                MessageBox.Show($"Không được xóa cột hệ thống: {tenCot}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            if (MessageBox.Show(
-                $"Bạn có chắc chắn muốn xóa cột:\n\n👉 {tenCot}\n\nHành động này không thể khôi phục!",
-                "Xác nhận xóa cột", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
-                return;
-            try
-            {
-                using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
-                cn.Open();
-                using var cmd = new SqliteCommand($"ALTER TABLE {tenBang} DROP COLUMN [{tenCot}]", cn);
-                cmd.ExecuteNonQuery();
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa cột CSDL", $"Đã xóa cột: {tenCot} trong bảng {tenBang}");
-                CapNhatForm15(); // nạp lại đúng chế độ rồi lọc lại
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi khi xóa cột:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+        //private void xoaCot_ToolStripMenuItem_Click(object? sender, EventArgs e)
+        //{
+            //bool laTanBinh = HienThiTanBinh;
+            //string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
+            //// Cột cấm xóa: cột cơ bản của bảng + GhiChu (cột ảo lấy từ CSDL2)
         private void xoaDuLieuThiDuaThang_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             try
@@ -2410,41 +2422,127 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"Lỗi khi mở Form18: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private bool TryGetSelectedRecordId(out int recordId)
+        // Lấy (ID, Họ tên) của đúng các dòng đang được TÔ CHỌN trên lưới (không lấy dòng hiện hành chưa tô,
+        // vì Ctrl+bấm bỏ chọn vẫn để lại con trỏ ở dòng đó). Duyệt theo trạng thái dòng để không
+        // "unshare" hàng nghìn dòng trong VirtualMode.
+        private List<(int id, string hoTen)> LayCacDongDangChon()
         {
-            recordId = 0;
-            var row = kryptonDataGridView1?.CurrentRow;
-            if (row == null || row.Index < 0 || row.Index >= _filteredIndexes.Count) return false;
-            return int.TryParse(LayIdTheoChiSo(_filteredIndexes[row.Index]), out recordId) && recordId > 0;
+            var kq = new List<(int id, string hoTen)>();
+            var grid = kryptonDataGridView1;
+            var ds = _filteredIndexes;
+            if (grid == null || ds == null || ds.Count == 0) return kq;
+            int soChon = grid.Rows.GetRowCount(DataGridViewElementStates.Selected);
+            if (soChon == 0) return kq;
+            var layTen = TaoBoLayCot("HoVaTen", HienThiTanBinh);
+            var daCo = new HashSet<int>();
+            int soDong = Math.Min(grid.RowCount, ds.Count);
+            for (int i = 0; i < soDong && kq.Count < soChon; i++)
+            {
+                if ((grid.Rows.GetRowState(i) & DataGridViewElementStates.Selected) == 0) continue;
+                int goc = ds[i];
+                if (int.TryParse(LayIdTheoChiSo(goc), out int id) && id > 0 && daCo.Add(id))
+                    kq.Add((id, (layTen(goc) ?? "").Trim()));
+            }
+            return kq;
+        }
+        private sealed class DuLieuDaThayDoiException : Exception
+        {
+            public DuLieuDaThayDoiException(string thongBao) : base(thongBao) { }
+        }
+        // Chạy ở luồng nền. Đối chiếu từng ID với họ tên trong CSDL rồi mới xóa, tất cả trong 1 transaction:
+        // chỉ cần 1 dòng không khớp (đã bị xóa / ID đã đổi người) là hủy toàn bộ, không xóa dòng nào.
+        private int XoaCacDongTrongCSDL(string tenBang, IReadOnlyList<(int id, string hoTen)> dsXoa)
+        {
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
+            cn.Open();
+            int dem = 0;
+            using (var tran = cn.BeginTransaction())
+            {
+                // 1. Đọc lại họ tên hiện có trong CSDL của các ID cần xóa
+                var canXoa = new HashSet<int>(dsXoa.Select(x => x.id));
+                var tenMaHoa = new Dictionary<int, string>(canXoa.Count);
+                using (var cmdDoc = new SqliteCommand($"SELECT ID, HoVaTen FROM {tenBang}", cn, tran))
+                using (var rd = cmdDoc.ExecuteReader())
+                {
+                    while (rd.Read())
+                    {
+                        if (rd.IsDBNull(0)) continue;
+                        if (!int.TryParse(rd.GetValue(0)?.ToString(), out int id)) continue;
+                        if (canXoa.Contains(id)) tenMaHoa[id] = rd.IsDBNull(1) ? "" : rd.GetValue(1)?.ToString() ?? "";
+                    }
+                }
+                // 2. Giải mã song song rồi so khớp với họ tên người dùng đã xác nhận
+                var ten = new string[dsXoa.Count];
+                Parallel.For(0, dsXoa.Count, i =>
+                {
+                    ten[i] = tenMaHoa.TryGetValue(dsXoa[i].id, out var enc) ? SafeDecrypt(enc).Trim() : "\0";
+                });
+                var loi = new List<string>();
+                for (int i = 0; i < dsXoa.Count; i++)
+                {
+                    if (ten[i] == "\0") loi.Add($"ID={dsXoa[i].id} ({dsXoa[i].hoTen}): không còn trong CSDL");
+                    else if (!string.Equals(ten[i], dsXoa[i].hoTen, StringComparison.Ordinal))
+                        loi.Add($"ID={dsXoa[i].id}: trên lưới là \"{dsXoa[i].hoTen}\" nhưng CSDL là \"{ten[i]}\"");
+                }
+                if (loi.Count > 0)
+                {
+                    string chiTiet = string.Join("\n", loi.Take(5)) + (loi.Count > 5 ? $"\n... và {loi.Count - 5:N0} dòng khác" : "");
+                    throw new DuLieuDaThayDoiException(chiTiet);
+                }
+                // 3. Xóa
+                using var cmd = new SqliteCommand($"DELETE FROM {tenBang} WHERE ID = @id", cn, tran);
+                var p = cmd.Parameters.Add("@id", SqliteType.Integer);
+                cmd.Prepare();
+                foreach (var x in dsXoa)
+                {
+                    p.Value = x.id;
+                    dem += cmd.ExecuteNonQuery();
+                }
+                if (dem != dsXoa.Count)
+                    throw new DuLieuDaThayDoiException($"Chỉ xóa được {dem:N0}/{dsXoa.Count:N0} dòng.");
+                tran.Commit();
+            }
+            // Thu gọn tệp: dữ liệu đã xóa xong, lỗi ở đây (CSDL đang bận...) không được coi là xóa thất bại
+            try
+            {
+                using var cmdVacuum = new SqliteCommand("VACUUM;", cn);
+                cmdVacuum.ExecuteNonQuery();
+            }
+            catch (Exception ex) { NK("Xóa CBCS: VACUUM lỗi (bỏ qua): " + ex.Message); }
+            return dem;
         }
         private async void xoaDuLieu_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             if (_dangXuLyLuongNen == 1) return;
-            if (!TryGetSelectedRecordId(out int recordId))
+            var dsXoa = LayCacDongDangChon();
+            if (dsXoa.Count == 0)
             {
-                MessageBox.Show("Vui lòng chọn dòng cần xóa.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui lòng chọn dòng cần xóa.\n\nMẹo: giữ Ctrl hoặc Shift khi bấm chuột để chọn nhiều dòng, Ctrl + A (khi đang ở lưới) để chọn tất cả các dòng đang hiển thị.",
+                    "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
             bool laTanBinh = HienThiTanBinh;
             string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
-            string hoVaTen = "(không xác định)";
-            try
+            static string TenHienThi(string t) => string.IsNullOrWhiteSpace(t) ? "(không xác định)" : t;
+            // Xác nhận: mặc định nút "No" để lỡ bấm Enter không xóa
+            string noiDung;
+            if (dsXoa.Count == 1)
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
-                cn.Open();
-                using var cmd = new SqliteCommand($"SELECT HoVaTen FROM {tenBang} WHERE ID = @id", cn);
-                cmd.Parameters.Add("@id", SqliteType.Integer).Value = recordId;
-                var scalar = cmd.ExecuteScalar();
-                if (scalar != null && scalar != DBNull.Value)
-                    hoVaTen = SafeDecrypt(scalar.ToString());
+                noiDung = $"Bạn có chắc chắn muốn xóa {Module_HeThong.Tu_dong_chi}:\n\n👉 {TenHienThi(dsXoa[0].hoTen)}\n\nThao tác này không thể hoàn tác.";
             }
-            catch (Exception ex)
+            else
             {
-                hoVaTen = "(lỗi lấy họ tên)";
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi lấy HoVaTen khi xóa", ex.Message);
+                const int SO_TEN_HIEN = 10;
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"Bạn có chắc chắn muốn xóa {dsXoa.Count:N0} {Module_HeThong.Tu_dong_chi} đã chọn:");
+                sb.AppendLine();
+                foreach (var x in dsXoa.Take(SO_TEN_HIEN)) sb.AppendLine("👉 " + TenHienThi(x.hoTen));
+                if (dsXoa.Count > SO_TEN_HIEN) sb.AppendLine($"... và {dsXoa.Count - SO_TEN_HIEN:N0} người khác");
+                sb.AppendLine();
+                sb.Append("Thao tác này không thể hoàn tác.");
+                noiDung = sb.ToString();
             }
-            var confirm = MessageBox.Show($"Bạn có chắc chắn muốn xóa {Module_HeThong.Tu_dong_chi}:\n\n👉 {hoVaTen}\n\nThao tác này không thể hoàn tác.", "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (confirm != DialogResult.Yes) return;
+            if (MessageBox.Show(noiDung, "Xác nhận xóa", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes) return;
             DialogResult kq;
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
             {
@@ -2452,32 +2550,77 @@ namespace PhanMemThiDua2026
                 frm.StartPosition = FormStartPosition.CenterScreen;
                 kq = frm.ShowDialog();
             }
-            if (kq != DialogResult.OK) return;
-            try
+            if (kq != DialogResult.OK || IsDisposed) return;
+            // Chiếm cờ bận: chặn F5/F6/nạp lại và bấm xóa lần 2 trong lúc đang xóa
+            if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1)
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
-                cn.Open();
-                using (var tran = cn.BeginTransaction())
-                {
-                    using var cmd = new SqliteCommand($"DELETE FROM {tenBang} WHERE ID = @id", cn, tran);
-                    cmd.Parameters.Add("@id", SqliteType.Integer).Value = recordId;
-                    int affected = cmd.ExecuteNonQuery();
-                    if (affected != 1) throw new Exception("Không tìm thấy bản ghi để xóa.");
-                    tran.Commit();
-                }
-                using var cmdVacuum = new SqliteCommand("VACUUM;", cn);
-                cmdVacuum.ExecuteNonQuery();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Xóa dữ liệu thất bại:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Phần mềm đang xử lý dữ liệu, vui lòng thử lại sau giây lát.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            await DieuPhoiLoadDuLieuAsync(laTanBinh); // đúng chế độ thường / DataMax
-            LoadComboBoxGhiChu(giuLuaChon: true);
-            await LocLaiAsync();                      // lọc xong sẽ tự cập nhật dòng "Tổng cộng"
-            try { System.Media.SystemSounds.Exclamation.Play(); } catch { }
-            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa dòng thống kê", $"Đã xóa: {hoVaTen} (ID={recordId})");
+            bool canNapLai = false;
+            try
+            {
+                UseWaitCursor = true;
+                toolStripStatusLabel1.ForeColor = _mauChuTrangThai;
+                toolStripStatusLabel1.Text = $"Đang xóa {dsXoa.Count:N0} dòng...";
+                int daXoa;
+                try
+                {
+                    daXoa = await Task.Run(() => XoaCacDongTrongCSDL(tenBang, dsXoa));
+                }
+                catch (DuLieuDaThayDoiException ex)
+                {
+                    canNapLai = true; // lưới đang lệch với CSDL -> nạp lại để người dùng chọn lại
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Hủy xóa dòng thống kê (dữ liệu đã thay đổi)", ex.Message);
+                    MessageBox.Show("ĐÃ HỦY, CHƯA XÓA DÒNG NÀO.\n\nDữ liệu trên lưới không còn khớp với cơ sở dữ liệu:\n\n" + ex.Message +
+                        "\n\nDanh sách sẽ được nạp lại, vui lòng chọn lại các dòng cần xóa.", "Hủy xóa", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xóa dòng thống kê", ex.ToString());
+                    MessageBox.Show("Xóa dữ liệu thất bại, chưa xóa dòng nào:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                canNapLai = true;
+                if (dsXoa.Count == 1)
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa dòng thống kê", $"Đã xóa: {TenHienThi(dsXoa[0].hoTen)} (ID={dsXoa[0].id})");
+                else
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa nhiều dòng thống kê",
+                        $"Đã xóa {daXoa:N0} dòng: " + string.Join("; ", dsXoa.Take(50).Select(x => $"{TenHienThi(x.hoTen)} (ID={x.id})"))
+                        + (dsXoa.Count > 50 ? $"; ... và {dsXoa.Count - 50:N0} dòng khác" : ""));
+                try { System.Media.SystemSounds.Exclamation.Play(); } catch { }
+            }
+            finally
+            {
+                try
+                {
+                    if (canNapLai && !IsDisposed)
+                    {
+                        kryptonDataGridView1.ClearSelection();
+                        await DieuPhoiLoadDuLieuAsync(laTanBinh); // đúng chế độ thường / DataMax
+                        if (!IsDisposed)
+                        {
+                            LoadComboBoxGhiChu(giuLuaChon: true);
+                            await LocLaiAsync();              // lọc xong sẽ tự cập nhật dòng "Tổng cộng"
+                        }
+                    }
+                    else if (!IsDisposed)
+                    {
+                        DatTrangThai(_filteredIndexes.Count, _isDataMaxMode); // trả lại dòng trạng thái
+                    }
+                }
+                catch (Exception ex)
+                {
+                    NK("Xóa CBCS: lỗi nạp lại: " + ex);
+                }
+                finally
+                {
+                    if (!IsDisposed) UseWaitCursor = false;
+                    Interlocked.Exchange(ref _dangXuLyLuongNen, 0);
+                    TiepTucNeuCoYeuCauLamMoi();
+                }
+            }
         }
         private void CapNhatPhienBanPhanMem()
         {
@@ -2499,7 +2642,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin WHERE ID=1";
@@ -2509,33 +2652,6 @@ namespace PhanMemThiDua2026
                 return "Không xác định";
             }
             catch { return "Không xác định"; }
-        }
-        private void kryptonButton1_ThemKhenThuong_Click(object? sender, EventArgs e)
-        {
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null) return;
-            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-            if (panel == null) return;
-            foreach (Control ctl in panel.Controls) if (ctl is Form frm) frm.Hide();
-            var form36 = panel.Controls.OfType<Form34_ThongKeKhenThuong>().FirstOrDefault();
-            if (form36 == null)
-            {
-                form36 = new Form34_ThongKeKhenThuong { TopLevel = false, FormBorderStyle = FormBorderStyle.None, Dock = DockStyle.Fill, Text = "Thống kê khen thưởng" };
-                form36.FormClosed += (s, ev) =>
-                {
-                    if (panel.IsDisposed) return;
-                    var formQuayLai = panel.Controls.OfType<Form34_ThongKeKhenThuong>().FirstOrDefault();
-                    if (formQuayLai != null && !formQuayLai.IsDisposed)
-                    {
-                        formQuayLai.Dock = DockStyle.Fill;
-                        formQuayLai.Show();
-                        formQuayLai.BringToFront();
-                    }
-                };
-                panel.Controls.Add(form36);
-            }
-            form36.Show();
-            form36.BringToFront();
         }
         private void tinhPhanLoaiThang_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
@@ -2581,9 +2697,9 @@ namespace PhanMemThiDua2026
                 return;
             }
             // 5. Tạo Form 36 mới và truyền dữ liệu
-            var f36 = new Form36_TinhPhanLoaiThang(dtTruyenSang, laTanBinh)
+            var f36 = new Form36_TinhPhanLoaiThang(dtTruyenSang!, laTanBinh)
             {
-                Text = laTanBinh ? "Tính phân loại thi đua tháng - Tân Binh" : "Tính phân loại thi đua - CBCS",
+                Text = laTanBinh ? $"Tính phân loại thi đua tháng - {Module_TaiKhoan.TenTB_TieuDe}" : "Tính phân loại thi đua - CBCS",
                 TopLevel = false,
                 FormBorderStyle = FormBorderStyle.None,
                 Dock = DockStyle.Fill
@@ -2659,7 +2775,7 @@ namespace PhanMemThiDua2026
                     bool laTanBinh = HienThiTanBinh;
                     string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
                     var cotTrongBang = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    using (var cn = new SqliteConnection($"Data Source={dbPath}"))
+                    using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath)))
                     {
                         cn.Open();
                         using var cmd = new SqliteCommand($"PRAGMA table_info({tenBang})", cn);
@@ -2772,7 +2888,7 @@ namespace PhanMemThiDua2026
                         tieuDe1.Style.Font.FontColor = mauChuTieuDe;
                         tieuDe1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         tieuDe1.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        ws.Cell("A2").Value = $"THỐNG KÊ PHÂN LOẠI THI ĐUA CỦA CBCS {XacDinhTenTieuDoan()}";
+                        ws.Cell("A2").Value = $"THỐNG KÊ PHÂN LOẠI THI ĐUA CỦA {(laTanBinh ? Module_TaiKhoan.TenTB_InHoa : "CBCS")} {XacDinhTenTieuDoan()}";
                         var tieuDe2 = ws.Range(2, 1, 2, colCount);
                         tieuDe2.Merge();
                         tieuDe2.Style.Font.Bold = true;
@@ -2862,13 +2978,18 @@ namespace PhanMemThiDua2026
                                         }
                                     }
                                 }
+                            }
+                            {
                                 // Chỉ tô số 1 (đậm xanh) và số 3 (đậm đỏ); không áp dụng cho cột "Tổng loại".
+                                // CBCS: cột Thang_ + Sau_Thang_Dau_Nam; Tân binh: cột Tuan_ + Thang_ (cùng quy tắc màu).
                                 var cotToMau = new List<int>();
                                 for (int c = 0; c < exportCols.Count; c++)
                                 {
                                     string n = exportCols[c].Name;
-                                    if (n.StartsWith("Thang_") || n == "Sau_Thang_Dau_Nam")
-                                        cotToMau.Add(c + offset + 1);
+                                    bool toMau = laTanBinh
+                                        ? n.StartsWith("Tuan_") || n.StartsWith("Thang_")
+                                        : n.StartsWith("Thang_") || n == "Sau_Thang_Dau_Nam";
+                                    if (toMau) cotToMau.Add(c + offset + 1);
                                 }
                                 int i0 = 0;
                                 while (i0 < cotToMau.Count)
@@ -2891,7 +3012,7 @@ namespace PhanMemThiDua2026
                         if (!laTanBinh)
                         {
                             var dtTapThe = new DataTable();
-                            using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                            using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                             {
                                 cn.Open();
                                 using var cmd = new SqliteCommand("SELECT * FROM ThongKe_PhanLoaiTapThe", cn);
@@ -2901,25 +3022,31 @@ namespace PhanMemThiDua2026
                             if (dtTapThe.Rows.Count > 0)
                             {
                                 var wsTapThe = wb.Worksheets.Add("ThongKe_PhanLoaiTapThe");
-                                for (int c = 0; c < dtTapThe.Columns.Count; c++)
+                                int soCotTT = dtTapThe.Columns.Count;
+                                var tieuDeTT = new string?[soCotTT];
+                                for (int c = 0; c < soCotTT; c++)
                                 {
-                                    var headerCell = wsTapThe.Cell(1, c + 1);
-                                    headerCell.Value = dtTapThe.Columns[c].ColumnName;
-                                    headerCell.Style.Font.Bold = true;
-                                    headerCell.Style.Fill.BackgroundColor = XLColor.LightSteelBlue;
-                                    headerCell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                                    tieuDeTT[c] = dtTapThe.Columns[c].ColumnName;
+                                    wsTapThe.Cell(1, c + 1).Value = tieuDeTT[c];
                                 }
-                                for (int r = 0; r < dtTapThe.Rows.Count; r++)
+                                var vungTieuDeTT = wsTapThe.Range(1, 1, 1, soCotTT);
+                                vungTieuDeTT.Style.Font.Bold = true;
+                                vungTieuDeTT.Style.Fill.BackgroundColor = XLColor.LightSteelBlue;
+                                Module_ExcelAnToan.KeVien(vungTieuDeTT);
+                                // Giải mã sẵn thành mảng dòng rồi nạp 1 lần bằng InsertData
+                                var dongTT = new List<object?[]>(dtTapThe.Rows.Count);
+                                foreach (DataRow dr in dtTapThe.Rows)
                                 {
-                                    for (int c = 0; c < dtTapThe.Columns.Count; c++)
+                                    var d = new object?[soCotTT];
+                                    for (int c = 0; c < soCotTT; c++)
                                     {
-                                        var cell = wsTapThe.Cell(r + 2, c + 1);
-                                        string rawVal = dtTapThe.Rows[r][c]?.ToString() ?? "";
-                                        cell.Value = string.IsNullOrEmpty(rawVal) ? "" : Module_BaoMatAES.GiaiMa(rawVal);
-                                        cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                                        string rawVal = dr[c]?.ToString() ?? "";
+                                        d[c] = rawVal.Length == 0 ? null : Module_BaoMatAES.GiaiMa(rawVal);
                                     }
+                                    dongTT.Add(d);
                                 }
-                                wsTapThe.Columns().AdjustToContents();
+                                Module_ExcelAnToan.KeVien(Module_ExcelAnToan.NapDong(wsTapThe, 2, 1, dongTT));
+                                Module_ExcelAnToan.DatDoRongCot(wsTapThe, dongTT, 1, tieuDeTT);
                                 wsTapThe.Hide();
                             }
                         }
@@ -2929,19 +3056,31 @@ namespace PhanMemThiDua2026
                         cellA1.Style.Fill.BackgroundColor = XLColor.FromHtml("#D9EAD3");
                         cellA1.Style.Font.Bold = true;
                         cellA1.Style.Font.FontColor = XLColor.Black;
-                        string textPhienBan = laTanBinh ? "Phần mềm dành cho Tân binh" : "Phần mềm dành cho CBCS";
+                        string textPhienBan = laTanBinh ? $"Phần mềm dành cho {Module_TaiKhoan.TenTB_Hoa}" : "Phần mềm dành cho CBCS";
                         wsVersion.Cell("B1").Value = Module_BaoMatAES.MaHoa(textPhienBan);
                         wsVersion.Columns().AdjustToContents();
                         wsVersion.Hide();
-                        ws.Columns().AdjustToContents();
+                        // Tự tính độ rộng cột từ dataArray (thay AdjustToContents: đo từng ô rất chậm với hàng nghìn dòng)
                         int ghiChuIdxRong = exportCols.FindIndex(x => x.Name.Equals("GhiChu", StringComparison.OrdinalIgnoreCase));
-                        if (ghiChuIdxRong >= 0)
+                        int cotGhiChuExcelIdx = ghiChuIdxRong >= 0 ? ghiChuIdxRong + offset + 1 : -1;
+                        for (int c = 0; c < colCount; c++)
                         {
-                            var cotGhiChuExcel = ws.Column(ghiChuIdxRong + offset + 1);
-                            cotGhiChuExcel.Width = Math.Clamp(cotGhiChuExcel.Width, 20, 40);
+                            int maxLen = 0;
+                            string tieuDeCot = ws.Cell(excelStartRow, c + 1).GetString();
+                            foreach (var dong in tieuDeCot.Split('\n'))
+                                if (dong.Length > maxLen) maxLen = dong.Length;
+                            for (int r = 0; r < rowCount; r++)
+                            {
+                                int len = dataArray[r, c]?.ToString()?.Length ?? 0;
+                                if (len > maxLen) maxLen = len;
+                            }
+                            double rong = Math.Clamp(maxLen * 1.15 + 2, 6, 60);
+                            if (c + 1 == cotGhiChuExcelIdx) rong = Math.Clamp(rong, 20, 40);
+                            ws.Column(c + 1).Width = rong;
                         }
                         Module_BanQuyen.DongDauExcel(wb);
-                        wb.SaveAs(filePath);
+                        // Lưu qua tệp tạm rồi thay thế: tránh để lại tệp hỏng nếu lỗi giữa chừng / tệp đang mở trong Excel
+                        Module_ExcelAnToan.LuuAnToan(wb, filePath);
                         Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath);
                     });
                     Module_ThongBao.ThanhCong("Xuất Excel thành công!");
@@ -3301,7 +3440,7 @@ namespace PhanMemThiDua2026
                         }
                         if (hasValidVersion)
                         {
-                            bool isExcelTanBinh = decryptedVersionText.Contains("Tân binh", StringComparison.OrdinalIgnoreCase);
+                            bool isExcelTanBinh = decryptedVersionText.LaCheDoTanBinh();
                             bool isExcelCBCS = decryptedVersionText.Contains("CBCS", StringComparison.OrdinalIgnoreCase);
                             if (laTanBinh && !isExcelTanBinh) throw new Exception($"Bạn đang cố nạp sai File! Tệp Excel này là: {decryptedVersionText}");
                             if (!laTanBinh && !isExcelCBCS) throw new Exception($"Bạn đang cố nạp sai File! Tệp Excel này là: {decryptedVersionText}");
@@ -3324,7 +3463,7 @@ namespace PhanMemThiDua2026
                         if (mappingCot.Count == 0)
                             throw new Exception("File Excel không chứa dữ liệu của các cột đang hiển thị trên màn hình hiện tại.");
                     }
-                    using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
+                    using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                     cn.Open();
                     using (var cmdPragma = new SqliteCommand("PRAGMA foreign_keys = OFF;", cn)) { cmdPragma.ExecuteNonQuery(); }
                     using var tran = cn.BeginTransaction();
@@ -3374,7 +3513,7 @@ namespace PhanMemThiDua2026
                                          dbColName.Equals("SoHieu", StringComparison.OrdinalIgnoreCase) ||
                                          dbColName.Equals("DonVi", StringComparison.OrdinalIgnoreCase)))
                                     {
-                                        if (!cellValue.StartsWith("v2|", StringComparison.Ordinal))
+                                        if (!Module_BaoMatAES.LaChuoiMa(cellValue))
                                             cellValue = Module_BaoMatAES.MaHoa(cellValue);
                                     }
                                     cmdInsert.Parameters["@" + dbColName].Value = string.IsNullOrEmpty(cellValue) ? DBNull.Value : (object)cellValue;
@@ -3400,7 +3539,7 @@ namespace PhanMemThiDua2026
                 DongFormLoadingAnToan();
                 if (coDuLieuKhongHopLeTanBinh)
                 {
-                    MessageBox.Show("Phát hiện dữ liệu không hợp lệ tại các cột Đánh giá của Tân binh (chỉ chấp nhận 1, 2, 3, 4 hoặc rỗng).\n\nHệ thống đã tự động dọn dẹp và chuyển các ô nhập sai thành rỗng!", "Cảnh báo dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show($"Phát hiện dữ liệu không hợp lệ tại các cột Đánh giá của {Module_TaiKhoan.TenTB_Hoa} (chỉ chấp nhận 1, 2, 3, 4 hoặc rỗng).\n\nHệ thống đã tự động dọn dẹp và chuyển các ô nhập sai thành rỗng!", "Cảnh báo dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 string thongBao = chiNapCotTrenUI
                     ? $"Nạp thành công {importedRows} dòng!\n(Chế độ tương thích: Đã lọc bỏ các cột không sử dụng)"
@@ -3430,7 +3569,7 @@ namespace PhanMemThiDua2026
                 bool laTanBinh = HienThiTanBinh;
                 string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
                 int tongSoDong = 0;
-                using (var conn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                 {
                     conn.Open();
                     using var cmd = new SqliteCommand($"SELECT COUNT(*) FROM {tenBang}", conn);
@@ -3465,52 +3604,13 @@ namespace PhanMemThiDua2026
         // =====================================================================
         //  LƯU TRỮ THEO NĂM
         // =====================================================================
-        private void toolStripMenuItem_LuuTruDataThiDuaTheoNam_Click(object? sender, EventArgs e)
-        {
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null) return;
-            var f46 = Application.OpenForms.OfType<Form46_ThongKeThiDuaNamCu>().FirstOrDefault();
-            if (f46 == null)
-            {
-                // Chưa tồn tại -> khởi tạo mới
-                f46 = new Form46_ThongKeThiDuaNamCu
-                {
-                    Text = "Thống kê thi đua năm cũ",
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-                var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-                if (panel == null) return;
-                panel.Controls.Add(f46);
-                f46.Show();
-                f46.BringToFront();
-                var form15 = this;
-                f46.FormClosed += (s, ev) =>
-                {
-                    if (form15 != null && !form15.IsDisposed)
-                    {
-                        form15.Dock = DockStyle.Fill;
-                        form15.Show();
-                        form15.BringToFront();
-                        var fChaCheck = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-                        if (fChaCheck != null)
-                        {
-                            int namHienTai = Module_HeThong.LayNamHeThong();
-                            fChaCheck.CapNhatTieuDe($"Thống kê kết quả phân loại thi đua \"VÌ ANTQ\" năm {namHienTai}");
-                        }
-                    }
-                };
-                formCha.CapNhatTieuDe(f46.Text);
-            }
-            else
-            {
-                // Đã tồn tại
-                f46.LoadDanhSachFileLichSu();
-                f46.BringToFront();
-                formCha.CapNhatTieuDe(f46.Text);
-            }
-        }
+                //// Chưa tồn tại -> khởi tạo mới
+                //// Đã tồn tại
+                //f46.LoadDanhSachFileLichSu();
+                //f46.BringToFront();
+                //formCha.CapNhatTieuDe(f46.Text);
+            //}
+        //}
         private async void taoBanSaoLuuTruTheoNamToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             // 1. Xác minh quyền Admin
@@ -3542,7 +3642,7 @@ namespace PhanMemThiDua2026
             }
             // 3. Khóa menu
             var menu = taoBanSaoLuuTruTheoNamToolStripMenuItem;
-            string textGoc = menu.Text;
+            string? textGoc = menu.Text;
             try
             {
                 menu.Enabled = false;
@@ -3608,6 +3708,7 @@ namespace PhanMemThiDua2026
         }
         private void dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem_Click(object? sender, EventArgs e)
         {
+            if (!Module_HoTroLuuDataTheoNamCu.LaPhienBanCBCS()) return; // bảng năm cũ (KQ_ThiDua_Nam_Cu) chỉ có ở CBCS
             try
             {
                 using var frm = new Form58_DongBoKetQuaThiDuaNamTruocVeNamHienTai { ShowInTaskbar = false };

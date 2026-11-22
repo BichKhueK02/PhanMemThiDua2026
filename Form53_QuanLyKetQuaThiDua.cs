@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-namespace PhanMemThiDua2026
+﻿namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form53_QuanLyKetQuaThiDua : Form
@@ -52,22 +47,10 @@ namespace PhanMemThiDua2026
             if (NapTruocNen) _ = NapTruocCacFormConAsync();
         }
         // ================= PRELOAD AN TOÀN (gọi từ Form2 khi Form53 còn ẩn, trên luồng UI) =================
-        /// <summary>
-        /// Tạo sẵn trang thống kê (Form15) vào RAM cache + tạo handle cho các control con.
-        /// KHÔNG Show, KHÔNG đọc dữ liệu: Form15_Load và ReloadData vẫn chạy ở lần mở thật.
-        /// </summary>
-        public void NapTruocGiaoDien()
-        {
-            if (_isClosing || IsDisposed) return;
-            try
-            {
-                TaoSan<Form15_ThongKeThiDua>();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("[Form53.NapTruoc] " + ex.Message);
-            }
-        }
+        ///// <summary>
+        ///// Tạo sẵn trang thống kê (Form15) vào RAM cache + tạo handle cho các control con.
+        ///// KHÔNG Show, KHÔNG đọc dữ liệu: Form15_Load và ReloadData vẫn chạy ở lần mở thật.
+        ///// </summary>
         /// <summary>
         /// Nạp dần các form con còn lại, mỗi lần 1 form và nghỉ giữa các lần
         /// để giao diện không bị đứng. Lần bấm menu đầu tiên sẽ không còn phải chờ dựng form.
@@ -89,6 +72,9 @@ namespace PhanMemThiDua2026
                 foreach (var buoc in cacBuoc)
                 {
                     if (_isClosing || IsDisposed) return;
+                    // Chờ "đèn đỏ" đăng nhập + người dùng rảnh tay (trang có thể đang được nạp sẵn lúc còn ở màn hình đăng nhập)
+                    await Module_UuTienDangNhap.NhuongAsync();
+                    if (!await Module_NhuongUI.ChoRanhAsync(() => _isClosing || IsDisposed)) return;
                     try { buoc(); }
                     catch (Exception ex)
                     {
@@ -102,6 +88,10 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine("[Form53.NapTruocNen] " + ex.Message);
             }
         }
+        ///// <summary>
+        ///// Gọi từ Form2 khi Form53 còn ẩn (sau đăng nhập, lúc người dùng rảnh): dựng Form15 + nạp sẵn DỮ LIỆU.
+        ///// Lần bấm "Thống kê" đầu tiên hiện ngay bảng đã có dữ liệu, không phải chờ nạp. Gọi trên luồng giao diện.
+        ///// </summary>
         private void TaoSan<T>() where T : Form, new()
         {
             Form f = LayHoacTaoForm<T>();
@@ -208,7 +198,7 @@ namespace PhanMemThiDua2026
             {
                 _activeSubForm = target;
                 target.BringToFront();
-                target.Show();
+                Module_KhoGiaoDien.ShowTrongKho(target);   // = Show(); nằm trong kho ẩn thì vẫn chạy Load
                 // Ẩn form cũ SAU khi form mới đã hiện (tránh 1 khung hình nền trống, không Dispose)
                 if (formCu != null && formCu != target) formCu.Hide();
             }
@@ -230,9 +220,9 @@ namespace PhanMemThiDua2026
                 if (ep) _canTaiLai.Add(t);   // tải xong sẽ tải thêm 1 vòng nữa
                 return dangChay;
             }
-            // Dữ liệu còn tươi -> khỏi tải lại
+            // Dữ liệu còn tươi (vừa tải, hoặc CSDL không đổi kể từ lần tải trước) -> khỏi tải lại
             if (!ep && _lanTaiCuoi.TryGetValue(t, out long truoc)
-                    && Environment.TickCount64 - truoc < TuoiDuLieuToiDaGiay * 1000L)
+                    && (Environment.TickCount64 - truoc < TuoiDuLieuToiDaGiay * 1000L || DuLieuChuaDoi(t, truoc)))
             {
                 if (form == _activeSubForm) DaLoadDuLieu = true;
                 return Task.CompletedTask;
@@ -250,14 +240,18 @@ namespace PhanMemThiDua2026
                 do
                 {
                     _canTaiLai.Remove(t);
+                    Form15_ThongKeThiDua.NK($"Form53: tải {t.Name} BẮT ĐẦU");
                     await GoiReloadAsync(form);
+                    Form15_ThongKeThiDua.NK($"Form53: tải {t.Name} XONG");
                     _lanTaiCuoi[t] = Environment.TickCount64;
+                    _chuKyLanTai[t] = Module_ChuKyCSDL.Lay();   // chụp SAU khi tải (bản thân lần tải có thể đồng bộ/ghi CSDL)
                 }
                 while (_canTaiLai.Contains(t) && !_isClosing && !form.IsDisposed);
             }
             catch (Exception ex)
             {
                 loi = true;
+                Form15_ThongKeThiDua.NK($"Form53: tải {t.Name} LỖI: {ex}");
                 _lanTaiCuoi.Remove(t);
                 System.Diagnostics.Debug.WriteLine($"[Lỗi tải dữ liệu {t.Name}]: {ex.Message}");
                 if (!_isClosing && !IsDisposed)
@@ -272,6 +266,19 @@ namespace PhanMemThiDua2026
                 _dangTai.Remove(t);
                 if (!_isClosing && form == _activeSubForm) DaLoadDuLieu = !loi;
             }
+        }
+        private readonly Dictionary<Type, string> _chuKyLanTai = new();
+        /// <summary>Tối đa bao lâu thì vẫn làm mới dù CSDL không đổi (an toàn).</summary>
+        private const int TuoiDuLieuKhongDoiToiDaPhut = 10;
+        private bool DuLieuChuaDoi(Type t, long lanTai)
+            => Environment.TickCount64 - lanTai < TuoiDuLieuKhongDoiToiDaPhut * 60_000L
+               && _chuKyLanTai.TryGetValue(t, out string? ck)
+               && string.Equals(ck, Module_ChuKyCSDL.Lay(), StringComparison.Ordinal);
+        /// <summary>Đang có lượt tải nào của tab đang mở thì chờ lượt đó; chưa tải / dữ liệu cũ thì tải. Không bao giờ tải chồng.</summary>
+        public Task DamBaoDaTaiAsync()
+        {
+            if (_isClosing || IsDisposed || _activeSubForm == null || _activeSubForm.IsDisposed) return Task.CompletedTask;
+            return TaiDuLieuAsync(_activeSubForm, ep: false);
         }
         /// <summary>Mỗi form con có hàm reload riêng - gom về 1 chỗ.</summary>
         private static Task GoiReloadAsync(Form f) => f switch
@@ -297,6 +304,7 @@ namespace PhanMemThiDua2026
         private void CapNhatTieuDeFormChinh(string tieuDe)
         {
             if (_isClosing) return;
+            if (Module_KhoGiaoDien.LaTrongKho(this)) return;   // đang nạp sẵn trong kho: không đổi tiêu đề trang người dùng đang xem
             var frmChinh = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
             if (frmChinh != null && !frmChinh.IsDisposed)
             {

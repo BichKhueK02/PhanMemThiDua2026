@@ -1,6 +1,5 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
 ///Phiên bản 2: phần xuất PDF chuyển sang Module_XuatPdfOffice; form chỉ lo giao diện + gọi.
-using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -11,10 +10,8 @@ namespace PhanMemThiDua2026
     {
         // Đọc trực tiếp mỗi lần dùng: sau khi khôi phục/ghi đè CSDL, Module_DanduongGPS.NapLaiDuongDan() đổi đường dẫn mà form giữ trong RAM không bị cũ
         private static string DuongDanCsdl2 => Module_DanduongGPS.DuongDanCSDL2;
-
         private const string ChuaChonExcel = "Chưa chọn tệp excel";
         private const string ChuaChonThuMucPdf = "Chưa chọn thư mục lưu tệp *.pdf";
-
         // KHAI BÁO WINDOWS API: MỞ THƯ MỤC VÀ BÔI ĐEN TỆP
         [DllImport("shell32.dll", ExactSpelling = true)]
         private static extern void ILFree(IntPtr pidl);
@@ -22,19 +19,16 @@ namespace PhanMemThiDua2026
         private static extern IntPtr ILCreateFromPathW(string pszPath);
         [DllImport("shell32.dll", ExactSpelling = true)]
         private static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, uint cidl, [In, MarshalAs(UnmanagedType.LPArray)] IntPtr[]? apidl, uint dwFlags);
-
         private string? _textGocNutXuatPdf;               // lấy từ Designer ở lần đầu, không còn gán cứng khác chữ trên nút
         private string _tenDonVi = "";
         private string _thang = "";
         private string _nam = "";
         private Dictionary<string, string> _mapQuyDinhTenPdf = new(StringComparer.OrdinalIgnoreCase);
-
         private volatile bool _dangXuatFile;
         private int _soFileDaXong;
         private int _tongSoFile;
         private bool _dangDongBoCheck;                     // true khi CODE đang đổi trạng thái tick (không phải người dùng bấm)
         private readonly System.Windows.Forms.Timer _timerTienTrinh;
-
         public class SheetExportItem
         {
             public string OriginalSheetName { get; set; } = "";
@@ -48,7 +42,6 @@ namespace PhanMemThiDua2026
                 return laMacDinh ? ten : $"[{OriginalSheetName}] ➔ {ten}";
             }
         }
-
         public Form48_XuatTepPdf()
         {
             InitializeComponent();   // Designer đã đăng ký Load, nút Xuất, nút chọn thư mục, 2 label: KHÔNG đăng ký lại (bản cũ làm Load chạy 2 lần)
@@ -60,32 +53,24 @@ namespace PhanMemThiDua2026
             FormBorderStyle = FormBorderStyle.FixedDialog;
             AcceptButton = kryptonButton_XuatTepPdf;
             Module_HeThong.BocBoTronGiaoDien(checkedListBox1_LietKeTenCacSheet);
-
-            _timerTienTrinh = new System.Windows.Forms.Timer(components) { Interval = 25 };
+            _timerTienTrinh = new System.Windows.Forms.Timer(components!) { Interval = 25 };
             _timerTienTrinh.Tick += TimerTienTrinh_Tick;
-
             kryptonButton1_ChonDuongDanTepExcel.Click -= KryptonButton1_ChonDuongDanTepExcel_Click;
             kryptonButton1_ChonDuongDanTepExcel.Click += KryptonButton1_ChonDuongDanTepExcel_Click;
-
             // Danh sách sheet: bấm 1 lần là đổi tick (CheckOnClick) — thay cho mẹo SelectedIndexChanged cũ vốn có thể đổi tick 2 lần khi bấm đúng vào ô vuông
             var clb = checkedListBox1_LietKeTenCacSheet;
             clb.CheckOnClick = true;
             clb.DrawMode = DrawMode.OwnerDrawFixed;
             clb.DrawItem += CheckedListBox1_DrawItem;
             clb.ItemCheck += CheckedListBox1_ItemCheck;
-
             checkBox1_ChonTatCa.Visible = false;
             checkBox1_ChonTatCa.CheckedChanged += CheckBox1_ChonTatCa_CheckedChanged;
-
             FormClosing += Form48_FormClosing;
-
             Module_GiaoDienForm48Web.ApDung(this);
         }
-
         // =====================================================================================
         //  VÒNG ĐỜI FORM
         // =====================================================================================
-
         private void Form48_XuatTepPdf_Load(object? sender, EventArgs e)
         {
             _textGocNutXuatPdf ??= kryptonButton_XuatTepPdf.Text;
@@ -96,7 +81,6 @@ namespace PhanMemThiDua2026
             CauHinhStatusLabelGioiThieu();
             ReloadGiaoDienVaDuLieu();
         }
-
         private void Form48_FormClosing(object? sender, FormClosingEventArgs e)
         {
             // Đang xuất: đóng form sẽ để mặc tiến trình Excel/LibreOffice chạy ngầm và hỏng tệp dở dang
@@ -107,41 +91,32 @@ namespace PhanMemThiDua2026
                     "Đang xử lý", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
-
         /// <summary>
         /// Được gọi từ Form cha mỗi khi mở lại Form 48 từ RAM: xóa dữ liệu cũ, nạp lại cấu hình mới nhất từ CSDL.
         /// </summary>
         public void ReloadGiaoDienVaDuLieu()
         {
             if (_dangXuatFile) return;   // đang xuất: không được reset giữa chừng
-
             label_DuongDanExcel.Text = ChuaChonExcel;
             label_DuongDanExcel.ForeColor = Color.Red;
             CapNhatIconNutChonExcel();
             label_DuongDanPdf.Text = ChuaChonThuMucPdf;
             label_DuongDanPdf.ForeColor = Color.Red;
-
             toolStripProgressBar1_TienTrinhXuatTep.Value = 0;
             toolStripProgressBar1_TienTrinhXuatTep.Visible = false;
-
             checkedListBox1_LietKeTenCacSheet.Items.Clear();
-
             _dangDongBoCheck = true;
             try { checkBox1_ChonTatCa.Checked = false; checkBox1_ChonTatCa.Visible = false; }
             finally { _dangDongBoCheck = false; }
-
             kryptonButton_XuatTepPdf.Enabled = false;
             kryptonButton1_ChonDuongDanTepExcel.Enabled = true;
-
             TaiThongTinDonViVaThoiGian();
             ThietLapDictonaryAnhXa();
             CapNhatStatusStrip(0, 0, 0);
         }
-
         // =====================================================================================
         //  GIAO DIỆN PHỤ TRỢ
         // =====================================================================================
-
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
@@ -155,7 +130,6 @@ namespace PhanMemThiDua2026
             toolTip1.SetToolTip(kryptonButton_XuatTepPdf, "Xuất tệp *.pdf");
             // Tooltip nút chọn Excel do CapNhatIconNutChonExcel đặt (đổi theo trạng thái đã chọn / chưa chọn)
         }
-
         private void CauHinhStatusLabelGioiThieu()
         {
             var lb = toolStripStatusLabel1_GioiThieu;
@@ -167,7 +141,6 @@ namespace PhanMemThiDua2026
             lb.Click -= ToolStripStatusLabel1_GioiThieu_Click;
             lb.Click += ToolStripStatusLabel1_GioiThieu_Click;
         }
-
         private void ToolStripStatusLabel1_GioiThieu_Click(object? sender, EventArgs e)
         {
             const string thongBao =
@@ -178,7 +151,6 @@ namespace PhanMemThiDua2026
                 "✔ Hỗ trợ trích xuất nhanh văn bản phục vụ lưu trữ và chuyển giao số hóa.";
             MessageBox.Show(thongBao, "Giới thiệu chức năng trình tạo *.pdf", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
         /// <summary>Cập nhật icon dauCong.png / dauTru.png và ToolTip cho nút chọn tệp Excel.</summary>
         private void CapNhatIconNutChonExcel()
         {
@@ -187,7 +159,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_ChonDuongDanTepExcel.Values.Image = chuaChon ? Properties.Resources.dauCong : Properties.Resources.dauTru;
             toolTip1.SetToolTip(kryptonButton1_ChonDuongDanTepExcel, chuaChon ? "Chọn đường dẫn tệp excel" : "Hủy chọn tệp excel hiện tại");
         }
-
         private void CapNhatStatusStrip(int tongSheet, int sheetDaChon, int fileDaTao)
         {
             if (tongSheet == 0)
@@ -200,20 +171,16 @@ namespace PhanMemThiDua2026
             if (fileDaTao > 0) ds.Add($"Đã tạo thành công {fileDaTao} file *.pdf");
             toolStripStatusLabel1_TongCongTepPdf.Text = string.Join(" | ", ds);
         }
-
         // =====================================================================================
         //  DANH SÁCH SHEET + "CHỌN TẤT CẢ"
         // =====================================================================================
-
         private void CheckBox1_ChonTatCa_CheckedChanged(object? sender, EventArgs e)
         {
             if (_dangDongBoCheck) return;
             var clb = checkedListBox1_LietKeTenCacSheet;
             if (clb.Items.Count == 0) return;
-
             bool chon = checkBox1_ChonTatCa.Checked;
             checkBox1_ChonTatCa.ForeColor = chon ? Color.DarkGreen : Color.Red;
-
             _dangDongBoCheck = true;
             clb.BeginUpdate();
             try
@@ -228,19 +195,15 @@ namespace PhanMemThiDua2026
             CapNhatStatusStrip(clb.Items.Count, clb.CheckedItems.Count, 0);
             clb.Invalidate();
         }
-
         private void CheckedListBox1_ItemCheck(object? sender, ItemCheckEventArgs e)
         {
             if (_dangDongBoCheck) return;
             var clb = checkedListBox1_LietKeTenCacSheet;
-
             // Số mục sẽ được tick SAU thao tác này (ItemCheck chạy TRƯỚC khi trạng thái đổi)
             int sau = clb.CheckedItems.Count;
             if (e.CurrentValue != CheckState.Checked && e.NewValue == CheckState.Checked) sau++;
             else if (e.CurrentValue == CheckState.Checked && e.NewValue != CheckState.Checked) sau--;
-
             CapNhatStatusStrip(clb.Items.Count, sau, 0);
-
             if (checkBox1_ChonTatCa.Visible)
             {
                 bool tatCa = sau == clb.Items.Count;
@@ -250,29 +213,23 @@ namespace PhanMemThiDua2026
             }
             if (IsHandleCreated) BeginInvoke(new Action(() => { if (!clb.IsDisposed) clb.Invalidate(); }));
         }
-
         private void CheckedListBox1_DrawItem(object? sender, DrawItemEventArgs e)
         {
             if (e.Index < 0 || sender is not CheckedListBox clb) return;
-
             // Tự tô nền (không dùng DrawBackground): tránh dải xanh chọn-dòng làm chữ xanh/đỏ khó đọc
             using (var nen = new SolidBrush(clb.BackColor)) e.Graphics.FillRectangle(nen, e.Bounds);
-
             bool ok = clb.GetItemChecked(e.Index);
             int o = Math.Min(e.Bounds.Height - 4, LogicalToDeviceUnits(16));
             ControlPaint.DrawCheckBox(e.Graphics, e.Bounds.Left + 4, e.Bounds.Top + (e.Bounds.Height - o) / 2, o, o,
                 ok ? ButtonState.Checked : ButtonState.Normal);
-
             var vung = new Rectangle(e.Bounds.Left + o + 10, e.Bounds.Top, Math.Max(10, e.Bounds.Width - o - 14), e.Bounds.Height);
             TextRenderer.DrawText(e.Graphics, clb.Items[e.Index]?.ToString() ?? "", e.Font, vung,
                 ok ? Color.DarkGreen : Color.Red,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
         }
-
         // =====================================================================================
         //  NẠP THÔNG TIN TỪ CSDL
         // =====================================================================================
-
         private void TaiThongTinDonViVaThoiGian()
         {
             _thang = Module_XuatPhanLoai.LayThangHeThong();
@@ -280,7 +237,6 @@ namespace PhanMemThiDua2026
             if (int.TryParse(_thang, out int thang))
                 _thang = (thang == 1 || thang == 2) ? thang.ToString("00") : thang.ToString();
             _nam = Module_XuatPhanLoai.LayNamHeThong();
-
             try
             {
                 string db = DuongDanCsdl2;
@@ -301,7 +257,6 @@ namespace PhanMemThiDua2026
                 if (string.IsNullOrEmpty(_tenDonVi)) _tenDonVi = "Đơn vị";
             }
         }
-
         private void ThietLapDictonaryAnhXa()
         {
             string tenDonViHienThi = _tenDonVi;
@@ -323,7 +278,6 @@ namespace PhanMemThiDua2026
                 { "DS_BANHAT", $"Danh sách đề nghị biểu dương gương tiêu biểu phong trào thi đua \"Ba nhất\" {baseString}" }
             };
         }
-
         /// <summary>Đọc thông tin điền vào sheet (địa điểm, tháng, năm, ký hiệu...). Gọi ở luồng nền.</summary>
         private static ThongTinThayThe DocThongTinThayThe()
         {
@@ -350,29 +304,24 @@ namespace PhanMemThiDua2026
                 }
             }
             catch (Exception ex) { Debug.WriteLine("Lỗi đọc thông tin thay thế: " + ex.Message); }
-
             string diaDiemThangNam = $"{diaDiem}, ngày                  tháng {thang} năm {nam}";
             const string phanDau = "(Kèm theo Báo cáo ";
             string phanGiua = $"số:            {kyHieuBaoCao}, ngày             /{thang}/{nam}";
             string phanCuoi = $" của {tieuDoanHienThi})";
             return new ThongTinThayThe(diaDiemThangNam, phanDau + phanGiua + phanCuoi, phanDau.Length, phanGiua.Length);
         }
-
         // =====================================================================================
         //  CHỌN TỆP EXCEL / THƯ MỤC LƯU
         // =====================================================================================
-
         private async void KryptonButton1_ChonDuongDanTepExcel_Click(object? sender, EventArgs e)
         {
             if (_dangXuatFile) return;
-
             // Đã chọn rồi → nút đang là dấu "−": hủy chọn
             if (!label_DuongDanExcel.Text.Equals(ChuaChonExcel, StringComparison.OrdinalIgnoreCase))
             {
                 ReloadGiaoDienVaDuLieu();
                 return;
             }
-
             using var ofd = new OpenFileDialog
             {
                 Title = "Chọn tệp Excel nguồn",
@@ -380,11 +329,9 @@ namespace PhanMemThiDua2026
                 CheckFileExists = true
             };
             if (ofd.ShowDialog(this) != DialogResult.OK) return;
-
             string tep = ofd.FileName;
             label_DuongDanExcel.Text = tep;
             label_DuongDanExcel.ForeColor = Color.DarkGreen;
-
             // Tự gán thư mục chứa tệp Excel làm nơi lưu PDF
             string? thuMuc = Path.GetDirectoryName(tep);
             if (!string.IsNullOrEmpty(thuMuc))
@@ -393,12 +340,10 @@ namespace PhanMemThiDua2026
                 label_DuongDanPdf.ForeColor = Color.DarkGreen;
             }
             CapNhatIconNutChonExcel();
-
             kryptonButton1_ChonDuongDanTepExcel.Enabled = false;
             kryptonButton_XuatTepPdf.Enabled = false;
             toolStripStatusLabel1_DangLoad.Visible = true;
             toolStripStatusLabel1_DangLoad.Text = "Đang phân tích tệp Excel, vui lòng đợi...";
-
             try
             {
                 await PhanTichVaAnhXaSheetTuExcelAsync(tep);
@@ -414,7 +359,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         private async Task PhanTichVaAnhXaSheetTuExcelAsync(string excelPath)
         {
             try
@@ -422,7 +366,6 @@ namespace PhanMemThiDua2026
                 checkedListBox1_LietKeTenCacSheet.Items.Clear();
                 var tenSheet = await Task.Run(() => Module_XuatPdfOffice.LietKeTenSheet(excelPath));
                 if (IsDisposed) return;
-
                 var clb = checkedListBox1_LietKeTenCacSheet;
                 _dangDongBoCheck = true;
                 clb.BeginUpdate();
@@ -435,7 +378,6 @@ namespace PhanMemThiDua2026
                     }
                 }
                 finally { clb.EndUpdate(); _dangDongBoCheck = false; }
-
                 _dangDongBoCheck = true;
                 try
                 {
@@ -444,7 +386,6 @@ namespace PhanMemThiDua2026
                     checkBox1_ChonTatCa.Visible = clb.Items.Count >= 2;   // chỉ hiện khi từ 2 sheet trở lên
                 }
                 finally { _dangDongBoCheck = false; }
-
                 CapNhatStatusStrip(clb.Items.Count, clb.CheckedItems.Count, 0);
             }
             catch (Exception ex)
@@ -457,11 +398,9 @@ namespace PhanMemThiDua2026
                 CapNhatIconNutChonExcel();
             }
         }
-
         private void kryptonButton1_ChonDuongDanLuuTepPdf_Click(object? sender, EventArgs e)
         {
             if (_dangXuatFile) return;
-
             string thuMucMacDinh = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             try
             {
@@ -480,7 +419,6 @@ namespace PhanMemThiDua2026
                 }
             }
             catch (Exception ex) { Debug.WriteLine("Đọc thư mục lưu gần nhất: " + ex.Message); }
-
             using var fbd = new FolderBrowserDialog
             {
                 Description = "Chọn thư mục lưu các tệp *.pdf xuất ra",
@@ -495,18 +433,14 @@ namespace PhanMemThiDua2026
                 label_DuongDanPdf.ForeColor = Color.DarkBlue;
             }
         }
-
         // =====================================================================================
         //  XUẤT PDF
         // =====================================================================================
-
         private async void kryptonButton_XuatTepPdf_Click(object? sender, EventArgs e)
         {
             if (_dangXuatFile) return;
-
             string excelPath = label_DuongDanExcel.Text?.Trim() ?? "";
             string pdfFolder = label_DuongDanPdf.Text?.Trim() ?? "";
-
             if (string.IsNullOrWhiteSpace(excelPath) ||
                 excelPath.Equals(ChuaChonExcel, StringComparison.OrdinalIgnoreCase) ||
                 !File.Exists(excelPath))
@@ -522,7 +456,6 @@ namespace PhanMemThiDua2026
                 kryptonButton1_ChonDuongDanLuuTepPdf.PerformClick();
                 return;
             }
-
             var muc = checkedListBox1_LietKeTenCacSheet.CheckedItems.Cast<SheetExportItem>()
                         .Select(i => new MucXuatPdf(i.OriginalSheetName, i.TargetPdfName)).ToList();
             if (muc.Count == 0)
@@ -530,7 +463,6 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Vui lòng tích chọn ít nhất 1 Sheet để xuất tệp *.pdf", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
             BatDauXuat(muc.Count);
             try
             {
@@ -557,12 +489,10 @@ namespace PhanMemThiDua2026
                 await KetThucXuatAsync();
             }
         }
-
         private void XuLyKetQua(KetQuaXuatPdf kq, string pdfFolder, int tongYeuCau)
         {
             int ok = kq.DaTao.Count;
             CapNhatStatusStrip(checkedListBox1_LietKeTenCacSheet.Items.Count, tongYeuCau, ok);
-
             if (ok > 0)
             {
                 Module_NhatKy.GhiNhatKy(
@@ -570,7 +500,6 @@ namespace PhanMemThiDua2026
                     hanhDong: $"Xuất thành công {ok} tệp PDF",
                     ghiChu: $"Lưu tại: {pdfFolder} | Phần mềm xuất: {kq.TenDongCo} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
             }
-
             if (kq.ThatBai.Count == 0)
             {
                 Module_ThongBao.ThanhCong($"Xuất thành công {ok} tệp PDF");
@@ -587,11 +516,9 @@ namespace PhanMemThiDua2026
                     ok > 0 ? "Xuất chưa hoàn tất" : "Xuất thất bại",
                     MessageBoxButtons.OK, ok > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Error);
             }
-
             if (ok > 0 && !string.IsNullOrEmpty(kq.FileCuoi) && File.Exists(kq.FileCuoi))
                 MoThuMucVaChonTep(kq.FileCuoi);
         }
-
         // ---------- thanh tiến trình ----------
         private void BatDauXuat(int tong)
         {
@@ -601,7 +528,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_ChonDuongDanLuuTepPdf.Enabled = false;
             checkedListBox1_LietKeTenCacSheet.Enabled = false;
             kryptonButton_XuatTepPdf.Text = "Đang xử lý...";
-
             _dangXuatFile = true;
             _soFileDaXong = 0;
             _tongSoFile = tong;
@@ -612,7 +538,6 @@ namespace PhanMemThiDua2026
             pb.Value = 0;
             _timerTienTrinh.Start();
         }
-
         /// <summary>Gọi từ luồng nền khi xong thêm 1 tệp.</summary>
         private void BaoDaXong(int tongDaXong)
         {
@@ -631,7 +556,6 @@ namespace PhanMemThiDua2026
             }
             catch (InvalidOperationException) { /* form vừa đóng */ }
         }
-
         // Thanh trượt "ảo": chạy mượt tới 90% phần của file đang xử lý, file xong thật mới nhảy tới 100% phần đó
         private void TimerTienTrinh_Tick(object? sender, EventArgs e)
         {
@@ -640,18 +564,15 @@ namespace PhanMemThiDua2026
             int mucTieuAo = Math.Min(_soFileDaXong * 100 + 90, pb.Maximum);
             if (pb.Value < mucTieuAo) pb.Value++;
         }
-
         private async Task KetThucXuatAsync()
         {
             _dangXuatFile = false;
             _timerTienTrinh.Stop();
             if (IsDisposed) return;
-
             var pb = toolStripProgressBar1_TienTrinhXuatTep;
             pb.Value = pb.Maximum;                 // trượt nốt lên 100% cho trọn vẹn
             await Task.Delay(300);
             if (IsDisposed) return;
-
             pb.Visible = false;
             checkedListBox1_LietKeTenCacSheet.Enabled = true;
             kryptonButton1_ChonDuongDanTepExcel.Enabled = true;
@@ -659,11 +580,9 @@ namespace PhanMemThiDua2026
             kryptonButton_XuatTepPdf.Enabled = checkedListBox1_LietKeTenCacSheet.Items.Count > 0;
             kryptonButton_XuatTepPdf.Text = _textGocNutXuatPdf ?? kryptonButton_XuatTepPdf.Text;
         }
-
         // =====================================================================================
         //  MỞ THƯ MỤC / TỆP
         // =====================================================================================
-
         private static void MoThuMucVaChonTep(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath)) return;
@@ -673,14 +592,12 @@ namespace PhanMemThiDua2026
             catch (Exception ex) { Debug.WriteLine("Lỗi API Mở thư mục: " + ex.Message); }
             finally { ILFree(pidl); }
         }
-
         private void label_DuongDanExcel_Click(object? sender, EventArgs e)
         {
             string p = label_DuongDanExcel.Text?.Trim() ?? "";
             if (!string.IsNullOrWhiteSpace(p) && File.Exists(p)) MoThuMucVaChonTep(p);
             else MessageBox.Show("Đường dẫn tệp Excel không tồn tại hoặc chưa được chọn!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
         private void label_DuongDanPdf_Click(object? sender, EventArgs e)
         {
             string p = label_DuongDanPdf.Text?.Trim() ?? "";

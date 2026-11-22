@@ -81,15 +81,6 @@ namespace PhanMemThiDua2026.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap ChuaKySo {
-            get {
-                object obj = ResourceManager.GetObject("ChuaKySo", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap client_account_template {
             get {
                 object obj = ResourceManager.GetObject("client_account_template", resourceCulture);
@@ -102,15 +93,6 @@ namespace PhanMemThiDua2026.Properties {
         internal static System.Drawing.Bitmap clock {
             get {
                 object obj = ResourceManager.GetObject("clock", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap DaKySo {
-            get {
-                object obj = ResourceManager.GetObject("DaKySo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -297,24 +279,6 @@ namespace PhanMemThiDua2026.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap Internet_Search {
-            get {
-                object obj = ResourceManager.GetObject("Internet_Search", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
-        /// </summary>
-        internal static System.Drawing.Icon Picture {
-            get {
-                object obj = ResourceManager.GetObject("Picture", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
-            }
-        }
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
         internal static System.Drawing.Bitmap SangPhai {
             get {
                 object obj = ResourceManager.GetObject("SangPhai", resourceCulture);
@@ -328,15 +292,6 @@ namespace PhanMemThiDua2026.Properties {
             get {
                 object obj = ResourceManager.GetObject("SangTrai", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] sao {
-            get {
-                object obj = ResourceManager.GetObject("sao", resourceCulture);
-                return ((byte[])(obj));
             }
         }
     }

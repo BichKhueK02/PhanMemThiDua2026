@@ -1,14 +1,7 @@
-﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+﻿using Krypton.Toolkit;
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Krypton.Toolkit;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -153,29 +146,6 @@ namespace PhanMemThiDua2026
                 this.ResumeLayout(true);
             }
         }
-        //private void kryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
-        //{
-        //    if (e.RowIndex < 0 || kryptonDataGridView1 == null) return;
-        //    DataGridViewRow row = kryptonDataGridView1.Rows[e.RowIndex];
-        //    if (kryptonDataGridView1.Columns.Contains("ID"))
-        //    {
-        //        KryptonTextBox_Thang12NamCu.Tag = row.Cells["ID"].Value;
-        //    }
-        //    SetTextBoxText(KryptonTextBox_Thang12NamCu, row, "Thang_12_Nam_Cu");
-        //    SetTextBoxText(KryptonTextBox_Thang1, row, "Thang_1");
-        //    SetTextBoxText(KryptonTextBox_Thang2, row, "Thang_2");
-        //    SetTextBoxText(KryptonTextBox_Thang3, row, "Thang_3");
-        //    SetTextBoxText(KryptonTextBox_Thang4, row, "Thang_4");
-        //    SetTextBoxText(KryptonTextBox_Thang5, row, "Thang_5");
-        //    SetTextBoxText(KryptonTextBox_6ThangDauNam, row, "Sau_Thang_Dau_Nam");
-        //    SetTextBoxText(KryptonTextBox_Thang6, row, "Thang_6");
-        //    SetTextBoxText(KryptonTextBox_Thang7, row, "Thang_7");
-        //    SetTextBoxText(KryptonTextBox_Thang8, row, "Thang_8");
-        //    SetTextBoxText(KryptonTextBox_Thang9, row, "Thang_9");
-        //    SetTextBoxText(KryptonTextBox_Thang10, row, "Thang_10");
-        //    SetTextBoxText(KryptonTextBox_Thang11, row, "Thang_11");
-        //    SetTextBoxText(KryptonTextBox_TongKetNam, row, "TongKet_Nam");
-        //}
         // Khai báo ở cấp class, tạo 1 lần duy nhất
         private (KryptonTextBox TextBox, string Column)[] _thangMapping = null!;
         private void InitThangMapping()
@@ -272,7 +242,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={duongDanCSDLCu}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(duongDanCSDLCu));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = @"
@@ -335,7 +305,7 @@ namespace PhanMemThiDua2026
             try
             {
                 string duongDanCSDLCu = itemChon.DuongDanCSDL;
-                using var cn = new SqliteConnection($"Data Source={duongDanCSDLCu}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(duongDanCSDLCu));
                 cn.Open();
                 using var tran = cn.BeginTransaction();
                 // 🌟 Đảm bảo dòng ID = 1 luôn tồn tại trước khi UPDATE
@@ -427,6 +397,7 @@ namespace PhanMemThiDua2026
             {
                 kryptonDataGridView1.DataSource = null;
                 XoaTrangCacTextBox();
+                SetDataGridViewVisible(false);
                 return;
             }
             DataTable dt = new DataTable();
@@ -447,7 +418,7 @@ namespace PhanMemThiDua2026
             dt.Columns.Add("TongKet_Nam", typeof(string));
             try
             {
-                using var cn = new SqliteConnection($"Data Source={duongDanCSDLCu}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(duongDanCSDLCu));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = @"
@@ -485,6 +456,7 @@ namespace PhanMemThiDua2026
                     dt.Rows.Add(row);
                 }
                 kryptonDataGridView1.DataSource = dt;
+                SetDataGridViewVisible(dt.Rows.Count > 0);
                 DoiTenCotChuyenNghiep(kryptonDataGridView1);
                 if (kryptonDataGridView1.Rows.Count > 0)
                 {
@@ -497,6 +469,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
+                HienThiTrangThaiKhongCoDuLieu();
                 MessageBox.Show($"Lỗi khi tải dữ liệu CSDL lên bảng: {ex.Message}", "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -629,6 +602,11 @@ namespace PhanMemThiDua2026
             {
                 comboBox1_ChonCscdThiDuaTapTheNamCu.EndUpdate();
             }
+            // Không tìm thấy tệp CSDL nào (hoặc thư mục chưa tồn tại) -> ẩn lưới và hiện thông báo
+            if (comboBox1_ChonCscdThiDuaTapTheNamCu.Items.Count == 0)
+            {
+                HienThiTrangThaiKhongCoDuLieu();
+            }
         }
         private async void kryptonButton1_LamMoi_Click(object? sender, EventArgs e)
         {
@@ -677,7 +655,7 @@ namespace PhanMemThiDua2026
             try
             {
                 string duongDanCSDLCu = itemChon.DuongDanCSDL;
-                using (var cn = new SqliteConnection($"Data Source={duongDanCSDLCu}"))
+                using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(duongDanCSDLCu)))
                 {
                     cn.Open();
                     using (var cmd = cn.CreateCommand())
@@ -694,9 +672,10 @@ namespace PhanMemThiDua2026
                     DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
                 );
                 // Dọn dẹp DataGridView
+                // Dọn dẹp DataGridView & ẩn vùng lưới trống
                 kryptonDataGridView1.DataSource = null;
-                // Xóa trắng các TextBox
                 XoaTrangCacTextBox();
+                SetDataGridViewVisible(false);
                 // 🌟 Thông báo xóa thành công -> Delay 200ms -> Đếm lại số dòng DataGrid (bằng 0)
                 await HienThiThongBaoTamThoiAsync($"Đã xóa toàn bộ dữ liệu bảng thi đua tập thể năm {itemChon.TenHienThi} thành công!", 200);
             }
@@ -784,6 +763,87 @@ namespace PhanMemThiDua2026
                 label9_ChonTenThiDuaThang.Text = "Cập nhật phân loại thi đua tập thể:";
             }
         }
+        private const string ThongBaoKhongCoDuLieu = "Không tìm thấy tệp lưu trữ CSDL thi đua năm cũ";
+        //private bool _isGridHidden = false;
+        private Label? _lblKhongCoDuLieu;
+        private Label TaoLabelKhongCoDuLieu()
+        {
+            var lbl = new Label
+            {
+                Name = "label_KhongCoDuLieu",
+                Text = ThongBaoKhongCoDuLieu,
+                AutoSize = false,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+                ForeColor = Color.FromArgb(100, 100, 100),
+                BackColor = Color.Transparent,
+                Visible = false
+            };
+            var font = new Font(Module_HeThong.TenFontHeThong ?? "Segoe UI", 11F, FontStyle.Italic);
+            lbl.Font = font;
+            lbl.Disposed += (_, _) => font.Dispose();
+            return lbl;
+        }
+        /// <summary>
+        /// true  : hiện DataGridView, ẩn thông báo.
+        /// false : ẩn DataGridView và hiện thông báo "Không tìm thấy tệp lưu trữ CSDL thi đua năm cũ" ngay tại vị trí lưới.
+        /// </summary>
+        private void SetDataGridViewVisible(bool visible)
+        {
+            if (kryptonDataGridView1 == null) return;
+            var parent = kryptonDataGridView1.Parent;
+            if (parent == null) return;
+            parent.SuspendLayout();
+            try
+            {
+                // Tạo Label 1 lần duy nhất, đặt cùng ô (cell) với DataGridView
+                if (_lblKhongCoDuLieu == null || _lblKhongCoDuLieu.IsDisposed)
+                {
+                    _lblKhongCoDuLieu = TaoLabelKhongCoDuLieu();
+                    if (parent is TableLayoutPanel tlp)
+                    {
+                        var pos = tlp.GetPositionFromControl(kryptonDataGridView1);
+                        tlp.Controls.Add(_lblKhongCoDuLieu, pos.Column, pos.Row);
+                        tlp.SetColumnSpan(_lblKhongCoDuLieu, tlp.GetColumnSpan(kryptonDataGridView1));
+                        tlp.SetRowSpan(_lblKhongCoDuLieu, tlp.GetRowSpan(kryptonDataGridView1));
+                    }
+                    else
+                    {
+                        parent.Controls.Add(_lblKhongCoDuLieu);
+                    }
+                }
+                // Luôn tắt control cũ trước rồi mới bật control mới để không bị chiếm chung 1 ô
+                if (visible)
+                {
+                    _lblKhongCoDuLieu.Visible = false;
+                    kryptonDataGridView1.Visible = true;
+                }
+                else
+                {
+                    kryptonDataGridView1.Visible = false;
+                    _lblKhongCoDuLieu.Visible = true;
+                    _lblKhongCoDuLieu.BringToFront();
+                }
+            }
+            finally
+            {
+                parent.ResumeLayout(true);
+            }
+            //_isGridHidden = !visible;
+        }
+        /// <summary>
+        /// Xóa sạch lưới + ô nhập và hiện thông báo không có dữ liệu.
+        /// </summary>
+        private void HienThiTrangThaiKhongCoDuLieu()
+        {
+            kryptonDataGridView1.DataSource = null;
+            XoaTrangCacTextBox();
+            SetDataGridViewVisible(false);
+        }
+        //private void ToggleDataGridView()
+        //{
+            //SetDataGridViewVisible(_isGridHidden);
+        //}
     }
     public class NamThiDuaTapTheItem
     {
@@ -797,3 +857,4 @@ namespace PhanMemThiDua2026
         }
     }
 }
+/////TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026

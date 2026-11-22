@@ -29,7 +29,6 @@ namespace PhanMemThiDua2026
         private const int SO_NGAY_BACKUP_BU = 35;
         private const double NGUONG_PHAN_TRAM_PHAN_MANH = 20.0;
         private const long NGUONG_BYTE_LANG_PHI_TOI_THIEU = 2L * 1024 * 1024;   // < 2 MB rác thì không đáng VACUUM
-        private const long NGUONG_WAL_BYTE = 32L * 1024 * 1024;           // WAL > 32 MB thì gộp lại
         private const long DU_PHONG_BYTE = 16L * 1024 * 1024;             // dự phòng dung lượng trống
         private const int MOC_SO_DONG = 1000;                             // mốc số dòng nhật ký xét bảo trì nặng
         private static readonly TimeSpan ThoiGianToiDaVacuum = TimeSpan.FromMinutes(10);
@@ -353,8 +352,6 @@ namespace PhanMemThiDua2026
         }
         private static string LayDuongDanBackupThang(string tenFile, DateTime now)
             => Path.Combine(_thuMucBackup, $"{tenFile}_Backup_{Dinh(now, "yyyy_MM")}.db");
-        // ===================== BƯỚC 1: KHỞI TẠO CẤU HÌNH TỐI ƯU =====================
-        public static Task KhoiTaoCauHinhToiUuAsync(string dbPath) => Task.Run(() => KhoiTaoCauHinhToiUu(dbPath));
         private static void KhoiTaoCauHinhToiUu(string dbPath)
         {
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return;
@@ -396,54 +393,150 @@ namespace PhanMemThiDua2026
             ChayLenh(conn, "PRAGMA auto_vacuum = INCREMENTAL;");
             return cheDo;
         }
-        // ===================== BƯỚC 2: BẢO TRÌ NHẸ HÀNG NGÀY =====================
-        public static Task BaoTriNheHangNgayAsync(string dbPath) => BaoTriNheHangNgayAsync(dbPath, CancellationToken.None);
-        public static async Task BaoTriNheHangNgayAsync(string dbPath, CancellationToken cancellationToken)
+        // ===================== TÁC VỤ ĐỘC QUYỀN TỪ GIAO DIỆN =====================
+        /// <summary>
+        /// Chạy 1 tác vụ cần độc quyền CSDL (vd: thu gọn ở Form33) dưới CÙNG khóa với bảo trì nền => không bao giờ chạy song song
+        /// với VACUUM / sao lưu / phục hồi. Chạy trên luồng riêng (LongRunning). Hủy khi tiến trình thoát.
+        /// Ném TimeoutException nếu bảo trì nền đang bận quá <paramref name="thoiGianCho"/>.
+        /// </summary>
+        public static async Task<T> ChayDocQuyenAsync<T>(Func<CancellationToken, T> viec, TimeSpan thoiGianCho, CancellationToken ct = default)
         {
-            if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return;
+            using var lk = CancellationTokenSource.CreateLinkedTokenSource(ct, _ctsThoat.Token);
+            if (!await _khoaTienTrinh.WaitAsync(thoiGianCho, lk.Token).ConfigureAwait(false))
+                throw new TimeoutException("Hệ thống đang bảo trì CSDL ở chế độ nền. Vui lòng thử lại sau ít phút.");
             try
             {
-                if (!await _khoaTienTrinh.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false))
-                {
-                    GhiLog($"[Bảo Trì Nhẹ] Bỏ qua cho {Path.GetFileName(dbPath)} vì hệ thống đang bận.");
-                    return;
-                }
+                return await Task.Factory.StartNew(() => viec(lk.Token), lk.Token,
+                    TaskCreationOptions.LongRunning, TaskScheduler.Default).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) { return; }   // app đang tắt (bản 2 để lỗi này thoát ra khỏi hàm)
-            try
-            {
-                using var lk = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ctsThoat.Token);
-                await Task.Run(() => ChayVoiRetry(() => { ThucThiBaoTriNhe(dbPath); return true; }, 2, lk.Token), lk.Token)
-                          .ConfigureAwait(false);
-                GhiLog($"[Bảo Trì Nhẹ] Hoàn tất Optimize & dọn dẹp cho {Path.GetFileName(dbPath)}");
-            }
-            catch (OperationCanceledException) { /* app đang tắt */ }
-            catch (Exception ex) { GhiLog($"[Lỗi Bảo trì nhẹ] {ex.Message}"); }
             finally
             {
                 _khoaTienTrinh.Release();
-                KichHoatWorker();   // xả nốt nhật ký CSDL đã bị hoãn trong lúc bảo trì
             }
         }
-        private static void ThucThiBaoTriNhe(string dbPath)
+        /// <summary>Ghi 1 dòng vào nhật ký bảo trì (BaoTri_NhatKy.txt) từ module khác.</summary>
+        public static void GhiNhatKyBaoTri(string thongDiep) => GhiLog(thongDiep);
+        // ===================== THU GỌN ĐỊNH KỲ (TỐI THIỂU 6 THÁNG / LẦN) =====================
+        // Mốc lần thu gọn gần nhất của TỪNG CSDL lưu trong Database\NhatKyNhaPhatTrien\LichThuGonCSDL.txt (tên tệp|thời điểm):
+        // đi theo bản portable khi chép sang máy khác, không ghi vào CSDL (không làm tệp CSDL thay đổi chỉ vì lưu lịch).
+        private static readonly TimeSpan ChuKyThuGon = TimeSpan.FromDays(182);
+        private static readonly TimeSpan TreKhiKhoiDong = TimeSpan.FromMinutes(3);   // không tranh tài nguyên lúc vừa mở phần mềm
+        private const string TEN_TEP_LICH_THU_GON = "LichThuGonCSDL.txt";
+        private const string DINH_DANG_MOC = "yyyy-MM-dd HH:mm:ss";
+        private static readonly object _khoaLich = new();
+        private static int _daLenLichThuGon;
+        private static string DuongDanLichThuGon => Path.Combine(Module_NhatKyNhaPhatTrien.ThuMuc, TEN_TEP_LICH_THU_GON);
+        private static Dictionary<string, DateTime> DocLichThuGon()
         {
-            using var conn = MoKetNoi(dbPath);
-            ChayLenh(conn, "PRAGMA optimize;");
-            // incremental_vacuum chỉ có tác dụng khi auto_vacuum = 2 (INCREMENTAL); ở chế độ khác là lệnh rỗng
-            if (DocPragmaSo(conn, "auto_vacuum") == 2)
-                ChayLenh(conn, "PRAGMA incremental_vacuum(1000);");
-            // WAL phình to (có kết nối đọc giữ lâu) -> gộp về tệp chính và cắt WAL
+            var kq = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
             try
             {
-                var wal = new FileInfo(dbPath + "-wal");
-                if (wal.Exists && wal.Length > NGUONG_WAL_BYTE)
-                    ChayLenh(conn, "PRAGMA wal_checkpoint(TRUNCATE);");
+                if (!File.Exists(DuongDanLichThuGon)) return kq;
+                foreach (string dong in File.ReadAllLines(DuongDanLichThuGon, Utf8KhongBom))
+                {
+                    int i = dong.IndexOf('|');
+                    if (i <= 0) continue;
+                    if (DateTime.TryParseExact(dong[(i + 1)..].Trim(), DINH_DANG_MOC, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime t))
+                        kq[dong[..i].Trim()] = t;
+                }
             }
-            catch (SqliteException) { /* đang có người đọc -> để lần sau */ }
+            catch (Exception ex) { Debug.WriteLine("[Lịch thu gọn] Không đọc được: " + ex.Message); }
+            return kq;
         }
-        // ===================== BƯỚC 3: BẢO TRÌ NẶNG (KÈM AUTO-RESTORE) =====================
-        public static Task TuDongBaoTriNangCuoiThangAsync(string duongDanDB, CancellationToken cancellationToken = default)
-            => ChayBaoTriNangAsync(duongDanDB, cancellationToken, cuongBuc: false);
+        /// <summary>Ghi mốc "vừa thu gọn" cho 1 CSDL (gọi cả khi người dùng bấm Vacuum ở Form33). Ghi ra .tmp rồi đổi tên: không bao giờ để tệp lịch dở dang.</summary>
+        public static void GhiMocThuGon(string dbPath, DateTime? luc = null)
+        {
+            try
+            {
+                lock (_khoaLich)
+                {
+                    var lich = DocLichThuGon();
+                    lich[Path.GetFileName(dbPath)] = luc ?? DateTime.Now;
+                    Directory.CreateDirectory(Module_NhatKyNhaPhatTrien.ThuMuc);
+                    string tam = DuongDanLichThuGon + HAU_TO_TAM;
+                    File.WriteAllLines(tam, lich.OrderBy(k => k.Key, StringComparer.OrdinalIgnoreCase)
+                        .Select(k => k.Key + "|" + k.Value.ToString(DINH_DANG_MOC, CultureInfo.InvariantCulture)), Utf8KhongBom);
+                    File.Move(tam, DuongDanLichThuGon, overwrite: true);
+                }
+            }
+            catch (Exception ex) { Debug.WriteLine("[Lịch thu gọn] Không ghi được: " + ex.Message); }
+        }
+        /// <summary>
+        /// Đã đủ 6 tháng kể từ lần thu gọn gần nhất? Chưa từng có mốc (bản cập nhật đầu tiên) => lấy hôm nay làm mốc, KHÔNG chạy ngay
+        /// (tránh mọi máy cùng dồn CSDL ngay sau khi cập nhật). Mốc nằm ở tương lai (đồng hồ máy sai / chép từ máy khác) => đặt lại mốc.
+        /// </summary>
+        private static bool DaDenHanThuGon(string dbPath, DateTime now)
+        {
+            string ten = Path.GetFileName(dbPath);
+            DateTime moc;
+            lock (_khoaLich)
+            {
+                if (!DocLichThuGon().TryGetValue(ten, out moc))
+                {
+                    GhiMocThuGon(dbPath, now);
+                    return false;
+                }
+            }
+            if (moc > now.AddDays(1))
+            {
+                GhiMocThuGon(dbPath, now);
+                return false;
+            }
+            return now - moc >= ChuKyThuGon;
+        }
+        /// <summary>
+        /// Gọi 1 lần khi phần mềm đã mở xong (Form2). Sau vài phút, CSDL nào đã quá 6 tháng chưa thu gọn thì dồn lại ở luồng nền
+        /// (cùng cơ chế với nút Vacuum ở Form33, KHÔNG tự xóa dòng trùng, không đủ lợi thì không ghi gì). Đang bị dùng thì để lần mở sau.
+        /// <paramref name="layDanhSachCsdl"/> được gọi lúc chạy (đường dẫn có thể đổi sau khi khôi phục / chuyển thư mục lưu trữ).
+        /// </summary>
+        public static void LenLichThuGonDinhKy(Func<IEnumerable<string?>> layDanhSachCsdl)
+        {
+            if (Interlocked.Exchange(ref _daLenLichThuGon, 1) == 1) return;
+            _ = Task.Run(async () =>
+            {
+                try { await Task.Delay(TreKhiKhoiDong, _ctsThoat.Token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { return; }
+                List<string> ds;
+                try { ds = layDanhSachCsdl().Where(p => !string.IsNullOrWhiteSpace(p) && File.Exists(p)).Select(p => p!).ToList(); }
+                catch (Exception ex) { GhiLog("[Thu gọn định kỳ] Không lấy được danh sách CSDL: " + ex.Message); return; }
+                foreach (string path in ds)
+                {
+                    try
+                    {
+                        if (!DaDenHanThuGon(path, DateTime.Now)) continue;
+                        await ChayDocQuyenAsync(ct => { ThuGonDinhKy(path, ct); return true; }, TimeSpan.FromMinutes(2)).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { return; }   // phần mềm đang thoát
+                    catch (TimeoutException) { GhiLog($"[Thu gọn định kỳ] {Path.GetFileName(path)}: hệ thống đang bảo trì, để lần mở sau."); }
+                    catch (Exception ex) { GhiLog($"[Thu gọn định kỳ] {Path.GetFileName(path)}: {ex.Message}"); }
+                    finally { KichHoatWorker(); }
+                }
+            });
+        }
+        private static void ThuGonDinhKy(string path, CancellationToken ct)
+        {
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(ThoiGianToiDaVacuum);
+            string? thuMucTam = null;
+            string ten = Path.GetFileName(path);
+            try
+            {
+                try { thuMucTam = Module_NhatKyNhaPhatTrien.TaoThuMucTam("ThuGonDinhKy"); } catch { thuMucTam = null; }
+                var kq = Module_ThuGonCSDL.ThuGon(path, thuMucTam, cts.Token, batBuoc: false, khuTrungLap: false, chapNhanDoiCheDo: false);
+                GhiLog($"[Thu gọn định kỳ] {ten}: {kq.ThongBao}");
+                // Thành công (kể cả "đã gọn, bỏ qua") => tính lại 6 tháng. Thất bại (đang bị dùng / lỗi) => không ghi mốc, thử lại lần mở sau.
+                if (kq.ThanhCong) GhiMocThuGon(path);
+            }
+            catch (OperationCanceledException)
+            {
+                if (ct.IsCancellationRequested) throw;
+                GhiLog($"[Thu gọn định kỳ] {ten}: vượt quá thời gian cho phép, đã ngắt an toàn (CSDL giữ nguyên).");
+            }
+            finally
+            {
+                if (thuMucTam != null) { try { Directory.Delete(thuMucTam, true); } catch { } }
+            }
+        }
         private static bool CanTaoBackupThang(string tenFile, DateTime now)
         {
             string duongDan = LayDuongDanBackupThang(tenFile, now);
@@ -517,8 +610,8 @@ namespace PhanMemThiDua2026
                 GhiLog($"[Bảo Trì Nặng] Sao lưu {tenFile} không thành công, bỏ qua VACUUM và dọn dẹp.");
                 return;
             }
-            // 3. FULL VACUUM (chỉ khi DB khỏe, có backup, và thực sự nhiều rác / cần chuyển sang INCREMENTAL)
-            if (CanFullVacuum(duongDanDB, ct))
+            // 3. DỒN CSDL (chỉ khi DB khỏe, có backup, đã đủ 6 tháng kể từ lần thu gọn trước, và thực sự nhiều rác / cần chuyển sang INCREMENTAL)
+            if (DaDenHanThuGon(duongDanDB, now) && CanFullVacuum(duongDanDB, ct))
                 ThucHienFullVacuum(duongDanDB, ct);
             // 4. CLEANUP (giữ tối đa 3 bản VÀ dung lượng tổng dưới 2GB, không bao giờ xóa bản mới nhất)
             DondepBackupCu(tenFile, SO_BAN_BACKUP_GIU_LAI, TRAN_DUNG_LUONG_BACKUP);
@@ -704,11 +797,10 @@ namespace PhanMemThiDua2026
                 // 1 lần VACUUM duy nhất để bật INCREMENTAL. Cờ "không đổi được" nay theo TỪNG CSDL (bản 2 dùng 1 biến chung: 1 CSDL thất bại làm tắt cho tất cả)
                 bool canDoiAutoVacuum = autoVacuum != 2 && !(st?.KhongDoiDuocAutoVacuum ?? false);
                 if (!nhieuRac && !canDoiAutoVacuum) return false;
-                // VACUUM cần ~ 1 lần dung lượng DB ở thư mục tạm (ổ hệ thống) và ~ 2 lần ở ổ chứa DB (WAL)
-                long kichThuoc = pageCount * pageSize;
+                // VACUUM INTO chỉ cần chỗ cho tệp MỚI (= phần dữ liệu thật, không gồm trang rỗng) trên ổ chứa CSDL; không dùng %TEMP%
+                long kichThuoc = (pageCount - freeCount) * pageSize;
                 string thuMucDb = Path.GetDirectoryName(Path.GetFullPath(dbPath)) ?? dbPath;
-                if (!DuDungLuong(thuMucDb, kichThuoc * 2 + DU_PHONG_BYTE) ||
-                    !DuDungLuong(Path.GetTempPath(), kichThuoc + DU_PHONG_BYTE))
+                if (!DuDungLuong(thuMucDb, kichThuoc + DU_PHONG_BYTE))
                 {
                     GhiLog("[Kiểm Tra Vacuum] Bỏ qua VACUUM: không đủ dung lượng trống.");
                     return false;
@@ -716,30 +808,50 @@ namespace PhanMemThiDua2026
                 return true;
             }, 3, ct);
         }
+        /// <summary>
+        /// Dồn CSDL bằng CÙNG cơ chế với nút "Chạy Vacuum" ở Form33 (Module_ThuGonCSDL): VACUUM INTO ra tệp mới -> kiểm chứng -> File.Replace.
+        /// So với VACUUM tại chỗ (bản cũ): ghi đĩa ~1 lần phần dữ liệu thật thay vì ~2 lần cả tệp (WAL + checkpoint), KHÔNG ghi bản tạm vào %TEMP%,
+        /// và tệp gốc không bị đụng tới cho tới khi tệp mới đã được kiểm chứng.
+        /// Chạy nền tự động nên: KHÔNG tự xóa dòng trùng (chỉ làm khi người dùng bấm), không thử lại khi tệp đang bị mở (để lượt sau).
+        /// </summary>
         private static void ThucHienFullVacuum(string dbPath, CancellationToken ct)
         {
             var st = LayTrangThai(dbPath);
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            cts.CancelAfter(ThoiGianToiDaVacuum);   // timeout THẬT: kích hoạt sqlite3_interrupt (bản 2 không có giới hạn thời gian)
+            cts.CancelAfter(ThoiGianToiDaVacuum);   // timeout THẬT: Module_ThuGonCSDL gọi sqlite3_interrupt khi token bị hủy
+            string? thuMucTam = null;
             try
             {
-                bool daIncremental = ChayVoiRetry(() =>
+                try { thuMucTam = Module_NhatKyNhaPhatTrien.TaoThuMucTam("BaoTriNang"); } catch { thuMucTam = null; }
+                var kq = Module_ThuGonCSDL.ThuGon(dbPath, thuMucTam, cts.Token,
+                    batBuoc: true,              // CanFullVacuum đã quyết định là cần
+                    khuTrungLap: false,
+                    chapNhanDoiCheDo: true);    // đổi sang INCREMENTAL 1 lần dù tệp mới lớn hơn vài KB
+                string ten = Path.GetFileName(dbPath);
+                if (kq.ThanhCong)
                 {
-                    using var conn = MoKetNoi(dbPath);
-                    using var reg = DangKyNgat(conn, cts.Token);
-                    ChayLenh(conn, "PRAGMA wal_checkpoint(TRUNCATE);");
-                    // Đặt TRƯỚC khi VACUUM, trên CÙNG kết nối: đây là cách duy nhất để CSDL cũ chuyển sang INCREMENTAL
-                    ChayLenh(conn, "PRAGMA auto_vacuum = INCREMENTAL;");
-                    ChayLenh(conn, "VACUUM;");
-                    return DocPragmaSo(conn, "auto_vacuum") == 2;
-                }, 3, ct);
-                if (!daIncremental && st != null) st.KhongDoiDuocAutoVacuum = true;
-                GhiLog("[Bảo Trì Nặng] Full VACUUM hoàn tất.");
+                    GhiLog($"[Bảo Trì Nặng] {ten}: {kq.ThongBao}");
+                    GhiMocThuGon(dbPath);   // tính lại chu kỳ 6 tháng
+                    // Đã chạy mà vẫn không ở INCREMENTAL -> đừng lặp lại mỗi lượt
+                    if (kq.AutoVacuumSau >= 0 && kq.AutoVacuumSau != 2 && st != null) st.KhongDoiDuocAutoVacuum = true;
+                }
+                else if (kq.TepDangMo)
+                {
+                    GhiLog($"[Bảo Trì Nặng] {ten}: bỏ qua lượt này vì CSDL đang được sử dụng ({kq.ThongBao}). CSDL giữ nguyên.");
+                }
+                else
+                {
+                    GhiLog($"[Bảo Trì Nặng] {ten}: không dồn được, CSDL giữ nguyên. {kq.ThongBao}");
+                }
             }
-            catch (SqliteException ex) when (ex.SqliteErrorCode == SQLITE_INTERRUPT)
+            catch (OperationCanceledException)
             {
-                if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
-                GhiLog("[Bảo Trì Nặng] VACUUM vượt quá thời gian cho phép, đã ngắt an toàn (CSDL được hoàn tác, giữ nguyên).");
+                if (ct.IsCancellationRequested) throw;   // phần mềm đang thoát
+                GhiLog("[Bảo Trì Nặng] Dồn CSDL vượt quá thời gian cho phép, đã ngắt an toàn (CSDL giữ nguyên).");
+            }
+            finally
+            {
+                if (thuMucTam != null) { try { Directory.Delete(thuMucTam, true); } catch { } }
             }
         }
         // 🛡️ Dọn dẹp backup theo Số lượng VÀ Dung lượng; KHÔNG BAO GIỜ xóa bản mới nhất
@@ -816,9 +928,14 @@ namespace PhanMemThiDua2026
         private static long DemSoDongNhatKy(string dbPath)
         {
             // Pooling=false: bản 2 dùng pool nên kết nối nhàn rỗi giữ tệp CSDL mở mãi, chặn File.Move/Delete ở các thao tác khác
-            using var conn = MoKetNoi(dbPath);
+            // Bảng nhật ký thật trong csdl3 là NhatKyUngDung. Bản cũ đếm bảng "NhatKy" (không tồn tại) => luôn lỗi, bị nuốt im lặng,
+            // nên bảo trì theo mốc 1000 dòng chưa từng chạy. Nay tra bảng theo tên, không có thì trả 0 (không bảo trì).
+            using var conn = MoKetNoi(dbPath, SqliteOpenMode.ReadOnly);
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM NhatKy"; // Hoặc tên bảng bạn cần kiểm tra
+            cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('NhatKyUngDung','NhatKy') " +
+                              "ORDER BY name = 'NhatKyUngDung' DESC LIMIT 1;";
+            if (cmd.ExecuteScalar() is not string tenBang) return 0;
+            cmd.CommandText = "SELECT COUNT(*) FROM \"" + tenBang + "\";";   // tenBang chỉ là 1 trong 2 hằng ở trên
             object? kq = cmd.ExecuteScalar();
             return kq == null || kq == DBNull.Value ? 0 : Convert.ToInt64(kq, CultureInfo.InvariantCulture);
         }

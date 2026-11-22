@@ -1,6 +1,4 @@
-﻿
-
-///Phiên bản 2
+﻿///Phiên bản 2
 ///
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using ClosedXML.Excel;
@@ -21,12 +19,12 @@ namespace PhanMemThiDua2026
         private ToolStripMenuItem? _mnuXoaDongDaChon;
         private bool _dangXoaNhieu;
         // Biến phục vụ chức năng lọc mượt mà (Debounce)
-        private System.Windows.Forms.Timer timKiemTimer;
+        private System.Windows.Forms.Timer timKiemTimer = null!;
         public bool DaLoadDuLieu { get; private set; } = false; // Đường dẫn CSDL
         // Biến lưu trữ dữ liệu gốc để lọc trên RAM  
         private bool isUpdatingCombo = false;
         [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
-        private static extern int SendMessage(IntPtr hWnd, int msg, int wParam, [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)] string lParam);
+        private static extern int SendMessage(IntPtr hWnd, int msg, int wParam, [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)] string? lParam);
         private const int WM_SETREDRAW = 11;
         // 🔥 THÊM BIẾN CACHE HÌNH ẢNH Ở ĐÂY
         // Không giữ ảnh gốc trong RAM nữa: chỉ giữ bản đã co sẵn (_iconNho), ảnh gốc nạp 1 lần khi cần rồi giải phóng ngay.
@@ -34,7 +32,7 @@ namespace PhanMemThiDua2026
         private CancellationTokenSource? _ctsTaiTruoc;
         // Đặt class này trong namespace hoặc ngay trong class Form34_ThongKeKhenThuong
         private int _namHienTaiCache = -1;
-        private Font _fontBold;
+        private Font? _fontBold;
         private bool _gridDaDinhDang;               // định dạng lưới chỉ làm 1 lần
         private bool _canTaiLai;                    // có yêu cầu reload đến trong lúc đang tải
         private Task? _taiHienTai;                  // tác vụ tải đang chạy (gộp các lần gọi chồng)
@@ -47,34 +45,35 @@ namespace PhanMemThiDua2026
         public class ThongTinKhenThuongCBCS
         {
             public long ID { get; set; }
-            public string HoVaTen { get; set; }
-            public string SoHieu { get; set; }
-            public string DonVi { get; set; }
-            public string TinhTrang { get; set; }
+            public string HoVaTen { get; set; } = null!;
+            public string SoHieu { get; set; } = null!;
+            public string DonVi { get; set; } = null!;
+            public string TinhTrang { get; set; } = null!;
             public int SoLuong_Khen { get; set; }
-            public string GhiChu_Khen { get; set; }
-            public string GhiChu_DanhSach { get; set; }
-            public string DanhSachDVKhen_An { get; set; }
+            public string GhiChu_Khen { get; set; } = null!;
+            public string GhiChu_DanhSach { get; set; } = null!;
+            public string DanhSachDVKhen_An { get; set; } = null!;
+            public string TenTim { get; set; } = "";   // họ tên đã bỏ dấu + chữ thường (dựng 1 lần lúc nạp, chỉ dùng cho ô tìm kiếm)
             public int STT_DanhSach { get; set; } = int.MaxValue; // STT trong CSDL2.DanhSach, dùng để sắp xếp đúng thứ tự danh sách gốc
             public HashSet<string> TapDVKhen { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         }
         public class KhenThuongExportDTO
         {
             public int STT { get; set; }
-            public string HoVaTen { get; set; }
-            public string SoHieu { get; set; }
-            public string NamSinh { get; set; }
-            public string CapBac { get; set; }
-            public string ChucVu { get; set; }
-            public string QueQuan { get; set; }
-            public string DonVi { get; set; }
-            public string TinhTrang { get; set; }
-            public string HinhThuc_Khen { get; set; }
-            public string QuyetDinh_Khen { get; set; }
-            public string NgayCapQD_Khen { get; set; }
-            public string DonVi_Khen { get; set; }
-            public string VeViec_Khen { get; set; }
-            public string GhiChu_Khen { get; set; }
+            public string HoVaTen { get; set; } = null!;
+            public string SoHieu { get; set; } = null!;
+            public string NamSinh { get; set; } = null!;
+            public string CapBac { get; set; } = null!;
+            public string ChucVu { get; set; } = null!;
+            public string QueQuan { get; set; } = null!;
+            public string DonVi { get; set; } = null!;
+            public string TinhTrang { get; set; } = null!;
+            public string HinhThuc_Khen { get; set; } = null!;
+            public string QuyetDinh_Khen { get; set; } = null!;
+            public string NgayCapQD_Khen { get; set; } = null!;
+            public string DonVi_Khen { get; set; } = null!;
+            public string VeViec_Khen { get; set; } = null!;
+            public string GhiChu_Khen { get; set; } = null!;
         }
         private List<ThongTinKhenThuongCBCS> _danhSachGoc = new List<ThongTinKhenThuongCBCS>();
         private List<ThongTinKhenThuongCBCS> _danhSachHienThi = new List<ThongTinKhenThuongCBCS>();
@@ -323,9 +322,9 @@ namespace PhanMemThiDua2026
         }
         private (int SoDongThiDua, int SoDongThongKe, int SoDongChiTiet) XoaCBCSVaKhenThuongTheoSoHieu(HashSet<string> soHieuCanXoa)
         {
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().LaCheDoTanBinh();
             string tableThiDua = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
-            using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
+            using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
             conn.Open();
             using var tran = conn.BeginTransaction();
             try
@@ -409,7 +408,7 @@ namespace PhanMemThiDua2026
         }
         private void KhoiTaoTimerTimKiem()
         {
-            timKiemTimer = new System.Windows.Forms.Timer { Interval = 300 };
+            timKiemTimer = new System.Windows.Forms.Timer { Interval = 200 };
             timKiemTimer.Tick += TimKiemTimer_Tick;
         }
         // Trong Dispose(bool disposing) của Form, nhớ giải phóng Timer để tránh rò rỉ handle:
@@ -434,18 +433,33 @@ namespace PhanMemThiDua2026
             // async void: bắt hết lỗi, nếu không một exception sẽ làm sập cả phần mềm
             try
             {
+                await NapTruocDuLieuAsync();   // đã nạp sẵn lúc form còn ẩn (Form52/Form2) thì không nạp lại
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[Form34_Load] " + ex);
+            }
+        }
+        private bool _daKhoiTao;
+        private Task? _tacVuNapDau;
+        /// <summary>
+        /// Khởi tạo + nạp dữ liệu lần đầu đúng 1 lần (gọi nhiều lần trả về cùng một tác vụ). Gọi trên luồng giao diện.
+        /// Form52 gọi khi form còn ẩn để lần mở trang Khen thưởng đầu tiên có dữ liệu ngay.
+        /// </summary>
+        internal Task NapTruocDuLieuAsync()
+        {
+            if (IsDisposed || Disposing) return Task.CompletedTask;
+            if (!_daKhoiTao)
+            {
+                _daKhoiTao = true;
                 Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
                 CauHinhStatusStrip();
                 LoadComboBoxTinhTrang();
                 KhoaCacTextBox();
                 InitToolTips();              // trước đây nằm SAU await -> tooltip chỉ có khi tải xong
                 DinhDangDataGridHienDai();   // 1 lần duy nhất (hàm tự chặn gọi lại)
-                await ReloadDuLieu();
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("[Form34_Load] " + ex);
-            }
+            return _tacVuNapDau ??= ReloadDuLieu();
         }
         private void Form34_ThongKeKhenThuong_Shown(object? sender, EventArgs e)
         {
@@ -471,9 +485,6 @@ namespace PhanMemThiDua2026
                 // Cho phép hiển thị ngay cả khi Form chưa active
                 toolTip1.ShowAlways = true;
                 // 3. Gán Tooltip cho từng Control
-                GanToolTipAnToan(
-                    kryptonButton1_QuanLyKhenThuongTapThe,
-                    "Mở quản lý danh sách khen thưởng tập thể");
                 GanToolTipAnToan(
                     kryptonButton_LamMoiCacOTimKiem,
                     "Làm mới (xóa) bộ lọc tìm kiếm hiện tại");
@@ -597,7 +608,7 @@ namespace PhanMemThiDua2026
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
-        private string SafeDecrypt(string input)
+        private string SafeDecrypt(string? input)
         {
             if (string.IsNullOrWhiteSpace(input)) return "";
             input = input.Trim();
@@ -605,7 +616,7 @@ namespace PhanMemThiDua2026
             // Nếu giải mã thành công
             if (!string.IsNullOrEmpty(decoded)) return decoded;
             // Nếu thất bại (trả về rỗng) mà có mác v2| thì báo lỗi
-            if (input.StartsWith("v2|")) return "[LỖI GIẢI MÃ]";
+            if (Module_BaoMatAES.LaChuoiMa(input)) return "[LỖI GIẢI MÃ]";
             // Nếu không có mác v2|, có thể là dữ liệu thô cũ
             return input;
         }
@@ -762,19 +773,19 @@ namespace PhanMemThiDua2026
         private KetQuaTai TaiDanhSachTuCSDL(CancellationToken ct)
         {
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem()
-                .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                .LaCheDoTanBinh();
             string tableThiDua = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
             // 1. Danh sách gốc (CSDL2)
             var dictDanhSach = new Dictionary<string, (string HoTen, string DonVi, string GhiChu, int Stt)>(StringComparer.Ordinal);
             if (File.Exists(_csdl2Path))
             {
-                using var cn2 = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var cn2 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 cn2.Open();
                 // Bảng DanhSach cũ chưa có cột STT thì vẫn nạp bình thường (STT = lớn nhất, xếp theo ID như trước)
-                bool coCotSTT = CoCot(cn2, "DanhSach", "STT");
+                bool coCotSTT = CoCot(cn2, Module_TaiKhoan.BangDanhSach, "STT");
                 using var cmd = new SqliteCommand(coCotSTT
-                    ? "SELECT SoHieu, HoVaTen, DonVi, GhiChu, STT FROM DanhSach"
-                    : "SELECT SoHieu, HoVaTen, DonVi, GhiChu FROM DanhSach", cn2);
+                    ? $"SELECT SoHieu, HoVaTen, DonVi, GhiChu, STT FROM {Module_TaiKhoan.BangDanhSach}"
+                    : $"SELECT SoHieu, HoVaTen, DonVi, GhiChu FROM {Module_TaiKhoan.BangDanhSach}", cn2);
                 using var rd = cmd.ExecuteReader();
                 while (rd.Read())
                 {
@@ -793,7 +804,7 @@ namespace PhanMemThiDua2026
             //    ở luồng đọc. Trước đây form này tạo ThongKe_GiayKhen với schema 2 cột (SoHieu, DonVi_Khen)
             //    trong khi hàm xuất Excel tạo schema đầy đủ -> bảng nào được tạo trước sẽ làm hàm kia lỗi
             //    "no such column". Giờ chỉ kiểm tra tồn tại: bảng chưa có = chưa có dữ liệu.
-            using var cn4 = new SqliteConnection($"Data Source={_csdl4Path}");
+            using var cn4 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
             cn4.Open();
             var dictKhen = new Dictionary<string, (int SoLuong, string GhiChu)>(StringComparer.Ordinal);
             if (BangTonTai(cn4, "ThongKeCBCS_DuocKhenThuong"))
@@ -851,10 +862,12 @@ namespace PhanMemThiDua2026
                     bool coGoc = dictDanhSach.TryGetValue(sh, out var goc);
                     dictKhen.TryGetValue(sh, out var khen);
                     dictDVKhen.TryGetValue(sh, out var tapDV);
+                    string hoTenHienThi = coGoc ? goc.HoTen : SafeDecrypt(DocChuoi(rd, 1));
                     list.Add(new ThongTinKhenThuongCBCS
                     {
                         ID = Convert.ToInt64(rd.GetValue(0), CultureInfo.InvariantCulture),
-                        HoVaTen = coGoc ? goc.HoTen : SafeDecrypt(DocChuoi(rd, 1)),
+                        HoVaTen = hoTenHienThi,
+                        TenTim = BoLocDanhSach.ChuanHoaTimKiem(hoTenHienThi),
                         SoHieu = sh,
                         DonVi = DungChung(coGoc ? goc.DonVi : SafeDecrypt(DocChuoi(rd, 3))),
                         // Nội suy: có trong danh sách gốc = đang công tác, ngược lại = chuyển công tác
@@ -948,29 +961,53 @@ namespace PhanMemThiDua2026
             {
                 var goc = _danhSachGoc;
                 if (goc == null) return;
-                string ten = (textBox_TimKiemTheoTen?.Text ?? "").Trim();
+                // Tìm tên: KHÔNG phân biệt dấu/hoa thường, nhiều từ thì từ nào cũng phải có ("nguyen van" khớp "Nguyễn Văn An")
+                string[] tu = (textBox_TimKiemTheoTen?.Text ?? "").Trim().Length == 0
+                    ? Array.Empty<string>()
+                    : BoLocDanhSach.ChuanHoaTimKiem(textBox_TimKiemTheoTen!.Text.Trim())
+                        .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
                 string dvCongTac = LayGiaTriLoc(comboBox_TimKiemDonVi);
                 string tinhTrang = LayGiaTriLoc(comboBox_TinhTrangCongTac);
                 string dvKhen = LayGiaTriLoc(comboBox1_DonViKhenThuong);
                 var ketQua = new List<ThongTinKhenThuongCBCS>(goc.Count);
                 foreach (var x in goc)
                 {
-                    if (ten.Length > 0 &&
-                        (x.HoVaTen ?? "").IndexOf(ten, StringComparison.OrdinalIgnoreCase) < 0) continue;
                     if (dvCongTac.Length > 0 &&
                         !string.Equals(x.DonVi, dvCongTac, StringComparison.OrdinalIgnoreCase)) continue;
                     if (tinhTrang.Length > 0 &&
                         !string.Equals(x.TinhTrang, tinhTrang, StringComparison.OrdinalIgnoreCase)) continue;
                     // So khớp CHÍNH XÁC theo tập (bản cũ dùng IndexOf nên "Sư đoàn" khớp nhầm "Sư đoàn 10")
                     if (dvKhen.Length > 0 && x.TapDVKhen?.Contains(dvKhen) != true) continue;
+                    if (tu.Length > 0)
+                    {
+                        string ten = x.TenTim ?? "";
+                        bool khop = true;
+                        for (int t = 0; t < tu.Length; t++)
+                            if (ten.IndexOf(tu[t], StringComparison.Ordinal) < 0) { khop = false; break; }
+                        if (!khop) continue;
+                    }
                     ketQua.Add(x);
                 }
-                _danhSachHienThi = ketQua;
-                var grid = kryptonDataGridView1_DanhSachCBCS;
-                if (grid != null && !grid.IsDisposed && grid.Columns.Count > 0)
+                // Cùng đúng tập người (cùng thứ tự) như đang hiển thị -> không đụng tới lưới (giữ dòng đang chọn, vị trí cuộn)
+                var cu = _danhSachHienThi;
+                bool giongHet = cu != null && cu.Count == ketQua.Count;
+                if (giongHet)
                 {
-                    grid.RowCount = ketQua.Count;
-                    grid.Invalidate();
+                    for (int i = 0; i < ketQua.Count; i++)
+                        if (!ReferenceEquals(cu![i], ketQua[i])) { giongHet = false; break; }
+                }
+                var grid = kryptonDataGridView1_DanhSachCBCS;
+                if (!giongHet)
+                {
+                    _danhSachHienThi = ketQua;
+                    if (grid != null && !grid.IsDisposed && grid.Columns.Count > 0)
+                    {
+                        // Tắt vẽ + đổi số dòng theo cách nhanh (RowCount giảm từng dòng là nguyên nhân treo hàng chục giây)
+                        // Tập người đã đổi -> bỏ chọn để dòng đang chọn (và thao tác xóa nhiều dòng) không trỏ nhầm người khác
+                        using var _ = Module_LuoiAo.TamDungVe(grid);
+                        Module_LuoiAo.DatSoDong(grid, ketQua.Count, boChon: true);
+                        grid.Invalidate();
+                    }
                 }
                 CapNhatThongKeQuanSo();
             }
@@ -1130,7 +1167,7 @@ namespace PhanMemThiDua2026
                 var icon = LayIconNho(iconSize);
                 if (icon != null)
                 {
-                    e.Graphics.DrawImageUnscaled(icon, xIcon, yIcon);
+                    e.Graphics!.DrawImageUnscaled(icon, xIcon, yIcon);
                     textStartX = xIcon + iconSize + paddingIconText;
                 }
             }
@@ -1139,8 +1176,8 @@ namespace PhanMemThiDua2026
                 var textBounds = new Rectangle(textStartX, e.CellBounds.Y,
                     Math.Max(0, e.CellBounds.Width - (textStartX - e.CellBounds.X)), e.CellBounds.Height);
                 bool dangChon = (e.State & DataGridViewElementStates.Selected) != 0;
-                Color mau = dangChon ? e.CellStyle.SelectionForeColor : e.CellStyle.ForeColor;
-                TextRenderer.DrawText(e.Graphics, hoVaTen, e.CellStyle.Font, textBounds, mau,
+                Color mau = dangChon ? e.CellStyle!.SelectionForeColor : e.CellStyle!.ForeColor;
+                TextRenderer.DrawText(e.Graphics!, hoVaTen, e.CellStyle!.Font, textBounds, mau,
                     TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
             }
             e.Handled = true;
@@ -1336,7 +1373,7 @@ namespace PhanMemThiDua2026
             }
         }
         // XỬ LÝ CLICK CHUỘT PHẢI TỰ ĐỘNG CHỌN DÒNG
-        private void KryptonDataGridView1_DanhSachCBCS_MouseDown(object sender, MouseEventArgs e)
+        private void KryptonDataGridView1_DanhSachCBCS_MouseDown(object? sender, MouseEventArgs e)
         {
             // Chỉ xử lý nếu người dùng nhấn chuột phải
             if (e.Button == MouseButtons.Right)
@@ -1468,7 +1505,7 @@ namespace PhanMemThiDua2026
                 {
                     if (string.IsNullOrWhiteSpace(cbcs.SoHieu) || cbcs.TapDVKhen == null || cbcs.TapDVKhen.Count == 0) continue;
                     string hoTen = string.IsNullOrWhiteSpace(cbcs.HoVaTen) ? "Không rõ" : cbcs.HoVaTen.Trim();
-                    string donViCBCS = cbcs.DonVi?.Trim();
+                    string? donViCBCS = cbcs.DonVi?.Trim();
                     string thongTin = string.IsNullOrWhiteSpace(donViCBCS) ? hoTen : $"{hoTen} ({donViCBCS})";
                     foreach (var dv in cbcs.TapDVKhen)
                     {
@@ -1516,19 +1553,22 @@ namespace PhanMemThiDua2026
                         cell.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
                     }
                     int currentRow = headerRow + 1;
-                    int sttIdx = 1;
-                    foreach (var item in thongKeDonVi.OrderByDescending(x => x.Value.Distinct().Count()))
+                    // Distinct 1 lần cho mỗi đơn vị (bản cũ tính lại trong OrderBy và trong vòng lặp), rồi nạp bằng InsertData
+                    var dongDonVi = thongKeDonVi
+                        .Select(x => (Ten: x.Key, Ds: x.Value.Distinct().ToList()))
+                        .OrderByDescending(x => x.Ds.Count)
+                        .Select((x, i) => new object?[] { i + 1, x.Ten, x.Ds.Count, string.Join("; ", x.Ds) })
+                        .ToList();
+                    if (dongDonVi.Count > 0)
                     {
-                        var dsNguoiKhen = item.Value.Distinct().ToList();
-                        ws.Cell(currentRow, 1).Value = sttIdx++;
-                        ws.Cell(currentRow, 2).Value = item.Key;
-                        ws.Cell(currentRow, 3).Value = dsNguoiKhen.Count;
-                        ws.Cell(currentRow, 4).Value = string.Join("; ", dsNguoiKhen);
-                        ws.Cell(currentRow, 1).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-                        ws.Cell(currentRow, 2).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Left;
-                        ws.Cell(currentRow, 3).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-                        ws.Cell(currentRow, 4).Style.Alignment.WrapText = true;
-                        currentRow++;
+                        Module_ExcelAnToan.NapDong(ws, currentRow, 1, dongDonVi);
+                        int hangCuoi = currentRow + dongDonVi.Count - 1;
+                        // Định dạng theo cột (1 lần cho cả vùng) thay vì từng ô
+                        ws.Range(currentRow, 1, hangCuoi, 1).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+                        ws.Range(currentRow, 2, hangCuoi, 2).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Left;
+                        ws.Range(currentRow, 3, hangCuoi, 3).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+                        ws.Range(currentRow, 4, hangCuoi, 4).Style.Alignment.WrapText = true;
+                        currentRow = hangCuoi + 1;
                     }
                     var totalRange = ws.Range(currentRow, 1, currentRow, 2).Merge();
                     totalRange.Value = $"Tổng cộng: {thongKeDonVi.Count} đơn vị";
@@ -1547,7 +1587,7 @@ namespace PhanMemThiDua2026
                     ws.Column(3).Width = 15;
                     ws.Column(4).Width = 60;
                     Module_BanQuyen.DongDauExcel(wb);
-                    wb.SaveAs(filePath);
+                    Module_ExcelAnToan.LuuAnToan(wb, filePath);
                 }
                 else
                 {
@@ -1608,38 +1648,25 @@ namespace PhanMemThiDua2026
                             var worksheet = workbook.Worksheets.Add("DS Khen Thuong");
                             // Tìm mảng headers và thêm "Ghi chú" vào cuối
                             string[] headers = { "STT", "Họ và tên", "Số hiệu", "Đơn vị", "Tình trạng công tác", "Tổng số lần khen thưởng", "Ghi chú" };
-                            for (int i = 0; i < headers.Length; i++)
-                            {
-                                var cell = worksheet.Cell(1, i + 1);
-                                cell.Value = headers[i];
-                                cell.Style.Font.Bold = true;
-                                cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.AliceBlue;
-                                cell.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-                                cell.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-                            }
-                            int rowIndex = 2;
+                            for (int i = 0; i < headers.Length; i++) worksheet.Cell(1, i + 1).Value = headers[i];
+                            var vungTieuDe = worksheet.Range(1, 1, 1, headers.Length);
+                            vungTieuDe.Style.Font.Bold = true;
+                            vungTieuDe.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.AliceBlue;
+                            vungTieuDe.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
+                            Module_ExcelAnToan.KeVien(vungTieuDe);
+                            // Chiếu DTO trên RAM thành mảng dòng -> nạp 1 lần, kẻ viền 1 lần, tính độ rộng từ dữ liệu (không AdjustToContents)
+                            var dong = new List<object?[]>(_danhSachHienThi.Count);
                             int stt = 1;
-                            foreach (var cbcs in _danhSachHienThi) // Đã sửa đọc từ mảng RAM
+                            foreach (var cbcs in _danhSachHienThi)
                             {
                                 if (string.IsNullOrWhiteSpace(cbcs.SoHieu)) continue;
-                                worksheet.Cell(rowIndex, 1).Value = stt++;
-                                worksheet.Cell(rowIndex, 2).Value = cbcs.HoVaTen;
-                                worksheet.Cell(rowIndex, 3).Value = cbcs.SoHieu;
-                                worksheet.Cell(rowIndex, 4).Value = cbcs.DonVi;
-                                worksheet.Cell(rowIndex, 5).Value = cbcs.TinhTrang;
-                                worksheet.Cell(rowIndex, 6).Value = cbcs.SoLuong_Khen;
-                                // ⭐ BỔ SUNG DÒNG GHI EXCEL CHO GHI CHÚ (Cột số 7)
-                                worksheet.Cell(rowIndex, 7).Value = cbcs.GhiChu_DanhSach;
-                                for (int i = 1; i <= headers.Length; i++)
-                                {
-                                    worksheet.Cell(rowIndex, i).Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-                                }
-                                rowIndex++;
+                                dong.Add(new object?[] { stt++, cbcs.HoVaTen, cbcs.SoHieu, cbcs.DonVi, cbcs.TinhTrang, cbcs.SoLuong_Khen, cbcs.GhiChu_DanhSach });
                             }
-                            worksheet.Columns().AdjustToContents();
+                            Module_ExcelAnToan.KeVien(Module_ExcelAnToan.NapDong(worksheet, 2, 1, dong));
+                            Module_ExcelAnToan.DatDoRongCot(worksheet, dong, 1, headers);
                             // 🔥 GỌI MODULE ĐÓNG DẤU BẢN QUYỀN TẠI ĐÂY (TRƯỚC KHI LƯU) 🔥
                             Module_BanQuyen.DongDauExcel(workbook);
-                            workbook.SaveAs(sfd.FileName);
+                            Module_ExcelAnToan.LuuAnToan(workbook, sfd.FileName);
                         }
                         DialogResult openFile = MessageBox.Show("Xuất dữ liệu thành công! Bạn có muốn mở file Excel vừa tạo lên không?", "Hoàn tất", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                         if (openFile == DialogResult.Yes)
@@ -1695,7 +1722,7 @@ namespace PhanMemThiDua2026
                 {
                     int demThongKe = 0;
                     int demChiTiet = 0;
-                    using (var conn = new SqliteConnection($"Data Source={dbPath}"))
+                    using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath)))
                     {
                         conn.Open();
                         using (var cmdPragma = conn.CreateCommand())
@@ -1847,9 +1874,9 @@ namespace PhanMemThiDua2026
             var dictThongTinGoc = new Dictionary<string, (string NamSinh, string CapBac, string ChucVu, string QueQuan, string DonVi, string GhiChu)>(StringComparer.Ordinal);
             if (File.Exists(_csdl2Path))
             {
-                using var cn2 = new SqliteConnection($"Data Source={_csdl2Path};Pooling=True;");
+                using var cn2 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 cn2.Open();
-                using var cmd2 = new SqliteCommand("SELECT SoHieu, NamSinh, CapBac, ChucVu, QueQuan, DonVi, GhiChu FROM DanhSach", cn2);
+                using var cmd2 = new SqliteCommand($"SELECT SoHieu, NamSinh, CapBac, ChucVu, QueQuan, DonVi, GhiChu FROM {Module_TaiKhoan.BangDanhSach}", cn2);
                 using var rd2 = cmd2.ExecuteReader();
                 while (rd2.Read())
                 {
@@ -1868,7 +1895,7 @@ namespace PhanMemThiDua2026
                 }
             }
             // Step 2: Lấy dữ liệu Khen thưởng từ CSDL4 (ThongKe_GiayKhen)
-            using (var cn4 = new SqliteConnection($"Data Source={_csdl4Path};Pooling=True;"))
+            using (var cn4 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
             {
                 cn4.Open();
                 using (var cmdCheck = new SqliteCommand("CREATE TABLE IF NOT EXISTS ThongKe_GiayKhen (ID INTEGER PRIMARY KEY AUTOINCREMENT, HoVaTen TEXT, SoHieu TEXT, DonVi TEXT, TinhTrang TEXT, HinhThuc_Khen TEXT, QuyetDinh_Khen TEXT, NgayCapQD_Khen TEXT, DonVi_Khen TEXT, VeViec_Khen TEXT, GhiChu_Khen TEXT);", cn4))
@@ -1911,171 +1938,70 @@ namespace PhanMemThiDua2026
             return list;
         }
         // HÀM LẤY THÔNG TIN ĐƠN VỊ & NĂM TỪ BẢNG CẤU HÌNH (CSDL2)
-        private async void kryptonButton1_QuanLyKhenThuongTapThe_Click(object? sender, EventArgs e)
-        {
-            // 1. Tìm Form cha đang hoạt động
-            var formCha = Application.OpenForms
-                .OfType<Form2_FormCha>()
-                .FirstOrDefault();
-            if (formCha == null || formCha.IsDisposed)
-            {
-                MessageBox.Show(
-                    "Không tìm thấy giao diện chính (Form2_FormCha).\n\nVui lòng kiểm tra lại trạng thái của phần mềm.",
-                    "Hệ thống",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                return;
-            }
-            // 2. Tìm PanelContainer
-            var panel = formCha.Controls
-                .Find("PanelContainer", true)
-                .FirstOrDefault() as Panel;
-            if (panel == null || panel.IsDisposed)
-            {
-                MessageBox.Show(
-                    "Không tìm thấy vùng hiển thị (PanelContainer).\n\nVui lòng kiểm tra lại giao diện chính.",
-                    "Hệ thống",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                return;
-            }
-            try
-            {
-                // 3. Tìm Form49 đã tồn tại trong PanelContainer
-                var form49 = panel.Controls
-                    .OfType<Form49_QuanLyKhenThuongTapThe>()
-                    .FirstOrDefault();
-                // 4. Nếu Form49 chưa tồn tại -> tạo mới đúng một lần
-                if (form49 == null || form49.IsDisposed)
-                {
-                    form49 = new Form49_QuanLyKhenThuongTapThe
-                    {
-                        TopLevel = false,
-                        FormBorderStyle = FormBorderStyle.None,
-                        Dock = DockStyle.Fill
-                    };
-                    // 5. Đưa Form49 vào PanelContainer
-                    panel.Controls.Add(form49);
-                    // Đưa Form49 lên trước khi hiển thị
-                    form49.BringToFront();
-                    // Hiển thị Form lần đầu
-                    form49.Show();
-                }
-                else
-                {
-                    // 6. Nếu Form49 đã tồn tại -> tái sử dụng
-                    form49.BringToFront();
-                    if (!form49.Visible)
-                    {
-                        form49.Show();
-                    }
-                    // 7. Làm mới dữ liệu sau khi tái sử dụng Form
-                    form49.ReloadForm49();
-                }
-                // 8. Ẩn các Form con khác trong PanelContainer
-                foreach (Control control in panel.Controls)
-                {
-                    if (control is Form childForm &&
-                        childForm != form49 &&
-                        !childForm.IsDisposed)
-                    {
-                        childForm.Hide();
-                    }
-                }
-                // 9. Đảm bảo Form49 luôn ở lớp trên cùng
-                form49.Show();
-                form49.BringToFront();
-                string tieuDeForm = "Trang Quản lý khen thưởng tập thể năm " +
-                            Module_HeThong.LayNamHeThong();
-                // 10. Cập nhật tiêu đề Form cha
-                formCha.CapNhatTieuDe(tieuDeForm);
-            }
-            catch (ObjectDisposedException)
-            {
-                // Form hoặc Control đã bị giải phóng trong lúc chuyển giao diện.
-                // Không để lỗi này làm sập toàn bộ phần mềm.
-                return;
-            }
-            catch (InvalidOperationException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[Lỗi chuyển Form49 - InvalidOperationException]: {ex}");
-                MessageBox.Show(
-                    "Không thể mở trang quản lý khen thưởng tập thể.\n\n" +
-                    "Vui lòng thử lại.",
-                    "Lỗi giao diện",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[Lỗi chuyển Form49]: {ex}");
-                MessageBox.Show(
-                    "Đã xảy ra lỗi khi mở trang quản lý khen thưởng tập thể.\n\n" +
-                    $"Chi tiết: {ex.Message}",
-                    "Lỗi hệ thống",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
-        }
-        private void toolStripMenuItem_QuanLyKhenThuongNamCu_Click(object? sender, EventArgs e)
-        {
-            // 1. Tìm Form cha (Form2_FormCha) đang chạy để tương tác với PanelContainer
-            var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (formCha == null) return;
-            // 2. Tìm vùng chứa PanelContainer trên Form cha
-            var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
-            if (panel == null) return;
-            // ⭐ QUAN TRỌNG 1: Ẩn tất cả các Form con khác ĐANG HIỂN THỊ trong PanelContainer
-            // Việc này giúp dọn dẹp không gian, tránh các Form đè lấn lên nhau gây lỗi đồ họa
-            foreach (Control control in panel.Controls)
-            {
-                if (control is Form childForm && !childForm.IsDisposed && childForm.Visible)
-                {
-                    childForm.Hide();
-                }
-            }
-            // 3. Kiểm tra xem Form50 đã được khởi tạo và tồn tại trong bộ nhớ RAM chưa
-            var f50 = Application.OpenForms.OfType<Form50_QuanLyKhenThuongNamCu>().FirstOrDefault();
-            if (f50 == null || f50.IsDisposed)
-            {
-                // 👉 TRƯỜNG HỢP 1: CHƯA TỒN TẠI -> Khởi tạo mới hoàn toàn
-                f50 = new Form50_QuanLyKhenThuongNamCu
-                {
-                    Text = "Thống kê khen thưởng năm cũ",
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-                // Nạp Form50 vào panel
-                panel.Controls.Add(f50);
-                // Quản lý sự kiện khi Form 50 đóng lại thì hiện lại Form 34 (this)
-                var form34 = this;
-                f50.FormClosed += (s, ev) =>
-                {
-                    if (form34 != null && !form34.IsDisposed)
-                    {
-                        form34.Dock = DockStyle.Fill;
-                        form34.Show();
-                        form34.BringToFront();
-                        var fChaCheck = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-                        if (fChaCheck != null)
-                        {
-                            int namHienTai = Module_HeThong.LayNamHeThong();
-                            fChaCheck.CapNhatTieuDe($"Trang Quản lý khen thưởng CBCS năm {namHienTai}");
-                        }
-                    }
-                };
-            }
-            // 👉 DÙ LÀ TRƯỜNG HỢP 1 HAY 2 THÌ ĐỀU PHẢI GỌI KHỐI LỆNH NÀY:
-            // ⭐ QUAN TRỌNG 2: Bắt buộc phải có Show() để Form hiện hình từ trạng thái Hide
-            f50.BringToFront();
-            f50.Show();
-            f50.Focus(); // Ép hệ thống chuyển sự chú ý vào Form 50 ngay lập tức, chống đơ phím
-            // 4. Truyền động tên Text của f50 lên thanh tiêu đề của Form Cha
-            formCha.CapNhatTieuDe(f50.Text);
-        }
+        //private async void kryptonButton1_QuanLyKhenThuongTapThe_Click(object? sender, EventArgs e)
+        //{
+            //// 1. Tìm Form cha đang hoạt động
+            //// 2. Tìm PanelContainer
+                //// 3. Tìm Form49 đã tồn tại trong PanelContainer
+                //var form49 = panel.Controls
+                    //.OfType<Form49_QuanLyKhenThuongTapThe>()
+                    //.FirstOrDefault();
+                //// 4. Nếu Form49 chưa tồn tại -> tạo mới đúng một lần
+                    //// 5. Đưa Form49 vào PanelContainer
+                    //panel.Controls.Add(form49);
+                    //// Đưa Form49 lên trước khi hiển thị
+                    //form49.BringToFront();
+                    //// Hiển thị Form lần đầu
+                    //form49.Show();
+                //}
+                //else
+                //{
+                    //// 6. Nếu Form49 đã tồn tại -> tái sử dụng
+                    //form49.BringToFront();
+                    //if (!form49.Visible)
+                    //{
+                        //form49.Show();
+                    //}
+                    //// 7. Làm mới dữ liệu sau khi tái sử dụng Form
+                    //form49.ReloadForm49();
+                //}
+                //// 8. Ẩn các Form con khác trong PanelContainer
+                //// 9. Đảm bảo Form49 luôn ở lớp trên cùng
+                //form49.Show();
+                //form49.BringToFront();
+                //string tieuDeForm = "Trang Quản lý khen thưởng tập thể năm " +
+                            //Module_HeThong.LayNamHeThong();
+                //// 10. Cập nhật tiêu đề Form cha
+                //formCha.CapNhatTieuDe(tieuDeForm);
+            //}
+            //catch (ObjectDisposedException)
+            //{
+                //// Form hoặc Control đã bị giải phóng trong lúc chuyển giao diện.
+                //// Không để lỗi này làm sập toàn bộ phần mềm.
+            //// 1. Tìm Form cha (Form2_FormCha) đang chạy để tương tác với PanelContainer
+            //var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+            //if (formCha == null) return;
+            //// 2. Tìm vùng chứa PanelContainer trên Form cha
+            //var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
+            //if (panel == null) return;
+            //// ⭐ QUAN TRỌNG 1: Ẩn tất cả các Form con khác ĐANG HIỂN THỊ trong PanelContainer
+            //// Việc này giúp dọn dẹp không gian, tránh các Form đè lấn lên nhau gây lỗi đồ họa
+            //// 3. Kiểm tra xem Form50 đã được khởi tạo và tồn tại trong bộ nhớ RAM chưa
+            //var f50 = Application.OpenForms.OfType<Form50_QuanLyKhenThuongNamCu>().FirstOrDefault();
+            //if (f50 == null || f50.IsDisposed)
+            //{
+                //// 👉 TRƯỜNG HỢP 1: CHƯA TỒN TẠI -> Khởi tạo mới hoàn toàn
+                //// Nạp Form50 vào panel
+                //panel.Controls.Add(f50);
+                //// Quản lý sự kiện khi Form 50 đóng lại thì hiện lại Form 34 (this)
+            //// 👉 DÙ LÀ TRƯỜNG HỢP 1 HAY 2 THÌ ĐỀU PHẢI GỌI KHỐI LỆNH NÀY:
+            //// ⭐ QUAN TRỌNG 2: Bắt buộc phải có Show() để Form hiện hình từ trạng thái Hide
+            //f50.BringToFront();
+            //f50.Show();
+            //f50.Focus(); // Ép hệ thống chuyển sự chú ý vào Form 50 ngay lập tức, chống đơ phím
+            //// 4. Truyền động tên Text của f50 lên thanh tiêu đề của Form Cha
+            //formCha.CapNhatTieuDe(f50.Text);
+        //}
         private async void toolStripMenuItem_LuuKetQuaThiDuaTheoNam_Click(object? sender, EventArgs e)
         {
             // 1. XÁC MINH QUYỀN ADMIN
@@ -2089,7 +2015,7 @@ namespace PhanMemThiDua2026
             if (kq != DialogResult.OK) return;
             // 2. KHÓA MENU CHỐNG SPAM CLICK
             var menu = toolStripMenuItem_LuuKetQuaThiDuaTheoNam;
-            string textGoc = menu.Text;
+            string? textGoc = menu.Text;
             try
             {
                 menu.Enabled = false;
@@ -2142,7 +2068,7 @@ namespace PhanMemThiDua2026
             if (!File.Exists(_csdl2Path)) return (tenTieuDoan, nam);
             try
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl2Path};Pooling=True;");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 cn.Open();
                 // Bảng ThongTin lưu cấu hình hệ thống thường ở dòng đầu tiên
                 using var cmd = new SqliteCommand("SELECT TenTieuDoan, Nam FROM ThongTin LIMIT 1;", cn);
@@ -2270,72 +2196,64 @@ namespace PhanMemThiDua2026
             string[] headers = {"STT", "Họ và tên", "Số hiệu", "Năm sinh", "Cấp bậc", "Chức vụ", "Quê quán",
         "Đơn vị", "Tình trạng", "Hình thức khen", "Quyết định khen",
         "Ngày cấp Quyết định", "Đơn vị khen", "Nội dung khen thưởng"};
-            for (int i = 0; i < headers.Length; i++)
-            {
-                var cell = ws.Cell(headerRow, i + 1);
-                cell.Value = headers[i];
-                cell.Style.Font.Bold = true;
-                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#E8E8E8");
-            }
+            for (int i = 0; i < headers.Length; i++) ws.Cell(headerRow, i + 1).Value = headers[i];
+            var vungTieuDe = ws.Range(headerRow, 1, headerRow, headers.Length);
+            vungTieuDe.Style.Font.Bold = true;
+            vungTieuDe.Style.Fill.BackgroundColor = XLColor.FromHtml("#E8E8E8");
             ws.Row(headerRow).Height = 40;
             // 4. ĐỔ DỮ LIỆU & GỘP Ô THÔNG MINH
             var danhSachNhomCB = dataList
                 .GroupBy(x => new { x.SoHieu, x.HoVaTen, x.NamSinh, x.CapBac, x.ChucVu, x.QueQuan, x.DonVi, x.TinhTrang })
+                .Select(g => (g.Key, Items: g.ToList()))
                 .ToList();
             // ⭐ DỮ LIỆU BẮT ĐẦU TỪ DÒNG 6 NỐI TIẾP HEADER
-            int startRow = 6;
+            const int dataStartRow = 6;
+            int startRow = dataStartRow;
             int sttIndex = 1;
             const int EST_CHAR_PER_LINE = 45; // Ước tính số ký tự tối đa trên 1 dòng của cột Nội dung khen
+            const double baseRowHeightPt = 18.0; // Mặc định 24 pixel (24 * 0.75 = 18 Point)
+            // A. Dựng toàn bộ dòng trên RAM (cột 1-9 chỉ ghi ở dòng đầu mỗi nhóm), chiều cao dòng và các vùng cần gộp
+            var dong = new List<object?[]>(dataList.Count);
+            var chieuCao = new List<double>(dataList.Count);
+            var nhomGop = new List<(int Dau, int Cuoi)>();
             foreach (var nhom in danhSachNhomCB)
             {
-                int countInGroup = nhom.Count();
-                int endRow = startRow + countInGroup - 1;
-                // --- A. GHI DỮ LIỆU BÊN PHẢI (CÁC DÒNG CHI TIẾT KHEN THƯỞNG) ---
-                int currentDetailRow = startRow;
-                foreach (var item in nhom)
+                bool dauNhom = true;
+                foreach (var item in nhom.Items)
                 {
-                    ws.Cell(currentDetailRow, 10).Value = item.HinhThuc_Khen;
-                    ws.Cell(currentDetailRow, 11).Value = item.QuyetDinh_Khen;
-                    ws.Cell(currentDetailRow, 12).Value = item.NgayCapQD_Khen;
-                    ws.Cell(currentDetailRow, 13).Value = item.DonVi_Khen;
-                    var cellNoiDung = ws.Cell(currentDetailRow, 14);
                     string noiDungText = item.VeViec_Khen ?? "";
-                    cellNoiDung.Value = noiDungText;
-                    cellNoiDung.Style.Alignment.WrapText = true; // Ép tự động xuống dòng
+                    dong.Add(dauNhom
+                        ? new object?[] { sttIndex++, nhom.Key.HoVaTen, "'" + nhom.Key.SoHieu /* giữ số 0 đầu */, nhom.Key.NamSinh, nhom.Key.CapBac,
+                                          nhom.Key.ChucVu, nhom.Key.QueQuan, nhom.Key.DonVi, nhom.Key.TinhTrang,
+                                          item.HinhThuc_Khen, item.QuyetDinh_Khen, item.NgayCapQD_Khen, item.DonVi_Khen, noiDungText }
+                        : new object?[] { null, null, null, null, null, null, null, null, null,
+                                          item.HinhThuc_Khen, item.QuyetDinh_Khen, item.NgayCapQD_Khen, item.DonVi_Khen, noiDungText });
+                    dauNhom = false;
                     // ⭐ THUẬT TOÁN TÍNH CHIỀU CAO DÒNG THÔNG MINH
-                    double baseRowHeightPt = 18.0; // Mặc định 24 pixel (24 * 0.75 = 18 Point)
                     int lineCount = 1;
-                    if (!string.IsNullOrEmpty(noiDungText))
+                    if (noiDungText.Length > 0)
                     {
                         int explicitLines = noiDungText.Split('\n').Length;
                         int wrappedLines = (int)Math.Ceiling((double)noiDungText.Length / EST_CHAR_PER_LINE);
                         lineCount = Math.Max(explicitLines, wrappedLines);
                     }
-                    ws.Row(currentDetailRow).Height = lineCount > 1 ? (baseRowHeightPt * lineCount) : baseRowHeightPt;
-                    currentDetailRow++;
+                    chieuCao.Add(lineCount > 1 ? baseRowHeightPt * lineCount : baseRowHeightPt);
                 }
-                // --- B. NẠP DỮ LIỆU VÀ MERGE (GỘP Ô) CHO CÁC CỘT THÔNG TIN CỐ ĐỊNH ---
-                ws.Cell(startRow, 1).Value = sttIndex++;
-                ws.Cell(startRow, 2).Value = nhom.Key.HoVaTen;
-                ws.Cell(startRow, 3).Value = "'" + nhom.Key.SoHieu; // Thêm ' giữ số 0 đầu
-                ws.Cell(startRow, 4).Value = nhom.Key.NamSinh;
-                ws.Cell(startRow, 5).Value = nhom.Key.CapBac;
-                ws.Cell(startRow, 6).Value = nhom.Key.ChucVu;
-                var cellQueQuan = ws.Cell(startRow, 7);
-                cellQueQuan.Value = nhom.Key.QueQuan;
-                cellQueQuan.Style.Alignment.WrapText = true; // Cho phép Quê quán xuống dòng
-                ws.Cell(startRow, 8).Value = nhom.Key.DonVi;
-                ws.Cell(startRow, 9).Value = nhom.Key.TinhTrang;
-                // GỘP Ô NẾU CÓ TỪ 2 LƯỢT KHEN TRỞ LÊN
-                if (countInGroup > 1)
-                {
-                    for (int col = 1; col <= 9; col++)
-                    {
-                        ws.Range(startRow, col, endRow, col).Merge();
-                    }
-                }
-                startRow = endRow + 1; // Chuyển sang người tiếp theo
+                int endRow = startRow + nhom.Items.Count - 1;
+                if (nhom.Items.Count > 1) nhomGop.Add((startRow, endRow));   // GỘP Ô NẾU CÓ TỪ 2 LƯỢT KHEN TRỞ LÊN
+                startRow = endRow + 1;
             }
+            // B. Nạp 1 lần bằng InsertData, định dạng theo vùng
+            Module_ExcelAnToan.NapDong(ws, dataStartRow, 1, dong);
+            for (int i = 0; i < chieuCao.Count; i++) ws.Row(dataStartRow + i).Height = chieuCao[i];
+            if (dong.Count > 0)
+            {
+                ws.Range(dataStartRow, 7, dataStartRow + dong.Count - 1, 7).Style.Alignment.WrapText = true;   // Quê quán
+                ws.Range(dataStartRow, 14, dataStartRow + dong.Count - 1, 14).Style.Alignment.WrapText = true; // Nội dung khen
+            }
+            foreach (var (dau, cuoi) in nhomGop)
+                for (int col = 1; col <= 9; col++)
+                    ws.Range(dau, col, cuoi, col).Merge();
             int lastRow = startRow - 1;
             // 5. CĂN LỀ & KẺ KHUNG (BORDER) CHUẨN HỒ SƠ NGHIỆP VỤ
             var dataGridRange = ws.Range(headerRow, 1, lastRow, 14);
@@ -2358,7 +2276,8 @@ namespace PhanMemThiDua2026
             ws.Cell(footerRow, 1).Value = $"Tổng cộng: {soDongChi:00} {Module_HeThong.Tu_dong_chi} (trong đó gồm {soLuotKhen:00} lượt khen thưởng)./.";
             ws.Range(footerRow, 1, footerRow, 14).Merge().Style.Font.SetBold(true).Font.SetItalic(true);
             // 7. CĂN CHỈNH ĐỘ RỘNG CỘT
-            ws.Columns(1, 14).AdjustToContents();
+            // Tính từ dữ liệu trên RAM (thay AdjustToContents đo từng ô bằng GDI)
+            Module_ExcelAnToan.DatDoRongCot(ws, dong, 1, headers);
             // Khống chế bề rộng tối thiểu để văn bản dài tự động xuống dòng đẹp mắt
             if (ws.Column(2).Width < 18) ws.Column(2).Width = 18;   // Họ tên
             if (ws.Column(7).Width < 22) ws.Column(7).Width = 22;   // Quê quán
@@ -2367,7 +2286,7 @@ namespace PhanMemThiDua2026
             ws.Column(14).Width = 45; // Nội dung khen thưởng
             // Đóng dấu bản quyền phần mềm
             Module_BanQuyen.DongDauExcel(wb);
-            wb.SaveAs(filePath);
+            Module_ExcelAnToan.LuuAnToan(wb, filePath);
         }
         private readonly Module_SaoLuuKhoiPhucKhenThuong _moduleSaoLuuKhoiPhuc = new Module_SaoLuuKhoiPhucKhenThuong();
         private void saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem_Click(object? sender, EventArgs e)

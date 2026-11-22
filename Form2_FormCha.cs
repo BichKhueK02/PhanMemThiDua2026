@@ -2,7 +2,6 @@
 using Krypton.Toolkit;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using static UIHelper;
@@ -15,8 +14,8 @@ namespace PhanMemThiDua2026
         private Form? _currentChild;
         private DateTime _lastClick = DateTime.MinValue;
         private SemaphoreSlim _huongDanLock = new(1, 1);
-        private System.Windows.Forms.Timer timerTuDongAnMenu;
-        private KryptonButton prevButton, currentButton, nextButton;
+        private System.Windows.Forms.Timer timerTuDongAnMenu = null!;
+        //private KryptonButton prevButton, currentButton, nextButton;
         private int sidebarWidth;    // chiều rộng ban đầu, sẽ lấy lúc Form Load
         private int sidebarMinWidth = 0;
         private int _switching = 0;
@@ -35,8 +34,6 @@ namespace PhanMemThiDua2026
             _lastClick = now;
             return true;
         }
-        [DllImport("user32.dll")] //API Windows để mở tệp hướng dẫn html
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
         // Tạm dừng/bật lại việc vẽ của 1 control: gom cả đợt layout + vẽ thành 1 lần, hết cảnh "vẽ dần từng mảng"
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
@@ -100,6 +97,22 @@ namespace PhanMemThiDua2026
             };
             _timerHien.Start();
         }
+        [DllImport("user32.dll")]
+        private static extern bool RedrawWindow(IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, uint flags);
+        private const uint RDW_INVALIDATE = 0x1, RDW_ERASE = 0x4, RDW_ALLCHILDREN = 0x80, RDW_UPDATENOW = 0x100;
+        /// <summary>
+        /// Gọi NGAY khi Form2_Load xong: vẽ đồng bộ toàn bộ cây control (1 khung hình hoàn chỉnh) rồi gỡ cloak luôn.
+        /// Trước đây chỉ timer 30 ms gỡ cloak, mà WM_TIMER là thông điệp ưu tiên THẤP NHẤT (chỉ chạy khi hàng đợi trống):
+        /// trang chủ (Form4) nạp dữ liệu liên tục đẩy việc vào luồng giao diện -> timer bị "bỏ đói" ~0,5–1 giây,
+        /// Form2 xong rồi mà vẫn bị ẩn, form đăng nhập xoay tiếp. Timer vẫn giữ làm chốt chặn.
+        /// </summary>
+        private void HienNgayKhiSanSang()
+        {
+            if (!_daCloak || !IsHandleCreated || IsDisposed) return;
+            try { RedrawWindow(Handle, IntPtr.Zero, IntPtr.Zero, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW); }
+            catch { }
+            GoCloak();
+        }
         private void GoCloak()
         {
             var t = _timerHien; _timerHien = null;
@@ -137,7 +150,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
             checkBox1_TuDongAnMenu.ForeColor = Module_SidebarHienDai.ChuThuong;
             Module_GiaoDienBoTron.ApDung(this);
-
             // === THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ICON TASKBAR ===
             // 🌟 ĐĂNG KÝ SỰ KIỆN: Cứ mỗi khi chữ của Label1 bị đổi, lập tức chạy hàm kiểm tra màu
             Label1.TextChanged += (s, e) => TuDongDoiMauLabelTieuDe();
@@ -179,7 +191,7 @@ namespace PhanMemThiDua2026
             this.Controls.SetChildIndex(PanelLeft, 1);
             InitToolTips_GioiThieuVaMenu();
         }
-        private async void Form2_Load(object sender, EventArgs e)
+        private async void Form2_Load(object? sender, EventArgs e)
         {
             try
             {
@@ -197,7 +209,10 @@ namespace PhanMemThiDua2026
             var sw = Stopwatch.StartNew();
             // 1. ĐỌC CSDL Ở LUỒNG NỀN: trước đây NapTaiKhoan + LayNamHeThong + LayPhienBan (3 lần mở SQLite + giải mã AES)
             //    chạy thẳng trên luồng giao diện lúc Show -> form đăng nhập đứng hình trước khi Form2 kịp hiện.
-            var (nam, phienBan) = await Task.Run(DocThongTinKhoiDongNen);
+            var tacVuDoc = Interlocked.Exchange(ref _tacVuThongTinKhoiDong, null);
+            if (tacVuDoc == null || Environment.TickCount64 - _tickThongTinKhoiDong > 15000)
+                tacVuDoc = Task.Run(DocThongTinKhoiDongNen);
+            var (nam, phienBan) = await tacVuDoc;
             if (IsDisposed) return;
             Debug.WriteLine($"[Form2_Load] đọc CSDL nền: {sw.ElapsedMilliseconds} ms");
             // 2. KHỞI TẠO DỮ LIỆU NGƯỜI DÙNG (tài khoản đã nạp ở bước 1)
@@ -210,6 +225,7 @@ namespace PhanMemThiDua2026
             KhoiTaoTimerTuDongAnMenu();
             DangKySuKienTuDongAnMenu();
             _ = Task.Run(EnsureSuKienThoatTonTai);   // CREATE TABLE + INSERT: không cần chặn luồng UI lúc mở form
+            FormClosed += (s, ev) => Module_KhoGiaoDien.Huy();   // dọn kho giao diện (các trang chưa từng mở) khi thoát
             // 6. CẬP NHẬT UI BAN ĐẦU
             CapNhatMuiTenGiaoDien();
             // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT -> lớp "cloak" được gỡ ngay, form đăng nhập nhường chỗ.
@@ -217,11 +233,29 @@ namespace PhanMemThiDua2026
             //     chờ tới 2,2 giây trong lúc form đăng nhập đứng yên -> cảm giác "khựng một lúc mới vào được".)
             isLoaded = true;
             Debug.WriteLine($"[Form2_Load] sẵn sàng hiện: {sw.ElapsedMilliseconds} ms");
+            // Vẽ 1 khung hoàn chỉnh + gỡ cloak ngay, không chờ timer. BẮT BUỘC qua BeginInvoke: dữ liệu đọc trước có thể đã xong
+            // nên Form2_Load chạy trọn NGAY TRONG Show() khi cửa sổ chưa thật sự hiển thị -> RedrawWindow không vẽ được gì,
+            // Form2 hiện ra rồi mới vẽ dần từng mảng. BeginInvoke chạy ngay sau khi Show() xong (vẫn trước WM_TIMER).
+            try { BeginInvoke(new Action(HienNgayKhiSanSang)); }
+            catch (InvalidOperationException) { }
             // 8. VIỆC NỀN, KHÔNG CHẶN VIỆC HIỆN FORM
             _ = Task.Run(Form32_HuongDanPDF.NapTruocThuVien);   // PDFium: lần mở Hướng dẫn đầu tiên không bị khựng
             _ = HoanTatPreloadDuLieuAsync();                    // danh sách CSDL (DataLoader)
             SauKhiHienXong(() => _ = NapTruocTrangConSauKhiHienAsync());   // các trang nặng: dựng khi đã hiện + người dùng rảnh
         }
+        private static Task<(int Nam, string PhienBan)>? _tacVuThongTinKhoiDong;
+        /// <summary>
+        /// Form1 gọi ngay khi xác thực THÀNH CÔNG (trước khi chờ dựng xong Form2): đọc trước các thông tin Form2_Load cần
+        /// ở luồng nền, để lúc Show không còn phải chờ 3 lần mở SQLite nữa. Chỉ dùng cho lần Form2_Load kế tiếp.
+        /// </summary>
+        internal static void BatDauDocThongTinKhoiDong()
+        {
+            // Đăng nhập lại khi Form2 đã Load (Form2_Load không chạy nữa) -> bản đọc trước bị bỏ dở; bản cũ quá 15 giây thì đọc lại
+            if (_tacVuThongTinKhoiDong != null && Environment.TickCount64 - _tickThongTinKhoiDong < 15000) return;
+            _tickThongTinKhoiDong = Environment.TickCount64;
+            _tacVuThongTinKhoiDong = Task.Run(DocThongTinKhoiDongNen);
+        }
+        private static long _tickThongTinKhoiDong;
         /// <summary>Chạy ở luồng nền: các lần đọc CSDL mà Form2_Load cần (mỗi hàm tự mở/đóng kết nối riêng, an toàn đa luồng).</summary>
         private static (int Nam, string PhienBan) DocThongTinKhoiDongNen()
         {
@@ -253,7 +287,20 @@ namespace PhanMemThiDua2026
         }
         private void Form2_FormCha_Shown(object? sender, EventArgs e)
         {
-            Module_HeThong.ThongBaoHelper.KiemTraThuMucChuyenGiaoDesktop(this);
+            // Quét ĐỆ QUY thư mục chuyển giao trên Desktop + đọc JSON + đối chiếu csdl3 ở LUỒNG NỀN.
+            // Trước đây chạy thẳng trên luồng giao diện, đúng lúc Form2 còn "cloak" -> timer gỡ cloak bị hoãn theo,
+            // con trỏ chờ ở form đăng nhập xoay thêm. Hàm không đụng UI (thông báo đã tự BeginInvoke về luồng giao diện).
+            _ = Task.Run(() =>
+            {
+                if (IsDisposed || _isClosing) return;
+                Module_HeThong.ThongBaoHelper.KiemTraThuMucChuyenGiaoDesktop(this);
+            });
+            // Thu gọn CSDL định kỳ: tối thiểu 6 tháng / lần, chạy nền sau vài phút (đường dẫn đọc lúc chạy, không đọc lúc này)
+            Module_BaoVeDuLieu.LenLichThuGonDinhKy(() => new[]
+            {
+                Module_DanduongGPS.DuongDanCSDL1, Module_DanduongGPS.DuongDanCSDL2,
+                Module_DanduongGPS.DuongDanCSDL3, Module_DanduongGPS.DuongDanCSDL4
+            });
         }
         // 🌟 BƯỚC 1: Khai báo biến đệm (Cache) lưu trữ năm ở ngoài hàm
         // 🌟 BƯỚC 2: Cập nhật lại hàm xử lý
@@ -383,7 +430,7 @@ namespace PhanMemThiDua2026
             // 🚀 TỐI ƯU UX: ẨN NÚT KHEN THƯỞNG NẾU LÀ TÂN BINH
             try
             {
-                bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                bool laTanBinh = phienBan.LaCheDoTanBinh();
                 // Nếu là Tân binh -> Visible = false (Ẩn nút)
                 // Nếu là CBCS -> Visible = true (Hiện nút)
                 if (kryptonButton1_KhenThuong != null)
@@ -492,15 +539,6 @@ namespace PhanMemThiDua2026
             // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi ẩn menu
             CapNhatMuiTenGiaoDien();
         }
-        private void EnableDoubleBuffering(Control ctrl)
-        {
-            if (!ctrl.IsHandleCreated)
-                ctrl.CreateControl();
-            typeof(Control).GetProperty("DoubleBuffered",
-                System.Reflection.BindingFlags.NonPublic |
-                System.Reflection.BindingFlags.Instance)
-                ?.SetValue(ctrl, true);
-        }
         private readonly ConcurrentDictionary<Type, Form> _forms = new();
         public void OpenChildForm<T>(string title = "") where T : Form, new()
         {
@@ -532,7 +570,7 @@ namespace PhanMemThiDua2026
                     if (form.FormBorderStyle != FormBorderStyle.None) form.FormBorderStyle = FormBorderStyle.None;
                     if (form.Dock != DockStyle.Fill) form.Dock = DockStyle.Fill;
                     if (!PanelContainer.Controls.Contains(form))
-                        PanelContainer.Controls.Add(form);
+                        PanelContainer.Controls.Add(form);   // trang dựng sẵn trong KHO: chỉ đổi cha cửa sổ, không dựng/nạp lại
                     form.BringToFront();   // đưa lên trên TRƯỚC khi Show: tránh layout/vẽ 2 lần như trước (Show rồi mới BringToFront)
                     form.Show();
                     formCu?.Hide();        // phủ form mới rồi mới ẩn form cũ -> không bị chớp nền
@@ -541,7 +579,8 @@ namespace PhanMemThiDua2026
                 finally
                 {
                     PanelContainer.ResumeLayout(true);
-                    ChoPhepVe(PanelContainer);   // LUÔN bật lại vẽ, kể cả khi lỗi
+                    // LUÔN bật lại vẽ, kể cả khi lỗi. Vẽ NGAY cả trang trong 1 lượt (đệm tổng hợp) thay vì để vẽ dần từng control.
+                    Module_KhoGiaoDien.VeLaiNgay(PanelContainer);
                 }
                 if (!string.IsNullOrWhiteSpace(title))
                     Label1.Text = title;
@@ -574,7 +613,7 @@ namespace PhanMemThiDua2026
             if (!AllowSwitch()) return;
             //ClosePdfIfOpen(); // 🔹 add ở đây
             // Gọi hàm đổi màu và truyền nút hiện tại vào
-            HighlightNavButton((KryptonButton)sender);
+            HighlightNavButton((KryptonButton)sender!);
             // BẮT ĐẦU CODE GỐC
             // 🔹 Nếu Form31 đang mở, giải phóng PDF trước
             //if (_currentChild is Form32_HuongDanPDF pdfForm)
@@ -593,9 +632,9 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        // Bỏ qua nếu Form4 đang reload (VisibleChanged vừa kích hoạt) hoặc vừa reload xong < 5 giây:
-                        // tránh chạy full reload 2 lần liên tiếp mỗi lần bấm Trang chủ.
-                        if (!frm.DangReload && (DateTime.UtcNow - frm.ThoiDiemReloadCuoiUtc).TotalSeconds >= 5)
+                        // Bỏ qua nếu Form4 đang reload (VisibleChanged vừa kích hoạt) hoặc dữ liệu KHÔNG đổi kể từ lần nạp trước:
+                        // quay về Trang chủ hiện ngay dữ liệu đang có, không "load lại từ đầu" mỗi lần bấm.
+                        if (!frm.DangReload && frm.CanNapLaiKhiQuayLai())
                             await frm.ReloadDuLieuAsync();
                     }
                     catch (Exception ex)
@@ -612,7 +651,7 @@ namespace PhanMemThiDua2026
             if (!AllowSwitch()) return;
             //ClosePdfIfOpen(); // 🔹 add ở đây
             // Gọi hàm đổi màu và truyền nút hiện tại vào
-            HighlightNavButton((KryptonButton)sender);
+            HighlightNavButton((KryptonButton)sender!);
             OpenChildForm<Form12>("Trang Cài đặt");
         }
         private void Label2_Click(object? sender, EventArgs e)
@@ -643,9 +682,9 @@ namespace PhanMemThiDua2026
                     MessageBoxIcon.Warning);
             }
         }
-        private bool _tuDongAnMenu;
+        //private bool _tuDongAnMenu;
         private void checkBox1_TuDongAnMenu_CheckedChanged(
-    object sender,
+    object? sender,
     EventArgs e)
         {
             if (!isLoaded)
@@ -674,17 +713,10 @@ namespace PhanMemThiDua2026
             try
             {
                 OpenChildForm<Form53_QuanLyKetQuaThiDua>(tieuDeForm);
+                // Form53 tự tải dữ liệu khi hiện (hoặc đã nạp sẵn lúc ẩn). Ở đây chỉ CHỜ lượt tải đang chạy / tải nếu thật sự
+                // chưa có. Bản cũ gọi thêm ReloadDuLieu (ép tải lại) + LamMoiDuLieuAsync => lần mở đầu tải Form15 tới 2-3 lần.
                 if (_currentChild is Form53_QuanLyKetQuaThiDua frm && !frm.DaLoadDuLieu)
-                {
-                    await frm.ReloadDuLieu();
-                    if (Application.OpenForms
-                        .OfType<Form15_ThongKeThiDua>()
-                        .FirstOrDefault() is Form15_ThongKeThiDua frm15 &&
-                        !frm15.IsDisposed)
-                    {
-                        await frm15.LamMoiDuLieuAsync();
-                    }
-                }
+                    await frm.DamBaoDaTaiAsync();
             }
             catch (Exception ex)
             {
@@ -699,17 +731,17 @@ namespace PhanMemThiDua2026
         {
             DongToanBoHuongDanSuDung();
             if (!AllowSwitch()) return;
-            HighlightNavButton((KryptonButton)sender);
+            HighlightNavButton((KryptonButton)sender!);
             OpenChildForm<Form6_XuLyData>("Trang phân loại thi đua");
             if (_currentChild is Form6_XuLyData frm)
             {
-                // 🌟 CHUẨN KỸ SƯ: Chỉ load nếu chưa từng load, và BẮT BUỘC ĐẨY XUỐNG LUỒNG NGẦM
+                // Form6 nạp dữ liệu lần đầu đúng 1 lần (đã nạp sẵn lúc ẩn, hoặc Form6_Load vừa bắt đầu nạp): chỉ chờ lượt đó.
+                // Bản cũ gọi thêm ReloadDuLieu ở đây => lần mở đầu tiên nạp toàn bộ danh sách 2 lần liên tiếp.
                 if (!frm.DaLoadDuLieu)
                 {
                     try
                     {
-                        await Task.Run(() => frm.ReloadDuLieu());
-                        frm.DaLoadDuLieu = true; // Chốt cờ, các lần click tab sau sẽ mượt như lật trang sách
+                        await frm.NapTruocDuLieuAsync();
                     }
                     catch (Exception ex)
                     {
@@ -739,16 +771,16 @@ namespace PhanMemThiDua2026
             }
             Module_NhatKy.GhiNhatKy(SessionInfo.TenTaiKhoan, "Mở trang nhật ký phần mềm", "Người dùng mở form nhật ký từ Trang chủ");
         }
-        private void kryptonButton_ThoatPhanMem_Click(object? sender, EventArgs e)
-        {
-            this.Close(); // Form cha đóng → app tự thoát
-        }
+        //private void kryptonButton_ThoatPhanMem_Click(object? sender, EventArgs e)
+        //{
+            //this.Close(); // Form cha đóng → app tự thoát
+        //}
         private void EnsureSuKienThoatTonTai()
         {
             try
             {
                 using var cn = new Microsoft.Data.Sqlite.SqliteConnection(
-                    $"Data Source={_csdl2Path}");
+                    Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 cn.Open();
                 using var cmdCreate = cn.CreateCommand();
                 cmdCreate.CommandText = @"
@@ -760,7 +792,7 @@ namespace PhanMemThiDua2026
                 using var cmdCheck = cn.CreateCommand();
                 cmdCheck.CommandText =
                     "SELECT COUNT(*) FROM SuKien_ThoatPhanMem WHERE ID = 1";
-                long count = (long)cmdCheck.ExecuteScalar();
+                long count = (long)cmdCheck.ExecuteScalar()!;
                 if (count == 0)
                 {
                     using var cmdInsert = cn.CreateCommand();
@@ -778,7 +810,7 @@ namespace PhanMemThiDua2026
         }
         private void Form2_FormClosing(object? sender, FormClosingEventArgs e)
         {
-            DongToanBoHuongDanSuDung(); //
+            DongToanBoHuongDanSuDung(giaiPhong: true);   // thoát Form2: đóng hẳn PDF, trả bộ nhớ PDFium
             // Nếu đang trong tiến trình đóng rồi thì bỏ qua
             if (_isClosing) return;
             try
@@ -802,6 +834,7 @@ namespace PhanMemThiDua2026
                 }
                 // TRƯỜNG HỢP 2: THOÁT HOÀN TOÀN HỆ THỐNG
                 _isClosing = true;
+                Module_HuongDanSuDung.DongCuaSoHuongDanKhiThoat();   // đóng cửa sổ hướng dẫn web do phần mềm mở
                 // 1. Dọn dẹp Timer
                 if (timerTuDongAnMenu != null)
                 {
@@ -846,7 +879,7 @@ namespace PhanMemThiDua2026
             try
             {
                 using var cn = new Microsoft.Data.Sqlite.SqliteConnection(
-                    $"Data Source={_csdl2Path}");
+                    Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText =
@@ -1051,7 +1084,10 @@ namespace PhanMemThiDua2026
             {
                 // 1. Kiểm tra lại phiên bản mới nhất
                 string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                bool laTanBinh = phienBan.LaCheDoTanBinh();
+                // 1b. Bảng gốc đổi (DanhSach <-> DanhSachTanBinh): bỏ bộ đệm phiên bản + dữ liệu danh sách cũ trong RAM
+                Module_TaiKhoan.XoaBoDemPhienBan();
+                DataCache.Clear();
                 // 2. Ẩn/Hiện nút Khen thưởng
                 if (kryptonButton1_KhenThuong != null)
                 {
@@ -1078,6 +1114,25 @@ namespace PhanMemThiDua2026
                         _forms.TryRemove(type, out _);    // Xóa khỏi bộ nhớ đệm
                     }
                 }
+                // 3b. Form60 (nhập liệu) được Form6 dựng sẵn và nằm ẩn trong PanelContainer, không thuộc _forms:
+                // hủy bản đang ẩn để lần mở sau dựng lại đúng phiên bản mới (tiêu đề + bảng DanhSach/DanhSachTanBinh)
+                try
+                {
+                    var panelChua = Controls.Find("PanelContainer", true).FirstOrDefault();
+                    if (panelChua != null)
+                    {
+                        // Form55 (Ba Nhất: Form42/43/44) cũng do Form6 tạo trong PanelContainer -> bảng BaNhat/SoVang/TomTat theo phiên bản cũ
+                        var canHuy = panelChua.Controls.OfType<Form>()
+                            .Where(f => !f.Visible && (f is Form60_NhapLieuCBCS || f is Form55_QuanLyHeThongThiDuaBaNhat || f is Form26_PhanTichQuanSo))
+                            .ToList();
+                        foreach (var f in canHuy)
+                        {
+                            panelChua.Controls.Remove(f);
+                            f.Dispose();
+                        }
+                    }
+                }
+                catch (Exception ex) { Debug.WriteLine("[Form2] Hủy Form60/Form55 dựng sẵn: " + ex.Message); }
                 // 4. CHỈ chuyển về Trang chủ (Form 4) nếu cái Form đang hiển thị vừa bị tiêu diệt.
                 // Vì bạn đang đứng ở Form 12 (Cài đặt) -> Form 12 không nằm trong danh sách tiêu diệt 
                 // -> formHienTaiBiDong = false -> Sẽ KHÔNG bị nhảy trang nữa!
@@ -1092,7 +1147,7 @@ namespace PhanMemThiDua2026
             DongToanBoHuongDanSuDung();
             if (!AllowSwitch()) return;
             // Gọi hàm đổi màu và truyền nút hiện tại vào
-            HighlightNavButton((KryptonButton)sender);
+            HighlightNavButton((KryptonButton)sender!);
             // BẮT ĐẦU CODE ĐÃ ĐỔI SANG Form52_QuanLyKhenThuong
             // Tên Form: Quản lý khen thưởng CBCS + năm hệ thống
             string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
@@ -1100,10 +1155,10 @@ namespace PhanMemThiDua2026
             OpenChildForm<Form52_QuanLyKhenThuong>(tieuDeForm);
             if (_currentChild is Form52_QuanLyKhenThuong frm)
             {
-                // Nếu trước đó tải ngầm chưa xong hoặc chưa tải thì mới await
+                // Form52 tự tải khi hiện (hoặc đã nạp sẵn lúc ẩn): chỉ chờ/tải nếu thật sự chưa có, không ép tải lại
                 if (!frm.DaLoadDuLieu)
                 {
-                    await frm.ReloadDuLieu();
+                    await frm.DamBaoDaTaiAsync();
                 }
             }
         }
@@ -1274,14 +1329,20 @@ namespace PhanMemThiDua2026
             // Cập nhật text cho Label1
             Label1.Text = text;
         }
-        private void DongToanBoHuongDanSuDung()
+        /// <summary>
+        /// Rời trang Hướng dẫn. Mặc định KHÔNG hủy form PDF: OpenChildForm sẽ ẩn nó như mọi trang khác,
+        /// quay lại là hiện ngay đúng trang đang đọc (không parse lại tệp, không dựng lại viewer/mục lục).
+        /// Form32 tự giải phóng tài liệu khỏi RAM sau khi bị ẩn quá TuGiaiPhongSauPhut phút.
+        /// giaiPhong = true (thoát phần mềm): đóng hẳn.
+        /// </summary>
+        private void DongToanBoHuongDanSuDung(bool giaiPhong = false)
         {
-            // 🌟 CHUẨN KỸ SƯ: Dừng ngay nếu form hiện tại KHÔNG PHẢI là Form Hướng Dẫn
-            // Việc này giúp cắt bỏ hao phí quét Panel và gọi hàm rác ở các nút Tab khác
+            // Dừng ngay nếu form hiện tại KHÔNG PHẢI là Form Hướng Dẫn (khỏi quét Panel ở các nút Tab khác)
             if (!(_currentChild is Form32_HuongDanPDF)) return;
             try
             {
                 Module_HuongDanSuDung.DongHuongDan();
+                if (!giaiPhong) return;
                 var pdf = PanelContainer.Controls.OfType<Form32_HuongDanPDF>().FirstOrDefault();
                 if (pdf != null && !pdf.IsDisposed)
                 {
@@ -1312,116 +1373,249 @@ namespace PhanMemThiDua2026
         private const bool NapTruocFormConCaiDat = true;     // tạo sẵn trang Cài đặt (Form12) - nhiều tab, nhiều control
         private const bool NapTruocFormConThongKe = true;    // tạo sẵn trang Thống kê (Form53 -> Form15)
         private const bool NapTruocFormConNhatKy = true;     // tạo sẵn trang Nhật ký (Form10)
+        private const bool NapTruocFormConKhenThuong = true; // tạo sẵn trang Khen thưởng (Form52 -> Form34) + dữ liệu
         private const bool NapTruocVeThuGiaoDien = true;    // vẽ thử vào bitmap để "làm nóng" Krypton/font/ảnh
-        internal async Task NapTruocGiaoDienAsync(Func<bool> huy)
+        /// <summary>
+        /// Trả true khi dựng xong toàn bộ (handle + trang chủ [+ vẽ thử]); false nếu bị dừng giữa chừng (bị thay thế / đã hiện / đóng).
+        /// Có thể gọi lại nhiều lần: mọi bước đều idempotent (handle đã tạo, trang con đã có trong _forms thì bỏ qua).
+        /// </summary>
+        internal async Task<bool> NapTruocGiaoDienAsync(Func<bool> huy)
         {
             bool Dung() => huy() || IsDisposed || Visible;
-            if (Dung()) return;
+            if (Dung()) return false;
             var sw = Stopwatch.StartNew();
             // Mỗi bước nặng chỉ chạy khi người dùng đã ngừng gõ/bấm một lúc (Module_NhuongUI) -> không còn
             // cảnh bấm Đăng nhập trúng đúng khối đang dựng form. Việc dài được chia lát ~8 ms.
-            // Đang đèn đỏ (người dùng vừa bấm Đăng nhập) thì dừng ở nhịp này; hết đèn đỏ mới hỏi tiếp "người dùng có rảnh không".
+            // Ngược lại, khi người dùng ĐÃ bấm Đăng nhập (Module_NhuongUI.TangToc) thì không nhường nữa: việc dựng này chạy
+            // SONG SONG với BCrypt ở luồng nền, thay vì đợi BCrypt xong rồi mới dựng Form2 trong lúc người dùng ngồi chờ.
             async Task<bool> Nhuong()
             {
-                await Module_UuTienDangNhap.NhuongAsync();
-                return await Module_NhuongUI.ChoRanhAsync(Dung);
+                if (!Module_NhuongUI.TangToc) await Module_UuTienDangNhap.NhuongAsync();
+                // Chờ rảnh tối đa 0,45 s/bước (trước: 2 s rồi 0,8 s). Di chuột tới nút Đăng nhập cũng tính là "đang thao tác",
+                // nên chờ lâu mỗi bước thì việc nạp trước thường CHƯA xong lúc bấm -> phải dựng nốt trong lúc người dùng chờ
+                // (nhật ký đo: chưa xong ~1,2 s, đã xong ~0,25 s từ lúc bấm tới lúc vào giao diện chính).
+                return await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 120, toiDaMs: 450);
             }
             // B1: tạo handle cửa sổ + toàn bộ control con (form vẫn ẩn, Form2_Load CHƯA chạy)
-            if (!await Nhuong()) return;
+            if (!await Nhuong()) return false;
             _ = Handle;
-            if (!await Module_NhuongUI.TaoHandleTheoLatAsync(this, Dung)) return;
+            if (!await Module_NhuongUI.TaoHandleTheoLatAsync(this, Dung)) return false;
             Debug.WriteLine($"[Preload] handle Form2: {sw.ElapsedMilliseconds} ms");
             // B2: tạo sẵn trang chủ (Form4), cho vào cache _forms để OpenChildForm dùng lại
             Form? trangChu = null;
             if (NapTruocFormConTrangChu)
             {
-                if (!await Nhuong()) return;
+                if (!await Nhuong()) return false;
                 try
                 {
                     trangChu = await NapTruocFormConAsync<Form4_TrangDauTien>(Dung);
                     if (trangChu is Form4_TrangDauTien f4 && !Dung()) f4.NapTruocGiaoDien();
                 }
                 catch (Exception ex) { Debug.WriteLine("[Preload] Form4: " + ex.Message); }
+                if (Dung()) return false;
             }
             Debug.WriteLine($"[Preload] Form4: {sw.ElapsedMilliseconds} ms");
-            // (Các trang nặng: Dữ liệu / Thống kê / Cài đặt / Nhật ký được dựng SAU khi Form2 đã hiện: NapTruocTrangConSauKhiHienAsync.
-            //  Trước đây dựng hết ở đây, ngay lúc người dùng đang nhập mật khẩu -> dễ trùng đúng lúc bấm Đăng nhập.)
-            // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh). Chỉ cần Form2 + trang chủ (trang hiện đầu tiên);
-            // các trang còn lại vẽ thử ở lần mở đầu chỉ tốn vài ms nên không cần ép vẽ bitmap lớn lúc này.
-            if (NapTruocVeThuGiaoDien)
+            // (Các trang nặng: Dữ liệu / Thống kê / Cài đặt / Nhật ký được dựng SAU khi Form2 đã hiện: NapTruocTrangConSauKhiHienAsync.)
+            // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh). Bỏ qua ở chế độ tăng tốc: việc vẽ đầu tiên vẫn diễn ra trong lúc
+            // Form2 còn "cloak" (xem CLOAK_TOI_THIEU_MS), nên không cần cộng thêm vào thời gian người dùng đang chờ.
+            if (NapTruocVeThuGiaoDien && !Module_NhuongUI.TangToc)
             {
-                if (!await Nhuong()) return;
+                if (!await Nhuong()) return false;
                 VeThu(this);
-                if (trangChu != null)
-                {
-                    if (!await Nhuong()) return;
-                    VeThu(trangChu);
-                }
+                // (Trang chủ không vẽ thử ở đây nữa: kho giao diện sẽ Show + nạp dữ liệu + vẽ thật trang chủ ngay sau bước này.)
             }
-            Debug.WriteLine($"[Preload] vẽ thử: {sw.ElapsedMilliseconds} ms");
+            Debug.WriteLine($"[Preload] xong: {sw.ElapsedMilliseconds} ms");
+            return !Dung();
         }
+        // ================= KHO GIAO DIỆN TRONG RAM (xem Module_KhoGiaoDien) =================
         private bool _daNapTruocTrangCon;
+        private Task? _tacVuKho;
+        private readonly HashSet<Type> _daNapKho = new();
         /// <summary>
-        /// Chạy SAU khi Form2 đã hiện (gọi từ Form2_Load qua SauKhiHienXong): dựng sẵn các trang nặng lúc người dùng rảnh.
-        /// Mỗi bước chờ "đèn đỏ" + "người dùng rảnh" (Module_NhuongUI). Bấm sang trang nào chưa dựng thì OpenChildForm dựng ngay
-        /// như bình thường; trang đang dựng dở mà được bấm vào thì dừng chia lát để Show lo phần còn lại.
+        /// Chạy SAU khi Form2 đã hiện (gọi từ Form2_Load qua SauKhiHienXong): làm nốt các trang mà lúc ở màn hình đăng nhập
+        /// chưa kịp nạp vào kho (người dùng đăng nhập nhanh). Mỗi bước chờ "đèn đỏ" + "người dùng rảnh".
         /// </summary>
         internal async Task NapTruocTrangConSauKhiHienAsync()
         {
             if (_daNapTruocTrangCon) return;
             _daNapTruocTrangCon = true;
             bool Dung() => IsDisposed || _isClosing;
+            var sw = Stopwatch.StartNew();
+            // Chờ trang chủ (Form4) nạp xong lần đầu (tối đa 6 giây): không chen việc nặng vào giữa lúc trang chủ đang nạp
+            if (_forms.TryGetValue(typeof(Form4_TrangDauTien), out var f4o) && f4o is Form4_TrangDauTien f4)
+            {
+                while (!Dung() && sw.ElapsedMilliseconds < 6000 &&
+                       (f4.DangReload || f4.ThoiDiemReloadCuoiUtc == DateTime.MinValue))
+                    await Task.Delay(100);
+            }
+            if (Dung()) return;
+            // Kích thước thật của vùng chứa đã biết: kho dàn lại các trang còn trong kho theo đúng cỡ này
+            Module_KhoGiaoDien.DatKichThuoc(PanelContainer.ClientSize);
+            await NapKhoAsync(Dung, truocDangNhap: false);
+            Form1.GhiDongNhatKyDo($"Kho giao diện sau đăng nhập xong sau {sw.ElapsedMilliseconds} ms (đã có: {string.Join(", ", _daNapKho.Select(t => t.Name.Split('_')[0]))})");
+        }
+        /// <summary>
+        /// Nạp các trang vào kho: dựng → Show trong kho ẩn (Load chạy, dữ liệu nạp) → vẽ thật 1 lần → ẩn, chờ được gọi ra.
+        /// Gọi trước đăng nhập (Module_GiaoDienForm2Web, lúc người dùng còn gõ) và sau đăng nhập (làm nốt). Các lần gọi nối đuôi
+        /// nhau, không chạy chồng; trang nào đã xong / đã được mở trên Form2 thì bỏ qua.
+        /// </summary>
+        internal Task NapKhoAsync(Func<bool> huy, bool truocDangNhap)
+        {
+            var truocDo = _tacVuKho;
+            return _tacVuKho = ChayKhoAsync(truocDo, huy, truocDangNhap);
+        }
+        private async Task ChayKhoAsync(Task? truocDo, Func<bool> huy, bool truocDangNhap)
+        {
+            if (truocDo != null) { try { await truocDo; } catch { } }
+            bool Dung() => huy() || IsDisposed || _isClosing;
+            if (Dung()) return;
+            var sw = Stopwatch.StartNew();
+            var moc = new System.Text.StringBuilder(truocDangNhap ? "Kho giao diện (lúc đăng nhập): " : "Kho giao diện (sau đăng nhập): ");
             async Task<bool> Nhuong()
             {
-                await Module_UuTienDangNhap.NhuongAsync();
-                return await Module_NhuongUI.ChoRanhAsync(Dung);
+                // Đang bấm Đăng nhập -> đứng chờ, nhường hết cho đăng nhập. NGOẠI TRỪ chế độ tăng tốc: lúc đó chính đăng nhập
+                // đang CHỜ kho nạp xong các trang chính (DamBaoTrangChinhTrongKhoAsync) -> không được đứng chờ đèn đỏ của chính mình.
+                if (!Module_NhuongUI.TangToc) await Module_UuTienDangNhap.NhuongAsync();
+                return truocDangNhap
+                    ? await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 120, toiDaMs: 450)
+                    : await Module_NhuongUI.ChoRanhAsync(Dung);
             }
+            try
+            {
+                if (truocDangNhap) Module_KhoGiaoDien.DatKichThuoc(UocLuongCoVungChua());
+                // Thứ tự = thứ tự người dùng hay mở. Trang chủ trước tiên: đăng nhập xong là hiện ngay từ kho.
+                if (NapTruocFormConTrangChu && !await BuocKho<Form4_TrangDauTien>(f => ChoDieuKien(
+                        () => f.ThoiDiemReloadCuoiUtc != DateTime.MinValue && !f.DangReload, Dung))) return;
+                moc.Append($"Form4 {sw.ElapsedMilliseconds}");
+                if (NapTruocFormConDuLieu && !await BuocKho<Form6_XuLyData>(f => f.NapTruocDuLieuAsync())) return;
+                moc.Append($", Form6 {sw.ElapsedMilliseconds}");
+                if (NapTruocFormConThongKe && !await BuocKho<Form53_QuanLyKetQuaThiDua>(f => f.DamBaoDaTaiAsync())) return;
+                moc.Append($", Form15 {sw.ElapsedMilliseconds}");
+                if (NapTruocFormConKhenThuong && LaBanCBCS())
+                {
+                    if (!await BuocKho<Form52_QuanLyKhenThuong>(f => f.ChoTrangDauNapXongAsync())) return;
+                    moc.Append($", Form34 {sw.ElapsedMilliseconds}");
+                }
+                if (NapTruocFormConNhatKy && !await BuocKho<Form10_NhatKy>(f => f.NapTruocDuLieuAsync())) return;
+                moc.Append($", Form10 {sw.ElapsedMilliseconds}");
+                if (NapTruocFormConCaiDat && !await BuocKho<Form12>(f => ChoDieuKien(() => f.DaNapXong, Dung))) return;
+                moc.Append($", Form12 {sw.ElapsedMilliseconds}");
+            }
+            catch (Exception ex) { Debug.WriteLine("[Kho] " + ex); }
+            finally
+            {
+                Debug.WriteLine("[Kho] " + moc);
+                Form1.GhiDongNhatKyDo(moc + " ms");
+            }
+            // Một bước: false = phải dừng hẳn (đăng nhập xong / đóng form), true = đi tiếp
+            async Task<bool> BuocKho<T>(Func<T, Task> choDuLieu) where T : Form, new()
+            {
+                var type = typeof(T);
+                if (_daNapKho.Contains(type)) return true;
+                if (_forms.TryGetValue(type, out var da) && !da.IsDisposed && !Module_KhoGiaoDien.LaTrongKho(da))
+                {
+                    _daNapKho.Add(type);   // người dùng đã mở trang này trên Form2 -> không cần kho nữa
+                    return true;
+                }
+                if (!await Nhuong()) return false;
+                T? f = await NapTruocFormConAsync<T>(Dung);
+                if (f == null || f.IsDisposed) return !Dung();
+                if (!Module_KhoGiaoDien.LaTrongKho(f)) { _daNapKho.Add(type); return true; }
+                if (Dung()) return false;
+                if (!await Nhuong()) return false;
+                if (!Module_KhoGiaoDien.LaTrongKho(f)) { _daNapKho.Add(type); return true; }
+                // Show TRONG KHO (kho đang ẩn): Load chạy + bắt đầu nạp dữ liệu, dàn trang theo đúng cỡ thật,
+                // mọi lệnh Focus() trong Load/Shown đều vô hiệu -> không giật con trỏ khỏi ô mật khẩu.
+                Module_KhoGiaoDien.ShowTrongKho(f);
+                await ChoToiDa(choDuLieu(f), Dung);
+                if (Dung()) return false;
+                if (!Module_KhoGiaoDien.LaTrongKho(f)) { _daNapKho.Add(type); return true; }
+                // Vẽ thật 1 lần (lần vẽ đầu là lần chậm nhất) rồi ẩn đi, chờ được gọi ra.
+                if (!await Nhuong()) return false;
+                if (!Module_KhoGiaoDien.LaTrongKho(f)) { _daNapKho.Add(type); return true; }
+                Module_KhoGiaoDien.VeNong(f);
+                if (Module_KhoGiaoDien.LaTrongKho(f) && !ReferenceEquals(f, _currentChild)) f.Hide();
+                _daNapKho.Add(type);
+                return true;
+            }
+        }
+        /// <summary>
+        /// Các trang CHÍNH phải nằm sẵn trong RAM trước khi Form2 hiện: Trang chủ (Form4), Phân loại (Form6),
+        /// Thống kê (Form53 -> Form15), Khen thưởng (Form52 -> Form34, chỉ bản CBCS), Nhật ký (Form10).
+        /// (Cài đặt - Form12 - không nằm trong danh sách: vẫn nạp tiếp ở nền sau khi vào.)
+        /// </summary>
+        private List<Type> DanhSachTrangChinh()
+        {
+            var ds = new List<Type>(5);
+            if (NapTruocFormConTrangChu) ds.Add(typeof(Form4_TrangDauTien));
+            if (NapTruocFormConDuLieu) ds.Add(typeof(Form6_XuLyData));
+            if (NapTruocFormConThongKe) ds.Add(typeof(Form53_QuanLyKetQuaThiDua));
+            if (NapTruocFormConKhenThuong && LaBanCBCS()) ds.Add(typeof(Form52_QuanLyKhenThuong));
+            if (NapTruocFormConNhatKy) ds.Add(typeof(Form10_NhatKy));
+            return ds;
+        }
+        /// <summary>
+        /// Gọi từ form đăng nhập (luồng UI) SAU khi xác thực thành công, TRƯỚC khi hiện Form2, ở chế độ tăng tốc:
+        /// làm nốt các trang chính còn thiếu trong kho (dựng + Load + nạp dữ liệu + vẽ thật 1 lần), để vào giao diện chính
+        /// bấm trang nào cũng hiện ngay. Trang đã nạp sẵn lúc người dùng còn gõ mật khẩu thì bỏ qua (tức thì).
+        /// <paramref name="tienDo"/>(đã xong, tổng) để form đăng nhập hiện tiến độ. Quá <paramref name="toiDaMs"/> thì thôi chờ
+        /// (phần còn lại Form2 làm nốt sau khi hiện như cũ). Trả true nếu đủ cả các trang chính.
+        /// </summary>
+        internal async Task<bool> DamBaoTrangChinhTrongKhoAsync(Action<int, int>? tienDo, int toiDaMs = 20000)
+        {
+            if (IsDisposed || _isClosing) return false;
+            var canCo = DanhSachTrangChinh();
+            int DaXong() => canCo.Count(t => _daNapKho.Contains(t));
             var sw = Stopwatch.StartNew();
-            // Trang Dữ liệu (Form6) - chưa Show nên Form6_Load chưa chạy
-            if (NapTruocFormConDuLieu)
+            Task chay = NapKhoAsync(() => false, truocDangNhap: true);   // nối đuôi lượt đang chạy (nếu có), bỏ qua trang đã xong
+            int baoCuoi = -1;
+            while (!IsDisposed && !_isClosing && sw.ElapsedMilliseconds < toiDaMs)
             {
-                if (!await Nhuong()) return;
-                try { await NapTruocFormConAsync<Form6_XuLyData>(Dung); }
-                catch (Exception ex) { Debug.WriteLine("[Preload] Form6: " + ex.Message); }
-            }
-            Debug.WriteLine($"[Preload] Form6: {sw.ElapsedMilliseconds} ms");
-            // Trang Thống kê: Form53 (form mẹ) rồi Form15 bên trong - chưa Show nên Load chưa chạy
-            if (NapTruocFormConThongKe)
-            {
-                if (!await Nhuong()) return;
-                try
+                Module_NhuongUI.TangToc = true;   // giữ tăng tốc suốt lượt chờ (lượt dựng Form2 song song có thể vừa tắt nó)
+                int xong = DaXong();
+                if (xong != baoCuoi)
                 {
-                    var trangThongKe = await NapTruocFormConAsync<Form53_QuanLyKetQuaThiDua>(Dung);
-                    if (trangThongKe != null && !Dung())
-                    {
-                        if (!await Nhuong()) return;   // NapTruocGiaoDien dựng Form15 bên trong: thêm 1 nhịp nghỉ
-                        trangThongKe.NapTruocGiaoDien();
-                    }
+                    baoCuoi = xong;
+                    try { tienDo?.Invoke(xong, canCo.Count); } catch { }
                 }
-                catch (Exception ex) { Debug.WriteLine("[Preload] Form53/15: " + ex.Message); }
+                if (xong >= canCo.Count || chay.IsCompleted) break;
+                await Task.WhenAny(chay, Task.Delay(40));
             }
-            Debug.WriteLine($"[Preload] Form53/15: {sw.ElapsedMilliseconds} ms");
-            // Trang Cài đặt (Form12) - chưa Show nên Form12_Load chưa chạy
-            if (NapTruocFormConCaiDat)
+            bool du = DaXong() >= canCo.Count;
+            Form1.GhiDongNhatKyDo($"Chờ kho trang chính trước khi vào: {sw.ElapsedMilliseconds} ms ({DaXong()}/{canCo.Count}{(du ? "" : " - chưa đủ, nạp nốt sau khi vào")})");
+            return du;
+        }
+        private static bool LaBanCBCS()
+        {
+            try { return Module_HoTroLuuDataTheoNamCu.LaPhienBanCBCS(); }
+            catch { return true; }
+        }
+        /// <summary>Ước lượng cỡ PanelContainer khi Form2 phóng to (trước đăng nhập Form2 chưa hiện nên chưa biết cỡ thật).</summary>
+        private Size UocLuongCoVungChua()
+        {
+            try
             {
-                if (!await Nhuong()) return;
-                try { await NapTruocFormConAsync<Form12>(Dung); }
-                catch (Exception ex) { Debug.WriteLine("[Preload] Form12: " + ex.Message); }
+                Rectangle wa = (Screen.PrimaryScreen ?? Screen.AllScreens[0]).WorkingArea;
+                int dW = Math.Max(0, ClientSize.Width - PanelContainer.Width);    // menu trái
+                int dH = Math.Max(0, ClientSize.Height - PanelContainer.Height);  // thanh tiêu đề trong form
+                return new Size(wa.Width - dW, wa.Height - SystemInformation.CaptionHeight - dH);
             }
-            Debug.WriteLine($"[Preload] Form12: {sw.ElapsedMilliseconds} ms");
-            // Trang Nhật ký (Form10) - chưa Show nên Form10_Load/Shown chưa chạy (chưa đọc CSDL nhật ký)
-            if (NapTruocFormConNhatKy)
+            catch { return PanelContainer.ClientSize; }
+        }
+        private static async Task ChoDieuKien(Func<bool> xong, Func<bool> dung)
+        {
+            while (!xong() && !dung()) await Task.Delay(100);
+        }
+        /// <summary>Chờ một lượt nạp, tối đa vài giây (quá hạn thì để nó chạy tiếp ở nền); dừng chờ ngay khi cần dừng.</summary>
+        private static async Task ChoToiDa(Task t, Func<bool>? dung = null, int toiDaMs = 15000)
+        {
+            try
             {
-                if (!await Nhuong()) return;
-                try
-                {
-                    var trangNhatKy = await NapTruocFormConAsync<Form10_NhatKy>(Dung);
-                    // Đọc CSDL nhật ký ở luồng nền ngay bây giờ (form còn ẩn) để lúc bấm mở là có dữ liệu sẵn trên lưới
-                    if (trangNhatKy != null && !Dung()) _ = trangNhatKy.NapTruocDuLieuAsync();
-                }
-                catch (Exception ex) { Debug.WriteLine("[Preload] Form10: " + ex.Message); }
+                var sw = Stopwatch.StartNew();
+                while (!t.IsCompleted && sw.ElapsedMilliseconds < toiDaMs && !(dung?.Invoke() ?? false))
+                    await Task.WhenAny(t, Task.Delay(100));
             }
-            Debug.WriteLine($"[Preload] Form10: {sw.ElapsedMilliseconds} ms");
+            catch (Exception ex) { Debug.WriteLine("[Kho] " + ex.Message); }
         }
         private async Task<T?> NapTruocFormConAsync<T>(Func<bool> dung) where T : Form, new()
         {
@@ -1429,12 +1623,10 @@ namespace PhanMemThiDua2026
             if (_forms.TryGetValue(type, out var da) && !da.IsDisposed) return (T)da;
             var f = new T();                 // khối không chia nhỏ được (InitializeComponent) - đã được chờ lúc rảnh
             _forms[type] = f;
-            f.TopLevel = false;
-            f.FormBorderStyle = FormBorderStyle.None;
-            f.Dock = DockStyle.Fill;
-            PanelContainer.Controls.Add(f);   // chưa Show() -> Load chưa chạy
-            // Dừng chia lát khi chính trang này đã được hiện (Show lo phần còn lại) hoặc bị hủy
-            await Module_NhuongUI.TaoHandleTheoLatAsync(f, () => dung() || f.IsDisposed || f.Visible);
+            // Vào KHO (chưa Show -> Load chưa chạy). OpenChildForm sẽ "nhấc" sang PanelContainer khi cần hiện.
+            Module_KhoGiaoDien.DuaVaoKho(f);
+            // Dừng chia lát khi trang đã được đưa ra Form2 (Show lo phần còn lại) hoặc bị hủy
+            await Module_NhuongUI.TaoHandleTheoLatAsync(f, () => dung() || f.IsDisposed || !Module_KhoGiaoDien.LaTrongKho(f));
             return f;
         }
         private static void VeThu(Control c)
@@ -1490,7 +1682,7 @@ namespace PhanMemThiDua2026
 }
 public static class UIHelper
 {
-    public static void SafeInvoke(Control ctrl, Action action)
+    public static void SafeInvoke(Control? ctrl, Action action)
     {
         if (ctrl == null) return;
         if (ctrl.IsDisposed) return;
@@ -1512,1476 +1704,3 @@ public static class UIHelper
         public static bool TuDongAnMenu = false;
     }
 }
-
-///Phiên bản 2
-//using Krypton.Toolkit;
-//using System.Collections.Concurrent;
-//using System.Diagnostics;
-//using System.Drawing.Drawing2D;
-//using System.Reflection;
-//using System.Runtime.InteropServices;
-//using static UIHelper;
-//namespace PhanMemThiDua2026
-//{
-//    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-//    public partial class Form2_FormCha : Form
-//    {
-//        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-//        private Form? _currentChild;
-//        private DateTime _lastClick = DateTime.MinValue;
-//        private SemaphoreSlim _huongDanLock = new(1, 1);
-//        private System.Windows.Forms.Timer timerTuDongAnMenu;
-//        private KryptonButton prevButton, currentButton, nextButton;
-//        private int sidebarWidth;    // chiều rộng ban đầu, sẽ lấy lúc Form Load
-//        private int sidebarMinWidth = 0;
-//        private int _switching = 0;
-//        private bool sidebarExpanded = true;
-//        private bool isLoaded = false; // xác định Form đã hoàn tất Load
-//        private bool _loadExecuted = false;
-//        private bool _isClosing = false;
-//        private static bool _daMoWelcome = false;
-//        private static bool _daMoThongTinChungThu = false;
-//        private int _namHienTaiCache = -1;
-//        private bool AllowSwitch()
-//        {
-//            var now = DateTime.Now;
-//            if ((now - _lastClick).TotalMilliseconds < 250)
-//                return false;
-//            _lastClick = now;
-//            return true;
-//        }
-//        [DllImport("user32.dll")] //API Windows để mở tệp hướng dẫn html
-//        private static extern bool SetForegroundWindow(IntPtr hWnd);
-//        // Tạm dừng/bật lại việc vẽ của 1 control: gom cả đợt layout + vẽ thành 1 lần, hết cảnh "vẽ dần từng mảng"
-//        [DllImport("user32.dll")]
-//        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
-//        private const int WM_SETREDRAW = 0x000B;
-//        private static void TamDungVe(Control c)
-//        {
-//            if (c.IsHandleCreated) SendMessage(c.Handle, WM_SETREDRAW, IntPtr.Zero, IntPtr.Zero);
-//        }
-//        private static void ChoPhepVe(Control c)
-//        {
-//            if (!c.IsHandleCreated) return;
-//            SendMessage(c.Handle, WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
-//            c.Invalidate(true);
-//        }
-//        // ===== HIỆN FORM2 "MỘT PHÁT LÀ XONG" (cloak đến khi dựng + vẽ xong) =====
-//        // Trước đây Form2.Show() hiện ngay rồi mới dựng/vẽ dần (Form2_Load, trang chủ Form4, bố cục khi phóng to)
-//        // -> người dùng thấy giao diện "vẽ từng mảng" + khựng. Giờ: cửa sổ vẫn Show bình thường (nên vẫn dựng và vẽ
-//        // đầy đủ vào bề mặt của DWM) nhưng bị "cloak" (ẩn khỏi màn hình). Khi đã nạp xong thì bỏ cloak: hiện nguyên vẹn.
-//        // Không dùng Opacity (đổi Opacity có thể tạo lại handle cả cây control). Windows không hỗ trợ cloak -> bỏ qua, chạy như cũ.
-//        [DllImport("dwmapi.dll")]
-//        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
-//        private const int DWMWA_CLOAK = 13;
-//        private const int CLOAK_TOI_THIEU_MS = 180;   // đủ để khung hình đầu được vẽ xong
-//        private const int CLOAK_TOI_DA_MS = 2200;     // chốt chặn: luôn hiện dù có chuyện gì
-//        private bool _daCloak, _daHienXong;
-//        private System.Windows.Forms.Timer? _timerHien;
-//        private Stopwatch? _swHien;
-//        private Action? _sauKhiHien;
-//        /// <summary>Chạy hành động khi Form2 đã hiện thật sự (vd. Form1 chỉ ẩn đi lúc này để không bị khoảng trống).</summary>
-//        public void SauKhiHienXong(Action hanhDong)
-//        {
-//            if (_daCloak) _sauKhiHien += hanhDong;
-//            else hanhDong();
-//        }
-//        protected override void SetVisibleCore(bool value)
-//        {
-//            bool lanDau = value && !_daHienXong && !_daCloak && !DesignMode;
-//            if (lanDau) BatCloak();
-//            base.SetVisibleCore(value);
-//            if (lanDau && _daCloak) BatDauChoHien();
-//        }
-//        private void BatCloak()
-//        {
-//            try
-//            {
-//                IntPtr h = Handle;
-//                int v = 1;
-//                if (DwmSetWindowAttribute(h, DWMWA_CLOAK, ref v, sizeof(int)) == 0) _daCloak = true;
-//            }
-//            catch { _daCloak = false; }
-//        }
-//        private void BatDauChoHien()
-//        {
-//            _swHien = Stopwatch.StartNew();
-//            _timerHien = new System.Windows.Forms.Timer { Interval = 30 };
-//            _timerHien.Tick += (s, e) =>
-//            {
-//                long ms = _swHien!.ElapsedMilliseconds;
-//                // Sẵn sàng: Form2_Load xong (isLoaded) + khung hình đầu đã có thời gian vẽ, hoặc hết hạn chốt chặn
-//                if ((isLoaded && ms >= CLOAK_TOI_THIEU_MS) || ms >= CLOAK_TOI_DA_MS) GoCloak();
-//            };
-//            _timerHien.Start();
-//        }
-//        private void GoCloak()
-//        {
-//            var t = _timerHien; _timerHien = null;
-//            if (t != null) { t.Stop(); t.Dispose(); }
-//            if (!_daCloak) return;
-//            _daCloak = false;
-//            _daHienXong = true;
-//            try
-//            {
-//                if (IsHandleCreated)
-//                {
-//                    int v = 0;
-//                    DwmSetWindowAttribute(Handle, DWMWA_CLOAK, ref v, sizeof(int));
-//                }
-//            }
-//            catch { }
-//            var cb = _sauKhiHien; _sauKhiHien = null;
-//            try { cb?.Invoke(); } catch (Exception ex) { Debug.WriteLine("[Form2] SauKhiHienXong: " + ex.Message); }
-//        }
-//        protected override void OnHandleDestroyed(EventArgs e)
-//        {
-//            if (_daCloak && !IsDisposed && Disposing) { var t = _timerHien; _timerHien = null; t?.Stop(); t?.Dispose(); }
-//            base.OnHandleDestroyed(e);
-//        }
-//        public Form2_FormCha()
-//        {
-//            InitializeComponent();
-//            Module_AnhDongNhe.ApDung(pictureBox3);   // GIF động 640x480 trong ô 82x35: co sẵn khung hình, chạy nhẹ (hết vẽ lại liên tục)
-//            ApplyPerformanceTuning();
-//            // 🎨 BO TRÒN GIAO DIỆN: áp cho form cha và tự động cho mọi form con (kể cả control tạo sau)
-//            // Sidebar kiểu web hiện đại (viên thuốc bo tròn, hover sáng, mục đang chọn màu trắng)
-//            Module_SidebarHienDai.KhoiTao(PanelLeft,
-//            kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
-//            kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
-//            kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
-//            checkBox1_TuDongAnMenu.ForeColor = Module_SidebarHienDai.ChuThuong;
-//            Module_GiaoDienBoTron.ApDung(this);
-
-//            // === THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ICON TASKBAR ===
-//            // 🌟 ĐĂNG KÝ SỰ KIỆN: Cứ mỗi khi chữ của Label1 bị đổi, lập tức chạy hàm kiểm tra màu
-//            Label1.TextChanged += (s, e) => TuDongDoiMauLabelTieuDe();
-//            try
-//            {
-//                // Sử dụng lại icon ic_PhanMem có sẵn trong Resources của bạn
-//                using (var ms = new System.IO.MemoryStream(Properties.Resources.ic_PhanMem))
-//                {
-//                    this.Icon = new Icon(ms); // Gán icon cho Form 2
-//                }
-//            }
-//            catch (Exception)
-//            {
-//                // Bỏ qua nếu lỗi để không làm crash phần mềm
-//            }
-//            // Gọi hàm tô màu cho nút mặc định ngay khi khởi tạo
-//            // Thay 'btnTrangChu' bằng (Name) thực tế của nút trang chủ của bạn
-//            HighlightNavButton(kryptonButton1_Trangchu);
-//            this.WindowState = FormWindowState.Maximized;
-//            this.Text = "Phần mềm thi đua năm " + Module_HeThong.LayNamHeThong();
-//            this.KeyPreview = true; // bắt phím
-//            checkBox1_TuDongAnMenu.CheckedChanged -= checkBox1_TuDongAnMenu_CheckedChanged;
-//            checkBox1_TuDongAnMenu.CheckedChanged += checkBox1_TuDongAnMenu_CheckedChanged;
-//            Module_ThoatAnToan.KichHoatESC(this);
-//            try
-//            {
-//                kryptonButton1_HuongDan.Click -= kryptonButton1_HuongDan_Click;
-//                kryptonButton1_HuongDan.Click += kryptonButton1_HuongDan_Click;
-//            }
-//            catch
-//            {
-//            }
-//            this.Load += Form2_Load;
-//            this.Shown += Form2_FormCha_Shown;
-//            this.FormClosing += Form2_FormClosing;
-//            PanelLeft.Dock = DockStyle.Left;
-//            PanelContainer.Dock = DockStyle.Fill;
-//            this.Controls.SetChildIndex(PanelContainer, 0);
-//            this.Controls.SetChildIndex(PanelLeft, 1);
-//            InitToolTips_GioiThieuVaMenu();
-//        }
-//        private async void Form2_Load(object sender, EventArgs e)
-//        {
-//            try
-//            {
-//                await Form2_LoadCore();
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine(ex);
-//            }
-//        }
-//        private async Task Form2_LoadCore()
-//        {
-//            if (_loadExecuted) return;
-//            _loadExecuted = true;
-//            // 1. KHỞI TẠO DỮ LIỆU NGƯỜI DÙNG
-//            KhoiTaoDuLieuNguoiDung();
-//            // 2. KHỞI TẠO GIAO DIỆN
-//            KhoiTaoGiaoDien();
-//            // 3. THIẾT LẬP TRẠNG THÁI MENU
-//            checkBox1_TuDongAnMenu.Checked = AppRuntime.TuDongAnMenu;
-//            // 4. KHỞI TẠO TIMER VÀ EVENT
-//            KhoiTaoTimerTuDongAnMenu();
-//            DangKySuKienTuDongAnMenu();
-//            _ = Task.Run(EnsureSuKienThoatTonTai);   // CREATE TABLE + INSERT: không cần chặn luồng UI lúc mở form
-//            // 5. CẬP NHẬT UI BAN ĐẦU
-//            CapNhatMuiTenGiaoDien();
-//            // 6. PRELOAD DỮ LIỆU CSDL Ở NỀN
-//            // Nếu đã nạp trước (từ lúc ở form đăng nhập) thì chỉ cần chờ nó xong, không nạp lại
-//            bool daCoDuLieu = false;
-//            if (TacVuPreloadDuLieu != null)
-//            {
-//                try { daCoDuLieu = await TacVuPreloadDuLieu; }
-//                catch (Exception ex) { Debug.WriteLine(ex); }
-//            }
-//            if (!daCoDuLieu)
-//            {
-//                await Task.Run(() =>
-//                {
-//                    try
-//                    {
-//                        DataLoader.PreloadDanhSach(_csdl2Path);
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        Debug.WriteLine(ex);
-//                    }
-//                });
-//            }
-//            // 7. ĐÁNH DẤU KHỞI TẠO HOÀN TẤT
-//            isLoaded = true;
-//            // Nạp sẵn thư viện PDFium ở nền (im lặng) để lần mở Hướng dẫn đầu tiên không bị khựng
-//            _ = Task.Run(Form32_HuongDanPDF.NapTruocThuVien);
-//        }
-//        private void Form2_FormCha_Shown(object? sender, EventArgs e)
-//        {
-//            Module_HeThong.ThongBaoHelper.KiemTraThuMucChuyenGiaoDesktop(this);
-//        }
-//        // 🌟 BƯỚC 1: Khai báo biến đệm (Cache) lưu trữ năm ở ngoài hàm
-//        // 🌟 BƯỚC 2: Cập nhật lại hàm xử lý
-//        private void TuDongDoiMauLabelTieuDe()
-//        {
-//            if (Label1 == null) return;
-//            // TỐI ƯU HIỆU NĂNG: Chỉ lấy năm từ CSDL 1 lần duy nhất khi biến đệm chưa có dữ liệu (-1)
-//            if (_namHienTaiCache == -1)
-//            {
-//                _namHienTaiCache = Module_HeThong.LayNamHeThong();
-//            }
-//            // Khởi tạo chuỗi gốc làm mốc so sánh sử dụng biến đệm siêu tốc
-//            string chuoiTrangChu = $"PHẦN MỀM THI ĐUA NĂM {_namHienTaiCache}";
-//            // TỐI ƯU GIAO DIỆN: So sánh chuỗi và chỉ gán màu khi màu thực sự bị lệch (Chống chớp nháy màn hình)
-//            if (Label1.Text.Trim().Equals(chuoiTrangChu, StringComparison.OrdinalIgnoreCase))
-//            {
-//                if (Label1.ForeColor != Color.Green)
-//                    Label1.ForeColor = Color.Green;
-//            }
-//            else
-//            {
-//                if (Label1.ForeColor != Color.Blue)
-//                    Label1.ForeColor = Color.Blue;
-//            }
-//        }
-//        public void KhoiTaoDuLieuNguoiDung()
-//        {
-//            Module_TaiKhoan.NapTaiKhoanTuCSDL();
-//            sidebarWidth = PanelLeft.Width;
-//            string ten = SessionInfo.TenTaiKhoan;
-//            DateTime thoiGian = SessionInfo.ThoiGianDangNhap;
-//            if (string.IsNullOrWhiteSpace(ten))
-//            {
-//                Label2.Text = "Xin chào!";
-//                return;
-//            }
-//            // Nếu thời gian không hợp lệ thì dùng DateTime.Now
-//            if (thoiGian == default)
-//                thoiGian = DateTime.Now;
-//            bool laNgayChan = (thoiGian.Day & 1) == 0; // nhanh hơn %
-//            Label2.Text = laNgayChan
-//                ? $"Đăng nhập bởi: {ten} vào lúc {thoiGian:HH:mm dd/MM/yyyy}"
-//                : $"Xin chào! {ten} bạn truy cập lúc {thoiGian:HH:mm dd/MM/yyyy}";
-//            // 🚀 KHỞI ĐỘNG HỆ THỐNG QUẢN LÝ HÌNH ẢNH TRANG CHỦ THEO CSDL
-//            KhoiTaoHeThongHinhNenAsync();
-//        }
-//        // BỘ NÃO QUẢN LÝ HÌNH ẢNH TRANG CHỦ (CÁ NHÂN HÓA UX THEO CSDL2)
-//        private System.Windows.Forms.Timer? _timerHinhNen;
-//        public async void KhoiTaoHeThongHinhNenAsync()
-//        {
-//            try
-//            {
-//                // 1. Đọc cấu hình từ CSDL (Chạy ngầm không block UI)
-//                string cheDo = await Task.Run(() => Module_HinhAnhTrangChu.DocCauHinhThoiGian());
-//                // 2. Nếu là Mặc định -> Tắt Timer, lấy hình cố định
-//                if (cheDo == "Mặc định")
-//                {
-//                    _timerHinhNen?.Stop();
-//                    Image? hinhMacDinh = await Task.Run(() => Module_HinhAnhTrangChu.LayHinhMacDinh());
-//                    CapNhatPictureBoxNgayLapTuc(hinhMacDinh);
-//                    return;
-//                }
-//                // 3. Nếu có đổi hình -> Xác định Timer
-//                int ms = 15000; // Khởi tạo gốc là 15 giây
-//                if (cheDo == "30 giây") ms = 30000;
-//                else if (cheDo == "1 phút") ms = 60000;
-//                // Khởi tạo Timer nếu chưa có
-//                if (_timerHinhNen == null)
-//                {
-//                    _timerHinhNen = new System.Windows.Forms.Timer();
-//                    _timerHinhNen.Tick += (s, e) => ThucThiDoiAnhNgam();
-//                }
-//                _timerHinhNen.Interval = ms;
-//                _timerHinhNen.Start();
-//                // Ép lấy ảnh 1 lần ngay lập tức để không bị trống màn hình lúc chờ nhịp Timer đầu
-//                ThucThiDoiAnhNgam();
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine($"Lỗi khởi tạo hệ thống hình: {ex.Message}");
-//            }
-//        }
-//        // Tách việc xử lý nền
-//        private int _isChangingImage = 0;
-//        private async void ThucThiDoiAnhNgam()
-//        {
-//            if (Interlocked.Exchange(ref _isChangingImage, 1) == 1)
-//                return;
-//            try
-//            {
-//                var hinhMoi = await Task.Run(() => Module_HinhAnhTrangChu.LayHinhTiepTheo());
-//                CapNhatPictureBoxNgayLapTuc(hinhMoi);
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine(ex);
-//            }
-//            finally
-//            {
-//                Interlocked.Exchange(ref _isChangingImage, 0);
-//            }
-//        }
-//        // Tách việc xử lý UI (Chống rác RAM)
-//        private void CapNhatPictureBoxNgayLapTuc(Image? hinhMoi)
-//        {
-//            UIHelper.SafeInvoke(this, () =>
-//            {
-//                if (hinhMoi != null && PictureBox1 != null && !PictureBox1.IsDisposed)
-//                {
-//                    // Lấy hình cũ ra để chờ dọn dẹp
-//                    Image? hinhCu = PictureBox1.Image;
-//                    // Gắn hình mới vào và ép vẽ ngay lập tức
-//                    PictureBox1.Image = hinhMoi;
-//                    PictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
-//                    // 🛑 Kỹ thuật chống tràn RAM
-//                    if (hinhCu != null && !ReferenceEquals(hinhCu, hinhMoi))
-//                    {
-//                        hinhCu.Dispose();
-//                    }
-//                }
-//            });
-//        }
-//        private void KhoiTaoGiaoDien()
-//        {
-//            int namHienTai = Module_HeThong.LayNamHeThong();
-//            OpenChildForm<Form4_TrangDauTien>(
-//                $"PHẦN MỀM THI ĐUA NĂM {namHienTai}");
-//            // 🚀 TỐI ƯU UX: ẨN NÚT KHEN THƯỞNG NẾU LÀ TÂN BINH
-//            try
-//            {
-//                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-//                bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-//                // Nếu là Tân binh -> Visible = false (Ẩn nút)
-//                // Nếu là CBCS -> Visible = true (Hiện nút)
-//                if (kryptonButton1_KhenThuong != null)
-//                {
-//                    kryptonButton1_KhenThuong.Visible = !laTanBinh;
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine($"Lỗi kiểm tra phiên bản để ẩn nút Khen thưởng: {ex.Message}");
-//            }
-//        }
-//        private void CapNhatMuiTenGiaoDien()
-//        {
-//            UIHelper.SafeInvoke(this, () =>
-//            {
-//                if (PictureBox2 == null || PictureBox2.IsDisposed) return;
-//                // Xác định hình ảnh mới từ Resources
-//                Image hinhMoi = sidebarExpanded
-//                    ? Properties.Resources.SangTrai
-//                    : Properties.Resources.SangPhai;
-//                // Cấu hình chuẩn hiển thị
-//                PictureBox2.Image = hinhMoi;
-//                // 🛠️ ĐỔI THÀNH ZOOM: Thu phóng ảnh vừa vặn trọn vẹn vào khung mà không bị méo (giữ nguyên tỷ lệ)
-//                PictureBox2.SizeMode = PictureBoxSizeMode.Zoom;
-//            });
-//        }
-//        private void KhoiTaoTimerTuDongAnMenu()
-//        {
-//            if (timerTuDongAnMenu != null) return;
-//            timerTuDongAnMenu = new System.Windows.Forms.Timer
-//            {
-//                Interval = 3000
-//            };
-//            timerTuDongAnMenu.Tick += TimerTuDongAnMenu_Tick;
-//        }
-//        private void DangKySuKienTuDongAnMenu()
-//        {
-//            this.MouseMove -= Form_MouseMove;
-//            this.KeyDown -= Form_KeyDown;
-//            PanelContainer.MouseMove -= PanelContainer_MouseMove;
-//            this.MouseMove += Form_MouseMove;
-//            this.KeyDown += Form_KeyDown;
-//            PanelContainer.MouseMove += PanelContainer_MouseMove;
-//        }
-//        private void Form_MouseMove(object? sender, MouseEventArgs e)
-//        {
-//            ResetTuDongAnMenu();
-//        }
-//        private void Form_KeyDown(object? sender, KeyEventArgs e)
-//        {
-//            ResetTuDongAnMenu();
-//        }
-//        private void PanelContainer_MouseMove(object? sender, MouseEventArgs e)
-//        {
-//            ResetTuDongAnMenu();
-//        }
-//        private void InitToolTips_GioiThieuVaMenu()
-//        {
-//            var toolTip_GT = new System.Windows.Forms.ToolTip
-//            {
-//                IsBalloon = true,
-//                ToolTipTitle = Module_HeThong.Goi_Y_Thao_Tac,
-//                ToolTipIcon = ToolTipIcon.Info,
-//                // UX: nhẹ – nhanh – không gây phiền
-//                InitialDelay = 200,
-//                AutoPopDelay = 1500,
-//                ReshowDelay = 100,
-//                ShowAlways = true
-//            };
-//            var tips = new Dictionary<System.Windows.Forms.Control, string>
-//    {
-//        { pictureBox3, "Xem giới thiệu về chứng thư số và chữ ký số" },
-//        { kryptonButton1_MoMenuPhanMem, "Mở menu chức năng của phần mềm" }
-//    };
-//            foreach (var tip in tips)
-//            {
-//                if (tip.Key != null)
-//                    toolTip_GT.SetToolTip(tip.Key, tip.Value);
-//            }
-//        }
-//        private void TimerTuDongAnMenu_Tick(object? sender, EventArgs e)
-//        {
-//            if (_isClosing) return;
-//            timerTuDongAnMenu?.Stop();
-//            if (sidebarExpanded && PanelLeft.IsHandleCreated)
-//                AnMenu();
-//        }
-//        private long _lastResetAnMenuTick;
-//        private void ResetTuDongAnMenu()
-//        {
-//            if (!checkBox1_TuDongAnMenu.Checked) return;
-//            if (timerTuDongAnMenu == null) return;
-//            // MouseMove bắn hàng trăm lần/giây: không Stop/Start timer (SetTimer/KillTimer) mỗi lần
-//            long now = Environment.TickCount64;
-//            if (timerTuDongAnMenu.Enabled && now - _lastResetAnMenuTick < 300) return;
-//            _lastResetAnMenuTick = now;
-//            timerTuDongAnMenu.Stop();
-//            timerTuDongAnMenu.Start();
-//        }
-//        private void AnMenu()
-//        {
-//            DoiRongMenu(sidebarMinWidth);
-//            sidebarExpanded = false;
-//            kryptonButton1_MoMenuPhanMem.Text = "Hiện menu";
-//            // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi ẩn menu
-//            CapNhatMuiTenGiaoDien();
-//        }
-//        private void EnableDoubleBuffering(Control ctrl)
-//        {
-//            if (!ctrl.IsHandleCreated)
-//                ctrl.CreateControl();
-//            typeof(Control).GetProperty("DoubleBuffered",
-//                System.Reflection.BindingFlags.NonPublic |
-//                System.Reflection.BindingFlags.Instance)
-//                ?.SetValue(ctrl, true);
-//        }
-//        private readonly ConcurrentDictionary<Type, Form> _forms = new();
-//        public void OpenChildForm<T>(string title = "") where T : Form, new()
-//        {
-//            if (_isClosing || IsDisposed) return;
-//            if (Interlocked.Exchange(ref _switching, 1) == 1)
-//                return; // chống spam click
-//            try
-//            {
-//                if (InvokeRequired)
-//                {
-//                    BeginInvoke(new Action(() => OpenChildForm<T>(title)));
-//                    return;
-//                }
-//                var type = typeof(T);
-//                if (_currentChild != null &&
-//     !_currentChild.IsDisposed &&
-//     _currentChild.GetType() == type)
-//                {
-//                    return;
-//                }
-//                if (!_forms.TryGetValue(type, out var form) || form.IsDisposed)
-//                    _forms[type] = form = new T();
-//                var formCu = _currentChild;
-//                PanelContainer.SuspendLayout();
-//                TamDungVe(PanelContainer);   // chặn vẽ dần: layout form con xong mới vẽ 1 lần duy nhất
-//                try
-//                {
-//                    if (form.TopLevel) form.TopLevel = false;
-//                    if (form.FormBorderStyle != FormBorderStyle.None) form.FormBorderStyle = FormBorderStyle.None;
-//                    if (form.Dock != DockStyle.Fill) form.Dock = DockStyle.Fill;
-//                    if (!PanelContainer.Controls.Contains(form))
-//                        PanelContainer.Controls.Add(form);
-//                    form.BringToFront();   // đưa lên trên TRƯỚC khi Show: tránh layout/vẽ 2 lần như trước (Show rồi mới BringToFront)
-//                    form.Show();
-//                    formCu?.Hide();        // phủ form mới rồi mới ẩn form cũ -> không bị chớp nền
-//                    _currentChild = form;
-//                }
-//                finally
-//                {
-//                    PanelContainer.ResumeLayout(true);
-//                    ChoPhepVe(PanelContainer);   // LUÔN bật lại vẽ, kể cả khi lỗi
-//                }
-//                if (!string.IsNullOrWhiteSpace(title))
-//                    Label1.Text = title;
-//            }
-//            finally
-//            {
-//                Interlocked.Exchange(ref _switching, 0);
-//            }
-//        }
-//        private void MoMenuPhanMem_Click(object? sender, EventArgs e)
-//        {
-//            ResetTuDongAnMenu();
-//            if (sidebarExpanded)
-//            {
-//                AnMenu();
-//            }
-//            else
-//            {
-//                DoiRongMenu(sidebarWidth);
-//                sidebarExpanded = true;
-//                kryptonButton1_MoMenuPhanMem.Text = "Ẩn menu";
-//                // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi hiện menu
-//                CapNhatMuiTenGiaoDien();
-//            }
-//        }
-//        // 1. Thêm từ khóa 'async' vào chữ ký của sự kiện
-//        private async void Btn_Trangchu_Click(object? sender, EventArgs e)
-//        {
-//            DongToanBoHuongDanSuDung(); //
-//            if (!AllowSwitch()) return;
-//            //ClosePdfIfOpen(); // 🔹 add ở đây
-//            // Gọi hàm đổi màu và truyền nút hiện tại vào
-//            HighlightNavButton((KryptonButton)sender);
-//            // BẮT ĐẦU CODE GỐC
-//            // 🔹 Nếu Form31 đang mở, giải phóng PDF trước
-//            //if (_currentChild is Form32_HuongDanPDF pdfForm)
-//            //{
-//            //    pdfForm.DisposePdf();   // giải phóng file PDF
-//            //    pdfForm.Hide();         // ẩn form
-//            //    _currentChild = null;   // clear current child
-//            //}
-//            int namHienTai = Module_HeThong.LayNamHeThong();
-//            OpenChildForm<Form4_TrangDauTien>(
-//                $"PHẦN MỀM THI ĐUA NĂM {namHienTai}");
-//            // 🔹 Load lại dữ liệu (ĐÃ NÂNG CẤP CHUẨN ASYNC)
-//            if (_forms.TryGetValue(typeof(Form4_TrangDauTien), out var f))
-//            {
-//                if (f is Form4_TrangDauTien frm)
-//                {
-//                    try
-//                    {
-//                        // Bỏ qua nếu Form4 đang reload (VisibleChanged vừa kích hoạt) hoặc vừa reload xong < 5 giây:
-//                        // tránh chạy full reload 2 lần liên tiếp mỗi lần bấm Trang chủ.
-//                        if (!frm.DangReload && (DateTime.UtcNow - frm.ThoiDiemReloadCuoiUtc).TotalSeconds >= 5)
-//                            await frm.ReloadDuLieuAsync();
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        // 3. Bắt buộc phải có try-catch trong async void để chống Crash toàn hệ thống
-//                        Debug.WriteLine("Lỗi khi gọi ReloadDuLieuAsync từ Form2: " + ex.Message);
-//                    }
-//                }
-//            }
-//        }
-//        private void kryptonButton1_CaiDatPhanMem_Click(object? sender, EventArgs e)
-//        {
-//            DongToanBoHuongDanSuDung(); //
-//            if (!AllowSwitch()) return;
-//            //ClosePdfIfOpen(); // 🔹 add ở đây
-//            // Gọi hàm đổi màu và truyền nút hiện tại vào
-//            HighlightNavButton((KryptonButton)sender);
-//            OpenChildForm<Form12>("Trang Cài đặt");
-//        }
-//        private void Label2_Click(object? sender, EventArgs e)
-//        {
-//            try
-//            {
-//                Form39_ThongTinNguoiDung form =
-//                    Form39_ThongTinNguoiDung.GetInstance();
-//                if (form.WindowState == FormWindowState.Minimized)
-//                {
-//                    form.WindowState = FormWindowState.Normal;
-//                }
-//                if (!form.Visible)
-//                {
-//                    form.Show(this);
-//                }
-//                form.BringToFront();
-//                form.Activate();
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine($"[Form2] Lỗi mở Form39: {ex}");
-//                MessageBox.Show(
-//                    "Không thể mở thông tin người dùng.\n\n" +
-//                    ex.Message,
-//                    "UI Error",
-//                    MessageBoxButtons.OK,
-//                    MessageBoxIcon.Warning);
-//            }
-//        }
-//        private bool _tuDongAnMenu;
-//        private void checkBox1_TuDongAnMenu_CheckedChanged(
-//    object sender,
-//    EventArgs e)
-//        {
-//            if (!isLoaded)
-//                return;
-//            // lưu RAM
-//            AppRuntime.TuDongAnMenu =
-//                checkBox1_TuDongAnMenu.Checked;
-//            if (AppRuntime.TuDongAnMenu)
-//            {
-//                ResetTuDongAnMenu();
-//            }
-//            else
-//            {
-//                timerTuDongAnMenu?.Stop();
-//            }
-//        }
-//        private async void kryptonButton_ThongKe_Click(object? sender, EventArgs e)
-//        {
-//            DongToanBoHuongDanSuDung();
-//            if (!AllowSwitch())
-//                return;
-//            HighlightNavButton(kryptonButton1_ThongKe);
-//            if (_namHienTaiCache == -1)
-//                _namHienTaiCache = Module_HeThong.LayNamHeThong();
-//            string tieuDeForm = $"Trang Quản lý kết quả thi đua năm {_namHienTaiCache}";
-//            try
-//            {
-//                OpenChildForm<Form53_QuanLyKetQuaThiDua>(tieuDeForm);
-//                if (_currentChild is Form53_QuanLyKetQuaThiDua frm && !frm.DaLoadDuLieu)
-//                {
-//                    await frm.ReloadDuLieu();
-//                    if (Application.OpenForms
-//                        .OfType<Form15_ThongKeThiDua>()
-//                        .FirstOrDefault() is Form15_ThongKeThiDua frm15 &&
-//                        !frm15.IsDisposed)
-//                    {
-//                        await frm15.LamMoiDuLieuAsync();
-//                    }
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                MessageBox.Show(
-//                    "Lỗi khởi tạo trang Quản lý Thi đua: " + ex.Message,
-//                    "Lỗi",
-//                    MessageBoxButtons.OK,
-//                    MessageBoxIcon.Error);
-//            }
-//        }
-//        private async void Btn_XuLyData_Click(object? sender, EventArgs e)
-//        {
-//            DongToanBoHuongDanSuDung();
-//            if (!AllowSwitch()) return;
-//            HighlightNavButton((KryptonButton)sender);
-//            OpenChildForm<Form6_XuLyData>("Trang phân loại thi đua");
-//            if (_currentChild is Form6_XuLyData frm)
-//            {
-//                // 🌟 CHUẨN KỸ SƯ: Chỉ load nếu chưa từng load, và BẮT BUỘC ĐẨY XUỐNG LUỒNG NGẦM
-//                if (!frm.DaLoadDuLieu)
-//                {
-//                    try
-//                    {
-//                        await Task.Run(() => frm.ReloadDuLieu());
-//                        frm.DaLoadDuLieu = true; // Chốt cờ, các lần click tab sau sẽ mượt như lật trang sách
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        Debug.WriteLine("Lỗi load Form6: " + ex.Message);
-//                    }
-//                }
-//            }
-//        }
-//        private async void kryptonButton_NhatKyPhanMem_Click(object? sender, EventArgs e)
-//        {
-//            DongToanBoHuongDanSuDung();
-//            if (!AllowSwitch()) return;
-//            HighlightNavButton(kryptonButton1_NhatKyPhanMem);
-//            OpenChildForm<Form10_NhatKy>("Trang Nhật ký phần mềm");
-//            if (_currentChild is Form10_NhatKy frm)
-//            {
-//                // Form10 TỰ nạp dữ liệu (đã nạp sẵn lúc khởi động; chưa kịp thì nạp khi hiện) và tự nạp thêm dòng mới mỗi lần hiện lại.
-//                // Bản cũ ở đây gọi ReloadDuLieuAsync lần nữa, trùng với lần nạp của Form10_Shown => nạp 2-3 lần mỗi lần bấm.
-//                try
-//                {
-//                    await frm.DamBaoDaNapAsync();
-//                }
-//                catch (Exception ex)
-//                {
-//                    Debug.WriteLine("Lỗi load Form10: " + ex.Message);
-//                }
-//            }
-//            Module_NhatKy.GhiNhatKy(SessionInfo.TenTaiKhoan, "Mở trang nhật ký phần mềm", "Người dùng mở form nhật ký từ Trang chủ");
-//        }
-//        private void kryptonButton_ThoatPhanMem_Click(object? sender, EventArgs e)
-//        {
-//            this.Close(); // Form cha đóng → app tự thoát
-//        }
-//        private void EnsureSuKienThoatTonTai()
-//        {
-//            try
-//            {
-//                using var cn = new Microsoft.Data.Sqlite.SqliteConnection(
-//                    $"Data Source={_csdl2Path}");
-//                cn.Open();
-//                using var cmdCreate = cn.CreateCommand();
-//                cmdCreate.CommandText = @"
-//        CREATE TABLE IF NOT EXISTS SuKien_ThoatPhanMem (
-//            ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-//            SuKien_DuọcChon TEXT
-//        );";
-//                cmdCreate.ExecuteNonQuery();
-//                using var cmdCheck = cn.CreateCommand();
-//                cmdCheck.CommandText =
-//                    "SELECT COUNT(*) FROM SuKien_ThoatPhanMem WHERE ID = 1";
-//                long count = (long)cmdCheck.ExecuteScalar();
-//                if (count == 0)
-//                {
-//                    using var cmdInsert = cn.CreateCommand();
-//                    string maHoa = Module_BaoMatAES.MaHoa("Thoát ngay");
-//                    cmdInsert.CommandText =
-//                        "INSERT INTO SuKien_ThoatPhanMem (SuKien_DuọcChon) VALUES (@v)";
-//                    cmdInsert.Parameters.AddWithValue("@v", maHoa);
-//                    cmdInsert.ExecuteNonQuery();
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine($"[EnsureSuKienThoatTonTai] {ex.Message}");
-//            }
-//        }
-//        private void Form2_FormClosing(object? sender, FormClosingEventArgs e)
-//        {
-//            DongToanBoHuongDanSuDung(); //
-//            // Nếu đang trong tiến trình đóng rồi thì bỏ qua
-//            if (_isClosing) return;
-//            try
-//            {
-//                string suKien = LoadSuKienThoat();
-//                // TRƯỜNG HỢP 1: QUAY VỀ FORM LOGIN
-//                if (suKien == "Trở về form đăng nhập")
-//                {
-//                    e.Cancel = true; // Chặn sự kiện đóng Form2 hiện tại
-//                    this.Hide();
-//                    var login = new Form1
-//                    {
-//                        StartPosition = FormStartPosition.CenterScreen
-//                    };
-//                    login.FormClosed += (s, args) =>
-//                    {
-//                        Environment.Exit(0); // App tắt hoàn toàn nếu tắt Login
-//                    };
-//                    login.Show();
-//                    return;
-//                }
-//                // TRƯỜNG HỢP 2: THOÁT HOÀN TOÀN HỆ THỐNG
-//                _isClosing = true;
-//                // 1. Dọn dẹp Timer
-//                if (timerTuDongAnMenu != null)
-//                {
-//                    timerTuDongAnMenu.Stop();
-//                    timerTuDongAnMenu.Dispose();
-//                }
-//                // 👇 Bổ sung dọn dẹp Timer Hình Nền
-//                if (_timerHinhNen != null)
-//                {
-//                    _timerHinhNen.Stop();
-//                    _timerHinhNen.Dispose();
-//                }
-//                // 2. Dọn dẹp Form con đang hiển thị
-//                if (_currentChild != null && !_currentChild.IsDisposed)
-//                {
-//                    _currentChild.Dispose();
-//                    _currentChild = null;
-//                }
-//                // 3. 🔥 CHUẨN KỸ SƯ: Giải phóng triệt để UI Handles trong Cache
-//                foreach (var form in _forms.Values)
-//                {
-//                    if (form != null && !form.IsDisposed)
-//                    {
-//                        form.Dispose();
-//                    }
-//                }
-//                _forms.Clear();
-//                // 4. Giải phóng đối tượng đa luồng (Tránh leak Semaphore)
-//                _huongDanLock?.Dispose();
-//                // 6. Đóng tiến trình an toàn và trả mã 0 (Thành công) cho OS
-//                Environment.Exit(0);
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine($"Lỗi nghiêm trọng khi đóng Form: {ex}");
-//                // Trả mã 1 để báo cho Hệ điều hành biết là App thoát do bị lỗi
-//                Environment.Exit(1);
-//            }
-//        }
-//        private string LoadSuKienThoat()
-//        {
-//            try
-//            {
-//                using var cn = new Microsoft.Data.Sqlite.SqliteConnection(
-//                    $"Data Source={_csdl2Path}");
-//                cn.Open();
-//                using var cmd = cn.CreateCommand();
-//                cmd.CommandText =
-//                    "SELECT SuKien_DuọcChon FROM SuKien_ThoatPhanMem WHERE ID = 1";
-//                var result = cmd.ExecuteScalar();
-//                if (result != null && !string.IsNullOrWhiteSpace(result.ToString()))
-//                {
-//                    return Module_BaoMatAES.GiaiMa(result.ToString());
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine(ex);
-//            }
-//            return "Thoát ngay"; // fallback an toàn
-//        }
-//        private void PictureBox1_DoubleClick(object? sender, EventArgs e)
-//        {
-//            // CHỈ CHO PHÉP MỞ 1 LẦN
-//            if (_daMoWelcome)
-//                return;
-//            try
-//            {
-//                _daMoWelcome = true; // Đánh dấu trước để chống double-click liên tiếp
-//                using (var frm = new FormWelcome())
-//                {
-//                    frm.StartPosition = FormStartPosition.CenterScreen;
-//                    frm.ShowDialog(this);
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                HienThiFormAo_Loi(
-//                    "LỖI KHỞI ĐỘNG MÀN HÌNH CHÀO",
-//                    $"Hệ thống không thể mở màn hình chào.\nChi tiết kỹ thuật:\n{ex.Message}");
-//            }
-//        }
-//        private int _isProcessing = 0; // Thêm biến này vào Form2_FormCha
-//        private void pictureBox3_Click(object? sender, EventArgs e)
-//        {
-//            // Kiểm tra nhanh: Nếu đang xử lý hoặc đã mở rồi thì thoát
-//            if (Interlocked.CompareExchange(ref _isProcessing, 1, 0) != 0)
-//                return;
-//            if (_daMoThongTinChungThu)
-//            {
-//                Interlocked.Exchange(ref _isProcessing, 0);
-//                return;
-//            }
-//            try
-//            {
-//                Module_DatabaseBackup.HienThiThongTinChungThu();
-//                _daMoThongTinChungThu = true;
-//            }
-//            catch (Exception ex)
-//            {
-//                // SỬA TẠI ĐÂY: Truyền thêm tham số kích thước new Size(840, 640) cho form thông báo lỗi
-//                Module_DatabaseBackup.HienThiFormAoChung(
-//                    "LỖI HỆ THỐNG",
-//                    $"Hệ thống không thể khởi chạy:\n{ex.Message}",
-//                    MessageBoxIcon.Error,
-//                    new Size(840, 640));
-//            }
-//            finally
-//            {
-//                // Reset lại sau khi xong
-//                Interlocked.Exchange(ref _isProcessing, 0);
-//            }
-//        }
-//        private void HienThiFormAo_Loi(string tieuDe, string noiDungLoi)
-//        {
-//            // Tiêu chuẩn hóa ký tự xuống dòng để đảm bảo không bị lỗi font trên TextBox
-//            string noiDungChuan = noiDungLoi.Replace("\n", Environment.NewLine);
-//            using (var formAo = new Krypton.Toolkit.KryptonForm())
-//            {
-//                formAo.Text = "Hệ thống ghi nhận sự cố";
-//                formAo.Size = new System.Drawing.Size(550, 320); // Kích thước rộng hơn để chứa Icon
-//                formAo.StartPosition = FormStartPosition.CenterParent;
-//                formAo.FormBorderStyle = FormBorderStyle.FixedDialog;
-//                formAo.MaximizeBox = false;
-//                formAo.MinimizeBox = false;
-//                formAo.ShowIcon = false;
-//                // --- 1. PANEL TIÊU ĐỀ (Đỏ Thẫm) ---
-//                var panelTop = new Krypton.Toolkit.KryptonPanel
-//                {
-//                    Dock = DockStyle.Top,
-//                    Height = 65,
-//                    Padding = new Padding(25, 20, 20, 5)
-//                };
-//                panelTop.StateCommon.Color1 = System.Drawing.Color.White;
-//                var lblTitle = new Krypton.Toolkit.KryptonLabel
-//                {
-//                    Text = tieuDe.ToUpper(),
-//                    Dock = DockStyle.Fill,
-//                    AutoSize = false
-//                };
-//                // Sử dụng màu Đỏ Thẫm (Crimson Red) để báo hiệu sự cố chuyên nghiệp
-//                lblTitle.StateCommon.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 12F, System.Drawing.FontStyle.Bold);
-//                lblTitle.StateCommon.ShortText.Color1 = System.Drawing.Color.FromArgb(198, 40, 40);
-//                // --- 2. ĐƯỜNG KẺ NGANG (Separator) ---
-//                var separator = new System.Windows.Forms.Label
-//                {
-//                    Height = 1,
-//                    Dock = DockStyle.Top,
-//                    BackColor = System.Drawing.Color.FromArgb(240, 200, 200), // Kẻ ngang màu hồng nhạt
-//                    Margin = new Padding(0, 5, 0, 10)
-//                };
-//                // --- 3. PANEL NỘI DUNG CHÍNH (Chứa Icon và Text) ---
-//                var panelContent = new Krypton.Toolkit.KryptonPanel
-//                {
-//                    Dock = DockStyle.Fill,
-//                    Padding = new Padding(20, 15, 25, 20)
-//                };
-//                panelContent.StateCommon.Color1 = System.Drawing.Color.White;
-//                // Thêm Icon Lỗi mặc định của Windows
-//                var picIcon = new PictureBox
-//                {
-//                    Image = System.Drawing.SystemIcons.Error.ToBitmap(),
-//                    SizeMode = PictureBoxSizeMode.CenterImage,
-//                    Size = new System.Drawing.Size(50, 50),
-//                    Location = new System.Drawing.Point(20, 15) // Neo bên trái
-//                };
-//                var txtContent = new Krypton.Toolkit.KryptonTextBox
-//                {
-//                    Text = noiDungChuan,
-//                    ReadOnly = true,
-//                    Multiline = true,
-//                    WordWrap = true,
-//                    ScrollBars = ScrollBars.Vertical,
-//                    // Neo TextBox bên phải Icon
-//                    Location = new System.Drawing.Point(80, 15),
-//                    Width = formAo.Width - 110,
-//                    Height = panelContent.Height - 35,
-//                    Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
-//                };
-//                // 🔴 ĐIỂM SÁNG: TextBox Tàng Hình! Giống y hệt Label nhưng có thể bôi đen mã lỗi
-//                txtContent.StateCommon.Back.Color1 = System.Drawing.Color.White;
-//                txtContent.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.None;
-//                txtContent.StateCommon.Content.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 10.5F, System.Drawing.FontStyle.Regular);
-//                txtContent.StateCommon.Content.Color1 = System.Drawing.Color.FromArgb(40, 40, 40);
-//                txtContent.StateCommon.Content.Padding = new Padding(0);
-//                // --- 4. PANEL NÚT BẤM ---
-//                var panelBottom = new Panel
-//                {
-//                    Dock = DockStyle.Bottom,
-//                    Height = 60,
-//                    BackColor = System.Drawing.Color.WhiteSmoke
-//                };
-//                // Nút Sao chép thông minh
-//                var btnCopy = new Krypton.Toolkit.KryptonButton
-//                {
-//                    Text = "Sao chép chi tiết lỗi",
-//                    Width = 160,
-//                    Height = 35
-//                };
-//                btnCopy.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
-//                btnCopy.Click += (s, ev) =>
-//                {
-//                    try
-//                    {
-//                        Clipboard.SetText(noiDungChuan);
-//                        MessageBox.Show(formAo, "Đã sao chép mã lỗi.\nVui lòng gửi nội dung này cho bộ phận kỹ thuật (Admin: TrungKien) để được hỗ trợ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-//                    }
-//                    catch { }
-//                };
-//                var btnClose = new Krypton.Toolkit.KryptonButton
-//                {
-//                    Text = "Đóng",
-//                    Width = 100,
-//                    Height = 35,
-//                    DialogResult = DialogResult.OK
-//                };
-//                btnClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font(Module_HeThong.TenFontHeThong, 9.5F, System.Drawing.FontStyle.Bold);
-//                // Căn giữa cụm 2 nút bấm
-//                int totalWidth = btnCopy.Width + 15 + btnClose.Width;
-//                int startX = (formAo.Width - totalWidth) / 2;
-//                btnCopy.Location = new System.Drawing.Point(startX, 12);
-//                btnClose.Location = new System.Drawing.Point(startX + btnCopy.Width + 15, 12);
-//                panelBottom.Controls.Add(btnCopy);
-//                panelBottom.Controls.Add(btnClose);
-//                // --- 5. RÁP LAYER ---
-//                panelContent.Controls.Add(picIcon);
-//                panelContent.Controls.Add(txtContent);
-//                panelContent.Controls.Add(separator);
-//                panelTop.Controls.Add(lblTitle);
-//                txtContent.BringToFront();
-//                picIcon.BringToFront();
-//                separator.SendToBack();
-//                formAo.Controls.Add(panelContent);
-//                formAo.Controls.Add(panelTop);
-//                formAo.Controls.Add(panelBottom);
-//                formAo.AcceptButton = btnClose;
-//                formAo.CancelButton = btnClose;
-//                formAo.Shown += (s, ev) => btnClose.Focus();
-//                // Ghi Log ngầm hệ thống
-//                System.Diagnostics.Debug.WriteLine($"[ERR_UI] {tieuDe} - {noiDungChuan}");
-//                formAo.ShowDialog(this);
-//            }
-//        }
-//        public void CapNhatGiaoDienTheoPhienBan()
-//        {
-//            UIHelper.SafeInvoke(this, () =>
-//            {
-//                // 1. Kiểm tra lại phiên bản mới nhất
-//                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-//                bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-//                // 2. Ẩn/Hiện nút Khen thưởng
-//                if (kryptonButton1_KhenThuong != null)
-//                {
-//                    kryptonButton1_KhenThuong.Visible = !laTanBinh;
-//                }
-//                // 3. QUAN TRỌNG: Đóng các Form dữ liệu cũ đang mở để tránh ghi nhầm dữ liệu
-//                // Xóa chúng khỏi bộ nhớ Cache (_forms) để khi click lại Menu, chúng sẽ tự tạo mới 100%
-//                var danhSachFormCanDong = new[] {
-//                    typeof(Form6_XuLyData),
-//                    typeof(Form15_ThongKeThiDua),
-//                    typeof(Form34_ThongKeKhenThuong)
-//                };
-//                bool formHienTaiBiDong = false;
-//                foreach (var type in danhSachFormCanDong)
-//                {
-//                    if (_forms.TryGetValue(type, out var formToClose))
-//                    {
-//                        // Kiểm tra xem form sắp bị tiêu diệt có trùng với form đang hiển thị không
-//                        if (_currentChild == formToClose)
-//                        {
-//                            formHienTaiBiDong = true;
-//                        }
-//                        formToClose?.Dispose(); // Tiêu diệt Form cũ
-//                        _forms.TryRemove(type, out _);    // Xóa khỏi bộ nhớ đệm
-//                    }
-//                }
-//                // 4. CHỈ chuyển về Trang chủ (Form 4) nếu cái Form đang hiển thị vừa bị tiêu diệt.
-//                // Vì bạn đang đứng ở Form 12 (Cài đặt) -> Form 12 không nằm trong danh sách tiêu diệt 
-//                // -> formHienTaiBiDong = false -> Sẽ KHÔNG bị nhảy trang nữa!
-//                if (formHienTaiBiDong)
-//                {
-//                    Btn_Trangchu_Click(kryptonButton1_Trangchu, EventArgs.Empty);
-//                }
-//            });
-//        }
-//        private async void kryptonButton1_KhenThuong_Click(object? sender, EventArgs e)
-//        {
-//            DongToanBoHuongDanSuDung();
-//            if (!AllowSwitch()) return;
-//            // Gọi hàm đổi màu và truyền nút hiện tại vào
-//            HighlightNavButton((KryptonButton)sender);
-//            // BẮT ĐẦU CODE ĐÃ ĐỔI SANG Form52_QuanLyKhenThuong
-//            // Tên Form: Quản lý khen thưởng CBCS + năm hệ thống
-//            string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
-//                                Module_HeThong.LayNamHeThong();
-//            OpenChildForm<Form52_QuanLyKhenThuong>(tieuDeForm);
-//            if (_currentChild is Form52_QuanLyKhenThuong frm)
-//            {
-//                // Nếu trước đó tải ngầm chưa xong hoặc chưa tải thì mới await
-//                if (!frm.DaLoadDuLieu)
-//                {
-//                    await frm.ReloadDuLieu();
-//                }
-//            }
-//        }
-//        private void kryptonButton1_ThoatHeThong_Click(object? sender, EventArgs e)
-//        {
-//            DongToanBoHuongDanSuDung(); //
-//            Close();
-//        }
-//        private KryptonButton? _currentButton = null;
-//        private void HighlightNavButton(KryptonButton? clickedButton)
-//        {
-//            // 1. Guard Clause: Kiểm tra an toàn, ngăn chặn lỗi Null Reference hoặc control đã bị hủy
-//            if (clickedButton == null || clickedButton.IsDisposed) return;
-//            // 2. Tối ưu UX/Performance: Nếu click lại chính nút đang được chọn -> Bỏ qua (không làm gì cả)
-//            if (_currentButton == clickedButton) return;
-//            // 3. Tắt màu nút cũ (nếu có và chưa bị hủy)
-//            if (_currentButton != null && !_currentButton.IsDisposed)
-//            {
-//                ResetKryptonButton(_currentButton);
-//            }
-//            // 4. Cập nhật trạng thái nút hiện tại thành nút vừa click
-//            _currentButton = clickedButton;
-//            // 5. Gọi hàm tô màu cho nút mới
-//            ApplyHighlightColor(_currentButton);
-//        }
-//        private async void kryptonButton1_HuongDan_Click(object? sender, EventArgs e)
-//        {
-//            Label1.Text = "Đang chuẩn bị tài liệu hướng dẫn...";
-//            try
-//            {
-//                string cheDo = await Task.Run(() => Module_HuongDanSuDung.LayCheDoXemHuongDan());   // đọc CSDL ở luồng nền
-//                // PDF MODE
-//                if (cheDo == "Chế độ pdf")
-//                {
-//                    if (!await _huongDanLock.WaitAsync(0))
-//                    {
-//                        Module_NhatKy.GhiNhatKy(
-//                            taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-//                            hanhDong: "Mở Hướng dẫn (PDF) thất bại",
-//                            ghiChu: "Hệ thống đang bận xử lý tài liệu khác."
-//                        );
-//                        MessageBox.Show("Tài liệu đang được xử lý, vui lòng đợi.", "Thông báo");
-//                        return;
-//                    }
-//                    try
-//                    {
-//                        string pdfPath = await Task.Run(() => Module_HuongDanSuDung.TimFileHuongDanPdf());   // tìm/chuẩn bị tệp ở luồng nền
-//                        if (string.IsNullOrWhiteSpace(pdfPath))
-//                        {
-//                            Module_NhatKy.GhiNhatKy(
-//                                taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-//                                hanhDong: "Mở Hướng dẫn (PDF) thất bại",
-//                                ghiChu: "Lỗi: Không tìm thấy tệp PDF hướng dẫn trong cơ sở dữ liệu."
-//                            );
-//                            MessageBox.Show("Không tìm thấy tài liệu PDF.", "Thông báo");
-//                            return;
-//                        }
-//                        var existingPdf = PanelContainer.Controls.OfType<Form32_HuongDanPDF>().FirstOrDefault();
-//                        // REUSE EXISTING FORM
-//                        if (existingPdf != null && !existingPdf.IsDisposed)
-//                        {
-//                            var formTruoc = _currentChild;
-//                            TamDungVe(PanelContainer);
-//                            try
-//                            {
-//                                existingPdf.Show();
-//                                existingPdf.BringToFront();
-//                                if (formTruoc != null && !ReferenceEquals(formTruoc, existingPdf)) formTruoc.Hide();
-//                                _currentChild = existingPdf;
-//                            }
-//                            finally { ChoPhepVe(PanelContainer); }
-//                            HighlightNavButton(kryptonButton1_HuongDan);
-//                            await existingPdf.LoadPdfAsync(pdfPath);   // tệp nạp ở luồng nền; nếu đã nạp đúng tệp này thì tức thì
-//                            GhiNhatKyNen("Chuyển tab Hướng dẫn (PDF)", "Người dùng tái sử dụng form pdf đã mở.");
-//                            return;
-//                        }
-//                        // CREATE NEW FORM
-//                        Form32_HuongDanPDF pdf = new()
-//                        {
-//                            TopLevel = false,
-//                            FormBorderStyle = FormBorderStyle.None,
-//                            Dock = DockStyle.Fill,
-//                            Text = "Hướng dẫn sử dụng"
-//                        };
-//                        pdf.FormClosed += (s, ev) =>
-//                        {
-//                            if (PanelContainer.IsDisposed) return;
-//                            if (_currentChild == pdf) _currentChild = null;
-//                            var defaultForm = PanelContainer.Controls.OfType<Form4_TrangDauTien>().FirstOrDefault();
-//                            if (defaultForm != null && !defaultForm.IsDisposed)
-//                            {
-//                                defaultForm.Show();
-//                                defaultForm.BringToFront();
-//                                _currentChild = defaultForm;
-//                            }
-//                        };
-//                        var formTruoc2 = _currentChild;
-//                        TamDungVe(PanelContainer);
-//                        try
-//                        {
-//                            PanelContainer.Controls.Add(pdf);
-//                            pdf.Show();            // hiện form (kèm nhãn "Đang mở...") NGAY, rồi mới nạp tệp
-//                            pdf.BringToFront();
-//                            formTruoc2?.Hide();
-//                            _currentChild = pdf;
-//                        }
-//                        finally { ChoPhepVe(PanelContainer); }
-//                        HighlightNavButton(kryptonButton1_HuongDan);
-//                        await pdf.LoadPdfAsync(pdfPath);   // PdfDocument.Load chạy ở luồng nền -> UI không đứng
-//                        if (!pdf.IsDisposed)
-//                            GhiNhatKyNen("Mở Hướng dẫn (PDF) thành công", "Khởi tạo và mở tài liệu PDF thành công từ Form2.");
-//                    }
-//                    finally
-//                    {
-//                        _huongDanLock.Release();
-//                    }
-//                    return;
-//                }
-//                // WEB MODE
-//                bool opened = await Task.Run(() =>
-//                {
-//                    return Module_HuongDanSuDung.MoHuongDanBangWeb();
-//                });
-//                if (!opened)
-//                {
-//                    Module_NhatKy.GhiNhatKy(
-//                        taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-//                        hanhDong: "Mở Hướng dẫn (Web) thất bại",
-//                        ghiChu: "Không thể đồng bộ hoặc khởi chạy trình duyệt web."
-//                    );
-//                    MessageBox.Show("Không thể mở hướng dẫn web.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-//                }
-//                else
-//                {
-//                    Module_NhatKy.GhiNhatKy(
-//                        taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-//                        hanhDong: "Mở Hướng dẫn (Web) thành công",
-//                        ghiChu: "Hiển thị tài liệu bằng trình duyệt web thành công."
-//                    );
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Module_NhatKy.GhiNhatKy(
-//                    taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-//                    hanhDong: "Lỗi ngoại lệ: Mở Hướng dẫn sử dụng",
-//                    ghiChu: $"Lỗi: {ex.Message}"
-//                );
-//                MessageBox.Show(ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-//            }
-//            finally
-//            {
-//                Label1.Text = "Trang Hướng dẫn sử dụng Phần mềm Thi đua 2026";
-//            }
-//        }
-//        // Ghi nhật ký ở luồng nền: không để thao tác ghi CSDL chặn giao diện lúc mở hướng dẫn
-//        private static void GhiNhatKyNen(string hanhDong, string ghiChu)
-//        {
-//            string tk = Module_TaiKhoan.TenTaiKhoan_RAM;
-//            _ = Task.Run(() =>
-//            {
-//                try { Module_NhatKy.GhiNhatKy(taiKhoan: tk, hanhDong: hanhDong, ghiChu: ghiChu); }
-//                catch (Exception ex) { Debug.WriteLine("[GhiNhatKyNen] " + ex.Message); }
-//            });
-//        }
-//        public void CapNhatTieuDe(string text)
-//        {
-//            // Cập nhật text cho Label1
-//            Label1.Text = text;
-//        }
-//        private void DongToanBoHuongDanSuDung()
-//        {
-//            // 🌟 CHUẨN KỸ SƯ: Dừng ngay nếu form hiện tại KHÔNG PHẢI là Form Hướng Dẫn
-//            // Việc này giúp cắt bỏ hao phí quét Panel và gọi hàm rác ở các nút Tab khác
-//            if (!(_currentChild is Form32_HuongDanPDF)) return;
-//            try
-//            {
-//                Module_HuongDanSuDung.DongHuongDan();
-//                var pdf = PanelContainer.Controls.OfType<Form32_HuongDanPDF>().FirstOrDefault();
-//                if (pdf != null && !pdf.IsDisposed)
-//                {
-//                    pdf.Close();
-//                    pdf.Dispose();
-//                }
-//            }
-//            catch (Exception ex)
-//            {
-//                Debug.WriteLine("[FORM2 CLOSE ALL ERROR] " + ex.Message);
-//            }
-//        }
-//        private void ApplyHighlightColor(KryptonButton btn)
-//        {
-//            if (btn == null || btn.IsDisposed) return;
-//            // Mục đang chọn: viên trắng, chữ chàm đậm (xem Module_SidebarHienDai)
-//            Module_SidebarHienDai.DatTrangThai(btn, true);
-//        }
-//        private void ResetKryptonButton(KryptonButton btn)
-//        {
-//            if (btn == null || btn.IsDisposed) return;
-//            Module_SidebarHienDai.DatTrangThai(btn, false);
-//        }
-//        // ================= PRELOAD AN TOÀN (gọi từ Module_GiaoDienForm2Web, trên luồng UI) =================
-//        internal Task<bool>? TacVuPreloadDuLieu;
-//        private const bool NapTruocFormConTrangChu = true;  // đặt false nếu Form4 có đọc dữ liệu theo tài khoản ngay trong constructor
-//        private const bool NapTruocFormConDuLieu = true;     // tạo sẵn trang Dữ liệu (Form6) - trang nặng nhất
-//        private const bool NapTruocFormConCaiDat = true;     // tạo sẵn trang Cài đặt (Form12) - nhiều tab, nhiều control
-//        private const bool NapTruocFormConThongKe = true;    // tạo sẵn trang Thống kê (Form53 -> Form15)
-//        private const bool NapTruocFormConNhatKy = true;     // tạo sẵn trang Nhật ký (Form10)
-//        private const bool NapTruocVeThuGiaoDien = true;    // vẽ thử vào bitmap để "làm nóng" Krypton/font/ảnh
-//        internal async Task NapTruocGiaoDienAsync(Func<bool> huy)
-//        {
-//            bool Dung() => huy() || IsDisposed || Visible;
-//            if (Dung()) return;
-//            var sw = Stopwatch.StartNew();
-//            // Mỗi bước nặng chỉ chạy khi người dùng đã ngừng gõ/bấm một lúc (Module_NhuongUI) -> không còn
-//            // cảnh bấm Đăng nhập trúng đúng khối đang dựng form. Việc dài được chia lát ~8 ms.
-//            Task<bool> Nhuong() => Module_NhuongUI.ChoRanhAsync(Dung);
-//            // B1: tạo handle cửa sổ + toàn bộ control con (form vẫn ẩn, Form2_Load CHƯA chạy)
-//            if (!await Nhuong()) return;
-//            _ = Handle;
-//            if (!await Module_NhuongUI.TaoHandleTheoLatAsync(this, Dung)) return;
-//            Debug.WriteLine($"[Preload] handle Form2: {sw.ElapsedMilliseconds} ms");
-//            // B2: tạo sẵn trang chủ (Form4), cho vào cache _forms để OpenChildForm dùng lại
-//            Form? trangChu = null;
-//            if (NapTruocFormConTrangChu)
-//            {
-//                if (!await Nhuong()) return;
-//                try
-//                {
-//                    trangChu = await NapTruocFormConAsync<Form4_TrangDauTien>(Dung);
-//                    if (trangChu is Form4_TrangDauTien f4 && !Dung()) f4.NapTruocGiaoDien();
-//                }
-//                catch (Exception ex) { Debug.WriteLine("[Preload] Form4: " + ex.Message); }
-//            }
-//            Debug.WriteLine($"[Preload] Form4: {sw.ElapsedMilliseconds} ms");
-//            // B2b: tạo sẵn trang Dữ liệu (Form6) - cũng chưa Show nên Form6_Load chưa chạy
-//            if (NapTruocFormConDuLieu)
-//            {
-//                if (!await Nhuong()) return;
-//                try { await NapTruocFormConAsync<Form6_XuLyData>(Dung); }
-//                catch (Exception ex) { Debug.WriteLine("[Preload] Form6: " + ex.Message); }
-//            }
-//            Debug.WriteLine($"[Preload] Form6: {sw.ElapsedMilliseconds} ms");
-//            // B2d: tạo sẵn trang Thống kê: Form53 (form mẹ) rồi Form15 bên trong - chưa Show nên Load chưa chạy
-//            if (NapTruocFormConThongKe)
-//            {
-//                if (!await Nhuong()) return;
-//                try
-//                {
-//                    var trangThongKe = await NapTruocFormConAsync<Form53_QuanLyKetQuaThiDua>(Dung);
-//                    if (trangThongKe != null && !Dung())
-//                    {
-//                        if (!await Nhuong()) return;   // NapTruocGiaoDien dựng Form15 bên trong: thêm 1 nhịp nghỉ
-//                        trangThongKe.NapTruocGiaoDien();
-//                    }
-//                }
-//                catch (Exception ex) { Debug.WriteLine("[Preload] Form53/15: " + ex.Message); }
-//            }
-//            Debug.WriteLine($"[Preload] Form53/15: {sw.ElapsedMilliseconds} ms");
-//            // B2c: tạo sẵn trang Cài đặt (Form12) - chưa Show nên Form12_Load chưa chạy
-//            if (NapTruocFormConCaiDat)
-//            {
-//                if (!await Nhuong()) return;
-//                try { await NapTruocFormConAsync<Form12>(Dung); }
-//                catch (Exception ex) { Debug.WriteLine("[Preload] Form12: " + ex.Message); }
-//            }
-//            Debug.WriteLine($"[Preload] Form12: {sw.ElapsedMilliseconds} ms");
-//            // B2e: tạo sẵn trang Nhật ký (Form10) - chưa Show nên Form10_Load/Shown chưa chạy (chưa đọc CSDL nhật ký)
-//            if (NapTruocFormConNhatKy)
-//            {
-//                if (!await Nhuong()) return;
-//                try
-//                {
-//                    var trangNhatKy = await NapTruocFormConAsync<Form10_NhatKy>(Dung);
-//                    // Đọc CSDL nhật ký ở luồng nền ngay bây giờ (form còn ẩn) để lúc bấm mở là có dữ liệu sẵn trên lưới
-//                    if (trangNhatKy != null && !Dung()) _ = trangNhatKy.NapTruocDuLieuAsync();
-//                }
-//                catch (Exception ex) { Debug.WriteLine("[Preload] Form10: " + ex.Message); }
-//            }
-//            Debug.WriteLine($"[Preload] Form10: {sw.ElapsedMilliseconds} ms");
-//            // B3: vẽ thử (làm nóng GDI+/Krypton/font/ảnh). Chỉ cần Form2 + trang chủ (trang hiện đầu tiên);
-//            // các trang còn lại vẽ thử ở lần mở đầu chỉ tốn vài ms nên không cần ép vẽ bitmap lớn lúc này.
-//            if (NapTruocVeThuGiaoDien)
-//            {
-//                if (!await Nhuong()) return;
-//                VeThu(this);
-//                if (trangChu != null)
-//                {
-//                    if (!await Nhuong()) return;
-//                    VeThu(trangChu);
-//                }
-//            }
-//            Debug.WriteLine($"[Preload] vẽ thử: {sw.ElapsedMilliseconds} ms");
-//        }
-//        private async Task<T?> NapTruocFormConAsync<T>(Func<bool> dung) where T : Form, new()
-//        {
-//            var type = typeof(T);
-//            if (_forms.TryGetValue(type, out var da) && !da.IsDisposed) return (T)da;
-//            var f = new T();                 // khối không chia nhỏ được (InitializeComponent) - đã được chờ lúc rảnh
-//            _forms[type] = f;
-//            f.TopLevel = false;
-//            f.FormBorderStyle = FormBorderStyle.None;
-//            f.Dock = DockStyle.Fill;
-//            PanelContainer.Controls.Add(f);   // chưa Show() -> Load chưa chạy
-//            await Module_NhuongUI.TaoHandleTheoLatAsync(f, dung);
-//            return f;
-//        }
-//        private static void VeThu(Control c)
-//        {
-//            try
-//            {
-//                int w = Math.Max(1, c.Width), h = Math.Max(1, c.Height);
-//                using var bmp = new Bitmap(w, h);
-//                c.DrawToBitmap(bmp, new Rectangle(0, 0, w, h));
-//            }
-//            catch (Exception ex) { Debug.WriteLine("[Preload] VeThu: " + ex.Message); }
-//        }
-//        /// <summary>
-//        /// Gọi ngay trước khi hiện Form2 sau đăng nhập.
-//        /// Lần đầu: không cần làm gì (Form2_Load chạy lúc Show và đọc SessionInfo mới nhất).
-//        /// Đăng nhập lại (Form2 đã chạy Load): nạp lại thông tin người dùng và về trang chủ.
-//        /// </summary>
-//        public void ApDungPhienDangNhap()
-//        {
-//            if (!_loadExecuted || IsDisposed) return;
-//            int rongMenuTruoc = sidebarWidth;
-//            KhoiTaoDuLieuNguoiDung();
-//            if (!sidebarExpanded && rongMenuTruoc > 0) sidebarWidth = rongMenuTruoc; // tránh ghi đè bằng 0 khi menu đang ẩn
-//            Btn_Trangchu_Click(kryptonButton1_Trangchu, EventArgs.Empty);
-//        }
-//        // ================= TỐI ƯU HIỂN THỊ (chống chớp) =================
-//        // Lưu ý: KHÔNG dùng WS_EX_COMPOSITED / UserPaint cho form chứa Krypton + form con,
-//        // vì nó khiến cả cây control bị vẽ lại liên tục -> nhấp nháy, nhức mắt.
-//        private void ApplyPerformanceTuning()
-//        {
-//            DoubleBuffered = true;
-//            EnableDoubleBuffer(PanelLeft);
-//            EnableDoubleBuffer(PanelTop);
-//            EnableDoubleBuffer(PanelContainer);
-//            EnableDoubleBuffer(TableLayoutPanel1);
-//            EnableDoubleBuffer(TableLayoutPanel2);
-//        }
-//        private static void EnableDoubleBuffer(Control c)
-//        {
-//            typeof(Control).GetProperty("DoubleBuffered",
-//                BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(c, true);
-//        }
-//        /// <summary>Ẩn/hiện menu trái: gom thành 1 lần layout thay vì nhiều lần.</summary>
-//        private void DoiRongMenu(int rongMoi)
-//        {
-//            if (PanelLeft.Width == rongMoi) return;
-//            SuspendLayout();
-//            TamDungVe(PanelContainer);   // đổi bề rộng menu làm form con layout lại toàn bộ: chỉ vẽ 1 lần sau khi xong
-//            try { PanelLeft.Width = rongMoi; }
-//            finally { ResumeLayout(true); ChoPhepVe(PanelContainer); }
-//        }
-//    }
-//}
-//public static class UIHelper
-//{
-//    public static void SafeInvoke(Control ctrl, Action action)
-//    {
-//        if (ctrl == null) return;
-//        if (ctrl.IsDisposed) return;
-//        if (!ctrl.IsHandleCreated) return;
-//        try
-//        {
-//            if (ctrl.InvokeRequired)
-//                ctrl.BeginInvoke(action);
-//            else
-//                action();
-//        }
-//        catch
-//        {
-//        }
-//    }
-//    internal static class AppRuntime
-//    {
-//        // cache RAM
-//        public static bool TuDongAnMenu = false;
-//    }
-//}

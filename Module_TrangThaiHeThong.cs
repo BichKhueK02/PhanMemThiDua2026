@@ -1,29 +1,23 @@
 ﻿//Yêu mèo cam
 #nullable enable
-using System;
+using Microsoft.VisualBasic.Devices;
 using System.Diagnostics;
-using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.IO;
-using System.Linq;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Microsoft.VisualBasic.Devices;
-using Microsoft.Win32;
 namespace PhanMemThiDua2026
 {
     internal static class Module_TrangThaiHeThong
     {
-        private static readonly ToolTip _sharedToolTip = new ToolTip {
-                                                                        AutoPopDelay = 10000,
-                                                                        InitialDelay = 500,
-                                                                        ReshowDelay = 100,
-                                                                        ShowAlways = true
-                                                                    };
+        private static readonly ToolTip _sharedToolTip = new ToolTip
+        {
+            AutoPopDelay = 10000,
+            InitialDelay = 500,
+            ReshowDelay = 100,
+            ShowAlways = true
+        };
         private static string _cachedCpuName = string.Empty;
         private static readonly Color MauNen = Color.FromArgb(244, 247, 251);
         private static readonly Color MauThe = Color.White;
@@ -103,6 +97,44 @@ namespace PhanMemThiDua2026
             path.CloseFigure();
             return path;
         }
+        // Pha trộn màu a -> b theo tỷ lệ t (0..1), giữ nguyên độ trong suốt của a
+        private static Color PhaMau(Color a, Color b, float t)
+        {
+            t = Math.Clamp(t, 0f, 1f);
+            return Color.FromArgb(
+                a.A,
+                (int)Math.Round(a.R + (b.R - a.R) * t),
+                (int)Math.Round(a.G + (b.G - a.G) * t),
+                (int)Math.Round(a.B + (b.B - a.B) * t));
+        }
+        // Vẽ "thẻ" kiểu web: nền phẳng, bóng đổ mềm phía dưới, bo góc 14px, viền mảnh.
+        // Dùng chung cho 2 thẻ RAM và thẻ danh sách cấu hình (gọi trong Paint của thẻ).
+        private static void VeTheWeb(Graphics g, int w, int h)
+        {
+            if (w < 24 || h < 30) return;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            using (var nen = new SolidBrush(MauNen))
+                g.FillRectangle(nen, 0, 0, w, h);
+            var the = new Rectangle(3, 2, w - 7, h - 9);
+            for (int k = 3; k >= 1; k--)
+            {
+                var rs = new Rectangle(the.X - k, the.Y - k + 2, the.Width + 2 * k, the.Height + 2 * k);
+                using (var duongBong = GetRoundedRectanglePath(rs, 14 + k))
+                using (var bong = new SolidBrush(Color.FromArgb(12 - 2 * k, 15, 23, 42)))
+                    g.FillPath(bong, duongBong);
+            }
+            using (var duongThe = GetRoundedRectanglePath(the, 14))
+            using (var nenThe = new SolidBrush(MauThe))
+            using (var vien = new Pen(MauVien, 1f))
+            {
+                g.FillPath(nenThe, duongThe);
+                g.DrawPath(vien, duongThe);
+            }
+        }
+        // Ẩn thanh cuộn ngang của ListView (cột đã được co vừa khung nên không cần)
+        [DllImport("user32.dll")]
+        private static extern bool ShowScrollBar(IntPtr hWnd, int wBar, bool bShow);
+        private const int SB_HORZ = 0;
         public static string LayUUIDMayTinh()
         {
             try
@@ -126,32 +158,6 @@ namespace PhanMemThiDua2026
             {
                 return $"SYS-{Environment.MachineName}";
             }
-        }
-        public static void MoFormNhungVaoPanel(Form formHienTai)
-        {
-            if (formHienTai == null || formHienTai.IsDisposed)
-                return;
-            Control? container = formHienTai.Parent;
-            while (container != null &&
-                   container is not Panel &&
-                   container is not TabPage)
-            {
-                container = container.Parent;
-            }
-            if (container == null || container.IsDisposed)
-            {
-                Debug.WriteLine(
-                    "MoFormNhungVaoPanel: Không tìm thấy Panel hoặc TabPage cha.");
-                MessageBox.Show(
-                    formHienTai,
-                    "Không tìm thấy Panel hoặc TabPage để nhúng giao diện.\n" +
-                    "Nếu đã có Panel đích, hãy gọi NhungFormVaoTabPage(panel).",
-                    "Không thể hiển thị giao diện",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                return;
-            }
-            NhungFormVaoTabPage(container);
         }
         public static void NhungFormVaoTabPage(Control targetContainer)
         {
@@ -335,53 +341,71 @@ namespace PhanMemThiDua2026
         {
             public SmoothListView()
             {
+                // Chỉ bật DoubleBuffered (WinForms tự map sang LVS_EX_DOUBLEBUFFER).
+                // KHÔNG SetStyle(AllPaintingInWmPaint/UserPaint...) cho ListView: control gốc Win32
+                // sẽ bỏ qua bước vẽ nền/dòng -> dữ liệu bị ẩn, chỉ hiện khi người dùng bấm vào.
                 DoubleBuffered = true;
-                SetStyle(
-                    ControlStyles.OptimizedDoubleBuffer |
-                    ControlStyles.AllPaintingInWmPaint |
-                    ControlStyles.ResizeRedraw,
-                    true);
             }
         }
-        // 🌟 BIỂU ĐỒ DONUT SỐ MÀU TÍM
-        // 🌟 BIỂU ĐỒ DONUT CÓ HIỆU ỨNG QUÉT ĐỘNG
-        // 🌟 BIỂU ĐỒ DONUT CÓ VỆT QUÉT CHẠY TRONG PHẠM VI VIỀN XANH
-         // 🌟 BIỂU ĐỒ DONUT HỖ TRỢ CẢ 2 CHẾ ĐỘ QUÉT (QUÉT TRONG PHẦN TRĂM HOẶC QUÉT 360 ĐỘ)
+        // 🌟 BIỂU ĐỒ DONUT 3D: khối vòng nhìn nghiêng từ trên xuống, có độ dày, đổ bóng xuống mặt phẳng.
+        //    - Phần đã dùng (cung màu) nổi cao hơn phần nền xám; có thành trước, thành trong, mặt cắt đầu cung.
+        //    - Thân khối (bóng, thành, mặt trên) vẽ 1 lần vào bộ đệm Bitmap, chỉ dựng lại khi đổi %, kích thước, màu.
+        //    - Mỗi nhịp timer chỉ dán bộ đệm + vẽ vệt sáng quét + chữ số => nhẹ, không giật.
+        //    - FullCircleScan = true : vệt sáng chạy trọn 360 độ (RAM ứng dụng); false : chạy trong phạm vi cung màu.
         private sealed class RamDonutPanel : SmoothPanel
         {
+            private const float DoNghieng = 0.56f;   // RyO / RxO : độ nghiêng khi nhìn từ trên xuống
+            private const float TiLeLo = 0.60f;      // bán kính lỗ / bán kính ngoài
+            private const float TiLeCao = 0.15f;     // chiều cao phần nổi / RxO
+            private const float BuocGoc = 3f;        // độ mịn của đa giác (độ)
+            // Đổ bóng trụ: tối ở 2 mép, sáng nhẹ ở khoảng 40% chiều ngang (ánh sáng từ phía trên-trái)
+            private static readonly ColorBlend OverlayTru = new ColorBlend(5)
+            {
+                Positions = new[] { 0f, 0.20f, 0.42f, 0.70f, 1f },
+                Colors = new[]
+                {
+                    Color.FromArgb(120, 0, 0, 0),
+                    Color.FromArgb(30, 0, 0, 0),
+                    Color.FromArgb(70, 255, 255, 255),
+                    Color.FromArgb(25, 0, 0, 0),
+                    Color.FromArgb(125, 0, 0, 0)
+                }
+            };
+            // Hình học của khối (tâm elip nằm trên mặt phẳng đáy)
+            private readonly struct HinhHoc
+            {
+                public readonly float Cx, Cy, RxO, RyO, RxI, RyI, Ha, Ht;
+                public HinhHoc(float cx, float cy, float rxO, float ryO, float rxI, float ryI, float ha, float ht)
+                {
+                    Cx = cx; Cy = cy; RxO = rxO; RyO = ryO; RxI = rxI; RyI = ryI; Ha = ha; Ht = ht;
+                }
+            }
             private float _percent;
             private Color _accentColor = MauXanh;
             private float _scanOffset = 0f;
             private System.Windows.Forms.Timer? _animTimer;
+            private Bitmap? _boNho;
+            private Size _boNhoKichThuoc;
+            private float _boNhoSweep = -1f;
+            private Color _boNhoMau;
+            private Font? _fontSo;
+            private float _fontCo;
             // Thuộc tính để bật/tắt chế độ chạy full 360 độ
             public bool FullCircleScan { get; set; } = false;
             public RamDonutPanel()
             {
-                _animTimer = new System.Windows.Forms.Timer { Interval = 30 };
+                _animTimer = new System.Windows.Forms.Timer { Interval = 33 };
                 _animTimer.Tick += (s, e) =>
                 {
-                    if (!IsDisposed && Visible)
-                    {
-                        if (FullCircleScan)
-                        {
-                            // Chạy liên tục 360 độ quanh toàn bộ vòng tròn
-                            _scanOffset = (_scanOffset + 5f) % 360f;
-                        }
-                        else
-                        {
-                            // Chạy co giãn trong giới hạn phần trăm RAM hiện tại
-                            float sweepAngle = (_percent / 100f) * 360f;
-                            if (sweepAngle > 5f)
-                            {
-                                _scanOffset = (_scanOffset + 2.5f) % sweepAngle;
-                            }
-                            else
-                            {
-                                _scanOffset = 0f;
-                            }
-                        }
-                        Invalidate();
-                    }
+                    if (IsDisposed || !Visible) return;
+                    float sweep = SweepGoc;
+                    if (FullCircleScan)
+                        _scanOffset = (_scanOffset + 5f) % 360f;            // chạy liên tục 360 độ
+                    else if (sweep > 5f)
+                        _scanOffset = (_scanOffset + 2.5f) % sweep;         // chạy co giãn trong cung màu
+                    else
+                        _scanOffset = 0f;
+                    Invalidate();
                 };
                 _animTimer.Start();
             }
@@ -391,91 +415,491 @@ namespace PhanMemThiDua2026
                 {
                     _animTimer?.Stop();
                     _animTimer?.Dispose();
+                    _animTimer = null;
+                    _boNho?.Dispose();
+                    _boNho = null;
+                    _fontSo?.Dispose();
+                    _fontSo = null;
                 }
                 base.Dispose(disposing);
             }
             public float Percent
             {
                 get => _percent;
-                set { _percent = Math.Clamp(value, 0, 100); Invalidate(); }
+                set
+                {
+                    float v = Math.Clamp(value, 0f, 100f);
+                    if (Math.Abs(v - _percent) < 0.01f) return;
+                    _percent = v;
+                    Invalidate();
+                }
             }
             public Color AccentColor
             {
                 get => _accentColor;
-                set { _accentColor = value; Invalidate(); }
+                set
+                {
+                    if (_accentColor == value) return;
+                    _accentColor = value;
+                    Invalidate();
+                }
+            }
+            // Góc quét của cung màu (độ). Có phần trăm > 0 thì luôn thấy được tối thiểu 3 độ.
+            private float SweepGoc
+            {
+                get
+                {
+                    float s = _percent / 100f * 360f;
+                    if (s <= 0f) return 0f;
+                    return Math.Clamp(s, 3f, 359.8f);
+                }
             }
             protected override void OnPaint(PaintEventArgs e)
             {
                 base.OnPaint(e);
-                var g = e.Graphics;
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
                 int w = ClientSize.Width;
                 int h = ClientSize.Height;
-                if (w < 20 || h < 20) return;
-                int size = (int)(Math.Min(w, h) * 0.75f);
-                if (size < 20) size = 20;
-                int x = (w - size) / 2;
-                int y = (h - size) / 2;
-                Rectangle rect = new Rectangle(x, y, size, size);
-                int strokeWidth = Math.Max(3, size / 16);
-                Rectangle arcRect = new Rectangle(
-                    rect.X + strokeWidth / 2,
-                    rect.Y + strokeWidth / 2,
-                    rect.Width - strokeWidth,
-                    rect.Height - strokeWidth);
-                // 1. Vẽ vòng nền xám nhạt
-                using (var pen = new Pen(Color.FromArgb(226, 232, 240), strokeWidth))
+                if (w < 60 || h < 60) return;
+                var g = e.Graphics;
+                float sweep = SweepGoc;
+                HinhHoc hh = TinhHinhHoc(w, h);
+                if (_boNho == null
+                    || _boNhoKichThuoc != ClientSize
+                    || Math.Abs(_boNhoSweep - sweep) > 0.05f
+                    || _boNhoMau != _accentColor)
                 {
-                    pen.StartCap = LineCap.Round;
-                    pen.EndCap = LineCap.Round;
-                    g.DrawEllipse(pen, arcRect);
+                    DungBoNho(hh, w, h, sweep);
                 }
-                // 2. Vẽ phần trăm RAM chính (viền xanh)
-                float sweepAngle = (_percent / 100f) * 360f;
-                if (sweepAngle > 0)
+                if (_boNho != null)
+                    g.DrawImageUnscaled(_boNho, 0, 0);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                VeVetQuet(g, hh, sweep);
+                VeChuSo(g, hh);
+            }
+            // ------------------------------------------------------------------
+            //  HÌNH HỌC
+            // ------------------------------------------------------------------
+            private static HinhHoc TinhHinhHoc(int w, int h)
+            {
+                float rx = Math.Min(w * 0.44f, (h - 16f) / (2f * DoNghieng + TiLeCao));
+                rx = Math.Max(24f, rx);
+                float ry = rx * DoNghieng;
+                float ha = rx * TiLeCao;              // chiều cao phần cung (nổi)
+                float ht = ha * 0.42f;                // chiều cao phần nền (thấp)
+                float tong = 2f * ry + ha;            // tổng chiều cao khối
+                float cyDay = (h - tong) / 2f + ha + ry - 2f;
+                return new HinhHoc(w / 2f, cyDay, rx, ry, rx * TiLeLo, ry * TiLeLo, ha, ht);
+            }
+            // Điểm trên elip; góc tính theo độ, 0 = đỉnh, quay theo chiều kim đồng hồ
+            private static PointF Diem(float cx, float cy, float rx, float ry, float goc)
+            {
+                double t = (goc - 90.0) * Math.PI / 180.0;
+                return new PointF(cx + (float)(rx * Math.Cos(t)), cy + (float)(ry * Math.Sin(t)));
+            }
+            private static int SoDiem(float a0, float a1) => Math.Max(2, (int)Math.Ceiling((a1 - a0) / BuocGoc) + 1);
+            // Mặt trên của 1 cung vành khuyên ở độ cao h
+            private static PointF[] CungMat(HinhHoc hh, float h, float a0, float a1)
+            {
+                int n = SoDiem(a0, a1);
+                var p = new PointF[2 * n];
+                float cy = hh.Cy - h;
+                for (int i = 0; i < n; i++)
                 {
-                    using (var pen = new Pen(_accentColor, strokeWidth))
+                    float a = a0 + (a1 - a0) * i / (n - 1);
+                    p[i] = Diem(hh.Cx, cy, hh.RxO, hh.RyO, a);                 // cạnh ngoài a0 -> a1
+                    p[2 * n - 1 - i] = Diem(hh.Cx, cy, hh.RxI, hh.RyI, a);     // cạnh trong a1 -> a0
+                }
+                return p;
+            }
+            // Thành đứng (ngoài hoặc trong) từ độ cao h xuống mặt đáy
+            private static PointF[] ThanhDa(HinhHoc hh, bool ngoai, float h, float a0, float a1)
+            {
+                float rx = ngoai ? hh.RxO : hh.RxI;
+                float ry = ngoai ? hh.RyO : hh.RyI;
+                int n = SoDiem(a0, a1);
+                var p = new PointF[2 * n];
+                for (int i = 0; i < n; i++)
+                {
+                    float a = a0 + (a1 - a0) * i / (n - 1);
+                    p[i] = Diem(hh.Cx, hh.Cy - h, rx, ry, a);                  // mép trên
+                    p[2 * n - 1 - i] = Diem(hh.Cx, hh.Cy, rx, ry, a);          // mép đáy
+                }
+                return p;
+            }
+            private static PointF[] ElipDiem(float cx, float cy, float rx, float ry)
+            {
+                int n = (int)(360f / BuocGoc);
+                var p = new PointF[n];
+                for (int i = 0; i < n; i++)
+                    p[i] = Diem(cx, cy, rx, ry, i * BuocGoc);
+                return p;
+            }
+            // Tách đoạn góc [lo, hi] thành phần thuộc cung màu (< sweep) và phần thuộc nền (>= sweep)
+            private static void Chia(float lo, float hi, float sweep, Action<float, float, bool> viec)
+            {
+                float cungCuoi = Math.Min(hi, sweep);
+                if (cungCuoi - lo > 0.01f) viec(lo, cungCuoi, true);
+                float nenDau = Math.Max(lo, sweep);
+                if (hi - nenDau > 0.01f) viec(nenDau, hi, false);
+            }
+            // ------------------------------------------------------------------
+            //  BỘ ĐỆM THÂN KHỐI
+            // ------------------------------------------------------------------
+            private void DungBoNho(HinhHoc hh, int w, int h, float sweep)
+            {
+                _boNho?.Dispose();
+                _boNho = null;
+                var bmp = new Bitmap(w, h, PixelFormat.Format32bppPArgb);
+                try
+                {
+                    using (var g = Graphics.FromImage(bmp))
                     {
-                        pen.StartCap = LineCap.Round;
-                        pen.EndCap = LineCap.Round;
-                        g.DrawArc(pen, arcRect, -90, sweepAngle);
+                        g.SmoothingMode = SmoothingMode.AntiAlias;
+                        g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        g.Clear(Color.Transparent);
+                        VeBong(g, hh);
+                        VeKhoi(g, hh, sweep);
                     }
                 }
-                // 3. Vẽ hiệu ứng vệt quét tùy theo chế độ
-                if (FullCircleScan)
+                catch (Exception ex)
                 {
-                    // Chế độ chạy quét 360 độ liên tục (Dành cho RAM Ứng dụng)
-                    using (var scanPen = new Pen(Color.FromArgb(220, 255, 255, 255), Math.Max(2, strokeWidth)))
-                    {
-                        scanPen.StartCap = LineCap.Round;
-                        scanPen.EndCap = LineCap.Round;
-                        g.DrawArc(scanPen, arcRect, -90f + _scanOffset, 45); // Vệt sáng dài 45 độ quét vòng quanh
-                    }
+                    Debug.WriteLine($"RamDonutPanel.DungBoNho: {ex.Message}");
+                    bmp.Dispose();
+                    return;
                 }
-                else
+                _boNho = bmp;
+                _boNhoKichThuoc = ClientSize;
+                _boNhoSweep = sweep;
+                _boNhoMau = _accentColor;
+            }
+            private static void VeBong(Graphics g, HinhHoc hh)
+            {
+                // Bóng đổ mềm quanh chân khối; khoét đúng phần lỗ để mặt sàn trong lỗ sáng, sạch
+                var lo = new RectangleF(hh.Cx - hh.RxI, hh.Cy - hh.RyI, 2f * hh.RxI, 2f * hh.RyI);
+                using (var br = new SolidBrush(Color.FromArgb(8, 30, 41, 59)))
                 {
-                    // Chế độ chạy co giãn trong phạm vi viền xanh (Dành cho RAM Toàn hệ thống)
-                    if (sweepAngle > 15f)
+                    for (int i = 0; i < 8; i++)
                     {
-                        float scanLength = Math.Min(18f, sweepAngle * 0.4f);
-                        float currentScanAngle = -90f + _scanOffset;
-                        using (var scanPen = new Pen(Color.FromArgb(220, 255, 255, 255), Math.Max(2, strokeWidth)))
+                        float e = 14f - i * 1.75f;
+                        var ngoai = new RectangleF(
+                            hh.Cx - hh.RxO - e,
+                            hh.Cy - hh.RyO + 5f - e * DoNghieng,
+                            2f * (hh.RxO + e),
+                            2f * (hh.RyO + e * DoNghieng));
+                        using (var duong = new GraphicsPath(FillMode.Alternate))
                         {
-                            scanPen.StartCap = LineCap.Round;
-                            scanPen.EndCap = LineCap.Round;
-                            g.DrawArc(scanPen, arcRect, currentScanAngle, scanLength);
+                            duong.AddEllipse(ngoai);
+                            duong.AddEllipse(lo);
+                            g.FillPath(br, duong);
                         }
                     }
                 }
-                // 4. Vẽ chữ số phần trăm ở giữa
-                string text = $"{_percent:0}%";
-                using (var font = new Font(FontUI, Math.Max(8f, size / 6.0f), FontStyle.Bold))
-                using (var brush = new SolidBrush(Color.FromArgb(165, 156, 228)))
+            }
+            private void VeKhoi(Graphics g, HinhHoc hh, float sweep)
+            {
+                Color cung = _accentColor;
+                Color cungMat1 = PhaMau(cung, Color.White, 0.34f);
+                Color cungMat2 = cung;
+                Color cungThanh = PhaMau(cung, Color.Black, 0.26f);
+                Color cungTrong = PhaMau(cung, Color.Black, 0.46f);
+                Color cungCat = PhaMau(cung, Color.Black, 0.14f);
+                Color nenMat1 = Color.FromArgb(243, 246, 251);
+                Color nenMat2 = Color.FromArgb(214, 221, 233);
+                Color nenThanh = Color.FromArgb(190, 199, 215);
+                Color nenTrong = Color.FromArgb(168, 178, 197);
+                bool coCung = sweep > 0.05f;
+                bool coNen = sweep < 359.5f;
+                // 1) Thành trong, nhìn xuyên qua lỗ: nửa sau của elip trong (góc 270..360 và 0..90)
+                VeThanh(g, hh, false, 0f, 90f, sweep, cungTrong, nenTrong);
+                VeThanh(g, hh, false, 270f, 360f, sweep, cungTrong, nenTrong);
+                // 2) Mặt trên phần nền (thấp)
+                if (coNen)
                 {
-                    SizeF sz = g.MeasureString(text, font);
-                    g.DrawString(text, font, brush, rect.X + (rect.Width - sz.Width) / 2f, rect.Y + (rect.Height - sz.Height) / 2f);
+                    using (var duong = new GraphicsPath(FillMode.Alternate))
+                    {
+                        if (!coCung)
+                        {
+                            duong.AddPolygon(ElipDiem(hh.Cx, hh.Cy - hh.Ht, hh.RxO, hh.RyO));
+                            duong.AddPolygon(ElipDiem(hh.Cx, hh.Cy - hh.Ht, hh.RxI, hh.RyI));
+                        }
+                        else
+                        {
+                            duong.AddPolygon(CungMat(hh, hh.Ht, sweep, 360f));
+                        }
+                        var rc = new RectangleF(hh.Cx - hh.RxO, hh.Cy - hh.Ht - hh.RyO, 2f * hh.RxO, 2f * hh.RyO);
+                        using (var br = new LinearGradientBrush(rc, nenMat1, nenMat2, LinearGradientMode.Vertical))
+                            g.FillPath(br, duong);
+                        using (var vien = new Pen(Color.FromArgb(160, 255, 255, 255), 1f))
+                            g.DrawPath(vien, duong);
+                    }
                 }
+                // 3) Thành ngoài (mặt trước): đoạn nền thấp, đoạn cung cao
+                VeThanh(g, hh, true, 90f, 270f, sweep, cungThanh, nenThanh);
+                // 4) Mặt cắt ở cuối cung (chỉ nhìn thấy khi cung ngắn hơn nửa vòng)
+                if (coCung && coNen && sweep < 180f)
+                {
+                    var cat = new[]
+                    {
+                        Diem(hh.Cx, hh.Cy - hh.Ha, hh.RxI, hh.RyI, sweep),
+                        Diem(hh.Cx, hh.Cy - hh.Ha, hh.RxO, hh.RyO, sweep),
+                        Diem(hh.Cx, hh.Cy - hh.Ht, hh.RxO, hh.RyO, sweep),
+                        Diem(hh.Cx, hh.Cy - hh.Ht, hh.RxI, hh.RyI, sweep)
+                    };
+                    using (var br = new SolidBrush(cungCat))
+                        g.FillPolygon(br, cat);
+                }
+                // 5) Mặt trên phần cung (nổi cao)
+                if (coCung)
+                {
+                    PointF[] pts = CungMat(hh, hh.Ha, 0f, sweep);
+                    var rc = new RectangleF(hh.Cx - hh.RxO, hh.Cy - hh.Ha - hh.RyO, 2f * hh.RxO, 2f * hh.RyO);
+                    using (var br = new LinearGradientBrush(rc, cungMat1, cungMat2, LinearGradientMode.Vertical))
+                        g.FillPolygon(br, pts);
+                    using (var vien = new Pen(Color.FromArgb(130, 255, 255, 255), 1f))
+                        g.DrawPolygon(vien, pts);
+                }
+            }
+            private static void VeThanh(Graphics g, HinhHoc hh, bool ngoai, float lo, float hi, float sweep, Color mauCung, Color mauNen)
+            {
+                using (var hop = new GraphicsPath(FillMode.Winding))
+                {
+                    void Them(float a0, float a1, bool laCung)
+                    {
+                        PointF[] pts = ThanhDa(hh, ngoai, laCung ? hh.Ha : hh.Ht, a0, a1);
+                        using (var br = new SolidBrush(laCung ? mauCung : mauNen))
+                            g.FillPolygon(br, pts);
+                        hop.AddPolygon(pts);
+                    }
+                    Chia(lo, hi, sweep, Them);
+                    if (hop.PointCount == 0) return;
+                    var rc = new RectangleF(hh.Cx - hh.RxO, hh.Cy - hh.RyO - hh.Ha, 2f * hh.RxO, 2f * hh.RyO + hh.Ha);
+                    using (var lg = new LinearGradientBrush(rc, Color.Black, Color.Black, LinearGradientMode.Horizontal))
+                    {
+                        lg.InterpolationColors = OverlayTru;
+                        g.FillPath(lg, hop);
+                    }
+                }
+            }
+            // ------------------------------------------------------------------
+            //  VỆT QUÉT + CHỮ SỐ (vẽ mỗi nhịp timer, rất nhẹ)
+            // ------------------------------------------------------------------
+            private void VeVetQuet(Graphics g, HinhHoc hh, float sweep)
+            {
+                float dai;
+                if (FullCircleScan)
+                {
+                    dai = 70f;
+                }
+                else
+                {
+                    if (sweep < 14f) return;
+                    dai = Math.Min(26f, sweep * 0.4f);
+                }
+                const int soLat = 12;
+                float buoc = dai / soLat;
+                for (int i = 0; i < soLat; i++)
+                {
+                    float a0 = _scanOffset + buoc * i;
+                    float a1 = a0 + buoc + 0.6f;                  // chồng nhẹ để không lộ đường nối
+                    if (!FullCircleScan) a1 = Math.Min(a1, sweep);
+                    int alpha = 8 + (int)(105f * (i + 1) / soLat);   // sáng dần về đầu vệt
+                    using (var br = new SolidBrush(Color.FromArgb(alpha, 255, 255, 255)))
+                        VeLat(g, hh, br, a0, a1, sweep);
+                }
+            }
+            private static void VeLat(Graphics g, HinhHoc hh, Brush br, float a0, float a1, float sweep)
+            {
+                float dai = a1 - a0;
+                if (dai <= 0.05f) return;
+                a0 %= 360f;
+                a1 = a0 + dai;
+                if (a1 <= 360f)
+                {
+                    VeLatDon(g, hh, br, a0, a1, sweep);
+                }
+                else
+                {
+                    VeLatDon(g, hh, br, a0, 360f, sweep);
+                    VeLatDon(g, hh, br, 0f, a1 - 360f, sweep);
+                }
+            }
+            private static void VeLatDon(Graphics g, HinhHoc hh, Brush br, float a0, float a1, float sweep)
+            {
+                if (a1 - a0 < 0.05f) return;
+                float cao = ((a0 + a1) * 0.5f < sweep) ? hh.Ha : hh.Ht;
+                g.FillPolygon(br, CungMat(hh, cao, a0, a1));
+            }
+            private void VeChuSo(Graphics g, HinhHoc hh)
+            {
+                float co = Math.Max(11f, hh.RxI * 0.46f);
+                if (_fontSo == null || Math.Abs(_fontCo - co) > 0.5f)
+                {
+                    _fontSo?.Dispose();
+                    _fontSo = new Font(FontUI, co, FontStyle.Bold, GraphicsUnit.Pixel);
+                    _fontCo = co;
+                }
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+                string text = $"{_percent:0}%";
+                SizeF sz = g.MeasureString(text, _fontSo);
+                float x = hh.Cx - sz.Width / 2f;
+                float y = hh.Cy - hh.Ha * 0.5f - sz.Height / 2f;
+                using (var bong = new SolidBrush(Color.FromArgb(46, 70, 60, 150)))
+                    g.DrawString(text, _fontSo, bong, x + 1.5f, y + 2.5f);
+                using (var chu = new SolidBrush(Color.FromArgb(165, 156, 228)))
+                    g.DrawString(text, _fontSo, chu, x, y);
+            }
+        }
+        // 🌟 NÚT BO TRÒN 4 GÓC (vẽ khử răng cưa, không dùng Region nên mép không bị lởm chởm)
+        private sealed class NutBoTron : Button
+        {
+            private readonly int _banKinh;
+            private bool _hover;
+            private bool _nhan;
+            public NutBoTron(int banKinh)
+            {
+                _banKinh = banKinh;
+                SetStyle(
+                    ControlStyles.UserPaint |
+                    ControlStyles.AllPaintingInWmPaint |
+                    ControlStyles.OptimizedDoubleBuffer |
+                    ControlStyles.ResizeRedraw,
+                    true);
+                FlatStyle = FlatStyle.Flat;
+                UseVisualStyleBackColor = false;
+            }
+            protected override void OnMouseEnter(EventArgs e)
+            {
+                _hover = true;
+                Invalidate();
+                base.OnMouseEnter(e);
+            }
+            protected override void OnMouseLeave(EventArgs e)
+            {
+                _hover = false;
+                _nhan = false;
+                Invalidate();
+                base.OnMouseLeave(e);
+            }
+            protected override void OnMouseDown(MouseEventArgs mevent)
+            {
+                if (mevent.Button == MouseButtons.Left)
+                {
+                    _nhan = true;
+                    Invalidate();
+                }
+                base.OnMouseDown(mevent);
+            }
+            protected override void OnMouseUp(MouseEventArgs mevent)
+            {
+                _nhan = false;
+                Invalidate();
+                base.OnMouseUp(mevent);
+            }
+            protected override void OnEnabledChanged(EventArgs e)
+            {
+                Invalidate();
+                base.OnEnabledChanged(e);
+            }
+            protected override void OnPaint(PaintEventArgs pevent)
+            {
+                var g = pevent.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+                // Tô nền ngoài theo màu của nơi chứa để 4 góc bo trông liền mạch
+                using (var nenNgoai = new SolidBrush(Parent?.BackColor ?? MauNen))
+                    g.FillRectangle(nenNgoai, ClientRectangle);
+                int w = Width - 1;
+                int h = Height - 1;
+                if (w < 8 || h < 8) return;
+                Color mau = !Enabled ? Color.FromArgb(203, 213, 225)
+                          : _nhan ? Color.FromArgb(30, 64, 175)
+                          : _hover ? Color.FromArgb(29, 78, 216)
+                          : MauXanh;
+                int r = Math.Min(_banKinh, h / 2);
+                using (var duong = GetRoundedRectanglePath(new Rectangle(0, 0, w, h), r))
+                {
+                    using (var br = new SolidBrush(mau))
+                        g.FillPath(br, duong);
+                    // Ánh sáng nhẹ ở nửa trên cho nút có chiều sâu
+                    if (Enabled && !_nhan)
+                    {
+                        using (var lg = new LinearGradientBrush(
+                            new Rectangle(0, 0, w, Math.Max(2, h)),
+                            Color.FromArgb(40, 255, 255, 255),
+                            Color.FromArgb(0, 255, 255, 255),
+                            LinearGradientMode.Vertical))
+                            g.FillPath(lg, duong);
+                    }
+                }
+                using (var sf = new StringFormat
+                {
+                    Alignment = StringAlignment.Center,
+                    LineAlignment = StringAlignment.Center,
+                    Trimming = StringTrimming.EllipsisCharacter,
+                    FormatFlags = StringFormatFlags.NoWrap
+                })
+                using (var chu = new SolidBrush(Enabled ? ForeColor : Color.White))
+                {
+                    var vung = new RectangleF(0, _nhan ? 1f : 0f, Width, Height);
+                    g.DrawString(Text, Font, chu, vung, sf);
+                }
+                if (Focused && ShowFocusCues && w > 12 && h > 12)
+                {
+                    using (var duongFocus = GetRoundedRectanglePath(new Rectangle(3, 3, w - 6, h - 6), Math.Max(2, r - 3)))
+                    using (var pen = new Pen(Color.FromArgb(170, 255, 255, 255), 1.5f))
+                        g.DrawPath(pen, duongFocus);
+                }
+            }
+        }
+        // 🌟 NHÃN TRẠNG THÁI DẠNG VIÊN THUỐC: nền/viền tự lấy từ ForeColor nên đổi màu chữ trong code cũ là đổi cả nền
+        private sealed class NhanTrangThai : Label
+        {
+            public NhanTrangThai()
+            {
+                SetStyle(
+                    ControlStyles.UserPaint |
+                    ControlStyles.AllPaintingInWmPaint |
+                    ControlStyles.OptimizedDoubleBuffer |
+                    ControlStyles.ResizeRedraw,
+                    true);
+            }
+            protected override void OnForeColorChanged(EventArgs e)
+            {
+                Invalidate();
+                base.OnForeColorChanged(e);
+            }
+            protected override void OnTextChanged(EventArgs e)
+            {
+                Invalidate();
+                base.OnTextChanged(e);
+            }
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+                using (var nenNgoai = new SolidBrush(Parent?.BackColor ?? MauNen))
+                    g.FillRectangle(nenNgoai, ClientRectangle);
+                int w = Width - 1;
+                int h = Height - 1;
+                if (w < 12 || h < 12) return;
+                using (var duong = GetRoundedRectanglePath(new Rectangle(0, 0, w, h), h / 2))
+                using (var nen = new SolidBrush(PhaMau(ForeColor, Color.White, 0.90f)))
+                using (var vien = new Pen(PhaMau(ForeColor, Color.White, 0.72f), 1f))
+                {
+                    g.FillPath(nen, duong);
+                    g.DrawPath(vien, duong);
+                }
+                using (var sf = new StringFormat
+                {
+                    Alignment = StringAlignment.Center,
+                    LineAlignment = StringAlignment.Center,
+                    Trimming = StringTrimming.EllipsisCharacter,
+                    FormatFlags = StringFormatFlags.NoWrap
+                })
+                using (var chu = new SolidBrush(ForeColor))
+                    g.DrawString(Text, Font, chu, new RectangleF(0, 0, Width, Height), sf);
             }
         }
         private sealed class Form_TaskManagerMini : Form
@@ -497,6 +921,10 @@ namespace PhanMemThiDua2026
             private SmoothListView lvInfo = null!;
             private SplitContainer split = null!;
             private Button btnExport = null!;
+            private Font? _fontDam;
+            private Font? _fontTieuDe;
+            private ImageList? _anhChieuCaoDong;
+            private bool _dangCanCot;
             public Form_TaskManagerMini()
             {
                 SetStyle(
@@ -590,13 +1018,13 @@ namespace PhanMemThiDua2026
                     AutoSize = true,
                     Location = new Point(2, 37)
                 };
-                lblSystemStatus = new Label
+                lblSystemStatus = new NhanTrangThai
                 {
                     Text = "● Đang khởi tạo",
                     AutoSize = false,
-                    Width = 250,
-                    Height = 28,
-                    TextAlign = ContentAlignment.MiddleRight,
+                    Width = 240,
+                    Height = 30,
+                    TextAlign = ContentAlignment.MiddleCenter,
                     Anchor = AnchorStyles.Top | AnchorStyles.Right,
                     Font = new Font(FontUI, 9F, FontStyle.Bold),
                     ForeColor = MauPhu
@@ -682,52 +1110,46 @@ namespace PhanMemThiDua2026
                     Font = new Font(FontUI, 9F, FontStyle.Bold),
                     ForeColor = MauPhu
                 };
-                var infoCard = new Panel
+                var infoCard = new SmoothPanel
                 {
                     Dock = DockStyle.Fill,
                     BackColor = MauThe,
-                    Padding = new Padding(10),
+                    Padding = new Padding(12, 10, 12, 14),
                     Margin = Padding.Empty
                 };
-                infoCard.Paint += (s, e) =>
+                infoCard.Paint += (s, e) => VeTheWeb(e.Graphics, infoCard.Width, infoCard.Height);
+                _fontDam = new Font(FontUI, 9F, FontStyle.Bold);
+                _fontTieuDe = new Font(FontUI, 9F, FontStyle.Bold);
+                // Ảnh 1 x N chỉ để nới chiều cao dòng của ListView (dòng thoáng như bảng trên web)
+                _anhChieuCaoDong = new ImageList
                 {
-                    e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                    using var path = GetRoundedRectanglePath(new Rectangle(0, 0, infoCard.Width - 1, infoCard.Height - 1), 8);
-                    using var brush = new SolidBrush(infoCard.BackColor);
-                    using var pen = new Pen(MauVien, 1);
-                    e.Graphics.FillPath(brush, path);
-                    e.Graphics.DrawPath(pen, path);
+                    ImageSize = new Size(1, LogicalToDeviceUnits(22)),
+                    ColorDepth = ColorDepth.Depth32Bit
                 };
                 lvInfo = new SmoothListView
                 {
                     Dock = DockStyle.Fill,
                     View = View.Details,
                     FullRowSelect = true,
-                    GridLines = true,
+                    GridLines = false,
                     HeaderStyle = ColumnHeaderStyle.Nonclickable,
                     BorderStyle = BorderStyle.None,
-                    Font = new Font(FontUI, 9.5F),
+                    Font = new Font(FontUI, 9F),
                     BackColor = MauThe,
                     ForeColor = MauChu,
                     HideSelection = false,
                     MultiSelect = false,
                     UseCompatibleStateImageBehavior = false,
-                    OwnerDraw = true
+                    OwnerDraw = true,
+                    SmallImageList = _anhChieuCaoDong
                 };
                 lvInfo.Columns.Add("Thành phần", 220);
                 lvInfo.Columns.Add("Thông tin chi tiết", 440);
-                lvInfo.DrawColumnHeader += (s, e) => e.DrawDefault = true;
+                lvInfo.DrawColumnHeader += LvInfo_DrawColumnHeader;
+                lvInfo.DrawItem += LvInfo_DrawItem;
                 lvInfo.DrawSubItem += LvInfo_DrawSubItem;
-                lvInfo.Resize += (s, e) =>
-                {
-                    if (lvInfo.Columns.Count < 2)
-                        return;
-                    int firstWidth = Math.Min(
-                        240, Math.Max(150, lvInfo.ClientSize.Width / 3));
-                    lvInfo.Columns[0].Width = firstWidth;
-                    lvInfo.Columns[1].Width = Math.Max(
-                        80, lvInfo.ClientSize.Width - firstWidth - 4);
-                };
+                lvInfo.Resize += (s, e) => CanChinhCot();
+                lvInfo.ClientSizeChanged += (s, e) => CanChinhCot();
                 infoCard.Controls.Add(lvInfo);
                 right.Controls.Add(lblInfoTitle, 0, 0);
                 right.Controls.Add(infoCard, 0, 1);
@@ -753,23 +1175,17 @@ namespace PhanMemThiDua2026
                     ForeColor = MauPhu,
                     Font = new Font(FontUI, 8.5F, FontStyle.Bold)
                 };
-                btnExport = new Button
+                // Nút bo tròn 4 góc (bán kính 12px). Màu hover/nhấn do chính nút tự vẽ.
+                btnExport = new NutBoTron(12)
                 {
                     Text = "Xuất báo cáo",
                     Size = new Size(155, 36),
                     Anchor = AnchorStyles.Top | AnchorStyles.Right,
                     BackColor = MauXanh,
                     ForeColor = Color.White,
-                    FlatStyle = FlatStyle.Flat,
                     Font = new Font(FontUI, 9.5F, FontStyle.Bold),
-                    Cursor = Cursors.Hand,
-                    UseVisualStyleBackColor = false
+                    Cursor = Cursors.Hand
                 };
-                btnExport.FlatAppearance.BorderSize = 0;
-                btnExport.FlatAppearance.MouseOverBackColor =
-                    Color.FromArgb(29, 78, 216);
-                btnExport.FlatAppearance.MouseDownBackColor =
-                    Color.FromArgb(30, 64, 175);
                 btnExport.Click += BtnExport_Click;
                 footer.Controls.Add(lblFooter);
                 footer.Controls.Add(btnExport);
@@ -789,27 +1205,93 @@ namespace PhanMemThiDua2026
                 SizeChanged += (s, e) => DatKhoangChiaAnToan();
                 ResumeLayout(true);
             }
-            private void LvInfo_DrawSubItem(object? sender, DrawListViewSubItemEventArgs e)
+            // ---- Lưới cấu hình kiểu bảng web: tiêu đề nhạt, dòng thoáng, đường kẻ ngang mảnh, không kẻ dọc ----
+            private void LvInfo_DrawColumnHeader(object? sender, DrawListViewColumnHeaderEventArgs e)
             {
-                if (e.Item == null || e.Graphics == null) return;
-                bool isGroupHeader = e.Item.Tag is bool b && b;
-                if (isGroupHeader)
+                var g = e.Graphics;
+                using (var nen = new SolidBrush(Color.FromArgb(248, 250, 252)))
+                    g.FillRectangle(nen, e.Bounds);
+                using (var pen = new Pen(MauVien))
+                    g.DrawLine(pen, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
+                var vung = new Rectangle(e.Bounds.X + 14, e.Bounds.Y, Math.Max(0, e.Bounds.Width - 18), e.Bounds.Height);
+                TextRenderer.DrawText(
+                    g, e.Header?.Text ?? string.Empty, _fontTieuDe ?? lvInfo.Font, vung, MauPhu,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
+                    TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
+            }
+            // Nền cả dòng: dòng nhóm có thanh nhấn màu xanh bên trái; dòng thường có đường kẻ mảnh; dòng chọn nền xanh nhạt
+            private void LvInfo_DrawItem(object? sender, DrawListViewItemEventArgs e)
+            {
+                if (e.Item == null) return;
+                bool laNhom = e.Item.Tag is bool b && b;
+                Rectangle r = e.Bounds;
+                Color nen = laNhom ? Color.FromArgb(243, 245, 255)
+                          : e.Item.Selected ? Color.FromArgb(238, 242, 255)
+                          : MauThe;
+                using (var br = new SolidBrush(nen))
+                    e.Graphics.FillRectangle(br, r);
+                if (laNhom)
                 {
-                    using var bgBrush = new SolidBrush(Color.FromArgb(241, 245, 249));
-                    e.Graphics.FillRectangle(bgBrush, e.Bounds);
-                    using var pen = new Pen(Color.FromArgb(226, 232, 240));
-                    e.Graphics.DrawLine(pen, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right, e.Bounds.Bottom - 1);
-                    if (e.ColumnIndex == 0)
-                    {
-                        using var fontHeader = new Font(FontUI, 9.5F, FontStyle.Bold);
-                        using var brushHeader = new SolidBrush(Color.FromArgb(30, 41, 59));
-                        var textRect = new Rectangle(e.Bounds.X + 8, e.Bounds.Y, e.Bounds.Width - 8, e.Bounds.Height);
-                        e.Graphics.DrawString(e.Item.Text, fontHeader, brushHeader, textRect, new StringFormat { LineAlignment = StringAlignment.Center });
-                    }
+                    using (var thanh = new SolidBrush(MauXanh))
+                        e.Graphics.FillRectangle(thanh, r.X, r.Y + 6, 3, Math.Max(2, r.Height - 12));
+                }
+                using (var pen = new Pen(Color.FromArgb(241, 245, 249)))
+                    e.Graphics.DrawLine(pen, r.Left, r.Bottom - 1, r.Right, r.Bottom - 1);
+                // Vẽ luôn chữ của cả dòng tại đây (không phụ thuộc DrawSubItem): Windows có lúc chỉ gọi
+                // DrawItem (đổi chọn, hover, cuộn) -> nếu chữ vẽ ở DrawSubItem sẽ bị nền đè mất.
+                const TextFormatFlags co = TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
+                    TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix |
+                    TextFormatFlags.NoPadding | TextFormatFlags.SingleLine;
+                if (laNhom)
+                {
+                    int x = r.X + 16;
+                    var vung = new Rectangle(x, r.Y, Math.Max(0, r.Right - x - 8), r.Height - 1);
+                    TextRenderer.DrawText(e.Graphics, e.Item.Text, _fontDam ?? lvInfo.Font,
+                        vung, Color.FromArgb(30, 41, 59), co);
                 }
                 else
                 {
-                    e.DrawDefault = true;
+                    int left = r.X;
+                    for (int i = 0; i < lvInfo.Columns.Count && i < e.Item.SubItems.Count; i++)
+                    {
+                        int w = lvInfo.Columns[i].Width;
+                        var vung = new Rectangle(left + 14, r.Y, Math.Max(0, w - 18), r.Height - 1);
+                        TextRenderer.DrawText(e.Graphics, e.Item.SubItems[i].Text, lvInfo.Font,
+                            vung, i == 0 ? MauPhu : MauChu, co);
+                        left += w;
+                    }
+                }
+                e.DrawDefault = false;
+            }
+            // Mọi thứ đã vẽ ở DrawItem; vẫn phải gắn handler để ListView không tự vẽ mặc định đè lên
+            private void LvInfo_DrawSubItem(object? sender, DrawListViewSubItemEventArgs e)
+            {
+                e.DrawDefault = false;
+            }
+            // Co 2 cột vừa khít khung (không để lộ thanh cuộn ngang khi thanh cuộn dọc xuất hiện)
+            private void CanChinhCot()
+            {
+                if (_dangCanCot || lvInfo == null || lvInfo.IsDisposed || lvInfo.Columns.Count < 2)
+                    return;
+                int tong = lvInfo.ClientSize.Width;
+                if (tong <= 0) return;
+                _dangCanCot = true;
+                try
+                {
+                    int cot1 = Math.Min(240, Math.Max(150, tong / 3));
+                    int cot2 = Math.Max(80, tong - cot1 - 1);
+                    if (lvInfo.Columns[0].Width != cot1) lvInfo.Columns[0].Width = cot1;
+                    if (lvInfo.Columns[1].Width != cot2) lvInfo.Columns[1].Width = cot2;
+                    if (lvInfo.IsHandleCreated)
+                        ShowScrollBar(lvInfo.Handle, SB_HORZ, false);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"CanChinhCot: {ex.Message}");
+                }
+                finally
+                {
+                    _dangCanCot = false;
                 }
             }
             private Panel CreateRamCardDonut(
@@ -823,17 +1305,9 @@ namespace PhanMemThiDua2026
                     Dock = DockStyle.Fill,
                     BackColor = MauThe,
                     Margin = new Padding(0, 4, 0, 8),
-                    Padding = new Padding(8, 6, 8, 6)
+                    Padding = new Padding(12, 10, 12, 12)
                 };
-                card.Paint += (s, e) =>
-                {
-                    e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                    using var path = GetRoundedRectanglePath(new Rectangle(0, 0, card.Width - 1, card.Height - 1), 8);
-                    using var brush = new SolidBrush(card.BackColor);
-                    using var pen = new Pen(MauVien, 1);
-                    e.Graphics.FillPath(brush, path);
-                    e.Graphics.DrawPath(pen, path);
-                };
+                card.Paint += (s, e) => VeTheWeb(e.Graphics, card.Width, card.Height);
                 var lblTitle = new Label
                 {
                     Text = title,
@@ -958,6 +1432,8 @@ namespace PhanMemThiDua2026
                 lvInfo.BeginUpdate();
                 lvInfo.Items.AddRange(listItems.ToArray());
                 lvInfo.EndUpdate();
+                CanChinhCot();   // thêm dòng có thể làm hiện thanh cuộn dọc -> co lại cột cho vừa khung
+                lvInfo.Invalidate();   // vẽ lại ngay, không đợi người dùng bấm/hover
             }
             private void HardwareSafePollingLoop(CancellationToken token)
             {
@@ -1072,6 +1548,19 @@ namespace PhanMemThiDua2026
                         MessageBoxIcon.Error);
                 }
             }
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);   // giải phóng ListView trước rồi mới giải phóng font/ImageList nó đang dùng
+                if (disposing)
+                {
+                    _fontDam?.Dispose();
+                    _fontDam = null;
+                    _fontTieuDe?.Dispose();
+                    _fontTieuDe = null;
+                    _anhChieuCaoDong?.Dispose();
+                    _anhChieuCaoDong = null;
+                }
+            }
             protected override void OnFormClosed(FormClosedEventArgs e)
             {
                 _dangDong = true;
@@ -1128,3 +1617,5 @@ namespace PhanMemThiDua2026
         }
     }
 }
+///Yêu mèo cam
+//#nullable enable

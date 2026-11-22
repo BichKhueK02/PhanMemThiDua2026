@@ -10,7 +10,7 @@ namespace PhanMemThiDua2026
             try
             {
                 // Sử dụng chuỗi kết nối an toàn (ReadOnly để tránh khóa file không cần thiết)
-                string connStr = $"Data Source={Module_DanduongGPS.DuongDanCSDL2};Mode=ReadOnly;Pooling=True;";
+                string connStr = Module_KetNoiCSDL.ChuoiKetNoi(Module_DanduongGPS.DuongDanCSDL2, chiDoc: true);
                 using var cn = new SqliteConnection(connStr);
                 cn.Open();
                 using var cmd = cn.CreateCommand();

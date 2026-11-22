@@ -321,65 +321,18 @@
             // 
             // kryptonButton1_HuongDanThemDuLieu
             // 
-            // =====================================================
-            // kryptonButton1_HuongDanThemDuLieu
-            // =====================================================
-
-            var btn = kryptonButton1_HuongDanThemDuLieu;
-
-            btn.Anchor = AnchorStyles.None;
-            btn.Location = new Point(396, 8);
-            btn.Name = "kryptonButton1_HuongDanThemDuLieu";
-            btn.Size = new Size(139, 30);
-            btn.TabIndex = 3;
-
-            // Bo góc và cấu hình chung StateCommon
-            btn.StateCommon.Border.Rounding = 4F;
-            btn.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F, FontStyle.Bold);
-            btn.StateCommon.Content.ShortText.Color1 = Color.White;
-            btn.StateCommon.Content.ShortText.Color2 = Color.White;
-            btn.StateCommon.Content.ShortText.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-            btn.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-
-            // Trạng thái bình thường (Normal)
-            btn.StateNormal.Back.Color1 = Color.FromArgb(79, 70, 229);
-            btn.StateNormal.Back.Color2 = Color.FromArgb(79, 70, 229);
-            btn.StateNormal.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-            btn.StateNormal.Content.ShortText.Color1 = Color.White;
-            btn.StateNormal.Content.ShortText.Color2 = Color.White;
-            btn.StateNormal.Content.ShortText.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-
-            // Trạng thái rê chuột (Tracking)
-            btn.StateTracking.Back.Color1 = Color.FromArgb(67, 56, 202);
-            btn.StateTracking.Back.Color2 = Color.FromArgb(67, 56, 202);
-            btn.StateTracking.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-            btn.StateTracking.Content.ShortText.Color1 = Color.White;
-            btn.StateTracking.Content.ShortText.Color2 = Color.White;
-            btn.StateTracking.Content.ShortText.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-
-            // Trạng thái nhấn chuột (Pressed)
-            btn.StatePressed.Back.Color1 = Color.FromArgb(49, 46, 129);
-            btn.StatePressed.Back.Color2 = Color.FromArgb(49, 46, 129);
-            btn.StatePressed.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-            btn.StatePressed.Content.ShortText.Color1 = Color.White;
-            btn.StatePressed.Content.ShortText.Color2 = Color.White;
-            btn.StatePressed.Content.ShortText.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-
-            // Trạng thái vô hiệu hóa (Disabled)
-            btn.StateDisabled.Back.Color1 = Color.FromArgb(100, 100, 120);
-            btn.StateDisabled.Back.Color2 = Color.FromArgb(100, 100, 120);
-            btn.StateDisabled.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-            btn.StateDisabled.Content.ShortText.Color1 = Color.White;
-            btn.StateDisabled.Content.ShortText.Color2 = Color.White;
-            btn.StateDisabled.Content.ShortText.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
-
-            // Nội dung, icon và cơ chế đổi tên theo phiên bản
-            btn.Values.DropDownArrowColor = Color.Empty;
-            btn.Values.Image = (Image)resources.GetObject("kryptonButton1_HuongDanThemDuLieu.Values.Image");
-            btn.Values.Text = "Thêm CBCS";
-
-            // Sự kiện Click
-            btn.Click += kryptonButton1_HuongDanThemDuLieu_Click;
+            kryptonButton1_HuongDanThemDuLieu.Anchor = AnchorStyles.None;
+            kryptonButton1_HuongDanThemDuLieu.Location = new Point(403, 8);
+            kryptonButton1_HuongDanThemDuLieu.Name = "kryptonButton1_HuongDanThemDuLieu";
+            kryptonButton1_HuongDanThemDuLieu.Size = new Size(125, 30);
+            kryptonButton1_HuongDanThemDuLieu.StateCommon.Border.Rounding = 4F;
+            kryptonButton1_HuongDanThemDuLieu.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
+            kryptonButton1_HuongDanThemDuLieu.StateTracking.Border.Rounding = 4F;
+            kryptonButton1_HuongDanThemDuLieu.TabIndex = 3;
+            kryptonButton1_HuongDanThemDuLieu.Values.DropDownArrowColor = Color.Empty;
+            kryptonButton1_HuongDanThemDuLieu.Values.Image = (Image)resources.GetObject("kryptonButton1_HuongDanThemDuLieu.Values.Image");
+            kryptonButton1_HuongDanThemDuLieu.Values.Text = "Thêm CBCS";
+            kryptonButton1_HuongDanThemDuLieu.Click += kryptonButton1_HuongDanThemDuLieu_Click;
             // 
             // kryptonButton_XoaKetQuaPhanLoai
             // 
@@ -1104,8 +1057,6 @@
         private ToolStripMenuItem xoaTimKiem;
         private ComboBox textBox_DonVi;
         private ComboBox textBox_CapBac;
-        private ComboBox comboBox_CapBac;
-        private ComboBox comboBox_DonVi;
         private ComboBox comboBox_XepLoaiThiDua;
         private Label label5;
         private Krypton.Toolkit.KryptonButton kryptonButton_XoaKetQuaPhanLoai;
@@ -1124,7 +1075,6 @@
         private GroupBox groupBox3_ThongTinCBCS;
         private TableLayoutPanel tableLayoutPanel3;
         private Krypton.Toolkit.KryptonButton kryptonButton1_ThiDuaBaNhat;
-        private Krypton.Toolkit.KryptonButton kryptonButton1_HuongDanThemDuLieu;
         private ToolStripMenuItem phanTichDuLieuTrungTen_ToolStripMenuItem;
         private ToolStripMenuItem cBCSTrongDienQuanLy_ToolStripMenuItem;
         private ToolStripMenuItem xoaToanBoDuLieuDSCBCS_ToolStripMenuItem;
@@ -1144,5 +1094,6 @@
         private ToolStripMenuItem toolStripMenuItem_PhanTichQuanSo;
         private ToolStripProgressBar toolStripProgressBar1_LamMoi;
         private SplitContainer splitContainer1;
+        private Krypton.Toolkit.KryptonButton kryptonButton1_HuongDanThemDuLieu;
     }
 }

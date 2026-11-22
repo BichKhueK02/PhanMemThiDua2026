@@ -2,17 +2,12 @@
 ///
 using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows.Forms;
 //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 namespace PhanMemThiDua2026
 {
@@ -108,7 +103,7 @@ namespace PhanMemThiDua2026
             {
                 if (!System.IO.File.Exists(csdl2Path)) return;
                 // Pooling=False: không giữ lại kết nối trong pool => không khóa tệp csdl2.db sau khi đọc xong
-                using var conn = new SqliteConnection($"Data Source={csdl2Path};Mode=ReadOnly;Pooling=False");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdl2Path, chiDoc: true, pooling: false));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT MauSacNguoiDungChon FROM MauSacMenuHeThong WHERE ID = 1 LIMIT 1;";
@@ -120,11 +115,6 @@ namespace PhanMemThiDua2026
             }
             catch { MauHienTai = "Mặc định"; }
         }
-        // Giữ lại để tương thích code cũ
-        public static ProfessionalColorTable LayBangMauTheoTen(string tenMau) => new ThemeColorTable(LayChuDe(tenMau));
-        //  CHỦ ĐỀ MÀU
-        // API cũ: mỗi lần gọi trả về 1 MenuTheme mới (code ngoài có thể sửa thoải mái mà không ảnh hưởng cache nội bộ).
-        public static MenuTheme LayChuDe(string tenMau) => TaoChuDe(ChiSoChuDe(tenMau));
         private static int ChiSoChuDe(string? tenMau) => tenMau switch
         {
             "Xanh lá" => 1,
@@ -133,6 +123,8 @@ namespace PhanMemThiDua2026
             "Tối" => 4,
             "Kính tối" => 5,
             "Kính sáng" => 6,
+            "Hồng cánh sen" => 7,
+            "Tím nhạt" => 8,
             _ => 0,    // "Mặc định" hoặc giá trị trống
         };
         private static MenuTheme TaoChuDe(int chiSo)
@@ -172,6 +164,18 @@ namespace PhanMemThiDua2026
                     border: Color.FromArgb(46, 0, 0, 0), text: Color.FromArgb(28, 28, 32),
                     disabled: Color.FromArgb(150, 150, 158), separator: Color.FromArgb(26, 0, 0, 0),
                     accent: Color.FromArgb(37, 99, 235), doMo: 205),
+                // HỒNG CÁNH SEN: nền hồng phấn nhạt, hover hồng sen, chữ đỏ mận đậm
+                7 => new MenuTheme(
+                    back: Color.FromArgb(253, 236, 245), hover: Color.FromArgb(248, 187, 217),
+                    border: Color.FromArgb(232, 140, 186), text: Color.FromArgb(100, 14, 60),
+                    disabled: Color.FromArgb(185, 140, 165), separator: Color.FromArgb(245, 205, 226),
+                    accent: Color.FromArgb(219, 39, 119)),
+                // TÍM NHẠT: nền oải hương nhạt, hover tím lavender, chữ tím than đậm
+                8 => new MenuTheme(
+                    back: Color.FromArgb(243, 238, 255), hover: Color.FromArgb(214, 198, 250),
+                    border: Color.FromArgb(175, 150, 230), text: Color.FromArgb(46, 22, 96),
+                    disabled: Color.FromArgb(150, 140, 180), separator: Color.FromArgb(222, 211, 248),
+                    accent: Color.FromArgb(124, 58, 237)),
                 // Mặc định: vàng hổ phách ấm
                 _ => new MenuTheme(
                     back: Color.FromArgb(255, 248, 225), hover: Color.FromArgb(255, 224, 130),
@@ -180,14 +184,14 @@ namespace PhanMemThiDua2026
                     accent: Color.FromArgb(245, 158, 11)),
             };
         }
-        // Mỗi chủ đề chỉ có đúng 1 bộ (MenuTheme + Renderer) trong suốt vòng đời ứng dụng (tối đa 7 bộ, vài GDI object nhỏ).
+        // Mỗi chủ đề chỉ có đúng 1 bộ (MenuTheme + Renderer) trong suốt vòng đời ứng dụng (tối đa 9 bộ, vài GDI object nhỏ).
         private sealed class GoiChuDe
         {
             public readonly MenuTheme Theme;
             public readonly ModernMenuRenderer Renderer;
             public GoiChuDe(MenuTheme t) { Theme = t; Renderer = new ModernMenuRenderer(t); }
         }
-        private static readonly GoiChuDe?[] _goiChuDe = new GoiChuDe?[7];
+        private static readonly GoiChuDe?[] _goiChuDe = new GoiChuDe?[9];
         private static GoiChuDe LayGoiChuDe(string? tenMau)
         {
             int i = ChiSoChuDe(tenMau);
@@ -808,7 +812,7 @@ namespace PhanMemThiDua2026
             }
             protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
             {
-                e.ArrowColor = e.Item.Enabled ? _t.Text : _t.Disabled;
+                e.ArrowColor = e.Item!.Enabled ? _t.Text : _t.Disabled;
                 base.OnRenderArrow(e);
             }
             protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)

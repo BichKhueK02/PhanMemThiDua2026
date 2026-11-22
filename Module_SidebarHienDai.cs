@@ -1,7 +1,4 @@
 ﻿using Krypton.Toolkit;
-using System;
-using System.Drawing;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     /// <summary>
@@ -48,7 +45,7 @@ namespace PhanMemThiDua2026
                 b.StateCommon.Border.Color1 = Nen;
                 b.StateCommon.Border.Color2 = Nen;
                 b.StateCommon.Content.Padding = new Padding(4, -1, 4, -1);
-                b.StateCommon.Content.Image.ImageH = PaletteRelativeAlign.Near;
+                b.StateCommon.Content.Image!.ImageH = PaletteRelativeAlign.Near;
                 b.StateCommon.Content.ShortText.TextH = PaletteRelativeAlign.Near;
                 DatTrangThai(b, false);
             }

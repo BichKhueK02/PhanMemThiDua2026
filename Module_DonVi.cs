@@ -1,20 +1,20 @@
 ﻿using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 namespace PhanMemThiDua2026
 {
     internal static class Module_DonVi
     {
         //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-        private static List<string> _cacheDonVi;
+        private static List<string>? _cacheDonVi;
+        // Bộ đệm nạp từ bảng nào / CSDL nào: đổi phiên bản (DanhSach_DonVi <-> DanhSach_DonVi_TanBinh) hoặc đổi CSDL thì tự đọc lại.
+        // (Trước đây đổi CBCS -> Tân binh vẫn trả đơn vị CBCS => Form26/Form15/Form4 không khớp đơn vị nào.)
+        private static string _cacheKhoa = "";
         // ⭐ HÀM MỚI: TỰ ĐỘNG NHẬN DIỆN BẢNG THEO PHIÊN BẢN PHẦN MỀM
         public static string LayTenBangDonVi()
         {
             bool laTanBinh = false;
             try
             {
-                laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                laTanBinh = Module_TaiKhoan.LaPhienBanTanBinh();
             }
             catch { }
             return laTanBinh ? "DanhSach_DonVi_TanBinh" : "DanhSach_DonVi";
@@ -22,16 +22,18 @@ namespace PhanMemThiDua2026
         // LẤY DANH SÁCH ĐƠN VỊ (CHO COMBOBOX / SORT / BIẾN)
         public static List<string> GetDanhSachDonVi(bool forceReload = false)
         {
-            if (_cacheDonVi != null && !forceReload)
-                return new List<string>(_cacheDonVi);
-            var result = new List<string>();
             string csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+            string tenBang = LayTenBangDonVi(); // Gọi hàm tự nhận diện bảng
+            string khoa = tenBang + "|" + csdl2Path;
+            var cache = _cacheDonVi;
+            if (cache != null && !forceReload && khoa == _cacheKhoa)
+                return new List<string>(cache);
+            var result = new List<string>();
             if (string.IsNullOrWhiteSpace(csdl2Path)) return result;
             try
             {
-                using var cn = new SqliteConnection($"Data Source={csdl2Path}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdl2Path));
                 cn.Open();
-                string tenBang = LayTenBangDonVi(); // Gọi hàm tự nhận diện bảng
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = $"SELECT Ten_DonVi FROM {tenBang} ORDER BY ID ASC";
                 using var rd = cmd.ExecuteReader();
@@ -48,10 +50,12 @@ namespace PhanMemThiDua2026
                         result.Add(val);
                     }
                 }
+                _cacheKhoa = khoa;
                 _cacheDonVi = result;
             }
             catch
             {
+                _cacheKhoa = "";   // lỗi đọc: lần sau thử lại
                 _cacheDonVi = new List<string>();
             }
             return new List<string>(_cacheDonVi);
@@ -72,58 +76,6 @@ namespace PhanMemThiDua2026
         public static void KhoiTao()
         {
             GetDanhSachDonVi();
-        }
-        // CẬP NHẬT / THÊM ĐƠN VỊ → tự động reload cache
-        public static void CapNhatDonVi(string tenDonVi, int? id = null)
-        {
-            string csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-            if (string.IsNullOrWhiteSpace(csdl2Path)) return;
-            try
-            {
-                using var cn = new SqliteConnection($"Data Source={csdl2Path}");
-                cn.Open();
-                using var cmd = cn.CreateCommand();
-                string tenBang = LayTenBangDonVi(); // Gọi hàm tự nhận diện bảng
-                if (id.HasValue)
-                {
-                    // Update theo ID
-                    cmd.CommandText = $"UPDATE {tenBang} SET Ten_DonVi=@ten WHERE ID=@id";
-                    cmd.Parameters.AddWithValue("@id", id.Value);
-                }
-                else
-                {
-                    // Thêm mới
-                    cmd.CommandText = $"INSERT INTO {tenBang} (Ten_DonVi, ThoiGian) VALUES (@ten, @tg)";
-                    cmd.Parameters.AddWithValue("@tg", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-                }
-                cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenDonVi));
-                cmd.ExecuteNonQuery();
-                // 🔥 Sau khi cập nhật, reset cache để giá trị mới được dùng ngay
-                Reload();
-            }
-            catch
-            {
-                // bỏ qua lỗi
-            }
-        }
-        // XÓA ĐƠN VỊ → tự động reload cache
-        public static void XoaDonVi(int id)
-        {
-            string csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-            if (string.IsNullOrWhiteSpace(csdl2Path)) return;
-            try
-            {
-                using var cn = new SqliteConnection($"Data Source={csdl2Path}");
-                cn.Open();
-                using var cmd = cn.CreateCommand();
-                string tenBang = LayTenBangDonVi(); // Gọi hàm tự nhận diện bảng
-                cmd.CommandText = $"DELETE FROM {tenBang} WHERE ID=@id";
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.ExecuteNonQuery();
-                // 🔥 Sau khi xóa, reset cache
-                Reload();
-            }
-            catch { }
         }
     }
 }

@@ -1,31 +1,9 @@
 ﻿using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 using PhanMemThiDua2026;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-public class CbcDTO
-{
-    public int STT { get; set; }
-    public string HoVaTen { get; set; } = string.Empty;
-    public string SoHieu { get; set; } = string.Empty;
-    public string NamSinh { get; set; } = string.Empty;
-    public string QueQuan { get; set; } = string.Empty;
-    public string NgayVaoCAND { get; set; } = string.Empty;
-    public string CapBac { get; set; } = string.Empty;
-    public string ChucVu { get; set; } = string.Empty;
-    public string DonVi { get; set; } = string.Empty;
-    public string PhanLoai { get; set; } = string.Empty;
-    public string ThanhTich { get; set; } = string.Empty;
-    public string GhiChu { get; set; } = string.Empty;
-}
 // Dùng cho Form42 - Xuất danh sách gốc (Không cần điều kiện)
 public class DanhSachGocBaNhatDTO
 {
@@ -107,24 +85,14 @@ public static class Module_BaNhat
     private static BangDuLieu ChonBang()
     {
         string pb = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-        return pb.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+        return pb.LaCheDoTanBinh()
             ? new BangDuLieu("DanhSachBaNhat_TanBinh", "DanhSachTanBinh_SoVangBaNhat", "TomTatThanhTichBaNhat_TanBinh")
             : new BangDuLieu("DanhSachBaNhat", "DanhSach_SoVangBaNhat", "TomTatThanhTichBaNhat_CBCS");
     }
     // ===================== TIỆN ÍCH SQLITE / GIẢI MÃ =====================
     // Pooling=false: đóng kết nối là nhả hẳn tệp .db (không làm kẹt sao lưu/khôi phục). chiDoc=true: không thể ghi nhầm.
     private static SqliteConnection MoKetNoi(string dbPath, bool chiDoc)
-    {
-        var sb = new SqliteConnectionStringBuilder
-        {
-            DataSource = dbPath,
-            Mode = chiDoc ? SqliteOpenMode.ReadOnly : SqliteOpenMode.ReadWrite,
-            Pooling = false
-        };
-        var cn = new SqliteConnection(sb.ToString());
-        try { cn.Open(); return cn; }
-        catch { cn.Dispose(); throw; }
-    }
+        => Module_KetNoiCSDL.MoKetNoi(dbPath, chiDoc: chiDoc, khongTaoMoi: !chiDoc, pooling: false);
     private static bool BangTonTai(SqliteConnection cn, string ten)
     {
         using var cmd = cn.CreateCommand();
@@ -143,7 +111,7 @@ public static class Module_BaNhat
         string g = Module_BaoMatAES.GiaiMa(raw);
         if (g.Length > 0) return g.Trim();
         raw = raw.Trim();
-        return raw.StartsWith("v2|", StringComparison.Ordinal) ? "" : raw;
+        return Module_BaoMatAES.LaChuoiMa(raw) ? "" : raw;
     }
     private static int ToInt(object? v)
     {
@@ -169,24 +137,7 @@ public static class Module_BaNhat
         catch { return c.GetString().Trim(); }
     }
     // Ghi ra tệp tạm cùng thư mục rồi Move đè: mất điện/ngắt giữa chừng không để lại tệp cụt; tệp đang mở trong Excel => báo rõ.
-    private static void LuuTepAnToan(XLWorkbook wb, string duongDan)
-    {
-        string thuMuc = Path.GetDirectoryName(Path.GetFullPath(duongDan)) ?? AppContext.BaseDirectory;
-        string tam = Path.Combine(thuMuc, "~tmp_" + Guid.NewGuid().ToString("N") + ".xlsx");
-        try
-        {
-            wb.SaveAs(tam);
-            try { File.Move(tam, duongDan, true); }
-            catch (IOException)
-            {
-                throw new IOException("Không ghi đè được tệp '" + Path.GetFileName(duongDan) + "'. Có thể tệp đang mở trong Excel — hãy đóng tệp rồi thử lại.");
-            }
-        }
-        finally
-        {
-            try { if (File.Exists(tam)) File.Delete(tam); } catch { }
-        }
-    }
+    private static void LuuTepAnToan(XLWorkbook wb, string duongDan) => Module_ExcelAnToan.LuuAnToan(wb, duongDan);
     private static string? KiemTraKichThuocTep(string path)
     {
         long len = new FileInfo(path).Length;
@@ -443,7 +394,7 @@ public static class Module_BaNhat
         Thu("ChiHuyD", () =>
         {
             using var cmd = cn.CreateCommand();
-            cmd.CommandText = "SELECT HoVaTen, ChucVu FROM ChiHuyD ORDER BY ID ASC";
+            cmd.CommandText = $"SELECT HoVaTen, ChucVu FROM [{(Module_TaiKhoan.LaPhienBanTanBinh() ? "ChiHuyD_TanBinh" : "ChiHuyD")}] ORDER BY ID ASC";
             using var rd = cmd.ExecuteReader();
             int idx = 0;
             while (rd.Read())
@@ -599,27 +550,6 @@ public static class Module_BaNhat
             c.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             c.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             if (addr != "L17") c.Style.Font.Bold = true;
-        }
-    }
-    // Giữ tên cũ cho nơi khác gọi: mở tệp đã xuất, ghi BC_BANHAT, lưu lại (1 lần mở, 1 lần lưu an toàn).
-    public static void XuatBaoCaoTongHop(string fileXuat)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(fileXuat) || !File.Exists(fileXuat))
-                throw new FileNotFoundException("File Excel tổng hợp không tồn tại.");
-            string db = Module_DanduongGPS.DuongDanCSDL2;
-            if (string.IsNullOrWhiteSpace(db) || !File.Exists(db))
-                throw new FileNotFoundException("Không tìm thấy CSDL csdl2.");
-            var tt = DocThongTin(db, ChonBang().TomTat);
-            using var wb = new XLWorkbook(fileXuat);
-            GhiBaoCaoTongHop(wb, tt);
-            DatSheetBaoCaoHienHanh(wb);
-            LuuTepAnToan(wb, fileXuat);
-        }
-        catch (Exception ex)
-        {
-            Module_ThongBao.DangXuLy("Lỗi xuất báo cáo tổng hợp: " + ex.Message);
         }
     }
     // =====================================================================================================
@@ -790,7 +720,16 @@ public static class Module_BaNhat
         }
         catch (Exception ex)
         {
-            Debug.WriteLine("[Lỗi NhapDataSoVang] " + ex.Message);
+            // Danh sách chính đã nạp xong ở giao dịch riêng: chỉ phần Ba nhất thất bại => báo rõ cho người dùng
+            // (bản trước chỉ ghi Debug nên lỗi bị nuốt im lặng, dữ liệu Ba nhất lệch mà không ai biết).
+            Debug.WriteLine("[Lỗi NhapDataSoVang] " + ex);
+            try
+            {
+                HienThongBao(chu,
+                    "Dữ liệu chính đã được nạp, nhưng phần Sổ vàng Ba nhất (sheet DS_BaNhat) KHÔNG nạp được.\n\nChi tiết: " + ex.Message,
+                    "Lỗi nạp Sổ Vàng Ba nhất", MessageBoxIcon.Warning);
+            }
+            catch (Exception exHien) { Debug.WriteLine("[Lỗi NhapDataSoVang] Không hiện được thông báo: " + exHien.Message); }
         }
     }
     // UPDATE [bang] SET c0=@p0,... WHERE ID=@id
@@ -836,7 +775,7 @@ public static class Module_BaNhat
         }
         using (var cmd = cn.CreateCommand())
         {
-            cmd.CommandText = "SELECT PhanLoai FROM DanhSach WHERE PhanLoai IS NOT NULL AND PhanLoai <> ''";
+            cmd.CommandText = $"SELECT PhanLoai FROM {Module_TaiKhoan.BangDanhSach} WHERE PhanLoai IS NOT NULL AND PhanLoai <> ''";
             using var rd = cmd.ExecuteReader();
             while (rd.Read())
                 if (GiaiCot(rd, 0).Equals("Loại 1", StringComparison.OrdinalIgnoreCase)) tongLoai1++;
@@ -1184,7 +1123,7 @@ public static class Module_BaNhat
                 var phanLoaiGoc = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 using (var cmd = cn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT SoHieu, PhanLoai FROM DanhSach";
+                    cmd.CommandText = $"SELECT SoHieu, PhanLoai FROM {Module_TaiKhoan.BangDanhSach}";
                     using var rd = cmd.ExecuteReader();
                     while (rd.Read())
                     {

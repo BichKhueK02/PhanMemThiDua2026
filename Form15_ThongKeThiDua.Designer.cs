@@ -1,5 +1,4 @@
-﻿
-namespace PhanMemThiDua2026
+﻿namespace PhanMemThiDua2026
 {
     partial class Form15_ThongKeThiDua
     {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using ClosedXML.Excel;
+﻿using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 namespace PhanMemThiDua2026
 {
@@ -25,7 +19,7 @@ namespace PhanMemThiDua2026
             }
             return "Không xác định";
         }
-        public void saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem_Click(object sender, EventArgs e)
+        public void saoLuuToanBoDuLieuKhenThuong_toolStripMenuItem_Click(object? sender, EventArgs e)
         {
             using (SaveFileDialog sfd = new SaveFileDialog()
             {
@@ -65,21 +59,15 @@ namespace PhanMemThiDua2026
                         ws2.Cell(1, 1).InsertTable(listGiayKhen);
                         var ws3 = wb.Worksheets.Add("ThongKe_KhenThuongTapThe");
                         ws3.Cell(1, 1).InsertTable(listTapThe);
-                        // Căn chỉnh nhanh độ rộng các cột
-                        ws1.Columns().AdjustToContents();
-                        ws2.Columns().AdjustToContents();
-                        ws3.Columns().AdjustToContents();
+                        // Không AdjustToContents cho 3 sheet dữ liệu: chúng bị ẩn, đo từng ô bằng GDI chỉ tốn thời gian
                         // 3. Ẩn 3 sheet dữ liệu (Ẩn thường - Hidden)
                         ws1.Hide();
                         ws2.Hide();
                         ws3.Hide();
                         // Gọi hàm đóng dấu bản quyền phần mềm
                         Module_BanQuyen.DongDauExcel(wb);
-                        // Lưu file dưới dạng Stream để bỏ qua kiểm tra đuôi tệp của ClosedXML
-                        using (var stream = System.IO.File.Create(sfd.FileName))
-                        {
-                            wb.SaveAs(stream);
-                        }
+                        // Lưu an toàn qua tệp tạm (tự dùng stream cho đuôi tệp riêng): lỗi giữa chừng không làm hỏng bản sao lưu cũ
+                        Module_ExcelAnToan.LuuAnToan(wb, sfd.FileName);
                     }
                     MessageBox.Show(
                        $"Sao lưu dữ liệu khen thưởng thành công!\n\n",
@@ -218,7 +206,7 @@ namespace PhanMemThiDua2026
         }
         private void LuuVaoDatabase(List<CBCSDuocKhenThuongDTO> listCBCS, List<GiayKhenDTO> listGiayKhen, List<KhenThuongTapTheDTO> listTapThe, bool isClearData)
         {
-            using (var conn = new SqliteConnection($"Data Source={_csdl4Path}"))
+            using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
             {
                 conn.Open();
                 using (var trans = conn.BeginTransaction())
@@ -255,13 +243,13 @@ namespace PhanMemThiDua2026
                             cmd.Parameters.Add("@GhiChu_Khen", SqliteType.Text);
                             foreach (var item in listCBCS)
                             {
-                                cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object)item.ID;
-                                cmd.Parameters["@HoVaTen"].Value = (object)item.HoVaTen ?? DBNull.Value;
-                                cmd.Parameters["@SoHieu"].Value = (object)item.SoHieu ?? DBNull.Value;
-                                cmd.Parameters["@DonVi"].Value = (object)item.DonVi ?? DBNull.Value;
-                                cmd.Parameters["@TinhTrang"].Value = (object)item.TinhTrang ?? DBNull.Value;
-                                cmd.Parameters["@SoLuong_Khen"].Value = (object)item.SoLuong_Khen ?? DBNull.Value;
-                                cmd.Parameters["@GhiChu_Khen"].Value = (object)item.GhiChu_Khen ?? DBNull.Value;
+                                cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object?)item.ID;
+                                cmd.Parameters["@HoVaTen"].Value = (object?)item.HoVaTen ?? DBNull.Value;
+                                cmd.Parameters["@SoHieu"].Value = (object?)item.SoHieu ?? DBNull.Value;
+                                cmd.Parameters["@DonVi"].Value = (object?)item.DonVi ?? DBNull.Value;
+                                cmd.Parameters["@TinhTrang"].Value = (object?)item.TinhTrang ?? DBNull.Value;
+                                cmd.Parameters["@SoLuong_Khen"].Value = (object?)item.SoLuong_Khen ?? DBNull.Value;
+                                cmd.Parameters["@GhiChu_Khen"].Value = (object?)item.GhiChu_Khen ?? DBNull.Value;
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -287,20 +275,20 @@ namespace PhanMemThiDua2026
                             cmd.Parameters.Add("@GhiChu_Khen", SqliteType.Text);
                             foreach (var item in listGiayKhen)
                             {
-                                cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object)item.ID;
-                                cmd.Parameters["@HoVaTen"].Value = (object)item.HoVaTen ?? DBNull.Value;
-                                cmd.Parameters["@SoHieu"].Value = (object)item.SoHieu ?? DBNull.Value;
-                                cmd.Parameters["@DonVi"].Value = (object)item.DonVi ?? DBNull.Value;
-                                cmd.Parameters["@TinhTrang"].Value = (object)item.TinhTrang ?? DBNull.Value;
-                                cmd.Parameters["@HinhThuc_Khen"].Value = (object)item.HinhThuc_Khen ?? DBNull.Value;
-                                cmd.Parameters["@QuyetDinh_Khen"].Value = (object)item.QuyetDinh_Khen ?? DBNull.Value;
-                                cmd.Parameters["@NgayCapQD_Khen"].Value = (object)item.NgayCapQD_Khen ?? DBNull.Value;
-                                cmd.Parameters["@DonVi_Khen"].Value = (object)item.DonVi_Khen ?? DBNull.Value;
-                                cmd.Parameters["@VeViec_Khen"].Value = (object)item.VeViec_Khen ?? DBNull.Value;
-                                cmd.Parameters["@TienThuong"].Value = (object)item.TienThuong ?? DBNull.Value;
-                                cmd.Parameters["@NgayCapPhat"].Value = (object)item.NgayCapPhat ?? DBNull.Value;
-                                cmd.Parameters["@CanBoCapPhat"].Value = (object)item.CanBoCapPhat ?? DBNull.Value;
-                                cmd.Parameters["@GhiChu_Khen"].Value = (object)item.GhiChu_Khen ?? DBNull.Value;
+                                cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object?)item.ID;
+                                cmd.Parameters["@HoVaTen"].Value = (object?)item.HoVaTen ?? DBNull.Value;
+                                cmd.Parameters["@SoHieu"].Value = (object?)item.SoHieu ?? DBNull.Value;
+                                cmd.Parameters["@DonVi"].Value = (object?)item.DonVi ?? DBNull.Value;
+                                cmd.Parameters["@TinhTrang"].Value = (object?)item.TinhTrang ?? DBNull.Value;
+                                cmd.Parameters["@HinhThuc_Khen"].Value = (object?)item.HinhThuc_Khen ?? DBNull.Value;
+                                cmd.Parameters["@QuyetDinh_Khen"].Value = (object?)item.QuyetDinh_Khen ?? DBNull.Value;
+                                cmd.Parameters["@NgayCapQD_Khen"].Value = (object?)item.NgayCapQD_Khen ?? DBNull.Value;
+                                cmd.Parameters["@DonVi_Khen"].Value = (object?)item.DonVi_Khen ?? DBNull.Value;
+                                cmd.Parameters["@VeViec_Khen"].Value = (object?)item.VeViec_Khen ?? DBNull.Value;
+                                cmd.Parameters["@TienThuong"].Value = (object?)item.TienThuong ?? DBNull.Value;
+                                cmd.Parameters["@NgayCapPhat"].Value = (object?)item.NgayCapPhat ?? DBNull.Value;
+                                cmd.Parameters["@CanBoCapPhat"].Value = (object?)item.CanBoCapPhat ?? DBNull.Value;
+                                cmd.Parameters["@GhiChu_Khen"].Value = (object?)item.GhiChu_Khen ?? DBNull.Value;
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -326,20 +314,20 @@ namespace PhanMemThiDua2026
                             cmd.Parameters.Add("@GhiChu", SqliteType.Text);
                             foreach (var item in listTapThe)
                             {
-                                cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object)item.ID;
+                                cmd.Parameters["@ID"].Value = item.ID == 0 ? DBNull.Value : (object?)item.ID;
                                 cmd.Parameters["@STT"].Value = item.STT;
-                                cmd.Parameters["@TenTapThe"].Value = (object)item.TenTapThe ?? DBNull.Value;
-                                cmd.Parameters["@HinhThuc_KhenThuong"].Value = (object)item.HinhThuc_KhenThuong ?? DBNull.Value;
-                                cmd.Parameters["@DonVi_CapKhenThuong"].Value = (object)item.DonVi_CapKhenThuong ?? DBNull.Value;
-                                cmd.Parameters["@SoQuyetDinh"].Value = (object)item.SoQuyetDinh ?? DBNull.Value;
-                                cmd.Parameters["@NgayQuyetDinh"].Value = (object)item.NgayQuyetDinh ?? DBNull.Value;
-                                cmd.Parameters["@NguoiKy"].Value = (object)item.NguoiKy ?? DBNull.Value;
-                                cmd.Parameters["@NoiDung_KhenThuong"].Value = (object)item.NoiDung_KhenThuong ?? DBNull.Value;
-                                cmd.Parameters["@TienThuong"].Value = (object)item.TienThuong ?? DBNull.Value;
-                                cmd.Parameters["@NgayCapPhat"].Value = (object)item.NgayCapPhat ?? DBNull.Value;
-                                cmd.Parameters["@CanBoCapPhat"].Value = (object)item.CanBoCapPhat ?? DBNull.Value;
-                                cmd.Parameters["@NguoiDaiDienNhan"].Value = (object)item.NguoiDaiDienNhan ?? DBNull.Value;
-                                cmd.Parameters["@GhiChu"].Value = (object)item.GhiChu ?? DBNull.Value;
+                                cmd.Parameters["@TenTapThe"].Value = (object?)item.TenTapThe ?? DBNull.Value;
+                                cmd.Parameters["@HinhThuc_KhenThuong"].Value = (object?)item.HinhThuc_KhenThuong ?? DBNull.Value;
+                                cmd.Parameters["@DonVi_CapKhenThuong"].Value = (object?)item.DonVi_CapKhenThuong ?? DBNull.Value;
+                                cmd.Parameters["@SoQuyetDinh"].Value = (object?)item.SoQuyetDinh ?? DBNull.Value;
+                                cmd.Parameters["@NgayQuyetDinh"].Value = (object?)item.NgayQuyetDinh ?? DBNull.Value;
+                                cmd.Parameters["@NguoiKy"].Value = (object?)item.NguoiKy ?? DBNull.Value;
+                                cmd.Parameters["@NoiDung_KhenThuong"].Value = (object?)item.NoiDung_KhenThuong ?? DBNull.Value;
+                                cmd.Parameters["@TienThuong"].Value = (object?)item.TienThuong ?? DBNull.Value;
+                                cmd.Parameters["@NgayCapPhat"].Value = (object?)item.NgayCapPhat ?? DBNull.Value;
+                                cmd.Parameters["@CanBoCapPhat"].Value = (object?)item.CanBoCapPhat ?? DBNull.Value;
+                                cmd.Parameters["@NguoiDaiDienNhan"].Value = (object?)item.NguoiDaiDienNhan ?? DBNull.Value;
+                                cmd.Parameters["@GhiChu"].Value = (object?)item.GhiChu ?? DBNull.Value;
                                 cmd.ExecuteNonQuery();
                             }
                         }
@@ -356,7 +344,7 @@ namespace PhanMemThiDua2026
         private List<CBCSDuocKhenThuongDTO> LayDanhSachCBCS()
         {
             var list = new List<CBCSDuocKhenThuongDTO>();
-            using (var conn = new SqliteConnection($"Data Source={_csdl4Path}"))
+            using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
             {
                 conn.Open();
                 using (var cmd = new SqliteCommand("SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen FROM ThongKeCBCS_DuocKhenThuong", conn))
@@ -382,7 +370,7 @@ namespace PhanMemThiDua2026
         private List<GiayKhenDTO> LayDanhSachGiayKhen()
         {
             var list = new List<GiayKhenDTO>();
-            using (var conn = new SqliteConnection($"Data Source={_csdl4Path}"))
+            using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
             {
                 conn.Open();
                 using (var cmd = new SqliteCommand("SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen FROM ThongKe_GiayKhen", conn))
@@ -415,7 +403,7 @@ namespace PhanMemThiDua2026
         private List<KhenThuongTapTheDTO> LayDanhSachTapThe()
         {
             var list = new List<KhenThuongTapTheDTO>();
-            using (var conn = new SqliteConnection($"Data Source={_csdl4Path}"))
+            using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
             {
                 conn.Open();
                 using (var cmd = new SqliteCommand("SELECT ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu FROM ThongKe_KhenThuongTapThe", conn))
@@ -524,45 +512,45 @@ namespace PhanMemThiDua2026
     public class CBCSDuocKhenThuongDTO
     {
         public long ID { get; set; }
-        public string HoVaTen { get; set; }
-        public string SoHieu { get; set; }
-        public string DonVi { get; set; }
-        public string TinhTrang { get; set; }
-        public string SoLuong_Khen { get; set; }
-        public string GhiChu_Khen { get; set; }
+        public string? HoVaTen { get; set; }
+        public string? SoHieu { get; set; }
+        public string? DonVi { get; set; }
+        public string? TinhTrang { get; set; }
+        public string? SoLuong_Khen { get; set; }
+        public string? GhiChu_Khen { get; set; }
     }
     public class GiayKhenDTO
     {
         public long ID { get; set; }
-        public string HoVaTen { get; set; }
-        public string SoHieu { get; set; }
-        public string DonVi { get; set; }
-        public string TinhTrang { get; set; }
-        public string HinhThuc_Khen { get; set; }
-        public string QuyetDinh_Khen { get; set; }
-        public string NgayCapQD_Khen { get; set; }
-        public string DonVi_Khen { get; set; }
-        public string VeViec_Khen { get; set; }
-        public string TienThuong { get; set; }
-        public string NgayCapPhat { get; set; }
-        public string CanBoCapPhat { get; set; }
-        public string GhiChu_Khen { get; set; }
+        public string? HoVaTen { get; set; }
+        public string? SoHieu { get; set; }
+        public string? DonVi { get; set; }
+        public string? TinhTrang { get; set; }
+        public string? HinhThuc_Khen { get; set; }
+        public string? QuyetDinh_Khen { get; set; }
+        public string? NgayCapQD_Khen { get; set; }
+        public string? DonVi_Khen { get; set; }
+        public string? VeViec_Khen { get; set; }
+        public string? TienThuong { get; set; }
+        public string? NgayCapPhat { get; set; }
+        public string? CanBoCapPhat { get; set; }
+        public string? GhiChu_Khen { get; set; }
     }
     public class KhenThuongTapTheDTO
     {
         public long ID { get; set; }
         public long STT { get; set; }
-        public string TenTapThe { get; set; }
-        public string HinhThuc_KhenThuong { get; set; }
-        public string DonVi_CapKhenThuong { get; set; }
-        public string SoQuyetDinh { get; set; }
-        public string NgayQuyetDinh { get; set; }
-        public string NguoiKy { get; set; }
-        public string NoiDung_KhenThuong { get; set; }
-        public string TienThuong { get; set; }
-        public string NgayCapPhat { get; set; }
-        public string CanBoCapPhat { get; set; }
-        public string NguoiDaiDienNhan { get; set; }
-        public string GhiChu { get; set; }
+        public string? TenTapThe { get; set; }
+        public string? HinhThuc_KhenThuong { get; set; }
+        public string? DonVi_CapKhenThuong { get; set; }
+        public string? SoQuyetDinh { get; set; }
+        public string? NgayQuyetDinh { get; set; }
+        public string? NguoiKy { get; set; }
+        public string? NoiDung_KhenThuong { get; set; }
+        public string? TienThuong { get; set; }
+        public string? NgayCapPhat { get; set; }
+        public string? CanBoCapPhat { get; set; }
+        public string? NguoiDaiDienNhan { get; set; }
+        public string? GhiChu { get; set; }
     }
 }

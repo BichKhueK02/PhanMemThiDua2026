@@ -321,7 +321,7 @@
             chayVacuum_ToolStripMenuItem.Image = Properties.Resources.ic_database;
             chayVacuum_ToolStripMenuItem.Name = "chayVacuum_ToolStripMenuItem";
             chayVacuum_ToolStripMenuItem.Size = new Size(215, 26);
-            chayVacuum_ToolStripMenuItem.Text = "Chạy Vacuum";
+            chayVacuum_ToolStripMenuItem.Text = "Chạy Vacuum (thu gọn CSDL đang chọn)";
             chayVacuum_ToolStripMenuItem.Click += chayVacuum_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
@@ -401,7 +401,6 @@
         private TableLayoutPanel tableLayoutPanel2;
         private Krypton.Toolkit.KryptonButton kryptonButton1_CapNhat;
         private Label label_TenAdminDangNhap;
-        private PictureBox pictureBox1;
         private GroupBox groupBox1;
         private Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1;
         private GroupBox groupBox2;

@@ -4,7 +4,7 @@
     // nên file Designer chỉ giữ lại phần quản lý tài nguyên.
     partial class Form19_NapKQPLTuDonVi
     {
-        private System.ComponentModel.IContainer? components = null;
+        private System.ComponentModel.IContainer components = null;
         protected override void Dispose(bool disposing)
         {
             if (disposing)

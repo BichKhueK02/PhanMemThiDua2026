@@ -617,7 +617,6 @@
         }
         #endregion
         private ToolStripStatusLabel toolStripStatusLabel1;
-        private ToolStripStatusLabel toolStripStatusLabel2;
         private ContextMenuStrip contextMenuStrip1;
         private ToolTip toolTip1;
         private StatusStrip statusStrip1;
@@ -654,7 +653,6 @@
         private ToolStripMenuItem xoaCSDL_ToolStripMenuItem;
         private ToolStripSeparator toolStripMenuItem1;
         private ToolStripSeparator toolStripMenuItem2;
-        private ToolStripMenuItem huongDanSuDung_ToolStripMenuItem;
         private ToolStripMenuItem huongDan_ToolStripMenuItem;
         private Krypton.Toolkit.KryptonButton kryptonButton1_XemKetQuaThiDuaTapThe;
         private SplitContainer splitContainer1;

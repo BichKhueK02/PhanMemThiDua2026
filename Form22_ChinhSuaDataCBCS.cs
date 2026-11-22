@@ -163,7 +163,7 @@ namespace PhanMemThiDua2026
             }
         }
         // Hàm giải mã an toàn dùng chung cho toàn bộ Form
-        public static string GiaiMaSafe(string input)
+        public static string GiaiMaSafe(string? input)
         {
             if (string.IsNullOrWhiteSpace(input)) return "";
             try
@@ -222,7 +222,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using (var cn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                 {
                     await cn.OpenAsync();
                     // NHÁNH 1: SỬA TỪ FORM CŨ (Đã có ID)
@@ -302,21 +302,6 @@ namespace PhanMemThiDua2026
             }
         }
         // GIỮ NGUYÊN HOÀN TOÀN CÁC HÀM BÊN DƯỚI CỦA BẠN
-        public void ApplyFilter()
-        {
-            try
-            {
-                if (this.Owner is Form15_ThongKeThiDua parent)
-                {
-                    parent.ApplyFilter();
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi khi áp dụng bộ lọc: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
         private void kryptonButton1_CapNhat_Click(object? sender, EventArgs e)
         {
             // Chế độ chỉ xem (từ Form 6): nút chỉ có tác dụng đóng form
@@ -326,7 +311,7 @@ namespace PhanMemThiDua2026
                 return;
             }
         try { 
-            using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 cn.Open();
                 using (var cmdCheck = new SqliteCommand("SELECT 1 FROM ThiDuaThang WHERE ID = @id LIMIT 1", cn))
                 {

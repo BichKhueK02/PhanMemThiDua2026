@@ -15,10 +15,10 @@ namespace PhanMemThiDua2026
             int msg,
             IntPtr wParam,
             IntPtr lParam);
-        private bool _isInitializing = false; // Cờ bảo vệ
+        //private bool _isInitializing = false; // Cờ bảo vệ
         private const int CB_SETEDITSEL = 0x0142;
-        private const int PBM_SETSTATE = 0x0410;
-        private const int PBST_NORMAL = 0x0001;
+        //private const int PBM_SETSTATE = 0x0410;
+        //private const int PBST_NORMAL = 0x0001;
         private int soLanSai = 0;
         private const int MaxSoLanSai = 3;
         public Form5_QuenPass()
@@ -62,7 +62,7 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        using var conn = new SqliteConnection($"Data Source={_csdl1Path};Mode=ReadOnly;Default Timeout=5;Pooling=True;");
+                        using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path, chiDoc: true, thoiGianCho: 5));
                         await conn.OpenAsync();
                         using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);
                         using var reader = await cmd.ExecuteReaderAsync();
@@ -189,14 +189,6 @@ namespace PhanMemThiDua2026
             // Viền xanh nhẹ để dễ phân biệt
             tb.StateCommon.Border.Color1 = Color.FromArgb(203, 213, 225);
         }
-        private void CenterFormOnScreen()
-        {
-            var screen = Screen.PrimaryScreen;
-            if (screen == null) return;
-            int x = (screen.Bounds.Width - this.Width) / 2;
-            int y = (screen.Bounds.Height - this.Height) / 2;
-            this.Location = new Point(x, y);
-        }
         private void Form5_Shown(object? sender, EventArgs e)
         {
             InitCauHoiVaFocus();
@@ -216,7 +208,7 @@ namespace PhanMemThiDua2026
             }
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl1Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path));
                 conn.Open();
                 // TỐI ƯU HIỆU SUẤT: Gom chung thành 1 vòng truy vấn
                 string sqlKiemTra = "SELECT ID, CauHoi, CauTraLoi FROM CauHoiBaoMat WHERE ID IN (1, 2)";
@@ -340,7 +332,7 @@ namespace PhanMemThiDua2026
         }
         private void InitCauHoiVaFocus()
         {
-            _isInitializing = true; // Bắt đầu nạp
+            //_isInitializing = true; // Bắt đầu nạp
             try
             {
                 // 1. Nạp danh sách gợi ý từ Module
@@ -354,7 +346,7 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                _isInitializing = false; // Kết thúc nạp
+                //_isInitializing = false; // Kết thúc nạp
             }
             // 4. Focus vào ô trả lời
             this.ActiveControl = TextBox1_TraLoi1;
@@ -364,7 +356,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl1Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path));
                 conn.Open();
                 string sql = "SELECT ID, CauHoi FROM CauHoiBaoMat WHERE ID IN (1, 2)";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -398,19 +390,12 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine("Lỗi load CSDL: " + ex.Message);
             }
         }
-        private void StartProgressBar()
-        {
-            if (progressBar1 == null) return;
-            progressBar1.Style = ProgressBarStyle.Marquee;
-            progressBar1.MarqueeAnimationSpeed = 30; // tốc độ vừa phải
-            // Đảm bảo handle đã tạo
-            if (progressBar1.IsHandleCreated)
-            {
-                SendMessage(progressBar1.Handle, PBM_SETSTATE,
-                    (IntPtr)PBST_NORMAL, IntPtr.Zero);
-            }
-            progressBar1.Visible = true;
-        }
+        //private void StartProgressBar()
+        //{
+            //if (progressBar1 == null) return;
+            //progressBar1.Style = ProgressBarStyle.Marquee;
+            //progressBar1.MarqueeAnimationSpeed = 30; // tốc độ vừa phải
+            //// Đảm bảo handle đã tạo
         private void StopProgressBar()
         {
             if (progressBar1 == null) return;

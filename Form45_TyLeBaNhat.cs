@@ -1,10 +1,5 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Microsoft.Data.Sqlite;
-using System;
-using System.Drawing;
-using System.IO;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -37,7 +32,7 @@ namespace PhanMemThiDua2026
                 string tyLe = await Task.Run(() =>
                 {
                     // Thêm Mode=ReadWriteCreate để SQLite tự động sinh ra file nếu file chưa tồn tại
-                    using var cn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
+                    using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                     cn.Open();
                     using (var cmd = cn.CreateCommand())
                     {
@@ -54,9 +49,9 @@ namespace PhanMemThiDua2026
                     }
                     using var cmdLoad = cn.CreateCommand();
                     cmdLoad.CommandText = "SELECT TyLe FROM QuyDinhTyLe_BaNhat WHERE ID = 1;";
-                    object obj = cmdLoad.ExecuteScalar();
+                    object? obj = cmdLoad.ExecuteScalar();
                     if (obj == null || obj == DBNull.Value) return "";
-                    string value = obj.ToString();
+                    string? value = obj.ToString();
                     if (string.IsNullOrWhiteSpace(value)) return "";
                     try
                     {
@@ -99,7 +94,7 @@ namespace PhanMemThiDua2026
             {
                 await Task.Run(() =>
                 {
-                    using var cn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadWriteCreate");
+                    using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                     cn.Open();
                     using var tran = cn.BeginTransaction();
                     try

@@ -1,14 +1,8 @@
 ﻿using ClosedXML.Excel;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -97,7 +91,7 @@ namespace PhanMemThiDua2026
             try
             {
                 // Đọc trực tiếp từ CSDL2 chung của hệ thống
-                using var cn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(Module_DanduongGPS.DuongDanCSDL2));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin WHERE ID = 1";
@@ -114,7 +108,7 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrEmpty(_duongDanCSDL) || !File.Exists(_duongDanCSDL)) return;
             try
             {
-                using var cn = new SqliteConnection($"Data Source={_duongDanCSDL}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_duongDanCSDL));
                 cn.Open();
                 // 1. Kiểm tra cấu trúc cột thực tế có trong tệp CSDL năm cũ
                 var tatCaCot = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -306,7 +300,7 @@ namespace PhanMemThiDua2026
             try
             {
                 using var cn = new SqliteConnection(
-                    $"Data Source={_duongDanCSDL}");
+                    Module_KetNoiCSDL.ChuoiKetNoi(_duongDanCSDL));
                 cn.Open();
                 using var tran = cn.BeginTransaction();
                 using var cmd = cn.CreateCommand();
@@ -413,7 +407,7 @@ WHERE ID = 1;";
                 {
                     string giaTriGoc = rowNguon.Cells[i].Value?.ToString()?.Trim() ?? string.Empty;
                     bool laTongKetNam = kryptonDataGridView1.Columns[i].HeaderText.Contains("Tổng kết", StringComparison.OrdinalIgnoreCase);
-                    string giaTriXuat = laTongKetNam && mapTongKetNam.TryGetValue(giaTriGoc, out string danhHieu)
+                    string giaTriXuat = laTongKetNam && mapTongKetNam.TryGetValue(giaTriGoc, out string? danhHieu)
                         ? danhHieu
                         : giaTriGoc;
                     var cell = ws.Cell(4, i + 2);
@@ -444,7 +438,7 @@ WHERE ID = 1;";
                 ws.Range($"A3:{cotCuoi}4").Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 ws.Columns($"A:{cotCuoi}").AdjustToContents();
                 Module_BanQuyen.DongDauExcel(wb);
-                wb.SaveAs(sfd.FileName);
+                Module_ExcelAnToan.LuuAnToan(wb, sfd.FileName);
                 MessageBox.Show("Xuất Excel thành công!", "Hoàn tất",
                                 MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Module_NhatKy.GhiNhatKy(

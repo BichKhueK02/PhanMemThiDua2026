@@ -55,7 +55,7 @@ namespace PhanMemThiDua2026
         private void TaoBangNeuChuaCo()
         {
             if (!File.Exists(_csdl2Path)) return;
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             using var cmd = cn.CreateCommand();
             cmd.CommandText = @"
@@ -85,7 +85,7 @@ namespace PhanMemThiDua2026
         }
         private void LoadDanhSachChucVu(int? selectID = null)
         {
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             using var cmd = cn.CreateCommand();
             cmd.CommandText = "SELECT ID, Ten_ChucVu, ThoiGian FROM DanhSach_ChucVu ORDER BY ID ASC";
@@ -130,7 +130,7 @@ namespace PhanMemThiDua2026
             kryptonDataGridView1_DanhSach_ChucVu.Columns["ThoiGian"].DefaultCellStyle.Padding = new Padding(22, 0, 0, 0);
             // ===== FONT HEADER (IN ĐẬM – AN TOÀN MỌI MÁY) =====
             var headerStyle = kryptonDataGridView1_DanhSach_ChucVu.ColumnHeadersDefaultCellStyle;
-            headerStyle.Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 10f, FontStyle.Bold);
+            headerStyle.Font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 10f, FontStyle.Bold);
             headerStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             // ===== FONT NỘI DUNG =====
             kryptonDataGridView1_DanhSach_ChucVu.DefaultCellStyle.Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 9f);
@@ -192,7 +192,7 @@ namespace PhanMemThiDua2026
             try
             {
                 string tenTieuDoan = "";
-                using (var cn = new SqliteConnection($"Data Source={_csdl2Path}"))
+                using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path)))
                 {
                     cn.Open();
                     // Lấy TenTieuDoan từ bảng ThongTin
@@ -201,7 +201,7 @@ namespace PhanMemThiDua2026
                     var result = cmd1.ExecuteScalar();
                     if (result != null && result != DBNull.Value)
                     {
-                        string raw = Module_BaoMatAES.GiaiMa(result.ToString().Trim());
+                        string raw = Module_BaoMatAES.GiaiMa(result.ToString()!.Trim());
                         if (!string.IsNullOrWhiteSpace(raw))
                         {
                             tenTieuDoan = char.ToUpper(raw[0]) + raw.Substring(1).ToLower();
@@ -235,7 +235,7 @@ namespace PhanMemThiDua2026
                 textBox_TenChucVu.Focus();
                 return;
             }
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             // Kiểm tra tồn tại
             using var check = cn.CreateCommand();
@@ -282,7 +282,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Chưa nhập tên chức vụ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             // Kiểm tra trùng tên
             using var check = cn.CreateCommand();
@@ -323,7 +323,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Bạn chưa chọn chức vụ để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             using var cmd = cn.CreateCommand();
             cmd.CommandText = "DELETE FROM DanhSach_ChucVu WHERE ID=@id";
@@ -352,7 +352,7 @@ namespace PhanMemThiDua2026
                 int yIcon = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
                 int xIcon = e.CellBounds.X + paddingLeft;
                 // In đè cái ảnh lên ô
-                e.Graphics.DrawImage(_iconClock, new Rectangle(xIcon, yIcon, iconSize, iconSize));
+                e.Graphics!.DrawImage(_iconClock, new Rectangle(xIcon, yIcon, iconSize, iconSize));
                 // ⚠️ QUAN TRỌNG TỐI CAO: TUYỆT ĐỐI KHÔNG DÙNG e.Handled = true; TẠI ĐÂY
                 // Nếu để e.Handled = true, Krypton sẽ tịt luôn, không vẽ viền 3D/Bo góc nữa gây ra lỗi gạch đứt nét.
                 // Để trống, Grid sẽ vẽ giao diện của nó TRƯỚC, rồi ta in Icon TRÙNG LÊN TRÊN. Hai bên hòa thuận!

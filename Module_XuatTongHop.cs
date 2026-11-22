@@ -1,8 +1,8 @@
 ﻿//TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
+//v4: Bảng 2 lấy từ Module_TyLeBang2.Hien (Form4 tính trên RAM) thay vì đọc bảng TyLe trong CSDL; quét khen thưởng không làm bẩn bộ đệm giải mã.
 using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
-using System.IO.Compression;
 using System.Text.RegularExpressions;
 namespace PhanMemThiDua2026
 {
@@ -25,7 +25,6 @@ namespace PhanMemThiDua2026
         private const double CO_CHU_TOI_DA = 16;
         private const double CO_CHU_TOI_THIEU = 8;
         private const double BUOC_CO_CHU = 0.5;
-        private static readonly object _khoaLuuExcel = new();
         // Regex tạo 1 lần, không dùng RegexOptions.Compiled (tránh tốn RAM/JIT cho vài lần gọi)
         private static readonly Regex RxNgayThuan =
             new(@"^\d{1,2}\s*[/\-.]\s*\d{1,2}\s*[/\-.]\s*\d{2,4}$");
@@ -36,53 +35,7 @@ namespace PhanMemThiDua2026
         /// Lưu Excel an toàn bằng tệp tạm duy nhất cùng thư mục; xác minh gói XLSX trước khi thay thế.
         /// Giữ nguyên tệp đích cũ nếu quá trình lưu hoặc thay thế thất bại.
         /// </summary>
-        private static void LuuAnToan(XLWorkbook wb, string fileDich)
-        {
-            ArgumentNullException.ThrowIfNull(wb);
-            ArgumentException.ThrowIfNullOrWhiteSpace(fileDich);
-            string dich = Path.GetFullPath(fileDich);
-            string thuMuc = Path.GetDirectoryName(dich)
-                ?? throw new IOException("Không xác định được thư mục lưu Excel.");
-            lock (_khoaLuuExcel)
-            {
-                Directory.CreateDirectory(thuMuc);
-                // Giữ đúng phần mở rộng của tệp đích (.xlsx / .xlsm ...) để hành vi giống Save() cũ
-                string tam = Path.Combine(thuMuc,
-                    $".{Path.GetFileNameWithoutExtension(dich)}.{Guid.NewGuid():N}.tmp{Path.GetExtension(dich)}");
-                try
-                {
-                    wb.SaveAs(tam);
-                    using (var fs = new FileStream(tam, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
-                    {
-                        if (fs.Length == 0)
-                            throw new InvalidDataException("Tệp Excel tạm rỗng.");
-                        fs.Flush(true);   // ép ghi xuống đĩa trước khi thay thế
-                    }
-                    using (var zip = ZipFile.OpenRead(tam))   // tệp cụt/hỏng sẽ ném InvalidDataException ở đây
-                    {
-                        var ct = zip.GetEntry("[Content_Types].xml");
-                        var wbXml = zip.GetEntry("xl/workbook.xml");
-                        if (ct is null || wbXml is null)
-                            throw new InvalidDataException("Tệp Excel tạm không có cấu trúc XLSX hợp lệ.");
-                        using var s = wbXml.Open();   // đọc thử để chắc chắn giải nén được
-                        s.CopyTo(Stream.Null);
-                    }
-                    if (File.Exists(dich))
-                        File.Replace(tam, dich, null);   // thay thế nguyên tử, giữ thuộc tính/ACL của tệp đích
-                    else
-                        File.Move(tam, dich);
-                }
-                finally
-                {
-                    try
-                    {
-                        if (File.Exists(tam)) File.Delete(tam);
-                    }
-                    catch (IOException) { }
-                    catch (UnauthorizedAccessException) { }
-                }
-            }
-        }
+        private static void LuuAnToan(XLWorkbook wb, string fileDich) => Module_ExcelAnToan.LuuAnToan(wb, fileDich);
         // ===================== TIỆN ÍCH CSDL / GIẢI MÃ =====================
         private static SqliteConnection MoCsdl(string path, bool chiDoc)
         {
@@ -100,6 +53,23 @@ namespace PhanMemThiDua2026
                 string? s = value.ToString();
                 if (string.IsNullOrWhiteSpace(s)) return "";
                 return Module_BaoMatAES.GiaiMa(s);
+            }
+            catch
+            {
+                return "";
+            }
+        }
+        /// <summary>
+        /// Giải mã cho các lượt QUÉT 1 chiều qua bảng lớn (khen thưởng csdl4...): mỗi chuỗi chỉ đọc đúng 1 lần nên
+        /// KHÔNG lưu vào bộ đệm giải mã chung — tránh đẩy dữ liệu DanhSach (5.000 người) ra khỏi bộ đệm.
+        /// </summary>
+        private static string SafeDecryptQuet(object? value)
+        {
+            try
+            {
+                if (value == null || value == DBNull.Value) return "";
+                string? s = value.ToString();
+                return string.IsNullOrWhiteSpace(s) ? "" : Module_BaoMatAES.GiaiMaKhongLuuDem(s);
             }
             catch
             {
@@ -172,7 +142,7 @@ namespace PhanMemThiDua2026
             {
                 "ĐVQT" => "Đơn vị Quyết thắng",
                 "ĐVTT" => "Đơn vị Tiên tiến",
-                "HTNV"  => "Hoàn thành nhiệm vụ",   
+                "HTNV" => "Hoàn thành nhiệm vụ",
                 "KHTNV" => "Không hoàn thành nhiệm vụ",
                 _ => input
             };
@@ -329,21 +299,18 @@ namespace PhanMemThiDua2026
             }
             return kyHieuBaoCao;
         }
-        /// <summary>Đọc toàn bộ bảng TyLe (1 lần duy nhất). Lỗi dữ liệu -> ném ngoại lệ như bản gốc (hủy xuất, không ghi file).</summary>
-        private static Dictionary<int, (int hienTai, int canDat)> DocTyLe(SqliteConnection cn)
+        /// <summary>
+        /// (v4) Số liệu Bảng 2: lấy ĐÚNG đối tượng mà Form4 đã tính trên RAM (Module_TyLeBang2.Hien) — cùng một hàm tính với Bảng 2 trên màn hình,
+        /// nên Excel luôn khớp. KHÔNG còn đọc bảng TyLe trong CSDL (bảng đó không còn được cập nhật nên có thể chứa số cũ/trống).
+        /// Chưa có số liệu => ném ngoại lệ có hướng dẫn (hủy xuất, không ghi tệp sai).
+        /// </summary>
+        private static Dictionary<int, (int hienTai, int canDat)> LayTyLeTuBang2()
         {
-            var tyLe = new Dictionary<int, (int hienTai, int canDat)>();
-            using var cmd = new SqliteCommand("SELECT ID, [KQ Hien tai], [KQ Can dat] FROM TyLe", cn);
-            using var rd = cmd.ExecuteReader();
-            while (rd.Read())
-            {
-                // NULL của CSDL là DBNull (toán tử ?? không bắt được) nên phải kiểm tra IsDBNull
-                int id = rd.IsDBNull(0) ? 0 : Convert.ToInt32(rd.GetValue(0));
-                int ht = rd.IsDBNull(1) ? 0 : Convert.ToInt32(rd.GetValue(1));
-                int cd = rd.IsDBNull(2) ? 0 : Convert.ToInt32(rd.GetValue(2));
-                tyLe[id] = (ht, cd);
-            }
-            return tyLe;
+            var kq = Module_TyLeBang2.Hien;
+            if (kq == null)
+                throw new InvalidOperationException(
+                    "Chưa có số liệu Bảng tỷ lệ phần trăm (Bảng 2). Hãy mở Trang chủ để chương trình tính xong Bảng 2 rồi xuất lại.");
+            return kq.ToTyLe();
         }
         private static ThongTinKy DocThongTinKy(SqliteConnection cn)
         {
@@ -362,7 +329,7 @@ namespace PhanMemThiDua2026
                         string decoded = GiaiMaTho(chiHuyRaw);
                         // Giải mã thất bại: dữ liệu cũ dạng chữ thường thì dùng tiếp, còn chuỗi mã hóa "v2|..." thì bỏ trống
                         string ketQua = string.IsNullOrEmpty(decoded)
-                            ? (chiHuyRaw.StartsWith("v2|", StringComparison.Ordinal) ? "" : chiHuyRaw)
+                            ? (Module_BaoMatAES.LaChuoiMa(chiHuyRaw) ? "" : chiHuyRaw)
                             : decoded.Trim();
                         if (!string.IsNullOrWhiteSpace(ketQua)) k.HoTenKy = ketQua;
                     }
@@ -375,7 +342,7 @@ namespace PhanMemThiDua2026
             // --- Chức vụ: người đầu tiên = Tiểu đoàn trưởng (dự phòng); khớp tên -> người ký ---
             try
             {
-                using var cmd = new SqliteCommand("SELECT ID, HoVaTen, ChucVu FROM ChiHuyD ORDER BY ID ASC", cn);
+                using var cmd = new SqliteCommand($"SELECT ID, HoVaTen, ChucVu FROM [{(Module_TaiKhoan.LaPhienBanTanBinh() ? "ChiHuyD_TanBinh" : "ChiHuyD")}] ORDER BY ID ASC", cn);
                 using var rd = cmd.ExecuteReader();
                 bool isFirst = true;
                 bool foundMatch = false;
@@ -618,9 +585,10 @@ namespace PhanMemThiDua2026
                     tn = DocThongTinNgay(cn);
                     DocLoaiBaoCao(cn, out loaiBaoCao, out tuanBaoCao);
                     kyHieuBaoCao = DocKyHieuBaoCao(cn);
-                    tyLe = DocTyLe(cn);
                     ky = DocThongTinKy(cn);
                 }
+                // Số liệu Bảng 2 lấy từ RAM (đối tượng Form4 vừa tính), không phụ thuộc bảng TyLe trong CSDL
+                tyLe = LayTyLeTuBang2();
                 // ---- GHI SHEET ----
                 GhiDauTrang(ws, laNam, chuoiKyHieuGhep, tn);
                 GhiTieuDeThoiGian(ws, laNam, loaiBaoCao, tuanBaoCao);
@@ -718,9 +686,9 @@ namespace PhanMemThiDua2026
                 using var rd = cmd.ExecuteReader();
                 while (rd.Read())
                 {
-                    string ht = SafeDecrypt(rd.GetValue(0)).Trim();
-                    string dv = SafeDecrypt(rd.GetValue(1)).Trim();
-                    string ngay = SafeDecrypt(rd.GetValue(2)).Trim();
+                    string ht = SafeDecryptQuet(rd.GetValue(0)).Trim();
+                    string dv = SafeDecryptQuet(rd.GetValue(1)).Trim();
+                    string ngay = SafeDecryptQuet(rd.GetValue(2)).Trim();
                     if (ht.Length == 0 && dv.Length == 0) continue;   // dòng rỗng
                     tong.Them(ht, dv, ngay);
                 }

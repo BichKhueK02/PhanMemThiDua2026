@@ -1063,7 +1063,6 @@
         private Krypton.Toolkit.KryptonButton kryptonButton_LamMoiCacOTimKiem;
         private GroupBox groupBox2_KhoiLenhDieuKhien;
         private TableLayoutPanel tableLayoutPanel6;
-        private Krypton.Toolkit.KryptonButton kryptonButton_XoaKetQuaPhanLoai;
         private Krypton.Toolkit.KryptonButton kryptonButton_RefershCSDL;
         private Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1;
         private GroupBox groupBox3_ThongTinCBCS;
@@ -1074,7 +1073,6 @@
         private TableLayoutPanel tableLayoutPanel10;
         private Krypton.Toolkit.KryptonTextBox textBox_NgayVaoCAND;
         private Krypton.Toolkit.KryptonTextBox textBox_QueQuan;
-        private Label label11;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox1_ChucVu;
         private Label label14;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox1_CapBac;
@@ -1099,7 +1097,6 @@
         private Label label16;
         private Label label2;
         private ToolStripMenuItem toolStripMenuItem_ThiDuaTapThe;
-        private ToolStripMenuItem xóaChọnTấtCảToolStripMenuItem;
         private ToolStripMenuItem toolStripMenuItem_XoaChonTatCa;
         private ToolStripSeparator toolStripMenuItem3;
         private ToolStripMenuItem toolStripMenuItem_luuVaoSoVang;

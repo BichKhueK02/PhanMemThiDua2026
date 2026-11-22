@@ -1,4 +1,7 @@
-﻿///Phiên bản 2
+///Phiên bản 3
+///
+/// 
+///Phiên bản 2 — bản viết lại tối ưu cho dữ liệu 100 → 5.000 người
 ///
 using Microsoft.Data.Sqlite;
 using PhanMemThiDua2026;
@@ -10,125 +13,104 @@ using System.Security.Cryptography;
 using System.Text;
 //Gọi tắt là Module V2
 //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+//
+//  CAM KẾT TƯƠNG THÍCH (không đổi định dạng dữ liệu, không đổi tên hàm công khai):
+//    V1  : Base64(Cipher)                         — AES-CBC, IV mặc định (đọc được)
+//    V2  : "v2|"     + Base64(IV16 + Cipher)      — AES-CBC PKCS7
+//    V3  : "v3|"     + Base64(Salt16 + IV16 + Cipher + HMAC32)
+//    V4  : "AES:v4|" + Base64(Nonce12 + Cipher + Tag16) — AES-GCM (nhật ký)
+//    V5  : "v5|"     + Base64(Nonce12 + Cipher + Tag16) — AES-256-GCM, KHÓA PHỤ RIÊNG (dữ liệu từng ô) — MẶC ĐỊNH KHI GHI
+//    CSDL: "PMTD" + 0x2026 + BaseNonce12 + TổngKhối8 + n x [Tag16 + Cipher<=64KB] — AES-GCM theo khối
+//  => dữ liệu cũ (v1/v2/v3/v4) đọc được như trước, KHÔNG cần chuyển đổi CSDL: ô nào được lưu lại sẽ tự lên v5.
+//  ⚠ Phần mềm bản CŨ (trước V5) KHÔNG đọc được ô v5. Còn máy nào chạy bản cũ dùng chung / nhận dữ liệu chuyển giao
+//    thì đặt GhiDinhDangV5 = false cho đến khi nâng cấp hết (khi đó MaHoa ghi v2 y như trước).
+//
+//  V5 so với V2: có Tag xác thực 16 byte (sửa 1 bit chuỗi mã => giải mã trả rỗng, không ra dữ liệu méo),
+//  khóa phụ = HMAC-SHA256(khóa hệ thống, nhãn V5) => không dùng chung khóa với CBC/nhật ký/V3; không cần đệm PKCS7.
+//
+//  ĐIỂM MỚI SO VỚI BẢN TRƯỚC:
+//   1) Bộ đệm giải mã 60.000 mục (đủ 5.000 người x ~10 cột), đặt sẵn dung lượng bảng băm.
+//   2) Sửa lỗi cờ _dongCoHong: thiếu khóa lúc khởi động không còn khóa cứng đường chậm cả phiên.
+//   3) GiaiMaLo: giải mã cả lô, song song khi lô lớn (chạy trong Task.Run), nhường "đèn đỏ" đăng nhập.
+//   4) LamNongDanhSachAsync: nạp sẵn bộ đệm ở nền sau đăng nhập (an toàn: khóa đệm là chính chuỗi mã).
+//   5) AES-GCM nhật ký: mỗi luồng dùng lại 1 đối tượng AesGcm, không còn tạo mới + sao chép khóa ở mỗi ô.
+//   6) MaHoaCoDinh (tùy chọn): mã hóa xác định cho cột phân loại ít giá trị (cùng giá trị => cùng chuỗi mã).
+//   6b) GiaiMaKhongLuuDem (quét 1 lượt không làm bẩn bộ đệm) và XoaBoDemGiaiMa (nhả RAM khi đổi kỳ/khôi phục dữ liệu).
+//   7) MaHoaCSDL/GiaiMaCSDL: 1 lần ghi/khối, bộ đệm ArrayPool, kiểm tra Header khớp dung lượng tệp
+//      (phát hiện tệp bị cắt/sửa Header), nguồn bị thu nhỏ giữa chừng => báo lỗi thay vì tạo tệp hỏng.
 public static class Module_BaoMatAES
 {
+    // ===================== 1. HẰNG SỐ & TRẠNG THÁI =====================
     private const int MAX_STRING_LENGTH = 256;
-    // Tối ưu RAM: Giảm cache size xuống 10.000 là quá đủ cho grid 5000 dòng
-    private const int MAX_CACHE_SIZE = 10000;
-    private const string PREFIX_V2 = "v2|"; //Phiên bản mã hóa dành cho hệ thống
-    public static string yeuMeoCam_v1 = string.Empty;
-    public static string yeuChuMeoCam_v1 = string.Empty;
-    //  Module_BaoMatAES - BẢN TỐI ƯU MaHoa / GiaiMa
-    //  GIỮ NGUYÊN 100%: thuật toán (AES-CBC, PKCS7), cách sinh khóa/IV từ _aesLocal,
-    //  định dạng "v2|" + Base64(IV16 + Cipher), đường giải mã v1 (IV mặc định),
-    //  quy tắc Trim('\0').Trim(), điều kiện cache, và "lỗi => trả chuỗi rỗng".
-    //  => Dữ liệu cũ (v1/v2) giải mã như trước; dữ liệu mới vẫn đọc được bằng bản cũ.
-    //
-    //  CÁCH ÁP DỤNG (chỉ 4 việc, các hàm khác của module KHÔNG đổi):
-    //   1) Thêm dòng:  using System.Buffers;          (đầu file)
-    //   2) Thêm 2 khai báo ở MỤC 1 vào cạnh các field cache hiện có
-    //   3) Thay nguyên hàm MaHoa, GiaiMa, DonNheCache bằng MỤC 2, 3, 4
-    //   4) (Tùy chọn) dán MỤC 5 để tự kiểm tra tương thích với dữ liệu thật
-    // MỤC 1: KHAI BÁO MỚI
-    // Đếm lượt "miss" cache để chỉ kiểm tra kích thước cache định kỳ
-    // (ConcurrentDictionary.Count khóa TẤT CẢ bucket -> trước đây gọi ở MỌI lượt miss).
-    // MỤC 1: KHAI BÁO MỚI
-    // Đếm lượt "miss" cache để chỉ kiểm tra kích thước cache định kỳ
-    // (ConcurrentDictionary.Count khóa TẤT CẢ bucket -> trước đây gọi ở MỌI lượt miss).
-    private static int _giaiMaMissCount;
+    // 6.000 người x ~10 cột (DanhSach) + bảng khen thưởng/đơn vị/chức vụ ≈ 70.000–90.000 chuỗi mã khác nhau
+    // (IV/nonce ngẫu nhiên => mỗi ô một chuỗi riêng). Ước lượng RAM ~280 byte/mục => 100.000 mục ≈ 28 MB (tối đa);
+    // 100 người chỉ dùng vài trăm KB vì bộ đệm chỉ lớn theo dữ liệu thật.
+    private const int MAX_CACHE_SIZE = 100000;
+    private const int CACHE_DON_MOI_LAN = 2000;
+    private const int CACHE_DUNG_LUONG_BAN_DAU = 8191;    // nhỏ lúc đầu (máy 100 người không tốn RAM), tự nở khi cần
+    private const string PREFIX_V2 = "v2|"; //Phiên bản mã hóa dành cho hệ thống (CBC, chỉ còn đọc + MaHoaV2/MaHoaCoDinh)
+    private const string PREFIX_V5 = "v5|"; //Phiên bản mã hóa dữ liệu ô hiện hành (AES-256-GCM, khóa phụ)
+    /// <summary>
+    /// true (mặc định): MaHoa ghi định dạng v5 (AES-GCM có xác thực). false: ghi v2 (CBC) như các bản trước —
+    /// chỉ dùng khi còn máy chạy phần mềm bản cũ cần đọc dữ liệu do máy này ghi ra. Đọc thì LUÔN hiểu cả v1/v2/v5.
+    /// </summary>
+    public static volatile bool GhiDinhDangV5 = true;
     // Vùng đệm trên stack cho chuỗi ngắn (tên, đơn vị, phân loại...): không cấp phát heap, không tạo rác cho GC.
     private const int STACK_BYTES = 1024;
-    private static readonly ConcurrentDictionary<string, string> _giaiMaCache = new(Math.Max(Environment.ProcessorCount, 4), 16411, StringComparer.Ordinal);
-    // ĐÃ XÓA _maHoaCache: Để ép hàm MaHoa luôn chạy logic tạo chuỗi Random mới và giải phóng RAM.
+    // Đếm lượt "miss" cache để chỉ kiểm tra kích thước cache định kỳ (ConcurrentDictionary.Count khóa TẤT CẢ bucket).
+    private static int _giaiMaMissCount;
+    private static readonly ConcurrentDictionary<string, string> _giaiMaCache =
+        new(Math.Max(Environment.ProcessorCount, 4), CACHE_DUNG_LUONG_BAN_DAU, StringComparer.Ordinal);
+    // KHÔNG có bộ đệm cho MaHoa: mỗi lần mã hóa phải sinh IV ngẫu nhiên mới.
     private static readonly ThreadLocal<Aes> _aesLocal = new(() =>
     {
+        // Nguyên liệu khóa/IV lấy từ GPS (nguồn chính). KHÔNG dùng khóa dự phòng cứng ở đường này.
         try
         {
-            // 1. Chống Debug (Chỉ chạy khi thực sự cần thiết)
-            if (Debugger.IsAttached)
-            {
-                // Thay vì FailFast gây crash, ta có thể throw nhẹ nhàng hơn hoặc xử lý khác
-                // Debugger.Break(); 
-            }
-
-            Aes aes = Aes.Create();
-
-            // 2. ✅ CÁCH MỚI: Lấy nguyên liệu từ GPS (Primary Source)
-            string k1 = Module_DanduongGPS.ToiYeuMeoCam1;
-            string k2 = Module_DanduongGPS.ToiYeuMeoCam2;
-            string i1 = Module_DanduongGPS.ToiCanChuIVMeoCam1;
-            string i2 = Module_DanduongGPS.ToiCanChuIVMeoCam2;
-
-            // 3. ✅ KỸ THUẬT: Phòng thủ 1 lớp (tối ưu từ 3 lớp)
-            string rawKeyFromGPS = TraLaiTenChoMeoCam(k1 + k2);
-            string rawIVFromGPS = TraLaiTenChoMeoCam(i1 + i2);
-
-            // 4. ✅ KIỂM TRA: GPS Key có hợp lệ không?
+            string rawKeyFromGPS = TraLaiTenChoMeoCam(Module_DanduongGPS.ToiYeuMeoCam1 + Module_DanduongGPS.ToiYeuMeoCam2);
+            string rawIVFromGPS = TraLaiTenChoMeoCam(Module_DanduongGPS.ToiCanChuIVMeoCam1 + Module_DanduongGPS.ToiCanChuIVMeoCam2);
             if (string.IsNullOrEmpty(rawKeyFromGPS) || string.IsNullOrEmpty(rawIVFromGPS))
             {
-                // ❌ KHÔNG sử dụng hard-coded fallback key - throw exception để biết vấn đề
-                Debug.WriteLine("[Lỗi Mật Mã] GPS key không khả dụng:");
-                Debug.WriteLine($"  - rawKeyFromGPS: {(string.IsNullOrEmpty(rawKeyFromGPS) ? "RỖNG" : "OK")}");
-                Debug.WriteLine($"  - rawIVFromGPS: {(string.IsNullOrEmpty(rawIVFromGPS) ? "RỖNG" : "OK")}");
-
                 throw new InvalidOperationException(
                     "⛔ CẢNH BÁO BẢO MẬT: GPS key không khả dụng. Không sử dụng hard-coded fallback.\n" +
                     "Hệ thống mã hóa không thể hoạt động. Vui lòng kiểm tra cấu hình Module_DanduongGPS.");
             }
-
-            // 5. ✅ CHUYỂN THÀNH BYTE ARRAY
             byte[] keyBytes = VanLyDocHanhTaoKey256(rawKeyFromGPS);
             byte[] ivBytes = BaoCatSaharaTaoIV(rawIVFromGPS);
-
-            aes.Key = keyBytes;
-            aes.IV = (byte[])ivBytes.Clone();
-
-            // 6. ✅ XÓA SẠCH DỮ LIỆU NHẠY CẢM TRÊN MẢNG BYTE
-            CryptographicOperations.ZeroMemory(keyBytes);
-            CryptographicOperations.ZeroMemory(ivBytes);
-
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
-
-            // 7. ✅ RESET CÁC BIẾN TẠM VỀ RỖNG
-            k1 = k2 = i1 = i2 = rawKeyFromGPS = rawIVFromGPS = string.Empty;
-
-            Debug.WriteLine("[OK] Hệ thống mã hóa AES khởi tạo thành công (GPS key).");
-            return aes;
+            try
+            {
+                Aes aes = Aes.Create();
+                aes.Key = keyBytes;
+                aes.IV = ivBytes;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+                return aes;
+            }
+            finally
+            {
+                CryptographicOperations.ZeroMemory(keyBytes);
+                CryptographicOperations.ZeroMemory(ivBytes);
+            }
         }
         catch (InvalidOperationException invOpEx)
         {
-            // ⛔ Lỗi bảo mật - không trả về mặc định, để crash rõ ràng
             Debug.WriteLine($"[Lỗi Bảo Mật Nghiêm Trọng] {invOpEx.Message}");
-            throw; // Re-throw để caller biết vấn đề
+            throw;   // thiếu khóa: không trả mặc định, để nơi gọi biết (ThreadLocal KHÔNG lưu lại lỗi, lần sau thử lại)
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[Lỗi] Khởi tạo AES thất bại: {ex.Message}");
-            Debug.WriteLine($"[Chi tiết] {ex.InnerException?.Message}");
-
-            // ⛔ Throw exception thay vì trả về mặc định
-            throw new CryptographicException(
-                "Hệ thống mã hóa không thể khởi tạo. Ứng dụng không thể hoạt động an toàn.", ex);
+            throw new CryptographicException("Hệ thống mã hóa không thể khởi tạo. Ứng dụng không thể hoạt động an toàn.", ex);
         }
     }, trackAllValues: true);
-    //  MaHoa / GiaiMa - BẢN TỐI ƯU LẦN 2 (ưu tiên máy yếu)
-    //  GIỮ NGUYÊN 100%: AES-CBC + PKCS7, khóa/IV gốc từ _aesLocal, định dạng "v2|" + Base64(IV16 + Cipher),
-    //  giải mã v1 (IV mặc định), Trim('\0').Trim(), điều kiện cache, "lỗi => chuỗi rỗng".
-    //
-    //  ĐIỂM MỚI:
-    //  1) "Động cơ AES" riêng cho mỗi luồng: tạo 1 lần bộ AES-ECB (không đệm) rồi tự ghép CBC bằng XOR.
-    //     Aes.EncryptCbc/DecryptCbc (one-shot) phải dựng lại khóa + cấp phát handle CNG ở MỖI lần gọi
-    //     (vài micro-giây, rất đáng kể trên máy yếu). Bộ ECB tái sử dụng chỉ gọi BCryptEncrypt/Decrypt.
-    //  2) Giải mã: ECB giải toàn bộ khối trong 1 lệnh, rồi XOR với khối mã liền trước (đúng định nghĩa CBC).
-    //     Kiểm tra PKCS7 bằng tay => dữ liệu hỏng/văn bản thường KHÔNG còn ném CryptographicException.
-    //  3) Mã hóa: chuỗi ngắn (<= 79 byte UTF-8) dùng động cơ; chuỗi dài vẫn dùng EncryptCbc 1 lần (nhanh hơn khi nhiều khối).
-    //  4) IV vẫn là ngẫu nhiên CSPRNG, nhưng sinh theo lô 64 IV/lần thay vì gọi hệ điều hành mỗi lượt.
-    //  5) Bộ đệm giải mã tạo sẵn dung lượng => không bị "resize" nhiều lần khi nạp lưới vài nghìn dòng.
-    //  6) Tự rơi về đường cũ nếu động cơ gặp lỗi (cờ _dongCoHong) => không bao giờ làm hỏng dữ liệu.
-    private static volatile bool _dongCoHong;   // true => dùng đường cũ (EncryptCbc/DecryptCbc 1 lần)
+    // ===================== 2. "ĐỘNG CƠ AES" CHO MaHoa / GiaiMa (V2) =====================
+    //  Mỗi luồng tạo 1 lần bộ AES-ECB (không đệm) rồi tự ghép CBC bằng XOR.
+    //  Aes.EncryptCbc/DecryptCbc (one-shot) phải dựng lại khóa + cấp phát handle CNG ở MỖI lần gọi;
+    //  bộ ECB tái sử dụng chỉ gọi BCryptEncrypt/Decrypt. IV vẫn ngẫu nhiên (CSPRNG), sinh theo lô 64 IV/lần.
+    //  Tự rơi về đường cũ (one-shot) nếu động cơ gặp lỗi mật mã (cờ _dongCoHong) => không bao giờ hỏng dữ liệu.
+    private static volatile bool _dongCoHong;   // true => dùng đường one-shot
     private static volatile bool _tatDongCo;    // chỉ để đo so sánh trong DoTocDo / KiemTraTuongThichMaHoa
-    private const int NGUONG_DONG_CO_MA_HOA = 79; // <= 5 khối AES => động cơ nhanh hơn one-shot (chỉnh bằng DoTocDo nếu cần)
+    private const int NGUONG_DONG_CO_MA_HOA = 79; // <= 5 khối AES => động cơ nhanh hơn one-shot
     private sealed class DongCoAes : IDisposable
     {
         public const int BO_DEM = 2048;
@@ -176,23 +158,24 @@ public static class Module_BaoMatAES
             _ecb.Dispose();
             Array.Clear(In, 0, In.Length);
             Array.Clear(Out, 0, Out.Length);
+            Array.Clear(_ivPool, 0, _ivPool.Length);
         }
     }
-    private static readonly ThreadLocal<DongCoAes?> _dongCo = new(() =>
-    {
-        try { return new DongCoAes(_aesLocal.Value!); }
-        catch (Exception ex)
-        {
-            Debug.WriteLine("Lỗi khởi tạo động cơ AES: " + ex.Message);
-            _dongCoHong = true;
-            return null;
-        }
-    }, trackAllValues: true);
+    // Factory KHÔNG nuốt lỗi: nếu khóa chưa nạp, ngoại lệ nổi lên, ThreadLocal không lưu giá trị hỏng
+    // và LayDongCo() chỉ trả null cho lần đó (lần sau thử lại). Trước đây lỗi này bật _dongCoHong vĩnh viễn.
+    private static readonly ThreadLocal<DongCoAes> _dongCo =
+        new(() => new DongCoAes(_aesLocal.Value!), trackAllValues: true);
     private static DongCoAes? LayDongCo()
     {
         if (_dongCoHong || _tatDongCo) return null;
         try { return _dongCo.Value; }
-        catch (ObjectDisposedException) { return null; }
+        catch (InvalidOperationException) { return null; }   // gồm cả ObjectDisposedException và "khóa chưa nạp": KHÔNG khóa cứng
+        catch (CryptographicException ex)
+        {
+            _dongCoHong = true;                               // lỗi mật mã thật sự => dùng đường one-shot
+            Debug.WriteLine("Lỗi khởi tạo động cơ AES: " + ex.Message);
+            return null;
+        }
     }
     // a ^= b cho đúng 16 byte (1 khối AES)
     private static void Xor16(Span<byte> dst, ReadOnlySpan<byte> src)
@@ -224,15 +207,41 @@ public static class Module_BaoMatAES
             }
             if (!string.IsNullOrEmpty(Module_DanduongGPS.ToiYeuMeoCam1) && !string.IsNullOrEmpty(Module_DanduongGPS.ToiCanChuIVMeoCam1))
             {
-                string t = MaHoa("khoi-dong");
+                string t = MaHoa("khoi-dong");                 // v5 (AES-GCM) khi bật
                 _ = GiaiMa(t);
                 _giaiMaCache.TryRemove(t, out _);
+                string t2 = MaHoaV2("khoi-dong");              // v2: vẫn phải nóng vì CSDL cũ toàn là v2
+                _ = GiaiMa(t2);
+                _giaiMaCache.TryRemove(t2, out _);
+                _ = GiaiMa_NhatKy(MaHoa_NhatKy("khoi-dong"));   // làm nóng cả đường AES-GCM của nhật ký
             }
         }
         catch (Exception ex) { Debug.WriteLine("KhoiDongNong: " + ex.Message); }
     }
-    // MaHoa: kết quả KHÔNG đổi định dạng => bản cũ và bản mới đọc chéo được dữ liệu của nhau.
+    // ===================== 3. MaHoa / GiaiMa =====================
+    /// <summary>
+    /// Mã hóa 1 ô dữ liệu. Mặc định ghi v5 (AES-256-GCM có xác thực); GhiDinhDangV5 = false => ghi v2 như cũ.
+    /// Lỗi bất ngờ ở đường v5 (không phải do thiếu khóa) => tự rơi về v2, không bao giờ mất dữ liệu.
+    /// </summary>
     public static string MaHoa(string chuoiGoc)
+    {
+        if (string.IsNullOrEmpty(chuoiGoc)) return string.Empty;
+        if (GhiDinhDangV5 && !_v5Hong)
+        {
+            try { return MaHoaV5(chuoiGoc); }
+            catch (InvalidOperationException) { return string.Empty; }   // khóa chưa nạp: v2 cũng không chạy được
+            catch (Exception ex)
+            {
+                _v5Hong = true;                                            // lỗi nền tảng (hiếm) => dùng v2 cả phiên
+                Debug.WriteLine("AES-GCM v5 lỗi, chuyển về v2: " + ex.Message);
+            }
+        }
+        return MaHoaV2(chuoiGoc);
+    }
+    /// <summary>
+    /// Mã hóa định dạng cũ v2 (AES-CBC). Chỉ dùng khi bắt buộc cho phần mềm bản cũ đọc được.
+    /// </summary>
+    public static string MaHoaV2(string chuoiGoc)
     {
         if (string.IsNullOrEmpty(chuoiGoc)) return string.Empty;
         try
@@ -246,7 +255,7 @@ public static class Module_BaoMatAES
                     try { return MaHoaDongCo(eng, chuoiGoc, plainLen); }
                     catch (Exception ex)
                     {
-                        _dongCoHong = true;   // rơi về đường cũ, không mất dữ liệu
+                        _dongCoHong = true;   // rơi về đường one-shot, không mất dữ liệu
                         Debug.WriteLine("Động cơ AES lỗi (MaHoa): " + ex.Message);
                     }
                 }
@@ -281,7 +290,7 @@ public static class Module_BaoMatAES
         }
         finally { Array.Clear(inb, 0, padded); }        // không để bản rõ nằm lại trong bộ đệm
     }
-    // Đường cũ (đã tối ưu ở bản trước): 1 lần EncryptCbc trên vùng stackalloc. Dùng cho chuỗi dài / khi động cơ hỏng.
+    // Đường one-shot: 1 lần EncryptCbc trên vùng stackalloc. Dùng cho chuỗi dài / khi động cơ hỏng.
     private static string MaHoaMotLan(string chuoiGoc, int plainLen)
     {
         byte[]? rented = null;
@@ -299,22 +308,28 @@ public static class Module_BaoMatAES
             Span<byte> iv = payload.Slice(0, 16);
             RandomNumberGenerator.Fill(iv);
             int cipherLen = aes.EncryptCbc(plain, iv, payload.Slice(16), PaddingMode.PKCS7);
-            int payloadLen = 16 + cipherLen;
-            int prefixLen = PREFIX_V2.Length;
-            int totalChars = prefixLen + ((payloadLen + 2) / 3) * 4;
-            Span<char> chars = totalChars <= 512 ? stackalloc char[512] : new char[totalChars];
-            PREFIX_V2.AsSpan().CopyTo(chars);
-            if (!Convert.TryToBase64Chars(payload.Slice(0, payloadLen), chars.Slice(prefixLen), out int charsWritten))
-                return string.Empty;
-            return new string(chars.Slice(0, prefixLen + charsWritten));
+            return DongGoiV2(payload.Slice(0, 16 + cipherLen));
         }
         finally
         {
             if (rented != null) ArrayPool<byte>.Shared.Return(rented, clearArray: true);
         }
     }
-    // GiaiMa: cache -> (động cơ ECB | đường cũ). Chuỗi không hợp lệ => chuỗi rỗng, KHÔNG cache, KHÔNG ném ngoại lệ.
-    public static string GiaiMa(string chuoiMaHoa)
+    // "v2|" + Base64(payload)
+    private static string DongGoiV2(ReadOnlySpan<byte> payload) => DongGoi(PREFIX_V2, payload);
+    // <tiền tố> + Base64(payload), dựng chuỗi trên stack (chuỗi ngắn) => đúng 1 lần cấp phát (chính chuỗi kết quả)
+    private static string DongGoi(string prefix, ReadOnlySpan<byte> payload)
+    {
+        int prefixLen = prefix.Length;
+        int totalChars = prefixLen + ((payload.Length + 2) / 3) * 4;
+        Span<char> chars = totalChars <= 512 ? stackalloc char[512] : new char[totalChars];
+        prefix.AsSpan().CopyTo(chars);
+        if (!Convert.TryToBase64Chars(payload, chars.Slice(prefixLen), out int charsWritten))
+            return string.Empty;
+        return new string(chars.Slice(0, prefixLen + charsWritten));
+    }
+    // GiaiMa: cache -> (động cơ ECB | đường one-shot). Chuỗi không hợp lệ => chuỗi rỗng, KHÔNG cache, KHÔNG ném ngoại lệ.
+    public static string GiaiMa(string? chuoiMaHoa)
     {
         if (string.IsNullOrEmpty(chuoiMaHoa)) return string.Empty;
         // Đọc từ Cache giúp load dữ liệu CSDL nhanh chóng
@@ -328,13 +343,32 @@ public static class Module_BaoMatAES
         {
             // Chỉ kiểm tra kích thước cache mỗi 256 lượt miss (sai lệch tối đa ~255 mục, không đáng kể)
             if ((Interlocked.Increment(ref _giaiMaMissCount) & 0xFF) == 0 && _giaiMaCache.Count >= MAX_CACHE_SIZE)
-                DonNheCache(_giaiMaCache, 1000);
+                DonNheCache(_giaiMaCache, CACHE_DON_MOI_LAN);
             _giaiMaCache.TryAdd(chuoiMaHoa, kq);
         }
         return kq;
     }
+    /// <summary>
+    /// Giải mã nhưng KHÔNG lưu vào bộ đệm (vẫn đọc bộ đệm nếu có sẵn). Dùng khi quét 1 lượt qua bảng lớn mà mỗi chuỗi
+    /// chỉ đọc đúng 1 lần (khen thưởng csdl4, nhật ký, xuất báo cáo...) để không đẩy dữ liệu DanhSach ra khỏi bộ đệm.
+    /// </summary>
+    public static string GiaiMaKhongLuuDem(string chuoiMaHoa)
+    {
+        if (string.IsNullOrEmpty(chuoiMaHoa)) return string.Empty;
+        if (_giaiMaCache.TryGetValue(chuoiMaHoa, out string? cached)) return cached!;
+        try { return GiaiMaThat(chuoiMaHoa) ?? string.Empty; }
+        catch { return string.Empty; }
+    }
+    /// <summary>
+    /// true nếu chuỗi mang tiền tố của bản mã dữ liệu ô ("v2|" hoặc "v5|"). Dùng thay cho StartsWith("v2|") ở nơi gọi:
+    /// giải mã thất bại mà chuỗi là bản mã => KHÔNG được coi chính bản mã là văn bản thường / mã hóa chồng lần nữa.
+    /// </summary>
+    public static bool LaChuoiMa(string? s) =>
+        !string.IsNullOrEmpty(s) &&
+        (s.StartsWith(PREFIX_V5, StringComparison.Ordinal) || s.StartsWith(PREFIX_V2, StringComparison.Ordinal));
     private static string? GiaiMaThat(string s)
     {
+        if (s.StartsWith(PREFIX_V5, StringComparison.Ordinal)) return GiaiMaV5(s.AsSpan(PREFIX_V5.Length));
         bool laV2 = s.StartsWith(PREFIX_V2, StringComparison.Ordinal);
         ReadOnlySpan<char> b64 = laV2 ? s.AsSpan(PREFIX_V2.Length) : s.AsSpan();
         int maxBytes = (b64.Length / 4 + 1) * 3;           // cận trên số byte sau khi giải Base64
@@ -346,7 +380,7 @@ public static class Module_BaoMatAES
                 try { return GiaiMaDongCo(eng, b64, laV2); }
                 catch (Exception ex)
                 {
-                    _dongCoHong = true;                    // rơi về đường cũ
+                    _dongCoHong = true;                    // rơi về đường one-shot
                     Debug.WriteLine("Động cơ AES lỗi (GiaiMa): " + ex.Message);
                 }
             }
@@ -387,7 +421,7 @@ public static class Module_BaoMatAES
             if (cipherLen > 0) Array.Clear(outb, 0, cipherLen);    // xóa bản rõ khỏi bộ đệm
         }
     }
-    // Đường cũ (bản tối ưu trước): dùng cho chuỗi rất dài / khi động cơ hỏng. Hợp lệ => chuỗi; không hợp lệ => null.
+    // Đường one-shot: dùng cho chuỗi rất dài / khi động cơ hỏng. Hợp lệ => chuỗi; không hợp lệ => null.
     private static string? GiaiMaMotLan(ReadOnlySpan<char> b64, bool laV2, int maxBytes)
     {
         byte[]? rented = null;
@@ -424,34 +458,138 @@ public static class Module_BaoMatAES
             if (rented != null) ArrayPool<byte>.Shared.Return(rented, clearArray: true);
         }
     }
-    // --- CÁC HÀM TIỆN ÍCH HỖ TRỢ GIỮ NGUYÊN ---
-    public static string KhoBaoTanVuongGiaiMaHex(string hex)
+    // ===================== 3b. V5 — AES-256-GCM CHO DỮ LIỆU Ô =====================
+    //  Định dạng: "v5|" + Base64(Nonce 12 | Cipher n | Tag 16). Bản mã dài đúng bằng bản rõ (không đệm).
+    //  Khóa: HMAC-SHA256(khóa hệ thống, NHAN_KHOA_V5) — suy ra tất định từ tệp khóa hiện có => máy nào có tệp khóa
+    //        cũng đọc được, KHÔNG phải đổi tệp khóa, không ảnh hưởng ServiceBackup/ServiceRestore.
+    //  Nonce: 96 bit ngẫu nhiên (CSPRNG, sinh theo lô 64 nonce/lần). Giới hạn an toàn của NIST cho nonce ngẫu nhiên là
+    //         2^32 lần mã hóa / khóa — dư hàng trăm nghìn lần so với nhu cầu (6.000 người x 10 cột x nhiều năm).
+    //  AAD  : nhãn định dạng cố định => bản mã v5 không thể "đội lốt" bản mã GCM của nhật ký hay ngược lại.
+    private const string NHAN_KHOA_V5 = "PMTD2026|V5|AES-256-GCM|DU-LIEU-O";
+    private static readonly byte[] AAD_V5 = Encoding.ASCII.GetBytes("PMTD|v5");
+    private const int V5_NONCE = 12, V5_TAG = 16, V5_PHU = V5_NONCE + V5_TAG;
+    private static volatile bool _v5Hong;   // true => AES-GCM không dùng được trên máy này, MaHoa ghi v2
+    private sealed class DongCoV5 : IDisposable
     {
-        if (string.IsNullOrEmpty(hex)) return string.Empty;
+        private const int NONCE_POOL_BYTES = V5_NONCE * 64;
+        public readonly AesGcm Gcm;
+        private readonly byte[] _pool = new byte[NONCE_POOL_BYTES];
+        private int _pos = NONCE_POOL_BYTES;
+        public DongCoV5()
+        {
+            byte[] k = TaoKhoaPhu(NHAN_KHOA_V5);   // ném InvalidOperationException nếu khóa hệ thống chưa nạp
+            try { Gcm = new AesGcm(k, V5_TAG); }
+            finally { CryptographicOperations.ZeroMemory(k); }
+        }
+        public void LayNonce(Span<byte> dich)
+        {
+            if (_pos >= NONCE_POOL_BYTES) { RandomNumberGenerator.Fill(_pool); _pos = 0; }
+            Span<byte> o = _pool.AsSpan(_pos, V5_NONCE);
+            o.CopyTo(dich);
+            o.Clear();                              // nonce đã cấp phát không bao giờ được dùng lại
+            _pos += V5_NONCE;
+        }
+        public void Dispose()
+        {
+            Gcm.Dispose();
+            Array.Clear(_pool, 0, _pool.Length);
+        }
+    }
+    // Factory không nuốt lỗi: thiếu khóa => ngoại lệ, ThreadLocal không lưu giá trị hỏng, lần sau thử lại.
+    private static readonly ThreadLocal<DongCoV5> _dongCoV5 = new(() => new DongCoV5(), trackAllValues: true);
+    private static string MaHoaV5(string chuoiGoc)
+    {
+        DongCoV5 eng = _dongCoV5.Value!;
+        int n = Encoding.UTF8.GetByteCount(chuoiGoc);
+        int payloadLen = V5_PHU + n;
+        int need = payloadLen + n;                       // [nonce][cipher][tag] + [bản rõ]
+        byte[]? rented = null;
+        Span<byte> buf = need <= STACK_BYTES
+            ? stackalloc byte[STACK_BYTES]
+            : (rented = ArrayPool<byte>.Shared.Rent(need));
         try
         {
-            byte[] b = new byte[hex.Length / 2];
-            for (int i = 0; i < hex.Length; i += 2) b[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            return Encoding.UTF8.GetString(b).Trim();
+            Span<byte> payload = buf.Slice(0, payloadLen);
+            Span<byte> plain = buf.Slice(payloadLen, n);
+            Encoding.UTF8.GetBytes(chuoiGoc.AsSpan(), plain);
+            eng.LayNonce(payload.Slice(0, V5_NONCE));
+            eng.Gcm.Encrypt(payload.Slice(0, V5_NONCE), plain, payload.Slice(V5_NONCE, n),
+                            payload.Slice(V5_NONCE + n, V5_TAG), AAD_V5);
+            plain.Clear();
+            return DongGoi(PREFIX_V5, payload);
         }
-        catch { return string.Empty; }
+        finally
+        {
+            if (rented != null) ArrayPool<byte>.Shared.Return(rented, clearArray: true);
+            else buf.Slice(0, Math.Min(need, STACK_BYTES)).Clear();
+        }
+    }
+    // Hợp lệ => bản rõ (đã chuẩn hóa Trim giống v2); sai Tag / hỏng / thiếu khóa => null.
+    private static string? GiaiMaV5(ReadOnlySpan<char> b64)
+    {
+        DongCoV5 eng;
+        try { eng = _dongCoV5.Value!; }
+        catch { return null; }
+        int maxBytes = (b64.Length / 4 + 1) * 3;
+        int need = maxBytes * 2;                         // [dữ liệu thô][bản rõ]
+        byte[]? rented = null;
+        Span<byte> buf = need <= STACK_BYTES
+            ? stackalloc byte[STACK_BYTES]
+            : (rented = ArrayPool<byte>.Shared.Rent(need));
+        int cLen = 0;
+        try
+        {
+            Span<byte> raw = buf.Slice(0, maxBytes);
+            if (!Convert.TryFromBase64Chars(b64, raw, out int rawLen) || rawLen <= V5_PHU) return null;
+            cLen = rawLen - V5_PHU;
+            Span<byte> plain = buf.Slice(maxBytes, cLen);
+            try
+            {
+                eng.Gcm.Decrypt(raw.Slice(0, V5_NONCE), raw.Slice(V5_NONCE, cLen),
+                                raw.Slice(V5_NONCE + cLen, V5_TAG), plain, AAD_V5);
+            }
+            catch (CryptographicException) { return null; }   // bị sửa / sai khóa: KHÔNG trả dữ liệu méo
+            return Encoding.UTF8.GetString(plain).Trim('\0').Trim();
+        }
+        finally
+        {
+            if (rented != null) ArrayPool<byte>.Shared.Return(rented, clearArray: true);
+            else buf.Slice(0, Math.Min(need, STACK_BYTES)).Clear();
+        }
+    }
+    // ===================== 5. MÃ HÓA XÁC ĐỊNH (TÙY CHỌN) CHO CỘT PHÂN LOẠI ÍT GIÁ TRỊ =====================
+    //  Cùng bản rõ => cùng chuỗi mã (IV = 16 byte đầu của HMAC-SHA256(khóa phụ, bản rõ) thay cho IV ngẫu nhiên).
+    //  Vẫn là "v2|" + Base64(IV + Cipher) nên GiaiMa()/GiaiMa_Goc() giải được y như cũ.
+    //  LỢI ÍCH: ĐƠN VỊ / CẤP BẬC / CHỨC VỤ / PHÂN LOẠI chỉ có vài chục giá trị => 5.000 dòng chỉ còn vài chục chuỗi mã
+    //           khác nhau => bộ đệm trúng ~100% cho các cột này; lọc/nhóm được ngay trong SQL (WHERE DonVi = @mã).
+    //  ĐÁNH ĐỔI: ai có tệp .db sẽ thấy những dòng nào CÙNG giá trị (không đọc được nội dung).
+    //           => CHỈ dùng cho cột phân loại ít giá trị. KHÔNG dùng cho Họ tên, Số hiệu, Quê quán, Ghi chú.
+    //  LƯU Ý  : dữ liệu CŨ vẫn là IV ngẫu nhiên; muốn lọc bằng SQL phải chuyển đổi cột 1 lượt (trong transaction, có sao lưu).
+    private static readonly Lazy<byte[]> _macKeyCoDinh = new(() =>
+    {
+        byte[] k = _aesLocal.Value!.Key;
+        try { return HMACSHA256.HashData(k, Encoding.ASCII.GetBytes("PMTD2026|IV-CO-DINH")); }
+        finally { CryptographicOperations.ZeroMemory(k); }
+    }, LazyThreadSafetyMode.PublicationOnly);   // PublicationOnly: lỗi thiếu khóa không bị lưu lại vĩnh viễn
+    /// <summary>
+    /// Khóa phụ 32 byte theo mục đích = HMAC-SHA256(khóa hệ thống, nhãn). Nhãn khác nhau => khóa độc lập nhau.
+    /// Nơi gọi PHẢI tự xóa mảng trả về (CryptographicOperations.ZeroMemory). Ném lỗi nếu khóa hệ thống chưa nạp.
+    /// Dùng bởi Module_TokenCSDL (chữ ký toàn vẹn bộ CSDL).
+    /// </summary>
+    public static byte[] TaoKhoaPhu(string nhan)
+    {
+        byte[] k = _aesLocal.Value!.Key;
+        try { return HMACSHA256.HashData(k, Encoding.UTF8.GetBytes(nhan)); }
+        finally { CryptographicOperations.ZeroMemory(k); }
     }
     public static string XuanVeOHokkaido(string b64)
     {
         if (string.IsNullOrEmpty(b64)) return string.Empty;
         try { return Encoding.UTF8.GetString(Convert.FromBase64String(b64)); } catch { return string.Empty; }
     }
-    private static byte[] VanLyDocHanhTaoKey256(string key)
-    {
-        using SHA256 sha = SHA256.Create(); return sha.ComputeHash(Encoding.UTF8.GetBytes(key));
-    }
-    private static byte[] BaoCatSaharaTaoIV(string iv)
-    {
-        using MD5 md5 = MD5.Create(); return md5.ComputeHash(Encoding.UTF8.GetBytes(iv));
-    }
-    // MỤC 4: DonNheCache
-    // Trước: foreach (var key in cache.Keys) -> .Keys sao chép TOÀN BỘ ~10.000 khóa + khóa mọi bucket.
-    // Nay  : duyệt thẳng enumerator của ConcurrentDictionary (không khóa, không sao chép), kết quả y hệt.
+    private static byte[] VanLyDocHanhTaoKey256(string key) => SHA256.HashData(Encoding.UTF8.GetBytes(key));
+    private static byte[] BaoCatSaharaTaoIV(string iv) => MD5.HashData(Encoding.UTF8.GetBytes(iv));
+    // Duyệt thẳng enumerator của ConcurrentDictionary (không khóa, không sao chép toàn bộ khóa).
     private static void DonNheCache(ConcurrentDictionary<string, string> cache, int soLuong)
     {
         int count = 0;
@@ -461,156 +599,6 @@ public static class Module_BaoMatAES
             if (count >= soLuong) break;
         }
     }
-    private static string MaHoa_Goc(string chuoiGoc)
-    {
-        if (string.IsNullOrEmpty(chuoiGoc)) return string.Empty;
-        try
-        {
-            byte[] inputBytes = Encoding.UTF8.GetBytes(chuoiGoc);
-            Aes aes = _aesLocal.Value!;
-            byte[] randomIv = new byte[16];
-            RandomNumberGenerator.Fill(randomIv);
-            byte[] cipherBytes = aes.EncryptCbc(inputBytes, randomIv, PaddingMode.PKCS7);
-            byte[] payload = new byte[16 + cipherBytes.Length];
-            Buffer.BlockCopy(randomIv, 0, payload, 0, 16);
-            Buffer.BlockCopy(cipherBytes, 0, payload, 16, cipherBytes.Length);
-            return PREFIX_V2 + Convert.ToBase64String(payload);
-        }
-        catch { return string.Empty; }
-    }
-    private static string GiaiMa_Goc(string chuoiMaHoa)
-    {
-        if (string.IsNullOrEmpty(chuoiMaHoa)) return string.Empty;
-        try
-        {
-            Aes aes = _aesLocal.Value!;
-            string finalResult;
-            if (chuoiMaHoa.StartsWith(PREFIX_V2, StringComparison.Ordinal))
-            {
-                string b64 = chuoiMaHoa.Substring(PREFIX_V2.Length);
-                byte[] payload = Convert.FromBase64String(b64);
-                byte[] iv = new byte[16];
-                Buffer.BlockCopy(payload, 0, iv, 0, 16);
-                byte[] cipher = new byte[payload.Length - 16];
-                Buffer.BlockCopy(payload, 16, cipher, 0, cipher.Length);
-                byte[] decrypted = aes.DecryptCbc(cipher, iv, PaddingMode.PKCS7);
-                finalResult = Encoding.UTF8.GetString(decrypted).Trim('\0').Trim();
-            }
-            else
-            {
-                byte[] cipher = Convert.FromBase64String(chuoiMaHoa);
-                byte[] decrypted = aes.DecryptCbc(cipher, aes.IV, PaddingMode.PKCS7);
-                finalResult = Encoding.UTF8.GetString(decrypted).Trim('\0').Trim();
-            }
-            return finalResult;
-        }
-        catch { return string.Empty; }
-    }
-    // Kết quả phải là "KHÔNG CÓ KHÁC BIỆT". Nếu có dòng "KHÁC" => đừng triển khai và gửi lại cho mình.
-    // Bản này kiểm tra cả 3 đường giải mã (gốc / động cơ ECB / one-shot dự phòng) và vòng MaHoa(mới) -> GiaiMa(gốc).
-    public static string KiemTraTuongThichMaHoa(IEnumerable<string>? mauTuCSDL = null)
-    {
-        var sb = new StringBuilder();
-        int ok = 0, khac = 0;
-        void SoSanhGiaiMa(string input, string nhan)
-        {
-            string a = GiaiMa_Goc(input);
-            _giaiMaCache.TryRemove(input, out _);          // ép chạy đường giải mã thật, không lấy từ cache
-            string b = GiaiMa(input);                       // đường mới (động cơ ECB)
-            _giaiMaCache.TryRemove(input, out _);
-            string c;
-            _tatDongCo = true;
-            try { c = GiaiMa(input); }                      // đường one-shot dự phòng
-            finally { _tatDongCo = false; }
-            _giaiMaCache.TryRemove(input, out _);
-            if (string.Equals(a, b, StringComparison.Ordinal) && string.Equals(a, c, StringComparison.Ordinal)) { ok++; return; }
-            khac++;
-            if (khac <= 15) sb.AppendLine($"KHÁC [{nhan}] input='{input}' | goc='{a}' | dongco='{b}' | motlan='{c}'");
-        }
-        // 1) Dữ liệu thật từ CSDL (v1 + v2 đang có)
-        if (mauTuCSDL != null)
-            foreach (var s in mauTuCSDL) SoSanhGiaiMa(s, "CSDL");
-        // 2) Chuỗi biên: độ dài sát bội số 16 và sát ngưỡng động cơ (79/80 byte), tiếng Việt, emoji, ký tự Null / khoảng trắng đầu cuối
-        string[] mau =
-        {
-        "a", "Nguyễn Văn A", "Đại đội 1", new string('x', 15), new string('x', 16), new string('y', 17),
-        new string('z', 31), new string('z', 32), new string('w', 33), "Tiếng Việt ƒ 😀 ✓", new string('k', 300), new string('q', 600),
-        new string('m', 63), new string('m', 64), new string('m', 79), new string('m', 80), new string('m', 95), new string('m', 96),
-        "Đại đội trưởng Nguyễn Văn Ánh - Tiểu đoàn 1 - Trung đoàn 2",
-        " có khoảng trắng ", "\0nul\0", "abc\0 "
-    };
-        foreach (var p in mau)
-        {
-            string eMoi = MaHoa(p);
-            string eGoc = MaHoa_Goc(p);
-            string expect = p.Trim('\0').Trim();
-            if (!eMoi.StartsWith(PREFIX_V2, StringComparison.Ordinal) || eMoi.Length != eGoc.Length)
-            { khac++; sb.AppendLine($"KHÁC [định dạng MaHoa] p.Length={p.Length}: moi.Length={eMoi.Length} goc.Length={eGoc.Length}"); }
-            else ok++;
-            // Bản GỐC (đường độc lập) phải giải được chuỗi do MaHoa mới tạo ra và ra đúng nguyên văn
-            string back = GiaiMa_Goc(eMoi);
-            if (string.Equals(back, expect, StringComparison.Ordinal)) ok++;
-            else { khac++; sb.AppendLine($"KHÁC [vòng MaHoa(mới)->GiaiMa(gốc)] p.Length={p.Length}: '{back}' != '{expect}'"); }
-            // Hai lần mã hóa cùng 1 chuỗi phải cho 2 kết quả khác nhau (IV ngẫu nhiên)
-            if (!string.Equals(eMoi, MaHoa(p), StringComparison.Ordinal)) ok++;
-            else { khac++; sb.AppendLine($"KHÁC [IV trùng nhau] p.Length={p.Length}"); }
-            SoSanhGiaiMa(eMoi, "MaHoa(mới) -> giải");      // mới mã -> cả ba đường giải phải ra cùng kết quả
-            SoSanhGiaiMa(eGoc, "MaHoa(gốc) -> giải");       // gốc mã -> bản mới giải phải ra cùng kết quả
-            // v1 (dữ liệu cũ): AES-CBC với IV mặc định, không có tiền tố
-            Aes aes = _aesLocal.Value!;
-            string v1 = Convert.ToBase64String(aes.EncryptCbc(Encoding.UTF8.GetBytes(p), aes.IV, PaddingMode.PKCS7));
-            SoSanhGiaiMa(v1, "v1");
-        }
-        // 3) Đầu vào hỏng / văn bản thường: cả hai phải cùng trả chuỗi rỗng (bản mới không ném ngoại lệ)
-        string[] hong =
-        {
-            "abc", "v2|", "v2|AAAA", "v2|!!!!", "!!!", "   ", "Phiên bản dành cho CBCS", new string('A', 24),
-            "v2|" + new string('A', 44), "AAAAAAAAAAAAAAAAAAAAAA==", "v2|" + new string('A', 42) + "=="
-        };
-        foreach (var h in hong) SoSanhGiaiMa(h, "hỏng");
-        sb.Insert(0, khac == 0
-            ? $"KHÔNG CÓ KHÁC BIỆT ({ok} phép so sánh).\n"
-            : $"CÓ {khac} KHÁC BIỆT / {ok + khac}.\n");
-        return sb.ToString();
-    }
-    // Đo tốc độ thật trên CHÍNH máy này: gốc (cũ nhất) / one-shot (bản trước) / động cơ (bản mới).
-    // Ví dụ:  MessageBox.Show(Module_BaoMatAES.DoTocDo());
-    // Nếu "động cơ" mã hóa chậm hơn "one-shot" thì hạ NGUONG_DONG_CO_MA_HOA xuống (ví dụ 47) hoặc về 0.
-    public static string DoTocDo(int soLan = 8000)
-    {
-        if (soLan < 1000) soLan = 1000;
-        if (soLan > 9000) soLan = 9000;                    // < MAX_CACHE_SIZE để lượt "cache trúng" không bị dọn
-        const string mau = "Nguyễn Văn Ánh - Đại đội 1";
-        var sw = new Stopwatch();
-        var sb = new StringBuilder();
-        double Us(Action a) { sw.Restart(); a(); sw.Stop(); return sw.Elapsed.TotalMilliseconds * 1000.0 / soLan; }
-        try
-        {
-            for (int i = 0; i < 300; i++) { _ = MaHoa(mau); _ = MaHoa_Goc(mau); }   // làm nóng, loại chi phí JIT lần đầu
-            double mGoc = Us(() => { for (int i = 0; i < soLan; i++) _ = MaHoa_Goc(mau); });
-            _tatDongCo = true;
-            double mMot = Us(() => { for (int i = 0; i < soLan; i++) _ = MaHoa(mau); });
-            _tatDongCo = false;
-            double mMoi = Us(() => { for (int i = 0; i < soLan; i++) _ = MaHoa(mau); });
-            sb.AppendLine($"MÃ HÓA (µs/lần, càng nhỏ càng nhanh) — mẫu {mau.Length} ký tự");
-            sb.AppendLine($"  gốc: {mGoc:F2} | one-shot: {mMot:F2} | động cơ: {mMoi:F2}");
-            var cts = new string[soLan];
-            for (int i = 0; i < soLan; i++) cts[i] = MaHoa_Goc(mau);                 // mỗi chuỗi 1 IV khác nhau => cache trượt hết
-            _giaiMaCache.Clear();
-            double gGoc = Us(() => { foreach (var c in cts) _ = GiaiMa_Goc(c); });
-            _giaiMaCache.Clear(); _tatDongCo = true;
-            double gMot = Us(() => { foreach (var c in cts) _ = GiaiMa(c); });
-            _giaiMaCache.Clear(); _tatDongCo = false;
-            double gMoi = Us(() => { foreach (var c in cts) _ = GiaiMa(c); });
-            double gHit = Us(() => { foreach (var c in cts) _ = GiaiMa(c); });       // toàn bộ đã nằm trong cache
-            sb.AppendLine($"GIẢI MÃ, cache TRƯỢT (µs/lần) — nạp lưới lần đầu");
-            sb.AppendLine($"  gốc: {gGoc:F2} | one-shot: {gMot:F2} | động cơ: {gMoi:F2}");
-            sb.AppendLine($"GIẢI MÃ, cache TRÚNG (µs/lần): {gHit:F2}");
-        }
-        catch (Exception ex) { sb.AppendLine("Lỗi đo: " + ex.Message); }
-        finally { _tatDongCo = false; }
-        return sb.ToString();
-    }
     public static string TraLaiTenChoMeoCam(string s)
     {
         if (string.IsNullOrEmpty(s)) return s;
@@ -619,146 +607,37 @@ public static class Module_BaoMatAES
             for (int i = 0, j = str.Length - 1; i < str.Length; i++, j--) span[i] = str[j];
         });
     }
+    // Giải phóng tài nguyên mật mã khi thoát chương trình (gọi nhiều lần vẫn an toàn).
+    private static int _daDonDep;
     public static void DonDeprRacTraLaiTaiNguyenHeThong()
     {
-        // Nhớ xóa _maHoaCache.Clear() ở đây vì mình đã bỏ nó ở trên
+        if (Interlocked.Exchange(ref _daDonDep, 1) != 0) return;
         _giaiMaCache.Clear();
-        if (_dongCo != null) { foreach (var d in _dongCo.Values) d?.Dispose(); _dongCo.Dispose(); }
-        if (_aesLocal != null) { foreach (var a in _aesLocal.Values) a?.Dispose(); _aesLocal.Dispose(); }
+        try { foreach (var d in _dongCo.Values) d?.Dispose(); _dongCo.Dispose(); } catch { }
+        try { foreach (var v in _dongCoV5.Values) v?.Dispose(); _dongCoV5.Dispose(); } catch { }
+        try { foreach (var g in _gcmLocal.Values) g?.Dispose(); _gcmLocal.Dispose(); } catch { }
+        try { foreach (var a in _aesLocal.Values) a?.Dispose(); _aesLocal.Dispose(); } catch { }
+        if (_macKeyCoDinh.IsValueCreated) CryptographicOperations.ZeroMemory(_macKeyCoDinh.Value);
     }
-    //--- HÀM RIÊNG DÙNG CHO TẠO KHÓA GỠ CÀI ĐẶT (ĐẢM BẢO KHÔNG TRÙNG LẶP VỚI MODULE V1)
-    public static byte[] HoaVanNoTrenDuongRaChienDich256v1(string key)
-    {
-        using (SHA256 sha = SHA256.Create())
-        {
-            return sha.ComputeHash(Encoding.UTF8.GetBytes(key));
-        }
-    }
-    public static byte[] DatTruongSonViMienNamRuotThit(string iv)
-    {
-        using (MD5 md5 = MD5.Create())
-        {
-            return md5.ComputeHash(Encoding.UTF8.GetBytes(iv));
-        }
-    }
-    public static string MotDoiNguoiMotRungCayv1(string chuoiGoc)
-    {
-        if (string.IsNullOrEmpty(chuoiGoc) || string.IsNullOrEmpty(yeuMeoCam_v1) || string.IsNullOrEmpty(yeuChuMeoCam_v1))
-            return string.Empty;
-        byte[] keyBytes = HoaVanNoTrenDuongRaChienDich256v1(yeuMeoCam_v1);
-        byte[] ivBytes = DatTruongSonViMienNamRuotThit(yeuChuMeoCam_v1);
-        using (Aes aes = Aes.Create())
-        {
-            aes.Key = keyBytes;
-            aes.IV = ivBytes;
-            aes.Mode = CipherMode.CBC;
-            aes.Padding = PaddingMode.PKCS7;
-            using (MemoryStream ms = new MemoryStream())
-            using (ICryptoTransform encryptor = aes.CreateEncryptor())
-            using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-            {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(chuoiGoc);
-                cs.Write(inputBytes, 0, inputBytes.Length);
-                cs.FlushFinalBlock();
-                return Convert.ToBase64String(ms.ToArray());
-            }
-        }
-    }
-    public static bool TruyenThuyetGhepManhVoKhoa()
-    {
-        try
-        {
-            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL1)) return false;
-            using var conn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL1}");
-            conn.Open();
-            // Đảo ngược chuỗi rác lại thành câu SQL chuẩn trước khi chạy
-            //string sqlQuery = Module_BaoMatAES.TraLaiTenChoMeoCam("1 TIMIL 1 = DI EREHW gnoDiohK_yeK MORF 4_yeK ,3_yeK ,2_yeK ,1_yeK TCELES"); using var cmd = new SqliteCommand(sqlQuery, conn);
-            using var cmd = new SqliteCommand(
-    "SELECT Key_1, Key_2, Key_3, Key_4 FROM Key_KhoiDong WHERE ID = 1 LIMIT 1",
-    conn);
-            using var reader = cmd.ExecuteReader();
-            if (reader.Read())
-            {
-                // ĐỌC DỮ LIỆU TỪ CSDL BẰNG CÁCH LẬT NGƯỢC TÊN CỘT ĐỂ CHE GIẤU
-                string k1 = reader["Key_1"]?.ToString() ?? "";
-                string k2 = reader["Key_2"]?.ToString() ?? "";
-                string k3 = reader["Key_3"]?.ToString() ?? "";
-                string k4 = reader["Key_4"]?.ToString() ?? "";
-                // GỠ BẪY: Cắt bỏ 3 ký tự "v2|" đánh lừa ở đầu Key_3 và Key_4
-                if (k3.StartsWith("v2|")) k3 = k3.Substring(3);
-                if (k4.StartsWith("v2|")) k4 = k4.Substring(3);
-                // GHÉP CHUỖI VÀ GIẢI MÃ BẰNG MODULE V2
-                Module_BaoMatAES.yeuMeoCam_v1 = Module_BaoMatAES.GiaiMa(k1 + k3);     // Lấy lại "PHANMEMTHIDUA-2026-KEY-256BIT"
-                Module_BaoMatAES.yeuChuMeoCam_v1 = Module_BaoMatAES.GiaiMa(k2 + k4);  // Lấy lại "IV-THIDUA-2026KEY"
-                // Trả về true nếu giải mã thành công (chuỗi không rỗng)
-                return !string.IsNullOrWhiteSpace(Module_BaoMatAES.yeuMeoCam_v1) && !string.IsNullOrWhiteSpace(Module_BaoMatAES.yeuChuMeoCam_v1);
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Lỗi giải mã khóa ẩn: {ex.Message}");
-        }
-        return false;
-    }
-    public static bool DuongVaoTraiTimEm()
-    {
-        try
-        {
-            // 1. Kích hoạt truy tìm và ghép nối Key từ CSDL
-            if (!TruyenThuyetGhepManhVoKhoa())
-            {
-                MessageBox.Show("Cơ sở dữ liệu khởi động bị hỏng hoặc mất khóa an toàn!", "Lỗi bảo mật", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-            // 2. Chuẩn bị dữ liệu thô
-            string keyPath = Path.Combine(AppContext.BaseDirectory, ".uninstall.key");
-            string token = Guid.NewGuid().ToString("N");
-            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            string raw = token + "|PMTD2026";
-            // ⭐ BƯỚC QUAN TRỌNG: Gọi hàm mã hóa để tạo chữ ký (Signature)
-            string signature = Module_BaoMatAES.MotDoiNguoiMotRungCayv1(raw);
-            // 3. Tối ưu bộ nhớ: XÓA NGAY biến Key & IV trên RAM SAU KHI xài xong
-            // (Nên dùng string.Empty thay vì null để an toàn hơn cho các thao tác chuỗi)
-            Module_BaoMatAES.yeuMeoCam_v1 = string.Empty;
-            Module_BaoMatAES.yeuChuMeoCam_v1 = string.Empty;
-            // Kiểm tra xem chữ ký có tạo thành công không
-            if (string.IsNullOrEmpty(signature)) return false;
-            // 4. Tạo nội dung file
-            string content = token + Environment.NewLine +
-                             timestamp + Environment.NewLine +
-                             signature;
-            // 5. Nếu file tồn tại → bỏ attribute trước khi ghi (tránh lỗi UnauthorizedAccessException)
-            if (File.Exists(keyPath))
-            {
-                File.SetAttributes(keyPath, FileAttributes.Normal);
-            }
-            // 6. Ghi file
-            File.WriteAllText(keyPath, content, Encoding.UTF8);
-            // 7. Set Hidden + System để giấu file
-            File.SetAttributes(keyPath, FileAttributes.Hidden | FileAttributes.System);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show("Không thể tạo khóa gỡ cài đặt do lỗi quyền truy cập hệ thống:\n" + ex.Message, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            return false;
-        }
-    }
-    //Code hỗ trợ from6 v3| (Chuẩn dành riêng cho việc mã hóa gia cố thêm lớp bảo vệ chuỗi B1 SHEET BAO_CA0_TONG_HOP Ở B1 - bảo vệ chuỗi V2| thô)
-    private static string _cachedSig = null;
-    private static readonly Random _rnd = new Random();
+    // ===================== 7. TIỆN ÍCH TẠO KHÓA 256-BIT (Module_KhoiTaoCSDL còn dùng) =====================
+    // Đã GỠ khỏi đây: yeuMeoCam_v1/yeuChuMeoCam_v1, MotDoiNguoiMotRungCayv1, TruyenThuyetGhepManhVoKhoa, DuongVaoTraiTimEm
+    // (cơ chế tệp khóa ẩn ".uninstall.key" cũ). Việc gỡ cài đặt nay đi qua Module_GoCaiDat (bàn giao qua stdin).
+    public static byte[] HoaVanNoTrenDuongRaChienDich256v1(string key) => SHA256.HashData(Encoding.UTF8.GetBytes(key));
+    // ===================== 8. V3 — MÃ HÓA GIA CỐ (BAO_CA0_TONG_HOP) + GIẢI MÃ NHẬN DẠNG ĐA PHIÊN BẢN =====================
+    //  Dùng cho tệp EXCEL BAO_CA0_TONG_HOP chứa dữ liệu nhạy cảm: Salt + IV + Ciphertext + HMAC (kiểm tra toàn vẹn
+    //  TRƯỚC khi giải mã, chống giả mạo/sửa đổi). PBKDF2 2.000 vòng là một phần của định dạng => KHÔNG đổi.
+    private static string? _cachedSig = null;
+    private const string PREFIX_STEALTH_V3 = "v3|"; // Phiên bản dành cho việc bảo vệ dữ liệu tệp excel ở B1 SHEET BAO_CA0_TONG_HOP
     // 1. LẤY CHỮ KÝ HỆ THỐNG TỪ CSDL 1 (KEY_1 + KEY_3)
     private static string LaySignatureHeThong()
     {
         if (!string.IsNullOrEmpty(_cachedSig)) return _cachedSig;
         try
         {
-            // Sử dụng đường dẫn từ Module_DanduongGPS để đảm bảo ổn định
             string path = Module_DanduongGPS.DuongDanCSDL1;
             using var conn = new SqliteConnection($"Data Source={path};Pooling=True;");
             conn.Open();
             using var cmd = conn.CreateCommand();
-            // Dùng TraLaiTenChoMeoCam để che giấu câu query nếu cần
             cmd.CommandText = "SELECT Key_1, Key_3 FROM Key_KhoiDong WHERE ID = 1";
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -766,222 +645,100 @@ public static class Module_BaoMatAES
                 _cachedSig = (reader["Key_1"]?.ToString() ?? "") + (reader["Key_3"]?.ToString() ?? "");
             }
         }
-        catch { _cachedSig = "SIG_MAC_DINH_2026_MEO_CAM"; }
-        return _cachedSig;
-    }
-    //Phần này dành cho việc xuất tệp EXCEL BAO_CA0_TONG_HOP có chứa dữ liệu nhạy cảm, nên tôi tạo cơ chế mã hóa gia cố thêm 1 lớp nữa (V3)
-    //để bảo vệ dữ liệu tốt hơn, tránh bị lộ khi người dùng mở tệp bằng Excel mà không qua phần mềm.
-    //Cơ chế này sẽ tạo ra một payload gồm Salt + IV + Ciphertext và kèm theo HMAC để đảm bảo tính toàn vẹn dữ liệu.
-    //Khi giải mã, phần mềm sẽ kiểm tra HMAC trước khi giải mã để đảm bảo dữ liệu không bị giả mạo hoặc sửa đổi.
-    private const string PREFIX_STEALTH_V3 = "v3|"; // Phiên bản mã hóa dành cho việc bảo vệ dữ liệu tệp excel ở B1 SHEET BAO_CA0_TONG_HOP
-    // HÀM TẠO KEY DÙNG CHUNG VỚI MODULE AES
-    private static byte[] TaoKeyBaoMatV3(byte[] salt)
-    {
-        try
-        {
-            Aes aes = _aesLocal.Value!;
-            // Dùng KEY GỐC đang chạy của hệ thống
-            byte[] baseKey = aes.Key;
-            // PBKDF2 gia cố
-            using var pbkdf2 = new Rfc2898DeriveBytes(
-                password: baseKey,
-                salt: salt,
-                iterations: 2000,
-                hashAlgorithm: HashAlgorithmName.SHA256);
-            return pbkdf2.GetBytes(32);
-        }
         catch
         {
-            return SHA256.HashData(
-                Encoding.UTF8.GetBytes("PMTD2026_FALLBACK_KEY"));
+            // KHÔNG lưu giá trị mặc định vào bộ đệm: lỗi tạm thời (CSDL đang khôi phục) không được khóa cứng cả phiên
+            return "SIG_MAC_DINH_2026_MEO_CAM";
         }
+        return _cachedSig ?? string.Empty;
+    }
+    // HÀM TẠO KEY DÙNG CHUNG VỚI MODULE AES (PBKDF2-HMAC-SHA256, 2.000 vòng, 32 byte)
+    // Thiếu khóa hệ thống => NÉM LỖI (trước đây âm thầm mã hóa bằng khóa cứng ai cũng biết => tệp Excel coi như không mã hóa).
+    private static byte[] TaoKeyBaoMatV3(byte[] salt)
+    {
+        byte[] baseKey = _aesLocal.Value!.Key;   // KEY GỐC đang chạy của hệ thống
+        try { return Rfc2898DeriveBytes.Pbkdf2(baseKey, salt, 2000, HashAlgorithmName.SHA256, 32); }
+        finally { CryptographicOperations.ZeroMemory(baseKey); }
+    }
+    // CHỈ ĐỂ ĐỌC tệp Excel cũ lỡ được tạo bằng khóa cứng khi khóa hệ thống chưa nạp. Không bao giờ dùng để mã hóa.
+    private static byte[] KhoaV3CuDeDoc() => SHA256.HashData(Encoding.UTF8.GetBytes("PMTD2026_FALLBACK_KEY"));
+    // Kiểm HMAC rồi giải mã V3 bằng 1 khóa; sai HMAC => null.
+    private static string? GiaiMaV3VoiKhoa(byte[] all, byte[] key)
+    {
+        int payloadLen = all.Length - 32;
+        Span<byte> computed = stackalloc byte[32];
+        HMACSHA256.HashData(key, all.AsSpan(0, payloadLen), computed);
+        if (!CryptographicOperations.FixedTimeEquals(computed, all.AsSpan(payloadLen, 32))) return null;
+        using Aes aes = Aes.Create();
+        aes.Key = key;
+        byte[] decrypted = aes.DecryptCbc(all.AsSpan(32, payloadLen - 32), all.AsSpan(16, 16), PaddingMode.PKCS7);
+        try { return Encoding.UTF8.GetString(decrypted).Trim('\0').Trim(); }
+        finally { CryptographicOperations.ZeroMemory(decrypted); }
     }
     // MÃ HÓA GIA CỐ V3
     public static string MaHoaGiaCo(string dataGoc)
     {
-        if (string.IsNullOrWhiteSpace(dataGoc))
-            return string.Empty;
+        if (string.IsNullOrWhiteSpace(dataGoc)) return string.Empty;
+        byte[]? key = null;
         try
         {
-            // RANDOM SALT
-            byte[] salt = new byte[16];
-            RandomNumberGenerator.Fill(salt);
-            // RANDOM IV
-            byte[] iv = new byte[16];
-            RandomNumberGenerator.Fill(iv);
-            // TẠO KEY
-            byte[] key = TaoKeyBaoMatV3(salt);
-            byte[] plainBytes = Encoding.UTF8.GetBytes(dataGoc);
-            byte[] cipherBytes;
-            // AES-256-CBC
+            byte[] salt = RandomNumberGenerator.GetBytes(16);
+            byte[] iv = RandomNumberGenerator.GetBytes(16);
+            key = TaoKeyBaoMatV3(salt);
+            byte[] plain = Encoding.UTF8.GetBytes(dataGoc);
+            int cipherLen = ((plain.Length / 16) + 1) * 16;
+            // FINAL = SALT(16) + IV(16) + CIPHER + HMAC(32)
+            byte[] data = new byte[32 + cipherLen + 32];
+            salt.CopyTo(data, 0);
+            iv.CopyTo(data, 16);
             using (Aes aes = Aes.Create())
             {
-                aes.KeySize = 256;
-                aes.BlockSize = 128;
                 aes.Key = key;
-                aes.IV = iv;
-                aes.Mode = CipherMode.CBC;
-                aes.Padding = PaddingMode.PKCS7;
-                using ICryptoTransform encryptor = aes.CreateEncryptor();
-                cipherBytes = encryptor.TransformFinalBlock(
-                    plainBytes,
-                    0,
-                    plainBytes.Length);
+                aes.EncryptCbc(plain, iv, data.AsSpan(32, cipherLen), PaddingMode.PKCS7);
             }
-            // PAYLOAD = SALT + IV + DATA
-            byte[] payload = new byte[
-                salt.Length +
-                iv.Length +
-                cipherBytes.Length];
-            Buffer.BlockCopy(salt, 0, payload, 0, salt.Length);
-            Buffer.BlockCopy(
-                iv,
-                0,
-                payload,
-                salt.Length,
-                iv.Length);
-            Buffer.BlockCopy(
-                cipherBytes,
-                0,
-                payload,
-                salt.Length + iv.Length,
-                cipherBytes.Length);
-            // HMACSHA256
-            byte[] hmac;
-            using (var h = new HMACSHA256(key))
-            {
-                hmac = h.ComputeHash(payload);
-            }
-            // FINAL = PAYLOAD + HMAC
-            byte[] finalData = new byte[
-                payload.Length +
-                hmac.Length];
-            Buffer.BlockCopy(
-                payload,
-                0,
-                finalData,
-                0,
-                payload.Length);
-            Buffer.BlockCopy(
-                hmac,
-                0,
-                finalData,
-                payload.Length,
-                hmac.Length);
-            // BASE64
-            string result =
-                PREFIX_STEALTH_V3 +
-                Convert.ToBase64String(finalData);
-            // XÓA MEMORY NHẠY CẢM
-            CryptographicOperations.ZeroMemory(key);
-            return result;
+            HMACSHA256.HashData(key, data.AsSpan(0, 32 + cipherLen), data.AsSpan(32 + cipherLen, 32));
+            return PREFIX_STEALTH_V3 + Convert.ToBase64String(data);
         }
         catch
         {
             return string.Empty;
         }
+        finally
+        {
+            if (key != null) CryptographicOperations.ZeroMemory(key);
+        }
     }
-    // GIẢI MÃ NHẬN DẠNG
+    // GIẢI MÃ NHẬN DẠNG (V3 -> V2 -> hệ cũ Stealth -> nguyên văn)
     public static string GiaiMaNhanDang(string input)
     {
-        if (string.IsNullOrWhiteSpace(input))
-            return string.Empty;
+        if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+        byte[]? key = null;
         try
         {
             // V3
-            if (input.StartsWith(
-                PREFIX_STEALTH_V3,
-                StringComparison.Ordinal))
+            if (input.StartsWith(PREFIX_STEALTH_V3, StringComparison.Ordinal))
             {
-                string b64 =
-                    input.Substring(PREFIX_STEALTH_V3.Length);
-                byte[] allBytes =
-                    Convert.FromBase64String(b64);
-                // TÁCH HMAC
-                int hmacLength = 32;
-                if (allBytes.Length < 64)
-                    return string.Empty;
-                int payloadLength =
-                    allBytes.Length - hmacLength;
-                byte[] payload = new byte[payloadLength];
-                byte[] hmac = new byte[hmacLength];
-                Buffer.BlockCopy(
-                    allBytes,
-                    0,
-                    payload,
-                    0,
-                    payloadLength);
-                Buffer.BlockCopy(
-                    allBytes,
-                    payloadLength,
-                    hmac,
-                    0,
-                    hmacLength);
-                // TÁCH SALT
-                byte[] salt = new byte[16];
-                Buffer.BlockCopy(
-                    payload,
-                    0,
-                    salt,
-                    0,
-                    16);
-                // TẠO KEY
-                byte[] key = TaoKeyBaoMatV3(salt);
-                // VERIFY HMAC
-                using (var h = new HMACSHA256(key))
+                byte[] all = Convert.FromBase64String(input.Substring(PREFIX_STEALTH_V3.Length));
+                // Salt16 + IV16 + ít nhất 1 khối AES + HMAC32, phần mã phải là bội số 16
+                if (all.Length < 80 || ((all.Length - 64) & 15) != 0) return string.Empty;
+                // VERIFY HMAC (so sánh thời gian cố định) TRƯỚC khi giải mã: khóa hệ thống trước, khóa cứng cũ sau
+                string? kq = null;
+                try
                 {
-                    byte[] computed =
-                        h.ComputeHash(payload);
-                    bool valid =
-                        CryptographicOperations.FixedTimeEquals(
-                            computed,
-                            hmac);
-                    if (!valid)
-                        return string.Empty;
+                    key = TaoKeyBaoMatV3(all.AsSpan(0, 16).ToArray());
+                    kq = GiaiMaV3VoiKhoa(all, key);
                 }
-                // LẤY IV
-                byte[] iv = new byte[16];
-                Buffer.BlockCopy(
-                    payload,
-                    16,
-                    iv,
-                    0,
-                    16);
-                // LẤY DATA
-                int cipherLength =
-                    payload.Length - 32;
-                byte[] cipher = new byte[cipherLength];
-                Buffer.BlockCopy(
-                    payload,
-                    32,
-                    cipher,
-                    0,
-                    cipherLength);
-                // AES DECRYPT
-                using Aes aes = Aes.Create();
-                aes.KeySize = 256;
-                aes.BlockSize = 128;
-                aes.Key = key;
-                aes.IV = iv;
-                aes.Mode = CipherMode.CBC;
-                aes.Padding = PaddingMode.PKCS7;
-                using ICryptoTransform decryptor =
-                    aes.CreateDecryptor();
-                byte[] decrypted =
-                    decryptor.TransformFinalBlock(
-                        cipher,
-                        0,
-                        cipher.Length);
-                CryptographicOperations.ZeroMemory(key);
-                return Encoding.UTF8
-                    .GetString(decrypted)
-                    .Trim('\0')
-                    .Trim();
+                catch (InvalidOperationException) { }            // khóa hệ thống chưa nạp
+                if (kq == null)
+                {
+                    if (key != null) CryptographicOperations.ZeroMemory(key);
+                    key = KhoaV3CuDeDoc();
+                    kq = GiaiMaV3VoiKhoa(all, key);
+                }
+                return kq ?? string.Empty;
             }
-            // TƯƠNG THÍCH NGƯỢC V2
-            if (input.StartsWith(
-                PREFIX_V2,
-                StringComparison.Ordinal))
+            // TƯƠNG THÍCH NGƯỢC V2 / V5 (Excel có thể chứa ô mã hóa dữ liệu thường)
+            if (LaChuoiMa(input))
             {
                 return GiaiMa(input);
             }
@@ -992,25 +749,17 @@ public static class Module_BaoMatAES
                 char[] arr = input.ToCharArray();
                 Array.Reverse(arr);
                 string base64 = new string(arr);
-                int padding =
-                    4 - (base64.Length % 4);
+                int padding = 4 - (base64.Length % 4);
                 if (padding < 4)
                 {
-                    base64 =
-                        base64.PadRight(
-                            base64.Length + padding,
-                            '=');
+                    base64 = base64.PadRight(base64.Length + padding, '=');
                 }
-                byte[] bytes =
-                    Convert.FromBase64String(base64);
-                string decoded =
-                    Encoding.UTF8.GetString(bytes);
+                byte[] bytes = Convert.FromBase64String(base64);
+                string decoded = Encoding.UTF8.GetString(bytes);
                 if (decoded.Contains(sig))
                 {
-                    int index =
-                        decoded.IndexOf(sig);
-                    return decoded.Substring(
-                        index + sig.Length);
+                    int index = decoded.IndexOf(sig);
+                    return decoded.Substring(index + sig.Length);
                 }
             }
             catch { }
@@ -1020,20 +769,35 @@ public static class Module_BaoMatAES
         {
             return string.Empty;
         }
+        finally
+        {
+            if (key != null) CryptographicOperations.ZeroMemory(key);
+        }
     }
-    ////Gọi tắt là Module V2 (Đây là phần code bổ sung cơ chế bảo vệ tái tạo csdl mã hóa và giải mã
-    //public static class Module_BaoMatAES
-    //Mã hóa và giải mã các tệp cơ sở dữ liệu csd1.db, csdl2.db, csdl3.db, csdl4.db, csdlex.xlsx ở thư mục dữ liệu của phần mềm (Đảm bảo tính toàn vẹn và bảo mật dữ liệu người dùng)
-    // Định danh cấu trúc file nhị phân phân đoạn thế hệ mới (v2026 GCM-Stream)
+    // ===================== 9. MÃ HÓA / GIẢI MÃ TỆP CSDL (AES-GCM THEO KHỐI 64KB) =====================
+    //  Mã hóa/giải mã các tệp csdl1.db, csdl2.db, csdl3.db, csdl4.db, csdlex.xlsx (toàn vẹn + bảo mật dữ liệu người dùng).
+    //  Định dạng giữ nguyên:  "PMTD"(4) + 0x2026(2) + BaseNonce(12) + TổngKhối(8) + n x [Tag(16) + Cipher(<=64KB)]
     private static readonly byte[] MAGIC_BYTES = Encoding.ASCII.GetBytes("PMTD");
     private const ushort FILE_FORMAT_VERSION_STREAM = 0x2026;
     private const int GCM_NONCE_SIZE = 12;
     private const int GCM_TAG_SIZE = 16;
     private const int CHUNK_DATA_SIZE = 65536; // Khối Plaintext cố định 64KB
-    private const int CHUNK_TOTAL_SIZE = GCM_TAG_SIZE + CHUNK_DATA_SIZE; // Khối Ciphertext bao gồm cả Tag
+    private const int HEADER_SIZE = 26;        // 4 + 2 + 12 + 8
+    // Đọc đủ <count> byte (Read có thể trả ít hơn dù chưa hết tệp); trả số byte thực đọc được.
+    private static int DocDu(Stream s, byte[] buf, int count)
+    {
+        int tong = 0;
+        while (tong < count)
+        {
+            int r = s.Read(buf, tong, count - tong);
+            if (r <= 0) break;
+            tong += r;
+        }
+        return tong;
+    }
     /// <summary>
-    /// 🔐 HÀM MÃ HÓA CSDL CHUẨN ENTERPRISE (STREAMING CHUNKED AES-GCM)
-    /// RAM đóng băng ở mức tối thiểu, xử lý tệp vô hạn dung lượng, an toàn tuyệt đối cho đĩa HDD cũ.
+    /// 🔐 MÃ HÓA CSDL (STREAMING CHUNKED AES-GCM). RAM cố định ~130KB, tệp dung lượng bất kỳ.
+    /// Mỗi khối ghi ra bằng 1 lệnh duy nhất [Tag][Cipher]. Nguồn bị thu nhỏ giữa chừng => IOException (không tạo tệp hỏng).
     /// </summary>
     public static void MaHoaCSDL(string sourceFile, string destFile, byte[] key)
     {
@@ -1041,52 +805,50 @@ public static class Module_BaoMatAES
         {
             throw new CryptographicException("Rủi ro hệ thống: Khóa mật mã đầu vào không chuẩn độ dài AES-256 (32 bytes).");
         }
-        // Tạo Base Nonce ngẫu nhiên gốc
-        byte[] baseNonce = new byte[GCM_NONCE_SIZE];
-        RandomNumberGenerator.Fill(baseNonce);
-        using (FileStream fsIn = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, CHUNK_DATA_SIZE, FileOptions.SequentialScan))
-        using (FileStream fsOut = new FileStream(destFile, FileMode.Create, FileAccess.Write, FileShare.None, CHUNK_DATA_SIZE, FileOptions.None))
+        byte[] baseNonce = RandomNumberGenerator.GetBytes(GCM_NONCE_SIZE);
+        byte[] plain = ArrayPool<byte>.Shared.Rent(CHUNK_DATA_SIZE);
+        byte[] outBuf = ArrayPool<byte>.Shared.Rent(GCM_TAG_SIZE + CHUNK_DATA_SIZE);
+        try
         {
+            // bufferSize = 1: tự đọc/ghi theo khối 64KB nên tắt bộ đệm của FileStream (khỏi chép 2 lần)
+            using var fsIn = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 1, FileOptions.SequentialScan);
+            using var fsOut = new FileStream(destFile, FileMode.Create, FileAccess.Write, FileShare.None, 1, FileOptions.None);
             long fileLength = fsIn.Length;
-            long totalChunks = (long)Math.Ceiling((double)fileLength / CHUNK_DATA_SIZE);
-            // 1. Ghi cấu trúc Header quản lý hệ thống (Kích thước: 4B + 2B + 12B + 8B = 26 Bytes)
-            fsOut.Write(MAGIC_BYTES, 0, MAGIC_BYTES.Length);
-            fsOut.Write(BitConverter.GetBytes(FILE_FORMAT_VERSION_STREAM), 0, 2);
-            fsOut.Write(baseNonce, 0, baseNonce.Length);
-            fsOut.Write(BitConverter.GetBytes(totalChunks), 0, 8);
-            byte[] plaintextBuffer = new byte[CHUNK_DATA_SIZE];
-            byte[] ciphertextBuffer = new byte[CHUNK_DATA_SIZE];
-            byte[] currentNonce = new byte[GCM_NONCE_SIZE];
-            byte[] tag = new byte[GCM_TAG_SIZE];
-            using (AesGcm aesGcm = new AesGcm(key, GCM_TAG_SIZE))
+            long totalChunks = (fileLength + CHUNK_DATA_SIZE - 1) / CHUNK_DATA_SIZE;
+            // 1. Header (26 byte)
+            Span<byte> header = stackalloc byte[HEADER_SIZE];
+            MAGIC_BYTES.CopyTo(header);
+            BinaryPrimitives.WriteUInt16LittleEndian(header.Slice(4, 2), FILE_FORMAT_VERSION_STREAM);
+            baseNonce.CopyTo(header.Slice(6, GCM_NONCE_SIZE));
+            BinaryPrimitives.WriteInt64LittleEndian(header.Slice(18, 8), totalChunks);
+            fsOut.Write(header);
+            // 2. Các khối
+            Span<byte> nonce = stackalloc byte[GCM_NONCE_SIZE];
+            using var gcm = new AesGcm(key, GCM_TAG_SIZE);
+            long conLai = fileLength;
+            for (long chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++)
             {
-                for (long chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++)
-                {
-                    // Đọc tối đa 64KB dữ liệu
-                    int bytesRead = fsIn.Read(plaintextBuffer, 0, CHUNK_DATA_SIZE);
-                    if (bytesRead == 0) break;
-                    // Tạo Nonce độc nhất cho khối hiện tại bằng cách kết hợp Base Nonce với chỉ mục Khối
-                    XayDungChunkNonce(baseNonce, chunkIndex, currentNonce);
-                    // Cắt lát mảng byte để xử lý khối cuối cùng (nếu tệp lẻ dung lượng)
-                    ReadOnlySpan<byte> plainSpan = new ReadOnlySpan<byte>(plaintextBuffer, 0, bytesRead);
-                    Span<byte> cipherSpan = new Span<byte>(ciphertextBuffer, 0, bytesRead);
-                    // Thực thi mã hóa phân đoạn
-                    aesGcm.Encrypt(currentNonce, plainSpan, cipherSpan, tag);
-                    // Ghi cấu trúc khối: [TAG (16B)] [CIPHERTEXT (N Bytes)]
-                    fsOut.Write(tag, 0, tag.Length);
-                    fsOut.Write(ciphertextBuffer, 0, bytesRead);
-                }
+                int want = (int)Math.Min(CHUNK_DATA_SIZE, conLai);
+                int got = DocDu(fsIn, plain, want);
+                if (got != want)
+                    throw new IOException("Tệp nguồn bị thu nhỏ trong lúc mã hóa (đang được ghi bởi tiến trình khác?). Đã hủy để không tạo tệp hỏng.");
+                conLai -= got;
+                XayDungChunkNonce(baseNonce, chunkIndex, nonce);
+                gcm.Encrypt(nonce, plain.AsSpan(0, got), outBuf.AsSpan(GCM_TAG_SIZE, got), outBuf.AsSpan(0, GCM_TAG_SIZE));
+                fsOut.Write(outBuf, 0, GCM_TAG_SIZE + got);   // [TAG (16B)] [CIPHERTEXT (N Bytes)]
             }
             // Ép xả bộ đệm đĩa cứng ngay lập tức nhằm chống mất dữ liệu khi mất điện đột ngột
             fsOut.Flush(true);
-            // Khử sạch vùng nhớ đệm RAM
-            CryptographicOperations.ZeroMemory(plaintextBuffer);
-            CryptographicOperations.ZeroMemory(ciphertextBuffer);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(plain, clearArray: true);
+            ArrayPool<byte>.Shared.Return(outBuf, clearArray: true);
         }
     }
     /// <summary>
-    /// 🔓 HÀM GIẢI MÃ CSDL CHUẨN ENTERPRISE (STREAMING CHUNKED AES-GCM)
-    /// Kiểm tra tính toàn vẹn thời gian thực trên từng khối dữ liệu (Real-time Tamper Verification).
+    /// 🔓 GIẢI MÃ CSDL (STREAMING CHUNKED AES-GCM). Kiểm tra toàn vẹn thời gian thực trên từng khối.
+    /// Kiểm tra thêm: Header phải khớp dung lượng tệp (phát hiện cắt cụt / sửa tổng số khối / dữ liệu thừa).
     /// </summary>
     public static void GiaiMaCSDL(string sourceFile, string destFile, byte[] key)
     {
@@ -1094,201 +856,183 @@ public static class Module_BaoMatAES
         {
             throw new CryptographicException("Rủi ro hệ thống: Khóa giải mã đầu vào không đạt chuẩn AES-256.");
         }
-        using (FileStream fsIn = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, CHUNK_DATA_SIZE, FileOptions.SequentialScan))
+        byte[] inBuf = ArrayPool<byte>.Shared.Rent(GCM_TAG_SIZE + CHUNK_DATA_SIZE);
+        byte[] plain = ArrayPool<byte>.Shared.Rent(CHUNK_DATA_SIZE);
+        try
         {
+            using var fsIn = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 1, FileOptions.SequentialScan);
             // Thẩm định kích thước tối thiểu của Header hệ thống (26 Bytes)
-            if (fsIn.Length < 26)
+            if (fsIn.Length < HEADER_SIZE)
             {
                 throw new CryptographicException("Giải mã thất bại: Tệp cấu hình nhị phân hỏng cấu trúc Header.");
             }
-            // 1. Kiểm tra Magic Bytes chống nhận diện sai định dạng
-            byte[] magic = new byte[4];
-            if (fsIn.Read(magic, 0, 4) != 4 || !CryptographicOperations.FixedTimeEquals(magic, MAGIC_BYTES))
+            byte[] header = new byte[HEADER_SIZE];
+            if (DocDu(fsIn, header, HEADER_SIZE) != HEADER_SIZE)
+            {
+                throw new CryptographicException("Lỗi cấu trúc: File bị cắt cụt dữ liệu tại phân đoạn tham số bảo mật.");
+            }
+            // 1. Magic Bytes chống nhận diện sai định dạng
+            if (!CryptographicOperations.FixedTimeEquals(header.AsSpan(0, 4), MAGIC_BYTES))
             {
                 throw new CryptographicException("Xác thực thất bại: Tệp tin không phải định dạng bảo mật của hệ thống.");
             }
-            // 2. Kiểm tra Version cấu trúc
-            byte[] versionBytes = new byte[2];
-            fsIn.Read(versionBytes, 0, 2);
-            ushort version = BitConverter.ToUInt16(versionBytes, 0);
+            // 2. Version cấu trúc
+            ushort version = BinaryPrimitives.ReadUInt16LittleEndian(header.AsSpan(4, 2));
             if (version != FILE_FORMAT_VERSION_STREAM)
             {
                 throw new CryptographicException($"Xung đột phân hệ: Phiên bản tệp (0x{version:X4}) không tương thích bộ giải mã v2026.");
             }
-            // 3. Trích xuất Base Nonce và Tổng số khối dữ liệu
-            byte[] baseNonce = new byte[GCM_NONCE_SIZE];
-            byte[] totalChunksBytes = new byte[8];
-            if (fsIn.Read(baseNonce, 0, GCM_NONCE_SIZE) != GCM_NONCE_SIZE || fsIn.Read(totalChunksBytes, 0, 8) != 8)
+            // 3. Base Nonce và tổng số khối
+            byte[] baseNonce = header.AsSpan(6, GCM_NONCE_SIZE).ToArray();
+            long totalChunks = BinaryPrimitives.ReadInt64LittleEndian(header.AsSpan(18, 8));
+            long conLai = fsIn.Length - HEADER_SIZE;
+            // 4. Header phải khớp dung lượng: mỗi khối = Tag 16B + 1..64KB dữ liệu (header không được xác thực nên phải tự kiểm tra)
+            if (totalChunks < 0 || totalChunks > conLai / GCM_TAG_SIZE || conLai > totalChunks * (GCM_TAG_SIZE + CHUNK_DATA_SIZE))
             {
-                throw new CryptographicException("Lỗi cấu trúc: File bị cắt cụt dữ liệu tại phân đoạn tham số bảo mật.");
+                throw new CryptographicException("Lỗi cấu trúc: Tổng số khối trong Header không khớp dung lượng tệp (tệp bị cắt cụt hoặc bị sửa đổi).");
             }
-            long totalChunks = BitConverter.ToInt64(totalChunksBytes, 0);
-            // 4. Mở luồng ghi tệp tin vận hành đích
-            using (FileStream fsOut = new FileStream(destFile, FileMode.Create, FileAccess.Write, FileShare.None, CHUNK_DATA_SIZE, FileOptions.None))
-            using (AesGcm aesGcm = new AesGcm(key, GCM_TAG_SIZE))
+            using var fsOut = new FileStream(destFile, FileMode.Create, FileAccess.Write, FileShare.None, 1, FileOptions.None);
+            using var gcm = new AesGcm(key, GCM_TAG_SIZE);
+            Span<byte> nonce = stackalloc byte[GCM_NONCE_SIZE];
+            for (long chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++)
             {
-                byte[] tag = new byte[GCM_TAG_SIZE];
-                byte[] ciphertextBuffer = new byte[CHUNK_DATA_SIZE];
-                byte[] plaintextBuffer = new byte[CHUNK_DATA_SIZE];
-                byte[] currentNonce = new byte[GCM_NONCE_SIZE];
-                for (long chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++)
+                // Khối cuối có thể nhỏ hơn 64KB: lấy đúng phần còn lại; các khối trước luôn đầy 16 + 64KB
+                long take = (chunkIndex == totalChunks - 1) ? conLai : GCM_TAG_SIZE + CHUNK_DATA_SIZE;
+                if (take <= GCM_TAG_SIZE || take > GCM_TAG_SIZE + CHUNK_DATA_SIZE || take > conLai)
                 {
-                    // Đọc thẻ Tag xác thực của Khối hiện tại
-                    if (fsIn.Read(tag, 0, GCM_TAG_SIZE) != GCM_TAG_SIZE)
-                    {
-                        throw new CryptographicException($"Lỗi cấu trúc: Khối thứ {chunkIndex} bị hỏng hoặc mất thẻ Tag xác thực.");
-                    }
-                    // Tính toán kích thước Khối Ciphertext cần đọc (Khối cuối cùng có thể nhỏ hơn 64KB)
-                    long remainingData = fsIn.Length - fsIn.Position;
-                    int currentChunkSize = (chunkIndex == totalChunks - 1)
-                        ? (int)(remainingData)
-                        : CHUNK_DATA_SIZE;
-                    // ⚠️ [GIA CỐ]: Đảm bảo đọc đủ số byte từ đĩa cứng, chống tràn/thiếu byte (Overflow Check)
-                    int bytesRead = fsIn.Read(ciphertextBuffer, 0, currentChunkSize);
-                    if (bytesRead != currentChunkSize)
-                    {
-                        throw new CryptographicException($"Lỗi phân hệ đĩa: Đọc thiếu byte tại khối thứ {chunkIndex} (Yêu cầu: {currentChunkSize}B, Thực tế: {bytesRead}B).");
-                    }
-                    // Tái dựng Nonce chuẩn xác theo chỉ mục Khối
-                    XayDungChunkNonce(baseNonce, chunkIndex, currentNonce);
-                    Span<byte> cipherSpan = new Span<byte>(ciphertextBuffer, 0, bytesRead);
-                    Span<byte> plainSpan = new Span<byte>(plaintextBuffer, 0, bytesRead);
-                    try
-                    {
-                        // Giải mã kết hợp xác thực thời gian thực (Real-time Tag Validation)
-                        aesGcm.Decrypt(currentNonce, cipherSpan, tag, plainSpan);
-                    }
-                    catch (CryptographicException ex)
-                    {
-                        CryptographicOperations.ZeroMemory(ciphertextBuffer);
-                        CryptographicOperations.ZeroMemory(plaintextBuffer);
-                        throw new CryptographicException($"[BÁO ĐỘNG CHÍ MẠNG]: Dữ liệu tại khối thứ {chunkIndex} đã bị sửa đổi trái phép (Authentication Tag Mismatch). Tiến trình giải mã bị chặn đứng!", ex);
-                    }
-                    // Ghi khối sạch ra đĩa vận hành
-                    fsOut.Write(plaintextBuffer, 0, bytesRead);
+                    throw new CryptographicException($"Lỗi cấu trúc: Khối thứ {chunkIndex} bị hỏng hoặc mất thẻ Tag xác thực.");
                 }
-                fsOut.Flush(true);
-                CryptographicOperations.ZeroMemory(ciphertextBuffer);
-                CryptographicOperations.ZeroMemory(plaintextBuffer);
+                int takeI = (int)take;
+                int got = DocDu(fsIn, inBuf, takeI);
+                if (got != takeI)
+                {
+                    throw new CryptographicException($"Lỗi phân hệ đĩa: Đọc thiếu byte tại khối thứ {chunkIndex} (Yêu cầu: {takeI}B, Thực tế: {got}B).");
+                }
+                conLai -= takeI;
+                int n = takeI - GCM_TAG_SIZE;
+                XayDungChunkNonce(baseNonce, chunkIndex, nonce);
+                try
+                {
+                    // Giải mã kết hợp xác thực thời gian thực (Real-time Tag Validation)
+                    gcm.Decrypt(nonce, inBuf.AsSpan(GCM_TAG_SIZE, n), inBuf.AsSpan(0, GCM_TAG_SIZE), plain.AsSpan(0, n));
+                }
+                catch (CryptographicException ex)
+                {
+                    throw new CryptographicException($"[BÁO ĐỘNG CHÍ MẠNG]: Dữ liệu tại khối thứ {chunkIndex} đã bị sửa đổi trái phép (Authentication Tag Mismatch). Tiến trình giải mã bị chặn đứng!", ex);
+                }
+                fsOut.Write(plain, 0, n);   // Ghi khối sạch ra đĩa vận hành
             }
+            if (conLai != 0)
+            {
+                throw new CryptographicException("Lỗi cấu trúc: Tệp còn dữ liệu thừa sau khối cuối cùng (tệp bị sửa đổi).");
+            }
+            fsOut.Flush(true);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(inBuf, clearArray: true);
+            ArrayPool<byte>.Shared.Return(plain, clearArray: true);
         }
     }
     /// <summary>
-    /// 🧮 Hàm sinh Nonce biến đổi động (Deterministic Nonce Generation)
-    /// Sử dụng phép toán XOR bit để sinh Nonce độc nhất từ Base Nonce và chỉ mục khối, đảm bảo không trùng lặp.
+    /// 🧮 Sinh Nonce biến đổi động: XOR 8 byte (little-endian) của chỉ mục khối vào 8 byte cuối của Base Nonce.
     /// </summary>
-    private static void XayDungChunkNonce(byte[] baseNonce, long chunkIndex, byte[] outNonce)
+    private static void XayDungChunkNonce(ReadOnlySpan<byte> baseNonce, long chunkIndex, Span<byte> outNonce)
     {
-        Buffer.BlockCopy(baseNonce, 0, outNonce, 0, GCM_NONCE_SIZE);
-        byte[] indexBytes = BitConverter.GetBytes(chunkIndex);
-        // XOR 8 bytes của chỉ mục vào 8 bytes cuối của Nonce gốc
-        for (int i = 0; i < indexBytes.Length; i++)
+        baseNonce.Slice(0, GCM_NONCE_SIZE).CopyTo(outNonce);
+        for (int i = 0; i < 8; i++)
         {
-            outNonce[GCM_NONCE_SIZE - 1 - i] ^= indexBytes[i];
+            outNonce[GCM_NONCE_SIZE - 1 - i] ^= (byte)(chunkIndex >> (8 * i));
         }
     }
-    //Hỗ trợ form12 về 2 phần mềm sao lưu và khôi phục
-    public static string XuyenKhongVeThoiMinhThanhToThanhTo(byte[] data)
-    {
-        try
-        {
-            if (data == null || data.Length == 0) return string.Empty;
-            return Encoding.UTF8.GetString(data);
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-    // ĐẢO CHUỖI HIỆU NĂNG CAO
-    public static string XinTraLaiThoiGian(string s)
-    {
-        if (string.IsNullOrEmpty(s)) return s;
-        return string.Create(s.Length, s, (span, str) =>
-        {
-            for (int i = 0, j = str.Length - 1; i < str.Length; i++, j--)
-            {
-                span[i] = str[j];
-            }
-        });
-    }
-    // THUẬT TOÁN MÃ HÓA RIÊNG CHO DỮ LIỆU NHẬT KÝ - V4
-    public const string PREFIX_STEALTH_V2 = "AES:v2|";
-    public const string PREFIX_STEALTH_V4 = "AES:v4|";
-    public static string MaHoa_NhatKy(string chuoiGoc)
-    {
-        if (string.IsNullOrEmpty(chuoiGoc))
-            return string.Empty;
-        try
-        {
-            Aes aes = _aesLocal.Value!;
-            const int nonceLength = 12;
-            const int tagLength = 16;
-            byte[] nonce = new byte[nonceLength];
-            RandomNumberGenerator.Fill(nonce);
-            byte[] plainBytes = Encoding.UTF8.GetBytes(chuoiGoc);
-            byte[] cipherBytes = new byte[plainBytes.Length];
-            byte[] tag = new byte[tagLength];
-            using (AesGcm aesGcm = new AesGcm(aes.Key, tagLength))
-            {
-                aesGcm.Encrypt(nonce, plainBytes, cipherBytes, tag);
-            }
-            // PAYLOAD = NONCE + CIPHERTEXT + TAG
-            byte[] payload = new byte[nonceLength + cipherBytes.Length + tagLength];
-            Buffer.BlockCopy(nonce, 0, payload, 0, nonceLength);
-            Buffer.BlockCopy(cipherBytes, 0, payload, nonceLength, cipherBytes.Length);
-            Buffer.BlockCopy(tag, 0, payload, nonceLength + cipherBytes.Length, tagLength);
-            return PREFIX_STEALTH_V4 + Convert.ToBase64String(payload);
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-    public static string GiaiMa_NhatKy(string chuoiMaHoa)
-    {
-        if (string.IsNullOrEmpty(chuoiMaHoa))
-            return string.Empty;
-        try
-        {
-            // Kiểm tra đúng tiền tố "AES:v4|"
-            if (!chuoiMaHoa.StartsWith(PREFIX_STEALTH_V4, StringComparison.Ordinal))
-                return string.Empty;
-            const int nonceLength = 12;
-            const int tagLength = 16;
-            // Bóc tách chính xác phần Base64 sau tiền tố "AES:v4|"
-            byte[] payload = Convert.FromBase64String(chuoiMaHoa.Substring(PREFIX_STEALTH_V4.Length));
-            if (payload.Length < nonceLength + tagLength)
-                return string.Empty;
-            int cipherLength = payload.Length - nonceLength - tagLength;
-            byte[] nonce = new byte[nonceLength];
-            byte[] cipherBytes = new byte[cipherLength];
-            byte[] tag = new byte[tagLength];
-            Buffer.BlockCopy(payload, 0, nonce, 0, nonceLength);
-            Buffer.BlockCopy(payload, nonceLength, cipherBytes, 0, cipherLength);
-            Buffer.BlockCopy(payload, nonceLength + cipherLength, tag, 0, tagLength);
-            byte[] plainBytes = new byte[cipherLength];
-            Aes aes = _aesLocal.Value!;
-            using (AesGcm aesGcm = new AesGcm(aes.Key, tagLength))
-            {
-                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
-            }
-            return Encoding.UTF8.GetString(plainBytes);
-        }
-        catch
-        {
-            return string.Empty;
-        }
-    }
-    // Thêm vào trong class Module_BaoMatAES (nếu chưa có sẵn hàm công khai lấy khóa):
     public static byte[] LayKhoaHeThongDungChung()
     {
         // Tận dụng cơ chế sinh khóa 256-bit chuẩn đang chạy ngầm của hệ thống
-        string mKpassKey = Encoding.UTF8.GetString(Convert.FromBase64String("eWVLZGV4aUZfNjIwMmF1RGlpaFRtZU1uYWhQ"));
         string k1 = Module_DanduongGPS.ToiYeuMeoCam1;
         string k2 = Module_DanduongGPS.ToiYeuMeoCam2;
         string rawKeyFromGPS = TraLaiTenChoMeoCam(k1 + k2);
-        string keyFinal = !string.IsNullOrEmpty(rawKeyFromGPS) ? rawKeyFromGPS : TraLaiTenChoMeoCam(mKpassKey);
+        string keyFinal;
+        if (!string.IsNullOrEmpty(rawKeyFromGPS)) keyFinal = rawKeyFromGPS;
+        else
+        {
+            // Khóa dự phòng (giữ nguyên hành vi cũ để không làm hỏng dữ liệu đã mã hóa bằng nó)
+            string mKpassKey = Encoding.UTF8.GetString(Convert.FromBase64String("eWVLZGV4aUZfNjIwMmF1RGlpaFRtZU1uYWhQ"));
+            keyFinal = TraLaiTenChoMeoCam(mKpassKey);
+        }
         return VanLyDocHanhTaoKey256(keyFinal);
+    }
+    // ===================== 10. MÃ HÓA RIÊNG CHO NHẬT KÝ — V4 (AES-GCM) =====================
+    public const string PREFIX_STEALTH_V2 = "AES:v2|";
+    public const string PREFIX_STEALTH_V4 = "AES:v4|";
+    // Mỗi luồng giữ 1 AesGcm dùng lại (trước đây: tạo mới + sao chép khóa ở MỖI ô; nạp nhật ký = 5 cột x số dòng).
+    private static readonly ThreadLocal<AesGcm> _gcmLocal = new(() =>
+    {
+        byte[] k = _aesLocal.Value!.Key;
+        try { return new AesGcm(k, GCM_TAG_SIZE); }
+        finally { CryptographicOperations.ZeroMemory(k); }
+    }, trackAllValues: true);
+    public static string MaHoa_NhatKy(string chuoiGoc)
+    {
+        if (string.IsNullOrEmpty(chuoiGoc)) return string.Empty;
+        byte[]? rented = null;
+        try
+        {
+            const int nonceLen = 12, tagLen = 16;
+            int n = Encoding.UTF8.GetByteCount(chuoiGoc);
+            int payloadLen = nonceLen + n + tagLen;
+            int need = payloadLen + n;                       // [nonce][cipher][tag] + [bản rõ]
+            Span<byte> buf = need <= STACK_BYTES
+                ? stackalloc byte[STACK_BYTES]
+                : (rented = ArrayPool<byte>.Shared.Rent(need));
+            Span<byte> nonce = buf.Slice(0, nonceLen);
+            Span<byte> cipher = buf.Slice(nonceLen, n);
+            Span<byte> tag = buf.Slice(nonceLen + n, tagLen);
+            Span<byte> plain = buf.Slice(payloadLen, n);
+            RandomNumberGenerator.Fill(nonce);
+            Encoding.UTF8.GetBytes(chuoiGoc.AsSpan(), plain);
+            _gcmLocal.Value!.Encrypt(nonce, plain, cipher, tag);
+            plain.Clear();
+            // PAYLOAD = NONCE + CIPHERTEXT + TAG
+            int prefixLen = PREFIX_STEALTH_V4.Length;
+            int totalChars = prefixLen + ((payloadLen + 2) / 3) * 4;
+            Span<char> chars = totalChars <= 512 ? stackalloc char[512] : new char[totalChars];
+            PREFIX_STEALTH_V4.AsSpan().CopyTo(chars);
+            if (!Convert.TryToBase64Chars(buf.Slice(0, payloadLen), chars.Slice(prefixLen), out int written))
+                return string.Empty;
+            return new string(chars.Slice(0, prefixLen + written));
+        }
+        catch { return string.Empty; }
+        finally { if (rented != null) ArrayPool<byte>.Shared.Return(rented, clearArray: true); }
+    }
+    public static string GiaiMa_NhatKy(string chuoiMaHoa)
+    {
+        if (string.IsNullOrEmpty(chuoiMaHoa)) return string.Empty;
+        // Kiểm tra đúng tiền tố "AES:v4|"
+        if (!chuoiMaHoa.StartsWith(PREFIX_STEALTH_V4, StringComparison.Ordinal)) return string.Empty;
+        byte[]? rented = null;
+        try
+        {
+            const int nonceLen = 12, tagLen = 16;
+            ReadOnlySpan<char> b64 = chuoiMaHoa.AsSpan(PREFIX_STEALTH_V4.Length);
+            int maxBytes = (b64.Length / 4 + 1) * 3;
+            int need = maxBytes * 2;                         // [dữ liệu thô][bản rõ]
+            Span<byte> buf = need <= STACK_BYTES
+                ? stackalloc byte[STACK_BYTES]
+                : (rented = ArrayPool<byte>.Shared.Rent(need));
+            Span<byte> raw = buf.Slice(0, maxBytes);
+            if (!Convert.TryFromBase64Chars(b64, raw, out int rawLen) || rawLen < nonceLen + tagLen)
+                return string.Empty;
+            int cLen = rawLen - nonceLen - tagLen;
+            ReadOnlySpan<byte> nonce = raw.Slice(0, nonceLen);
+            ReadOnlySpan<byte> cipher = raw.Slice(nonceLen, cLen);
+            ReadOnlySpan<byte> tag = raw.Slice(nonceLen + cLen, tagLen);
+            Span<byte> plain = buf.Slice(maxBytes, cLen);
+            _gcmLocal.Value!.Decrypt(nonce, cipher, tag, plain);   // sai Tag => ném lỗi => trả rỗng
+            string s = Encoding.UTF8.GetString(plain);
+            plain.Clear();
+            return s;
+        }
+        catch { return string.Empty; }
+        finally { if (rented != null) ArrayPool<byte>.Shared.Return(rented, clearArray: true); }
     }
 }

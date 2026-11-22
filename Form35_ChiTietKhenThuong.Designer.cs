@@ -946,13 +946,6 @@ namespace PhanMemThiDua2026
         private Krypton.Toolkit.KryptonButton kryptonButton_Them;
         private Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1_DanhSachCBCS;
         private ToolTip toolTip1;
-        // Các field cũ giữ lại phòng trường hợp file logic gọi tới
-        private Label label_DonVi;
-        private Label label1_ID_Tanbinh;
-        private Label label_Thang_1;
-        private ComboBox combobox_tuan_1_Thang5;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox4;
-        private Krypton.Toolkit.KryptonTextBox kryptonTextBox1_DonVi;
         // Container bố cục
         private Panel cardHeader;
         private Panel cardHeaderNen;

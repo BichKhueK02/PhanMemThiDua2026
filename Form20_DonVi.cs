@@ -28,7 +28,7 @@ namespace PhanMemThiDua2026
             this.AcceptButton = kryptonButton1_Them; // ✅ Enter = Thêm
             // ⭐ BỔ SUNG UX: Đổi tên Form để Admin khỏi bị nhầm lẫn
             bool laTanBinh = Module_DonVi.LayTenBangDonVi().Contains("TanBinh");
-            this.Text = laTanBinh ? "Quản lý Danh sách Đơn vị (Dành cho Tân Binh)" : "Quản lý Danh sách Đơn vị";
+            this.Text = laTanBinh ? $"Quản lý Danh sách Đơn vị (Dành cho {Module_TaiKhoan.TenTB_TieuDe})" : "Quản lý Danh sách Đơn vị";
             TaoBangNeuChuaCo();
             LoadDanhSachDonVi();
             ResetInput();
@@ -55,7 +55,7 @@ namespace PhanMemThiDua2026
         private void TaoBangNeuChuaCo()
         {
             if (!File.Exists(_csdl2Path)) return;
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             using var cmd = cn.CreateCommand();
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
@@ -84,7 +84,7 @@ namespace PhanMemThiDua2026
         }
         private void LoadDanhSachDonVi(int? selectID = null)
         {
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             using var cmd = cn.CreateCommand();
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
@@ -125,7 +125,7 @@ namespace PhanMemThiDua2026
             if (kryptonDataGridView1_DanhSach_DonVi.Columns.Count == 0) return;
             // ===== IN ĐẬM + CĂN GIỮA TIÊU ĐỀ =====
             var headerStyle = kryptonDataGridView1_DanhSach_DonVi.ColumnHeadersDefaultCellStyle;
-            headerStyle.Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 10f, FontStyle.Bold);
+            headerStyle.Font = new Font(SystemFonts.MessageBoxFont!.FontFamily, 10f, FontStyle.Bold);
             headerStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             // ===== Fill và chia tỷ lệ thủ công =====
             kryptonDataGridView1_DanhSach_DonVi.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -202,7 +202,7 @@ namespace PhanMemThiDua2026
                 textBox_TenDonVi.Focus();
                 return;
             }
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
             // Kiểm tra tồn tại
@@ -249,7 +249,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Chưa nhập tên đơn vị!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
             // Kiểm tra trùng tên
@@ -291,7 +291,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Bạn chưa chọn đơn vị để xóa!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             using var cmd = cn.CreateCommand();
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
@@ -338,7 +338,7 @@ namespace PhanMemThiDua2026
                 int yIcon = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
                 int xIcon = e.CellBounds.X + paddingLeft;
                 // In đè cái ảnh lên ô
-                e.Graphics.DrawImage(_iconClock, new Rectangle(xIcon, yIcon, iconSize, iconSize));
+                e.Graphics!.DrawImage(_iconClock, new Rectangle(xIcon, yIcon, iconSize, iconSize));
                 // ⚠️ QUAN TRỌNG TỐI CAO: TUYỆT ĐỐI KHÔNG DÙNG e.Handled = true; TẠI ĐÂY
                 // Nếu để e.Handled = true, Krypton sẽ tịt luôn, không vẽ viền 3D/Bo góc nữa gây ra lỗi gạch đứt nét.
                 // Để trống, Grid sẽ vẽ giao diện của nó TRƯỚC, rồi ta in Icon TRÙNG LÊN TRÊN. Hai bên hòa thuận!

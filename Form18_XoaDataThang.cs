@@ -52,7 +52,7 @@ namespace PhanMemThiDua2026
                 comboBox1_ChonThangCanXoaDuLieu.Items.Clear();
                 bool laTanBinh = Module_TaiKhoan
                     .LayPhienBanPhanMem()
-                    .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                    .LaCheDoTanBinh();
                 comboBox1_ChonThangCanXoaDuLieu.Items.AddRange(
                     laTanBinh
                         ? ThangDisplayTanBinh
@@ -107,9 +107,9 @@ namespace PhanMemThiDua2026
                     return;
                 bool laTanBinh = Module_TaiKhoan
                     .LayPhienBanPhanMem()
-                    .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                    .LaCheDoTanBinh();
                 using var cn = new SqliteConnection(
-                    $"Data Source={_csdl4Path}");
+                    Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 cn.Open();
                 using var tran = cn.BeginTransaction();
                 try

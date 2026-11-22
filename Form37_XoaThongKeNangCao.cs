@@ -23,14 +23,14 @@ namespace PhanMemThiDua2026
         {
             // 1. Xác định phiên bản
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
-            string loaiDoiTuong = laTanBinh ? "tân binh" : "CBCS";
+            bool laTanBinh = phienBan.LaCheDoTanBinh();
+            string loaiDoiTuong = laTanBinh ? Module_TaiKhoan.TenTB_Thuong : "CBCS";
             string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
             // 2. Đếm số lượng thực tế từ Database
             int tong = 0, dangCongTac = 0, chuyenCongTac = 0;
             try
             {
-                using (var conn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                 {
                     conn.Open();
                     // Đếm tổng
@@ -95,7 +95,7 @@ namespace PhanMemThiDua2026
                 return;
             }
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            bool laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            bool laTanBinh = phienBan.LaCheDoTanBinh();
             string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
             string sqlQuery = "";
             string thongBaoLog = "";
@@ -125,7 +125,7 @@ namespace PhanMemThiDua2026
                 // 4. Xóa ngầm
                 await Task.Run(() =>
                 {
-                    using (var conn = new SqliteConnection($"Data Source={_csdl4Path}"))
+                    using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path)))
                     {
                         conn.Open();
                         using (var tran = conn.BeginTransaction())
@@ -158,7 +158,7 @@ namespace PhanMemThiDua2026
                 // 6. Cập nhật và Đóng
                 if (_formCha != null && !_formCha.IsDisposed)
                 {
-                    _formCha.ReloadData();
+                    _ = _formCha.ReloadData(); // chủ đích không chờ: form con đóng ngay, ReloadData tự bắt lỗi
                 }
                 this.DialogResult = DialogResult.OK;
                 this.Close();

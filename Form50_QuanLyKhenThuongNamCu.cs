@@ -2,19 +2,10 @@
 ///Phiên bản 2
 ///
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-using DocumentFormat.OpenXml.Drawing.Charts;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -25,17 +16,17 @@ namespace PhanMemThiDua2026
         {
             public int ID { get; set; }
             public int STT { get; set; }
-            public string HoVaTen { get; set; }
-            public string HoVaTen_Search { get; set; }
-            public string SoHieu { get; set; }
-            public string DonVi { get; set; }
-            public string TinhTrang { get; set; }
-            public string HinhThuc_Khen { get; set; }
-            public string QuyetDinh_Khen { get; set; }
-            public string NgayCapQD_Khen { get; set; }
-            public string DonVi_Khen { get; set; }
-            public string VeViec_Khen { get; set; }
-            public string GhiChu_Khen { get; set; }
+            public string HoVaTen { get; set; } = null!;
+            public string HoVaTen_Search { get; set; } = null!;
+            public string SoHieu { get; set; } = null!;
+            public string DonVi { get; set; } = null!;
+            public string TinhTrang { get; set; } = null!;
+            public string HinhThuc_Khen { get; set; } = null!;
+            public string QuyetDinh_Khen { get; set; } = null!;
+            public string NgayCapQD_Khen { get; set; } = null!;
+            public string DonVi_Khen { get; set; } = null!;
+            public string VeViec_Khen { get; set; } = null!;
+            public string GhiChu_Khen { get; set; } = null!;
             public int SortPriority { get; set; }
         }
         //Hệ thống production:
@@ -45,14 +36,14 @@ namespace PhanMemThiDua2026
         private const string PLACEHOLDER_TIMKIEM = "Nhập họ và tên để tìm kiếm...";
         private bool _dangSetPlaceholder = false;
         private bool _isInitialized = false;
-        private SolidBrush _rowHeaderBrush = null;
-        private StringFormat _rowHeaderFormat = null;
-        private System.Windows.Forms.Timer _timKiemTimer;
+        private SolidBrush? _rowHeaderBrush = null;
+        private StringFormat? _rowHeaderFormat = null;
+        private System.Windows.Forms.Timer _timKiemTimer = null!;
         // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
         private static readonly Font _fontGridHeader95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
         private static readonly Font _fontGridCell95Regular = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular);
         // FONT DÙNG CHUNG CHO FORM ẢO CHI TIẾT
-        private static readonly Font _fontTitle115Bold = new Font(Module_HeThong.TenFontHeThong, 11.5F, FontStyle.Bold);
+        //private static readonly Font _fontTitle115Bold = new Font(Module_HeThong.TenFontHeThong, 11.5F, FontStyle.Bold);
         private static readonly Font _fontGrid10Regular = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
         private static readonly Font _fontGrid10Bold = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Bold);
         // private static readonly Font _fontBtn95Bold = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold);
@@ -99,12 +90,17 @@ namespace PhanMemThiDua2026
                 comboBox_ChonCSDLNam.SelectedIndexChanged -= comboBox_ChonCSDLNam_SelectedIndexChanged;
                 comboBox_ChonCSDLNam.SelectedIndexChanged += comboBox_ChonCSDLNam_SelectedIndexChanged;
             }
+            // Bản trước: "+=" nằm NGOÀI if (thụt lề đánh lừa) => gom "-=" / "+=" vào cùng khối như ý định gốc.
             if (comboBox_TimKiemDonVi != null)
+            {
                 comboBox_TimKiemDonVi.SelectedIndexChanged -= ComboBoxFilter_SelectedIndexChanged;
-            comboBox_TimKiemDonVi.SelectedIndexChanged += ComboBoxFilter_SelectedIndexChanged;
+                comboBox_TimKiemDonVi.SelectedIndexChanged += ComboBoxFilter_SelectedIndexChanged;
+            }
             if (comboBox1_HinhThucKT != null)
+            {
                 comboBox1_HinhThucKT.SelectedIndexChanged -= ComboBoxFilter_SelectedIndexChanged;
-            comboBox1_HinhThucKT.SelectedIndexChanged += ComboBoxFilter_SelectedIndexChanged;
+                comboBox1_HinhThucKT.SelectedIndexChanged += ComboBoxFilter_SelectedIndexChanged;
+            }
             InitPlaceholderTimKiem();
             if (textBox_TimKiemTheoTen != null)
             {
@@ -273,7 +269,7 @@ namespace PhanMemThiDua2026
             try
             {
                 int tongSoDong = 0;
-                using (var conn = new SqliteConnection($"Data Source={dbPathLichSu}"))
+                using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPathLichSu)))
                 {
                     await conn.OpenAsync();
                     using (var cmdCheck = new SqliteCommand("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'", conn))
@@ -315,7 +311,7 @@ namespace PhanMemThiDua2026
             if (result != DialogResult.Yes) return;
             try
             {
-                using (var conn = new SqliteConnection($"Data Source={dbPathLichSu}"))
+                using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPathLichSu)))
                 {
                     await conn.OpenAsync();
                     using (var tran = conn.BeginTransaction())
@@ -380,7 +376,7 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrEmpty(dbPath) || !File.Exists(dbPath)) return false;
             try
             {
-                using (var conn = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly"))
+                using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath, chiDoc: true)))
                 {
                     conn.Open();
                     // 1. Kiểm tra xem bảng có tồn tại không
@@ -429,14 +425,14 @@ namespace PhanMemThiDua2026
                     // Đẩy quá trình đọc DB và giải mã AES xuống luồng nền (Background Thread) để không đơ UI
                     await Task.Run(async () =>
                     {
-                        using (var cn = new SqliteConnection($"Data Source={selectedFile.DuongDan};Mode=ReadOnly"))
+                        using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(selectedFile.DuongDan, chiDoc: true)))
                         {
                             await cn.OpenAsync();
                             // Kiểm tra an toàn xem bảng có tồn tại không trước khi Query
                             string checkTableSql = "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'";
                             using (var cmdCheck = new SqliteCommand(checkTableSql, cn))
                             {
-                                long count = (long)await cmdCheck.ExecuteScalarAsync();
+                                long count = (long)(await cmdCheck.ExecuteScalarAsync())!;
                                 if (count == 0) return;
                             }
                             string query = "SELECT * FROM ThongKe_GiayKhen";
@@ -458,7 +454,7 @@ namespace PhanMemThiDua2026
                                 {
                                     if (!availableColumns.Contains(colName)) return "";
                                     int idx = rd.GetOrdinal(colName);
-                                    return rd.IsDBNull(idx) ? "" : rd.GetValue(idx).ToString();
+                                    return rd.IsDBNull(idx) ? "" : rd.GetValue(idx).ToString()!;
                                 };
                                 // Lambda lấy số nguyên
                                 Func<string, int> GetIntVal = (colName) =>
@@ -582,7 +578,7 @@ namespace PhanMemThiDua2026
             string tenFilterLower = tenFilter.ToLowerInvariant();
             if (_dangSetPlaceholder || tenFilterLower == PLACEHOLDER_TIMKIEM.ToLowerInvariant())
             {
-                tenFilter = ""; tenFilterLower = "";
+                tenFilterLower = "";
             }
             kryptonDataGridView1.SuspendLayout();
             try
@@ -695,7 +691,7 @@ namespace PhanMemThiDua2026
                     var tapHopSoHieu = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     for (int i = 0; i < tongSoMuc; i++)
                     {
-                        int actualIdx = _filteredIndexes[i];
+                        int actualIdx = _filteredIndexes![i];
                         if (actualIdx >= 0 && actualIdx < _dataCacheGiayKhen.Count)
                         {
                             string sh = _dataCacheGiayKhen[actualIdx].SoHieu;
@@ -777,27 +773,21 @@ namespace PhanMemThiDua2026
         {
             _ = ThucHienTaiDuLieuLichSuAsync();
         }
-        private void kryptonButton_Dong_Click(object? sender, EventArgs e)
-        {
-            // 1. Tìm Form34 (Quản lý/Thống kê khen thưởng) trong RAM để đưa lên bề mặt
-            var f34 = Application.OpenForms.OfType<Form34_ThongKeKhenThuong>().FirstOrDefault();
-            if (f34 != null)
-            {
-                f34.Show();
-                f34.BringToFront();
-            }
-            // 2. Tìm Form2 (Form cha) để đặt lại tiêu đề
-            var fCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
-            if (fCha != null)
-            {
-                // Tạo chuỗi tiêu đề theo năm hệ thống như bạn yêu cầu
-                string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " + Module_HeThong.LayNamHeThong();
-                // Gọi hàm cập nhật tiêu đề trên Form cha
-                fCha.CapNhatTieuDe(tieuDeForm);
-            }
-            // 3. Đóng Form50 hiện tại
-            this.Close();
-        }
+        //private void kryptonButton_Dong_Click(object? sender, EventArgs e)
+        //{
+            //// 1. Tìm Form34 (Quản lý/Thống kê khen thưởng) trong RAM để đưa lên bề mặt
+            //// 2. Tìm Form2 (Form cha) để đặt lại tiêu đề
+            //var fCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
+            //if (fCha != null)
+            //{
+                //// Tạo chuỗi tiêu đề theo năm hệ thống như bạn yêu cầu
+                //string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " + Module_HeThong.LayNamHeThong();
+                //// Gọi hàm cập nhật tiêu đề trên Form cha
+                //fCha.CapNhatTieuDe(tieuDeForm);
+            //}
+            //// 3. Đóng Form50 hiện tại
+            //this.Close();
+        //}
         private async void kryptonButton_XuatData_Click(object? sender, EventArgs e)
         {
             if (_filteredIndexes.Count == 0)
@@ -820,7 +810,7 @@ namespace PhanMemThiDua2026
             if (sfd.ShowDialog() != DialogResult.OK) return;
             string filePath = sfd.FileName;
             string textBanDau = kryptonButton_XuatData.Values.Text;
-            Image anhBanDau = kryptonButton_XuatData.Values.Image;
+            Image? anhBanDau = kryptonButton_XuatData.Values.Image;
             try
             {
                 kryptonButton_XuatData.Enabled = false;
@@ -923,7 +913,7 @@ namespace PhanMemThiDua2026
                     ws.PageSetup.Margins.Left = 0.4;
                     ws.PageSetup.Margins.Right = 0.4;
                     Module_BanQuyen.DongDauExcel(wb);
-                    wb.SaveAs(filePath);
+                    Module_ExcelAnToan.LuuAnToan(wb, filePath);
                 });
                 try { Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath); } catch { }
                 Module_ThongBao.ThanhCong("Xuất Excel thành công!");
@@ -1032,118 +1022,36 @@ namespace PhanMemThiDua2026
         {
             kryptonButton_CapNhat.PerformClick();
         }
-        private void toolStripMenuItem_Dong_Click(object? sender, EventArgs e)
-        {
-            // kryptonButton_Dong.PerformClick();
-        }
-        private void kryptonButton1_TraCuuKetQuaKhenThuongNamCu_Click(object? sender, EventArgs e)
-        {
-            // 1. Tìm Form cha đang hoạt động
-            var formCha = Application.OpenForms
-                .OfType<Form2_FormCha>()
-                .FirstOrDefault();
-            if (formCha == null || formCha.IsDisposed)
-            {
-                MessageBox.Show(
-                    "Không tìm thấy giao diện chính (Form2_FormCha).\n\nVui lòng kiểm tra lại trạng thái của phần mềm.",
-                    "Hệ thống",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                return;
-            }
-            // 2. Tìm PanelContainer
-            var panel = formCha.Controls
-                .Find("PanelContainer", true)
-                .FirstOrDefault() as Panel;
-            if (panel == null || panel.IsDisposed)
-            {
-                MessageBox.Show(
-                    "Không tìm thấy vùng hiển thị (PanelContainer).\n\nVui lòng kiểm tra lại giao diện chính.",
-                    "Hệ thống",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                return;
-            }
-            try
-            {
-                // 3. Tìm Form51 đã tồn tại trong PanelContainer
-                var form51 = panel.Controls
-                    .OfType<Form51_QuanLyKhenThuongTapTheNamCu>()
-                    .FirstOrDefault();
-                // 4. Nếu Form51 chưa tồn tại -> tạo mới đúng một lần
-                if (form51 == null || form51.IsDisposed)
-                {
-                    form51 = new Form51_QuanLyKhenThuongTapTheNamCu
-                    {
-                        TopLevel = false,
-                        FormBorderStyle = FormBorderStyle.None,
-                        Dock = DockStyle.Fill
-                    };
-                    // 5. Đưa Form51 vào PanelContainer
-                    panel.Controls.Add(form51);
-                    // Đưa Form51 lên trước khi hiển thị
-                    form51.BringToFront();
-                    // Hiển thị Form lần đầu
-                    form51.Show();
-                }
-                else
-                {
-                    // 6. Nếu Form51 đã tồn tại -> tái sử dụng
-                    form51.BringToFront();
-                    if (!form51.Visible)
-                    {
-                        form51.Show();
-                    }
-                }
-                // 7. Ẩn các Form con khác trong PanelContainer
-                foreach (Control control in panel.Controls)
-                {
-                    if (control is Form childForm &&
-                        childForm != form51 &&
-                        !childForm.IsDisposed)
-                    {
-                        childForm.Hide();
-                    }
-                }
-                // 8. Đảm bảo Form51 luôn ở lớp trên cùng
-                form51.Show();
-                form51.BringToFront();
-                // 9. Cập nhật tiêu đề Form cha
-                string tieuDeForm =
-                    "Trang tra cứu kết quả khen thưởng tập thể năm cũ " +
-                    Module_HeThong.LayNamHeThong();
-                formCha.CapNhatTieuDe(tieuDeForm);
-            }
-            catch (ObjectDisposedException)
-            {
-                // Form hoặc Control đã bị giải phóng trong lúc chuyển giao diện.
-                // Không để lỗi này làm sập toàn bộ phần mềm.
-                return;
-            }
-            catch (InvalidOperationException ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[Lỗi chuyển Form51 - InvalidOperationException]: {ex}");
-                MessageBox.Show(
-                    "Không thể mở trang tra cứu kết quả khen thưởng tập thể năm cũ.\n\n" +
-                    "Vui lòng thử lại.",
-                    "Lỗi giao diện",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[Lỗi chuyển Form51]: {ex}");
-                MessageBox.Show(
-                    "Đã xảy ra lỗi khi mở trang tra cứu kết quả khen thưởng tập thể năm cũ.\n\n" +
-                    $"Chi tiết: {ex.Message}",
-                    "Lỗi hệ thống",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
-        }
-        // ⭐ HÀM MỚI: ĐỒNG BỘ TRẠNG THÁI THEO SỐ HIỆU (LƯU TEXT THUẦN)
+        //private void toolStripMenuItem_Dong_Click(object? sender, EventArgs e)
+        //{
+            //// kryptonButton_Dong.PerformClick();
+        //}
+        //private void kryptonButton1_TraCuuKetQuaKhenThuongNamCu_Click(object? sender, EventArgs e)
+        //{
+            //// 1. Tìm Form cha đang hoạt động
+            //// 2. Tìm PanelContainer
+                //// 3. Tìm Form51 đã tồn tại trong PanelContainer
+                //var form51 = panel.Controls
+                    //.OfType<Form51_QuanLyKhenThuongTapTheNamCu>()
+                    //.FirstOrDefault();
+                //// 4. Nếu Form51 chưa tồn tại -> tạo mới đúng một lần
+                    //// 5. Đưa Form51 vào PanelContainer
+                    //panel.Controls.Add(form51);
+                    //// Đưa Form51 lên trước khi hiển thị
+                    //form51.BringToFront();
+                    //// Hiển thị Form lần đầu
+                    //form51.Show();
+                //}
+                //else
+                //{
+                    //// 6. Nếu Form51 đã tồn tại -> tái sử dụng
+                //// 7. Ẩn các Form con khác trong PanelContainer
+                //// 8. Đảm bảo Form51 luôn ở lớp trên cùng
+                //form51.Show();
+                //form51.BringToFront();
+                //// 9. Cập nhật tiêu đề Form cha
+                //// Form hoặc Control đã bị giải phóng trong lúc chuyển giao diện.
+                //// Không để lỗi này làm sập toàn bộ phần mềm.
         private async Task DongBoTinhTrangGiayKhenNamCuAsync(string dbPathLichSu)
         {
             if (string.IsNullOrEmpty(dbPathLichSu) || !File.Exists(dbPathLichSu)) return;
@@ -1153,10 +1061,10 @@ namespace PhanMemThiDua2026
                 // 1. Quét CSDL hiện tại (csdl2.db) để lấy toàn bộ Số Hiệu đang công tác
                 // Dùng HashSet để tốc độ tìm kiếm đạt O(1) siêu tốc
                 var hashSoHieuHienTai = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                using (var cn2 = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadOnly"))
+                using (var cn2 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path, chiDoc: true)))
                 {
                     await cn2.OpenAsync();
-                    using var cmd = new SqliteCommand("SELECT SoHieu FROM DanhSach WHERE SoHieu IS NOT NULL AND SoHieu <> ''", cn2);
+                    using var cmd = new SqliteCommand($"SELECT SoHieu FROM {Module_TaiKhoan.BangDanhSach} WHERE SoHieu IS NOT NULL AND SoHieu <> ''", cn2);
                     using var rd = await cmd.ExecuteReaderAsync();
                     while (await rd.ReadAsync())
                     {
@@ -1171,7 +1079,7 @@ namespace PhanMemThiDua2026
                 if (hashSoHieuHienTai.Count == 0) return;
                 // 2. Quét CSDL Lịch sử và đối chiếu để cập nhật
                 var updateQueue = new List<(int id, string ttMoi)>();
-                using (var cnCu = new SqliteConnection($"Data Source={dbPathLichSu}"))
+                using (var cnCu = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPathLichSu)))
                 {
                     await cnCu.OpenAsync();
                     // Kiểm tra xem bảng ThongKe_GiayKhen có tồn tại không
@@ -1233,7 +1141,7 @@ namespace PhanMemThiDua2026
             }
         }
         private void KryptonDataGridView1_CellDoubleClick(
-        object sender,
+        object? sender,
         DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0)
@@ -1362,7 +1270,7 @@ namespace PhanMemThiDua2026
                 cotGiaTri.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
                 cotGiaTri.DefaultCellStyle.Padding = new Padding(10, 8, 15, 8);
                 // 7. HÀM THÊM DÒNG DỮ LIỆU
-                int ThemDong(string ten, string giaTri, Color? mauGiaTri = null, Font fontGiaTri = null)
+                int ThemDong(string ten, string giaTri, Color? mauGiaTri = null, Font? fontGiaTri = null)
                 {
                     int rowIndex = grid.Rows.Add(
                         string.IsNullOrWhiteSpace(ten) ? "" : ten.Trim(),
@@ -1381,7 +1289,7 @@ namespace PhanMemThiDua2026
                 // Tình trạng công tác
                 string tinhTrang = data.TinhTrang?.Trim() ?? "";
                 Color? mauTinhTrang = null;
-                Font fontTinhTrang = null;
+                Font? fontTinhTrang = null;
                 if (tinhTrang.Equals(Module_HeThong.TT_DANG_CONG_TAC, StringComparison.OrdinalIgnoreCase))
                 {
                     mauTinhTrang = mauDangCongTac;

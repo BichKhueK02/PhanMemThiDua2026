@@ -13,7 +13,7 @@ namespace PhanMemThiDua2026
         private DataTable _dtGoc;
         private DataTable _dtXuLy;
         private DataView _dvHienThi;
-        private DataTable _dtData;
+        //private DataTable _dtData;
         private bool _isTanBinh;
         private Dictionary<string, string> _mapCotThoiGian = new Dictionary<string, string>();
         private List<string> _danhSachThoiGianGoc = new List<string>();
@@ -21,11 +21,11 @@ namespace PhanMemThiDua2026
         private bool _isUpdatingCombos = false;
         private bool _isCalculating = false;
         // 4. Tài nguyên UI
-        private Image _iconStar;
+        private Image? _iconStar;
         // 🔥 GIA CỐ: Token hủy tiến trình ngầm (Chống Crash)
-        private CancellationTokenSource _ctsLoadNgam;
+        private CancellationTokenSource _ctsLoadNgam = null!;
         private readonly object _dataLock = new object();
-        private CancellationTokenSource _ctsFilter;
+        private CancellationTokenSource _ctsFilter = null!;
         // HÀM KHỞI TẠO DUY NHẤT (ĐÃ CHUẨN HÓA)
         public Form36_TinhPhanLoaiThang(DataTable dtTruyenTuForm15, bool laTanBinh)
         {
@@ -44,7 +44,7 @@ namespace PhanMemThiDua2026
                 _dtGoc = new DataTable();
                 _dtXuLy = new DataTable();
             }
-            _dtData = _dtXuLy;
+            //_dtData = _dtXuLy;
             if (!_dtXuLy.Columns.Contains("KetQuaTinhToan"))
                 _dtXuLy.Columns.Add("KetQuaTinhToan", typeof(string));
             if (!_dtXuLy.Columns.Contains("IsLoai1"))
@@ -139,7 +139,7 @@ namespace PhanMemThiDua2026
             await Task.Run(() =>
             {
                 using var conn =
-                    new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly");
+                    new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath, chiDoc: true));
                 conn.Open();
                 using var cmd =
               new SqliteCommand($"SELECT * FROM {tableName}", conn);
@@ -173,7 +173,7 @@ namespace PhanMemThiDua2026
             lock (_dataLock)
             {
                 rowCount = _dtXuLy.Rows.Count;
-                int idxSoHieu = _dtXuLy.Columns["SoHieu"].Ordinal;
+                int idxSoHieu = _dtXuLy.Columns["SoHieu"]!.Ordinal;
                 snapshotSoHieu = new string[rowCount];
                 for (int i = 0; i < rowCount; i++)
                 {
@@ -199,10 +199,10 @@ namespace PhanMemThiDua2026
                 if (File.Exists(_csdl2Path))
                 {
                     using var conn = new SqliteConnection(
-                        $"Data Source={_csdl2Path};Mode=ReadOnly");
+                        Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path, chiDoc: true));
                     conn.Open();
                     using var cmd = new SqliteCommand(
-                        "SELECT SoHieu, GhiChu FROM DanhSach",
+                        $"SELECT SoHieu, GhiChu FROM {Module_TaiKhoan.BangDanhSach}",
                         conn);
                     using var rd = cmd.ExecuteReader();
                     while (rd.Read())
@@ -236,7 +236,7 @@ namespace PhanMemThiDua2026
                         string sh = snapshotSoHieu[i];
                         resultGhiChu[i] =
                             (!string.IsNullOrEmpty(sh)
-                            && dictGhiChu.TryGetValue(sh, out string gc))
+                            && dictGhiChu.TryGetValue(sh, out string? gc))
                             ? gc
                             : "";
                     });
@@ -266,7 +266,7 @@ namespace PhanMemThiDua2026
         private static readonly Color COLOR_L34_FORE = Color.DarkRed;
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         private void KryptonDataGridView1_CellFormatting(
-            object sender,
+            object? sender,
             DataGridViewCellFormattingEventArgs e)
         {
             // ===== VALIDATION CỰC KỸ =====
@@ -295,7 +295,7 @@ namespace PhanMemThiDua2026
                 return;
             }
             // Không dùng Trim để tránh alloc string liên tục
-            string ketQua = rawValue.ToString();
+            string? ketQua = rawValue.ToString();
             if (string.IsNullOrEmpty(ketQua))
                 return;
             // ===== CHỌN MÀU =====
@@ -333,13 +333,13 @@ namespace PhanMemThiDua2026
                 == DataGridViewElementStates.Selected;
             if (!isSelected)
             {
-                e.CellStyle.BackColor = backColor;
+                e.CellStyle!.BackColor = backColor;
                 e.CellStyle.ForeColor = foreColor;
             }
             else
             {
                 // Chỉ đổi màu chữ khi selected
-                e.CellStyle.SelectionForeColor = foreColor;
+                e.CellStyle!.SelectionForeColor = foreColor;
             }
         }
         private void GhiDuLieuGhiChuVaoBang(string[] resultGhiChu)
@@ -352,7 +352,7 @@ namespace PhanMemThiDua2026
                 {
                     _dtXuLy.BeginLoadData();
                     int idxGhiChu =
-                        _dtXuLy.Columns["GhiChu"].Ordinal;
+                        _dtXuLy.Columns["GhiChu"]!.Ordinal;
                     int rowCount =
                         Math.Min(_dtXuLy.Rows.Count,
                                  resultGhiChu.Length);
@@ -405,7 +405,7 @@ namespace PhanMemThiDua2026
         }
         // Stub để dùng trong try (không cần implement gì)
         // Lê Trung Kiên -  Yêu mèo cam
-        private void OnColumnChanged_SuppressNotify(object? s, DataColumnChangeEventArgs e) { }
+        //private void OnColumnChanged_SuppressNotify(object? s, DataColumnChangeEventArgs e) { }
         private string SafeDecrypt(object? value)
         {
             if (value == null || value == DBNull.Value) return "";
@@ -426,7 +426,7 @@ namespace PhanMemThiDua2026
             if (_dtXuLy == null || _dtXuLy.Rows.Count == 0) return;
             if (_isCalculating) return;
             string textBanDau = kryptonButton1_TinhToan.Values.Text;
-            Image anhBanDau = kryptonButton1_TinhToan.Values.Image;
+            Image? anhBanDau = kryptonButton1_TinhToan.Values.Image;
             try
             {
                 _isCalculating = true;
@@ -436,11 +436,11 @@ namespace PhanMemThiDua2026
                 // kryptonDataGridView1.DataSource = null;
                 int rowCount = _dtXuLy.Rows.Count;
                 string[] dbCols = combos.Select(v => _mapCotThoiGian[v]).ToArray();
-                int idxC1 = _dtXuLy.Columns[dbCols[0]].Ordinal;
-                int idxC2 = _dtXuLy.Columns[dbCols[1]].Ordinal;
-                int idxC3 = _dtXuLy.Columns[dbCols[2]].Ordinal;
-                int idxC4 = _dtXuLy.Columns[dbCols[3]].Ordinal;
-                int idxHoTen = _dtXuLy.Columns["HoVaTen"].Ordinal;
+                int idxC1 = _dtXuLy.Columns[dbCols[0]]!.Ordinal;
+                int idxC2 = _dtXuLy.Columns[dbCols[1]]!.Ordinal;
+                int idxC3 = _dtXuLy.Columns[dbCols[2]]!.Ordinal;
+                int idxC4 = _dtXuLy.Columns[dbCols[3]]!.Ordinal;
+                int idxHoTen = _dtXuLy.Columns["HoVaTen"]!.Ordinal;
                 string[] resultKetQua = new string[rowCount];
                 bool[] resultIsLoai1 = new bool[rowCount];
                 await Task.Run(() =>
@@ -453,10 +453,10 @@ namespace PhanMemThiDua2026
                             DataRow row = _dtXuLy.Rows[i];
                             if (row.RowState == DataRowState.Deleted || string.IsNullOrWhiteSpace(row[idxHoTen] as string))
                                 continue;
-                            string t1 = row[idxC1] as string;
-                            string t2 = row[idxC2] as string;
-                            string t3 = row[idxC3] as string;
-                            string t4 = row[idxC4] as string;
+                            string? t1 = row[idxC1] as string;
+                            string? t2 = row[idxC2] as string;
+                            string? t3 = row[idxC3] as string;
+                            string? t4 = row[idxC4] as string;
                             string res = TinhLogicPhanLoaiMDK_Fast(t1, t2, t3, t4);
                             resultKetQua[i] = res;
                             resultIsLoai1[i] = (res == Module_HeThong.Loai_1);
@@ -505,26 +505,9 @@ namespace PhanMemThiDua2026
                 _isCalculating = false;
             }
         }
-        private string TinhLogicPhanLoaiMDK_Fast(string t1, string t2, string t3, string t4)
-        {
-            int l1 = 0, l2 = 0, l3 = 0, l4 = 0;
-            int validCount = 0;
-            void Check(string s)
-            {
-                if (string.IsNullOrWhiteSpace(s)) return;
-                char digit = s.FirstOrDefault(char.IsDigit);
-                if (digit == '1') { l1++; validCount++; }
-                else if (digit == '2') { l2++; validCount++; }
-                else if (digit == '3') { l3++; validCount++; }
-                else if (digit == '4') { l4++; validCount++; }
-            }
-            Check(t1); Check(t2); Check(t3); Check(t4);
-            if (validCount == 0) return Module_HeThong.Loai_4;
-            if (l1 >= 2 && l3 == 0 && l4 == 0) return Module_HeThong.Loai_1;
-            if ((l1 + l2) >= 2 && l3 == 0 && l4 == 0) return Module_HeThong.Loai_2;
-            if ((l1 + l2 + l3) >= 2 && l4 == 0) return Module_HeThong.Loai_3;
-            return Module_HeThong.Loai_4;
-        }
+        // Quy tắc nghiệp vụ đã tách sang Module_QuyTacPhanLoai (có kiểm thử tự động, đối chiếu với bản gốc).
+        private static string TinhLogicPhanLoaiMDK_Fast(string? t1, string? t2, string? t3, string? t4)
+            => Module_QuyTacPhanLoai.PhanLoaiThangTu4Tuan(t1, t2, t3, t4);
         // UI & FILTER
         private async void lamMoi_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
@@ -548,8 +531,8 @@ namespace PhanMemThiDua2026
             if (comboBox_TimKiemTinhTrang.Items.Count > 0) comboBox_TimKiemTinhTrang.SelectedIndex = 0;
             _isUpdatingCombos = false;
             kryptonDataGridView1.DataSource = _dvHienThi;
-            ComboboxThoiGian_Changed(null, null);
-            BoLoc_Changed(null, null);
+            ComboboxThoiGian_Changed(null, EventArgs.Empty);
+            BoLoc_Changed(null, EventArgs.Empty);
             CapNhatThongKeStatus();
             await KichHoatLoadGhiChuAnToanAsync();
         }
@@ -745,7 +728,7 @@ namespace PhanMemThiDua2026
             dgv.Columns.Add(col);
         }
         private void KryptonDataGridView1_CellPainting(
-      object sender,
+      object? sender,
       DataGridViewCellPaintingEventArgs e)
         {
             try
@@ -783,10 +766,10 @@ namespace PhanMemThiDua2026
                         (e.RowIndex + 1).ToString();
                     Color textColor =
                         isSelected
-                        ? e.CellStyle.SelectionForeColor
-                        : e.CellStyle.ForeColor;
+                        ? e.CellStyle!.SelectionForeColor
+                        : e.CellStyle!.ForeColor;
                     TextRenderer.DrawText(
-                        e.Graphics,
+                        e.Graphics!,
                         sttText,
                         e.CellStyle.Font,
                         e.CellBounds,
@@ -812,7 +795,7 @@ namespace PhanMemThiDua2026
                     // Không phải loại 1
                     if (!isLoai1)
                         return;
-                    Image icon = _iconStar;
+                    Image? icon = _iconStar;
                     if (icon == null)
                         return;
                     // VẼ NỀN + BORDER
@@ -831,7 +814,7 @@ namespace PhanMemThiDua2026
                     int yIcon =
                         e.CellBounds.Y +
                         ((e.CellBounds.Height - iconSize) / 2);
-                    e.Graphics.DrawImage(
+                    e.Graphics!.DrawImage(
                         icon,
                         xIcon,
                         yIcon,
@@ -852,8 +835,8 @@ namespace PhanMemThiDua2026
                                 e.CellBounds.Height);
                         Color textColor =
                             isSelected
-                            ? e.CellStyle.SelectionForeColor
-                            : e.CellStyle.ForeColor;
+                            ? e.CellStyle!.SelectionForeColor
+                            : e.CellStyle!.ForeColor;
                         TextRenderer.DrawText(
                             e.Graphics,
                             hoTen,
@@ -987,7 +970,7 @@ namespace PhanMemThiDua2026
             comboBox_TimKiemDonVi.Items.Clear();
             comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
             var dsDonVi = _dtXuLy.AsEnumerable().Select(r => r.Field<string>("DonVi")).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x);
-            foreach (var dv in dsDonVi) comboBox_TimKiemDonVi.Items.Add(dv);
+            foreach (var dv in dsDonVi) comboBox_TimKiemDonVi.Items.Add(dv!);
             comboBox_TimKiemDonVi.SelectedIndex = 0;
             comboBox_XepLoaiThiDua.Items.Clear();
             comboBox_XepLoaiThiDua.Items.AddRange(new string[] { Module_HeThong.Tat_Ca, Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4 });
@@ -1016,7 +999,7 @@ namespace PhanMemThiDua2026
                 await Task.Delay(300, token);
                 string filter = BuildFilterString(); // Hàm tách logic filter
                 // GIA CỐ: Tạm dừng đồng bộ của BindingContext để Grid không "nhìn" thấy thay đổi
-                this.BindingContext[kryptonDataGridView1.DataSource].SuspendBinding();
+                this.BindingContext![kryptonDataGridView1.DataSource!]!.SuspendBinding();
                 lock (_dataLock)
                 {
                     _dvHienThi.RowFilter = filter;
@@ -1053,7 +1036,7 @@ namespace PhanMemThiDua2026
                     {
                         // Chỉ lấy những dòng không bị xóa/ẩn
                         if (rowView.Row.RowState == DataRowState.Deleted) continue;
-                        string hoTen = rowView["HoVaTen"]?.ToString();
+                        string? hoTen = rowView["HoVaTen"]?.ToString();
                         if (string.IsNullOrWhiteSpace(hoTen)) continue;
                         ketQuaList.Add(rowView["KetQuaTinhToan"]?.ToString()?.Trim() ?? "");
                     }
@@ -1096,7 +1079,7 @@ namespace PhanMemThiDua2026
             bool coDuLieuThucTe = false;
             foreach (DataRowView drv in _dvHienThi)
             {
-                string hoTen = drv["HoVaTen"]?.ToString();
+                string? hoTen = drv["HoVaTen"]?.ToString();
                 if (!string.IsNullOrWhiteSpace(hoTen))
                 {
                     coDuLieuThucTe = true;

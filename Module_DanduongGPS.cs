@@ -30,9 +30,6 @@ namespace PhanMemThiDua2026
         public static string DuongDanCSDL3 { get; private set; } = string.Empty;
         public static string DuongDanCSDL4 { get; private set; } = string.Empty;
         public static string DuongDanCSDL4ex { get; private set; } = string.Empty;
-        // Hiện không nơi nào trong module gán giá trị cho 2 thuộc tính này (setter private) nên luôn rỗng.
-        public static string TenDangNhapMacDinh { get; private set; } = string.Empty;
-        public static string MatKhauDangNhapMacDinh { get; private set; } = string.Empty;
         /// <summary>Cảnh báo môi trường (vd: thư mục dữ liệu không ghi được). Null nếu không có vấn đề. Giao diện có thể hiển thị để chẩn đoán.</summary>
         public static string? CanhBaoMoiTruong { get; private set; }
         // ===================== KHÓA MÃ HÓA =====================
@@ -48,40 +45,10 @@ namespace PhanMemThiDua2026
         public static string ToiYeuMeoCam2 = string.Empty;
         public static Action? OnDatabaseChanged;
         private static readonly object _lock = new();
-        // Ma trận ĐÃ BỊ ĐẢO VỊ TRÍ (Swap) + MÃ HÓA XOR. Khai báo dạng ReadOnlySpan<byte> trả về mảng hằng:
-        // trình biên dịch đặt dữ liệu vào vùng tĩnh của assembly, KHÔNG cấp phát mảng trên heap (bản gốc dựng 4 mảng byte[] mỗi lần nạp).
-        private const byte SEED_KEY = 0x3F;
-        private static ReadOnlySpan<byte> MaTran1 => new byte[] { 0x0C, 0x7B, 0x0C, 0x0F, 0x09, 0x06, 0x0B, 0x7B, 0x08, 0x08, 0x0B, 0x06, 0x09, 0x7E, 0x0B, 0x7A, 0x0B, 0x7C, 0x0A, 0x09, 0x0A, 0x0A, 0x0A, 0x08 };
-        private static ReadOnlySpan<byte> MaTran2 => new byte[] { 0x0B, 0x7E, 0x0A, 0x7E, 0x0A, 0x09, 0x0B, 0x7C, 0x0A, 0x0A, 0x09, 0x07, 0x0A, 0x0A, 0x0A, 0x0C, 0x0B, 0x0A, 0x0A, 0x09, 0x0A, 0x09, 0x0A, 0x0E };
-        private static ReadOnlySpan<byte> MaTran3 => new byte[] { 0x08, 0x06, 0x0B, 0x0E, 0x09, 0x7E, 0x0B, 0x7B, 0x0C, 0x0D, 0x0C, 0x0F, 0x08, 0x06, 0x0A, 0x0C, 0x0B, 0x09, 0x09, 0x7C, 0x0A, 0x09, 0x0B, 0x7C, 0x08, 0x06, 0x0A, 0x0A, 0x09, 0x7E, 0x0B, 0x7A, 0x0B, 0x0C, 0x09, 0x7C, 0x0B, 0x0A, 0x0A, 0x09 };
-        private static ReadOnlySpan<byte> MaTran4 => new byte[] { 0x0C, 0x7B, 0x0B, 0x0E, 0x0B, 0x09, 0x0A, 0x0C, 0x0B, 0x0D, 0x0C, 0x0A, 0x0A, 0x0A, 0x0A, 0x0B, 0x0B, 0x09, 0x0C, 0x0E, 0x0B, 0x0A, 0x0A, 0x09, 0x0B, 0x06, 0x09, 0x7C, 0x0B, 0x0A, 0x0A, 0x0D, 0x0A, 0x09, 0x0B, 0x09, 0x0A, 0x0A, 0x0B, 0x7C };
-        private static ReadOnlySpan<byte> LayMaTran(int index)
-        {
-            switch (index)
-            {
-                case 0: return MaTran1;
-                case 1: return MaTran2;
-                case 2: return MaTran3;
-                default: return MaTran4;
-            }
-        }
-        /// <summary>Lấy nhảy cóc + XOR: index chẵn -> lấy lẻ, index lẻ -> lấy chẵn (đúng logic bản gốc), giải vào bộ đệm stack.</summary>
-        private static string GiaiMaMaTran(ReadOnlySpan<byte> encoded)
-        {
-            Span<char> decoded = stackalloc char[encoded.Length];   // tối đa 40 ký tự
-            for (int i = 0; i < encoded.Length; i++)
-            {
-                int targetIndex = (i % 2 == 0) ? (i + 1) : (i - 1);
-                // Lớp khiên bảo vệ (phòng trường hợp mảng bị lệch độ dài lẻ)
-                if (targetIndex >= encoded.Length) targetIndex = i;
-                decoded[i] = (char)(encoded[targetIndex] ^ SEED_KEY);
-            }
-            return new string(decoded);
-        }
-        private static string GiaiMaKhoa(int index) =>
-            Module_BaoMatAES.KhoBaoTanVuongGiaiMaHex(
-                Module_BaoMatAES.TraLaiTenChoMeoCam(
-                    GiaiMaMaTran(LayMaTran(index))));
+        // KHÓA KHÔNG CÒN NẰM TRONG .EXE: 4 thành phần khóa được đọc từ tệp khóa đi kèm thư mục phần mềm
+        // (Module_TepKhoa: <thư mục phần mềm>\KhoaBaoMat\PhanMemThiDua2026.pmtdkey + bản dự phòng trong "Database Backup").
+        // Giá trị trong tệp giữ nguyên khóa cũ => dữ liệu cũ, bản sao lưu, ServiceBackup/ServiceRestore không bị ảnh hưởng.
+        private static string Base64Utf8(string s) => Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(s));
         public static void XinTraLaiThoiGianNapKeyBase64()
         {
             if (!string.IsNullOrEmpty(ToiCanChuIVMeoCam1_KeyMaHoa)) return;
@@ -90,10 +57,13 @@ namespace PhanMemThiDua2026
                 if (!string.IsNullOrEmpty(ToiCanChuIVMeoCam1_KeyMaHoa)) return;
                 try
                 {
-                    string k1 = GiaiMaKhoa(0);
-                    string k2 = GiaiMaKhoa(1);
-                    string k3 = GiaiMaKhoa(2);
-                    string k4 = GiaiMaKhoa(3);
+                    var bo = Module_TepKhoa.Nap()
+                        ?? throw new InvalidOperationException(Module_TepKhoa.LoiGanNhat ?? "Không nạp được tệp khóa");
+                    // Giữ đúng dạng trung gian cũ (Base64) để LoiChaoTuSiberia() giải ra y hệt giá trị trước đây
+                    string k1 = Base64Utf8(bo.IV1);
+                    string k2 = Base64Utf8(bo.IV2);
+                    string k3 = Base64Utf8(bo.Khoa1);
+                    string k4 = Base64Utf8(bo.Khoa2);
                     if (string.IsNullOrEmpty(k1) || string.IsNullOrEmpty(k2) ||
                         string.IsNullOrEmpty(k3) || string.IsNullOrEmpty(k4))
                     {
@@ -165,25 +135,7 @@ namespace PhanMemThiDua2026
         ///   khiến thao tác sao lưu / khôi phục / ghi đè tệp CSDL báo "tệp đang được sử dụng".
         /// </summary>
         internal static SqliteConnection MoKetNoiDoc(string dbPath)
-        {
-            var sb = new SqliteConnectionStringBuilder
-            {
-                DataSource = dbPath,
-                Mode = SqliteOpenMode.ReadWrite,
-                Pooling = false
-            };
-            var cn = new SqliteConnection(sb.ToString());
-            try
-            {
-                cn.Open();
-                return cn;
-            }
-            catch
-            {
-                cn.Dispose();
-                throw;
-            }
-        }
+            => Module_KetNoiCSDL.MoKetNoi(dbPath, khongTaoMoi: true, pooling: false);
         // ===================== THƯ MỤC HƯỚNG DẪN =====================
         public static void DamBaoThuMucHuongDan() => Directory.CreateDirectory(ThuMucHuongDan);   // idempotent, không cần kiểm tra Exists
         public static void DamBaoHuongDanIndex()
@@ -262,7 +214,11 @@ namespace PhanMemThiDua2026
             // Khóa rỗng sẽ giải mã ra tệp rác. Idempotent nên không ảnh hưởng nếu nơi khác đã nạp rồi.
             DamBaoKhoaDaNap();
             if (!KhoaDaSanSang)
+            {
                 CanhBaoMoiTruong = (CanhBaoMoiTruong == null ? "" : CanhBaoMoiTruong + "\n") + "Không nạp được khóa mã hóa hệ thống.";
+                // DỪNG tại đây: khôi phục/đồng bộ CSDL bằng khóa rỗng sẽ tạo ra tệp không giải mã được.
+                return;
+            }
             // ConfigureAwait(false): phần việc còn lại (kiểm tra tệp, chép hướng dẫn, ghi nhật ký SQLite) là I/O đĩa,
             // không được chạy lại trên luồng giao diện vì sẽ gây khựng trên máy ổ HDD/cấu hình yếu.
             await Module_KhoiTaoCSDL.BinhMinhOSantoriniAsync().ConfigureAwait(false);
@@ -393,32 +349,6 @@ namespace PhanMemThiDua2026
             string path = Path.Combine(ThuMucCoSoDuLieu, tenFile);
             return CoDuLieu(path) ? path : string.Empty;   // tệp 0 byte coi như chưa có (nhất quán với Module_KhoiTaoCSDL)
         }
-        // ===================== XÁC THỰC TỆP =====================
-        /// <summary>
-        /// Tệp tồn tại VÀ mở đọc được (chia sẻ ReadWrite|Delete nên không tranh chấp với SQLite/Excel đang mở).
-        /// Bản gốc có chú thích "FileShare.ReadWrite" nhưng thực tế chỉ gọi File.Exists, trái với tên hàm.
-        /// </summary>
-        public static bool TonTaiVaMoDuoc(string path)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
-                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read,
-                    FileShare.ReadWrite | FileShare.Delete, 1, FileOptions.None);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        public static bool KiemTraTonTai(string tenFileCSDL)
-        {
-            // Chỉ lấy phần tên tệp: chặn "..\" và đường dẫn tuyệt đối (Path.Combine sẽ bỏ qua thư mục gốc nếu tham số 2 là đường dẫn tuyệt đối)
-            string ten = Path.GetFileName(tenFileCSDL ?? string.Empty);
-            if (ten.Length == 0) return false;
-            return File.Exists(Path.Combine(ThuMucCoSoDuLieu, ten));
-        }
         public static bool KiemTraTrangThaiSanSangCuaHeThongCSDL()
         {
             return
@@ -426,19 +356,6 @@ namespace PhanMemThiDua2026
                 CoDuLieu(DuongDanCSDL2) &&
                 CoDuLieu(DuongDanCSDL3) &&
                 CoDuLieu(DuongDanCSDL4);
-        }
-        public static string LayDuongDanTheoSo(int so)
-        {
-            return so switch
-            {
-                1 => DuongDanCSDL1,
-                2 => DuongDanCSDL2,
-                3 => DuongDanCSDL3,
-                4 => DuongDanCSDL4,
-                5 => DuongDanCSDL4ex,
-                6 => FileHuongDanIndex,
-                _ => string.Empty,
-            };
         }
     }
     internal static class Module_TaiKhoan
@@ -495,16 +412,10 @@ namespace PhanMemThiDua2026
                 string csdlPath = Module_DanduongGPS.DuongDanCSDL1;
                 if (!string.IsNullOrEmpty(csdlPath) && File.Exists(csdlPath))
                 {
-                    using var conn = Module_DanduongGPS.MoKetNoiDoc(csdlPath);
-                    using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT Token FROM Admin WHERE ID = 1";
-                    var result = cmd.ExecuteScalar();
-                    if (result != null && result != DBNull.Value)
-                    {
-                        // GIỮ NGUYÊN: hiển thị giá trị lưu trong CSDL (biến tên "tokenGiaiMa" nhưng bản gốc không giải mã).
-                        tokenGiaiMa = Convert.ToString(result, CultureInfo.InvariantCulture) ?? "Token không hợp lệ";
-                    }
-                    else { tokenGiaiMa = "Chưa thiết lập Token"; }
+                    // Chỉ hiển thị DẤU VÂN TAY (vd "A3F9-12C0"), không còn hiện chuỗi Token đã mã hóa:
+                    // chuỗi đó giải mã được bằng chính phần mềm nên lộ ra màn hình đăng nhập là lộ Token gốc.
+                    string dauVanTay = Module_TokenCSDL.LayDauVanTay();
+                    tokenGiaiMa = string.IsNullOrEmpty(dauVanTay) ? "Chưa thiết lập Token" : dauVanTay;
                 }
                 else { tokenGiaiMa = "Không tìm thấy cơ sở dữ liệu"; }
                 return "THÔNG TIN PHẦN MỀM\n\n" +
@@ -536,12 +447,98 @@ namespace PhanMemThiDua2026
                 string doiTuong = GiaiMaAnToan(chuoi).Trim();
                 if (doiTuong.Equals("Phiên bản dành cho tân binh", StringComparison.OrdinalIgnoreCase))
                     return "Phần mềm: Phiên bản dành cho tân binh";
+                if (doiTuong.Equals(TEN_PHIEN_BAN_HOC_VIEN, StringComparison.OrdinalIgnoreCase))
+                    return "Phần mềm: " + TEN_PHIEN_BAN_HOC_VIEN;
                 if (doiTuong.Equals("Phiên bản dành cho CBCS", StringComparison.OrdinalIgnoreCase))
                     return "Phần mềm: Phiên bản dành cho CBCS";
                 return "";
             }
             catch { return ""; }
         }
+        // ===================== BẢNG DANH SÁCH THEO PHIÊN BẢN =====================
+        // CBCS     -> CSDL2.DanhSach
+        // Tân binh -> CSDL2.DanhSachTanBinh (cùng cấu trúc với DanhSach)
+        public const string BANG_DANHSACH_CBCS = "DanhSach";
+        public const string BANG_DANHSACH_TANBINH = "DanhSachTanBinh";
+        // Bộ đệm theo đường dẫn CSDL2: tránh đọc + giải mã PhienBan_DoiTuong ở mỗi câu truy vấn.
+        // Tự làm mới khi đổi CSDL2 hoặc khi phát sự kiện đổi phiên bản (ThongBaoPhienBanThayDoi / ThongBaoDoiTuongPhanMemThayDoi).
+        // Thêm hạn 5 giây: khôi phục / chuyển giao CSDL ghi đè tệp cùng đường dẫn vẫn tự nhận đúng phiên bản mới.
+        private static volatile Tuple<string, bool, long>? _cachePhienBanTanBinh;
+        private const long HAN_BO_DEM_PHIEN_BAN_MS = 5000;
+        /// <summary>Phiên bản hiện tại có phải "Phiên bản dành cho tân binh" không (có bộ đệm).</summary>
+        public static bool LaPhienBanTanBinh()
+        {
+            string db = Module_DanduongGPS.DuongDanCSDL2 ?? "";
+            long now = Environment.TickCount64;
+            var c = _cachePhienBanTanBinh;
+            if (c != null && now - c.Item3 < HAN_BO_DEM_PHIEN_BAN_MS && string.Equals(c.Item1, db, StringComparison.OrdinalIgnoreCase)) return c.Item2;
+            string pb = LayPhienBanPhanMem() ?? "";
+            bool la = pb.LaCheDoTanBinh();
+            if (la) DamBaoBangDanhSachTanBinh(db);
+            _laHocVien = pb.LaCheDoHocVien();
+            _cachePhienBanTanBinh = Tuple.Create(db, la, now);
+            return la;
+        }
+        // ===================== CHẾ ĐỘ HỌC VIÊN =====================
+        // Học viên = tên gọi khác của chế độ Tân binh: dùng chung toàn bộ logic + bảng DanhSachTanBinh,
+        // chỉ khác chữ hiển thị ("Học viên" thay cho "Tân binh").
+        public const string TEN_PHIEN_BAN_HOC_VIEN = "Phiên bản dành cho học viên";
+        private static volatile bool _laHocVien;
+        /// <summary>Phiên bản hiện tại có phải "Phiên bản dành cho học viên" không (dùng chung bộ đệm với LaPhienBanTanBinh).</summary>
+        public static bool LaPhienBanHocVien() => LaPhienBanTanBinh() && _laHocVien;
+        /// <summary>"tân binh" hoặc "học viên" (chữ thường) theo phiên bản đang chạy.</summary>
+        public static string TenTB_Thuong => LaPhienBanHocVien() ? "học viên" : "tân binh";
+        /// <summary>"Tân binh" hoặc "Học viên".</summary>
+        public static string TenTB_Hoa => LaPhienBanHocVien() ? "Học viên" : "Tân binh";
+        /// <summary>"Tân Binh" hoặc "Học Viên".</summary>
+        public static string TenTB_TieuDe => LaPhienBanHocVien() ? "Học Viên" : "Tân Binh";
+        /// <summary>"TÂN BINH" hoặc "HỌC VIÊN".</summary>
+        public static string TenTB_InHoa => LaPhienBanHocVien() ? "HỌC VIÊN" : "TÂN BINH";
+        // CSDL2 cũ (phát hành trước khi có bảng Tân binh) -> tự tạo bảng cùng cấu trúc DanhSach, mỗi tệp chỉ kiểm tra 1 lần.
+        private static readonly HashSet<string> _daKiemTraBangTanBinh = new(StringComparer.OrdinalIgnoreCase);
+        private static void DamBaoBangDanhSachTanBinh(string db)
+        {
+            if (string.IsNullOrWhiteSpace(db) || !File.Exists(db)) return;
+            lock (_daKiemTraBangTanBinh)
+            {
+                if (_daKiemTraBangTanBinh.Contains(db)) return;
+                try
+                {
+                    using var cn = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = db, DefaultTimeout = 10 }.ToString());
+                    cn.Open();
+                    using var cmd = cn.CreateCommand();
+                    cmd.CommandText = "SELECT 1 FROM sqlite_master WHERE type='table' AND name=$t LIMIT 1";
+                    cmd.Parameters.AddWithValue("$t", BANG_DANHSACH_TANBINH);
+                    if (cmd.ExecuteScalar() == null)
+                    {
+                        cmd.Parameters.Clear();
+                        cmd.CommandText = $@"CREATE TABLE IF NOT EXISTS ""{BANG_DANHSACH_TANBINH}"" (
+    ""ID""          INTEGER NOT NULL,
+    ""STT""         INTEGER NOT NULL,
+    ""HoVaTen""     TEXT NOT NULL,
+    ""SoHieu""      TEXT NOT NULL,
+    ""NamSinh""     TEXT NOT NULL,
+    ""QueQuan""     TEXT,
+    ""NgayVaoCAND"" TEXT,
+    ""CapBac""      TEXT,
+    ""ChucVu""      TEXT,
+    ""DonVi""       TEXT,
+    ""PhanLoai""    TEXT,
+    ""GhiChu""      TEXT,
+    ""ThuTuSapXep"" INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(""ID"" AUTOINCREMENT)
+);";
+                        cmd.ExecuteNonQuery();
+                    }
+                    _daKiemTraBangTanBinh.Add(db);
+                }
+                catch (Exception ex) { Debug.WriteLine("[DamBaoBangDanhSachTanBinh] " + ex.Message); }
+            }
+        }
+        /// <summary>Tên bảng danh sách gốc trong CSDL2 ứng với phiên bản đang chạy: "DanhSach" hoặc "DanhSachTanBinh".</summary>
+        public static string BangDanhSach => LaPhienBanTanBinh() ? BANG_DANHSACH_TANBINH : BANG_DANHSACH_CBCS;
+        /// <summary>Xóa bộ đệm phiên bản (gọi sau khi ghi PhienBan_DoiTuong hoặc đổi CSDL).</summary>
+        public static void XoaBoDemPhienBan() => _cachePhienBanTanBinh = null;
         public static string XacDinhTenTieuDoan()
         {
             const string KHONG_XAC_DINH = "Không xác định";
@@ -560,7 +557,7 @@ namespace PhanMemThiDua2026
                 // còn chuỗi mã hóa "v2|..." thì coi là không xác định (không in chuỗi mã lên giao diện).
                 string dec = GiaiMaAnToan(raw).Trim();
                 if (dec.Length > 0) return dec;
-                return raw.StartsWith("v2|", StringComparison.Ordinal) ? KHONG_XAC_DINH : raw;
+                return Module_BaoMatAES.LaChuoiMa(raw) ? KHONG_XAC_DINH : raw;
             }
             catch { return KHONG_XAC_DINH; }
         }
@@ -569,24 +566,13 @@ namespace PhanMemThiDua2026
         // Một người nghe ném lỗi không được làm các người nghe còn lại (hoặc nơi phát sự kiện) bị sập
         public static void ThongBaoPhienBanThayDoi()
         {
+            XoaBoDemPhienBan();
             var h = OnPhienBanThayDoi;
             if (h == null) return;
             foreach (Delegate d in h.GetInvocationList())
             {
                 try { ((EventHandler)d)(null, EventArgs.Empty); }
                 catch (Exception ex) { Debug.WriteLine("[OnPhienBanThayDoi] " + ex.Message); }
-            }
-        }
-        public static event Action? OnDoiTuongPhanMemChanged;
-        // Sự kiện C# chỉ được phát từ bên trong lớp khai báo; bản gốc khai báo sự kiện này nhưng KHÔNG có hàm phát nên không bao giờ kích hoạt.
-        public static void ThongBaoDoiTuongPhanMemThayDoi()
-        {
-            var h = OnDoiTuongPhanMemChanged;
-            if (h == null) return;
-            foreach (Delegate d in h.GetInvocationList())
-            {
-                try { ((Action)d)(); }
-                catch (Exception ex) { Debug.WriteLine("[OnDoiTuongPhanMemChanged] " + ex.Message); }
             }
         }
     }

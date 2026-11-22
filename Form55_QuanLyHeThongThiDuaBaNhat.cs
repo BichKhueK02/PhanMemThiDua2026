@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Diagnostics;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-
     // =====================================================================================================
     //  Form55 = "vỏ" chứa 2 trang con: Form42 (quản lý Ba Nhất) và Form44 (Sổ vàng).
     //
@@ -25,27 +18,20 @@ namespace PhanMemThiDua2026
     {
         // ===================== CẤU HÌNH CỐ ĐỊNH =====================
         private readonly int _namHeThong = Module_HeThong.LayNamHeThong();
-
         private Form42_QuanLyThiDuaBaNhat? _frm42;
         private Form44_SoVangBaNhat? _frm44;
-
         private enum Trang { Chua, BaNhat42, SoVang44 }
         private Trang _trang = Trang.Chua;          // trang người dùng đã chọn gần nhất
-
         private bool _dangDongForm;
         private bool _daDonDep;
-
         public bool DaLoadDuLieu { get; private set; }
-
         // ===================== CỜ "CẦN NẠP LẠI" =====================
         private bool _canNapLai;                    // dữ liệu nguồn (Loại 1) đổi  -> đồng bộ + nạp lại Form42
         private bool _canLamMoiTinhTrang42;         // Sổ vàng đổi                -> chỉ vá cột "Tình trạng" của Form42
         private bool _canNapLai44;                  // Sổ vàng đổi                -> nạp lại Form44
-
-        public void DanhDauCanNapLai() => _canNapLai = true;                          // gọi khi dữ liệu nguồn thay đổi
+        //public void DanhDauCanNapLai() => _canNapLai = true;                          // gọi khi dữ liệu nguồn thay đổi
         public void DanhDauCanNapLaiSoVang() => _canNapLai44 = true;                  // Form42 gọi sau khi lưu vào Sổ vàng
         public void DanhDauCanLamMoiTinhTrang42() => _canLamMoiTinhTrang42 = true;    // Form44 gọi sau khi sửa/xóa/nhập Sổ vàng
-
         // ===================== BỘ NẠP MỘT LUỒNG =====================
         // Mỗi lúc chỉ chạy 1 lượt nạp; yêu cầu đến khi đang chạy được gộp thành đúng 1 lượt chạy lại.
         // Mọi thứ chạy trên luồng UI nên không cần khóa. Task trả về hoàn tất khi lượt (và lượt chạy lại) kết thúc.
@@ -54,15 +40,12 @@ namespace PhanMemThiDua2026
             private readonly Func<Task> _viec;
             private Task? _dangChay;
             private bool _chayLai;
-
             public BoNapMotLuong(Func<Task> viec) => _viec = viec;
-
             public Task YeuCau()
             {
                 if (_dangChay is { IsCompleted: false }) { _chayLai = true; return _dangChay; }
                 return _dangChay = ChayAsync();
             }
-
             private async Task ChayAsync()
             {
                 do
@@ -74,10 +57,8 @@ namespace PhanMemThiDua2026
                 while (_chayLai);
             }
         }
-
         private readonly BoNapMotLuong _bo42;
         private readonly BoNapMotLuong _bo44;
-
         // ===================== KHỞI TẠO =====================
         public Form55_QuanLyHeThongThiDuaBaNhat()
         {
@@ -87,13 +68,10 @@ namespace PhanMemThiDua2026
             BatDoubleBufferDeQuy(this);               // chỉ tinh chỉnh hiển thị: giảm chớp khi chuyển trang con
             Disposed += (s, e) => DonDepKhiDong();
         }
-
         private bool Dong() => _dangDongForm || IsDisposed;
-
         // ===== Giảm chớp: DoubleBuffered cho container (không đụng control khác) =====
         private static readonly System.Reflection.PropertyInfo? _pDoubleBuffered =
             typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-
         private static void BatDoubleBufferDeQuy(Control goc)
         {
             foreach (Control c in goc.Controls)
@@ -103,14 +81,12 @@ namespace PhanMemThiDua2026
                 BatDoubleBufferDeQuy(c);
             }
         }
-
         // ===== Tắt/bật vẽ khi đổi trang: chỉ vẽ lại 1 lần sau khi Show/Hide xong =====
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr h, int msg, int w, int l);
         private const int WM_SETREDRAW = 0x000B;
         private static void TatVe(Control c) { if (c.IsHandleCreated) SendMessage(c.Handle, WM_SETREDRAW, 0, 0); }
         private static void BatVe(Control c) { if (c.IsHandleCreated) { SendMessage(c.Handle, WM_SETREDRAW, 1, 0); c.Invalidate(true); } }
-
         private void ChuyenForm(Form hien, Form? an)
         {
             if (an != null && an.IsDisposed) an = null;
@@ -123,7 +99,6 @@ namespace PhanMemThiDua2026
             }
             finally { BatVe(panelContent); }
         }
-
         // ===================== DỰNG FORM CON (LAZY) =====================
         // Đặt sẵn đúng kích thước vùng chứa TRƯỚC khi dựng bố cục: lúc Show thật (Dock = Fill) kích thước không đổi
         // nên các TableLayoutPanel/SplitContainer lồng nhau không phải bố trí lại lần thứ 2.
@@ -132,7 +107,6 @@ namespace PhanMemThiDua2026
             Rectangle r = panelContent.ClientRectangle;
             if (r.Width > 0 && r.Height > 0) f.Bounds = r;
         }
-
         private void TaoForm42NeuCan()
         {
             if (Dong() || (_frm42 != null && !_frm42.IsDisposed)) return;
@@ -148,7 +122,6 @@ namespace PhanMemThiDua2026
             panelContent.Controls.Add(f);
             _frm42 = f;
         }
-
         private void TaoForm44NeuCan()
         {
             if (Dong() || (_frm44 != null && !_frm44.IsDisposed)) return;
@@ -163,11 +136,9 @@ namespace PhanMemThiDua2026
             panelContent.Controls.Add(f);
             _frm44 = f;
         }
-
         // ===================== KHUNG CHỜ (CHỈ DÙNG KHI CHƯA DỰNG SẴN) =====================
         // Mở lần đầu mà chưa kịp dựng sẵn: hiện khung + dòng chữ NGAY, việc dựng Form42 để sau khi khung đã vẽ.
         private Label? _lblDangTai;
-
         private void HienChoDangTai()
         {
             if (_lblDangTai != null || _frm42 != null || _frm44 != null) return;
@@ -182,7 +153,6 @@ namespace PhanMemThiDua2026
             };
             panelContent.Controls.Add(_lblDangTai);
         }
-
         private void AnChoDangTai()
         {
             var l = _lblDangTai;
@@ -197,7 +167,6 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex) { Debug.WriteLine("[Form55.AnChoDangTai] " + ex.Message); }
         }
-
         private void KhiRanhMotLan(Action viec)
         {
             EventHandler? h = null;
@@ -208,13 +177,11 @@ namespace PhanMemThiDua2026
             };
             Application.Idle += h;
         }
-
         // ===================== DỰNG SẴN TỪNG PHẦN (LÚC RẢNH) =====================
         private IEnumerator<bool>? _kichBanChuanBi;
         private bool _daChuanBiXong;
         private bool _dangChayBuoc;
         private System.Windows.Forms.Timer? _timerNen;
-
         /// <summary>
         /// Bắt đầu dựng sẵn Form42 + Form44 (không Show, không đọc dữ liệu) theo từng bước nhỏ bằng bộ hẹn giờ nội bộ.
         /// Gọi nhiều lần an toàn. Form6 có thể gọi ngay khi tạo Form55 ở trạng thái ẩn để lúc bấm nút chỉ còn Show().
@@ -230,7 +197,6 @@ namespace PhanMemThiDua2026
             };
             _timerNen.Start();
         }
-
         private void DungTimerNen()
         {
             var t = _timerNen;
@@ -238,7 +204,6 @@ namespace PhanMemThiDua2026
             if (t == null) return;
             try { t.Stop(); t.Dispose(); } catch { /* dọn dẹp best-effort */ }
         }
-
         /// <summary>
         /// Chạy các bước dựng sẵn trong tối đa nganSachMs mili-giây (mỗi lần gọi luôn làm ít nhất 1 bước).
         /// Trả về true nếu còn việc, false nếu đã xong (hoặc đã dừng).
@@ -267,7 +232,6 @@ namespace PhanMemThiDua2026
             }
             finally { _dangChayBuoc = false; }
         }
-
         private void KetThucChuanBi()
         {
             _daChuanBiXong = true;
@@ -275,15 +239,7 @@ namespace PhanMemThiDua2026
             _kichBanChuanBi = null;
             DungTimerNen();
         }
-
-        /// <summary>Tương thích bản cũ: dựng sẵn toàn bộ ngay (dùng khi cần chủ động, bình thường dùng BatDauChuanBiNen).</summary>
-        public void NapTruocGiaoDien()
-        {
-            if (Dong()) return;
-            try { while (ChuanBiGiaoDienTungPhan(int.MaxValue)) { } }
-            catch (Exception ex) { Debug.WriteLine("[Form55.NapTruoc] " + ex.Message); }
-        }
-
+        ///// <summary>Tương thích bản cũ: dựng sẵn toàn bộ ngay (dùng khi cần chủ động, bình thường dùng BatDauChuanBiNen).</summary>
         // Mỗi "yield return" là ranh giới giữa 2 bước; trình bơm quyết định có chạy tiếp ngay hay nhường giao diện.
         private IEnumerable<bool> CacBuocChuanBi()
         {
@@ -297,7 +253,6 @@ namespace PhanMemThiDua2026
                 foreach (bool b in TaoHandleTungControl(f42)) yield return b;
             if (f42 != null)
                 foreach (bool b in BoCucTruocTungPhan(f42)) yield return b;
-
             // ----- Trang Sổ vàng (Form44) -----
             if (Dong()) yield break;
             TaoForm44NeuCan(); yield return true;
@@ -308,10 +263,8 @@ namespace PhanMemThiDua2026
                 foreach (bool b in TaoHandleTungControl(f44)) yield return b;
             if (f44 != null)
                 foreach (bool b in BoCucTruocTungPhan(f44)) yield return b;
-
             NapTruocSoVangNeuRanh();                             // chỉ có tác dụng khi người dùng đang ở trong trang Ba Nhất
         }
-
         // Tạo handle từng control (duyệt cây không đệ quy): mỗi bước 1 control, rất nhẹ
         private IEnumerable<bool> TaoHandleTungControl(Control goc)
         {
@@ -331,14 +284,12 @@ namespace PhanMemThiDua2026
                 yield return true;
             }
         }
-
         // Bố cục trước từng khối (con trước, cha sau) ở đúng kích thước vùng chứa
         private static void ThuThapKhoiBoCuc(Control goc, List<Control> ds)
         {
             foreach (Control c in goc.Controls) ThuThapKhoiBoCuc(c, ds);
             if (goc.HasChildren && (goc is ScrollableControl || goc is GroupBox)) ds.Add(goc);
         }
-
         private IEnumerable<bool> BoCucTruocTungPhan(Form f)
         {
             var ds = new List<Control>();
@@ -351,13 +302,11 @@ namespace PhanMemThiDua2026
                 yield return true;
             }
         }
-
         // ===================== NẠP DỮ LIỆU (NỀN, KHÔNG GIỮ KHÓA ĐIỀU HƯỚNG) =====================
         private async Task NapDuLieu42Async()
         {
             var f = _frm42;
             if (f == null || f.IsDisposed || _dangDongForm) return;
-
             if (!f.DaLoadDuLieu)
             {
                 // Lần đầu: LƯỚI CÓ DỮ LIỆU NGAY (1 lượt đọc), rồi mới đồng bộ nền; chỉ nạp lại / vá khi thật sự có đổi
@@ -380,12 +329,10 @@ namespace PhanMemThiDua2026
                 _canLamMoiTinhTrang42 = false;
                 await f.LamMoiTinhTrangTrenLuoiNgayAsync();
             }
-
             if (_dangDongForm || f.IsDisposed) return;
             DaLoadDuLieu = f.DaLoadDuLieu;
             NapTruocSoVangNeuRanh();                // Form42 xong rồi mới nạp sẵn Sổ vàng, hai việc không tranh nhau
         }
-
         private async Task NapDuLieu44Async()
         {
             var f = _frm44;
@@ -394,7 +341,6 @@ namespace PhanMemThiDua2026
             _canNapLai44 = false;
             await f.LoadDuLieuSoVangBaNhatAsync();
         }
-
         // Nạp sẵn Sổ vàng vào RAM khi người dùng đang ở trang Ba Nhất (bấm sang Sổ vàng là có ngay)
         private void NapTruocSoVangNeuRanh()
         {
@@ -403,7 +349,6 @@ namespace PhanMemThiDua2026
             if (f == null || f.IsDisposed || f.DaLoadDuLieu) return;
             _ = _bo44.YeuCau();
         }
-
         // ===================== FORM LOAD =====================
         private async void Form55_QuanLyHeThongThiDuaBaNhat_Load(object? sender, EventArgs e)
         {
@@ -424,7 +369,6 @@ namespace PhanMemThiDua2026
                 ThongBaoLoiKhoiTao(ex);
             }
         }
-
         private async void MoTrangDauTien()
         {
             try
@@ -437,13 +381,11 @@ namespace PhanMemThiDua2026
                 ThongBaoLoiKhoiTao(ex);
             }
         }
-
         private void ThongBaoLoiKhoiTao(Exception ex)
         {
             if (Dong()) return;
             MessageBox.Show(this, "Không thể khởi tạo dữ liệu thi đua Ba Nhất.\n\n" + ex.Message, "Lỗi khởi tạo", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-
         // ===================== HIỂN THỊ TRANG =====================
         /// <summary>Hiện trang Ba Nhất NGAY (đồng bộ), dữ liệu nạp nền. Task hoàn tất khi lượt nạp nền xong.</summary>
         public Task MoForm42Async()
@@ -454,13 +396,11 @@ namespace PhanMemThiDua2026
             TaoForm42NeuCan();
             var f42 = _frm42;
             if (f42 == null || f42.IsDisposed) return Task.CompletedTask;
-
             ChuyenForm(f42, _frm44);
             CapNhatTieuDeFormChinh($"Quản lý phong trào thi đua Ba Nhất năm {_namHeThong}");
             BatDauChuanBiNen();                      // dựng nốt phần còn lại (Form44...) lúc rảnh
             return _bo42.YeuCau();
         }
-
         /// <summary>Hiện trang Sổ vàng NGAY (đồng bộ), dữ liệu nạp nền. Task hoàn tất khi lượt nạp nền xong.</summary>
         public Task MoForm44Async()
         {
@@ -470,13 +410,11 @@ namespace PhanMemThiDua2026
             TaoForm44NeuCan();
             var f44 = _frm44;
             if (f44 == null || f44.IsDisposed) return Task.CompletedTask;
-
             ChuyenForm(f44, _frm42);
             CapNhatTieuDeFormChinh($"Sổ vàng vinh danh thi đua Ba Nhất năm {_namHeThong}");
             BatDauChuanBiNen();
             return _bo44.YeuCau();
         }
-
         // MENU - FORM 42
         private async void quanLyThiDuaBaNhat_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
@@ -489,7 +427,6 @@ namespace PhanMemThiDua2026
                 XuLyLoiHeThong("Không thể mở quản lý thi đua Ba Nhất.", ex);
             }
         }
-
         // MENU - FORM 44
         private async void quanLySoVangThiDuaBaNhat_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
@@ -502,12 +439,10 @@ namespace PhanMemThiDua2026
                 XuLyLoiHeThong("Không thể mở Sổ vàng thi đua Ba Nhất.", ex);
             }
         }
-
         // RELOAD DỮ LIỆU (giữ nguyên hành vi: trang nào đang hiện thì nạp lại trang đó)
         public async Task ReloadDuLieu()
         {
             if (Dong()) return;
-
             var f42 = _frm42;
             if (f42 != null && !f42.IsDisposed && f42.Visible)
             {
@@ -516,33 +451,26 @@ namespace PhanMemThiDua2026
                     await f42.LoadDuLieuToanBoDanhSachBaNhatAsync();
                 return;
             }
-
             var f44 = _frm44;
             if (f44 != null && !f44.IsDisposed && f44.Visible)
                 await f44.LoadDuLieuSoVangBaNhatAsync();
         }
-
         // CẬP NHẬT TIÊU ĐỀ FORM CHA
         private void CapNhatTieuDeFormChinh(string tieuDe)
         {
             if (string.IsNullOrWhiteSpace(tieuDe))
                 return;
-
             var frmChinh = Application.OpenForms
                 .OfType<Form2_FormCha>()
                 .FirstOrDefault();
-
             if (frmChinh == null || frmChinh.IsDisposed)
                 return;
-
             frmChinh.CapNhatTieuDe(tieuDe);
         }
-
         // XỬ LÝ LỖI TẬP TRUNG
         private void XuLyLoiHeThong(string thongBao, Exception ex)
         {
             if (Dong()) return;
-
             MessageBox.Show(
                 this,
                 thongBao + "\n\n" + ex.Message,
@@ -550,14 +478,12 @@ namespace PhanMemThiDua2026
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
         }
-
         // ===================== ĐÓNG FORM =====================
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
             if (!e.Cancel) DonDepKhiDong();         // chỉ dọn khi việc đóng thật sự diễn ra (không bị ai hủy)
         }
-
         // Gọi từ OnFormClosing và từ Disposed (đóng cả ứng dụng thì form con bị Dispose mà không qua FormClosing). Chạy 1 lần.
         private void DonDepKhiDong()
         {
@@ -569,7 +495,6 @@ namespace PhanMemThiDua2026
                 DungTimerNen();
                 try { _kichBanChuanBi?.Dispose(); } catch { }
                 _kichBanChuanBi = null;
-
                 var f42 = _frm42; _frm42 = null;
                 if (f42 != null && !f42.IsDisposed) f42.Dispose();
                 var f44 = _frm44; _frm44 = null;

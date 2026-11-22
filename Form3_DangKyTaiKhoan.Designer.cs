@@ -65,10 +65,10 @@
             tableLayoutPanel5 = new TableLayoutPanel();
             tableLayoutPanel15 = new TableLayoutPanel();
             kryptonButton1_ThemAnhDaiDien = new Krypton.Toolkit.KryptonButton();
-            label2 = new Label();
             tableLayoutPanel14 = new TableLayoutPanel();
             pictureBox2_AnhDaiDienAdmin = new PictureBox();
             tableLayoutPanel12 = new TableLayoutPanel();
+            pictureBox2 = new PictureBox();
             TableLayoutPanel7.SuspendLayout();
             TableLayoutPanel11.SuspendLayout();
             TableLayoutPanel13.SuspendLayout();
@@ -87,6 +87,7 @@
             tableLayoutPanel14.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2_AnhDaiDienAdmin).BeginInit();
             tableLayoutPanel12.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             SuspendLayout();
             // 
             // TableLayoutPanel7
@@ -121,7 +122,7 @@
             ComboBox2_CauHoi2.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             ComboBox2_CauHoi2.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold);
             ComboBox2_CauHoi2.FormattingEnabled = true;
-            ComboBox2_CauHoi2.Location = new Point(106, 8);
+            ComboBox2_CauHoi2.Location = new Point(106, 9);
             ComboBox2_CauHoi2.Name = "ComboBox2_CauHoi2";
             ComboBox2_CauHoi2.Size = new Size(378, 25);
             ComboBox2_CauHoi2.TabIndex = 0;
@@ -131,7 +132,7 @@
             ComboBox1_CauHoi1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             ComboBox1_CauHoi1.Font = new Font("Segoe UI Semibold", 9.792F, FontStyle.Bold);
             ComboBox1_CauHoi1.FormattingEnabled = true;
-            ComboBox1_CauHoi1.Location = new Point(106, 8);
+            ComboBox1_CauHoi1.Location = new Point(106, 9);
             ComboBox1_CauHoi1.Name = "ComboBox1_CauHoi1";
             ComboBox1_CauHoi1.Size = new Size(378, 25);
             ComboBox1_CauHoi1.TabIndex = 0;
@@ -546,8 +547,8 @@
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 12.9129133F));
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 11.7117119F));
             tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 75.3753738F));
+            tableLayoutPanel5.Controls.Add(pictureBox2, 2, 0);
             tableLayoutPanel5.Controls.Add(tableLayoutPanel15, 1, 0);
-            tableLayoutPanel5.Controls.Add(label2, 2, 0);
             tableLayoutPanel5.Controls.Add(tableLayoutPanel14, 0, 0);
             tableLayoutPanel5.Dock = DockStyle.Fill;
             tableLayoutPanel5.Location = new Point(3, 2);
@@ -585,18 +586,6 @@
             kryptonButton1_ThemAnhDaiDien.Values.Image = (Image)resources.GetObject("kryptonButton1_ThemAnhDaiDien.Values.Image");
             kryptonButton1_ThemAnhDaiDien.Values.Text = "Thêm ảnh";
             kryptonButton1_ThemAnhDaiDien.Click += kryptonButton1_ThemAnhDaiDien_Click;
-            // 
-            // label2
-            // 
-            label2.Anchor = AnchorStyles.None;
-            label2.AutoSize = true;
-            label2.Font = new Font("Segoe UI", 18F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label2.ForeColor = Color.Green;
-            label2.Location = new Point(375, 35);
-            label2.Name = "label2";
-            label2.Size = new Size(495, 32);
-            label2.TabIndex = 31;
-            label2.Text = "Đăng ký tài khoản mới theo mẫu dưới đây";
             // 
             // tableLayoutPanel14
             // 
@@ -640,6 +629,17 @@
             tableLayoutPanel12.Size = new Size(1005, 408);
             tableLayoutPanel12.TabIndex = 22;
             // 
+            // pictureBox2
+            // 
+            pictureBox2.Anchor = AnchorStyles.None;
+            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
+            pictureBox2.Location = new Point(261, 18);
+            pictureBox2.Name = "pictureBox2";
+            pictureBox2.Size = new Size(723, 65);
+            pictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox2.TabIndex = 34;
+            pictureBox2.TabStop = false;
+            // 
             // Form3_DangKyTaiKhoan
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -674,11 +674,11 @@
             TableLayoutPanel8.ResumeLayout(false);
             TableLayoutPanel8.PerformLayout();
             tableLayoutPanel5.ResumeLayout(false);
-            tableLayoutPanel5.PerformLayout();
             tableLayoutPanel15.ResumeLayout(false);
             tableLayoutPanel14.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)pictureBox2_AnhDaiDienAdmin).EndInit();
             tableLayoutPanel12.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBox2).EndInit();
             ResumeLayout(false);
         }
         #endregion
@@ -687,9 +687,7 @@
         internal ComboBox ComboBox2_CauHoi2;
         internal ComboBox ComboBox1_CauHoi1;
         internal TableLayoutPanel TableLayoutPanel11;
-        internal PictureBox PictureBox4;
         internal TableLayoutPanel TableLayoutPanel13;
-        internal PictureBox PictureBox5;
         internal Label Label9;
         internal PictureBox PictureBox1;
         internal Label Label6;
@@ -704,7 +702,6 @@
         internal TableLayoutPanel TableLayoutPanel3;
         internal CheckBox Check_HienMatKhau;
         internal TableLayoutPanel TableLayoutPanel2;
-        internal Krypton.Toolkit.KryptonButton Btn_Thoat;
         internal TableLayoutPanel TableLayoutPanel6;
         //internal Krypton.Toolkit.KryptonButton Btn_Luu;
         internal Label label1;
@@ -718,7 +715,6 @@
         private TableLayoutPanel tableLayoutPanel5;
         internal PictureBox pictureBox2_AnhDaiDienAdmin;
         private TableLayoutPanel tableLayoutPanel12;
-        internal Label label2;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_ThemAnhDaiDien;
         private TableLayoutPanel tableLayoutPanel14;
         private TableLayoutPanel tableLayoutPanel15;
@@ -728,5 +724,6 @@
         internal PictureBox pictureBox2_ThongTin_DKTK;
         internal Label label10;
         internal Label label11;
+        internal PictureBox pictureBox2;
     }
 }

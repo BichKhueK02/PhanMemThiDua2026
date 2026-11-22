@@ -1274,13 +1274,6 @@
         private TableLayoutPanel tableLayoutPanel1;
         private ToolStripStatusLabel toolStripStatusLabel1;
         private SplitContainer splitContainer1;
-        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox12;
-        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox11;
-        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox10;
-        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox9;
-        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox8;
-        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox7;
-        //private Krypton.Toolkit.KryptonTextBox kryptonTextBox2;
         private GroupBox groupBox3;
         private TabControl tabControl1;
         private TabPage tabPage1;

@@ -1,7 +1,7 @@
 ﻿using System.Data;
 public static class DataCache
 {
-    private static DataTable _cacheDanhSach;
+    private static DataTable? _cacheDanhSach;
     private static readonly object _lock = new object();
     public static bool IsLoaded
     {
@@ -11,7 +11,7 @@ public static class DataCache
                 return _cacheDanhSach != null;
         }
     }
-    public static DataTable GetDanhSach()
+    public static DataTable? GetDanhSach()
     {
         lock (_lock)
         {
@@ -31,5 +31,7 @@ public static class DataCache
         {
             _cacheDanhSach = null;
         }
+        // Dữ liệu vừa đổi -> các trang đã nạp sẵn (Trang chủ, Thống kê, Khen thưởng) sẽ nạp lại ở lần mở kế tiếp
+        PhanMemThiDua2026.Module_ChuKyCSDL.DanhDauThayDoi();
     }
 }

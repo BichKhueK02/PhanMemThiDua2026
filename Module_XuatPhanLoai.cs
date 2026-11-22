@@ -19,13 +19,9 @@ namespace PhanMemThiDua2026
         private static string _tenTrungDoan = "";
         private static string _tenTieuDoan = "";
         private static string _tomTatGhiChu = "";
-        public static string TEN_TRUNG_DOAN => _tenTrungDoan;
-        public static string TEN_TIEU_DOAN => _tenTieuDoan;
-        public static string TOM_TAT_GHI_CHU => _tomTatGhiChu;
         // cờ hiệu đảm bảo nhận được link mới khi người dùng thay đổi / khi lần đọc trước thất bại
         private static volatile bool _canReloadLink = true;
         private static volatile bool _daDamBaoBangThang;
-        private static int _dangXuat;                       // chặn bấm xuất chồng nhau (bản Async)
         private const string KhoangTrang = "      ";
         // Giữ nguyên hành vi làm tròn cũ (Banker's: 2.5 -> 2). Nếu nghiệp vụ muốn 2.5 -> 3 hãy đổi thành AwayFromZero
         // SAU KHI đối chiếu lại số liệu phân bổ BCH với cấp trên.
@@ -36,35 +32,6 @@ namespace PhanMemThiDua2026
         public static int soLuongBCHDLoai3;
         public static int soLuongBCHDLoai4;
         public static int soLuongBCHDKhongPhanLoai;
-        public class KetQuaTinhBCH
-        {
-            public int TongBCH;
-            public int Loai1;
-            public int Loai2;
-            public int Loai3;
-            public int Loai4;
-            public int KhongPhanLoai;
-            // Kết quả tính theo đề nghị
-            public int DeNghiLoai1;
-            public int DeNghiLoai2;
-            public int DeNghiLoai3;
-        }
-        public static string TenTrungDoan
-        {
-            get
-            {
-                if (!_daNapThongTin) NapThongTinDonVi();
-                return _tenTrungDoan ?? "";
-            }
-        }
-        public static string TenTieuDoan
-        {
-            get
-            {
-                if (!_daNapThongTin) NapThongTinDonVi();
-                return _tenTieuDoan ?? "";
-            }
-        }
         public static void NapThongTinDonVi()
         {
             if (_daNapThongTin) return;
@@ -79,11 +46,6 @@ namespace PhanMemThiDua2026
                     _daNapThongTin = true;
                 }
             }
-        }
-        /// <summary>MỚI: xoá bộ nhớ đệm tên đơn vị. Gọi sau khi người dùng lưu lại Thông tin đơn vị để lần xuất sau lấy dữ liệu mới.</summary>
-        public static void LamMoiThongTinDonVi()
-        {
-            lock (_khoaThongTin) { _daNapThongTin = false; }
         }
         #endregion
         #region 2. Hạ tầng nội bộ: kết nối CSDL, giải mã có đệm, lưu tệp an toàn
@@ -107,11 +69,11 @@ namespace PhanMemThiDua2026
             private readonly Dictionary<string, string> _map = new(StringComparer.Ordinal);
             private const int GioiHan = 8192;
             /// <summary>Giải mã + Trim. Rỗng/lỗi giải mã => trả về chính chuỗi gốc (tương thích dữ liệu V1 chưa mã hoá).</summary>
-            public string Lay(string raw)
+            public string Lay(string? raw)
             {
                 if (string.IsNullOrWhiteSpace(raw)) return "";
-                if (_map.TryGetValue(raw, out string daCo)) return daCo;
-                string kq;
+                if (_map.TryGetValue(raw, out string? daCo)) return daCo;
+                string? kq;
                 try { kq = Module_BaoMatAES.GiaiMa(raw)?.Trim(); }
                 catch { kq = null; }
                 if (string.IsNullOrEmpty(kq)) kq = raw.Trim();
@@ -142,66 +104,11 @@ namespace PhanMemThiDua2026
             return sb.ToString().Trim().TrimEnd('.');
         }
         /// <summary>Lưu qua tệp tạm rồi đổi tên: không bao giờ để lại tệp .xlsx hỏng dở khi mất điện/lỗi/diệt virus quét giữa chừng.</summary>
-        private static readonly object _khoaLuuExcel = new();
         /// <summary>
         /// Lưu Excel an toàn bằng tệp tạm duy nhất; xác minh gói XLSX trước khi thay thế.
         /// Giữ nguyên tệp đích cũ nếu quá trình lưu hoặc thay thế thất bại.
         /// </summary>
-        private static void LuuAnToan(XLWorkbook wb, string fileDich)
-        {
-            ArgumentNullException.ThrowIfNull(wb);
-            ArgumentException.ThrowIfNullOrWhiteSpace(fileDich);
-            string dich = Path.GetFullPath(fileDich);
-            if (!string.Equals(Path.GetExtension(dich), ".xlsx",
-                StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("Tệp đích phải có phần mở rộng .xlsx.", nameof(fileDich));
-            string thuMuc = Path.GetDirectoryName(dich)
-                ?? throw new IOException("Không xác định được thư mục lưu Excel.");
-            lock (_khoaLuuExcel)
-            {
-                Directory.CreateDirectory(thuMuc);
-                string tam = Path.Combine(thuMuc,
-                    $".{Path.GetFileNameWithoutExtension(dich)}.{Guid.NewGuid():N}.tmp.xlsx");
-                try
-                {
-                    wb.SaveAs(tam);
-                    using (var fs = new FileStream(
-                        tam, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
-                    {
-                        if (fs.Length == 0)
-                            throw new InvalidDataException("Tệp Excel tạm rỗng.");
-                        fs.Flush(true);
-                    }
-                    using (var zip = System.IO.Compression.ZipFile.OpenRead(tam))
-                    {
-                        if (zip.GetEntry("[Content_Types].xml") is null ||
-                            zip.GetEntry("xl/workbook.xml") is null)
-                        {
-                            throw new InvalidDataException(
-                                "Tệp Excel tạm không có cấu trúc XLSX hợp lệ.");
-                        }
-                    }
-                    if (File.Exists(dich))
-                    {
-                        File.Replace(tam, dich, null);
-                    }
-                    else
-                    {
-                        File.Move(tam, dich);
-                    }
-                }
-                finally
-                {
-                    try
-                    {
-                        if (File.Exists(tam))
-                            File.Delete(tam);
-                    }
-                    catch (IOException) { }
-                    catch (UnauthorizedAccessException) { }
-                }
-            }
-        }
+        private static void LuuAnToan(XLWorkbook wb, string fileDich) => Module_ExcelAnToan.LuuAnToan(wb, fileDich);
         private static string VietHoaChuDau(string s, string macDinh)
         {
             if (string.IsNullOrWhiteSpace(s)) return macDinh;
@@ -229,7 +136,7 @@ namespace PhanMemThiDua2026
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
         private static extern IntPtr ILCreateFromPathW(string pszPath);
         [DllImport("shell32.dll", ExactSpelling = true)]
-        private static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, uint cidl, [In, MarshalAs(UnmanagedType.LPArray)] IntPtr[] apidl, uint dwFlags);
+        private static extern int SHOpenFolderAndSelectItems(IntPtr pidlFolder, uint cidl, [In, MarshalAs(UnmanagedType.LPArray)] IntPtr[]? apidl, uint dwFlags);
         /// <summary>
         /// Gọi thư mục chứa tệp lên màn hình và bôi đen tệp. Không mở thêm cửa sổ nếu thư mục đã mở.
         /// Phải gọi trên luồng giao diện (STA).
@@ -274,7 +181,7 @@ namespace PhanMemThiDua2026
             public string ThuMuc = "";
             public int SoLuong;
             public string TenPhanLoai = "";
-            public string ThongBaoKhongDuLieu;   // khác null => không có dữ liệu để xuất
+            public string ThongBaoKhongDuLieu = null!;   // khác null => không có dữ liệu để xuất
         }
         private static KetQuaXuat TaoKetQuaKhongDuLieu(string thongBao) => new() { ThongBaoKhongDuLieu = thongBao };
         /// <summary>Ảnh chụp bối cảnh (đọc từ các module/UI) lấy trên luồng gọi, để phần xử lý nặng chạy nền an toàn.</summary>
@@ -283,7 +190,7 @@ namespace PhanMemThiDua2026
         {
             string db = Module_DanduongGPS.DuongDanCSDL2;
             DamBaoBangThangHeThong(db);
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem()?.Contains("tân binh", StringComparison.OrdinalIgnoreCase) == true;
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem()?.LaCheDoTanBinh() == true;
             string[] donVi = canDonViHopLe
                 ? Module_DonVi.LayDanhSachDonViUuTienArray().Where(x => !string.IsNullOrWhiteSpace(x)).ToArray()
                 : Array.Empty<string>();
@@ -347,7 +254,7 @@ namespace PhanMemThiDua2026
                 {
                     using var cmdDV = conn.CreateCommand();
                     cmdDV.CommandText = "SELECT TenDonVi FROM DanhSach_DonViBanHanhToTrinh WHERE ID = 1";
-                    object kq = cmdDV.ExecuteScalar();
+                    object? kq = cmdDV.ExecuteScalar();
                     if (kq != null && kq != DBNull.Value)
                     {
                         string v = gm.Lay(kq.ToString());
@@ -386,7 +293,7 @@ namespace PhanMemThiDua2026
         {
             var dt = new DataTable();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT * FROM DanhSach";
+            cmd.CommandText = $"SELECT * FROM {Module_TaiKhoan.BangDanhSach}";
             using var rd = cmd.ExecuteReader();
             dt.Load(rd);
             return dt;
@@ -444,7 +351,7 @@ namespace PhanMemThiDua2026
             {
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT KyHieu_TieuDoan FROM KyHieu_DonVi WHERE ID = 1";
-                object res = cmd.ExecuteScalar();
+                object? res = cmd.ExecuteScalar();
                 if (res != null && res != DBNull.Value)
                 {
                     string v = gm.Lay(res.ToString());
@@ -478,10 +385,10 @@ namespace PhanMemThiDua2026
             {
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT Thang FROM ThangHeThong WHERE ID = 1";
-                object res = cmd.ExecuteScalar();
+                object? res = cmd.ExecuteScalar();
                 if (res != null && res != DBNull.Value)
                 {
-                    string t = Convert.ToString(res, CultureInfo.InvariantCulture)?.Trim();
+                    string? t = Convert.ToString(res, CultureInfo.InvariantCulture)?.Trim();
                     if (!string.IsNullOrEmpty(t)) thang = t;
                 }
             }
@@ -721,23 +628,31 @@ namespace PhanMemThiDua2026
         }
         /// <summary>Đổ bảng CBCS vào sheet (từ dòng 10) – dữ liệu ghi từng ô, định dạng theo KHỐI. Trả về dòng "Tổng cộng".</summary>
         private static void GhiSheetCBCS(IXLWorksheet ws, DataTable dt, List<DataRow> data, GiaiMaCache gm,
-            bool laTanBinh, int coChuSTT, string phanLoaiCotJ, out int dongTong)
+            bool laTanBinh, int coChuSTT, string? phanLoaiCotJ, out int dongTong)
         {
             const int rowStart = 10;
             var cols = LayCotXuat(dt);
             var dataXuat = SapXepTheoSTT(dt, data);
-            int row = rowStart;
+            // Dựng dòng trên RAM rồi nạp bằng InsertData (2 khối: A..[cột cuối] và cột J), thay vì gán từng ô.
+            // Cột J nạp SAU để giữ đúng thứ tự ghi đè như bản cũ khi số cột xuất chạm tới cột J.
+            var khoiChinh = new List<object?[]>();
+            var khoiJ = new List<object?[]>();
+            int stt = 1;
             foreach (DataRow r in dataXuat)
             {
-                ws.Cell(row, 1).Value = row - rowStart + 1;
+                var d = new object?[cols.Count + 1];
+                d[0] = stt++;
                 for (int c = 0; c < cols.Count; c++)
                 {
                     int excelCol = c + 2;
-                    ws.Cell(row, excelCol).Value = (laTanBinh && excelCol == 3) ? "" : gm.Lay(LayChuoi(r, cols[c]));
+                    d[c + 1] = (laTanBinh && excelCol == 3) ? "" : gm.Lay(LayChuoi(r, cols[c]));
                 }
-                ws.Cell(row, 10).Value = phanLoaiCotJ ?? gm.Lay(LayChuoi(r, "PhanLoai"));
-                row++;
+                khoiChinh.Add(d);
+                khoiJ.Add(new object?[] { phanLoaiCotJ ?? gm.Lay(LayChuoi(r, "PhanLoai")) });
             }
+            Module_ExcelAnToan.NapDong(ws, rowStart, 1, khoiChinh);
+            Module_ExcelAnToan.NapDong(ws, rowStart, 10, khoiJ);
+            int row = rowStart + khoiChinh.Count;
             if (row > rowStart)
             {
                 int cuoi = row - 1;
@@ -917,18 +832,8 @@ namespace PhanMemThiDua2026
             Module_HeThong.Loai_4 => "LOAI_4",
             _ => "KHONG_PL"
         };
-        public static void AnhXaTenCheDoCBCSVaNam(XLWorkbook wb, string singlePhanLoai = null)
-        {
-            try { AnhXaCheDoNamCore(wb, singlePhanLoai, Module_HeThong.IsCheDoXetThiDuaNam(), Module_HeThong.PL_KHONG_PL); }
-            catch (Exception ex) { Debug.WriteLine($"Lỗi ánh xạ Chế độ Năm: {ex.Message}"); }
-        }
-        public static void AnhXaTenCheDoCBCSVaNam(XLWorkbook wb)
-        {
-            try { AnhXaCheDoNamCore(wb, null, Module_HeThong.IsCheDoXetThiDuaNam(), "Không xét"); }
-            catch (Exception ex) { Debug.WriteLine($"Lỗi ánh xạ Chế độ Năm: {ex.Message}"); }
-        }
         // Lõi duy nhất thay cho 2 bản sao trước đây (bản cũ còn gõ nhầm Loai_3 cho LOAI_4 ở từ khoá A6).
-        private static void AnhXaCheDoNamCore(XLWorkbook wb, string singlePhanLoai, bool cheDoNam, string thayKhongPlCotJ)
+        private static void AnhXaCheDoNamCore(XLWorkbook wb, string? singlePhanLoai, bool cheDoNam, string thayKhongPlCotJ)
         {
             if (wb == null || !cheDoNam) return;
             var cauHinh = new (string Sheet, string[] KhoaJ, string ThayJ, string[] KhoaA6, string ThayA6)[]
@@ -939,7 +844,7 @@ namespace PhanMemThiDua2026
                 ("LOAI_4", new[] { Module_HeThong.Loai_4, "LOẠI 4" }, Module_HeThong.PL_KHTNV, new[] { "LOẠI 4", Module_HeThong.Loai_4 }, Module_HeThong.PL_KHTNV),
                 ("KHONG_PL", new[] { "Không PL", "KHÔNG PL", "Chưa PL", Module_HeThong.PL_KHONG_PL }, thayKhongPlCotJ, new[] { "Không PL", "KHÔNG PL" }, "KHÔNG PHÂN LOẠI")
             };
-            string sheetDich = string.IsNullOrEmpty(singlePhanLoai) ? null : GetTenSheet(singlePhanLoai);
+            string? sheetDich = string.IsNullOrEmpty(singlePhanLoai) ? null : GetTenSheet(singlePhanLoai);
             foreach (var cfg in cauHinh)
             {
                 if (sheetDich != null && !cfg.Sheet.Equals(sheetDich, StringComparison.OrdinalIgnoreCase)) continue;
@@ -992,30 +897,6 @@ namespace PhanMemThiDua2026
         }
         #endregion
         #region 7. Tính phân bổ BCH
-        public static void TinhVaGhiChiHuyTinhToan(XLWorkbook wb)
-        {
-            if (wb == null) return;
-            var gm = new GiaiMaCache();
-            int tongBCH = 0;
-            ThongTinXuat tt;
-            ThamSoBCH ts;
-            using (var conn = MoKetNoi(Module_DanduongGPS.DuongDanCSDL2))
-            {
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = "SELECT DonVi FROM DanhSach";
-                    using var rd = cmd.ExecuteReader();
-                    while (rd.Read())
-                    {
-                        string dv = gm.Lay(rd.IsDBNull(0) ? "" : rd.GetValue(0).ToString());
-                        if (dv.Equals("BCH", StringComparison.OrdinalIgnoreCase)) tongBCH++;
-                    }
-                }
-                tt = DocThongTinXuat(conn, gm, false, false, false);
-                ts = DocThamSoBCH(conn, gm, tt);
-            }
-            TinhVaGhiChiHuyCore(wb, tongBCH, ts, tt, Module_HeThong.IsCheDoXetThiDuaNam());
-        }
         private static void TinhVaGhiChiHuyCore(XLWorkbook wb, int tongBCH, ThamSoBCH ts, ThongTinXuat tt, bool cheDoNam)
         {
             soLuongBCHD = tongBCH;
@@ -1092,9 +973,6 @@ namespace PhanMemThiDua2026
             try { HienKetQuaXuatPhanLoai(XuatPhanLoaiCore(ChupBoiCanh(), phanLoai)); }
             catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
-        /// <summary>Bản chạy nền: giao diện không bị đơ khi xuất danh sách lớn. Gọi bằng await từ sự kiện Click.</summary>
-        public static Task XuatPhanLoaiAsync(string phanLoai, int soThuTuFile = 0) =>
-            ChayNenAsync(ctx => XuatPhanLoaiCore(ctx, phanLoai), HienKetQuaXuatPhanLoai, ex => MessageBox.Show(ex.Message));
         private static void HienKetQuaXuatPhanLoai(KetQuaXuat kq)
         {
             if (kq.ThongBaoKhongDuLieu != null) { Module_ThongBao.Loi(kq.ThongBaoKhongDuLieu); return; }
@@ -1164,37 +1042,6 @@ namespace PhanMemThiDua2026
         }
         #endregion
         #region 9. XUẤT TẤT CẢ PHÂN LOẠI
-        public static void VietDuLieuCBCSVaoSheet(DataTable dt, List<DataRow> data, IXLWorksheet ws)
-        {
-            var gm = new GiaiMaCache();
-            GhiSheetCBCS(ws, dt, data, gm, false, 14, null, out int dongTong);
-            string pl = data.Count > 0 ? gm.Lay(LayChuoi(data[0], "PhanLoai")) : "";
-            VietTieuDeVaKyTen(ws, pl, dongTong, Module_DanduongGPS.DuongDanCSDL2);
-        }
-        public static void VietDuLieuTanBinhVaoSheet(DataTable dt, List<DataRow> data, IXLWorksheet ws)
-        {
-            var gm = new GiaiMaCache();
-            if (!GhiSheetTanBinh(ws, data, gm, out int dongTong, out string pl)) return;
-            VietTieuDeVaKyTen(ws, pl, dongTong, Module_DanduongGPS.DuongDanCSDL2);
-        }
-        private static void VietTieuDeVaKyTen(IXLWorksheet ws, string phanLoai, int lastRow, string fileDB)
-        {
-            var gm = new GiaiMaCache();
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem()?.Contains("tân binh", StringComparison.OrdinalIgnoreCase) == true;
-            using var conn = MoKetNoi(fileDB);
-            var tt = DocThongTinXuat(conn, gm, laTanBinh, canNguoiKy: true, canDonViBanHanh: false);
-            GhiTieuDeVaKyTen(ws, tt, phanLoai, lastRow, inHoaChucVu: false, gachMotPhanHai: false, gm);
-        }
-        public static void XuatTatCaPhanLoai()
-        {
-            try
-            {
-                var kq = TaoFileTatCaCore(ChupBoiCanh(), null);
-                GhiNhanTep(kq);
-                // Thông báo thành công do nơi gọi đảm nhiệm (tránh thông báo 2 lần)
-            }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
-        }
         /// <summary>Xuất thẳng ra đường dẫn chỉ định (không còn tạo tệp thừa rồi copy/xoá như bản cũ).</summary>
         public static void XuatTatCaPhanLoai(string fileXuat)
         {
@@ -1205,10 +1052,6 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex) { Module_ThongBao.Loi("Lỗi xuất tất cả phân loại:\n" + ex.Message); }
         }
-        public static Task XuatTatCaPhanLoaiAsync(string fileXuat = null) =>
-            ChayNenAsync(ctx => TaoFileTatCaCore(ctx, fileXuat),
-                kq => { if (string.IsNullOrWhiteSpace(fileXuat)) GhiNhanTep(kq); else HienKetQuaTatCa(kq); },
-                ex => Module_ThongBao.Loi("Lỗi xuất tất cả phân loại:\n" + ex.Message));
         private static void HienKetQuaTatCa(KetQuaXuat kq)
         {
             GhiNhanTep(kq);
@@ -1237,7 +1080,7 @@ namespace PhanMemThiDua2026
             else
             {
                 fileDich = Path.GetFullPath(fileXuat);
-                Directory.CreateDirectory(Path.GetDirectoryName(fileDich));
+                Directory.CreateDirectory(Path.GetDirectoryName(fileDich)!);
                 thuMucDich = "";
             }
             if (string.IsNullOrWhiteSpace(ctx.FileMau) || !File.Exists(ctx.FileMau)) throw new Exception("Không tìm thấy file mẫu Excel!");
@@ -1297,14 +1140,12 @@ namespace PhanMemThiDua2026
             try { HienKetQuaTrinhKyTanBinh(TaoTrinhKyTanBinhCore(ChupBoiCanh(), duongDanLuu, xoaXinYKien)); }
             catch (Exception ex) { BaoLoiTrinhKyTanBinh(ex); }
         }
-        public static Task XuatTrinhKyTanBinhAsync(string duongDanLuu, bool xoaXinYKien = false) =>
-            ChayNenAsync(ctx => TaoTrinhKyTanBinhCore(ctx, duongDanLuu, xoaXinYKien), HienKetQuaTrinhKyTanBinh, BaoLoiTrinhKyTanBinh);
         private static void HienKetQuaTrinhKyTanBinh(KetQuaXuat kq)
         {
             if (kq.ThongBaoKhongDuLieu != null) { Module_ThongBao.DangXuLy(kq.ThongBaoKhongDuLieu); return; }
             GhiNhanTep(kq);
             MoThuMucVaChonTep(kq.FilePath);
-            Module_ThongBao.ThanhCong("Xuất Trình Ký Tân binh thành công!");
+            Module_ThongBao.ThanhCong($"Xuất Trình Ký {Module_TaiKhoan.TenTB_Hoa} thành công!");
         }
         private static void BaoLoiTrinhKyTanBinh(Exception ex)
         {
@@ -1346,7 +1187,7 @@ namespace PhanMemThiDua2026
             a1.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             GhiNgayDiaDiemC4(ws, tt);
             int row = 11;
-            GhiDongNhom(ws, row, 7, "DANH SÁCH PHÂN LOẠI TÂN BINH", false);
+            GhiDongNhom(ws, row, 7, $"DANH SÁCH PHÂN LOẠI {Module_TaiKhoan.TenTB_InHoa}", false);
             row++;
             // Giải mã PhanLoai đúng 1 lần/dòng rồi gom nhóm
             var theoLoai = new Dictionary<string, List<int>>(StringComparer.Ordinal);
@@ -1364,20 +1205,17 @@ namespace PhanMemThiDua2026
                 row++;
                 int dauKhoi = row, stt = 1;
                 var dongGhiChuDai = new List<int>();
+                var khoi = new List<object?[]>(chiMuc.Count);
                 foreach (int i in chiMuc)
                 {
                     DataRow r = dt.Rows[i];
-                    ws.Cell(row, 1).Value = stt++;
-                    ws.Cell(row, 2).Value = gm.Lay(LayChuoi(r, "HoVaTen"));
-                    ws.Cell(row, 3).Value = gm.Lay(LayChuoi(r, "NamSinh"));
-                    ws.Cell(row, 4).Value = gm.Lay(LayChuoi(r, "ChucVu"));
-                    ws.Cell(row, 5).Value = gm.Lay(LayChuoi(r, "DonVi"));
-                    ws.Cell(row, 6).Value = gm.Lay(LayChuoi(r, "PhanLoai"));
                     string ghiChu = gm.Lay(LayChuoi(r, "GhiChu"));
-                    ws.Cell(row, 7).Value = ghiChu;
+                    khoi.Add(new object?[] { stt++, gm.Lay(LayChuoi(r, "HoVaTen")), gm.Lay(LayChuoi(r, "NamSinh")),
+                        gm.Lay(LayChuoi(r, "ChucVu")), gm.Lay(LayChuoi(r, "DonVi")), gm.Lay(LayChuoi(r, "PhanLoai")), ghiChu });
                     if (ghiChu.Length > 15) dongGhiChuDai.Add(row);
                     row++;
                 }
+                Module_ExcelAnToan.NapDong(ws, dauKhoi, 1, khoi);   // nạp cả khối 1 lần
                 int cuoiKhoi = row - 1;
                 DinhDangKhoiDuLieu(ws, dauKhoi, cuoiKhoi, 7);
                 if (cuoiKhoi >= 13)   // căn trái cột Họ và tên từ B13 trở xuống
@@ -1410,8 +1248,6 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex) { BaoLoiTrinhKyCBCS(ex); }
         }
-        public static Task XuatTrinhKyCBCSAsync(string duongDanLuu) =>
-            ChayNenAsync(ctx => TaoTrinhKyCBCSCore(ctx, duongDanLuu), HienKetQuaTrinhKyCBCS, BaoLoiTrinhKyCBCS, canDonViHopLe: true);
         private static void HienKetQuaTrinhKyCBCS(KetQuaXuat kq)
         {
             if (kq.ThongBaoKhongDuLieu != null) { Module_ThongBao.DangXuLy(kq.ThongBaoKhongDuLieu); return; }
@@ -1513,18 +1349,17 @@ namespace PhanMemThiDua2026
             // ===== Danh sách BCH =====
             int row = 12, stt = 1;
             int dauBCH = row;
+            var khoiBCH = new List<object?[]>(chiMucBCH.Count);
             foreach (int i in chiMucBCH)
             {
                 DataRow r = dt.Rows[i];
-                ws.Cell(row, 1).Value = stt++;
-                ws.Cell(row, 2).Value = gm.Lay(LayChuoi(r, "HoVaTen"));
-                ws.Cell(row, 3).Value = gm.Lay(LayChuoi(r, "NamSinh"));
-                ws.Cell(row, 4).Value = gm.Lay(LayChuoi(r, "ChucVu"));
-                ws.Cell(row, 5).Value = gm.Lay(LayChuoi(r, "DonVi"));
-                ws.Cell(row, 6).Value = "";          // Đề xuất
-                ws.Cell(row, 7).Value = "Họp xét";   // Xin ý kiến
+                khoiBCH.Add(new object?[] { stt++, gm.Lay(LayChuoi(r, "HoVaTen")), gm.Lay(LayChuoi(r, "NamSinh")),
+                    gm.Lay(LayChuoi(r, "ChucVu")), gm.Lay(LayChuoi(r, "DonVi")),
+                    "",          // Đề xuất
+                    "Họp xét" }); // Xin ý kiến
                 row++;
             }
+            Module_ExcelAnToan.NapDong(ws, dauBCH, 1, khoiBCH);
             DinhDangKhoiDuLieu(ws, dauBCH, row - 1, 7);
             GhiDongNhom(ws, row, 7, "DANH SÁCH PHÂN LOẠI CBCS", true);
             row++;
@@ -1548,16 +1383,11 @@ namespace PhanMemThiDua2026
                 GhiDongNhom(ws, row, 7, $"{tenDanhHieu}: {soLuongKhongBCH} {Module_HeThong.Tu_dong_chi}", true);
                 row++;
                 int dauKhoi = row, sttChung = 1;
+                var khoi = new List<object?[]>();
                 // BCH đề nghị (dòng trống điền sau)
                 for (int i = 0; i < soLuongBCHTheoLoai; i++)
                 {
-                    ws.Cell(row, 1).Value = sttChung++;
-                    ws.Cell(row, 2).Value = "";
-                    ws.Cell(row, 3).Value = "";
-                    ws.Cell(row, 4).Value = "";
-                    ws.Cell(row, 5).Value = "BCH";
-                    ws.Cell(row, 6).Value = tenDanhHieu;
-                    ws.Cell(row, 7).Value = "Họp xét";
+                    khoi.Add(new object?[] { sttChung++, "", "", "", "BCH", tenDanhHieu, "Họp xét" });
                     row++;
                 }
                 // CBCS (không BCH), thuộc đơn vị hợp lệ, theo STT tăng dần
@@ -1569,17 +1399,13 @@ namespace PhanMemThiDua2026
                 foreach (int i in dsCBCS)
                 {
                     DataRow r = dt.Rows[i];
-                    ws.Cell(row, 1).Value = sttChung++;
-                    ws.Cell(row, 2).Value = gm.Lay(LayChuoi(r, "HoVaTen"));
-                    ws.Cell(row, 3).Value = gm.Lay(LayChuoi(r, "NamSinh"));
-                    ws.Cell(row, 4).Value = gm.Lay(LayChuoi(r, "ChucVu"));
-                    ws.Cell(row, 5).Value = gm.Lay(LayChuoi(r, "DonVi"));
-                    ws.Cell(row, 6).Value = tenDanhHieu;
                     string ghiChu = gm.Lay(LayChuoi(r, "GhiChu"));
-                    ws.Cell(row, 7).Value = ghiChu;
+                    khoi.Add(new object?[] { sttChung++, gm.Lay(LayChuoi(r, "HoVaTen")), gm.Lay(LayChuoi(r, "NamSinh")),
+                        gm.Lay(LayChuoi(r, "ChucVu")), gm.Lay(LayChuoi(r, "DonVi")), tenDanhHieu, ghiChu });
                     if (ghiChu.Length > 15) dongGhiChuDai.Add(row);
                     row++;
                 }
+                Module_ExcelAnToan.NapDong(ws, dauKhoi, 1, khoi);   // BCH đề nghị + CBCS: nạp cả khối 1 lần
                 DinhDangKhoiDuLieu(ws, dauKhoi, row - 1, 7);
                 ThuNhoGhiChuDai(ws, dongGhiChuDai, 7);
             }
@@ -1623,7 +1449,7 @@ namespace PhanMemThiDua2026
                 using var conn = MoKetNoi(csdl2Path);
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT ChonDuongDanXuatTep FROM ThongTin WHERE ID=1";
-                object result = cmd.ExecuteScalar();
+                object? result = cmd.ExecuteScalar();
                 string giaiMa = result == null || result == DBNull.Value ? "" : new GiaiMaCache().Lay(result.ToString());
                 LinkLuuDuongDanTepXuat = !string.IsNullOrWhiteSpace(giaiMa) && Directory.Exists(giaiMa) ? giaiMa : string.Empty;
                 _canReloadLink = false;
@@ -1643,30 +1469,6 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(loai)) return "";
             loai = loai.Trim().ToLowerInvariant();            // "loại 1"
             return char.ToUpperInvariant(loai[0]) + loai.Substring(1);   // "Loại 1"
-        }
-        public static string LayTieuDeBaoCao()
-        {
-            try
-            {
-                using var conn = MoKetNoi(Module_DanduongGPS.DuongDanCSDL2);
-                return TaoTieuDeBaoCao(DocThongTinXuat(conn, new GiaiMaCache(), false, false, false));
-            }
-            catch { return ""; }
-        }
-        public static string LayTenFileBaoCao()
-        {
-            try
-            {
-                using var conn = MoKetNoi(Module_DanduongGPS.DuongDanCSDL2);
-                var tt = DocThongTinXuat(conn, new GiaiMaCache(), false, false, false);
-                if (tt.LoaiBaoCao.Equals("Tuần", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(tt.ChonTuan))
-                    return LamSachTenTep($"DANH SÁCH PHÂN LOẠI THI ĐUA {tt.ChonTuan.ToUpperInvariant()} THÁNG {tt.ThangHT}-{tt.NamGoc}.xlsx");
-                return LamSachTenTep($"DANH SÁCH PHÂN LOẠI THI ĐUA THÁNG {tt.ThangHT}-{tt.NamGoc}.xlsx");
-            }
-            catch
-            {
-                return $"PHAN_LOAI_THI_DUA_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-            }
         }
         // Chỉ giữ số 0 cho tháng 1 và 2. Từ tháng 3-12 trả về số tự nhiên.
         public static string LayThangHeThong()
@@ -1690,7 +1492,7 @@ namespace PhanMemThiDua2026
                 using var conn = MoKetNoi(Module_DanduongGPS.DuongDanCSDL2);
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT Nam FROM ThongTin WHERE ID = 1";
-                object res = cmd.ExecuteScalar();
+                object? res = cmd.ExecuteScalar();
                 if (res != null && res != DBNull.Value)
                 {
                     string nam = new GiaiMaCache().Lay(res.ToString());
@@ -1703,37 +1505,21 @@ namespace PhanMemThiDua2026
         }
         #endregion
         #region 13. Chạy nền an toàn (cho các hàm ...Async)
-        private static async Task ChayNenAsync<T>(Func<BoiCanh, T> viecNen, Action<T> hoanTat, Action<Exception> baoLoi, bool canDonViHopLe = false)
-        {
-            if (Interlocked.CompareExchange(ref _dangXuat, 1, 0) != 0)
-            {
-                Module_ThongBao.DangXuLy("Đang xuất tệp, vui lòng chờ hoàn tất...");
-                return;
-            }
-            try
-            {
-                var ctx = ChupBoiCanh(canDonViHopLe);                       // đọc trạng thái UI trên luồng giao diện
-                T kq = await Task.Run(() => viecNen(ctx));                  // xử lý nặng ở luồng nền
-                hoanTat(kq);                                                // quay lại luồng giao diện: thông báo, mở thư mục...
-            }
-            catch (Exception ex) { baoLoi(ex); }
-            finally { Volatile.Write(ref _dangXuat, 0); }
-        }
         #endregion
     }
     //Data Transfer Object (DTO) dùng cho InsertData
     public class CbcDTO
     {
         public int STT { get; set; }
-        public string HoVaTen { get; set; }
-        public string SoHieuCAND { get; set; }
-        public string NamSinh { get; set; }
-        public string QueQuan { get; set; }
-        public string NgayVaoCAND { get; set; }
-        public string CapBac { get; set; }
-        public string ChucVu { get; set; }
-        public string DonVi { get; set; }
-        public string PhanLoai { get; set; }
-        public string GhiChu { get; set; }
+        public string HoVaTen { get; set; } = null!;
+        public string SoHieuCAND { get; set; } = null!;
+        public string NamSinh { get; set; } = null!;
+        public string QueQuan { get; set; } = null!;
+        public string NgayVaoCAND { get; set; } = null!;
+        public string CapBac { get; set; } = null!;
+        public string ChucVu { get; set; } = null!;
+        public string DonVi { get; set; } = null!;
+        public string PhanLoai { get; set; } = null!;
+        public string GhiChu { get; set; } = null!;
     }
 }

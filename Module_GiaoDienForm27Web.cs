@@ -1,8 +1,8 @@
-﻿using Color = System.Drawing.Color;
-using Font = System.Drawing.Font;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Reflection;
+using Color = System.Drawing.Color;
+using Font = System.Drawing.Font;
 namespace PhanMemThiDua2026
 {
     // =====================================================================================
@@ -32,49 +32,25 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuDam = Color.FromArgb(30, 41, 59);
         private static readonly Color MauVienO = Color.FromArgb(203, 213, 225);
         private static readonly Color MauVienChon = Color.FromArgb(139, 92, 246);
-
         private static readonly Color MauTieuDeBang = Color.FromArgb(238, 232, 255);
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(75, 20, 130);
         private static readonly Color MauVienBang = Color.FromArgb(221, 214, 254);
         private static readonly Color MauKeDong = Color.FromArgb(235, 238, 243);
-
         private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Font FontNhanBang = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Font FontO = new Font("Segoe UI Semibold", 10F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-
         private const int BanKinhBang = 10;        // bán kính góc bo của khung bảng nhập
         private const int CaoDauBang = 44;         // chiều cao hàng tiêu đề của bảng nhập
         private const int CaoChanTrang = 56;       // hàng chứa thông báo + nút Lưu
         private const int CaoTrangThai = 34;       // thanh trạng thái
-
         // Tiêu đề thẻ lúc mới mở (trước khi DoiTenGroupBox điền tên trung đoàn); bản gốc hiện chữ thiết kế "Ten groupbox"
         private const string TieuDeMacDinh = "Tỷ lệ theo quy định";
-
         // (Nền, Hover, Nhấn, Viền, Chữ) — theme tím của Form4: nút chính (tím đậm một nấc)
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutTimDam =
             (Color.FromArgb(221, 214, 254), Color.FromArgb(196, 181, 253), Color.FromArgb(167, 139, 250), Color.FromArgb(167, 139, 250), Color.FromArgb(91, 33, 182));
-
         // ===================== ĐIỂM VÀO =====================
-        //public static void ApDung(Form f)
-        //{
-        //    f.SuspendLayout();
-        //    try
-        //    {
-        //        f.BackColor = MauNen;
-        //        An(() => DinhBoCuc(f), "BoCuc");
-        //        An(() => DinhBangNhap(f), "BangNhap");
-        //        An(() => DinhChanTrang(f), "ChanTrang");
-        //        An(() => DinhThanhTrangThai(f), "TrangThai");
-        //        An(() => f.ClientSize = new Size(830, 352), "KichThuoc");
-        //    }
-        //    finally
-        //    {
-        //        f.ResumeLayout(true);
-        //    }
-        //}
         // Trong Module_GiaoDienForm27Web.cs
-
         public static void ApDung(Form f)
         {
             f.SuspendLayout();
@@ -93,22 +69,18 @@ namespace PhanMemThiDua2026
                 f.ResumeLayout(true);
             }
         }
-
         private static void DinhBangNhap(Form f)
         {
             var luoi = Tim<TableLayoutPanel>(f, "tableLayoutPanel12");
             if (luoi == null) return;
-
             BatDoubleBuffer(luoi);
             luoi.BackColor = Color.White;
             luoi.CellBorderStyle = TableLayoutPanelCellBorderStyle.None;
-
             // Hàng 0 = tiêu đề cột (cao cố định); các hàng còn lại chia đều
             luoi.RowStyles.Clear();
             luoi.RowStyles.Add(new RowStyle(SizeType.Absolute, CaoDauBang));
             for (int i = 1; i < luoi.RowCount; i++)
                 luoi.RowStyles.Add(new RowStyle(SizeType.Percent, 100F / (luoi.RowCount - 1)));
-
             // ĐIỀU CHỈNH TỶ LỆ CỘT: Cột 0 (nhãn) 22%, các cột Loại 1-4 mỗi cột 13.5%, cột cuối (Không phân loại) 22%
             luoi.ColumnStyles.Clear();
             luoi.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22.0F)); // Cột nhãn tập thể/cá nhân
@@ -117,7 +89,6 @@ namespace PhanMemThiDua2026
             luoi.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.5F)); // Loại 3
             luoi.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 13.5F)); // Loại 4
             luoi.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.0F)); // Không phân loại (Kéo rộng ra)
-
             foreach (Control c in luoi.Controls)
             {
                 int hang = luoi.GetRow(c);
@@ -132,7 +103,6 @@ namespace PhanMemThiDua2026
                         lb.Anchor = cot == 0 ? AnchorStyles.Left : AnchorStyles.None;
                         lb.Margin = cot == 0 ? new Padding(16, 0, 3, 0) : new Padding(3);
                         break;
-
                     case Krypton.Toolkit.KryptonTextBox tb:
                         tb.Anchor = AnchorStyles.None;
                         tb.Width = 84;
@@ -144,7 +114,6 @@ namespace PhanMemThiDua2026
                         break;
                 }
             }
-
             luoi.CellPaint += VeBangNhap;
             luoi.Invalidate();
         }
@@ -153,10 +122,8 @@ namespace PhanMemThiDua2026
             try { viec(); }
             catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm27Web.{ten}] {ex.Message}"); }
         }
-
         private static T? Tim<T>(Control goc, string ten) where T : Control
             => goc.Controls.Find(ten, true).OfType<T>().FirstOrDefault();
-
         // ===================== BỐ CỤC TỔNG =====================
         // Bản gốc: Form > [GroupBox (đỏ, in nghiêng) > tableLayoutPanel1 (3 hàng chia theo %, hàng 3 trống) | statusStrip1 dock đáy].
         // Mới: bảng nhập nằm trong 1 thẻ trắng bo góc (tiêu đề = chữ của GroupBox); hàng nút nằm dưới thẻ;
@@ -169,7 +136,6 @@ namespace PhanMemThiDua2026
             var luoi = Tim<TableLayoutPanel>(f, "tableLayoutPanel12");
             var ss = Tim<StatusStrip>(f, "statusStrip1");
             if (gb == null || t1 == null || luoi == null || ss == null) return;
-
             var the = new TheBoGocF4
             {
                 Name = "the_tableLayoutPanel12",
@@ -178,7 +144,6 @@ namespace PhanMemThiDua2026
                 TieuDe = TieuDeMacDinh,
                 Padding = new Padding(12, 36, 12, 10)      // 36 = vùng tiêu đề thẻ
             };
-
             t1.SuspendLayout();
             the.SuspendLayout();
             try
@@ -187,11 +152,9 @@ namespace PhanMemThiDua2026
                 luoi.Margin = new Padding(0);
                 the.Controls.Add(luoi);                    // luoi rời khỏi ô (0,0) của t1
                 t1.Controls.Add(the, 0, 0);                // thẻ vào đúng ô đó
-
                 ss.Dock = DockStyle.Fill;
                 ss.Margin = new Padding(0);
                 t1.Controls.Add(ss, 0, 2);                 // thanh trạng thái rời form, vào hàng 3 của t1
-
                 t1.BackColor = MauNen;
                 t1.Margin = new Padding(0);
                 t1.Padding = new Padding(12, 10, 12, 4);
@@ -200,7 +163,6 @@ namespace PhanMemThiDua2026
                 t1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
                 t1.RowStyles.Add(new RowStyle(SizeType.Absolute, CaoChanTrang));
                 t1.RowStyles.Add(new RowStyle(SizeType.Absolute, CaoTrangThai));
-
                 // Gỡ GroupBox khỏi form nhưng KHÔNG hủy: DoiTenGroupBox() còn ghi Text / ForeColor / Font vào nó.
                 // Mỗi lần Text đổi thì chép lên tiêu đề thẻ.
                 gb.Controls.Remove(t1);
@@ -219,10 +181,7 @@ namespace PhanMemThiDua2026
                 t1.ResumeLayout(true);
             }
         }
-
         // ===================== BẢNG NHẬP TỶ LỆ =====================
-    
-
         // Vẽ dải tiêu đề tím nhạt (bo 2 góc trên), đường kẻ giữa các dòng và khung bo tròn liền mạch quanh bảng.
         // Nền bảng và nền thẻ cùng màu trắng nên 4 góc vuông của bảng không lộ ra ngoài khung bo.
         private static void VeBangNhap(object? sender, TableLayoutCellPaintEventArgs e)
@@ -232,7 +191,6 @@ namespace PhanMemThiDua2026
             Rectangle r = e.CellBounds;
             int cuoiCot = t.ColumnCount - 1;
             int cuoiHang = t.RowCount - 1;
-
             if (e.Row == 0)
             {
                 var cu = g.SmoothingMode;
@@ -247,7 +205,6 @@ namespace PhanMemThiDua2026
                 using var ke = new Pen(MauKeDong);
                 g.DrawLine(ke, r.Left, r.Bottom - 1, r.Right, r.Bottom - 1);
             }
-
             // Khung ngoài: vẽ lại sau MỖI ô để chắc chắn nằm trên cùng, không phụ thuộc thứ tự vẽ ô của TableLayoutPanel
             var sm = g.SmoothingMode;
             g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -256,7 +213,6 @@ namespace PhanMemThiDua2026
                 g.DrawPath(but, khung);
             g.SmoothingMode = sm;
         }
-
         private static GraphicsPath BoGoc(Rectangle r, int bk)
         {
             var p = new GraphicsPath();
@@ -268,7 +224,6 @@ namespace PhanMemThiDua2026
             p.CloseFigure();
             return p;
         }
-
         // Dải tiêu đề: bo góc trên-trái nếu là ô đầu, trên-phải nếu là ô cuối; các ô giữa vuông
         private static GraphicsPath HinhDauBang(Rectangle r, bool boTrai, bool boPhai, int bk)
         {
@@ -282,7 +237,6 @@ namespace PhanMemThiDua2026
             p.CloseFigure();
             return p;
         }
-
         private static void BatDoubleBuffer(Control c)
         {
             try
@@ -291,7 +245,6 @@ namespace PhanMemThiDua2026
             }
             catch { /* không quan trọng: chỉ để bớt nháy khi vẽ lại */ }
         }
-
         // ===================== HÀNG NÚT: THÔNG BÁO + LƯU =====================
         private static void DinhChanTrang(Form f)
         {
@@ -304,7 +257,6 @@ namespace PhanMemThiDua2026
                 t2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
                 t2.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200F));
             }
-
             var nut = Tim<Krypton.Toolkit.KryptonButton>(f, "kryptonButton_LuuTyLeBCHE09");
             if (nut != null)
             {
@@ -313,7 +265,6 @@ namespace PhanMemThiDua2026
                 nut.Size = new Size(184, 34);
                 nut.Margin = new Padding(0, 0, 4, 0);
             }
-
             // Dòng thông báo (chữ + màu do logic của form điền)
             var tb = Tim<Label>(f, "label1_ThongBao");
             if (tb != null)
@@ -326,7 +277,6 @@ namespace PhanMemThiDua2026
                 tb.MaximumSize = new Size(600, 0);
             }
         }
-
         // ===================== THANH TRẠNG THÁI =====================
         private static void DinhThanhTrangThai(Form f)
         {
@@ -344,7 +294,6 @@ namespace PhanMemThiDua2026
                 it.ForeColor = MauChuNhan;
             }
         }
-
         // ===================== Ô NHẬP: VIỀN KHI ĐANG GÕ =====================
         /// <summary>
         /// Viền ô nhập khi vào / rời ô. Gọi từ TextBox_Enter / TextBox_Leave của Form27 để màu viền đồng bộ theme tím
@@ -360,7 +309,6 @@ namespace PhanMemThiDua2026
             v.Color1 = mau;
             v.Color2 = mau;
         }
-
         // Ô nhập Krypton: nền trắng, viền xám bo góc 8, khi đang gõ viền chuyển tím
         private static void KieuOKrypton(Krypton.Toolkit.PaletteBorder vien, Krypton.Toolkit.PaletteBorder vienActive)
         {
@@ -370,7 +318,6 @@ namespace PhanMemThiDua2026
             vien.Width = 1;
             vienActive.Color1 = MauVienChon; vienActive.Color2 = MauVienChon;
         }
-
         private static void KieuNut(Krypton.Toolkit.KryptonButton b, (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) m)
         {
             b.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;

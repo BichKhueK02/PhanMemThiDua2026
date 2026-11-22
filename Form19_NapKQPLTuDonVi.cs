@@ -363,7 +363,7 @@ namespace PhanMemThiDua2026
         }
         private int CapNhatPhanLoai(string donViChon, DataTable dtExcel)
         {
-            using var cn = new SqliteConnection("Data Source=" + _csdl2Path);
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             using var tran = cn.BeginTransaction();
             try
@@ -371,7 +371,7 @@ namespace PhanMemThiDua2026
                 // Từ điển tra cứu không phân biệt chữ hoa/thường
                 var lookup = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 using (var cmdAll = new SqliteCommand(
-                    "SELECT ID, DonVi, SoHieu FROM DanhSach",
+                    $"SELECT ID, DonVi, SoHieu FROM {Module_TaiKhoan.BangDanhSach}",
                     cn,
                     tran))
                 using (var reader = cmdAll.ExecuteReader())
@@ -397,7 +397,7 @@ namespace PhanMemThiDua2026
                 }
                 int soDongCapNhat = 0;
                 using var cmdUpdate = new SqliteCommand(
-                    "UPDATE DanhSach SET PhanLoai=@PhanLoai WHERE ID=@ID",
+                    $"UPDATE {Module_TaiKhoan.BangDanhSach} SET PhanLoai=@PhanLoai WHERE ID=@ID",
                     cn,
                     tran);
                 var pPhanLoai = cmdUpdate.Parameters.Add("@PhanLoai", SqliteType.Text);

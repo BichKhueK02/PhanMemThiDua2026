@@ -149,7 +149,7 @@ namespace PhanMemThiDua2026
             using (var brushNen = new SolidBrush(mauNen))
                 e.Graphics.FillRectangle(brushNen, e.Bounds);
             // Chữ
-            string text = lb.GetItemText(lb.Items[e.Index]);
+            string? text = lb.GetItemText(lb.Items[e.Index]);
             var vung = new Rectangle(
                 e.Bounds.X + TextPaddingLeft, e.Bounds.Y,
                 e.Bounds.Width - TextPaddingLeft, e.Bounds.Height);
@@ -192,13 +192,13 @@ namespace PhanMemThiDua2026
                 try
                 {
                     string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty;
-                    laTanBinh = phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                    laTanBinh = phienBan.LaCheDoTanBinh();
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"[Form11] Không xác định được phiên bản: {ex.Message}");
                 }
-                using var conn = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={_csdl2Path};Mode=ReadOnly;");
+                using var conn = new Microsoft.Data.Sqlite.SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path, chiDoc: true));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 // 4. PHÂN NHÁNH XỬ LÝ THEO CHẾ ĐỘ XÉT
@@ -366,7 +366,7 @@ namespace PhanMemThiDua2026
         private void ThucThiTinhToan(double tongQS, double pLoai1, double pLoai2, double pLoai3)
         {
             // Chuyển % sang hệ số thập phân
-            pLoai1 /= 100.0; pLoai2 /= 100.0; pLoai3 /= 100.0;
+            pLoai1 /= 100.0; pLoai2 /= 100.0;
             // 1. Ép phần nguyên dưới để Loại 2 không vượt trần % quy định
             int qLoai2 = (int)Math.Floor(tongQS * pLoai2);
             // 2. ⚖️ CÂN BẰNG QUÂN SỐ: Loại 3 bắt buộc gánh toàn bộ phần dư để tổng L2 + L3 = Tổng QS

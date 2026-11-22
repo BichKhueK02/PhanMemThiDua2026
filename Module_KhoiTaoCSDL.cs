@@ -22,6 +22,9 @@ namespace PhanMemThiDua2026
         private const string TEN_TAI_KHOAN_HE_THONG = "System (Quyền cao nhất)";
         private const string HAU_TO_TAM = ".tmp";
         private const string HAU_TO_SYNCBAK = ".syncbak";   // chỉ còn để nhận diện rác của phiên bản cũ
+        // Tệp bản sao lưu do ServiceBackup tạo trong Database\Bansaoluu: Backup_*.bak (mới) và Backup_*.pmtd (đời cũ, vẫn đọc được)
+        private const string TIEN_TO_BAN_SAO_LUU = "Backup_";
+        private static readonly string[] DuoiBanSaoLuuHopLe = { ".bak", ".pmtd" };
         private const int SO_LUOT_DONG_BO_TOI_DA = 3;
         private const int MAX_LOI_GHI_NHAT_KY = 50;          // chặn nhật ký phình to khi lỗi hàng loạt
         // true : thư mục CoreDatabaseRepository chỉ do TuanTraVaPhucHoiCoreRepository quản lý (chính sách "không tự ý ghi đè khi lệch SHA-256"),
@@ -64,12 +67,14 @@ namespace PhanMemThiDua2026
         // Danh sách trắng của chính sách làm sạch (tạo 1 lần, không dựng lại mỗi lần gọi)
         private static readonly HashSet<string> AllowFilesBackup = new(StringComparer.OrdinalIgnoreCase)
             { "cs1.mdf", "cs2.mdf", "cs3.mdf", "cs4.mdf", "csex.mdf", TEN_NHAT_KY_LAM_SACH };
+        // Module_TepKhoa.TEN_THU_MUC ("KhoaBaoMat"): tệp khóa bảo mật — thiếu tên này thì chính sách làm sạch xóa mất khóa
         private static readonly HashSet<string> AllowDirsBackup = new(StringComparer.OrdinalIgnoreCase)
-            { THU_MUC_CONG_CU, THU_MUC_HUONG_DAN };
+            { THU_MUC_CONG_CU, THU_MUC_HUONG_DAN, Module_TepKhoa.TEN_THU_MUC };
         private static readonly HashSet<string> AllowFilesDatabase = new(StringComparer.OrdinalIgnoreCase)
             { "csdl1.db", "csdl2.db", "csdl3.db", "csdl4.db", "csdlex.xlsx", TEN_NHAT_KY_LAM_SACH };
         private static readonly HashSet<string> AllowDirsDatabase = new(StringComparer.OrdinalIgnoreCase)
-            { THU_MUC_BAN_SAO_LUU, THU_MUC_CONG_CU, THU_MUC_HUONG_DAN, THU_MUC_LUUTRUTHIDUA_LICHSU};
+            { THU_MUC_BAN_SAO_LUU, THU_MUC_CONG_CU, THU_MUC_HUONG_DAN, THU_MUC_LUUTRUTHIDUA_LICHSU, Module_TepKhoa.TEN_THU_MUC,
+              Module_NhatKyNhaPhatTrien.TEN_THU_MUC };   // nhật ký nhà phát triển + tệp tạm: thiếu tên này thì bị dọn mất
         private static readonly HashSet<string> AllowFilesWindow = new(StringComparer.OrdinalIgnoreCase)
             { "cs1", "cs2", "cs3", "cs4", "csex", TEN_NHAT_KY_LAM_SACH };
         private static readonly HashSet<string> AllowFilesBanSaoLuu = new(StringComparer.OrdinalIgnoreCase)
@@ -168,6 +173,18 @@ namespace PhanMemThiDua2026
                 return false;
             }
         }
+        /// <summary>
+        /// Tệp bản sao lưu hợp lệ: tên bắt đầu "Backup_" và đuôi CHÍNH XÁC là .bak hoặc .pmtd (đời cũ).
+        /// So đuôi bằng Path.GetExtension nên "Backup_x.bakx" hoặc "Backup_x.bak.tmp" (tệp dở dang) KHÔNG được coi là hợp lệ.
+        /// </summary>
+        private static bool LaTepBanSaoLuuHopLe(FileInfo fi)
+        {
+            if (!fi.Name.StartsWith(TIEN_TO_BAN_SAO_LUU, StringComparison.OrdinalIgnoreCase)) return false;
+            string duoi = fi.Extension;
+            foreach (string d in DuoiBanSaoLuuHopLe)
+                if (duoi.Equals(d, StringComparison.OrdinalIgnoreCase)) return true;
+            return false;
+        }
         /// <summary>Tệp phụ của SQLite: WAL / SHM / rollback journal. Xóa các tệp này khi DB đang ghi sẽ làm hỏng CSDL.</summary>
         private static bool LaTepPhuSQLite(string extension) =>
             extension.EndsWith("-wal", StringComparison.OrdinalIgnoreCase) ||
@@ -250,7 +267,6 @@ namespace PhanMemThiDua2026
                 }
             });
         }
-
         private static void BinhMinhOSantoriniCore()
         {
             lock (_khoaBaoTri)
@@ -258,26 +274,27 @@ namespace PhanMemThiDua2026
                 // 1. Chỉ khôi phục các tệp Core Repository bị thiếu,
                 // không thực hiện kiểm tra toàn vẹn và băm SHA-256.
                 TuanTraVaPhucHoiCoreRepository(kiemTraToanVen: false);
-
                 // 2. Khôi phục thư viện hệ thống.
                 KhoiPhucThuVienHeThong();
-
                 string srcDir = Path.Combine(AppContext.BaseDirectory, THU_MUC_BACKUP);
                 string windowDir = Path.Combine(AppContext.BaseDirectory, THU_MUC_WINDOW);
                 string dbDir = Module_DanduongGPS.ThuMucCoSoDuLieu;
-
                 Directory.CreateDirectory(srcDir);
                 Directory.CreateDirectory(windowDir);
                 Directory.CreateDirectory(dbDir);
-
                 var loi = new List<string>();
                 byte[]? key = null;
-
                 try
                 {
+                    // Chưa nạp được tệp khóa => KHÔNG khôi phục/mã hóa lại CSDL (khóa rỗng sẽ sinh tệp không giải mã được).
+                    if (!Module_DanduongGPS.KhoaDaSanSang)
+                    {
+                        Debug.WriteLine("[KhoiTaoCSDL] Bỏ qua khôi phục CSDL: chưa nạp được tệp khóa.");
+                        return;
+                    }
                     key = Module_BaoMatAES.HoaVanNoTrenDuongRaChienDich256v1(
                         Module_DanduongGPS.ToiYeuMeoCam1);
-
+                    _laCaiDatMoi = LaLanChayDauTien(dbDir);
                     foreach (var res in DanhSachTaiNguyen)
                     {
                         // Mỗi tài nguyên tự xử lý lỗi độc lập.
@@ -294,7 +311,6 @@ namespace PhanMemThiDua2026
                         catch (Exception ex)
                         {
                             string m = $"[LỖI KHÔI PHỤC] {res.Db}: {ex.Message}";
-
                             Debug.WriteLine(m);
                             loi.Add(m);
                         }
@@ -306,7 +322,6 @@ namespace PhanMemThiDua2026
                     if (key != null)
                         CryptographicOperations.ZeroMemory(key);
                 }
-
                 // 3. Ghi nhật ký nếu có tài nguyên khôi phục thất bại.
                 if (loi.Count > 0)
                 {
@@ -322,22 +337,29 @@ namespace PhanMemThiDua2026
                         // Không để lỗi ghi nhật ký chặn quá trình khởi động.
                     }
                 }
-
+                // 4. Ghi nhật ký các tệp CSDL đã bị tạo lại / đổi tên (người dùng cần biết để khôi phục từ bản sao lưu).
+                var canhBao = CanhBaoKhoiPhucCSDL;
+                if (canhBao.Count > 0)
+                {
+                    try
+                    {
+                        Module_NhatKy.GhiNhatKy(TEN_TAI_KHOAN_HE_THONG, "CẢNH BÁO - Tự khôi phục CSDL khi khởi động",
+                            string.Join("\r\n", canhBao));
+                    }
+                    catch { }
+                }
                 // Không đồng bộ thư mục công cụ và hướng dẫn.
                 // Không khóa ReadOnly các tệp trong thư mục Backup.
             }
         }
-
         public static void BaoTriSauKhoiDong()
         {
             lock (_khoaBaoTri)   // lock có tính reentrant nên gọi lồng an toàn
             {
                 TuanTraVaPhucHoiCoreRepository(kiemTraToanVen: true);
-
                 string srcDir = Path.Combine(AppContext.BaseDirectory, THU_MUC_BACKUP);
                 string dbDir = Module_DanduongGPS.ThuMucCoSoDuLieu;
                 DongBoThuMucHeThong(srcDir, dbDir);
-
                 foreach (var folder in ThuMucDongBo)
                 {
                     string path = Path.Combine(srcDir, folder);
@@ -355,7 +377,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         private static void KhoiPhucMotTaiNguyen(TaiNguyenCSDL res, string srcDir, string windowDir, string dbDir, byte[] key)
         {
             string pBackup = Path.Combine(srcDir, res.Backup);
@@ -365,9 +386,27 @@ namespace PhanMemThiDua2026
             bool b = FileCoDuLieuHopLe(pBackup);
             bool d = FileCoDuLieuHopLe(pDb);
             bool w = FileCoDuLieuHopLe(pWin);
+            // Tệp CSDL có dung lượng nhưng phần đầu tệp sai định dạng (ghi đè dở, virus, sửa tay...) => coi như hỏng.
+            // KHÔNG xóa: đổi tên giữ lại để còn cứu dữ liệu, rồi khôi phục như trường hợp mất tệp.
+            if (d && !DauTepCSDLHopLe(pDb))
+            {
+                string giuLai = GiuLaiTepHongKemTepPhu(pDb);
+                GhiCanhBaoKhoiPhuc($"{res.Db}: tệp bị hỏng (sai định dạng), đã đổi tên giữ lại thành \"{Path.GetFileName(giuLai)}\".", luonBao: true);
+                d = false;
+            }
+            if (!d && (b || w))
+            {
+                // Tệp -wal/-shm/-journal còn sót của CSDL cũ: để nguyên cạnh tệp CSDL mới thì SQLite sẽ áp nhật ký cũ lên
+                // CSDL mới => hỏng dữ liệu. Đổi tên giữ lại trước khi tạo lại tệp.
+                GiuLaiTepPhuMoCoi(pDb);
+            }
             if (b) // Backup là nguồn sạch nhất
             {
-                if (!d) GhiAnToan(pDb, tam => Module_BaoMatAES.GiaiMaCSDL(pBackup, tam, key));
+                if (!d)
+                {
+                    GhiAnToan(pDb, tam => Module_BaoMatAES.GiaiMaCSDL(pBackup, tam, key));
+                    GhiCanhBaoKhoiPhuc($"{res.Db}: bị mất/hỏng, đã tạo lại từ bản dự phòng gốc trong \"Database Backup\" (dữ liệu gốc, KHÔNG phải dữ liệu đang làm việc gần nhất).");
+                }
                 if (!w) GhiAnToan(pWin, tam => Module_BaoMatAES.MaHoaCSDL(pDb, tam, key));
             }
             else if (d) // Backup mất
@@ -379,10 +418,114 @@ namespace PhanMemThiDua2026
             {
                 GhiAnToan(pDb, tam => Module_BaoMatAES.GiaiMaCSDL(pWin, tam, key));
                 GhiAnToan(pBackup, tam => Module_BaoMatAES.MaHoaCSDL(pDb, tam, key));
+                GhiCanhBaoKhoiPhuc($"{res.Db}: bị mất/hỏng, đã tạo lại từ bản dự phòng trong \"window-x64\" (dữ liệu gốc, KHÔNG phải dữ liệu đang làm việc gần nhất).");
+            }
+            else
+            {
+                GhiCanhBaoKhoiPhuc($"{res.Db}: bị mất ở cả 3 nơi (Database, Database Backup, window-x64), không thể tự khôi phục.", luonBao: true);
             }
             // Bảo vệ các tệp đã đồng bộ
             DatReadOnly(pBackup);
             DatReadOnly(pWin);
+        }
+        // ===================== CẢNH BÁO KHÔI PHỤC CSDL =====================
+        // Trước đây khi csdl*.db bị mất/hỏng, phần mềm âm thầm tạo lại từ bản gốc: người dùng thấy dữ liệu "biến mất"
+        // mà không biết lý do và không biết còn bản sao lưu trong Database\Bansaoluu để khôi phục.
+        private static readonly List<string> _canhBaoKhoiPhuc = new();
+        /// <summary>Các tệp CSDL đã bị tự tạo lại/đổi tên trong lần khởi động này (rỗng = bình thường).</summary>
+        public static IReadOnlyList<string> CanhBaoKhoiPhucCSDL
+        {
+            get { lock (_canhBaoKhoiPhuc) return _canhBaoKhoiPhuc.ToArray(); }
+        }
+        private static bool _laCaiDatMoi;
+        private static void GhiCanhBaoKhoiPhuc(string noiDung, bool luonBao = false)
+        {
+            Debug.WriteLine("[KhoiPhucCSDL] " + noiDung);
+            // Lần chạy đầu sau khi cài: tạo CSDL từ bản gốc là việc bình thường, không báo động
+            if (_laCaiDatMoi && !luonBao) return;
+            lock (_canhBaoKhoiPhuc) _canhBaoKhoiPhuc.Add(noiDung);
+        }
+        /// <summary>Cài mới = thư mục Database chưa có tệp CSDL nào có dữ liệu và chưa có bản sao lưu nào.</summary>
+        private static bool LaLanChayDauTien(string dbDir)
+        {
+            try
+            {
+                foreach (var r in DanhSachTaiNguyen)
+                    if (FileCoDuLieuHopLe(Path.Combine(dbDir, r.Db))) return false;
+                string bsl = Path.Combine(dbDir, THU_MUC_BAN_SAO_LUU);
+                if (Directory.Exists(bsl))
+                    foreach (string f in Directory.EnumerateFiles(bsl, TIEN_TO_BAN_SAO_LUU + "*"))
+                        if (LaTepBanSaoLuuHopLe(new FileInfo(f))) return false;
+                return true;
+            }
+            catch { return false; }
+        }
+        /// <summary>Tệp CSDL hỏng đã được đổi tên giữ lại (vd "csdl2.db.hong-20261121-093000", "csdl2.db-wal.hong-...").</summary>
+        private static bool LaTepHongGiuLai(string name) =>
+            name.StartsWith("csdl", StringComparison.OrdinalIgnoreCase) &&
+            name.Contains(".hong-", StringComparison.OrdinalIgnoreCase);
+        /// <summary>Kiểm tra chữ ký đầu tệp: SQLite ("SQLite format 3\0") với .db, ZIP ("PK\x03\x04") với .xlsx.
+        /// Không đọc được (đang bị khóa...) thì coi là hợp lệ để không bao giờ đụng nhầm vào tệp tốt.</summary>
+        private static bool DauTepCSDLHopLe(string path)
+        {
+            try
+            {
+                byte[] mau = path.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase)
+                    ? new byte[] { 0x50, 0x4B, 0x03, 0x04 }
+                    : Encoding.ASCII.GetBytes("SQLite format 3\0");
+                byte[] dau = new byte[mau.Length];
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                {
+                    int doc = 0;
+                    while (doc < dau.Length)
+                    {
+                        int n = fs.Read(dau, doc, dau.Length - doc);
+                        if (n <= 0) break;
+                        doc += n;
+                    }
+                    if (doc < dau.Length) return false;
+                }
+                return dau.AsSpan().SequenceEqual(mau);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[DauTepCSDLHopLe] Không đọc được '{path}': {ex.Message}");
+                return true;
+            }
+        }
+        private static string HauToHong() => ".hong-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");
+        /// <summary>Đổi tên tệp CSDL hỏng (kèm -wal/-shm/-journal) để giữ lại; trả về đường dẫn mới của tệp chính.</summary>
+        private static string GiuLaiTepHongKemTepPhu(string pDb)
+        {
+            string hauTo = HauToHong();
+            string moi = pDb + hauTo;
+            ThaoGoQuyenReadOnly(pDb);
+            File.Move(pDb, moi, true);
+            foreach (string phu in new[] { "-wal", "-shm", "-journal" })
+            {
+                string p = pDb + phu;
+                if (!File.Exists(p)) continue;
+                try { ThaoGoQuyenReadOnly(p); File.Move(p, p + hauTo, true); }
+                catch (Exception ex) { Debug.WriteLine($"[GiuLaiTepHong] {p}: {ex.Message}"); }
+            }
+            return moi;
+        }
+        /// <summary>Tệp CSDL chính đã mất nhưng còn tệp phụ của SQLite: đổi tên giữ lại (không xóa) trước khi tạo CSDL mới.</summary>
+        private static void GiuLaiTepPhuMoCoi(string pDb)
+        {
+            string hauTo = HauToHong();
+            foreach (string phu in new[] { "-wal", "-shm", "-journal" })
+            {
+                string p = pDb + phu;
+                if (!File.Exists(p)) continue;
+                try
+                {
+                    ThaoGoQuyenReadOnly(p);
+                    if (new FileInfo(p).Length == 0) File.Delete(p);   // tệp phụ rỗng: không có gì để giữ
+                    else File.Move(p, p + hauTo, true);
+                }
+                catch (Exception ex) { Debug.WriteLine($"[GiuLaiTepPhuMoCoi] {p}: {ex.Message}"); }
+            }
         }
         // ===================== KHÔI PHỤC THƯ VIỆN HỆ THỐNG =====================
         private static void KhoiPhucThuVienHeThong()
@@ -644,10 +787,10 @@ namespace PhanMemThiDua2026
                     if (fi.Name.Equals(TEN_NHAT_KY_LAM_SACH, StringComparison.OrdinalIgnoreCase)) continue;
                     // SQLite zone: giữ WAL / SHM / rollback journal (thêm -journal: chế độ journal mặc định của SQLite)
                     if (isSQLiteZone && LaTepPhuSQLite(fi.Extension)) continue;
+                    // Tệp CSDL hỏng do phần mềm đổi tên giữ lại để cứu dữ liệu: không được dọn
+                    if (isSQLiteZone && LaTepHongGiuLai(fi.Name)) continue;
                     // Backup zone
-                    if (laVungBanSaoLuu &&
-                        fi.Name.StartsWith("Backup_", StringComparison.OrdinalIgnoreCase) &&
-                        fi.Extension.Equals(".pmtd", StringComparison.OrdinalIgnoreCase))
+                    if (laVungBanSaoLuu && LaTepBanSaoLuuHopLe(fi))   // Backup_*.bak (mới) và Backup_*.pmtd (đời cũ)
                         continue;
                     // Danh sách trắng (O(1))
                     if (allowedFiles != null && allowedFiles.Contains(fi.Name)) continue;
@@ -764,6 +907,11 @@ namespace PhanMemThiDua2026
             // CSDL_Backups (Module_BaoVeDuLieu) nằm ở thư mục gốc: thiếu tên này trong danh sách trắng thì tường lửa xóa sạch mọi bản sao lưu CSDL
             var allowedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                 { THU_MUC_DATABASE, THU_MUC_BACKUP, THU_MUC_WINDOW, Module_BaoVeDuLieu.TenThuMucBackup};
+            // <thư mục phần mềm>\KhoaBaoMat là vị trí CŨ của tệp khóa (chỉ đọc để chuyển sang Database\KhoaBaoMat).
+            // Nếu việc chuyển chưa thành công (vd Database không ghi được) thì đây là bản khóa DUY NHẤT: xóa đi là mất
+            // vĩnh viễn khả năng giải mã dữ liệu. Chỉ cho dọn khi bản chính hoặc bản dự phòng ở vị trí mới đã tồn tại.
+            if (!File.Exists(Module_TepKhoa.DuongDanChinh) && !File.Exists(Module_TepKhoa.DuongDanDuPhong))
+                allowedFolders.Add(Module_TepKhoa.TEN_THU_MUC);
             var allowedFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
                 "D3DCompiler_47_cor3.dll", "e_sqlite3.dll", "PenImc_cor3.dll", "PhanMemThiDua2026.dll.config",
@@ -816,14 +964,15 @@ namespace PhanMemThiDua2026
                             bool daXoaThanhCong = XoaTepVoiCoCheRetry(fileInfo);
                             if (!daXoaThanhCong && laTepThucThi)
                             {
-                                // Tệp thực thi đang chạy ngầm -> Kill tiến trình và thử lại
+                                // Tệp thực thi lạ đang chạy: chỉ YÊU CẦU nó đóng (CloseMainWindow), không ép tắt (Kill).
+                                // Không tự đóng được thì giữ nguyên, ghi nhận THẤT BẠI và thử lại ở lần tuần tra sau.
                                 try
                                 {
-                                    if (CuongBucTatTienTrinhDangLockFile(fileInfo.FullName, rootPath))
+                                    if (DongTienTrinhDangGiuTep(fileInfo.FullName))
                                     {
                                         daXoaThanhCong = XoaTepVoiCoCheRetry(fileInfo, retries: 5, delayMs: 100);
                                         if (daXoaThanhCong)
-                                            chiTiet.Add($"[TIÊU DIỆT SAU KILL] Đã ép xóa: {fileInfo.Name}");
+                                            chiTiet.Add($"[ĐÓNG LỊCH SỰ RỒI XÓA] Đã xóa: {fileInfo.Name}");
                                     }
                                 }
                                 catch { }
@@ -841,7 +990,9 @@ namespace PhanMemThiDua2026
                             else
                             {
                                 eCount++;
-                                chiTiet.Add($"[THẤT BẠI] File đang bị khóa chặt: {fileInfo.Name}");
+                                chiTiet.Add(laTepThucThi
+                                    ? $"[THẤT BẠI] Tệp đang chạy và chưa tự đóng, sẽ thử lại lần quét sau: {fileInfo.Name}"
+                                    : $"[THẤT BẠI] File đang bị khóa chặt: {fileInfo.Name}");
                             }
                         }
                     }
@@ -892,30 +1043,37 @@ namespace PhanMemThiDua2026
             }
             return false;
         }
-        private static bool CuongBucTatTienTrinhDangLockFile(string filePath, string rootPath)
+        // Thời gian chờ mỗi tiến trình tự đóng sau khi được yêu cầu. Giữ ngắn vì hàm chạy trong khóa bảo trì (_khoaBaoTri).
+        private const int CHO_TIEN_TRINH_DONG_MS = 2000;
+        /// <summary>
+        /// Yêu cầu MỘT CÁCH LỊCH SỰ (CloseMainWindow) tiến trình đang chạy chính tệp <paramref name="filePath"/> tự đóng, rồi chờ ngắn.
+        /// KHÔNG gọi Kill: tiến trình có hộp thoại "lưu thay đổi?", dịch vụ nền hoặc ứng dụng console sẽ không đóng và được để nguyên.
+        /// Chỉ tác động tiến trình có đường dẫn tệp thực thi TRÙNG KHỚP tuyệt đối với tệp cần xóa (không dựa vào tên tiến trình).
+        /// Trả về true nếu có ít nhất một tiến trình đã tự thoát (khi đó nên thử xóa lại tệp).
+        /// </summary>
+        private static bool DongTienTrinhDangGiuTep(string filePath)
         {
-            bool daKillThanhCong = false;
+            int soDaDong = 0;
             Process[] danhSach = Array.Empty<Process>();
             try
             {
-                // Chỉ lấy các tiến trình cùng tên với tệp .exe cần xóa (trước đây liệt kê và mở MainModule của TOÀN BỘ tiến trình trên máy)
-                danhSach = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(filePath));
+                string tepChuan = Path.GetFullPath(filePath);
+                // Chỉ lấy các tiến trình cùng tên với tệp cần xóa (không liệt kê và mở MainModule của toàn bộ tiến trình trên máy)
+                danhSach = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(tepChuan));
                 foreach (Process p in danhSach)
                 {
                     try
                     {
-                        if (p.HasExited || p.Id <= 4 || p.Id == Environment.ProcessId) continue;   // không bao giờ tự kill mình
-                        string? processPath = p.MainModule?.FileName;
-                        if (string.IsNullOrWhiteSpace(processPath) || !processPath.StartsWith(rootPath, StringComparison.OrdinalIgnoreCase))
+                        if (p.Id <= 4 || p.Id == Environment.ProcessId || p.HasExited) continue;   // không bao giờ đụng vào chính mình
+                        string? duongDan = p.MainModule?.FileName;
+                        if (string.IsNullOrWhiteSpace(duongDan) ||
+                            !Path.GetFullPath(duongDan).Equals(tepChuan, StringComparison.OrdinalIgnoreCase))
                             continue;
-                        if (processPath.Equals(filePath, StringComparison.OrdinalIgnoreCase))
-                        {
-                            p.Kill();
-                            p.WaitForExit(1500);
-                            daKillThanhCong = true;
-                        }
+                        // CloseMainWindow trả false khi không có cửa sổ chính (dịch vụ nền / console): không có gì để chờ
+                        if (p.CloseMainWindow() && p.WaitForExit(CHO_TIEN_TRINH_DONG_MS))
+                            soDaDong++;
                     }
-                    catch { }
+                    catch { /* tiến trình đã thoát, không đủ quyền hoặc đường dẫn lạ: bỏ qua */ }
                 }
             }
             catch { }
@@ -926,7 +1084,7 @@ namespace PhanMemThiDua2026
                     try { p.Dispose(); } catch { }   // luôn giải phóng handle, tránh phình RAM trên máy trạm yếu
                 }
             }
-            return daKillThanhCong;
+            return soDaDong > 0;
         }
         // ===================== BÁO CÁO / NHẬT KÝ =====================
         private static string TaoNoiDungBaoCao(int files, int dirs, int errs, List<string> chiTiet)
@@ -1175,9 +1333,6 @@ namespace PhanMemThiDua2026
         // 1. Dành cho ComboBox truyền thống (WinForms mặc định)
         public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params ComboBox[] comboBoxes) =>
             NapDuLieuCore(danhSachCauHoi, comboBoxes);
-        // 2. Dành cho KryptonComboBox hiện đại (Giao diện mới)
-        public static void NapDuLieuCauHoiBaoMat(string[] danhSachCauHoi, params Krypton.Toolkit.KryptonComboBox[] comboBoxes) =>
-            NapDuLieuCore(danhSachCauHoi, comboBoxes);
         // ===================== TUẦN TRA & KHÔI PHỤC CHÉO CORE REPOSITORY =====================
         private sealed class KetQuaTuanTra
         {
@@ -1187,7 +1342,6 @@ namespace PhanMemThiDua2026
             public int CanhBao;
             public readonly List<string> ChiTiet = new();
         }
-
         public static void TuanTraVaPhucHoiCoreRepository(bool kiemTraToanVen = true)
         {
             lock (_khoaBaoTri)
@@ -1195,28 +1349,22 @@ namespace PhanMemThiDua2026
                 try
                 {
                     string baseDir = AppContext.BaseDirectory;
-
                     // 2 vùng chứa repository
                     string dirDatabase = Path.Combine(
                         Module_DanduongGPS.ThuMucCoSoDuLieu,
                         THU_MUC_CONG_CU,
                         THU_MUC_REPOSITORY);
-
                     string dirBackup = Path.Combine(
                         baseDir,
                         THU_MUC_BACKUP,
                         THU_MUC_CONG_CU,
                         THU_MUC_REPOSITORY);
-
                     Directory.CreateDirectory(dirDatabase);
                     Directory.CreateDirectory(dirBackup);
-
                     var kq = new KetQuaTuanTra();
-
                     // BƯỚC 1: Tiêu diệt tệp lạ
                     TieuDietTepLa(dirDatabase, "Database Gốc", kq);
                     TieuDietTepLa(dirBackup, "Database Backup", kq);
-
                     // BƯỚC 2: Khôi phục chéo + kiểm tra toàn vẹn (nếu được yêu cầu)
                     foreach (string fileName in DanhSachDataTheoThuTu)
                     {
@@ -1227,7 +1375,6 @@ namespace PhanMemThiDua2026
                             kq,
                             kiemTraToanVen);
                     }
-
                     // BƯỚC 3: Ghi nhật ký
                     GhiNhatKyTuanTra(kq);
                 }
@@ -1237,7 +1384,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         private static void TieuDietTepLa(string thuMucPath, string tenVung, KetQuaTuanTra kq)
         {
             foreach (string filePath in Directory.GetFiles(thuMucPath))

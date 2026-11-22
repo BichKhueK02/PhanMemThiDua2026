@@ -8,7 +8,7 @@ namespace PhanMemThiDua2026
     public static class ModuleWelcome
     {
         //"Dấu vân tay môi trường" (GenerateCurrentFingerprint)
-        private static string Csdl2Path
+        private static string? Csdl2Path
         {
             get
             {
@@ -65,11 +65,11 @@ namespace PhanMemThiDua2026
         // 2. KHỞI TẠO BẢNG DỮ LIỆU
         public static void KhoiTaoBangWelcome()
         {
-            string dbPath = Csdl2Path;
+            string? dbPath = Csdl2Path;
             if (string.IsNullOrEmpty(dbPath) || !File.Exists(dbPath)) return;
             try
             {
-                using var conn = new SqliteConnection($"Data Source={dbPath};Pooling=True;");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
@@ -80,7 +80,7 @@ namespace PhanMemThiDua2026
                 cmd.ExecuteNonQuery();
                 // Đảm bảo dòng ID = 1 luôn tồn tại
                 cmd.CommandText = "SELECT COUNT(*) FROM Welcome WHERE ID = 1;";
-                long count = (long)cmd.ExecuteScalar();
+                long count = (long)cmd.ExecuteScalar()!;
                 if (count == 0)
                 {
                     cmd.CommandText = "INSERT INTO Welcome (ID, TrangThai) VALUES (1, @val);";
@@ -96,18 +96,18 @@ namespace PhanMemThiDua2026
         // 3. ĐỌC DẤU VÂN TAY CŨ TỪ CSDL 
         private static string GetSavedFingerprintFromDB()
         {
-            string dbPath = Csdl2Path;
+            string? dbPath = Csdl2Path;
             if (string.IsNullOrEmpty(dbPath) || !File.Exists(dbPath)) return string.Empty;
             try
             {
-                using var conn = new SqliteConnection($"Data Source={dbPath};Pooling=True;");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT TrangThai FROM Welcome WHERE ID = 1 LIMIT 1;";
-                object result = cmd.ExecuteScalar();
+                object? result = cmd.ExecuteScalar();
                 if (result == null || result == DBNull.Value)
                     return string.Empty;
-                return result.ToString().Trim();
+                return result.ToString()!.Trim();
             }
             catch (Exception ex)
             {
@@ -118,12 +118,12 @@ namespace PhanMemThiDua2026
         // 4. LƯU DẤU VÂN TAY MỚI VÀO CSDL  
         public static void SaveFingerprintAfterShow()
         {
-            string dbPath = Csdl2Path;
+            string? dbPath = Csdl2Path;
             if (string.IsNullOrEmpty(dbPath) || !File.Exists(dbPath)) return;
             try
             {
                 string newFingerprint = GenerateCurrentFingerprint();
-                using var conn = new SqliteConnection($"Data Source={dbPath};Pooling=True;");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "UPDATE Welcome SET TrangThai = @val WHERE ID = 1;";

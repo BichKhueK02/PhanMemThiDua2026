@@ -6,14 +6,9 @@ namespace PhanMemThiDua2026
     public partial class Form3_DangKyTaiKhoan : Form
     {
         private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
-        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private readonly string _csdl3Path = Module_DanduongGPS.DuongDanCSDL3;
-        private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
-        // CỜ CHỐNG TREO FORM (ANTI-FREEZE FLAG)
-        private bool _isInitializing = false;
         // BIẾN LƯU ẢNH CHUẨN BỊ GHI VÀO CSDL
-        private byte[] _hinhAnhDaiDienBytes = null;
-        private byte[] _thumbnailBytes = null;
+        private byte[]? _hinhAnhDaiDienBytes = null;
+        private byte[]? _thumbnailBytes = null;
         // CẤU HÌNH ẢNH AN TOÀN
         private const int MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB
         private const int MAX_WIDTH = 4096;
@@ -78,7 +73,7 @@ namespace PhanMemThiDua2026
         }
         private void InitCauHoiVaFocus_DangKy()
         {
-            _isInitializing = true;
+            //_isInitializing = true;
             try
             {
                 ComboBox1_CauHoi1.DropDownStyle = ComboBoxStyle.DropDown;
@@ -97,7 +92,7 @@ namespace PhanMemThiDua2026
             }
             finally
             {
-                _isInitializing = false;
+                //_isInitializing = false;
             }
             // ⭐ Đã fix lỗi bôi đen chữ khi Focus vào Textbox Tài Khoản
             this.ActiveControl = text_TaiKhoanMoi;
@@ -110,7 +105,7 @@ namespace PhanMemThiDua2026
             try
             {
                 if (!File.Exists(_csdl1Path)) return;
-                using var conn = new SqliteConnection($"Data Source={_csdl1Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path));
                 conn.Open();
                 string sql = "SELECT ID, CauHoi FROM CauHoiBaoMat WHERE ID IN (1, 2)";
                 using var cmd = new SqliteCommand(sql, conn);
@@ -188,7 +183,7 @@ namespace PhanMemThiDua2026
             // ⭐ ĐÃ LOẠI BỎ: Kiểm tra tên tài khoản trùng mật khẩu (Theo yêu cầu của bạn)
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl1Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path));
                 conn.Open();
                 // =========================================================================
                 // ⭐ KIỂM TRA TRÙNG LẶP TOÀN DIỆN (CHỐNG NHẬP TRÙNG DỮ LIỆU CŨ)
@@ -286,87 +281,35 @@ namespace PhanMemThiDua2026
         {
             this.Close();
         }
+        /// <summary>
+        /// Cấp Token CSDL (v2) cho cả 4 CSDL qua Module_TokenCSDL: chữ ký HMAC theo bộ CSDL, ghi trong transaction.
+        /// Không tự sinh Token thay người dùng (btn_Luu đã bắt buộc nhập). CSDL nào ghi lỗi sẽ được báo rõ ràng.
+        /// </summary>
         private void CapPhatTokenCSDL()
         {
             string tokenNguoiDung = text_Token.Text.Trim();
             string taiKhoanNguoiDung = text_TaiKhoanMoi.Text.Trim();
-            string thoiGianHienTai = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
-            if (string.IsNullOrWhiteSpace(tokenNguoiDung))
+            List<Module_TokenCSDL.KetQua> ketQua;
+            try
             {
-                string duongDan1 = _csdl1Path;
-                if (!string.IsNullOrWhiteSpace(duongDan1))
-                {
-                    try
-                    {
-                        using var conn = new SqliteConnection($"Data Source={duongDan1}");
-                        conn.Open();
-                        using var cmd = new SqliteCommand("SELECT Token, TenTaiKhoan FROM Admin WHERE ID=1", conn);
-                        using var rd = cmd.ExecuteReader();
-                        if (rd.Read())
-                        {
-                            string rawToken = rd.GetString(0);
-                            string rawTaiKhoan = rd.GetString(1);
-                            tokenNguoiDung = Module_BaoMatAES.GiaiMa(rawToken);
-                            if (string.IsNullOrWhiteSpace(tokenNguoiDung)) tokenNguoiDung = rawToken;
-                            taiKhoanNguoiDung = Module_BaoMatAES.GiaiMa(rawTaiKhoan);
-                            if (string.IsNullOrWhiteSpace(taiKhoanNguoiDung)) taiKhoanNguoiDung = rawTaiKhoan;
-                        }
-                        else
-                        {
-                            tokenNguoiDung = Guid.NewGuid().ToString("N");
-                            if (string.IsNullOrWhiteSpace(taiKhoanNguoiDung)) taiKhoanNguoiDung = "Admin";
-                        }
-                    }
-                    catch
-                    {
-                        tokenNguoiDung = Guid.NewGuid().ToString("N");
-                        if (string.IsNullOrWhiteSpace(taiKhoanNguoiDung)) taiKhoanNguoiDung = "Admin";
-                    }
-                }
+                ketQua = Module_TokenCSDL.CapPhat(tokenNguoiDung, taiKhoanNguoiDung);
             }
-            string[] csdls = new string[] { _csdl1Path, _csdl2Path, _csdl3Path, _csdl4Path };
-            foreach (var duongDan in csdls)
+            catch (Exception ex)
             {
-                if (string.IsNullOrWhiteSpace(duongDan)) continue;
-                try
-                {
-                    using var conn = new SqliteConnection($"Data Source={duongDan}");
-                    conn.Open();
-                    string sqlCreate = @"CREATE TABLE IF NOT EXISTS Token_XacDinhChinhChu (
-                                    ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                                    STT TEXT, Ma_ToKen TEXT, Tai_Khoan_Cap_Nhat TEXT, Thoi_Gian_Nap TEXT);";
-                    using var cmdCreate = new SqliteCommand(sqlCreate, conn);
-                    cmdCreate.ExecuteNonQuery();
-                    string sqlCheck = "SELECT COUNT(1) FROM Token_XacDinhChinhChu WHERE ID=1";
-                    using var cmdCheck = new SqliteCommand(sqlCheck, conn);
-                    long count = (long)cmdCheck.ExecuteScalar();
-                    if (count == 0)
-                    {
-                        string sqlInsert = @"INSERT INTO Token_XacDinhChinhChu (ID, STT, Ma_ToKen, Tai_Khoan_Cap_Nhat, Thoi_Gian_Nap)
-                                     VALUES (1, @stt, @token, @tk, @tg)";
-                        using var cmdInsert = new SqliteCommand(sqlInsert, conn);
-                        cmdInsert.Parameters.AddWithValue("@stt", "1");
-                        cmdInsert.Parameters.AddWithValue("@token", Module_BaoMatAES.MaHoa(tokenNguoiDung));
-                        cmdInsert.Parameters.AddWithValue("@tk", Module_BaoMatAES.MaHoa(taiKhoanNguoiDung));
-                        cmdInsert.Parameters.AddWithValue("@tg", thoiGianHienTai);
-                        cmdInsert.ExecuteNonQuery();
-                    }
-                    else
-                    {
-                        string sqlUpdate = @"UPDATE Token_XacDinhChinhChu
-                                     SET STT=@stt, Ma_ToKen=@token, Tai_Khoan_Cap_Nhat=@tk, Thoi_Gian_Nap=@tg WHERE ID=1";
-                        using var cmdUpdate = new SqliteCommand(sqlUpdate, conn);
-                        cmdUpdate.Parameters.AddWithValue("@stt", "1");
-                        cmdUpdate.Parameters.AddWithValue("@token", Module_BaoMatAES.MaHoa(tokenNguoiDung));
-                        cmdUpdate.Parameters.AddWithValue("@tk", Module_BaoMatAES.MaHoa(taiKhoanNguoiDung));
-                        cmdUpdate.Parameters.AddWithValue("@tg", thoiGianHienTai);
-                        cmdUpdate.ExecuteNonQuery();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi cấp phát Token cho CSDL: {duongDan}\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                MessageBox.Show($"Lỗi cấp phát Token CSDL:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            var loi = ketQua.Where(k => k.TrangThai != Module_TokenCSDL.TrangThai.DaKy).ToList();
+            Module_NhatKy.GhiNhatKy(
+                taiKhoan: taiKhoanNguoiDung,
+                hanhDong: "Cấp phát Token CSDL",
+                ghiChu: loi.Count == 0 ? "Thành công cho tất cả CSDL" : "Lỗi: " + string.Join(", ", loi.Select(k => k.VaiTro)));
+            if (loi.Count > 0)
+            {
+                string chiTiet = string.Join("\n", loi.Select(k => $"• {k.VaiTro}: {k.ChiTiet}"));
+                MessageBox.Show("Tài khoản đã được lưu nhưng chưa cấp được Token cho:\n\n" + chiTiet +
+                                "\n\nHãy đóng các chương trình đang mở CSDL rồi đăng ký lại, hoặc ký lại khi phần mềm cảnh báo ở trang chính.",
+                                "Cảnh báo Token CSDL", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
         private byte[] TaoThumbnail(Image imgOriginal, int maxW, int maxH)
@@ -445,7 +388,7 @@ namespace PhanMemThiDua2026
             if (_hinhAnhDaiDienBytes == null) return;
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl1Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path));
                 conn.Open();
                 // ⭐ Đã xóa cột ThoiGianCapNhat và tham số @tg cho khớp với Database
                 string sqlUpsert = @"
@@ -467,8 +410,8 @@ namespace PhanMemThiDua2026
         {
             string tieuDe = "Thông tin Token nội bộ";
             string noiDung = "Token nội bộ là mã dùng để nhận diện các CSDL hợp lệ trong hệ thống.\n\n" +
-                             "Token được mã hóa và cấp phát cho từng CSDL nhằm xác thực tính toàn vẹn và xác định CSDL chính chủ sau khi đăng ký.\n\n" +
-                             "Người dùng không cần ghi nhớ hay cấu hình thủ công. Nếu Token giữa các CSDL không trùng khớp, hệ thống sẽ tự động phát hiện, khôi phục về bản gốc và đảm bảo an toàn, bảo mật dữ liệu.";
+                             "Mỗi CSDL được ký bằng chữ ký HMAC-SHA256 tạo từ Token này, giúp xác định 4 CSDL thuộc cùng một bộ và không bị sửa đổi ngoài phần mềm.\n\n" +
+                             "Chép nguyên bộ CSDL sang máy khác vẫn hợp lệ. Nếu phát hiện CSDL lệch bộ hoặc bị sửa, phần mềm chỉ CẢNH BÁO — không bao giờ xóa hay tự ghi đè dữ liệu; Admin xác minh mật khẩu để ký lại nếu đó đúng là CSDL của mình.";
             HienThiFormAo_ThongTin(tieuDe, noiDung);
         }
         /// <summary>

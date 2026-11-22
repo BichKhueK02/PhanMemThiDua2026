@@ -1,6 +1,6 @@
-﻿using Color = System.Drawing.Color;
+﻿using System.Diagnostics;
+using Color = System.Drawing.Color;
 using Font = System.Drawing.Font;
-using System.Diagnostics;
 namespace PhanMemThiDua2026
 {
     // =====================================================================================
@@ -26,7 +26,6 @@ namespace PhanMemThiDua2026
         private const int DemKhungBang = 5;     // khoảng đệm giữa khung bo tròn và bảng
         private const int CaoHangTimKiem = 84;  // chiều cao hàng logo + thẻ tìm kiếm (px thiết kế, nhân theo DPI)
         private const int CaoHangNhapLieu = 296;// chiều cao hàng 2 thẻ nhập liệu
-
         // ===================== BẢNG MÀU =====================
         private static readonly Color MauNen = Color.FromArgb(244, 246, 250);
         private static readonly Color MauChuNhan = Color.FromArgb(71, 85, 105);
@@ -34,34 +33,26 @@ namespace PhanMemThiDua2026
         private static readonly Color MauVienO = Color.FromArgb(203, 213, 225);
         private static readonly Color MauVienChon = Color.FromArgb(139, 92, 246);
         private static readonly Color MauVienThe = Color.FromArgb(226, 232, 240);
-
         private static readonly Color MauTieuDeBang = Color.FromArgb(238, 232, 255);
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(91, 33, 182);
         private static readonly Color MauVachCot = Color.FromArgb(208, 198, 247);
         private static readonly Color MauKeBang = Color.FromArgb(235, 238, 243);
         private static readonly Color MauDongChon = Color.FromArgb(245, 241, 255);
-
         private static readonly Pen ButVachCot = new Pen(MauVachCot, 1f);
-
         private static readonly Font FontNhan = new Font("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Font FontO = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Font FontNut = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Font FontTrangThai = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-
         private readonly record struct BoMauNut(Color Nen, Color Hover, Color Down, Color Vien, Color Chu);
-
         private static readonly BoMauNut NutTim = new(
             Color.FromArgb(237, 233, 254), Color.FromArgb(221, 214, 254), Color.FromArgb(196, 181, 253),
             Color.FromArgb(196, 181, 253), Color.FromArgb(109, 40, 217));
-
         private static readonly BoMauNut NutTimDam = new(
             Color.FromArgb(221, 214, 254), Color.FromArgb(196, 181, 253), Color.FromArgb(167, 139, 250),
             Color.FromArgb(167, 139, 250), Color.FromArgb(91, 33, 182));
-
         private static readonly BoMauNut NutDo = new(
             Color.FromArgb(254, 242, 242), Color.FromArgb(254, 226, 226), Color.FromArgb(254, 202, 202),
             Color.FromArgb(252, 165, 165), Color.FromArgb(185, 28, 28));
-
         // ===================== ĐIỂM VÀO =====================
         public static void ApDung(Form f)
         {
@@ -84,16 +75,13 @@ namespace PhanMemThiDua2026
                 f.ResumeLayout(true);
             }
         }
-
         private static void An(Action viec, string ten)
         {
             try { viec(); }
             catch (Exception ex) { Debug.WriteLine($"[Module_GiaoDienForm49Web.{ten}] {ex.Message}"); }
         }
-
         private static T? Tim<T>(Control goc, string ten) where T : Control
             => goc.Controls.Find(ten, true).OfType<T>().FirstOrDefault();
-
         private static IEnumerable<T> TatCa<T>(Control goc) where T : Control
         {
             foreach (Control c in goc.Controls)
@@ -102,12 +90,9 @@ namespace PhanMemThiDua2026
                 foreach (var con in TatCa<T>(c)) yield return con;
             }
         }
-
         private static int Px(Control c, int v) => (int)Math.Round(v * c.DeviceDpi / 96f);
-
         private static readonly System.Reflection.PropertyInfo? PropDoubleBuffered =
             typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-
         private static void BatDoubleBuffer(Form f)
         {
             if (PropDoubleBuffered == null) return;
@@ -120,7 +105,6 @@ namespace PhanMemThiDua2026
                 if (c is SplitContainer sc) { PropDoubleBuffered.SetValue(sc.Panel1, true); PropDoubleBuffered.SetValue(sc.Panel2, true); }
             }
         }
-
         // ===================== BỐ CỤC TỔNG =====================
         // SplitContainer ngang: Panel1 = [logo + thẻ tìm kiếm] + [2 thẻ nhập liệu] | Panel2 = thẻ bảng (co giãn)
         private static void DinhBoCuc(Form f)
@@ -143,7 +127,6 @@ namespace PhanMemThiDua2026
                 t7.RowStyles.Clear();
                 t7.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             }
-
             var sc = Tim<SplitContainer>(f, "splitContainer1");
             if (sc != null)
             {
@@ -156,7 +139,6 @@ namespace PhanMemThiDua2026
                 try { sc.SplitterWidth = 10; } catch (ArgumentException) { }
                 try { sc.SplitterDistance = Px(f, CaoHangTimKiem + CaoHangNhapLieu); } catch (ArgumentException) { }
             }
-
             // Panel1: hàng logo + tìm kiếm | hàng 2 thẻ nhập liệu
             var t6 = Tim<TableLayoutPanel>(f, "tableLayoutPanel6");
             if (t6 != null)
@@ -167,7 +149,6 @@ namespace PhanMemThiDua2026
                 t6.RowStyles.Add(new RowStyle(SizeType.Absolute, Px(f, CaoHangTimKiem)));
                 t6.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             }
-
             // Logo + thẻ tìm kiếm
             var t2 = Tim<TableLayoutPanel>(f, "tableLayoutPanel2");
             if (t2 != null)
@@ -194,7 +175,6 @@ namespace PhanMemThiDua2026
                 t3.ColumnStyles.Clear();
                 t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             }
-
             // Khu nhập liệu: 2 thẻ cạnh nhau
             var t4 = Tim<TableLayoutPanel>(f, "tableLayoutPanel4");
             if (t4 != null)
@@ -207,14 +187,12 @@ namespace PhanMemThiDua2026
                 t4.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42F));
             }
         }
-
         // ===================== THẺ =====================
         private static void BocCacThe(Form f)
         {
             // 1. Tìm kiếm
             var gbTim = Tim<GroupBox>(f, "groupBox1_TimKiemThongTinCBCS");
             if (gbTim != null) ThayGroupBoxBangThe(gbTim, new Padding(0));
-
             // 3. Cập nhật thông tin khen thưởng: bỏ khung GroupBox ngoài, tách thành 2 thẻ: [form nhập] | [nội dung + nút]
             var gb3 = Tim<GroupBox>(f, "groupBox1");
             var t4 = Tim<TableLayoutPanel>(f, "tableLayoutPanel4");
@@ -233,10 +211,8 @@ namespace PhanMemThiDua2026
                 }
                 finally { t7.ResumeLayout(true); }
             }
-
             var t10 = Tim<TableLayoutPanel>(f, "tableLayoutPanel10");
             if (t10 != null) BocControlBangThe(t10, tieuDe3, new Padding(0, 6, 6, 0));
-
             // Nội dung khen thưởng: groupBox2 (chỉ chứa ô soạn thảo) -> bỏ, ô soạn thảo đặt thẳng vào ô lưới, rồi bọc cả cột thành 1 thẻ
             var gb2 = Tim<GroupBox>(f, "groupBox2");
             var t8 = Tim<TableLayoutPanel>(f, "tableLayoutPanel8");
@@ -264,7 +240,6 @@ namespace PhanMemThiDua2026
                 BocControlBangThe(t8, tieuDeNoiDung, new Padding(6, 6, 0, 0));
             }
         }
-
         private static TheBoGocF4? TaoThe(string tenGoc, string tieuDe, Padding margin) => new TheBoGocF4
         {
             Name = "the_" + tenGoc,
@@ -273,14 +248,12 @@ namespace PhanMemThiDua2026
             TieuDe = tieuDe,
             Padding = new Padding(12, 36, 12, 8)
         };
-
         /// <summary>Thay GroupBox bằng thẻ cùng vị trí, chuyển nguyên control con sang thẻ (GroupBox giữ lại, không Dispose).</summary>
         private static void ThayGroupBoxBangThe(GroupBox gb, Padding margin)
         {
             var cha = gb.Parent;
             if (cha == null) return;
             var the = TaoThe(gb.Name, gb.Text, margin)!;
-
             cha.SuspendLayout();
             the.SuspendLayout();
             try
@@ -310,14 +283,12 @@ namespace PhanMemThiDua2026
                 cha.ResumeLayout(true);
             }
         }
-
         /// <summary>Bọc 1 control (đang nằm trong ô của TableLayoutPanel) vào 1 thẻ có tiêu đề, cùng ô.</summary>
         private static void BocControlBangThe(Control noiDung, string tieuDe, Padding margin)
         {
             var cha = noiDung.Parent;
             if (cha == null) return;
             var the = TaoThe(noiDung.Name, tieuDe, margin)!;
-
             cha.SuspendLayout();
             the.SuspendLayout();
             try
@@ -342,7 +313,6 @@ namespace PhanMemThiDua2026
                 cha.ResumeLayout(true);
             }
         }
-
         // ===================== THẺ 1: TÌM KIẾM =====================
         private static void DinhTheTimKiem(Form f)
         {
@@ -360,11 +330,9 @@ namespace PhanMemThiDua2026
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));       // 5
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, Px(f, 56)));// 6 nút làm mới
             }
-
             DinhNhan(Tim<Label>(f, "label3"), dauHang: true);   // Tên tập thể
             DinhNhan(Tim<Label>(f, "label2"));                  // Đơn vị khen thưởng
             DinhNhan(Tim<Label>(f, "label8"));                  // Hình thức
-
             var o = Tim<Krypton.Toolkit.KryptonTextBox>(f, "textBox_TimKiemTheoTen");
             if (o != null)
             {
@@ -373,7 +341,6 @@ namespace PhanMemThiDua2026
                 o.StateCommon.Back.Color1 = Color.White;
                 KieuVienO(o.StateCommon.Border, o.StateActive.Border);
             }
-
             foreach (var ten in new[] { "comboBox_TimKiemDonViKhenThuong", "comboBox1_HinhThucKT" })
             {
                 var cb = Tim<ComboBox>(f, ten);
@@ -382,7 +349,6 @@ namespace PhanMemThiDua2026
                 cb.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 cb.Margin = new Padding(0);
             }
-
             var lamMoi = Tim<Krypton.Toolkit.KryptonButton>(f, "kryptonButton_LamMoiCacOTimKiem");
             if (lamMoi != null)
             {
@@ -392,7 +358,6 @@ namespace PhanMemThiDua2026
                 lamMoi.Size = new Size(40, 32);
             }
         }
-
         // ===================== THẺ 3: FORM NHẬP LIỆU =====================
         private static void DinhTheNhapLieu(Form f)
         {
@@ -407,13 +372,11 @@ namespace PhanMemThiDua2026
                 t10.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
                 t10.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             }
-
             // Nhãn cột trái (đầu hàng) và cột phải
             foreach (var ten in new[] { "label6", "label7", "label9", "label12", "label13", "label14" })
                 DinhNhan(Tim<Label>(f, ten), dauHang: true);
             foreach (var ten in new[] { "label4", "label1", "label15", "label5", "label17", "label11" })
                 DinhNhan(Tim<Label>(f, ten));
-
             foreach (var ten in new[] { "kryptonTextBox_STT", "kryptonTextBox_TenTapThe", "kryptonTextBox_SoQuyetDinh",
                                         "kryptonTextBox_NgayQuyetDinh", "kryptonTextBox_NguoiKy", "kryptonTextBox_NgayCapPhat",
                                         "kryptonTextBox_TienThuong", "kryptonTextBox_CanBoCapPhat",
@@ -425,7 +388,6 @@ namespace PhanMemThiDua2026
                 ktb.Margin = new Padding(0, 0, 0, 0);
                 KieuVienO(ktb.StateCommon.Border, ktb.StateActive.Border);   // KHÔNG đụng tới nền (ô STT bị code gốc tô xanh nhạt)
             }
-
             // 2 combo gõ được (DropDown): giữ combo gốc, chỉ chỉnh font + co giãn
             foreach (var ten in new[] { "comboBox_HinhThucKhenThuong", "comboBox_DonViKhenThuong" })
             {
@@ -435,12 +397,10 @@ namespace PhanMemThiDua2026
                 cb.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 cb.Margin = new Padding(0);
             }
-
             // Ô soạn thảo nội dung khen thưởng: phẳng, không viền, nền trắng (thẻ đã có khung)
             var rtb = Tim<RichTextBox>(f, "richTextBox1_NoiDungKhenThuong");
             if (rtb != null) { rtb.BorderStyle = BorderStyle.None; rtb.BackColor = Color.White; }
         }
-
         // ===================== NÚT THAO TÁC (Thêm / Sửa / Xóa / cỡ chữ) =====================
         private static void DinhNutThaoTac(Form f)
         {
@@ -455,7 +415,6 @@ namespace PhanMemThiDua2026
             NutTrongO(f, "kryptonButton_ThemKhenThuong", NutTimDam, new Padding(0, 0, 6, 0));
             NutTrongO(f, "kryptonButton_SuaVaLuuKhenThuong", NutTim, new Padding(3, 0, 3, 0));
             NutTrongO(f, "kryptonButton_XoaKhenThuong", NutDo, new Padding(6, 0, 0, 0));
-
             // 2 nút tăng/giảm cỡ chữ (chỉ có biểu tượng; code gốc tự ẩn/hiện theo nội dung)
             foreach (var ten in new[] { "kryptonButton2_TangCoChuRichText", "kryptonButton2_GiamCoChuRichText" })
             {
@@ -467,7 +426,6 @@ namespace PhanMemThiDua2026
                 b.Size = new Size(44, 30);
             }
         }
-
         // ===================== COMBO BO TRÒN (chỉ combo DropDownList) =====================
         private static void BoTronCacCombo(Form f)
         {
@@ -475,13 +433,11 @@ namespace PhanMemThiDua2026
                 if (cb.GetType() == typeof(ComboBox) && cb.DropDownStyle == ComboBoxStyle.DropDownList)
                     OComboWebF4.Gan(cb);
         }
-
         // ===================== LƯỚI =====================
         private static void BocLuoi(Form f)
         {
             var luoi = Tim<DataGridView>(f, "kryptonDataGridView1");
             if (luoi == null || luoi.Parent is not Control cha) return;
-
             luoi.BorderStyle = BorderStyle.None;
             luoi.Margin = new Padding(0);
             var the = new TheBoGocF4
@@ -515,23 +471,19 @@ namespace PhanMemThiDua2026
             {
                 cha.ResumeLayout(true);
             }
-
             _ = new BoDinhDangLuoi(f, luoi, the);
         }
-
         private sealed class BoDinhDangLuoi
         {
             private readonly DataGridView _luoi;
             private readonly Krypton.Toolkit.KryptonDataGridView? _k;
             private readonly TheBoGocF4 _the;
             private bool _dangDap;
-
             public BoDinhDangLuoi(Form f, DataGridView luoi, TheBoGocF4 the)
             {
                 _luoi = luoi;
                 _k = luoi as Krypton.Toolkit.KryptonDataGridView;
                 _the = the;
-
                 // Code gốc đặt màu chọn dòng / viền ô trong Load (sau constructor) -> áp lại khi form hiện (Shown, sau Load)
                 f.Shown += (_, _) => DapKieu();
                 _luoi.ColumnAdded += (_, _) => { if (!DaDungKieu()) DapKieu(); };
@@ -539,10 +491,8 @@ namespace PhanMemThiDua2026
                 _luoi.ColumnHeadersHeightChanged += (_, _) => _the.Invalidate();
                 // Vẽ chồng SAU khi lưới tự vẽ xong => không can thiệp cách lưới xếp chữ tiêu đề
                 _luoi.Paint += VeTieuDe;
-
                 DapKieu();
             }
-
             private void DapKieu()
             {
                 if (_dangDap || _k == null) return;
@@ -554,9 +504,7 @@ namespace PhanMemThiDua2026
                 }
                 finally { _dangDap = false; }
             }
-
             private bool DaDungKieu() => _k != null && _k.StateCommon.HeaderColumn.Back.Color1 == MauTieuDeBang;
-
             // Font tiêu đề / font ô / padding do code gốc đặt -> không đụng tới
             private static void StyleKrypton(Krypton.Toolkit.KryptonDataGridView k)
             {
@@ -571,14 +519,12 @@ namespace PhanMemThiDua2026
                 TieuDePhang(k.StateTracking.HeaderColumn.Back, k.StateTracking.HeaderColumn.Border);
                 TieuDePhang(k.StatePressed.HeaderColumn.Back, k.StatePressed.HeaderColumn.Border);
             }
-
             private static void TieuDePhang(Krypton.Toolkit.PaletteBack back, Krypton.Toolkit.PaletteBorder vien)
             {
                 back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
                 back.Color1 = MauTieuDeBang; back.Color2 = MauTieuDeBang;
                 vien.Color1 = MauTieuDeBang; vien.Color2 = MauTieuDeBang;
             }
-
             // Vạch kẻ dọc giữa các cột tiêu đề + đường kẻ dưới hàng tiêu đề
             private void VeTieuDe(object? sender, PaintEventArgs e)
             {
@@ -603,7 +549,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         // ===================== THANH TRẠNG THÁI (KryptonStatusStrip) =====================
         private static void DinhThanhTrangThai(Form f)
         {
@@ -620,24 +565,20 @@ namespace PhanMemThiDua2026
             var l2 = ss.Items.Find("toolStripStatusLabel2", false).FirstOrDefault();
             if (l2 != null) l2.Font = FontTrangThai;
         }
-
         private sealed class TrangThaiPhang : ToolStripProfessionalRenderer
         {
             public TrangThaiPhang() { RoundedEdges = false; }
-
             protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
             {
                 using var b = new SolidBrush(Color.White);
                 e.Graphics.FillRectangle(b, e.AffectedBounds);
             }
-
             protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
             {
                 using var p = new Pen(MauVienThe, 1f);
                 e.Graphics.DrawLine(p, 0, 0, e.ToolStrip.Width, 0);
             }
         }
-
         // ===================== TIỆN ÍCH TRÌNH BÀY =====================
         private static void DinhNhan(Label? lb, bool dauHang = false)
         {
@@ -651,7 +592,6 @@ namespace PhanMemThiDua2026
             lb.Anchor = AnchorStyles.Left;
             lb.Margin = new Padding(dauHang ? 0 : 16, 0, 10, 0);
         }
-
         private static void KieuVienO(Krypton.Toolkit.PaletteBorder vien, Krypton.Toolkit.PaletteBorder vienActive)
         {
             vien.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
@@ -660,7 +600,6 @@ namespace PhanMemThiDua2026
             vien.Width = 1;
             vienActive.Color1 = MauVienChon; vienActive.Color2 = MauVienChon;
         }
-
         private static void NutTrongO(Form f, string ten, BoMauNut m, Padding margin)
         {
             var b = Tim<Krypton.Toolkit.KryptonButton>(f, ten);
@@ -670,7 +609,6 @@ namespace PhanMemThiDua2026
             b.Margin = margin;
             b.Height = 34;
         }
-
         private static void KieuNut(Krypton.Toolkit.KryptonButton b, BoMauNut m)
         {
             b.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;

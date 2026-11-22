@@ -272,8 +272,6 @@
         private Label label1;
         private TableLayoutPanel tableLayoutPanel4;
         private Label label2;
-        private TableLayoutPanel tableLayoutPanel6;
-        private TextBox textBox_NguoiCapNhat;
         private Label label_tongCongDonVi;
         private ToolTip toolTip1;
         private Krypton.Toolkit.KryptonTextBox textBox_TenDonVi;

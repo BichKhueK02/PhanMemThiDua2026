@@ -9,7 +9,7 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
         // Biến cục bộ để lưu trữ con trỏ Form 34 và vị trí dòng, phục vụ truy xuất O(1)
-        private Form34_ThongKeKhenThuong _form34Nguon;
+        private Form34_ThongKeKhenThuong _form34Nguon = null!;
         private int _currentRowIndexForm34 = -1;
         private string _currentSoHieu = "";
         private string _currentHoTen = "";
@@ -291,7 +291,7 @@ namespace PhanMemThiDua2026
                 // Đẩy toàn bộ quá trình đọc DB và giải mã xuống luồng nền (Background Thread)
                 await Task.Run(() =>
                 {
-                    using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
+                    using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                     conn.Open();
                     string sql = "SELECT * FROM ThongKe_GiayKhen ORDER BY ID ASC";
                     using var cmd = new SqliteCommand(sql, conn);
@@ -352,7 +352,7 @@ namespace PhanMemThiDua2026
             {
                 await Task.Run(() =>
                 {
-                    using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
+                    using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                     conn.Open();
                     // 1. Quét bảng Giấy Khen để đếm số lượng THỰC TẾ
                     int soLuongThucTe = 0;
@@ -632,7 +632,7 @@ namespace PhanMemThiDua2026
             {
                 string tienThuongStr = kryptonTextBox_TienThuong?.Text.Replace(".", "").Replace(",", "").Trim() ?? "0";
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
-                using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 await conn.OpenAsync(); // Mở kết nối bất đồng bộ
                 using var tran = conn.BeginTransaction();
                 try
@@ -684,7 +684,7 @@ namespace PhanMemThiDua2026
             {
                 string tienThuongStr = kryptonTextBox_TienThuong?.Text.Replace(".", "").Replace(",", "").Trim() ?? "0";
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
-                using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 await conn.OpenAsync();
                 string sqlUpdate = @"UPDATE ThongKe_GiayKhen 
                                      SET HinhThuc_Khen = @HinhThuc, QuyetDinh_Khen = @SoQD, NgayCapQD_Khen = @Ngay, 
@@ -728,7 +728,7 @@ namespace PhanMemThiDua2026
             }
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl4Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 await conn.OpenAsync();
                 using var tran = conn.BeginTransaction();
                 try

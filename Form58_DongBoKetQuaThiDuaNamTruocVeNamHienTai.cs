@@ -1,22 +1,14 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form58_DongBoKetQuaThiDuaNamTruocVeNamHienTai : Form
     {
         private bool _dangDongBo;   // chỉ đụng tới trên luồng UI nên bool là đủ (bản cũ dùng SemaphoreSlim nhưng không bao giờ Dispose)
-
         private static readonly Regex RegexNam = new Regex(@"ThiDua_CBCS_Nam(\d{4})\.db$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
         // Kết quả hợp lệ: tra không phân biệt hoa/thường nhưng LUÔN ghi đúng giá trị chuẩn của hệ thống
         // (bản cũ ghi ToUpper() của chuỗi người dùng: phụ thuộc culture máy và có thể lệch hằng PL_* các form khác đang so sánh)
         private static readonly Dictionary<string, string> KetQuaChuan = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -26,7 +18,6 @@ namespace PhanMemThiDua2026
             [Module_HeThong.PL_HTNV] = Module_HeThong.PL_HTNV,
             [Module_HeThong.PL_KHTNV] = Module_HeThong.PL_KHTNV
         };
-
         public Form58_DongBoKetQuaThiDuaNamTruocVeNamHienTai()
         {
             InitializeComponent();
@@ -37,12 +28,10 @@ namespace PhanMemThiDua2026
             ShowInTaskbar = false;
             InitToolTips();
         }
-
         private void Form58_DongBoKetQuaThiDuaNamTruocVeNamHienTai_Load(object? sender, EventArgs e)
         {
             LoadDanhSachCSDLLichSu();
         }
-
         private void InitToolTips()
         {
             toolTip1.IsBalloon = true;
@@ -51,7 +40,6 @@ namespace PhanMemThiDua2026
             toolTip1.SetToolTip(kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai, "Đồng bộ dữ liệu từ CSDL năm trước vào CSDL hiện tại");
             toolTip1.SetToolTip(kryptonButton_HuongDanSuDung, "Đọc hướng dẫn sử dụng");
         }
-
         // ===================== DANH SÁCH CSDL LỊCH SỬ =====================
         private void LoadDanhSachCSDLLichSu()
         {
@@ -59,14 +47,12 @@ namespace PhanMemThiDua2026
             {
                 string folderPath = Module_DanduongGPS.ThuMucLichSuThiDua;
                 if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
-
                 var files = Directory.EnumerateFiles(folderPath, "ThiDua_CBCS_Nam*.db")
                     .Select(p => (Match: RegexNam.Match(Path.GetFileName(p)), FullPath: p))
                     .Where(x => x.Match.Success)
                     .Select(x => new { HienThiNam = x.Match.Groups[1].Value, x.FullPath })
                     .OrderByDescending(x => x.HienThiNam, StringComparer.Ordinal)   // năm mới nhất lên đầu và được chọn sẵn
                     .ToList();
-
                 // Đặt DisplayMember/ValueMember TRƯỚC DataSource: tránh combobox ràng buộc 2 lần và nhảy SelectedValue không cần thiết
                 comboBox_ChonCSDLNamCu.DisplayMember = "HienThiNam";
                 comboBox_ChonCSDLNamCu.ValueMember = "FullPath";
@@ -77,24 +63,12 @@ namespace PhanMemThiDua2026
                 MessageBox.Show($"Lỗi khi tải danh sách CSDL lịch sử: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         // ===================== TIỆN ÍCH CSDL =====================
         // Pooling=false: đóng kết nối là nhả hẳn tệp .db (không làm kẹt sao lưu/khôi phục). Dùng builder nên đường dẫn có ký tự đặc biệt (;) vẫn an toàn.
         // Không còn PRAGMA journal_mode / busy_timeout: Microsoft.Data.Sqlite đã đặt busy_timeout = 30 giây,
         // còn bản cũ ghi đè xuống 10 giây và tự ý đổi chế độ journal của CSDL hiện tại.
         private static SqliteConnection MoKetNoi(string path, bool chiDoc)
-        {
-            var sb = new SqliteConnectionStringBuilder
-            {
-                DataSource = path,
-                Mode = chiDoc ? SqliteOpenMode.ReadOnly : SqliteOpenMode.ReadWrite,
-                Pooling = false
-            };
-            var cn = new SqliteConnection(sb.ToString());
-            try { cn.Open(); return cn; }
-            catch { cn.Dispose(); throw; }
-        }
-
+            => Module_KetNoiCSDL.MoKetNoi(path, chiDoc: chiDoc, khongTaoMoi: !chiDoc, pooling: false);
         // Báo lỗi dễ hiểu khi CSDL thiếu cột (thay cho thông báo SQLite khó đọc "no such column")
         private static void KiemTraCot(SqliteConnection cn, string tenBang, string tenCSDL, params string[] cacCot)
         {
@@ -111,7 +85,6 @@ namespace PhanMemThiDua2026
                 if (!coTrongBang.Contains(cot))
                     throw new InvalidOperationException($"{tenCSDL} không có cột {cot} trong bảng {tenBang}.");
         }
-
         // Số hiệu được MÃ HÓA bằng AES với IV ngẫu nhiên: cùng 1 số hiệu ở hai CSDL cho ra hai chuỗi khác nhau,
         // nên chỉ so khớp được sau khi GIẢI MÃ. GiaiMa không ném lỗi, trả rỗng khi giải mã hỏng và có cache nội bộ.
         private static string GiaiMaSoHieu(string? cipherText)
@@ -119,16 +92,13 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(cipherText)) return string.Empty;
             return Module_BaoMatAES.GiaiMa(cipherText).Trim();
         }
-
         // Trả null khi rỗng / không thuộc 4 mức hợp lệ
         private static string? ChuanHoaKetQua(string? giaTri)
             => !string.IsNullOrWhiteSpace(giaTri) && KetQuaChuan.TryGetValue(giaTri.Trim(), out string? chuan) ? chuan : null;
-
         // ===================== ĐỒNG BỘ (chạy ở luồng nền) =====================
         private static KetQuaDongBo DongBo(string dbNguonPath, string dbDichPath)
         {
             var kq = new KetQuaDongBo();
-
             // 1) CSDL năm cũ (chỉ đọc): Số hiệu giải mã -> kết quả tổng kết đã chuẩn hóa (null = trống/không hợp lệ)
             var nguon = new Dictionary<string, string?>(StringComparer.Ordinal);
             using (var cn = MoKetNoi(dbNguonPath, true))
@@ -146,7 +116,6 @@ namespace PhanMemThiDua2026
                 }
             }
             if (nguon.Count == 0) return kq;
-
             // 2) CSDL hiện tại: đọc 1 lần (rowid, Số hiệu, kết quả hiện có), tính trước những dòng THẬT SỰ cần đổi
             var canCapNhat = new List<(long RowId, string KetQua)>();
             var daKhop = new HashSet<string>(StringComparer.Ordinal);
@@ -171,7 +140,6 @@ namespace PhanMemThiDua2026
                         coDoi.Add(soHieu);
                     }
                 }
-
                 // 3) Ghi: 1 transaction, 1 lệnh dùng lại, cập nhật theo rowid (không quét bảng theo Số hiệu cho từng người như bản cũ)
                 if (canCapNhat.Count > 0)
                 {
@@ -190,7 +158,6 @@ namespace PhanMemThiDua2026
                     tx.Commit();   // lỗi giữa chừng => rollback toàn bộ, CSDL hiện tại không bị cập nhật dở dang
                 }
             }
-
             // 4) Thống kê theo từng người của năm cũ
             kq.SoDongCapNhat = canCapNhat.Count;
             foreach (var cap in nguon)
@@ -201,7 +168,6 @@ namespace PhanMemThiDua2026
             }
             return kq;
         }
-
         // ===================== HƯỚNG DẪN =====================
         private void kryptonButton_HuongDanSuDung_Click(object? sender, EventArgs e)
         {
@@ -223,7 +189,6 @@ namespace PhanMemThiDua2026
                 """;
             MessageBox.Show(huongDan, "Hướng dẫn sử dụng", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
         // ===================== NÚT ĐỒNG BỘ =====================
         private async void kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai_Click(object? sender, EventArgs e)
         {
@@ -249,14 +214,12 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("CSDL năm cũ không được trùng với CSDL hiện tại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
             using (var frmXacMinh = new Form24_XacMinhAdmin())
             {
                 frmXacMinh.TopMost = true;
                 frmXacMinh.StartPosition = FormStartPosition.CenterScreen;
                 if (frmXacMinh.ShowDialog() != DialogResult.OK) return;
             }
-
             _dangDongBo = true;
             var nut = sender as Control;
             if (nut != null) nut.Enabled = false;
@@ -265,7 +228,6 @@ namespace PhanMemThiDua2026
             {
                 KetQuaDongBo kq = await Task.Run(() => DongBo(dbNguonPath, dbDichPath));
                 if (IsDisposed) return;
-
                 string ghiChu = $"Tổng số CBCS kiểm tra: {kq.TongSoNguoi}\n" +
                                 $"Cập nhật thành công: {kq.SoDongCapNhat}\n" +
                                 $"Giữ nguyên (đã đúng sẵn): {kq.SoGiuNguyen}\n" +
@@ -273,19 +235,16 @@ namespace PhanMemThiDua2026
                                 $"Bỏ qua (kết quả năm cũ trống/không hợp lệ): {kq.SoBoQuaKetQuaTrong}";
                 if (kq.SoGiaiMaLoi > 0)
                     ghiChu += $"\nKhông thể giải mã: {kq.SoGiaiMaLoi} bản ghi.";
-
                 Module_NhatKy.GhiNhatKy(
                     taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
                     hanhDong: "Đồng bộ kết quả thi đua năm cũ",
                     ghiChu: ghiChu);
-
                 if (kq.TongSoNguoi == 0)
                     MessageBox.Show("CSDL năm cũ chưa có dữ liệu thi đua nào để đồng bộ.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 else if (kq.TongDongDich == 0 && kq.SoGiaiMaLoi < kq.TongSoNguoi)   // (nếu mọi Số hiệu năm cũ đều không giải mã được thì hiện bảng kết quả bình thường)
                     MessageBox.Show("CSDL hiện tại chưa có dữ liệu thi đua (ThiDuaThang đang trống) nên không có gì để cập nhật.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 else
                     MessageBox.Show($"Đồng bộ hoàn tất!\n\n{ghiChu}", "Kết quả", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
                 // Làm mới trang thống kê (nếu đang mở) trong khối riêng: lỗi ở đây không được báo thành "lỗi đồng bộ" khi dữ liệu đã ghi xong
                 if (kq.SoDongCapNhat > 0)
                 {
@@ -313,7 +272,6 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-
         private sealed class KetQuaDongBo
         {
             public int TongSoNguoi { get; set; }          // dòng có Số hiệu ở CSDL năm cũ

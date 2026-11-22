@@ -864,7 +864,7 @@
             comboBox_MauSacMenu.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_MauSacMenu.Font = new Font("Segoe UI", 10.2F);
             comboBox_MauSacMenu.FormattingEnabled = true;
-            comboBox_MauSacMenu.Items.AddRange(new object[] { "Mặc định", "Xanh lá", "Xanh dương", "Xám trắng" });
+            comboBox_MauSacMenu.Items.AddRange(new object[] { "Mặc định", "Xanh lá", "Xanh dương", "Xám trắng", "Hồng cánh sen", "Tím nhạt" });
             comboBox_MauSacMenu.Location = new Point(419, 335);
             comboBox_MauSacMenu.Margin = new Padding(2, 4, 2, 4);
             comboBox_MauSacMenu.Name = "comboBox_MauSacMenu";
@@ -1064,7 +1064,7 @@
             comboBox_DoiTuongPhanMem.Font = new Font("Segoe UI", 10.2F);
             comboBox_DoiTuongPhanMem.ForeColor = Color.FromArgb(0, 0, 192);
             comboBox_DoiTuongPhanMem.FormattingEnabled = true;
-            comboBox_DoiTuongPhanMem.Items.AddRange(new object[] { "Phiên bản dành cho CBCS", "Phiên bản dành cho tân binh" });
+            comboBox_DoiTuongPhanMem.Items.AddRange(new object[] { "Phiên bản dành cho CBCS", "Phiên bản dành cho tân binh", "Phiên bản dành cho học viên" });
             comboBox_DoiTuongPhanMem.Location = new Point(419, 89);
             comboBox_DoiTuongPhanMem.Margin = new Padding(2, 4, 2, 4);
             comboBox_DoiTuongPhanMem.Name = "comboBox_DoiTuongPhanMem";
@@ -1467,17 +1467,12 @@
         private TableLayoutPanel tableLayoutPanel12;
         private TableLayoutPanel tableLayoutPanel5;
         private Label label5;
-        private PictureBox pictureBox2;
         private TableLayoutPanel tableLayoutPanel6;
-        private PictureBox pictureBox9_ThongTinNamSys;
         private ComboBox comboBox1_NamHienTai;
-        private Label label34;
         private Label label6;
         private ComboBox comboBox_TenTieuDoan;
-        private PictureBox pictureBox3;
         private TabPage tabPage2;
         private TableLayoutPanel tableLayoutPanel7;
-        internal Krypton.Toolkit.KryptonButton kryptonButton1_KiemTraCoSoDuLieu;
         private TableLayoutPanel tableLayoutPanel14;
         private GroupBox groupBox2;
         private TableLayoutPanel tableLayoutPanel8;
@@ -1514,7 +1509,6 @@
         private Krypton.Toolkit.KryptonTextBox textBox_TrungDoanCSCD;
         private Krypton.Toolkit.KryptonTextBox textBox1_TenTrungDoanDong1;
         private Krypton.Toolkit.KryptonTextBox textBox1_KyHieuBaoCao;
-        private PictureBox pictureBox12;
         private ComboBox comboBox1_ThoiGianThayDoiAnh;
         private TabPage tabPage4;
         private TabPage tabPage3;
@@ -1523,7 +1517,6 @@
         private Label label14;
         internal Krypton.Toolkit.KryptonButton kryptonButton2_ChuyenGiaoDuLieu;
         private Label label16;
-        private CheckBox checkBox1;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_CaiDatTyLePhanTramBCH;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel toolStripStatusLabel1;
@@ -1533,12 +1526,10 @@
         private Label label1;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_CapNhatTinhThanhPho;
         private TableLayoutPanel tableLayoutPanel2;
-        private PictureBox pictureBox7;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox1_DonViBanHanhToTrinh;
         private Label label13;
         private Label label7;
         private TableLayoutPanel tableLayoutPanel10;
-        private PictureBox pictureBox8;
         private PictureBox pictureBox9;
         private SplitContainer splitContainer1;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_TyLePhanTramXetThiDuaNam;

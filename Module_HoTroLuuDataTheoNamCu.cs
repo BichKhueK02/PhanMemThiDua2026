@@ -1,11 +1,7 @@
 ﻿using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 namespace PhanMemThiDua2026
 {
     // KHU VỰC CÁC CLASS DTO (DATA TRANSFER OBJECT)
@@ -13,43 +9,33 @@ namespace PhanMemThiDua2026
     {
         //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
         public int STT { get; set; }
-        public string TenHienThi { get; set; }
-        public string DuongDan { get; set; }
+        public string TenHienThi { get; set; } = null!;
+        public string DuongDan { get; set; } = null!;
         public bool LaTanBinh { get; set; }
     }
     public class HistoryCBCSDTO
     {
-        public string ID, HoVaTen, SoHieu, DonVi, TinhTrang;
-        public string KQ_TD, KQ_XL_CB, KQ_XL_DV, T12;
+        // Các trường được nạp ngay sau khi tạo đối tượng (đọc CSDL năm cũ) => "= null!" chỉ để báo trình biên dịch, không sinh mã.
+        public string ID = null!, HoVaTen = null!, SoHieu = null!, DonVi = null!, TinhTrang = null!;
+        public string KQ_TD = null!, KQ_XL_CB = null!, KQ_XL_DV = null!, T12 = null!;
         public string[] Thang = new string[11]; // Thang_1 -> Thang_11
-        public string Sau_Thang_Dau_Nam, TongKet_Nam, TS_Loai1, TS_Loai2, TS_Loai3, TS_Loai4;
-        public string GhiChu;
+        public string Sau_Thang_Dau_Nam = null!, TongKet_Nam = null!, TS_Loai1 = null!, TS_Loai2 = null!, TS_Loai3 = null!, TS_Loai4 = null!;
+        public string GhiChu = null!;
         // Thuộc tính phục vụ thuật toán tìm kiếm và sắp xếp
-        public string HoVaTen_Search;
+        public string HoVaTen_Search = null!;
         public int SortPriority;
         public Dictionary<string, string> CotPhatSinh = new Dictionary<string, string>();
     }
     public class HistoryTanBinhDTO
     {
-        public string ID, HoVaTen, SoHieu, DonVi, TinhTrang;
-        public string TS_Loai1, TS_Loai2, TS_Loai3, TS_Loai4;
-        public string GhiChu;
+        public string ID = null!, HoVaTen = null!, SoHieu = null!, DonVi = null!, TinhTrang = null!;
+        public string TS_Loai1 = null!, TS_Loai2 = null!, TS_Loai3 = null!, TS_Loai4 = null!;
+        public string GhiChu = null!;
         // Thuộc tính phục vụ thuật toán tìm kiếm và sắp xếp
-        public string HoVaTen_Search;
+        public string HoVaTen_Search = null!;
         public int SortPriority;
         public Dictionary<string, string> DuLieuThang = new Dictionary<string, string>(); // Lưu tuần và kết quả tháng
         public Dictionary<string, string> CotPhatSinh = new Dictionary<string, string>();
-    }
-    public class HistoryKhenThuongCBCSDTO
-    {
-        public int STT { get; set; }
-        public string HoVaTen { get; set; }
-        public string SoHieu { get; set; }
-        public string DonVi { get; set; }
-        public string TinhTrang { get; set; }
-        public int SoLuong_Khen { get; set; }
-        public string GhiChu_Khen { get; set; }
-        public string DanhSachDVKhen_An { get; set; }
     }
     // CLASS CHÍNH: XỬ LÝ LƯU TRỮ VÀ LỊCH SỬ
     internal static class Module_HoTroLuuDataTheoNamCu
@@ -59,7 +45,7 @@ namespace PhanMemThiDua2026
             var danhSach = new List<FileLichSuDTO>();
             string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
             if (!Directory.Exists(dir)) return danhSach;
-            bool phienBanHienTaiLaTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            bool phienBanHienTaiLaTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().LaCheDoTanBinh();
             var files = Directory.GetFiles(dir, "*.db");
             foreach (var file in files)
             {
@@ -69,7 +55,7 @@ namespace PhanMemThiDua2026
                 string nam = fileName.Split(new string[] { "Nam" }, StringSplitOptions.None).LastOrDefault() ?? "???";
                 danhSach.Add(new FileLichSuDTO
                 {
-                    TenHienThi = $"Năm {nam} - {(isFileTanBinh ? "Tân binh" : "CBCS")}",
+                    TenHienThi = $"Năm {nam} - {(isFileTanBinh ? Module_TaiKhoan.TenTB_Hoa : "CBCS")}",
                     DuongDan = file,
                     LaTanBinh = isFileTanBinh
                 });
@@ -90,7 +76,7 @@ namespace PhanMemThiDua2026
             var danhSach = new List<FileLichSuDTO>();
             // [CHẶN CỬA]: Tân binh không có khen thưởng -> Trả về danh sách trống luôn
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase))
+            if (phienBan.LaCheDoTanBinh())
                 return danhSach;
             string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
             if (!Directory.Exists(dir)) return danhSach;
@@ -123,7 +109,7 @@ namespace PhanMemThiDua2026
             if (!File.Exists(dbPath)) return dt;
             try
             {
-                using (var cn = new SqliteConnection($"Data Source={dbPath};Mode=ReadOnly"))
+                using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath, chiDoc: true)))
                 {
                     cn.Open();
                     using var cmd = cn.CreateCommand();
@@ -138,7 +124,7 @@ namespace PhanMemThiDua2026
                     {
                         if (dt.Columns.Contains(colName) && row[colName] != DBNull.Value)
                         {
-                            string value = row[colName].ToString();
+                            string? value = row[colName].ToString();
                             if (!string.IsNullOrWhiteSpace(value))
                             {
                                 try
@@ -179,7 +165,7 @@ namespace PhanMemThiDua2026
             var schemaStatements = new List<string>();
             var cacBangThucTeCo = new List<string>();
             // BƯỚC 1: Lấy schema gốc (Nguyên văn câu lệnh Create Table, Index, Primary Key, AutoIncrement...)
-            using (var cnSource = new SqliteConnection($"Data Source={sourceDbPath};Pooling=False"))
+            using (var cnSource = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(sourceDbPath, pooling: false)))
             {
                 cnSource.Open();
                 foreach (string tbl in tableNames)
@@ -208,7 +194,7 @@ namespace PhanMemThiDua2026
             if (cacBangThucTeCo.Count == 0)
                 throw new Exception("Không tìm thấy bảng dữ liệu nào trong CSDL nguồn để sao lưu.");
             // BƯỚC 2: Khởi tạo CSDL Đích (Năm Cũ) và tái tạo cấu trúc
-            using (var cnTarget = new SqliteConnection($"Data Source={targetDbPath};Pooling=False"))
+            using (var cnTarget = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(targetDbPath, pooling: false)))
             {
                 cnTarget.Open();
                 using (var cmd = cnTarget.CreateCommand())
@@ -278,7 +264,7 @@ namespace PhanMemThiDua2026
             int nam = Module_HeThong.LayNamHeThong();
             bool laTanBinh = Module_TaiKhoan
                 .LayPhienBanPhanMem()
-                .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                .LaCheDoTanBinh();
             string sourcePath = Module_DanduongGPS.DuongDanCSDL4;
             string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
             string fileName = $"ThiDua_{(laTanBinh ? "TanBinh" : "CBCS")}_Nam{nam}.db";
@@ -320,35 +306,10 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
-        public static string LuuTruDuLieuKhenThuongTapTheNam()
-        {
-            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)) return string.Empty;
-            int nam = Module_HeThong.LayNamHeThong();
-            string tableName = "ThongKe_KhenThuongTapThe";
-            string fileName = $"KhenThuongTapThe_Nam{nam}.db";
-            string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
-            string targetPath = Path.Combine(thuMucLuu, fileName);
-            if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
-                throw new FileNotFoundException("Không tìm thấy cơ sở dữ liệu nguồn khen thưởng (CSDL4).");
-            Directory.CreateDirectory(thuMucLuu);
-            if (File.Exists(targetPath))
-                throw new InvalidOperationException($"Dữ liệu khen thưởng tập thể năm {nam} đã tồn tại trong lịch sử lưu trữ.");
-            try
-            {
-                SaoChepBangVaDuLieuChuanXac(Module_DanduongGPS.DuongDanCSDL4, targetPath, new[] { tableName });
-            }
-            catch
-            {
-                try { if (File.Exists(targetPath)) File.Delete(targetPath); } catch { }
-                throw;
-            }
-            return targetPath;
-        }
         public static string LuuTruDuLieuKhenThuongToanDienNam()
         {
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            if (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)) return string.Empty;
+            if (phienBan.LaCheDoTanBinh()) return string.Empty;
             int nam = Module_HeThong.LayNamHeThong();
             string fileName = $"KhenThuong_CBCS_Nam{nam}.db";
             string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
@@ -395,68 +356,23 @@ namespace PhanMemThiDua2026
         {
             int rowCount = filteredIndexes.Count;
             int colCount = exportCols.Count + 1;
-            var dataArray = new object[rowCount, colCount];
+            // Bộ đọc mỗi cột tạo 1 lần (trước đây so sánh chuỗi tên cột qua chuỗi if/else cho TỪNG Ô)
+            var layCot = exportCols.Select(c => TaoBoLayCotLichSu(c.Name, laTanBinh, isDataMaxMode, dtSource, cacheCBCS, cacheTanBinh)).ToArray();
+            var dongDuLieu = new List<object?[]>(rowCount);
             for (int r = 0; r < rowCount; r++)
             {
-                int cIndex = 0;
-                dataArray[r, cIndex++] = r + 1;
                 int actualIndex = filteredIndexes[r];
-                foreach (var col in exportCols)
-                {
-                    string cellValue = "";
-                    if (isDataMaxMode)
-                    {
-                        if (laTanBinh)
-                        {
-                            var data = cacheTanBinh[actualIndex];
-                            if (col.Name == "HoVaTen") cellValue = data.HoVaTen;
-                            else if (col.Name == "SoHieu") cellValue = data.SoHieu;
-                            else if (col.Name == "DonVi") cellValue = data.DonVi;
-                            else if (col.Name == "TinhTrang") cellValue = data.TinhTrang;
-                            else if (col.Name == "GhiChu") cellValue = data.GhiChu;
-                            else if (col.Name == "TS_Loai1") cellValue = data.TS_Loai1;
-                            else if (col.Name == "TS_Loai2") cellValue = data.TS_Loai2;
-                            else if (col.Name == "TS_Loai3") cellValue = data.TS_Loai3;
-                            else if (col.Name == "TS_Loai4") cellValue = data.TS_Loai4;
-                            else if (data.DuLieuThang.TryGetValue(col.Name, out string dThang)) cellValue = dThang;
-                            else if (data.CotPhatSinh.TryGetValue(col.Name, out string dynVal)) cellValue = dynVal;
-                        }
-                        else
-                        {
-                            var data = cacheCBCS[actualIndex];
-                            if (col.Name == "HoVaTen") cellValue = data.HoVaTen;
-                            else if (col.Name == "SoHieu") cellValue = data.SoHieu;
-                            else if (col.Name == "DonVi") cellValue = data.DonVi;
-                            else if (col.Name == "TinhTrang") cellValue = data.TinhTrang;
-                            else if (col.Name == "GhiChu") cellValue = data.GhiChu;
-                            else if (col.Name == "KQ_ThiDua_Nam_Cu") cellValue = data.KQ_TD;
-                            else if (col.Name == "KQ_XepLoaiCB_Nam_Cu") cellValue = data.KQ_XL_CB;
-                            else if (col.Name == "KQ_XepLoaiDangVien_Nam_Cu") cellValue = data.KQ_XL_DV;
-                            else if (col.Name == "Thang_12_Nam_Cu") cellValue = data.T12;
-                            else if (col.Name == "Sau_Thang_Dau_Nam") cellValue = data.Sau_Thang_Dau_Nam;
-                            else if (col.Name == "TongKet_Nam") cellValue = data.TongKet_Nam;
-                            else if (col.Name == "TS_Loai1") cellValue = data.TS_Loai1;
-                            else if (col.Name == "TS_Loai2") cellValue = data.TS_Loai2;
-                            else if (col.Name == "TS_Loai3") cellValue = data.TS_Loai3;
-                            else if (col.Name == "TS_Loai4") cellValue = data.TS_Loai4;
-                            else if (col.Name.StartsWith("Thang_") && int.TryParse(col.Name.Replace("Thang_", ""), out int tIdx)) cellValue = data.Thang[tIdx - 1];
-                            else if (data.CotPhatSinh.TryGetValue(col.Name, out string dynVal)) cellValue = dynVal;
-                        }
-                    }
-                    else
-                    {
-                        if (dtSource != null && dtSource.Columns.Contains(col.Name))
-                            cellValue = dtSource.DefaultView[actualIndex][col.Name]?.ToString() ?? "";
-                    }
-                    dataArray[r, cIndex++] = cellValue;
-                }
+                var d = new object?[colCount];
+                d[0] = r + 1;
+                for (int c = 0; c < layCot.Length; c++) d[c + 1] = layCot[c](actualIndex);
+                dongDuLieu.Add(d);
             }
             using (var wb = new ClosedXML.Excel.XLWorkbook())
             {
                 var ws = wb.Worksheets.Add("ThongKeThiDua");
                 ws.Cell("A1").Value = "DANH SÁCH";
                 ws.Range(1, 1, 1, colCount).Merge().Style.Font.SetBold().Font.SetFontSize(16).Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center).Alignment.SetVertical(ClosedXML.Excel.XLAlignmentVerticalValues.Center);
-                ws.Cell("A2").Value = laTanBinh ? $"THỐNG KÊ PHÂN LOẠI THI ĐUA CỦA TÂN BINH {tenTieuDoan}" : $"THỐNG KÊ PHÂN LOẠI THI ĐUA CỦA CBCS {tenTieuDoan}";
+                ws.Cell("A2").Value = laTanBinh ? $"THỐNG KÊ PHÂN LOẠI THI ĐUA CỦA {Module_TaiKhoan.TenTB_InHoa} {tenTieuDoan}" : $"THỐNG KÊ PHÂN LOẠI THI ĐUA CỦA CBCS {tenTieuDoan}";
                 ws.Range(2, 1, 2, colCount).Merge().Style.Font.SetBold().Font.SetFontSize(12).Alignment.SetHorizontal(ClosedXML.Excel.XLAlignmentHorizontalValues.Center).Alignment.SetVertical(ClosedXML.Excel.XLAlignmentVerticalValues.Center);
                 int excelStartRow = 4;
                 var cellStt = ws.Cell(excelStartRow, 1);
@@ -483,9 +399,7 @@ namespace PhanMemThiDua2026
                     else cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
                     excelCol++;
                 }
-                for (int r = 0; r < rowCount; r++)
-                    for (int c = 0; c < colCount; c++)
-                        ws.Cell(r + excelStartRow + 1, c + 1).Value = dataArray[r, c]?.ToString() ?? "";
+                Module_ExcelAnToan.NapDong(ws, excelStartRow + 1, 1, dongDuLieu);   // nạp 1 lần thay vì gán từng ô
                 if (rowCount > 0)
                 {
                     var dataRange = ws.Range(excelStartRow + 1, 1, excelStartRow + rowCount, colCount);
@@ -497,8 +411,65 @@ namespace PhanMemThiDua2026
                 int tongDong = rowCount + excelStartRow + 1;
                 var totalCell = ws.Cell(tongDong, 1); totalCell.Value = $"Tổng cộng: {rowCount} {Module_HeThong.Tu_dong_chi} ./."; totalCell.Style.Font.SetBold().Font.SetItalic(); ws.Range(tongDong, 1, tongDong, colCount).Merge();
                 Module_BanQuyen.DongDauExcel(wb);
-                wb.SaveAs(targetExcelPath);
+                Module_ExcelAnToan.LuuAnToan(wb, targetExcelPath);
             }
+        }
+        /// <summary>
+        /// Tạo 1 hàm đọc giá trị cho 1 cột (theo chỉ số dòng gốc). Quyết định "cột nào lấy trường nào"
+        /// chỉ chạy 1 lần cho mỗi cột thay vì lặp lại cho từng ô.
+        /// </summary>
+        private static Func<int, object?> TaoBoLayCotLichSu(string ten, bool laTanBinh, bool isDataMaxMode, DataTable dtSource,
+            List<HistoryCBCSDTO> cacheCBCS, List<HistoryTanBinhDTO> cacheTanBinh)
+        {
+            if (!isDataMaxMode)
+            {
+                if (dtSource == null || !dtSource.Columns.Contains(ten)) return _ => "";
+                var dv = dtSource.DefaultView;
+                return i => dv[i][ten]?.ToString() ?? "";
+            }
+            if (laTanBinh)
+            {
+                Func<HistoryTanBinhDTO, string?> f = ten switch
+                {
+                    "HoVaTen" => x => x.HoVaTen,
+                    "SoHieu" => x => x.SoHieu,
+                    "DonVi" => x => x.DonVi,
+                    "TinhTrang" => x => x.TinhTrang,
+                    "GhiChu" => x => x.GhiChu,
+                    "TS_Loai1" => x => x.TS_Loai1,
+                    "TS_Loai2" => x => x.TS_Loai2,
+                    "TS_Loai3" => x => x.TS_Loai3,
+                    "TS_Loai4" => x => x.TS_Loai4,
+                    _ => x => x.DuLieuThang.TryGetValue(ten, out var v) ? v : (x.CotPhatSinh.TryGetValue(ten, out var p) ? p : "")
+                };
+                return i => f(cacheTanBinh[i]) ?? "";
+            }
+            Func<HistoryCBCSDTO, string?> g;
+            switch (ten)
+            {
+                case "HoVaTen": g = x => x.HoVaTen; break;
+                case "SoHieu": g = x => x.SoHieu; break;
+                case "DonVi": g = x => x.DonVi; break;
+                case "TinhTrang": g = x => x.TinhTrang; break;
+                case "GhiChu": g = x => x.GhiChu; break;
+                case "KQ_ThiDua_Nam_Cu": g = x => x.KQ_TD; break;
+                case "KQ_XepLoaiCB_Nam_Cu": g = x => x.KQ_XL_CB; break;
+                case "KQ_XepLoaiDangVien_Nam_Cu": g = x => x.KQ_XL_DV; break;
+                case "Thang_12_Nam_Cu": g = x => x.T12; break;
+                case "Sau_Thang_Dau_Nam": g = x => x.Sau_Thang_Dau_Nam; break;
+                case "TongKet_Nam": g = x => x.TongKet_Nam; break;
+                case "TS_Loai1": g = x => x.TS_Loai1; break;
+                case "TS_Loai2": g = x => x.TS_Loai2; break;
+                case "TS_Loai3": g = x => x.TS_Loai3; break;
+                case "TS_Loai4": g = x => x.TS_Loai4; break;
+                default:
+                    if (ten.StartsWith("Thang_") && int.TryParse(ten.Substring(6), out int t))
+                        g = x => t >= 1 && t <= x.Thang.Length ? x.Thang[t - 1] : "";   // chặn tràn chỉ số (vd Thang_12)
+                    else
+                        g = x => x.CotPhatSinh.TryGetValue(ten, out var p) ? p : "";
+                    break;
+            }
+            return i => g(cacheCBCS[i]) ?? "";
         }
         public static void CapNhatTinhTrangThiDuaNamCu(string pathCsdl2, string pathCsdlNamCu, bool laTanBinh)
         {
@@ -508,15 +479,15 @@ namespace PhanMemThiDua2026
             try
             {
                 var hashSoHieuCsdl2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                using (var cn2 = new SqliteConnection($"Data Source={pathCsdl2};Mode=ReadOnly"))
+                using (var cn2 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(pathCsdl2, chiDoc: true)))
                 {
                     cn2.Open();
-                    using var cmd = new SqliteCommand("SELECT SoHieu FROM DanhSach", cn2);
+                    using var cmd = new SqliteCommand($"SELECT SoHieu FROM {Module_TaiKhoan.BangDanhSach}", cn2);
                     using var rd = cmd.ExecuteReader();
                     while (rd.Read())
                     {
                         string encSh = rd["SoHieu"]?.ToString() ?? "";
-                        string plainSh = SafeDecrypt(encSh)?.Trim();
+                        string? plainSh = SafeDecrypt(encSh)?.Trim();
                         if (!string.IsNullOrEmpty(plainSh))
                         {
                             hashSoHieuCsdl2.Add(plainSh);
@@ -525,7 +496,7 @@ namespace PhanMemThiDua2026
                 }
                 var idDangCongTac = new List<int>();
                 var idChuyenCongTac = new List<int>();
-                using (var cnNamCu = new SqliteConnection($"Data Source={pathCsdlNamCu};Mode=ReadOnly"))
+                using (var cnNamCu = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(pathCsdlNamCu, chiDoc: true)))
                 {
                     cnNamCu.Open();
                     using var cmd = new SqliteCommand($"SELECT ID, SoHieu, TinhTrang FROM [{tableDich}]", cnNamCu);
@@ -534,7 +505,7 @@ namespace PhanMemThiDua2026
                     {
                         int id = Convert.ToInt32(rd["ID"]);
                         string encSh = rd["SoHieu"]?.ToString() ?? "";
-                        string plainSh = SafeDecrypt(encSh)?.Trim();
+                        string? plainSh = SafeDecrypt(encSh)?.Trim();
                         string ttHienTai = rd["TinhTrang"]?.ToString()?.Trim() ?? "";
                         bool tonTaiInCsdl2 = !string.IsNullOrEmpty(plainSh) && hashSoHieuCsdl2.Contains(plainSh);
                         if (tonTaiInCsdl2)
@@ -548,7 +519,7 @@ namespace PhanMemThiDua2026
                     }
                 }
                 if (idDangCongTac.Count == 0 && idChuyenCongTac.Count == 0) return;
-                using (var cnNamCu = new SqliteConnection($"Data Source={pathCsdlNamCu}"))
+                using (var cnNamCu = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(pathCsdlNamCu)))
                 {
                     cnNamCu.Open();
                     using var tran = cnNamCu.BeginTransaction();
@@ -596,10 +567,10 @@ namespace PhanMemThiDua2026
             try
             {
                 var hashSoHieuCsdl2 = new HashSet<string>(10000, StringComparer.OrdinalIgnoreCase);
-                using (var cn2 = new SqliteConnection($"Data Source={pathCsdl2};Mode=ReadOnly;Cache=Shared"))
+                using (var cn2 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(pathCsdl2, chiDoc: true, cacheChung: true)))
                 {
                     cn2.Open();
-                    using var cmd = new SqliteCommand("SELECT SoHieu FROM DanhSach WHERE SoHieu IS NOT NULL AND SoHieu <> ''", cn2);
+                    using var cmd = new SqliteCommand($"SELECT SoHieu FROM {Module_TaiKhoan.BangDanhSach} WHERE SoHieu IS NOT NULL AND SoHieu <> ''", cn2);
                     using var rd = cmd.ExecuteReader();
                     while (rd.Read())
                     {
@@ -612,7 +583,7 @@ namespace PhanMemThiDua2026
                     }
                 }
                 if (hashSoHieuCsdl2.Count == 0) return;
-                using (var cnCu = new SqliteConnection($"Data Source={pathCsdlNamCu}"))
+                using (var cnCu = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(pathCsdlNamCu)))
                 {
                     cnCu.Open();
                     using (var cmdPragma = new SqliteCommand("PRAGMA synchronous = NORMAL; PRAGMA journal_mode = WAL;", cnCu))
@@ -681,7 +652,7 @@ namespace PhanMemThiDua2026
                 string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(phienBan)) return false;
                 // Nếu KHÔNG chứa từ "tân binh" -> Là phiên bản CBCS
-                return !phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                return !phienBan.LaCheDoTanBinh();
             }
             catch
             {

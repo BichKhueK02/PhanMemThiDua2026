@@ -23,15 +23,10 @@ namespace PhanMemThiDua2026
         /// Mặc định false vì tiến trình đó thường chính là TRÌNH DUYỆT của người dùng: Kill sẽ tắt luôn mọi tab khác.
         /// </summary>
         private static readonly bool BuocDongTienTrinh = false;
-        public static string FolderName => TenThuMuc;
-        public static string FileName => TenFileHtml;
-        public static string VersionFileName => TenFileVersion;
         // Đường dẫn cố định -> tính 1 lần (trước đây tính lại mỗi lần truy cập, kể cả gọi Windows lấy thư mục AppData)
         public static string SrcBackupDir { get; } = Path.Combine(AppContext.BaseDirectory, "Database Backup", TenThuMuc);
         public static string SrcMainDir { get; } = Path.Combine(AppContext.BaseDirectory, "Database", TenThuMuc);
-        public static string AppDataDir { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PhanMemThiDua2026", TenThuMuc);
-        public static string AppDataHtmlFile { get; } = Path.Combine(AppDataDir, TenFileHtml);
-        public static string AppDataVersionFile { get; } = Path.Combine(AppDataDir, TenFileVersion);
+        // Đã bỏ hẳn AppDataDir/AppDataHtmlFile/AppDataVersionFile: hướng dẫn chỉ đọc từ Database\HuongDanSuDung (không chạm %LOCALAPPDATA%)
         private static readonly string[] CacThuMucDongBo = { SrcBackupDir, SrcMainDir };
         private static readonly object _lock = new();
         // Cache hash của file html chính theo (đường dẫn, kích thước, ngày sửa) -> không băm lại khi file không đổi
@@ -81,6 +76,7 @@ Status: Ready
             try
             {
                 File.WriteAllText(tmp, content, Encoding.UTF8);
+                BoChiDoc(path);   // tệp trong "Database Backup" bị bảo trì nền gắn ReadOnly: Move đè lên tệp ReadOnly sẽ lỗi "Access denied"
                 File.Move(tmp, path, true);
             }
             catch
@@ -95,15 +91,30 @@ Status: Ready
             string tmp = dst + ".tmp";
             try
             {
-                File.Copy(src, tmp, true);
+                BoChiDoc(tmp);
+                File.Copy(src, tmp, true);   // giữ nguyên ngày sửa của nguồn -> lần sau so sánh "bản mới hơn" đúng
+                BoChiDoc(tmp);               // tệp nguồn ReadOnly thì bản chép cũng ReadOnly
+                BoChiDoc(dst);
                 File.Move(tmp, dst, true);
             }
             catch
             {
-                try { if (File.Exists(tmp)) File.Delete(tmp); } catch { }
+                try { if (File.Exists(tmp)) { BoChiDoc(tmp); File.Delete(tmp); } } catch { }
                 throw;
             }
         }
+        private static void BoChiDoc(string path)
+        {
+            try
+            {
+                if (!File.Exists(path)) return;
+                var a = File.GetAttributes(path);
+                if ((a & FileAttributes.ReadOnly) != 0) File.SetAttributes(path, a & ~FileAttributes.ReadOnly);
+            }
+            catch { }
+        }
+        // Dung sai thời gian (FAT/exFAT/ổ mạng làm tròn 2 giây) — giống Module_KhoiTaoCSDL.CanSaoChep
+        private static readonly TimeSpan DungSaiThoiGian = TimeSpan.FromSeconds(2);
         // File rỗng (0 byte) coi như hỏng/mất, để không bao giờ đè bản tốt bằng bản rỗng
         private static bool CoNoiDung(FileInfo fi) => fi.Exists && fi.Length > 0;
         // 4. CƠ CHẾ ĐỒNG BỘ 2 CHIỀU THÔNG MINH
@@ -147,8 +158,19 @@ Status: Ready
                         }
                         else if (!GiongNhau(main, backup))
                         {
-                            CopyAtomic(main.FullName, backup.FullName);
-                            Debug.WriteLine($"[SYNC] Đã cập nhật bản mới {fileName} từ Database sang Backup.");
+                            // "Bản mới hơn thắng" — cùng quy tắc với đồng bộ nền (Module_KhoiTaoCSDL.SyncFolder).
+                            // Trước đây luôn chép Database -> Backup: nếu bản mới được đặt vào "Database Backup"
+                            // thì 2 cơ chế giành nhau, bản hướng dẫn cũ có thể đè mất bản mới.
+                            if (backup.LastWriteTimeUtc - main.LastWriteTimeUtc > DungSaiThoiGian)
+                            {
+                                CopyAtomic(backup.FullName, main.FullName);
+                                Debug.WriteLine($"[SYNC] Đã cập nhật bản mới {fileName} từ Backup về Database.");
+                            }
+                            else
+                            {
+                                CopyAtomic(main.FullName, backup.FullName);
+                                Debug.WriteLine($"[SYNC] Đã cập nhật bản mới {fileName} từ Database sang Backup.");
+                            }
                         }
                     }
                     // Manifest chỉ ghi lại khi hash file chính thay đổi (hoặc version.txt mất/sai), không ghi lại mỗi lần mở
@@ -213,13 +235,6 @@ Status: Ready
             }
             catch { return "0"; }
         }
-        public static void EnsureReady()
-        {
-            SyncMasterVersion();
-            // UpdateLocal(); // Bỏ qua AppData
-        }
-        /// <summary>Đồng bộ ở luồng nền (gọi lúc khởi động để lần mở hướng dẫn đầu tiên không phải chờ).</summary>
-        public static Task EnsureReadyAsync() => Task.Run(EnsureReady);
         private static string GetFileHash(string path)
         {
             try
@@ -253,8 +268,6 @@ Status: Ready
             }
             catch { return macDinh; }
         }
-        /// <summary>Bản chạy nền của LayCheDoXemHuongDan (không chặn giao diện).</summary>
-        public static Task<string> LayCheDoXemHuongDanAsync() => Task.Run(LayCheDoXemHuongDan);
         public static string TimFileHuongDanPdf()
         {
             try
@@ -283,6 +296,24 @@ Status: Ready
                     // Giải phóng đối tượng Process cũ trước khi tạo mới (trước đây bị ghi đè -> rò handle)
                     _huongDanWebProcess?.Dispose();
                     _huongDanWebProcess = null;
+                    DangKyDongKhiThoat();
+                    // Ưu tiên mở bằng Edge/Chrome ở chế độ "--app": cửa sổ riêng chỉ 1 trang, dùng chung tiến trình
+                    // trình duyệt đang chạy (không tốn thêm RAM), và khi thoát phần mềm có thể đóng cửa sổ này
+                    // mà KHÔNG đụng tới các tab khác của người dùng.
+                    string? trinhDuyet = TimTrinhDuyetHoTroApp();
+                    if (trinhDuyet != null)
+                    {
+                        try
+                        {
+                            var psi = new ProcessStartInfo { FileName = trinhDuyet, UseShellExecute = false };
+                            psi.ArgumentList.Add("--app=" + new Uri(targetWebPath).AbsoluteUri);
+                            _huongDanWebProcess = Process.Start(psi);
+                            _ = Task.Run(GhiNhanCuaSoAppVuaMo);   // ghi nhận handle cửa sổ để đóng khi thoát
+                            return true;
+                        }
+                        catch (Exception ex) { Debug.WriteLine("[HUONG DAN APP MODE] " + ex.Message); }
+                    }
+                    // Dự phòng: mở bằng trình duyệt mặc định (tab thường -> khi thoát sẽ không tự đóng để tránh tắt nhầm tab khác)
                     // Process.Start có thể trả về null dù trình duyệt đã mở (nó dùng lại tiến trình sẵn có):
                     // không ném lỗi nghĩa là hệ thống đã nhận yêu cầu mở.
                     _huongDanWebProcess = Process.Start(new ProcessStartInfo
@@ -300,8 +331,6 @@ Status: Ready
                 return false;
             }
         }
-        /// <summary>Bản chạy nền của MoHuongDanBangWeb (đồng bộ file + gọi shell không chặn giao diện).</summary>
-        public static Task<bool> MoHuongDanBangWebAsync() => Task.Run(MoHuongDanBangWeb);
         public static void DongHuongDan()
         {
             try
@@ -328,39 +357,173 @@ Status: Ready
             }
             catch { }
         }
-        public static bool TryActivateHuongDan()
-        {
-            try
-            {
-                lock (_processLock)
-                {
-                    return KichHoatCuaSoDangMo_NoLock();
-                }
-            }
-            catch { return false; }
-        }
         // Gọi khi đã giữ _processLock
+        // Trình duyệt (Chrome/Edge/Firefox) đang chạy thì Process.Start trả về null hoặc tiến trình trung gian
+        // tự thoát ngay -> không thể dựa vào _huongDanWebProcess. Vì vậy tìm cửa sổ trình duyệt theo TIÊU ĐỀ
+        // trang hướng dẫn (thẻ <title>), thấy thì đưa lên trước thay vì mở thêm tab mới.
         private static bool KichHoatCuaSoDangMo_NoLock()
         {
-            var p = _huongDanWebProcess;
-            if (p == null) return false;
+            IntPtr h = TimCuaSoTheoTieuDe();
+            if (h == IntPtr.Zero)
+            {
+                // Dự phòng: tiến trình do mình mở trực tiếp (trường hợp trình duyệt chưa chạy trước đó)
+                var p = _huongDanWebProcess;
+                if (p == null) return false;
+                try
+                {
+                    if (p.HasExited)
+                    {
+                        p.Dispose();
+                        _huongDanWebProcess = null;
+                        return false;
+                    }
+                    p.Refresh();   // MainWindowHandle bị cache, làm mới để lấy handle hiện tại
+                    h = p.MainWindowHandle;
+                }
+                catch { return false; }
+                if (h == IntPtr.Zero) return false;
+            }
             try
             {
-                if (p.HasExited)
-                {
-                    p.Dispose();
-                    _huongDanWebProcess = null;
-                    return false;
-                }
-                p.Refresh();   // MainWindowHandle bị cache, làm mới để lấy handle hiện tại
-                IntPtr h = p.MainWindowHandle;
-                if (h == IntPtr.Zero) return false;
                 if (IsIconic(h)) ShowWindow(h, SW_RESTORE);   // đang thu nhỏ thì bung lên
                 SetForegroundWindow(h);
                 return true;
             }
             catch { return false; }
         }
+        // ---- Mở bằng cửa sổ app riêng + tự đóng khi thoát phần mềm ----
+        private static IntPtr _hwndCuaSoApp;          // cửa sổ "--app" do phần mềm mở (chỉ chứa trang hướng dẫn)
+        private static int _daDangKyThoat;
+        private static string? TimTrinhDuyetHoTroApp()
+        {
+            // Edge có sẵn trên Win10/11; Chrome nếu có. Đọc đường dẫn từ "App Paths" của Windows.
+            foreach (string exe in new[] { "msedge.exe", "chrome.exe" })
+            {
+                foreach (var goc in new[] { Microsoft.Win32.Registry.CurrentUser, Microsoft.Win32.Registry.LocalMachine })
+                {
+                    try
+                    {
+                        using var k = goc.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\" + exe);
+                        if (k?.GetValue(null) is string p && File.Exists(p = p.Trim('"'))) return p;
+                    }
+                    catch { }
+                }
+            }
+            return null;
+        }
+        private static void GhiNhanCuaSoAppVuaMo()
+        {
+            // Cửa sổ mới xuất hiện trong vòng vài giây; dò theo tiêu đề trang tối đa ~10 giây
+            for (int i = 0; i < 50; i++)
+            {
+                IntPtr h = TimCuaSoTheoTieuDe();
+                if (h != IntPtr.Zero) { _hwndCuaSoApp = h; return; }
+                Thread.Sleep(200);
+            }
+        }
+        private static void DangKyDongKhiThoat()
+        {
+            // ProcessExit chạy cả khi thoát bình thường lẫn Environment.Exit
+            if (Interlocked.Exchange(ref _daDangKyThoat, 1) == 0)
+                AppDomain.CurrentDomain.ProcessExit += (_, _) => DongCuaSoHuongDanKhiThoat();
+        }
+        /// <summary>
+        /// Đóng cửa sổ hướng dẫn dạng web khi thoát phần mềm. Chỉ đóng cửa sổ "--app" do phần mềm tự mở
+        /// (cửa sổ đó chỉ có trang hướng dẫn) nên không bao giờ tắt nhầm các tab khác của người dùng.
+        /// </summary>
+        public static void DongCuaSoHuongDanKhiThoat()
+        {
+            try
+            {
+                IntPtr h = _hwndCuaSoApp;
+                _hwndCuaSoApp = IntPtr.Zero;
+                if (h == IntPtr.Zero || !IsWindow(h)) return;
+                // Kiểm tra lại tiêu đề: handle có thể đã bị Windows cấp cho cửa sổ khác sau khi người dùng tự đóng
+                string tieuDe = LayTieuDeTrang();
+                if (tieuDe.Length < 5) return;
+                int len = GetWindowTextLength(h);
+                var sb = new StringBuilder(len + 1);
+                GetWindowText(h, sb, sb.Capacity);
+                if (!sb.ToString().Normalize(NormalizationForm.FormC)
+                        .StartsWith(tieuDe.Normalize(NormalizationForm.FormC), StringComparison.OrdinalIgnoreCase)) return;
+                PostMessage(h, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+            }
+            catch (Exception ex) { Debug.WriteLine("[DONG HUONG DAN KHI THOAT] " + ex.Message); }
+        }
+        private const uint WM_CLOSE = 0x0010;
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool IsWindow(IntPtr hWnd);
+        // ---- Tìm cửa sổ trình duyệt đang hiển thị trang hướng dẫn theo tiêu đề ----
+        private static (string Path, long Ticks, string Title)? _tieuDeDem;
+        private static string LayTieuDeTrang()
+        {
+            try
+            {
+                string path = Path.Combine(SrcMainDir, TenFileHtml);
+                var fi = new FileInfo(path);
+                if (!fi.Exists) return string.Empty;
+                if (_tieuDeDem is { } c && c.Path == path && c.Ticks == fi.LastWriteTimeUtc.Ticks) return c.Title;
+                string title = string.Empty;
+                // Thẻ <title> nằm ở đầu tệp -> chỉ đọc 64KB đầu, không nạp cả tệp
+                using (var sr = new StreamReader(path, Encoding.UTF8, true))
+                {
+                    char[] buf = new char[65536];
+                    int n = sr.ReadBlock(buf, 0, buf.Length);
+                    var m = System.Text.RegularExpressions.Regex.Match(new string(buf, 0, n),
+                        @"<title[^>]*>\s*(.*?)\s*</title>",
+                        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+                    if (m.Success) title = System.Net.WebUtility.HtmlDecode(m.Groups[1].Value).Trim();
+                }
+                _tieuDeDem = (path, fi.LastWriteTimeUtc.Ticks, title);
+                return title;
+            }
+            catch { return string.Empty; }
+        }
+        private static IntPtr TimCuaSoTheoTieuDe()
+        {
+            string tieuDe = LayTieuDeTrang();
+            if (tieuDe.Length < 5) return IntPtr.Zero;   // tiêu đề quá ngắn/không có -> dễ nhận nhầm, bỏ qua
+            string tieuDeChuan = tieuDe.Normalize(NormalizationForm.FormC);
+            uint pidMinh = (uint)Environment.ProcessId;
+            IntPtr ketQua = IntPtr.Zero;
+            var sb = new StringBuilder(512);
+            EnumWindows((hWnd, _) =>
+            {
+                if (!IsWindowVisible(hWnd)) return true;
+                GetWindowThreadProcessId(hWnd, out uint pid);
+                if (pid == pidMinh) return true;   // bỏ qua cửa sổ của chính phần mềm
+                int len = GetWindowTextLength(hWnd);
+                if (len < tieuDe.Length) return true;
+                sb.Clear();
+                sb.EnsureCapacity(len + 1);
+                if (GetWindowText(hWnd, sb, sb.Capacity) <= 0) return true;
+                string t = sb.ToString().Normalize(NormalizationForm.FormC);
+                if (t.StartsWith(tieuDeChuan, StringComparison.OrdinalIgnoreCase))
+                {
+                    ketQua = hWnd;
+                    return false;   // dừng duyệt
+                }
+                return true;
+            }, IntPtr.Zero);
+            return ketQua;
+        }
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+        private static extern int GetWindowTextLength(IntPtr hWnd);
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
         private const int SW_RESTORE = 9;
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);

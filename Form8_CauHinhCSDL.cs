@@ -1,393 +1,309 @@
-﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-using Krypton.Toolkit; // 🟢 BẮT BUỘC THÊM ĐỂ SỬ DỤNG GIAO DIỆN KRYPTON
-using Microsoft.Data.Sqlite;
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
+using Krypton.Toolkit;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
-using System.Runtime.InteropServices;
 namespace PhanMemThiDua2026
 {
-    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+    //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
     public partial class Form8_CauHinhCSDL : Form
     {
-        private readonly string _csdl1Path = Module_DanduongGPS.DuongDanCSDL1;
-        private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private int soLanSai = 0;
         private const int MaxSai = 5;
-        // 🌟 KHAI BÁO CẤU HÌNH VIỀN UI/UX (CHUẨN WINDOWS 11)
-        private static readonly Color FocusBorderColor = Color.FromArgb(99, 102, 241); // Chàm (cùng tông nút)
-        private static readonly Color NormalBorderColor = Color.FromArgb(51, 65, 85);  // Xám đậm mặc định
-        private const int FocusBorderWidth = 2;                                       // Độ dày khi Focus
-        private const int NormalBorderWidth = 1;                                      // Độ dày bình thường
+        private const string HANH_DONG_NHAT_KY = "Truy cập phần mềm quản lý cơ sở dữ liệu";
+        private const string CHU_NUT_XAC_THUC = "Xác thực";
+        private const string CHU_NUT_DANG_XU_LY = "Đang xử lý...";
+        // static: đếm theo tiến trình. Đóng rồi mở lại form không làm đếm lại từ 0 (bản cũ đếm theo từng form => thử vô hạn lần)
+        private static int _soLanSai;
+        private bool _dangXuLy;
+        // Viền ô nhập (Windows 11): chàm khi có focus, xám đậm bình thường
+        private static readonly Color FocusBorderColor = Color.FromArgb(99, 102, 241);
+        private static readonly Color NormalBorderColor = Color.FromArgb(51, 65, 85);
+        private const int FocusBorderWidth = 2;
+        private const int NormalBorderWidth = 1;
         public Form8_CauHinhCSDL()
         {
             InitializeComponent();
-            InitToolTips_CauHinhCSDL();
-            InitBorderlessStyle();
+            NapLogo();
+            DoubleBuffered = true;
+            AcceptButton = btn_DangNhap;     // Enter = Xác thực
+            CancelButton = btn_Thoat;        // Esc   = Hủy
+            InitToolTips();
+            InitFocusEffects();
+            CapNhatTrangThaiHienMatKhau();   // che mật khẩu ngay từ đầu, không đợi sự kiện Load
+            Module_FormKhongVien.ApDung(this, this, cardPanel, pnlHeader, picLogo, lblTitle, lblSubtitle);
         }
-        // ===== GIAO DIỆN KHÔNG VIỀN, BO TRÒN, KÉO ĐƯỢC =====
-        private void InitBorderlessStyle()
+        // Tải tên Admin ở luồng nền: bản cũ đọc SQLite + giải mã AES ngay trên luồng giao diện lúc mở form
+        private async void Form8_Load(object? sender, EventArgs e)
         {
-            this.DoubleBuffered = true;
-            this.CancelButton = btn_Thoat; // Esc = Hủy
-            this.Load += (s, e) => ApplyRoundedRegion();
-            this.Resize += (s, e) => ApplyRoundedRegion();
-            foreach (Control c in new Control[] { this, cardPanel, pnlHeader, picLogo, lblTitle, lblSubtitle })
-                c.MouseDown += DragForm_MouseDown;
-        }
-        private void ApplyRoundedRegion()
-        {
-            const int radius = 22;
-            int d = radius * 2;
-            using var path = new GraphicsPath();
-            path.AddArc(0, 0, d, d, 180, 90);
-            path.AddArc(Width - d, 0, d, d, 270, 90);
-            path.AddArc(Width - d, Height - d, d, d, 0, 90);
-            path.AddArc(0, Height - d, d, d, 90, 90);
-            path.CloseFigure();
-            this.Region?.Dispose();
-            this.Region = new Region(path);
-        }
-        [DllImport("user32.dll")] private static extern bool ReleaseCapture();
-        [DllImport("user32.dll")] private static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
-        private void DragForm_MouseDown(object? sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
+            try
             {
-                ReleaseCapture();
-                SendMessage(this.Handle, 0xA1, 0x2, 0); // WM_NCLBUTTONDOWN, HTCAPTION
+                ActiveControl = Text_Password;   // Focus() trước khi form hiện là vô tác dụng; ActiveControl thì có
+                string? ten = await Task.Run(Module_XacThucAdmin.DocTenAdmin);
+                if (!IsDisposed && !string.IsNullOrEmpty(ten) && string.IsNullOrEmpty(Text_Admin.Text))
+                    Text_Admin.Text = ten;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Form8] Lỗi nạp tên tài khoản: {ex.Message}");
             }
         }
-        private void Form8_Load(object? sender, EventArgs e)
+        // ===================== GIAO DIỆN =====================
+        private void InitToolTips()
         {
-            this.MaximizeBox = false;
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.AcceptButton = btn_DangNhap;
-            LoadTaiKhoanMacDinh();
-            CapNhatTrangThaiHienMatKhau();
-            // 🌟 KÍCH HOẠT TÍNH NĂNG TÔ MÀU VIỀN TỰ ĐỘNG
-            InitFocusEffects();
-            Text_Password.Focus();
+            // Dùng toolTip1 (thuộc 'components') nên được giải phóng cùng form. Bản cũ tạo ToolTip cục bộ rồi bỏ => rò handle.
+            toolTip1.IsBalloon = true;
+            toolTip1.ToolTipTitle = "Cấu hình cơ sở dữ liệu";
+            toolTip1.ToolTipIcon = ToolTipIcon.Info;
+            toolTip1.InitialDelay = 200;
+            toolTip1.AutoPopDelay = 1500;
+            toolTip1.ReshowDelay = 100;
+            toolTip1.ShowAlways = true;
+            toolTip1.SetToolTip(Chex_HienMatKhau, "Hiển thị/ẩn mật khẩu đăng nhập");
+            toolTip1.SetToolTip(btn_DangNhap, "Xác thực thông tin và truy cập cấu hình CSDL");
+            toolTip1.SetToolTip(btn_Thoat, "Thoát khỏi màn hình cấu hình cơ sở dữ liệu");
         }
-        // 🌟 HÀM TÔ MÀU VIỀN CHUẨN KỸ SƯ (CHỐNG MEMORY LEAK)
         private void InitFocusEffects()
         {
-            // Đảm bảo Text_Admin và Text_Password là dạng KryptonTextBox trong Designer
-            var controls = new List<KryptonTextBox> { Text_Admin, Text_Password };
-            foreach (var ktb in controls)
+            foreach (KryptonTextBox ktb in new[] { Text_Admin, Text_Password })
             {
-                if (ktb == null) continue;
-                // Thiết lập viền mặc định
                 ktb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
-                ktb.StateCommon.Border.Color1 = NormalBorderColor;
-                ktb.StateCommon.Border.Color2 = NormalBorderColor;
-                ktb.StateCommon.Border.Width = NormalBorderWidth;
-                // An toàn: Hủy đăng ký trước khi gắn sự kiện mới
-                ktb.Enter -= Ktb_EnterFocus;
-                ktb.Leave -= Ktb_LeaveFocus;
+                DatVien(ktb, NormalBorderColor, NormalBorderWidth);
                 ktb.Enter += Ktb_EnterFocus;
                 ktb.Leave += Ktb_LeaveFocus;
             }
         }
+        // Không gọi Refresh(): Krypton tự vẽ lại khi đổi palette; Refresh ép vẽ đồng bộ mỗi lần chuyển ô
         private void Ktb_EnterFocus(object? sender, EventArgs e)
         {
-            if (sender is KryptonTextBox ktb)
-            {
-                ktb.StateCommon.Border.Color1 = FocusBorderColor;
-                ktb.StateCommon.Border.Color2 = FocusBorderColor;
-                ktb.StateCommon.Border.Width = FocusBorderWidth;
-                ktb.Refresh(); // Cập nhật UI ngay lập tức
-            }
+            if (sender is KryptonTextBox ktb) DatVien(ktb, FocusBorderColor, FocusBorderWidth);
         }
         private void Ktb_LeaveFocus(object? sender, EventArgs e)
         {
-            if (sender is KryptonTextBox ktb)
+            if (sender is KryptonTextBox ktb) DatVien(ktb, NormalBorderColor, NormalBorderWidth);
+        }
+        private static void DatVien(KryptonTextBox ktb, Color mau, int doDay)
+        {
+            ktb.StateCommon.Border.Color1 = mau;
+            ktb.StateCommon.Border.Color2 = mau;
+            ktb.StateCommon.Border.Width = doDay;
+        }
+        // Một cơ chế duy nhất cho che/hiện mật khẩu (bản cũ đặt song song PasswordChar và UseSystemPasswordChar)
+        private void CapNhatTrangThaiHienMatKhau()
+        {
+            bool hien = Chex_HienMatKhau.Checked;
+            Text_Password.UseSystemPasswordChar = false;
+            Text_Password.PasswordChar = hien ? '\0' : '●';
+            Chex_HienMatKhau.ForeColor = hien ? Color.FromArgb(74, 222, 128) : Color.FromArgb(148, 163, 184);
+        }
+        // Trạng thái "đang bận": khóa nút Xác thực (chống bấm đúp / Enter liên tục), đổi chữ nút cho người dùng biết
+        private void DatTrangThaiBan(bool ban)
+        {
+            _dangXuLy = ban;
+            btn_DangNhap.Enabled = !ban;
+            btn_DangNhap.Values.Text = ban ? CHU_NUT_DANG_XU_LY : CHU_NUT_XAC_THUC;
+        }
+        // ===================== XÁC THỰC =====================
+        private async void btn_DangNhap_Click(object? sender, EventArgs e)
+        {
+            if (_dangXuLy) return;
+            string ten = Text_Admin.Text.Trim();
+            string mk = Text_Password.Text.Trim();
+            if (ten.Length == 0 || mk.Length == 0)
             {
-                ktb.StateCommon.Border.Color1 = NormalBorderColor;
-                ktb.StateCommon.Border.Color2 = NormalBorderColor;
-                ktb.StateCommon.Border.Width = NormalBorderWidth;
-                ktb.Refresh();
+                MessageBox.Show(this, "⚠️ Vui lòng nhập đầy đủ tên và mật khẩu.", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-        }
-        // CÁC HÀM XỬ LÝ GỐC CỦA BẠN (GIỮ NGUYÊN 100%)
-        private void InitToolTips_CauHinhCSDL()
-        {
-            var toolTip_CSDL = new ToolTip
-            {
-                IsBalloon = true,
-                ToolTipTitle = "Cấu hình cơ sở dữ liệu",
-                ToolTipIcon = ToolTipIcon.Info,
-                InitialDelay = 200,
-                AutoPopDelay = 1500,
-                ReshowDelay = 100,
-                ShowAlways = true
-            };
-            var tips = new Dictionary<Control, string>
-            {
-                { Chex_HienMatKhau, "Hiển thị/ẩn mật khẩu đăng nhập" },
-                { btn_DangNhap, "Xác thực thông tin và truy cập cấu hình CSDL" },
-                { btn_Thoat, "Thoát khỏi màn hình cấu hình cơ sở dữ liệu" }
-            };
-            foreach (var tip in tips)
-            {
-                if (tip.Key != null)
-                    toolTip_CSDL.SetToolTip(tip.Key, tip.Value);
-            }
-        }
-        private string GetValidCsdlPath()
-        {
-            if (!string.IsNullOrWhiteSpace(_csdl2Path) && File.Exists(_csdl2Path))
-                return _csdl2Path;
-            if (!string.IsNullOrWhiteSpace(_csdl1Path) && File.Exists(_csdl1Path))
-                return _csdl1Path;
-            return string.Empty;
-        }
-        private void LoadTaiKhoanMacDinh()
-        {
+            DatTrangThaiBan(true);
+            bool dongUngDung = false;
             try
             {
-                string csdl = _csdl1Path;
-                if (string.IsNullOrEmpty(csdl) || !File.Exists(csdl))
+                // SQLite + AES chạy ở luồng nền: giao diện không bị khựng khi bấm Xác thực
+                var (kq, tenChuan) = await Task.Run(() => Module_XacThucAdmin.XacThuc(ten, mk));
+                if (IsDisposed) return;
+                switch (kq)
                 {
-                    csdl = GetValidCsdlPath();
-                }
-                if (string.IsNullOrEmpty(csdl))
-                {
-                    Debug.WriteLine("DEBUG: Không tìm thấy tệp CSDL để load tên tài khoản.");
-                    Text_Admin.Text = "";
-                    return;
-                }
-                using SqliteConnection conn = new SqliteConnection("Data Source=" + csdl);
-                conn.Open();
-                string sql = "SELECT TenTaiKhoan FROM Admin WHERE ID = 1 LIMIT 1";
-                using SqliteCommand cmd = new SqliteCommand(sql, conn);
-                using SqliteDataReader reader = cmd.ExecuteReader();
-                if (reader.Read())
-                {
-                    string encrypted = reader.GetString(0);
-                    // ⭐ SỬA LỖI ĐỌC (FALLBACK): Xử lý an toàn nếu AES nuốt lỗi khi CSDL chưa mã hóa
-                    string dec = Module_BaoMatAES.GiaiMa(encrypted);
-                    Text_Admin.Text = string.IsNullOrWhiteSpace(dec) ? encrypted : dec;
+                    case Module_XacThucAdmin.KetQua.ThanhCong:
+                        _soLanSai = 0;
+                        // Gán tên CHUẨN trong CSDL (bản cũ gán chuỗi người dùng gõ: "ADMIN" thay cho "admin")
+                        Module_TaiKhoan.TenTaiKhoan_RAM = tenChuan;
+                        SessionInfo.TenTaiKhoan = tenChuan;
+                        // Không ghi đè giờ đăng nhập phần mềm nếu nơi khác đã đặt (nhật ký bảo trì lấy giá trị này)
+                        if (SessionInfo.ThoiGianDangNhap == DateTime.MinValue)
+                            SessionInfo.ThoiGianDangNhap = DateTime.Now;
+                        Module_NhatKy.GhiNhatKy(taiKhoan: tenChuan, hanhDong: HANH_DONG_NHAT_KY,
+                            ghiChu: $"Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}");
+                        await MoCongCuQuanLyCSDLAsync();
+                        break;
+                    case Module_XacThucAdmin.KetQua.SaiThongTin:
+                        _soLanSai++;
+                        // Ghi nhật ký TRƯỚC khi hiện hộp thoại / thoát ứng dụng để lần sai cuối chắc chắn được ghi
+                        Module_NhatKy.GhiNhatKy(taiKhoan: ten, hanhDong: HANH_DONG_NHAT_KY, ghiChu: $"Thất bại! (lần {_soLanSai}/{MaxSai})");
+                        Text_Password.Clear();
+                        if (_soLanSai >= MaxSai)
+                        {
+                            dongUngDung = true;
+                            MessageBox.Show(this, $"Bạn đã nhập sai quá {MaxSai} lần. Ứng dụng sẽ đóng.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            Module_ThoatAnToan.ThoatDutKhoat();
+                            return;
+                        }
+                        await Task.Delay(250 * _soLanSai);   // càng sai nhiều càng chờ lâu (làm chậm dò mật khẩu)
+                        if (IsDisposed) return;
+                        MessageBox.Show(this, $"❌ Sai tên hoặc mật khẩu! Lần {_soLanSai}/{MaxSai}", "Đăng nhập thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Text_Password.Focus();
+                        break;
+                    default:
+                        // Lỗi dữ liệu/hệ thống: không tính vào số lần nhập sai
+                        MessageBox.Show(this, "⚠️ Không đọc được tài khoản quản trị từ cơ sở dữ liệu.\nVui lòng kiểm tra tệp CSDL rồi thử lại.",
+                            "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"DEBUG: Lỗi LoadTaiKhoanMacDinh: {ex.Message}");
-                Text_Admin.Text = "";
+                Debug.WriteLine($"[Form8] Lỗi xác thực: {ex}");
+                if (!IsDisposed)
+                    MessageBox.Show(this, $"⚠️ Lỗi hệ thống: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Luôn mở khóa nút trừ khi form đã đóng / ứng dụng đang thoát (bản cũ không có finally: lỗi giữa chừng làm nút chết vĩnh viễn)
+                if (!dongUngDung && !IsDisposed) DatTrangThaiBan(false);
             }
         }
-        private void Form8_FormClosing(object? sender, FormClosingEventArgs e)
+        // ===================== MỞ CÔNG CỤ QUẢN LÝ CSDL =====================
+        /// <summary>
+        /// Chuẩn bị công cụ ở luồng nền (form vẫn hiện, nút báo "Đang xử lý..."), mở xong mới ẩn form,
+        /// chờ người dùng đóng công cụ rồi đóng form. Bản cũ: Hide() ngay từ đầu (người dùng không thấy gì suốt lúc chép tệp),
+        /// bỏ quên form ẩn mãi mãi (rò RAM; nếu mở bằng ShowDialog thì cửa sổ chủ bị khóa cứng) và cho bấm Xác thực lần nữa => mở 2 công cụ.
+        /// </summary>
+        private async Task MoCongCuQuanLyCSDLAsync()
         {
-            // GIA CỐ: Nếu Form này được gọi bằng .ShowDialog(), việc Hide() có thể gây treo ẩn.
-            // Tốt nhất là chỉ Hide khi ứng dụng cấu hình chạy nền, nếu không hãy để nó Close bình thường.
-            e.Cancel = true;
-            this.Hide();
-        }
-        private bool KiemTraTaiKhoanTrongCSDL(string tenNhap, string mkNhap)
-        {
+            string duongDan = await Task.Run(TimDuongDanCongCu);
+            if (IsDisposed) return;
+            if (duongDan.Length == 0)
+            {
+                MessageBox.Show(this,
+                    $"❌ Không tìm thấy chương trình '{Module_DanduongGPS.TenFileDBBrowserSQLite}'.\n\n" +
+                    "Đã tìm trong các thư mục:\n" +
+                    $"- {Module_DanduongGPS.ThuMucCongCuQuanLyCSDL}\n" +
+                    $"- {Module_DanduongGPS.ThuMucBackupCongCuQuanLyCSDL}\n" +
+                    $"- {Path.Combine(AppContext.BaseDirectory, Module_DanduongGPS.TenThuMucCongCuQuanLyCSDL)}\n" +
+                    $"- {AppContext.BaseDirectory}\n\n" +
+                    "Hãy đặt tệp này vào một trong các thư mục trên.",
+                    "Thiếu file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            Process? tienTrinh;
             try
             {
-                string csdl = _csdl1Path;
-                if (string.IsNullOrEmpty(csdl) || !File.Exists(csdl))
+                tienTrinh = Process.Start(new ProcessStartInfo
                 {
-                    MessageBox.Show("⚠️ Không tìm thấy tệp cơ sở dữ liệu. Vui lòng kiểm tra cấu hình.", "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return false;
-                }
-                using SqliteConnection conn = new SqliteConnection("Data Source=" + csdl);
-                conn.Open();
-                string sql = "SELECT TenTaiKhoan, MatKhau FROM Admin WHERE ID = 1 LIMIT 1";
-                using SqliteCommand cmd = new SqliteCommand(sql, conn);
-                using SqliteDataReader reader = cmd.ExecuteReader();
-                if (reader.Read())
-                {
-                    string tenCSDLRoi = reader.GetString(0).Trim();
-                    string mkCSDLRoi = reader.GetString(1).Trim();
-                    // ⭐ SỬA LỖI LOGIC: Phải GIẢI MÃ CSDL rồi mới đem so với thông tin người dùng gõ
-                    // Dùng kèm Fallback nếu CSDL cũ chưa mã hóa.
-                    string tenThucTe = Module_BaoMatAES.GiaiMa(tenCSDLRoi);
-                    if (string.IsNullOrWhiteSpace(tenThucTe)) tenThucTe = tenCSDLRoi;
-                    string mkThucTe = Module_BaoMatAES.GiaiMa(mkCSDLRoi);
-                    if (string.IsNullOrWhiteSpace(mkThucTe)) mkThucTe = mkCSDLRoi;
-                    // So sánh plain-text (Bỏ qua hoa thường cho Tài khoản, phân biệt hoa thường cho Mật khẩu)
-                    return string.Equals(tenThucTe, tenNhap, StringComparison.OrdinalIgnoreCase) &&
-                           mkThucTe == mkNhap;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"⚠️ Lỗi kết nối CSDL: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            return false;
-        }
-        // --- BẮT ĐẦU KHU VỰC GIA CỐ ASYNC/AWAIT ---
-        private async Task<string> VanLyTruongThanh_DuongDanMoPhanMem_CongCuQuanLyCSDLAsync()
-        {
-            // 1. LẤY ĐƯỜNG DẪN TỪ MODULE DÙNG CHUNG
-            string dbFolder = Module_DanduongGPS.ThuMucCongCuQuanLyCSDL;
-            string motherFolder = Module_DanduongGPS.ThuMucBackupCongCuQuanLyCSDL;
-            string exePath = Module_DanduongGPS.DuongDanDBBrowserSQLite;
-            try
-            {
-                // 2. NẾU CHƯA CÓ THƯ MỤC CÔNG CỤ
-                if (!Directory.Exists(dbFolder) &&
-                    Directory.Exists(motherFolder))
-                {
-                    await MuaThuOHoKaido_CopyDirectorySmartAsync(
-                        motherFolder,
-                        dbFolder);
-                }
-                // 3. KIỂM TRA FILE Ở VỊ TRÍ CHÍNH
-                if (File.Exists(exePath))
-                    return exePath;
-                // 4. KIỂM TRA FILE TRONG THƯ MỤC BACKUP
-                string motherExe = Path.Combine(motherFolder, Module_DanduongGPS.TenFileDBBrowserSQLite);
-                if (File.Exists(motherExe))
-                    return motherExe;
-                // 5. FALLBACK 1
-                string fallback1 = Path.Combine(Application.StartupPath, Module_DanduongGPS.TenThuMucCongCuQuanLyCSDL, Module_DanduongGPS.TenFileDBBrowserSQLite);
-                if (File.Exists(fallback1))
-                    return fallback1;
-                // 6. FALLBACK 2
-                string fallback2 = Path.Combine(Application.StartupPath, Module_DanduongGPS.TenFileDBBrowserSQLite);
-                if (File.Exists(fallback2))
-                    return fallback2;
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(
-                    $"[Dường dẫn công cụ hỗ trợ Fix CSDL] Lỗi truy xuất: {ex.Message}");
-            }
-            return string.Empty;
-        }
-        // Bọc tác vụ IO nặng vào Task.Run để giải phóng giao diện
-        private async Task MuaThuOHoKaido_CopyDirectorySmartAsync(string srcDirPath, string dstDirPath)
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    if (!Directory.Exists(srcDirPath)) return;
-                    Directory.CreateDirectory(dstDirPath);
-                    foreach (string srcFile in Directory.GetFiles(srcDirPath))
-                    {
-                        string dstFile = Path.Combine(dstDirPath, Path.GetFileName(srcFile));
-                        if (!File.Exists(dstFile) || File.GetLastWriteTime(srcFile) > File.GetLastWriteTime(dstFile))
-                            File.Copy(srcFile, dstFile, true);
-                    }
-                    foreach (string folder in Directory.GetDirectories(srcDirPath))
-                    {
-                        string dstFolder = Path.Combine(dstDirPath, Path.GetFileName(folder));
-                        // Đệ quy vẫn chạy ngon lành bên trong Task
-                        MuaThuOHoKaido_CopyDirectorySmartAsync(folder, dstFolder).Wait();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Ghi log để sau này dễ truy vết nếu copy thất bại do quyền truy cập
-                    Debug.WriteLine($"Công cụ Copy] Lỗi chép file: {ex.Message}");
-                }
-            });
-        }
-        // Hàm này được thăng cấp lên async
-        private async void GoCuaTraiTim_MoChucNangSQLite()
-        {
-            try
-            {
-                this.Hide();
-                // Đợi quá trình tìm/chép file hoàn tất
-                string pathApp = await VanLyTruongThanh_DuongDanMoPhanMem_CongCuQuanLyCSDLAsync();
-                if (string.IsNullOrEmpty(pathApp))
-                {
-                    MessageBox.Show(
-                        "❌ Không tìm thấy chương trình 'DB Browser for SQLite.exe'.\n\n" +
-                        "Hãy kiểm tra thư mục:\n" +
-                        $"- {Module_DanduongGPS.ThuMucCoSoDuLieu}\n" +
-                        $"- %LocalAppData%\\PhanMemThiDua2026\\CongCuQuanLyCSDL\n" +
-                        $"- {Application.StartupPath}\\CongCuQuanLyCSDL\n\n" +
-                        "Hoặc đặt 'DB Browser for SQLite.exe' vào một trong các thư mục trên.",
-                        "Thiếu file", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.Show();
-                    return;
-                }
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = pathApp,
+                    FileName = duongDan,
+                    WorkingDirectory = Path.GetDirectoryName(duongDan) ?? AppContext.BaseDirectory,
                     UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Normal
                 });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"❌ Lỗi khi mở phần mềm: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                try { this.Show(); } catch { }
-            }
-        }
-        // --- KẾT THÚC KHU VỰC GIA CỐ ---
-        //private void CapNhatTrangThaiHienMatKhau()
-        //{
-        //    bool isChecked = Chex_HienMatKhau.Checked;
-        //    Text_Password.UseSystemPasswordChar = !isChecked;
-        //    Chex_HienMatKhau.ForeColor = isChecked ? Color.FromArgb(74, 222, 128) : Color.FromArgb(148, 163, 184);
-        //}
-        private void CapNhatTrangThaiHienMatKhau()
-        {
-            bool isChecked = Chex_HienMatKhau.Checked;
-            // Nếu CheckBox được chọn -> Hiện mật khẩu (xóa ký tự che PasswordChar)
-            // Nếu CheckBox không chọn -> Ẩn mật khẩu (gán lại ký tự '●')
-            Text_Password.PasswordChar = isChecked ? '\0' : '●';
-            // (Tùy chọn) Vẫn giữ UseSystemPasswordChar để đồng bộ với OS
-            Text_Password.UseSystemPasswordChar = !isChecked;
-            // Đổi màu chữ CheckBox theo trạng thái
-            Chex_HienMatKhau.ForeColor = isChecked ? Color.FromArgb(74, 222, 128) : Color.FromArgb(148, 163, 184);
-        }
-        // Thay đổi thành async để đợi Gõ Cửa Trái Tim
-        private void btn_DangNhap_Click(object? sender, EventArgs e)
-        {
-            string ten = Text_Admin.Text.Trim();
-            string mk = Text_Password.Text.Trim();
-            if (string.IsNullOrEmpty(ten) || string.IsNullOrEmpty(mk))
-            {
-                MessageBox.Show("⚠️ Vui lòng nhập đầy đủ tên và mật khẩu.", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, $"❌ Lỗi khi mở phần mềm: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            // GIA CỐ UX: Khóa nút đăng nhập để tránh người dùng click đúp (spam click)
-            btn_DangNhap.Enabled = false;
-            if (KiemTraTaiKhoanTrongCSDL(ten, mk))
+            Hide();
+            if (tienTrinh != null)
             {
-                Module_TaiKhoan.TenTaiKhoan_RAM = ten;
-                SessionInfo.TenTaiKhoan = ten;
-                SessionInfo.ThoiGianDangNhap = DateTime.Now;
-                Module_NhatKy.GhiNhatKy(taiKhoan: ten, hanhDong: "Truy cập phần mềm quản lý cơ sở dữ liệu", ghiChu: $"Thời gian: {SessionInfo.ThoiGianDangNhap:dd-MM-yyyy HH:mm:ss}");
-                // Gõ cửa trái tim giờ sẽ chạy bất đồng bộ
-                GoCuaTraiTim_MoChucNangSQLite();
+                using (tienTrinh)
+                {
+                    try { await tienTrinh.WaitForExitAsync(); }
+                    catch (Exception ex) { Debug.WriteLine($"[Form8] Chờ công cụ thoát: {ex.Message}"); }
+                }
             }
-            else
-            {
-                LamLoMotCuocTinh_ThongBaoSaiMatKhau();
-                Module_NhatKy.GhiNhatKy(taiKhoan: ten, hanhDong: "Truy cập phần mềm quản lý cơ sở dữ liệu", ghiChu: "Thất bại!");
-            }
-            // Mở khóa lại nút sau khi xử lý xong
-            btn_DangNhap.Enabled = true;
+            if (!IsDisposed) Close();
         }
-        private void LamLoMotCuocTinh_ThongBaoSaiMatKhau()
+        private static string TimDuongDanCongCu()
         {
-            soLanSai++;
-            Text_Password.Clear();
-            Text_Password.Focus();
-            if (soLanSai >= MaxSai)
+            string thuMucCongCu = Module_DanduongGPS.ThuMucCongCuQuanLyCSDL;
+            string thuMucMe = Module_DanduongGPS.ThuMucBackupCongCuQuanLyCSDL;
+            string exe = Module_DanduongGPS.DuongDanDBBrowserSQLite;
+            string tenExe = Module_DanduongGPS.TenFileDBBrowserSQLite;
+            try
             {
-                MessageBox.Show("Bạn đã nhập sai quá 5 lần. Ứng dụng sẽ đóng.", "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                Application.Exit();
+                if (File.Exists(exe)) return exe;
+                // Thiếu công cụ hoặc thư mục dở dang: chép bổ sung từ bản sao lưu (bản cũ chỉ chép khi cả thư mục chưa tồn tại)
+                if (Directory.Exists(thuMucMe))
+                {
+                    SaoChepThuMucThongMinh(thuMucMe, thuMucCongCu);
+                    if (File.Exists(exe)) return exe;
+                }
+                string[] khac =
+                {
+                    Path.Combine(thuMucMe, tenExe),
+                    Path.Combine(AppContext.BaseDirectory, Module_DanduongGPS.TenThuMucCongCuQuanLyCSDL, tenExe),
+                    Path.Combine(AppContext.BaseDirectory, tenExe)
+                };
+                foreach (string p in khac)
+                    if (File.Exists(p)) return p;
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show($"❌ Sai tên hoặc mật khẩu! Lần {soLanSai}/{MaxSai}", "Đăng nhập thất bại", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Debug.WriteLine($"[Form8] Lỗi tìm công cụ quản lý CSDL: {ex.Message}");
+            }
+            return string.Empty;
+        }
+        /// <summary>
+        /// Chép thư mục (đệ quy, chạy ĐỒNG BỘ trong 1 tác vụ nền). Khác bản cũ:
+        ///  - mỗi tệp có try/catch riêng (bản cũ: 1 tệp lỗi bỏ dở cả thư mục);
+        ///  - gỡ ReadOnly ở đích trước khi ghi đè (tệp trong "Database Backup" bị gắn ReadOnly, bản chép thừa hưởng nên lần cập nhật sau luôn lỗi);
+        ///  - chép qua tệp .tmp rồi Move: bị ngắt giữa chừng không để lại exe/dll cụt mà File.Exists vẫn báo "có";
+        ///  - không dùng Task.Run lồng nhau + .Wait() (nghẽn ThreadPool).
+        /// </summary>
+        private static void SaoChepThuMucThongMinh(string nguon, string dich)
+        {
+            Directory.CreateDirectory(dich);
+            foreach (string f in Directory.EnumerateFiles(nguon))
+            {
+                if (f.EndsWith(".tmp", StringComparison.OrdinalIgnoreCase)) continue;
+                string d = Path.Combine(dich, Path.GetFileName(f));
+                string tam = d + ".tmp";
+                try
+                {
+                    var fs = new FileInfo(f);
+                    var fd = new FileInfo(d);
+                    bool canChep = !fd.Exists
+                                   || (fd.Length == 0 && fs.Length > 0)
+                                   || fs.LastWriteTimeUtc > fd.LastWriteTimeUtc;
+                    if (!canChep) continue;
+                    File.Copy(f, tam, true);
+                    File.SetAttributes(tam, FileAttributes.Normal);
+                    if (fd.Exists) File.SetAttributes(d, FileAttributes.Normal);
+                    File.Move(tam, d, true);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[Form8] Không chép được '{Path.GetFileName(f)}': {ex.Message}");
+                }
+                finally
+                {
+                    try { if (File.Exists(tam)) File.Delete(tam); } catch { }
+                }
+            }
+            foreach (string sub in Directory.EnumerateDirectories(nguon))
+            {
+                try
+                {
+                    if ((File.GetAttributes(sub) & FileAttributes.ReparsePoint) != 0) continue;   // chống vòng lặp junction/symlink
+                    SaoChepThuMucThongMinh(sub, Path.Combine(dich, Path.GetFileName(sub)));
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[Form8] Không chép được thư mục '{sub}': {ex.Message}");
+                }
             }
         }
+        // ===================== NÚT KHÁC =====================
         private void btn_Thoat_Click(object? sender, EventArgs e)
         {
             Module_NhatKy.GhiNhatKy(
                 taiKhoan: Module_TaiKhoan.TenTaiKhoan_RAM,
-                hanhDong: "Truy cập phần mềm quản lý cơ sở dữ liệu",
+                hanhDong: HANH_DONG_NHAT_KY,
                 ghiChu: "Hủy tiến trình!"
             );
             Close();

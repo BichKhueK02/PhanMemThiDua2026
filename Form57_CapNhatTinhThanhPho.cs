@@ -1,15 +1,8 @@
-﻿using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using ClosedXML.Excel;
+using Microsoft.Data.Sqlite;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using ClosedXML.Excel;
 using System.Globalization;
+using System.Text;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -24,7 +17,7 @@ namespace PhanMemThiDua2026
         private bool _daHienLanDau;                    // false tới khi form hiện xong: bỏ qua mọi SelectionChanged "tự phát" lúc dựng lưới
         private bool _dangBan;                         // đang nhập/xuất Excel: chặn đóng form giữa chừng
         private DataTable? _dtHienTai;
-        private readonly Font _fontHeader = new Font(SystemFonts.MessageBoxFont.FontFamily, 10f, FontStyle.Bold);
+        private readonly Font _fontHeader = new Font(SystemFonts.MessageBoxFont!.FontFamily, 10f, FontStyle.Bold);
         private readonly Font _fontData = new Font(SystemFonts.MessageBoxFont.FontFamily, 9f);
         public Form57_CapNhatTinhThanhPho()
         {
@@ -852,7 +845,7 @@ namespace PhanMemThiDua2026
                         ws.PageSetup.Margins.Left = 0.5;
                         ws.PageSetup.Margins.Right = 0.5;
                         Module_BanQuyen.DongDauExcel(workbook);
-                        workbook.SaveAs(filePath);
+                        Module_ExcelAnToan.LuuAnToan(workbook, filePath);
                     });
                 }
                 catch (IOException ioEx)

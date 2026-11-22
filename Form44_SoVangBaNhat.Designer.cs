@@ -1014,7 +1014,6 @@
         private TableLayoutPanel tableLayoutPanel8;
         private Krypton.Toolkit.KryptonButton kryptonButton_LuuDataSoVang;
         private RichTextBox richTextBox1_ThanhTich;
-        private ToolStripMenuItem luuVaoSoVang_ToolStripMenuItem;
         private GroupBox groupBox3_ThongTinCBCS;
         private Krypton.Toolkit.KryptonDataGridView kryptonDataGridView1;
         private StatusStrip statusStrip1;
@@ -1053,7 +1052,6 @@
         private ToolStripMenuItem toolStripMenuItem4_NhapDataVaoCSDL;
         private ToolStripMenuItem toolStripMenuItem_XuatSoVangGoc;
         private ToolStripSeparator toolStripMenuItem5;
-        private ToolStripMenuItem toolStripMenuItem4;
         private SplitContainer splitContainer1;
     }
 }

@@ -9,13 +9,10 @@ namespace PhanMemThiDua2026
     public partial class Form13_DSChiHuy : Form
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-
-
         // 1) Ba màu viền của form lấy từ module (hết viền xanh dương)
         private readonly Color _focusColor = Module_GiaoDienForm13Web.MauVienChon;
         private readonly Color _hoverColor = Module_GiaoDienForm13Web.MauVienHover;
         private readonly Color _normalColor = Module_GiaoDienForm13Web.MauVienO;
-
         private KryptonTextBox[] hovatenTextBoxes = Array.Empty<KryptonTextBox>();
         private KryptonTextBox[] chucvuTextBoxes = Array.Empty<KryptonTextBox>();
         private KryptonTextBox[] tatCaTextBoxes = Array.Empty<KryptonTextBox>();
@@ -127,11 +124,11 @@ namespace PhanMemThiDua2026
             string csdl = _csdl2Path;
             if (!System.IO.File.Exists(csdl)) return;
             // ⭐ XÁC ĐỊNH BẢNG TỰ ĐỘNG THEO PHIÊN BẢN
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().LaCheDoTanBinh();
             string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
             try
             {
-                using var conn = new SqliteConnection($"Data Source={csdl}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdl));
                 conn.Open();
                 // 🛡️ BẢO VỆ CSDL: Tự động tạo bảng nếu chưa tồn tại (chống sập khi vừa cài đặt)
                 using (var cmdInit = conn.CreateCommand())
@@ -180,9 +177,9 @@ namespace PhanMemThiDua2026
         {
             if (!KiemTraHopLe()) return;
             string textBanDau = kryptonButton1_Btn_Capnhat.Values.Text;
-            Image anhBanDau = kryptonButton1_Btn_Capnhat.Values.Image;
+            Image? anhBanDau = kryptonButton1_Btn_Capnhat.Values.Image;
             // ⭐ XÁC ĐỊNH BẢNG LƯU DỮ LIỆU
-            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+            bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().LaCheDoTanBinh();
             string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
             try
             {
@@ -194,7 +191,7 @@ namespace PhanMemThiDua2026
                 await Task.Delay(100);
                 await Task.Run(() =>
                 {
-                    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                    using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                     conn.Open();
                     using var tran = conn.BeginTransaction();
                     try
@@ -220,7 +217,7 @@ namespace PhanMemThiDua2026
                 });
                 label13.ForeColor = Color.DarkGreen;
                 label13.Text = "✔ Đã bảo mật và lưu thành công.";
-                string danhXung = laTanBinh ? "Tân binh" : "CBCS";
+                string danhXung = laTanBinh ? Module_TaiKhoan.TenTB_Hoa : "CBCS";
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Cập nhật lãnh đạo ({danhXung})", "Thành công");
                 LoadDuLieu();
             }

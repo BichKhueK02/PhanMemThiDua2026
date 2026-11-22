@@ -3,7 +3,6 @@ using Microsoft.CSharp.RuntimeBinder;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
-
 namespace PhanMemThiDua2026
 {
     // =====================================================================================
@@ -19,11 +18,8 @@ namespace PhanMemThiDua2026
     //  - Mọi PDF xuất ra thư mục tạm rồi mới chuyển vào đích: không để lại tệp cụt/rỗng ở thư mục đích.
     // =====================================================================================
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-
     internal readonly record struct MucXuatPdf(string TenSheet, string TenPdf);
-
     internal readonly record struct ThongTinThayThe(string DiaDiemThangNam, string TextKemTheo, int LenDau, int LenGiua);
-
     internal sealed class KetQuaXuatPdf
     {
         public List<string> DaTao { get; } = new();
@@ -31,38 +27,30 @@ namespace PhanMemThiDua2026
         public string? FileCuoi { get; set; }
         public string TenDongCo { get; set; } = "";
     }
-
     /// <summary>Lỗi do điều kiện của người dùng (cần họ xử lý): dừng hẳn, không thử động cơ khác.</summary>
     internal sealed class LoiNguoiDungException : Exception
     {
         public LoiNguoiDungException(string message) : base(message) { }
     }
-
     /// <summary>Động cơ này không dùng được (chưa cài, treo, từ chối PDF...): thử động cơ kế tiếp.</summary>
     internal sealed class LoiDongCoException : Exception
     {
         public LoiDongCoException(string message) : base(message) { }
     }
-
     internal static class Module_XuatPdfOffice
     {
         private const int GioiHanDuongDan = 250;                 // an toàn dưới MAX_PATH = 260
         private const int ThoiGianToiDaMoiSheetCom = 90_000;     // ms
         private const int ThoiGianToiDaMoiSheetLibre = 120_000;  // ms (máy yếu / lần chạy đầu tạo hồ sơ)
-
         private static readonly string[] ProgIdCom = { "Excel.Application", "Ket.Application", "ET.Application" };
-
         private const string TieuDeTep = "Ban quyen thuoc PhanMemThiDua2026";
         private const string TacGiaTep = "TrungKien_0975287973";
         private const string GhiChuTep = "Tep tin duoc xuat tu he thong";
-
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
         // =====================================================================================
         //  1) TIỆN ÍCH CÔNG KHAI
         // =====================================================================================
-
         /// <summary>Tên tệp PDF hợp lệ trên Windows (bỏ ký tự cấm, thêm .pdf, bỏ khoảng trắng/dấu chấm cuối).</summary>
         public static string TenTepHopLe(string ten)
         {
@@ -72,7 +60,6 @@ namespace PhanMemThiDua2026
             if (!s.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)) s += ".pdf";
             return s;
         }
-
         /// <summary>Liệt kê tên sheet (bỏ THONG_TIN). Đọc bằng luồng chia sẻ nên tệp đang mở trong Excel/WPS vẫn đọc được. Chạy ở luồng nền.</summary>
         public static List<string> LietKeTenSheet(string excelPath)
         {
@@ -95,7 +82,6 @@ namespace PhanMemThiDua2026
                 throw new IOException("Không đọc được tệp Excel (đang bị khóa hoặc không đủ quyền): " + ex.Message, ex);
             }
         }
-
         public static string? TimLibreOffice()
         {
             string portable = Path.Combine(AppContext.BaseDirectory, "LibreOffice", "program", "soffice.exe");
@@ -112,11 +98,9 @@ namespace PhanMemThiDua2026
             }
             return null;
         }
-
         // =====================================================================================
         //  2) ĐIỂM VÀO
         // =====================================================================================
-
         /// <param name="baoDaXong">Gọi (từ luồng nền) mỗi khi xong thêm 1 tệp; tham số = tổng số tệp đã xong.</param>
         public static async Task<KetQuaXuatPdf> XuatAsync(
             string excelGoc, string thuMucDich, IReadOnlyList<MucXuatPdf> danhSach,
@@ -124,16 +108,14 @@ namespace PhanMemThiDua2026
         {
             var p = new PhienXuat { TT = tt, Bao = baoDaXong, Ct = ct };
             p.Muc.AddRange(KiemTraTruocKhiXuat(thuMucDich, danhSach));
-
-            string thuMucLamViec = Path.Combine(Path.GetTempPath(), "PMTD_Xuat_" + Guid.NewGuid().ToString("N"));
+            // Thư mục làm việc trong Database\NhatKyNhaPhatTrien\TepTam thay cho %TEMP% (= AppData\Local\Temp)
+            string thuMucLamViec = Path.Combine(Module_NhatKyNhaPhatTrien.ThuMucTam, "PMTD_Xuat_" + Guid.NewGuid().ToString("N"));
             try
             {
                 Directory.CreateDirectory(thuMucLamViec);
                 p.ThuMucTam = thuMucLamViec;
                 p.BanSao = TaoBanSao(excelGoc, thuMucLamViec);
-
                 var nhatKyDongCo = new List<string>();
-
                 foreach (string progId in ProgIdCom)
                 {
                     if (!p.ConLai.Any()) break;
@@ -150,7 +132,6 @@ namespace PhanMemThiDua2026
                         Debug.WriteLine($"[XuatPdf] Động cơ {progId} dừng: {ex.Message}");
                     }
                 }
-
                 if (p.ConLai.Any())
                 {
                     string? libre = TimLibreOffice();
@@ -173,7 +154,6 @@ namespace PhanMemThiDua2026
                         }
                     }
                 }
-
                 // Không động cơ nào xuất được dù chỉ 1 tệp, và cũng không có lỗi theo từng sheet → báo rõ nguyên nhân
                 if (p.DaTao.Count == 0 && p.Loi.Count == 0)
                 {
@@ -181,7 +161,6 @@ namespace PhanMemThiDua2026
                         "Không thể tạo tệp PDF bằng bất kỳ phần mềm văn phòng nào trên máy này (Microsoft Excel, WPS, LibreOffice).\n" +
                         string.Join("\n", nhatKyDongCo.Select(x => "• " + x)));
                 }
-
                 var kq = new KetQuaXuatPdf { FileCuoi = p.FileCuoi, TenDongCo = p.TenDongCoDung ?? "" };
                 kq.DaTao.AddRange(p.DaTao);
                 foreach (var m in p.Muc)
@@ -198,16 +177,13 @@ namespace PhanMemThiDua2026
                 catch (Exception ex) { Debug.WriteLine("[XuatPdf] Không dọn được thư mục tạm: " + ex.Message); }
             }
         }
-
         // =====================================================================================
         //  3) KIỂM TRA TRƯỚC KHI XUẤT (gom TẤT CẢ vấn đề rồi báo 1 lần)
         // =====================================================================================
-
         private static List<(MucXuatPdf Muc, string Dich)> KiemTraTruocKhiXuat(string thuMucDich, IReadOnlyList<MucXuatPdf> ds)
         {
             if (ds.Count == 0) throw new LoiNguoiDungException("Vui lòng tích chọn ít nhất 1 sheet để xuất tệp *.pdf.");
             if (!Directory.Exists(thuMucDich)) throw new LoiNguoiDungException("Thư mục đích để lưu tệp *.pdf không tồn tại.");
-
             try
             {
                 string probe = Path.Combine(thuMucDich, ".pmtd_" + Guid.NewGuid().ToString("N"));
@@ -222,13 +198,11 @@ namespace PhanMemThiDua2026
             {
                 throw new LoiNguoiDungException("Thư mục đích đang bị lỗi hoặc không thể truy cập:\n" + ex.Message);
             }
-
             var ketQua = new List<(MucXuatPdf, string)>();
             var daDung = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var tooLong = new List<string>();
             var trung = new List<string>();
             var biKhoa = new List<string>();
-
             foreach (var m in ds)
             {
                 string ten = TenTepHopLe(m.TenPdf);
@@ -243,7 +217,6 @@ namespace PhanMemThiDua2026
                 }
                 ketQua.Add((m, dich));
             }
-
             var loi = new List<string>();
             if (tooLong.Count > 0) loi.Add("Đường dẫn quá dài — hãy chọn thư mục lưu ngắn hơn (VD: Desktop):\n  • " + string.Join("\n  • ", tooLong));
             if (trung.Count > 0) loi.Add("Có các sheet cùng ra một tên tệp (sẽ ghi đè lẫn nhau):\n  • " + string.Join("\n  • ", trung));
@@ -251,7 +224,6 @@ namespace PhanMemThiDua2026
             if (loi.Count > 0) throw new LoiNguoiDungException(string.Join("\n\n", loi));
             return ketQua;
         }
-
         private static string TaoBanSao(string nguon, string thuMuc)
         {
             string dich = Path.Combine(thuMuc, "nguon" + Path.GetExtension(nguon));
@@ -267,11 +239,9 @@ namespace PhanMemThiDua2026
                 throw new LoiNguoiDungException("Không đọc được tệp Excel nguồn (đang bị khóa hoặc không đủ quyền):\n" + ex.Message);
             }
         }
-
         // =====================================================================================
         //  4) TRẠNG THÁI MỘT PHIÊN XUẤT (dùng chung giữa các động cơ)
         // =====================================================================================
-
         private sealed class PhienXuat
         {
             public string BanSao = "";
@@ -286,12 +256,10 @@ namespace PhanMemThiDua2026
             public string? FileCuoi;
             public string? TenDongCoDung;
             private readonly object _khoa = new();
-
             public IEnumerable<(MucXuatPdf Muc, string Dich)> ConLai
             {
                 get { lock (_khoa) return Muc.Where(m => !Xong.Contains(m.Muc.TenSheet)).ToList(); }
             }
-
             public void DanhDauXong(MucXuatPdf m, string dich, string dongCo)
             {
                 int tong;
@@ -306,10 +274,8 @@ namespace PhanMemThiDua2026
                 }
                 try { Bao?.Invoke(tong); } catch { /* giao diện đã đóng: bỏ qua */ }
             }
-
             public void GhiLoi(string sheet, string loi) { lock (_khoa) Loi[sheet] = loi; }
         }
-
         private static Task ChayStaAsync(Action viec)
         {
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -323,23 +289,19 @@ namespace PhanMemThiDua2026
             t.Start();
             return tcs.Task;
         }
-
         private static string TenDongCo(string progId) => progId switch
         {
             "Excel.Application" => "Microsoft Excel",
             "Ket.Application" or "ET.Application" => "WPS Spreadsheets",
             _ => progId
         };
-
         // =====================================================================================
         //  5) ĐỘNG CƠ COM: MICROSOFT EXCEL / WPS  (chạy trên luồng STA)
         // =====================================================================================
-
         private static void XuatBangCom(string progId, PhienXuat p)
         {
             Type? loai = Type.GetTypeFromProgID(progId);
             if (loai == null) throw new LoiDongCoException("chưa được cài đặt.");
-
             var pidTruoc = LayPidUngDungVanPhong();
             object? app = null, wbs = null, wb = null;
             int pid = 0;
@@ -349,14 +311,12 @@ namespace PhanMemThiDua2026
                 app = Activator.CreateInstance(loai) ?? throw new LoiDongCoException("không khởi tạo được tiến trình.");
                 dynamic a = app;
                 pid = TimPid(a, pidTruoc);
-
                 // Dùng chung phiên của người dùng: tuyệt đối không Quit/đổi cấu hình/kill phiên đó
                 if (pid > 0 && pidTruoc.Contains(pid))
                 {
                     nenQuit = false;
                     throw new LoiDongCoException("đang dùng chung phiên đang mở của người dùng, bỏ qua để không ảnh hưởng dữ liệu của bạn.");
                 }
-
                 KiemTraSanSang(a, pid, pidTruoc);
                 Thu(() => a.Visible = false);
                 Thu(() => a.DisplayAlerts = false);
@@ -364,17 +324,14 @@ namespace PhanMemThiDua2026
                 Thu(() => a.EnableEvents = false);
                 Thu(() => a.AskToUpdateLinks = false);
                 Thu(() => a.AutomationSecurity = 3);   // msoAutomationSecurityForceDisable: KHÔNG chạy macro của tệp .xlsm
-
                 wbs = a.Workbooks;
                 try { wb = ((dynamic)wbs).Open(p.BanSao, 0, true); }   // UpdateLinks=0, ReadOnly=true
                 catch (COMException ex) { throw new LoiDongCoException("không mở được tệp: " + ex.Message); }
                 dynamic w = wb!;
-
                 DatThuocTinh(wb!, "Title", TieuDeTep);
                 DatThuocTinh(wb!, "Author", TacGiaTep);
                 DatThuocTinh(wb!, "Comments", GhiChuTep);
                 DatThuocTinh(wb!, "Company", "Admin: " + Module_TaiKhoan.TenTaiKhoan_RAM);
-
                 foreach (var (muc, dich) in p.ConLai)
                 {
                     p.Ct.ThrowIfCancellationRequested();
@@ -384,7 +341,6 @@ namespace PhanMemThiDua2026
                         sheetsObj = w.Worksheets;
                         sheet = ((dynamic)sheetsObj).Item(muc.TenSheet);
                         ApDungDinhDangCom((dynamic)sheet, muc.TenSheet, p.TT);
-
                         string tam = Path.Combine(p.ThuMucTam, Guid.NewGuid().ToString("N") + ".pdf");
                         bool hetGio = false;
                         using var canh = new System.Threading.Timer(_ =>
@@ -406,7 +362,6 @@ namespace PhanMemThiDua2026
                             throw;
                         }
                         finally { canh.Change(Timeout.Infinite, Timeout.Infinite); }
-
                         HoanTatTep(tam, dich, p, muc, TenDongCo(progId));
                     }
                     catch (OperationCanceledException) { throw; }
@@ -437,7 +392,6 @@ namespace PhanMemThiDua2026
                 if (nenQuit) DamBaoThoat(pid, pidTruoc);
             }
         }
-
         private static void HoanTatTep(string tam, string dich, PhienXuat p, MucXuatPdf muc, string tenDongCo)
         {
             var fi = new FileInfo(tam);
@@ -446,7 +400,6 @@ namespace PhanMemThiDua2026
             File.Move(tam, dich, true);
             p.DanhDauXong(muc, dich, tenDongCo);
         }
-
         private static (string DiaDiem, string KemTheo)? OTheoSheet(string tenSheet)
         {
             switch (tenSheet.ToUpperInvariant())
@@ -458,7 +411,6 @@ namespace PhanMemThiDua2026
             }
         }
         //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-
         private static void ApDungDinhDangCom(dynamic sheet, string tenSheet, ThongTinThayThe tt)
         {
             var o = OTheoSheet(tenSheet);
@@ -479,7 +431,6 @@ namespace PhanMemThiDua2026
             }
             finally { Tha(r1); Tha(r2); }
         }
-
         private static void DatThuocTinh(object wb, string ten, string giaTri)
         {
             object? props = null, prop = null;
@@ -492,7 +443,6 @@ namespace PhanMemThiDua2026
             catch (Exception ex) { Debug.WriteLine($"[XuatPdf] Không đặt được thuộc tính {ten}: {ex.Message}"); }
             finally { Tha(prop); Tha(props); }
         }
-
         private static void KiemTraSanSang(dynamic a, int pid, HashSet<int> pidTruoc)
         {
             try
@@ -511,23 +461,18 @@ namespace PhanMemThiDua2026
                 throw new LoiDongCoException("từ chối kết nối COM vì đang hiện hộp thoại (có thể là kích hoạt bản quyền).");
             }
         }
-
         private static bool DongCoDaChet(int hr) =>
             hr == unchecked((int)0x800706BA) ||   // RPC server unavailable
             hr == unchecked((int)0x800706BE) ||   // RPC call failed
             hr == unchecked((int)0x80010108) ||   // RPC_E_DISCONNECTED
             hr == unchecked((int)0x800706BF);     // remote procedure call failed and did not execute
-
         private static void Thu(Action f) { try { f(); } catch { /* thuộc tính không có ở WPS/phiên bản này */ } }
-
         private static void Tha(object? o)
         {
             try { if (o != null && Marshal.IsComObject(o)) Marshal.FinalReleaseComObject(o); } catch { }
         }
-
         // ---------- quản lý tiến trình: chỉ đụng tiến trình do chính mình tạo ----------
         private static readonly string[] TenTienTrinhVanPhong = { "EXCEL", "et", "wps", "wpsoffice" };
-
         private static HashSet<int> LayPidUngDungVanPhong()
         {
             var kq = new HashSet<int>();
@@ -538,7 +483,6 @@ namespace PhanMemThiDua2026
             }
             return kq;
         }
-
         private static int TimPid(dynamic a, HashSet<int> truoc)
         {
             try
@@ -556,13 +500,11 @@ namespace PhanMemThiDua2026
             catch { }
             return 0;
         }
-
         private static void TieuDietNeuLaCuaToi(int pid, HashSet<int> truoc)
         {
             if (pid <= 0 || truoc.Contains(pid)) return;
             try { using var pr = Process.GetProcessById(pid); pr.Kill(true); } catch { }
         }
-
         private static void DamBaoThoat(int pid, HashSet<int> truoc)
         {
             if (pid <= 0 || truoc.Contains(pid)) return;
@@ -573,19 +515,15 @@ namespace PhanMemThiDua2026
             }
             catch { /* đã thoát */ }
         }
-
         // =====================================================================================
         //  6) ĐỘNG CƠ LIBREOFFICE (chạy nền, hồ sơ riêng → không đụng LibreOffice của người dùng)
         // =====================================================================================
-
         private static void XuatBangLibreOffice(string soffice, PhienXuat p)
         {
             string hoSo = Path.Combine(p.ThuMucTam, "lo_profile");
             string thuMucRa = Path.Combine(p.ThuMucTam, "lo_out");
             Directory.CreateDirectory(thuMucRa);
-
             using var wbGoc = new XLWorkbook(p.BanSao);
-
             foreach (var ws in wbGoc.Worksheets)
             {
                 var o = OTheoSheet(ws.Name);
@@ -598,7 +536,6 @@ namespace PhanMemThiDua2026
                 }
                 catch (Exception ex) { Debug.WriteLine($"[XuatPdf] Định dạng (ClosedXML) {ws.Name}: {ex.Message}"); }
             }
-
             foreach (var (muc, dich) in p.ConLai)
             {
                 p.Ct.ThrowIfCancellationRequested();
@@ -614,7 +551,6 @@ namespace PhanMemThiDua2026
                         tempWb.Properties.Company = "Admin: " + Module_TaiKhoan.TenTaiKhoan_RAM;
                         tempWb.SaveAs(tempXlsx);
                     }
-
                     var psi = new ProcessStartInfo
                     {
                         FileName = soffice,
@@ -629,7 +565,6 @@ namespace PhanMemThiDua2026
                     psi.ArgumentList.Add("--convert-to"); psi.ArgumentList.Add("pdf");
                     psi.ArgumentList.Add("--outdir"); psi.ArgumentList.Add(thuMucRa);
                     psi.ArgumentList.Add(tempXlsx);
-
                     using (var pr = Process.Start(psi) ?? throw new Exception("Không khởi động được LibreOffice."))
                     {
                         var dongHo = Stopwatch.StartNew();
@@ -645,7 +580,6 @@ namespace PhanMemThiDua2026
                         if (pr.ExitCode != 0) throw new Exception($"LibreOffice từ chối kết xuất (mã lỗi {pr.ExitCode}).");
                     }
                     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-
                     string ra = Path.Combine(thuMucRa, Path.GetFileNameWithoutExtension(tempXlsx) + ".pdf");
                     HoanTatTep(ra, dich, p, muc, "LibreOffice");
                 }

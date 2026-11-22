@@ -14,6 +14,7 @@
         #region Windows Form Designer generated code
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form8_CauHinhCSDL));
             cardPanel = new Panel();
             pnlHeader = new Panel();
@@ -28,6 +29,7 @@
             pnlActions = new FlowLayoutPanel();
             btn_DangNhap = new Krypton.Toolkit.KryptonButton();
             btn_Thoat = new Krypton.Toolkit.KryptonButton();
+            toolTip1 = new ToolTip(components);
             cardPanel.SuspendLayout();
             pnlHeader.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picLogo).BeginInit();
@@ -64,7 +66,6 @@
             // picLogo
             // 
             picLogo.BackColor = Color.Transparent;
-            picLogo.Image = (Image)resources.GetObject("picLogo.Image");
             picLogo.Location = new Point(0, 10);
             picLogo.Name = "picLogo";
             picLogo.Size = new Size(52, 52);
@@ -302,5 +303,6 @@
         internal CheckBox Chex_HienMatKhau;
         private Krypton.Toolkit.KryptonTextBox Text_Password;
         private Krypton.Toolkit.KryptonTextBox Text_Admin;
+        private ToolTip toolTip1;
     }
 }

@@ -2,21 +2,12 @@
 ///
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -33,10 +24,10 @@ namespace PhanMemThiDua2026
         private readonly string _connectionString;
         // Bảng dữ liệu làm việc trong RAM (DefaultView luôn sắp theo STT)
         private DataTable? _dtGoc;
-        private int _currentSelectedID = 0;
+        //private int _currentSelectedID = 0;
         private bool _dangXuLyHuongDan = false;
         private bool _coThayDoiDuLieu = false;
-        private string _ketQuaDongBo = string.Empty;
+        //private string _ketQuaDongBo = string.Empty;
         // ===== Trạng thái =====
         private bool _daNapXong = false;           // dữ liệu đã lên lưới
         private bool _dangLamMoi = false;          // chống bấm "Làm mới" chồng nhau
@@ -66,7 +57,6 @@ namespace PhanMemThiDua2026
         private static readonly bool BatDoubleBufferToanCay = false;
         private static readonly PropertyInfo? _piDoubleBuffered =
             typeof(Control).GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
-
         protected override CreateParams CreateParams
         {
             get
@@ -84,10 +74,11 @@ namespace PhanMemThiDua2026
             BatDoubleBufferForm60();
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedSingle;
-            _connectionString = $"Data Source={_csdl2Path};";
+            _connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path);
             DangKyCacSuKien();
             CuaSo_KhoiTaoStatusStrip();
             DinhDangDataGridViewHienDai();   // dựng cột + giao diện lưới đúng 1 lần ngay từ đầu (lúc form còn ẩn)
+            Module_GiaoDienForm60Web.ApDung(this);   // giao diện kiểu trang web (thẻ bo góc, nút, ô nhập, lưới)
         }
         //  LOGO
         private static Image? TaoLogoThuNho()
@@ -167,7 +158,7 @@ namespace PhanMemThiDua2026
         private bool KiemTraLaTanBinh()
         {
             return _laTanBinhCache ??= (Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty)
-                .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                .LaCheDoTanBinh();
         }
         //  KHỞI TẠO / NẠP DỮ LIỆU
         private async void Form60_NhapLieuCBCS_Load(object sender, EventArgs e)
@@ -248,7 +239,7 @@ namespace PhanMemThiDua2026
             try
             {
                 goi.LaTanBinh = (Module_TaiKhoan.LayPhienBanPhanMem() ?? string.Empty)
-                    .Contains("tân binh", StringComparison.OrdinalIgnoreCase);
+                    .LaCheDoTanBinh();
             }
             catch { /* để luồng UI tự xác định sau */ }
             List<object[]> dong = DocVaGiaiMaDanhSachGoc(out string[] chucVu, out string? loiChucVu);
@@ -300,7 +291,7 @@ namespace PhanMemThiDua2026
             {
                 conn.Open();
                 using (var cmd = new SqliteCommand(
-                    "SELECT STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu FROM DanhSach ORDER BY STT;", conn))
+                    $"SELECT STT, HoVaTen, SoHieu, NamSinh, QueQuan, NgayVaoCAND, CapBac, ChucVu, DonVi, PhanLoai, GhiChu FROM {Module_TaiKhoan.BangDanhSach} ORDER BY STT;", conn))
                 using (var rd = cmd.ExecuteReader())
                 {
                     while (rd.Read())
@@ -411,7 +402,6 @@ namespace PhanMemThiDua2026
         /// <summary>Chạy NỀN: xóa + ghi lại bảng DanhSach_Nhap (một transaction). Lỗi được ghi vào cờ _bangNhapHong.</summary>
         private void GhiLaiBangNhap(List<object[]> dong)
         {
-            var sw = Stopwatch.StartNew();
             try
             {
                 using var conn = new SqliteConnection(_connectionString);
@@ -573,7 +563,7 @@ namespace PhanMemThiDua2026
             try { _ = goc.Handle; } catch { return; }
             for (int i = 0; i < goc.Controls.Count; i++) TaoHandleDeQuy(goc.Controls[i]);
         }
-        private void Form60_NhapLieuCBCS_Shown(object sender, EventArgs e)
+        private void Form60_NhapLieuCBCS_Shown(object? sender, EventArgs e)
         {
             textBox_HoVaTen.Focus();
         }
@@ -889,10 +879,10 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        using var conn = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
+                        using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(Module_DanduongGPS.DuongDanCSDL2));
                         conn.Open();
                         using var cmd = conn.CreateCommand();
-                        cmd.CommandText = "SELECT SoHieu FROM DanhSach WHERE SoHieu IS NOT NULL AND SoHieu <> ''";
+                        cmd.CommandText = $"SELECT SoHieu FROM {Module_TaiKhoan.BangDanhSach} WHERE SoHieu IS NOT NULL AND SoHieu <> ''";
                         using var rd = cmd.ExecuteReader();
                         while (rd.Read())
                         {
@@ -982,10 +972,10 @@ namespace PhanMemThiDua2026
                 {
                     try
                     {
-                        using var conn2 = new SqliteConnection($"Data Source={Module_DanduongGPS.DuongDanCSDL2}");
+                        using var conn2 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(Module_DanduongGPS.DuongDanCSDL2));
                         conn2.Open();
                         using var cmd = conn2.CreateCommand();
-                        cmd.CommandText = "SELECT SoHieu FROM DanhSach WHERE SoHieu IS NOT NULL AND SoHieu <> ''";
+                        cmd.CommandText = $"SELECT SoHieu FROM {Module_TaiKhoan.BangDanhSach} WHERE SoHieu IS NOT NULL AND SoHieu <> ''";
                         using var rd = cmd.ExecuteReader();
                         while (rd.Read())
                         {
@@ -1045,7 +1035,7 @@ namespace PhanMemThiDua2026
         }
         private void XoaTrangCacControl()
         {
-            _currentSelectedID = 0;
+            //_currentSelectedID = 0;
             textBox_HoVaTen.Text = string.Empty;
             textBox_SoHieu.Text = string.Empty;
             textBox_NamSinh.Text = string.Empty;
@@ -1506,7 +1496,7 @@ namespace PhanMemThiDua2026
             try
             {
                 HashSet<string> cotDanhSach = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                using (var cmd = new SqliteCommand("PRAGMA table_info(DanhSach);", conn, transaction))
+                using (var cmd = new SqliteCommand($"PRAGMA table_info({Module_TaiKhoan.BangDanhSach});", conn, transaction))
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
@@ -1519,7 +1509,7 @@ namespace PhanMemThiDua2026
                     throw new InvalidOperationException("Không tìm thấy bảng DanhSach hoặc bảng DanhSach không có cột.");
                 if (!cotDanhSach.Contains("ThuTuSapXep"))
                 {
-                    using (var cmdAdd = new SqliteCommand("ALTER TABLE DanhSach ADD COLUMN ThuTuSapXep INTEGER NOT NULL DEFAULT 0;", conn, transaction))
+                    using (var cmdAdd = new SqliteCommand($"ALTER TABLE {Module_TaiKhoan.BangDanhSach} ADD COLUMN ThuTuSapXep INTEGER NOT NULL DEFAULT 0;", conn, transaction))
                         cmdAdd.ExecuteNonQuery();
                     cotDanhSach.Add("ThuTuSapXep");
                 }
@@ -1532,7 +1522,7 @@ namespace PhanMemThiDua2026
                 if (dtNhap.Rows.Count == 0)
                 {
                     transaction.Commit();
-                    _ketQuaDongBo = $"Đã nạp {dtNhap.Rows.Count} CBCS từ DanhSach_Nhap vào DanhSach";
+                    //_ketQuaDongBo = $"Đã nạp {dtNhap.Rows.Count} CBCS từ DanhSach_Nhap vào DanhSach";
                     return true;
                 }
                 HashSet<string> cotDanhSachNhap = new HashSet<string>(
@@ -1544,7 +1534,7 @@ namespace PhanMemThiDua2026
                 Dictionary<string, long> mapSoHieuToIdGoc = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
                 if (cotDanhSach.Contains("ID") && cotDanhSach.Contains("SoHieu"))
                 {
-                    using var cmdSelectGoc = new SqliteCommand("SELECT ID, SoHieu FROM DanhSach;", conn, transaction);
+                    using var cmdSelectGoc = new SqliteCommand($"SELECT ID, SoHieu FROM {Module_TaiKhoan.BangDanhSach};", conn, transaction);
                     using var readerGoc = cmdSelectGoc.ExecuteReader();
                     while (readerGoc.Read())
                     {
@@ -1556,14 +1546,14 @@ namespace PhanMemThiDua2026
                             mapSoHieuToIdGoc[soHieuGoc] = id;
                     }
                 }
-                const string updateSql = @"
-UPDATE DanhSach
+                string updateSql = $@"
+UPDATE {Module_TaiKhoan.BangDanhSach}
 SET STT = $STT,
     ThuTuSapXep = $STT
 WHERE ID = $ID;";
                 string insertColumns = string.Join(", ", danhSachCotDongBo.Select(c => $"\"{c}\""));
                 string insertValues = string.Join(", ", danhSachCotDongBo.Select(c => $"${c}"));
-                string insertSql = $"INSERT INTO DanhSach ({insertColumns}) VALUES ({insertValues});";
+                string insertSql = $"INSERT INTO {Module_TaiKhoan.BangDanhSach} ({insertColumns}) VALUES ({insertValues});";
                 using var cmdUpdate = new SqliteCommand(updateSql, conn, transaction);
                 cmdUpdate.Parameters.Add("$STT", SqliteType.Integer);
                 cmdUpdate.Parameters.Add("$ID", SqliteType.Integer);
@@ -1609,18 +1599,18 @@ WHERE ID = $ID;";
                     }
                 }
                 // ★ Đánh lại STT liên tục trong CÙNG transaction (an toàn nếu còn dòng lệch/trùng STT từ trước)
-                const string chuanHoaSttSql = @"
+                string chuanHoaSttSql = $@"
 WITH Ranked AS (
     SELECT ID, ROW_NUMBER() OVER (ORDER BY STT ASC, ID ASC) AS NewSTT
-    FROM DanhSach
+    FROM {Module_TaiKhoan.BangDanhSach}
 )
-UPDATE DanhSach
-SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
-    ThuTuSapXep = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID);";
+UPDATE {Module_TaiKhoan.BangDanhSach}
+SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = {Module_TaiKhoan.BangDanhSach}.ID),
+    ThuTuSapXep = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = {Module_TaiKhoan.BangDanhSach}.ID);";
                 using (var cmdChuanHoa = new SqliteCommand(chuanHoaSttSql, conn, transaction))
                     cmdChuanHoa.ExecuteNonQuery();
                 transaction.Commit();
-                _ketQuaDongBo = $"Đã nạp {dtNhap.Rows.Count} CBCS từ DanhSach_Nhap vào DanhSach";
+                //_ketQuaDongBo = $"Đã nạp {dtNhap.Rows.Count} CBCS từ DanhSach_Nhap vào DanhSach";
                 return true;
             }
             catch
@@ -1635,7 +1625,7 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
         //     - Luôn xóa DataCache sau khi ghi (trước đây không xóa -> Form6 nạp lại bản cache cũ)
         //     - Chỉ MỘT nơi nạp lại Form6 (trước đây Form60 và Form6 cùng nạp, chạy chồng nhau)
         // -------------------------------------------------------------------------------------
-        private async void Form60_NhapLieuCBCS_FormClosed(object sender, FormClosedEventArgs e)
+        private async void Form60_NhapLieuCBCS_FormClosed(object? sender, FormClosedEventArgs e)
         {
             if (_timerLoc != null)
             {
@@ -1701,12 +1691,12 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
             }
         }
         //  NHÃN THEO PHIÊN BẢN
-        private void CapNhatLabelTheoPhienBan() => ApDungNhanTheoPhienBan(KiemTraLaTanBinh());
+        //private void CapNhatLabelTheoPhienBan() => ApDungNhanTheoPhienBan(KiemTraLaTanBinh());
         private void ApDungNhanTheoPhienBan(bool laTanBinh)
         {
             try
             {
-                string doiTuongThuong = laTanBinh ? "tân binh" : "CBCS";
+                string doiTuongThuong = laTanBinh ? Module_TaiKhoan.TenTB_Thuong : "CBCS";
                 groupBox1_TimKiemThongTinCBCS.Text = $"1. Tìm kiếm thông tin {doiTuongThuong}";
                 groupBox3_ThongTinCBCS.Text = $"3. Nhập dữ liệu để thêm mới thông tin {doiTuongThuong}";
                 groupBox1.Text = $"4. Danh sách thông tin {doiTuongThuong}";
@@ -1743,7 +1733,7 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
                 PhanLoai = drv["PhanLoai"]?.ToString() ?? "",
                 GhiChu = drv["GhiChu"]?.ToString() ?? ""
             };
-            _currentSelectedID = dto.ID;
+            //_currentSelectedID = dto.ID;
             textBox_HoVaTen.Text = dto.HoVaTen;
             textBox_SoHieu.Text = dto.SoHieu;
             textBox_NamSinh.Text = dto.NamSinh;
@@ -1772,7 +1762,7 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
             var dto = LayDuLieuTuForm();
             if (string.IsNullOrWhiteSpace(dto.HoVaTen))
             {
-                MessageBox.Show($"Vui lòng nhập Họ và tên {(laTanBinh ? "tân binh" : "CBCS")} cần thêm mới!",
+                MessageBox.Show($"Vui lòng nhập Họ và tên {(laTanBinh ? Module_TaiKhoan.TenTB_Thuong : "CBCS")} cần thêm mới!",
                                 "Cảnh báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 textBox_HoVaTen.Focus();
                 return;
@@ -1810,11 +1800,11 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
                     DatLaiViTriChonTheoID((int)maxId);
                 }
                 XoaTrangCacControl();
-                string noiDungThongBao = $"Thêm dữ liệu {(laTanBinh ? "tân binh" : "cán bộ")} thành công: {dto.HoVaTen}";
+                string noiDungThongBao = $"Thêm dữ liệu {(laTanBinh ? Module_TaiKhoan.TenTB_Thuong : "cán bộ")} thành công: {dto.HoVaTen}";
                 toolStripStatusLabel1.Text = noiDungThongBao;
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin",
-                    $"Thêm dữ liệu {(laTanBinh ? "tân binh" : "cán bộ")}",
+                    $"Thêm dữ liệu {(laTanBinh ? Module_TaiKhoan.TenTB_Thuong : "cán bộ")}",
                     $"{noiDungThongBao} lúc {DateTime.Now:HH:mm:ss}");
                 await Task.Delay(1500);
                 if (IsDisposed || Disposing) return;
@@ -1824,7 +1814,7 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
             {
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM ?? "Admin",
-                    $"Thêm dữ liệu {(laTanBinh ? "tân binh" : "cán bộ chiến sĩ")} bị lỗi: " + ex.Message,
+                    $"Thêm dữ liệu {(laTanBinh ? Module_TaiKhoan.TenTB_Thuong : "cán bộ chiến sĩ")} bị lỗi: " + ex.Message,
                     $"Vào lúc {DateTime.Now:HH:mm:ss}");
                 MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", "Lỗi CSDL", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -1865,7 +1855,7 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
                 if (Convert.ToInt64(checkTBCmd.ExecuteScalar()) > 0)
                     return new KetQuaThem
                     {
-                        CanhBao = $"Tân binh [{dto.HoVaTen}] thuộc đơn vị [{dto.DonVi}] đã tồn tại trong danh sách!",
+                        CanhBao = $"{Module_TaiKhoan.TenTB_Hoa} [{dto.HoVaTen}] thuộc đơn vị [{dto.DonVi}] đã tồn tại trong danh sách!",
                         FocusHoTen = true
                     };
             }
@@ -1975,3 +1965,5 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = DanhSach.ID),
         public int ThuTuSapXep { get; set; }
     }
 }
+/////Phiên bản 5 - Tối ưu mở form tức thì
+/////

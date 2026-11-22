@@ -3,8 +3,6 @@ using ClosedXML.Excel;
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
 using System.Data;
-using System.Globalization;
-using System.Reflection;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -130,15 +128,15 @@ namespace PhanMemThiDua2026
                 comboBox1_ChonLoai.SelectedIndex = 0;
             }
         }
-        private void kryptonButton_Dong_Click(object? sender, EventArgs e)
-        {
-            this.Close();
-        }
+        //private void kryptonButton_Dong_Click(object? sender, EventArgs e)
+        //{
+            //this.Close();
+        //}
         private void CapNhatTrangThaiKetNoi()
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 cn.Open();
                 toolStripLabel1.Text = "Đang kết nối Cơ sở dữ liệu 4";
                 toolStripLabel1.ForeColor = Color.DarkGreen;
@@ -216,18 +214,12 @@ namespace PhanMemThiDua2026
                 dgv.ResumeLayout(performLayout: true);
             }
         }
-        private static void EnableDoubleBuffer(DataGridView dgv)
-        {
-            typeof(DataGridView)
-                .GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic)
-                ?.SetValue(dgv, true, null);
-        }
         private void LoadBangThongKe()
         {
             kryptonDataGridView1.DataSource = null;
             string dbPath = _csdl4Path;
             if (!File.Exists(dbPath)) return;
-            using var cn = new SqliteConnection($"Data Source={dbPath}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
             cn.Open();
             // ===== 1. Lấy toàn bộ cột 1 lần duy nhất =====
             var tatCaCot = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -279,7 +271,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                using var cn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 cn.Open();
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin WHERE ID = 1";
@@ -341,7 +333,7 @@ namespace PhanMemThiDua2026
         }
         private void DamBaoBangThongKeTonTai()
         {
-            using var connection = new SqliteConnection($"Data Source={_csdl4Path}");
+            using var connection = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
             connection.Open();
             using var command = connection.CreateCommand();
             command.CommandText = @"
@@ -468,7 +460,7 @@ namespace PhanMemThiDua2026
                         kryptonDataGridView1.Columns[i].HeaderText
                             .Contains("Tổng kết", StringComparison.OrdinalIgnoreCase);
                     string giaTriXuat =
-                        laTongKetNam && mapTongKetNam.TryGetValue(giaTriGoc, out string danhHieu)
+                        laTongKetNam && mapTongKetNam.TryGetValue(giaTriGoc, out string? danhHieu)
                             ? danhHieu
                             : giaTriGoc;
                     var cell = ws.Cell(4, i + 2);
@@ -503,7 +495,7 @@ namespace PhanMemThiDua2026
                 ws.Columns($"A:{cotCuoi}").AdjustToContents();
                 Module_BanQuyen.DongDauExcel(wb);
                 // ================== 10. LƯU FILE ==================
-                wb.SaveAs(sfd.FileName);
+                Module_ExcelAnToan.LuuAnToan(wb, sfd.FileName);
                 Module_NhatKy.GhiNhatKy(
                      Module_TaiKhoan.TenTaiKhoan_RAM,
                      "Xuất dữ liệu Excel",
@@ -536,7 +528,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show("Chưa chọn loại phân loại.");
                 return;
             }
-            using var cn = new SqliteConnection($"Data Source={_csdl4Path}");
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
             cn.Open();
             using var tran = cn.BeginTransaction();
             try
@@ -623,7 +615,7 @@ WHERE ID = 1";
                     return;
                 }
                 // 4. Xóa dữ liệu và tạo lại bản ghi ID = 1
-                using (var cn = new SqliteConnection($"Data Source={dbPath}"))
+                using (var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath)))
                 {
                     cn.Open();
                     using var transaction = cn.BeginTransaction();

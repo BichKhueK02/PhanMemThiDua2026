@@ -1,13 +1,6 @@
-﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.IO;
+﻿using Microsoft.Data.Sqlite;
+///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Microsoft.Data.Sqlite;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -49,7 +42,7 @@ namespace PhanMemThiDua2026
             get
             {
                 string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                return phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase)
+                return phienBan.LaCheDoTanBinh()
                     ? "TomTatThanhTichBaNhat_TanBinh"
                     : "TomTatThanhTichBaNhat_CBCS";
             }
@@ -251,7 +244,7 @@ namespace PhanMemThiDua2026
             if (!File.Exists(_csdl2Path)) return;
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 await conn.OpenAsync();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $"SELECT NoiDung FROM [{TenBangHienTai}] WHERE ID = 1";
@@ -292,7 +285,7 @@ namespace PhanMemThiDua2026
             {
                 string noiDungTho = richTextBox1_TomTatThanhTichBaNhat.Text.Trim();
                 string noiDungMaHoa = Module_BaoMatAES.MaHoa(noiDungTho);
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 await conn.OpenAsync();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $@"

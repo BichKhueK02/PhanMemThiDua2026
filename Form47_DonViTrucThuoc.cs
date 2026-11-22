@@ -1,14 +1,8 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -32,7 +26,6 @@ namespace PhanMemThiDua2026
             this.MinimumSize = new Size(800, 500);
             this.Size = new Size(1000, 600);
             this.StartPosition = FormStartPosition.CenterScreen;
-
             // Cấu hình chống giật lag lưới
             typeof(DataGridView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
                 ?.SetValue(kryptonDataGridView1, true, null);
@@ -88,7 +81,7 @@ namespace PhanMemThiDua2026
         }
         /// ⭐ 4. HÀM CUNG CẤP DỮ LIỆU ĐỘNG CHO LƯỚI
         ///         // Lê Trung Kiên -  Yêu mèo cam
-        private void KryptonDataGridView1_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
+        private void KryptonDataGridView1_CellValueNeeded(object? sender, DataGridViewCellValueEventArgs e)
                 {
                     if (e.RowIndex < 0 || e.RowIndex >= _danhSachDonVi.Count)
                         return;
@@ -109,7 +102,7 @@ namespace PhanMemThiDua2026
             var dsMoi = new List<DonViDTO>();
             await Task.Run(() =>
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path};Mode=ReadOnly");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path, chiDoc: true));
                 conn.Open();
                 // Bạn có thể giữ nguyên câu SQL hoặc bỏ ORDER BY đi cho nhẹ vì đằng nào mình cũng sort lại trên C#
                 using var cmd = new SqliteCommand("SELECT ID, STT, TenDonVi, KyHieu, ThoiGian FROM DanhSachDonVi_CapTrucThuoc", conn);
@@ -167,7 +160,7 @@ namespace PhanMemThiDua2026
                 return;
             await Task.Run(() =>
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 conn.Open();
                 const string sqlCreate = @"
                 CREATE TABLE IF NOT EXISTS DanhSachDonVi_CapTrucThuoc
@@ -270,12 +263,6 @@ namespace PhanMemThiDua2026
             textBox_TenDonVi.Text = textBox_TenDonVi.Text.ToUpper();
             textBox_TenDonVi.SelectionStart = pos;
         }
-        private void kryptonTextBox_KyHieuDonVi_TextChanged(object sender, EventArgs e)
-        {
-            int pos = kryptonTextBox_KyHieuDonVi.SelectionStart;
-            kryptonTextBox_KyHieuDonVi.Text = kryptonTextBox_KyHieuDonVi.Text.ToUpper();
-            kryptonTextBox_KyHieuDonVi.SelectionStart = pos;
-        }
         private async void kryptonButton1_Them_Click(object sender, EventArgs e)
         {
             string tenDonVi = textBox_TenDonVi.Text.Trim();
@@ -296,7 +283,7 @@ namespace PhanMemThiDua2026
             {
                 await Task.Run(() =>
                 {
-                    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                    using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                     conn.Open();
                     int maxStt = 0;
                     using (var cmdStt = new SqliteCommand("SELECT MAX(STT) FROM DanhSachDonVi_CapTrucThuoc", conn))
@@ -347,7 +334,7 @@ namespace PhanMemThiDua2026
             {
                 await Task.Run(() =>
                 {
-                    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                    using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                     conn.Open();
                     string sqlUpdate = @"UPDATE DanhSachDonVi_CapTrucThuoc 
                                          SET TenDonVi = @ten, KyHieu = @kyhieu, ThoiGian = @thoigian 
@@ -376,7 +363,7 @@ namespace PhanMemThiDua2026
             }
         }
         /// 1. TỐI ƯU HÀM CHỌN DÒNG
-        private void KryptonDataGridView1_SelectionChanged(object sender, EventArgs e)
+        private void KryptonDataGridView1_SelectionChanged(object? sender, EventArgs e)
         {
             if (kryptonDataGridView1.CurrentRow != null &&
                 kryptonDataGridView1.CurrentRow.Index >= 0)
@@ -453,7 +440,7 @@ namespace PhanMemThiDua2026
             {
                 await Task.Run(() =>
                 {
-                    using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                    using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                     conn.Open();
                     using var cmd = new SqliteCommand("DELETE FROM DanhSachDonVi_CapTrucThuoc WHERE ID = @id", conn);
                     cmd.Parameters.AddWithValue("@id", _selectedId);
@@ -495,12 +482,12 @@ namespace PhanMemThiDua2026
         {
             textBox.StateCommon.Border.Color1 = Color.Gray;
         }
-        private void TextBox_Enter(object sender, EventArgs e)
+        private void TextBox_Enter(object? sender, EventArgs e)
         {
             if (sender is KryptonTextBox textBox)
                 DatVienXanh(textBox);
         }
-        private void TextBox_Leave(object sender, EventArgs e)
+        private void TextBox_Leave(object? sender, EventArgs e)
         {
             if (sender is KryptonTextBox textBox)
                 XoaVienXanh(textBox);

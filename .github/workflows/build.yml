@@ -1,0 +1,30 @@
+# Kiểm tra biên dịch tự động mỗi lần push / pull request vào master.
+# Chỉ biên dịch phần mềm mẹ (ServiceBackup / ServiceRestore là dự án riêng, không build chung).
+# Tệp khóa KhoaBaoMat\*.pmtdkey KHÔNG có trên git => bước build chỉ cảnh báo thiếu khóa, không lỗi.
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore PhanMemThiDua2026.csproj
+
+      - name: Build (Release)
+        run: dotnet build PhanMemThiDua2026.csproj -c Release --no-restore -nologo
+
+      # Kiểm thử logic thuần (quy tắc phân loại, chuỗi kết nối, sắp xếp STT): không cần khóa / CSDL thật.
+      - name: Test
+        run: dotnet test Tests/PhanMemThiDua2026.Tests/PhanMemThiDua2026.Tests.csproj -c Release -nologo

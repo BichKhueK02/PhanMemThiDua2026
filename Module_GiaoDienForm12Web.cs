@@ -1,7 +1,5 @@
 ﻿using Krypton.Toolkit;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing.Drawing2D;
 namespace PhanMemThiDua2026
 {
     /// <summary>
@@ -29,7 +27,6 @@ namespace PhanMemThiDua2026
         private static readonly Color MauVien = Color.FromArgb(199, 210, 254);
         private static readonly Color MauChuXanhDam = Color.FromArgb(55, 48, 163);
         private const float BanKinhNut = 8f;
-        private const int ChieuCaoThanhTab = 46;   // px ở 96 DPI
         private static readonly Dictionary<(string, float, FontStyle), Font> _fonts = new();
         private static Font LayFont(string ten, float co, FontStyle kieu)
         {

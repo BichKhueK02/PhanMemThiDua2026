@@ -959,11 +959,8 @@
         private ToolStripMenuItem xoaToanBoDuLieu_ToolStripMenuItem;
         private GroupBox groupBox1;
         private Krypton.Toolkit.KryptonStatusStrip kryptonStatusStrip1;
-        private ToolStripProgressBar toolStripProgressBar1_LamMoi;
         private ToolStripStatusLabel toolStripStatusLabel1;
         private ToolStripStatusLabel toolStripStatusLabel2;
-        private ToolStripStatusLabel toolStripStatusLabel3;
-        private ToolStripStatusLabel toolStripStatusLabel4;
         private TableLayoutPanel tableLayoutPanel1;
         private TableLayoutPanel tableLayoutPanel2;
         private PictureBox pictureBox1;
@@ -972,12 +969,10 @@
         private TableLayoutPanel tableLayoutPanel4;
         private TableLayoutPanel tableLayoutPanel10;
         private Label label6;
-        private Krypton.Toolkit.KryptonTextBox textBox_NamSinh;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_STT;
         private Label label9;
         private Label label7;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_TenTapThe;
-        private ComboBox comboBox_DeNghiBaNhat;
         private Label label1;
         private Label label15;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_NguoiKy;
@@ -986,7 +981,6 @@
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox_SoQuyetDinh;
         private Label label14;
         private Label label13;
-        private Krypton.Toolkit.KryptonTextBox textBox_QueQuan;
         private Label label12;
         private TableLayoutPanel tableLayoutPanel8;
         private GroupBox groupBox2;
@@ -1009,7 +1003,6 @@
         private TableLayoutPanel tableLayoutPanel5;
         private Krypton.Toolkit.KryptonTextBox textBox_TimKiemTheoTen;
         private Label label3;
-        private ComboBox comboBox_TimKiemDonVi;
         private Label label2;
         private Krypton.Toolkit.KryptonButton kryptonButton_LamMoiCacOTimKiem;
         private Krypton.Toolkit.KryptonButton kryptonButton_ThemKhenThuong;
@@ -1019,8 +1012,6 @@
         private ToolStripSeparator toolStripMenuItem1;
         private ComboBox comboBox1_HinhThucKT;
         private Label label8;
-       // private ToolStripMenuItem toolStripMenuItem_QuayLaiTrangTruoc;
-        private ToolStripSeparator toolStripMenuItem2;
         private ToolTip toolTip1;
         private SplitContainer splitContainer1;
         private TableLayoutPanel tableLayoutPanel6;

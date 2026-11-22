@@ -1,14 +1,6 @@
 ﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
@@ -122,7 +114,7 @@ namespace PhanMemThiDua2026
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
             try
             {
-                using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+                using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 await conn.OpenAsync();
                 DeNghiBCHMapping.Clear();
                 int rows = _txtGrid.GetLength(0);
@@ -161,7 +153,7 @@ namespace PhanMemThiDua2026
         private async Task SaveQuyDinhTyLeBCHAsync(CancellationToken ct)
         {
             if (string.IsNullOrWhiteSpace(_csdl2Path) || !File.Exists(_csdl2Path)) return;
-            using var conn = new SqliteConnection($"Data Source={_csdl2Path}");
+            using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             await conn.OpenAsync(ct);
             using var tran = conn.BeginTransaction();
             try

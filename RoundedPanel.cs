@@ -19,7 +19,7 @@ namespace PhanMemThiDua2026
         // Lấy màu nền đặc đầu tiên của chuỗi control cha
         private Color LayMauNenCha()
         {
-            Control p = Parent;
+            Control? p = Parent;
             while (p != null)
             {
                 if (p.BackColor.A == 255) return p.BackColor;
