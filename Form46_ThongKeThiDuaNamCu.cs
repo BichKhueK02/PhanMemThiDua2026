@@ -213,6 +213,7 @@ namespace PhanMemThiDua2026
             // ⭐ CHUẨN KỸ SƯ: Không dùng hàm quét chung (*.db) nữa vì nó sẽ hốt luôn cả file Khen Thưởng, 
             // gây ra hiện tượng trùng tên và văng lỗi ngầm (vì file Khen thưởng không có bảng Thi Đua).
             string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
+            Module_HoTroLuuDataTheoNamCu.DonRacThuMucLichSu();   // tệp năm cũ đã trống cả bảng cá nhân lẫn tập thể => xóa, không liệt kê
             var danhSachSach = new List<FileLichSuDTO>();
             if (Directory.Exists(dir))
             {
@@ -693,6 +694,8 @@ namespace PhanMemThiDua2026
                     {
                         Module_HoTroLuuDataTheoNamCu.CapNhatTinhTrangThiDuaNamCu(pathCsdl2, pathCsdlNamCu, laTanBinh);
                     });
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Đối chiếu tình trạng công tác dữ liệu năm cũ",
+                        $"Tệp: {Path.GetFileName(pathCsdlNamCu)}");
                 }
                 // Nạp lại dữ liệu hiển thị lên lưới
                 ThucHienTaiDuLieuLichSu();

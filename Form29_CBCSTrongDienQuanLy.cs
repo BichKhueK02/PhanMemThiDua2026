@@ -339,6 +339,8 @@ namespace PhanMemThiDua2026
             try
             {
                 await Task.Run(() => ExportExcelToPath(filePath, exportData, soLuong));
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất Excel CBCS trong diện quản lý",
+                    $"{soLuong} dòng | Tệp: {Path.GetFileName(filePath)}");
                 try
                 {
                     Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath);
@@ -351,6 +353,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 LogError("Lỗi xuất Excel", ex);
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel CBCS trong diện quản lý", ex.Message);
                 MessageBox.Show($"Xuất Excel thất bại.\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally

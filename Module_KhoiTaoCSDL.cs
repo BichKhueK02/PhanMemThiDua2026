@@ -904,9 +904,10 @@ namespace PhanMemThiDua2026
             rootPath = rootChuan;
             // DANH SÁCH TRẮNG CỐ ĐỊNH: khi nâng phiên bản .NET hoặc đổi cách publish (thêm/bớt tệp ở thư mục gốc)
             // PHẢI cập nhật các danh sách dưới đây, nếu không tường lửa sẽ xóa tệp hợp lệ của phiên bản mới.
-            // CSDL_Backups (Module_BaoVeDuLieu) nằm ở thư mục gốc: thiếu tên này trong danh sách trắng thì tường lửa xóa sạch mọi bản sao lưu CSDL
+            // Chỉ 3 thư mục: Database, Database Backup, window-x64. CSDL_Backups (bản cũ) bị dọn; nhật ký bảo trì trong đó được chuyển trước.
+            Module_BaoVeDuLieu.ChuyenNhatKyCuNeuCan();
             var allowedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { THU_MUC_DATABASE, THU_MUC_BACKUP, THU_MUC_WINDOW, Module_BaoVeDuLieu.TenThuMucBackup};
+                { THU_MUC_DATABASE, THU_MUC_BACKUP, THU_MUC_WINDOW };
             // <thư mục phần mềm>\KhoaBaoMat là vị trí CŨ của tệp khóa (chỉ đọc để chuyển sang Database\KhoaBaoMat).
             // Nếu việc chuyển chưa thành công (vd Database không ghi được) thì đây là bản khóa DUY NHẤT: xóa đi là mất
             // vĩnh viễn khả năng giải mã dữ liệu. Chỉ cho dọn khi bản chính hoặc bản dự phòng ở vị trí mới đã tồn tại.

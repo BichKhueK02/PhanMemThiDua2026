@@ -377,6 +377,8 @@ namespace PhanMemThiDua2026
                 int rows = cmd.ExecuteNonQuery();
                 if (rows > 0)
                 {
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Sửa kết quả thi đua CBCS",
+                        $"ID={ID_CBCS} | {HoVaTen} | Số hiệu: {SoHieu} | Đơn vị: {DonVi}");
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                 }

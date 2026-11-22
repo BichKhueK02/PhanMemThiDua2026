@@ -104,6 +104,8 @@ namespace PhanMemThiDua2026
                 // Giao toàn bộ việc xuất file cho luồng Background
                 string[] dynamicHeaders = {"STT", "Họ và tên", "Số hiệu", "Đơn vị", _h1, _h2, _h3, _h4, "Kết quả", "Ghi chú" };
                 await Task.Run(() => ExportToExcelTask(exportStream, totalCount, filePath, tenDonVi, dynamicHeaders, token), token);
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất Excel kết quả tính toán phân loại",
+                    $"{totalCount} dòng | Tệp: {Path.GetFileName(filePath)}");
                 try
                 {
                     Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(filePath);
@@ -119,6 +121,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 LogError("Lỗi Click Xuất Excel", ex);
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel kết quả tính toán phân loại", ex.Message);
                 MessageBox.Show($"Lỗi xuất dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally

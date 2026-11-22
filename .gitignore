@@ -296,14 +296,11 @@ FodyWeavers.xsd
 KhoaBaoMat/
 *.pmtdkey
 *.pmtdkey.hong-*
-
 desktop.ini
-
 **/bin/
 **/obj/
 **/publish/
 *.exe
-
 **/bin/
 **/obj/
 **/publish/

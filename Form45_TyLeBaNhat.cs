@@ -112,6 +112,7 @@ namespace PhanMemThiDua2026
                         throw;
                     }
                 });
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Cập nhật tỷ lệ Ba nhất", $"Tỷ lệ mới: {tyLe}%");
                 // 1. Nếu lưu DB xong, đổi chữ hiển thị báo thành công
                 btnLuu.Values.Text = "Lưu thành công!";
                 // 2. Dừng lại chờ theo đúng yêu cầu

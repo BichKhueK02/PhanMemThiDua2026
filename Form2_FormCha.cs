@@ -729,7 +729,8 @@ namespace PhanMemThiDua2026
                 OpenChildForm<Form53_QuanLyKetQuaThiDua>(tieuDeForm);
                 // Form53 tự tải dữ liệu khi hiện (hoặc đã nạp sẵn lúc ẩn). Ở đây chỉ CHỜ lượt tải đang chạy / tải nếu thật sự
                 // chưa có. Bản cũ gọi thêm ReloadDuLieu (ép tải lại) + LamMoiDuLieuAsync => lần mở đầu tải Form15 tới 2-3 lần.
-                if (_currentChild is Form53_QuanLyKetQuaThiDua frm && !frm.DaLoadDuLieu)
+                // Luôn gọi: chỉ nạp lại khi CSDL đã đổi (vd. xóa CBCS / giấy khen ở Form34) - không đổi thì về ngay
+                if (_currentChild is Form53_QuanLyKetQuaThiDua frm)
                     await frm.DamBaoDaTaiAsync();
             }
             catch (Exception ex)
@@ -1169,11 +1170,9 @@ namespace PhanMemThiDua2026
             OpenChildForm<Form52_QuanLyKhenThuong>(tieuDeForm);
             if (_currentChild is Form52_QuanLyKhenThuong frm)
             {
-                // Form52 tự tải khi hiện (hoặc đã nạp sẵn lúc ẩn): chỉ chờ/tải nếu thật sự chưa có, không ép tải lại
-                if (!frm.DaLoadDuLieu)
-                {
-                    await frm.DamBaoDaTaiAsync();
-                }
+                // Không ép tải lại: DamBaoDaTaiAsync chỉ nạp khi CSDL đã đổi kể từ lần nạp trước (so chữ ký tệp, < 1 ms).
+                // Bản cũ chỉ gọi khi !DaLoadDuLieu => nạp 1 lần rồi thôi: thêm/xóa ở Form15, Form6... quay lại Form34 vẫn dữ liệu cũ.
+                await frm.DamBaoDaTaiAsync();
             }
         }
         private void kryptonButton1_ThoatHeThong_Click(object? sender, EventArgs e)

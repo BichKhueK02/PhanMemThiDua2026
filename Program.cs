@@ -37,12 +37,34 @@ namespace PhanMemThiDua2026
         private static int _errorDialogOpen;   // 0/1 - chống chồng hộp thoại lỗi
         private static int _uiErrorCount;      // chỉ truy cập từ UI thread
         private static long _uiErrorWindowStart;
+        /// <summary>
+        /// MULTICORE JIT (System.Runtime.ProfileOptimization): lần chạy này ghi lại danh sách hàm đã JIT vào
+        /// Database\NhatKyNhaPhatTrien\jit-khoidong.profile; từ lần chạy SAU, .NET biên dịch trước các hàm đó trên luồng nền
+        /// song song (đúng thứ tự đã dùng), nên lúc dựng form lớn luồng giao diện không còn phải tự JIT.
+        /// Đo 22/11/2026 (bản build thường, không ReadyToRun): JIT ~3,4 s/phiên; dựng Form42 lần đầu riêng JIT ~250 ms,
+        /// bấm Sổ vàng lần đầu UI kẹt 428 ms trong đó JIT 215 ms. Bản publish ReadyToRun vẫn có lợi (phần còn phải JIT).
+        /// Tệp nằm trong thư mục nhật ký nhà phát triển (đã có trong danh sách trắng, việc dọn dẹp chỉ xóa *.log) - không ghi AppData.
+        /// Lỗi bất kỳ => bỏ qua, phần mềm chạy như cũ.
+        /// </summary>
+        private static void BatJitDaLuong()
+        {
+            try
+            {
+                string thuMuc = Module_NhatKyNhaPhatTrien.ThuMuc;
+                Directory.CreateDirectory(thuMuc);
+                System.Runtime.ProfileOptimization.SetProfileRoot(thuMuc);
+                System.Runtime.ProfileOptimization.StartProfile("jit-khoidong.profile");
+            }
+            catch (Exception ex) { Debug.WriteLine("[JIT đa luồng] " + ex.Message); }
+        }
         //  ĐIỂM VÀO
         [STAThread]
         private static int Main()
         {
             // 1. Bẫy lỗi toàn cục phải gắn TRƯỚC mọi thứ khác.
             ConfigureGlobalExceptionHandlers();
+            // 1b. Multicore JIT: xem BatJitDaLuong.
+            BatJitDaLuong();
             // 2. Nền tảng WinForms (DPI -> visual styles -> font mặc định).
             ConfigureWinForms();
             bool isPrimaryInstance = false;

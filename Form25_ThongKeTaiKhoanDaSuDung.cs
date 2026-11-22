@@ -483,6 +483,8 @@ namespace PhanMemThiDua2026
             try
             {
                 await Task.Run(() => XuatExcelCore(duongDan, duLieu));
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất Excel thống kê tài khoản đã sử dụng",
+                    $"{duLieu.Count} tài khoản | Tệp: {Path.GetFileName(duongDan)}");
                 if (IsDisposed) return;
                 Cursor = Cursors.Default;
                 if (MessageBox.Show($"Đã xuất {duLieu.Count} tài khoản ra tệp excel:\n{duongDan}\n\nBạn có muốn mở tệp ngay không?",
@@ -495,6 +497,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 if (!IsDisposed) Cursor = Cursors.Default;
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel thống kê tài khoản đã sử dụng", ex.Message);
                 MessageBox.Show("Không thể xuất tệp excel:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally

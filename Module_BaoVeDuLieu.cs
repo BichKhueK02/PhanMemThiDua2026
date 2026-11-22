@@ -10,23 +10,14 @@ namespace PhanMemThiDua2026
         //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026
         //Đây giống như là Firewall - Lớp bảo vệ ở bên trong ứng dụng - Database Firewall
         // ===================== HẰNG SỐ CẤU HÌNH =====================
-        /// <summary>
-        /// Tên thư mục chứa bản sao lưu + nhật ký bảo trì (nằm cạnh file .exe).
-        /// PHẢI nằm trong danh sách trắng thư mục gốc của Module_KhoiTaoCSDL.TuongLuaBaoVeHeThong
-        /// (bản KhoiTaoCSDL v3 đã tự lấy tên từ hằng này), nếu không tường lửa sẽ xóa cả thư mục ở môi trường triển khai.
-        /// </summary>
-        public const string TenThuMucBackup = "CSDL_Backups";
+        // CSDL_Backups ở thư mục gốc là vị trí CŨ (đã bỏ sao lưu tự động): chỉ còn dùng để chuyển nhật ký bảo trì cũ sang
+        // Database\NhatKyNhaPhatTrien; phần còn lại do tường lửa (Module_KhoiTaoCSDL) dọn vì không còn trong danh sách trắng.
+        private const string TEN_THU_MUC_CU = "CSDL_Backups";
         private const string TEN_FILE_NHAT_KY = "BaoTri_NhatKy.txt";
         private const string HAU_TO_TAM = ".tmp";
         private const long NGUONG_XOAY_VONG_LOG = 2L * 1024 * 1024;       // log > 2 MB -> chuyển thành .old.txt
         private const int TRAN_HANG_DOI_LOG = 2000;                       // chặn RAM phình nếu Worker bị kẹt
         private const int SO_LOG_MOI_LAN_XA = 256;
-        private const int SO_BAN_BACKUP_GIU_LAI = 3;
-        private const int SO_BAN_HONG_GIU_LAI = 2;
-        private const long TRAN_DUNG_LUONG_BACKUP = 2L * 1024 * 1024 * 1024;
-        private const int SO_NGAY_CUOI_THANG = 3;                         // cửa sổ sao lưu: 3 ngày cuối tháng
-        private static readonly bool CHO_PHEP_BACKUP_BU = true;           // máy không mở đúng 3 ngày cuối tháng -> sao lưu bù
-        private const int SO_NGAY_BACKUP_BU = 35;
         private const double NGUONG_PHAN_TRAM_PHAN_MANH = 20.0;
         private const long NGUONG_BYTE_LANG_PHI_TOI_THIEU = 2L * 1024 * 1024;   // < 2 MB rác thì không đáng VACUUM
         private const long DU_PHONG_BYTE = 16L * 1024 * 1024;             // dự phòng dung lượng trống
@@ -39,16 +30,46 @@ namespace PhanMemThiDua2026
         private const int SQLITE_INTERRUPT = 9;
         private const int SQLITE_CORRUPT = 11;
         private const int SQLITE_NOTADB = 26;
-        private static readonly string[] HauToTepPhu = { "-wal", "-shm", "-journal" };
-        private static readonly string[] HauToTepVaChinh = { "", "-wal", "-shm", "-journal" };
         private static readonly UTF8Encoding Utf8KhongBom = new UTF8Encoding(false);
         // 🛡️ ANTI-RACE: chỉ 1 tác vụ bảo trì (nhẹ hoặc nặng) tại 1 thời điểm
         private static readonly SemaphoreSlim _khoaTienTrinh = new SemaphoreSlim(1, 1);
-        // Cùng gốc AppContext.BaseDirectory với Module_DanduongGPS / Module_KhoiTaoCSDL
-        private static readonly string _thuMucBackup = Path.Combine(AppContext.BaseDirectory, TenThuMucBackup);
+        private static readonly string _thuMucCu = Path.Combine(AppContext.BaseDirectory, TEN_THU_MUC_CU);
         /// <summary>Hủy khi tiến trình thoát: ngắt êm VACUUM / kiểm tra đang chạy (SQLite tự hoàn tác) thay vì để tiến trình bị giết giữa chừng.</summary>
         private static readonly CancellationTokenSource _ctsThoat = new();
-        public static string ThuMucBackup => _thuMucBackup;
+        // Nhật ký bảo trì nằm trong Database\NhatKyNhaPhatTrien (không tạo thêm tệp/thư mục ngoài Database);
+        // vị trí cũ là CSDL_Backups\BaoTri_NhatKy.txt — tự chuyển sang ở lần ghi đầu tiên.
+        private static string DuongDanNhatKy => Path.Combine(Module_NhatKyNhaPhatTrien.ThuMuc, TEN_FILE_NHAT_KY);
+        private static int _daChuyenNhatKyCu;
+        /// <summary>Một lần mỗi phiên: chuyển BaoTri_NhatKy.txt (+ .old.txt) từ CSDL_Backups sang Database\NhatKyNhaPhatTrien. Không ném lỗi.</summary>
+        internal static void ChuyenNhatKyCuNeuCan()
+        {
+            if (Interlocked.Exchange(ref _daChuyenNhatKyCu, 1) == 1) return;
+            try
+            {
+                Directory.CreateDirectory(Module_NhatKyNhaPhatTrien.ThuMuc);
+                foreach (string ten in new[] { TEN_FILE_NHAT_KY, Path.ChangeExtension(TEN_FILE_NHAT_KY, ".old.txt") })
+                {
+                    try
+                    {
+                        string cu = Path.Combine(_thuMucCu, ten);
+                        if (!File.Exists(cu)) continue;
+                        string moi = Path.Combine(Module_NhatKyNhaPhatTrien.ThuMuc, ten);
+                        if (!File.Exists(moi)) { File.Move(cu, moi); continue; }
+                        // Đã có tệp mới: nối nội dung cũ vào đầu để không mất lịch sử
+                        string gop = moi + ".gop";
+                        using (var dich = new FileStream(gop, FileMode.Create, FileAccess.Write))
+                        {
+                            using (var nguon = File.OpenRead(cu)) nguon.CopyTo(dich);
+                            using (var nguon = File.OpenRead(moi)) nguon.CopyTo(dich);
+                        }
+                        File.Move(gop, moi, overwrite: true);
+                        File.Delete(cu);
+                    }
+                    catch (Exception ex) { Debug.WriteLine($"[Nhật ký bảo trì] Không chuyển được {ten}: {ex.Message}"); }
+                }
+            }
+            catch { }
+        }
         static Module_BaoVeDuLieu()
         {
             AppDomain.CurrentDomain.ProcessExit += (_, _) => DungKhiThoat();
@@ -68,7 +89,6 @@ namespace PhanMemThiDua2026
         // ===================== TRẠNG THÁI THEO TỪNG CSDL =====================
         private sealed class TrangThaiDb
         {
-            public volatile bool DaToiUu;                  // đã áp dụng cấu hình nền (hoặc đã quyết định bỏ qua) trong phiên này
             public volatile bool KhongDoiDuocAutoVacuum;   // đã VACUUM mà vẫn không chuyển được sang INCREMENTAL -> đừng lặp lại
             public long MocNhatKy = -1;                    // mốc 1000 dòng đã quan sát gần nhất (-1 = chưa quan sát)
         }
@@ -125,23 +145,6 @@ namespace PhanMemThiDua2026
         }
         private static bool LaLoiBan(SqliteException ex) =>
             ex.SqliteErrorCode == SQLITE_BUSY || ex.SqliteErrorCode == SQLITE_LOCKED;
-        /// <summary>WAL cần bộ nhớ chia sẻ giữa các tiến trình, không an toàn trên ổ đĩa mạng/UNC.</summary>
-        private static bool LaDuongDanMang(string path)
-        {
-            try
-            {
-                string full = Path.GetFullPath(path);
-                if (full.StartsWith(@"\\?\", StringComparison.Ordinal))
-                    return full.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase);
-                if (full.StartsWith(@"\\", StringComparison.Ordinal)) return true;
-                string? goc = Path.GetPathRoot(full);
-                return !string.IsNullOrEmpty(goc) && new DriveInfo(goc).DriveType == DriveType.Network;
-            }
-            catch
-            {
-                return false;
-            }
-        }
         // ===================== ĐỊNH DẠNG (không phụ thuộc cài đặt vùng / lịch của máy) =====================
         // Máy cài lịch Phật giáo (th-TH), Hijri (ar-SA)... làm "yyyy" ra năm khác, và "/" bị đổi thành dấu phân cách của vùng:
         // tên bản sao lưu sẽ lệch và việc sắp xếp "mới nhất trước" theo tên bị sai.
@@ -215,8 +218,9 @@ namespace PhanMemThiDua2026
                 {
                     if (filePath == null)
                     {
-                        Directory.CreateDirectory(_thuMucBackup);
-                        filePath = Path.Combine(_thuMucBackup, TEN_FILE_NHAT_KY);
+                        ChuyenNhatKyCuNeuCan();
+                        Directory.CreateDirectory(Module_NhatKyNhaPhatTrien.ThuMuc);
+                        filePath = DuongDanNhatKy;
                         XoayVongNhatKyNeuCan(filePath);
                     }
                     await File.AppendAllTextAsync(filePath, sb.ToString(), Utf8KhongBom).ConfigureAwait(false);
@@ -300,98 +304,6 @@ namespace PhanMemThiDua2026
                 return new DriveInfo(goc).AvailableFreeSpace >= canByte;
             }
             catch { return true; }   // ổ mạng/UNC hoặc không xác định được -> không chặn
-        }
-        private static long KichThuocCsdlKemWal(string dbPath)
-        {
-            long tong = 0;
-            try
-            {
-                var fi = new FileInfo(dbPath);
-                if (fi.Exists) tong += fi.Length;
-                var wal = new FileInfo(dbPath + "-wal");
-                if (wal.Exists) tong += wal.Length;
-            }
-            catch { }
-            return tong;
-        }
-        /// <summary>Xóa tệp nếu có (gỡ ReadOnly trước). true = tệp không còn tồn tại.</summary>
-        private static bool XoaNeuCo(string path)
-        {
-            try
-            {
-                if (File.Exists(path))
-                {
-                    File.SetAttributes(path, FileAttributes.Normal);   // bản 2 không gỡ ReadOnly nên tệp chép từ nguồn chỉ-đọc không xóa được
-                    File.Delete(path);
-                }
-                return true;
-            }
-            catch { return false; }
-        }
-        private static void XoaKemTepPhu(string dbPath)
-        {
-            XoaNeuCo(dbPath);
-            foreach (string hau in HauToTepPhu) XoaNeuCo(dbPath + hau);
-        }
-        private static List<FileInfo> LayDanhSachBackup(string tenFile)
-        {
-            var ds = new List<FileInfo>();
-            try
-            {
-                if (!Directory.Exists(_thuMucBackup)) return ds;
-                // Tên chứa yyyy_MM (đã cố định InvariantCulture) -> sắp theo TÊN giảm dần = mới nhất trước
-                // (không phụ thuộc CreationTime, vốn bị đặt lại khi chép thư mục)
-                foreach (FileInfo f in new DirectoryInfo(_thuMucBackup).EnumerateFiles($"{tenFile}_Backup_*.db"))
-                {
-                    if (f.Name.EndsWith(".db", StringComparison.OrdinalIgnoreCase)) ds.Add(f);
-                }
-                ds.Sort((a, b) => string.Compare(b.Name, a.Name, StringComparison.OrdinalIgnoreCase));
-            }
-            catch { }
-            return ds;
-        }
-        private static string LayDuongDanBackupThang(string tenFile, DateTime now)
-            => Path.Combine(_thuMucBackup, $"{tenFile}_Backup_{Dinh(now, "yyyy_MM")}.db");
-        private static void KhoiTaoCauHinhToiUu(string dbPath)
-        {
-            if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath)) return;
-            var st = LayTrangThai(dbPath);
-            if (st == null || st.DaToiUu) return;   // mỗi CSDL chỉ cần áp dụng 1 lần / phiên chạy
-            try
-            {
-                // WAL không an toàn trên ổ đĩa mạng: giữ chế độ journal mặc định (bản 2 vẫn bật được WAL ở đó vì SQLite không chặn)
-                if (LaDuongDanMang(dbPath))
-                {
-                    GhiLog($"[Khởi tạo PRAGMA] Bỏ qua WAL cho {Path.GetFileName(dbPath)} vì CSDL nằm trên ổ đĩa mạng.");
-                    st.DaToiUu = true;
-                    return;
-                }
-                string? cheDo = ChayVoiRetry(() => ApDungCauHinhNen(dbPath), 3, CancellationToken.None);
-                st.DaToiUu = true;   // đã thử xong: không thử lại và không ghi log lặp ở mỗi lần gọi (bản 2 chỉ đánh dấu khi WAL thành công)
-                if (!string.Equals(cheDo, "wal", StringComparison.OrdinalIgnoreCase))
-                {
-                    // WAL không bật được (USB FAT32, thư mục chỉ-đọc...) -> hệ thống vẫn chạy bình thường ở chế độ cũ
-                    GhiLog($"[Khởi tạo PRAGMA] Không bật được WAL cho {Path.GetFileName(dbPath)} (chế độ hiện tại: {cheDo ?? "không rõ"}).");
-                }
-            }
-            catch (Exception ex) { GhiLog($"[Lỗi Khởi tạo PRAGMA] {ex.Message}"); }
-        }
-        private static string? ApDungCauHinhNen(string dbPath)
-        {
-            using var conn = MoKetNoi(dbPath);
-            // Chỉ giữ các PRAGMA được LƯU VÀO TỆP .db (có hiệu lực cho mọi kết nối về sau):
-            //  - journal_mode = WAL : ghi/đọc đồng thời, ít khóa hơn
-            //  - auto_vacuum = INCREMENTAL : chỉ có tác dụng với CSDL còn trống bảng, hoặc sau 1 lần VACUUM
-            // (synchronous / foreign_keys / temp_store / wal_autocheckpoint chỉ sống trong kết nối này nên đặt ở đây vô nghĩa;
-            //  muốn có hiệu lực phải đặt ở nơi mở kết nối chính của ứng dụng.)
-            string? cheDo;
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = "PRAGMA journal_mode = WAL;";
-                cheDo = cmd.ExecuteScalar()?.ToString();
-            }
-            ChayLenh(conn, "PRAGMA auto_vacuum = INCREMENTAL;");
-            return cheDo;
         }
         // ===================== TÁC VỤ ĐỘC QUYỀN TỪ GIAO DIỆN =====================
         /// <summary>
@@ -537,29 +449,9 @@ namespace PhanMemThiDua2026
                 if (thuMucTam != null) { try { Directory.Delete(thuMucTam, true); } catch { } }
             }
         }
-        private static bool CanTaoBackupThang(string tenFile, DateTime now)
-        {
-            string duongDan = LayDuongDanBackupThang(tenFile, now);
-            int ngayCuoi = DateTime.DaysInMonth(now.Year, now.Month);
-            var dauCuaSo = new DateTime(now.Year, now.Month, ngayCuoi - SO_NGAY_CUOI_THANG + 1);
-            bool trongCuaSo = now >= dauCuaSo;
-            if (!File.Exists(duongDan))
-            {
-                if (trongCuaSo) return true;
-                if (!CHO_PHEP_BACKUP_BU) return false;
-                // Sao lưu bù: chưa có bản nào, hoặc bản mới nhất đã quá cũ (máy không được mở đúng 3 ngày cuối tháng)
-                var moiNhat = LayDanhSachBackup(tenFile).FirstOrDefault();
-                return moiNhat == null || (now - moiNhat.LastWriteTime).TotalDays > SO_NGAY_BACKUP_BU;
-            }
-            // Đã có bản của tháng: chỉ làm mới nếu đó là bản "bù" tạo trước cửa sổ cuối tháng
-            return trongCuaSo && File.GetLastWriteTime(duongDan) < dauCuaSo;
-        }
-        private static async Task ChayBaoTriNangAsync(string duongDanDB, CancellationToken cancellationToken, bool cuongBuc)
+        private static async Task ChayBaoTriNangAsync(string duongDanDB, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(duongDanDB) || !File.Exists(duongDanDB)) return;
-            string tenFile = Path.GetFileNameWithoutExtension(duongDanDB);
-            // Smart Check ngoài khóa (rẻ, không đụng CSDL)
-            if (!cuongBuc && !CanTaoBackupThang(tenFile, DateTime.Now)) return;
             using var lk = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ctsThoat.Token);
             try
             {
@@ -574,7 +466,7 @@ namespace PhanMemThiDua2026
             {
                 // LongRunning: tác vụ kéo dài hàng phút (VACUUM) chạy trên luồng riêng, không chiếm ThreadPool (máy 2 nhân vẫn mượt)
                 await Task.Factory.StartNew(
-                        () => BaoTriNangDongBo(duongDanDB, tenFile, cuongBuc, lk.Token),
+                        () => BaoTriNangDongBo(duongDanDB, lk.Token),
                         lk.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default)
                     .ConfigureAwait(false);
             }
@@ -586,40 +478,25 @@ namespace PhanMemThiDua2026
                 KichHoatWorker();   // xả các dòng NhatKy bị hoãn trong lúc CSDL bị khóa
             }
         }
-        private static void BaoTriNangDongBo(string duongDanDB, string tenFile, bool cuongBuc, CancellationToken ct)
+        /// <summary>
+        /// Bảo trì nặng (khi chạm mốc 1000 dòng nhật ký): kiểm tra toàn vẹn -> dồn CSDL nếu đã đủ 6 tháng và thực sự cần.
+        /// Đã bỏ sao lưu / tự phục hồi: CSDL hỏng chỉ được ghi cảnh báo và GIỮ NGUYÊN (không VACUUM), khôi phục bằng ServiceRestore.
+        /// </summary>
+        private static void BaoTriNangDongBo(string duongDanDB, CancellationToken ct)
         {
-            // Kiểm tra lại sau khi giành được khóa (lượt khác có thể vừa làm xong)
-            DateTime now = DateTime.Now;
-            bool canBackup = CanTaoBackupThang(tenFile, now);
-            if (!canBackup && !cuongBuc) return;
-            Directory.CreateDirectory(_thuMucBackup);
-            GhiLog($"[Bảo Trì Nặng] Đang xử lý: {tenFile}...");
-            // 1. INTEGRITY CHECK
-            // 🛡️ CORRUPTION RECOVERY (Auto-Restore)
+            string ten = Path.GetFileName(duongDanDB);
+            GhiLog($"[Bảo Trì Nặng] Đang xử lý: {ten}...");
             if (!CsdlKhoeManh(duongDanDB, ct))
             {
-                PhucHoiTuBackup(duongDanDB, tenFile, now, ct);
-                return;   // Khôi phục xong (hoặc không thể) thì thoát, không Vacuum nữa.
-            }
-            // 2. ONLINE BACKUP (ghi ra .tmp -> kiểm tra -> đổi tên nguyên tử)
-            bool coBackup = !canBackup;   // đã có bản của tháng này thì coi như đã an toàn
-            if (canBackup)
-                coBackup = SaoLuuAnToan(duongDanDB, LayDuongDanBackupThang(tenFile, now), ct);
-            if (!coBackup)
-            {
-                GhiLog($"[Bảo Trì Nặng] Sao lưu {tenFile} không thành công, bỏ qua VACUUM và dọn dẹp.");
+                GhiLog($"[CẢNH BÁO ĐỎ] {ten} không vượt qua kiểm tra toàn vẹn! Giữ nguyên tệp, bỏ qua VACUUM; cần khôi phục bằng ServiceRestore.");
                 return;
             }
-            // 3. DỒN CSDL (chỉ khi DB khỏe, có backup, đã đủ 6 tháng kể từ lần thu gọn trước, và thực sự nhiều rác / cần chuyển sang INCREMENTAL)
-            if (DaDenHanThuGon(duongDanDB, now) && CanFullVacuum(duongDanDB, ct))
+            if (DaDenHanThuGon(duongDanDB, DateTime.Now) && CanFullVacuum(duongDanDB, ct))
                 ThucHienFullVacuum(duongDanDB, ct);
-            // 4. CLEANUP (giữ tối đa 3 bản VÀ dung lượng tổng dưới 2GB, không bao giờ xóa bản mới nhất)
-            DondepBackupCu(tenFile, SO_BAN_BACKUP_GIU_LAI, TRAN_DUNG_LUONG_BACKUP);
         }
         /// <summary>
         /// Hỏng thật sự khi integrity_check != ok hoặc SQLite báo CORRUPT / NOTADB. BUSY không bao giờ bị coi là hỏng.
-        /// Phục hồi sẽ thay thế CSDL bằng bản sao lưu (có thể cũ tới 1 tháng) nên kết luận "hỏng" phải được xác nhận 2 lần cách nhau 1,5 giây,
-        /// loại trừ lỗi đọc thoáng qua (phần mềm diệt virus quét tệp, ổ đĩa chập chờn).
+        /// Xác nhận 2 lần cách nhau 1,5 giây để loại trừ lỗi đọc thoáng qua (phần mềm diệt virus quét tệp, ổ đĩa chập chờn).
         /// </summary>
         private static bool CsdlKhoeManh(string dbPath, CancellationToken ct)
         {
@@ -648,133 +525,6 @@ namespace PhanMemThiDua2026
             {
                 throw new OperationCanceledException(ct);
             }
-        }
-        private static bool PhucHoiTuBackup(string duongDanDB, string tenFile, DateTime now, CancellationToken ct)
-        {
-            GhiLog($"[NGUY HIỂM] {tenFile} bị Corrupt! Tiến hành tìm bản sao lưu hợp lệ để phục hồi.");
-            string tam = Path.Combine(_thuMucBackup, $"{tenFile}_Restore{HAU_TO_TAM}");
-            string? tenBanDung = null;
-            try
-            {
-                // 1. Chọn bản sao lưu MỚI NHẤT mà bản thân nó còn toàn vẹn (chưa đụng tới DB đang chạy)
-                foreach (FileInfo f in LayDanhSachBackup(tenFile))
-                {
-                    ct.ThrowIfCancellationRequested();
-                    XoaKemTepPhu(tam);
-                    File.Copy(f.FullName, tam, true);
-                    bool tot;
-                    try { tot = KiemTraToanVen(tam, nhanh: false, ct); }
-                    catch (SqliteException ex) { GhiLog($"[Phục Hồi] Không kiểm tra được {f.Name}: {ex.Message}"); tot = false; }
-                    if (tot) { tenBanDung = f.Name; break; }
-                    GhiLog($"[Phục Hồi] Bản {f.Name} cũng không toàn vẹn, thử bản cũ hơn...");
-                }
-                if (tenBanDung == null)
-                {
-                    // Không có bản thay thế -> GIỮ NGUYÊN tệp hiện tại (không cách ly), tránh để ứng dụng chạy với CSDL trống
-                    GhiLog($"[CẢNH BÁO ĐỎ] Không có bản sao lưu hợp lệ để phục hồi cho {tenFile}! Giữ nguyên tệp hiện tại, cần xử lý thủ công.");
-                    return false;
-                }
-                // ---- ĐOẠN GĂNG: từ đây không kiểm tra hủy, để không bỏ dở giữa chừng việc thay thế CSDL ----
-                // 2. Nhả mọi kết nối đang được giữ trong pool (nếu không Windows sẽ báo "tệp đang được sử dụng")
-                SqliteConnection.ClearAllPools();
-                // 3. Cách ly tệp hỏng (kèm -wal/-shm/-journal: WAL cũ mà dính vào bản mới sẽ làm hỏng chính bản vừa khôi phục) rồi đặt bản tốt vào chỗ
-                string corruptPath = Path.Combine(_thuMucBackup, $"{tenFile}_CORRUPTED_{Dinh(now, "yyyyMMdd_HHmmss")}.db");
-                var daChuyen = new List<(string Tu, string Den)>(4);
-                try
-                {
-                    foreach (string hau in HauToTepVaChinh)
-                    {
-                        string nguon = duongDanDB + hau;
-                        if (!File.Exists(nguon)) continue;
-                        string dich = corruptPath + hau;
-                        File.Move(nguon, dich);
-                        daChuyen.Add((nguon, dich));
-                    }
-                    File.Move(tam, duongDanDB);
-                }
-                catch
-                {
-                    // Hoàn tác: trả lại đúng trạng thái ban đầu, không để mất CSDL
-                    for (int i = daChuyen.Count - 1; i >= 0; i--)
-                    {
-                        try { File.Move(daChuyen[i].Den, daChuyen[i].Tu); } catch { }
-                    }
-                    throw;
-                }
-                GhiLog($"[Phục Hồi] Đã khôi phục thành công từ: {tenBanDung}. Bản hỏng được lưu ở {Path.GetFileName(corruptPath)}. Hủy Vacuum.");
-                // 4. Bản sao lưu ở chế độ journal thường -> bật lại WAL; dọn bớt bản hỏng cũ; báo cho giao diện nạp lại dữ liệu
-                var st = LayTrangThai(duongDanDB);
-                if (st != null) st.DaToiUu = false;
-                KhoiTaoCauHinhToiUu(duongDanDB);
-                DondepBanHongCu(tenFile, SO_BAN_HONG_GIU_LAI);
-                ThongBaoCsdlThayDoi();
-                return true;
-            }
-            finally
-            {
-                XoaKemTepPhu(tam);
-            }
-        }
-        /// <summary>Gọi sự kiện cho từng người nghe riêng: 1 người nghe lỗi không làm hỏng các người còn lại. LƯU Ý: chạy trên luồng nền, người nghe tự chuyển về luồng giao diện nếu cần.</summary>
-        private static void ThongBaoCsdlThayDoi()
-        {
-            var h = Module_DanduongGPS.OnDatabaseChanged;
-            if (h == null) return;
-            foreach (Delegate d in h.GetInvocationList())
-            {
-                try { ((Action)d)(); }
-                catch (Exception ex) { Debug.WriteLine($"[Trình Bảo Trì] OnDatabaseChanged: {ex.Message}"); }
-            }
-        }
-        /// <summary>
-        /// Sao lưu ra tệp .tmp -> journal_mode=DELETE (bản sao là 1 tệp tự đủ) -> quick_check -> Move thành tên chính thức.
-        /// Sập nguồn giữa chừng không để lại "bản sao lưu" dở dang mà lần sau tưởng là hợp lệ.
-        /// </summary>
-        private static bool SaoLuuAnToan(string dbGoc, string dbBackup, CancellationToken ct)
-        {
-            string tam = dbBackup + HAU_TO_TAM;
-            try
-            {
-                ct.ThrowIfCancellationRequested();
-                // Không đủ chỗ trống thì thôi, tránh làm đầy ổ đĩa trên máy cấu hình thấp
-                long canByte = KichThuocCsdlKemWal(dbGoc);
-                canByte += canByte / 10 + DU_PHONG_BYTE;
-                if (!DuDungLuong(_thuMucBackup, canByte))
-                {
-                    GhiLog($"[Backup] Bỏ qua {Path.GetFileName(dbGoc)}: ổ đĩa không đủ dung lượng trống.");
-                    return false;
-                }
-                XoaKemTepPhu(tam);
-                using (var ketNoiGoc = MoKetNoi(dbGoc))
-                using (var ketNoiBackup = MoKetNoi(tam, SqliteOpenMode.ReadWriteCreate))
-                {
-                    ketNoiGoc.BackupDatabase(ketNoiBackup);
-                    ct.ThrowIfCancellationRequested();
-                    HoanThienVaKiemTraBackup(ketNoiBackup);
-                }
-                ct.ThrowIfCancellationRequested();
-                File.Move(tam, dbBackup, overwrite: true);
-                return true;
-            }
-            catch (OperationCanceledException) { throw; }
-            catch (Exception ex)
-            {
-                GhiLog($"[Lỗi Backup] {Path.GetFileName(dbGoc)}: {ex.Message}");
-                return false;
-            }
-            finally
-            {
-                XoaKemTepPhu(tam);   // bản 2 chỉ xóa .tmp, bỏ sót -wal/-shm/-journal
-            }
-        }
-        private static void HoanThienVaKiemTraBackup(SqliteConnection ketNoiBackup)
-        {
-            ChayLenh(ketNoiBackup, "PRAGMA journal_mode = DELETE;");
-            using var cmd = ketNoiBackup.CreateCommand();
-            cmd.CommandText = "PRAGMA quick_check(1);";
-            string? kq = cmd.ExecuteScalar()?.ToString();
-            if (!string.Equals(kq, "ok", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException("Bản sao lưu vừa tạo không vượt qua quick_check: " + kq);
         }
         private static bool CanFullVacuum(string dbPath, CancellationToken ct)
         {
@@ -854,43 +604,6 @@ namespace PhanMemThiDua2026
                 if (thuMucTam != null) { try { Directory.Delete(thuMucTam, true); } catch { } }
             }
         }
-        // 🛡️ Dọn dẹp backup theo Số lượng VÀ Dung lượng; KHÔNG BAO GIỜ xóa bản mới nhất
-        private static void DondepBackupCu(string tenFileGoc, int soLuongGiuLai, long maxSizeBytes)
-        {
-            try
-            {
-                var files = LayDanhSachBackup(tenFileGoc);   // mới nhất ở đầu danh sách
-                long tong = files.Sum(f => f.Length);
-                for (int i = files.Count - 1; i >= 1; i--)   // từ cũ nhất -> mới dần, bỏ qua files[0]
-                {
-                    bool vuotSoLuong = i >= soLuongGiuLai;
-                    if (!vuotSoLuong && tong <= maxSizeBytes) break;   // đạt mức an toàn thì dừng
-                    long len = files[i].Length;
-                    if (XoaNeuCo(files[i].FullName)) tong -= len;
-                    else Debug.WriteLine($"[Dọn backup] Không xóa được {files[i].Name}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[Dọn backup] {ex.Message}");
-            }
-        }
-        private static void DondepBanHongCu(string tenFileGoc, int soLuongGiuLai)
-        {
-            try
-            {
-                if (!Directory.Exists(_thuMucBackup)) return;
-                var hong = new List<string>();
-                foreach (string f in Directory.EnumerateFiles(_thuMucBackup, $"{tenFileGoc}_CORRUPTED_*.db"))
-                {
-                    if (f.EndsWith(".db", StringComparison.OrdinalIgnoreCase)) hong.Add(f);
-                }
-                hong.Sort((a, b) => string.Compare(Path.GetFileName(b), Path.GetFileName(a), StringComparison.OrdinalIgnoreCase));
-                for (int i = soLuongGiuLai; i < hong.Count; i++)
-                    XoaKemTepPhu(hong[i]);
-            }
-            catch { }
-        }
         // ===================== KIỂM TRA THEO SỐ DÒNG NHẬT KÝ =====================
         private static int _dangDemDong;
         public static Task KiemTraVaVaccumTheoSoDongAsync(string dbPath) => KiemTraVaVaccumTheoSoDongAsync(dbPath, CancellationToken.None);
@@ -943,8 +656,7 @@ namespace PhanMemThiDua2026
         {
             try
             {
-                // cuongBuc: bỏ qua rào "3 ngày cuối tháng" cho mốc số dòng
-                await ChayBaoTriNangAsync(dbPath, CancellationToken.None, cuongBuc: true).ConfigureAwait(false);
+                await ChayBaoTriNangAsync(dbPath, CancellationToken.None).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -966,8 +678,9 @@ namespace PhanMemThiDua2026
                 while (_hangDoiFile.TryDequeue(out var m))
                     sb.AppendLine(DinhDangDong(m));   // cùng định dạng có mốc thời gian như Worker
                 if (sb.Length == 0) return;
-                Directory.CreateDirectory(_thuMucBackup);
-                File.AppendAllText(Path.Combine(_thuMucBackup, TEN_FILE_NHAT_KY), sb.ToString(), Utf8KhongBom);
+                ChuyenNhatKyCuNeuCan();
+                Directory.CreateDirectory(Module_NhatKyNhaPhatTrien.ThuMuc);
+                File.AppendAllText(DuongDanNhatKy, sb.ToString(), Utf8KhongBom);
             }
             catch (Exception ex)
             {

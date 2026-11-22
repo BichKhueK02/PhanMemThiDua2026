@@ -32,7 +32,6 @@ namespace PhanMemThiDua2026
             if ((l1 + l2 + l3) >= 2 && l4 == 0) return Module_HeThong.Loai_3;
             return Module_HeThong.Loai_4;
         }
-
         /// <summary>
         /// Lấy chữ số ĐẦU TIÊN (char.IsDigit, như bản gốc dùng FirstOrDefault(char.IsDigit)) và cộng vào bộ đếm tương ứng.
         /// Chữ số đầu tiên không thuộc 1-4 (vd "0", "5") => ô đó không được tính, giống bản gốc.

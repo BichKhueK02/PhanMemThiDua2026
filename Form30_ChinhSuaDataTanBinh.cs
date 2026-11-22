@@ -270,7 +270,10 @@ namespace PhanMemThiDua2026
                             cmd.Parameters.AddWithValue("@" + item.Key, DBNull.Value);
                     }
                 }
-                cmd.ExecuteNonQuery();
+                int soDong = cmd.ExecuteNonQuery();
+                if (soDong > 0)
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Sửa kết quả thi đua Tân binh",
+                        $"ID={_id} | {_hoTenTimKiem} | Số hiệu: {_soHieuTimKiem}");
                 return true;
             }
             catch (Exception ex)

@@ -224,6 +224,7 @@ namespace PhanMemThiDua2026
                 );
                 return;
             }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Thêm đơn vị", $"Bảng: {tenBang} | Tên: {tenDonVi}");
             // Load lại dữ liệu và chọn dòng cuối
             LoadDanhSachDonVi();
             ResetInput();
@@ -291,6 +292,7 @@ namespace PhanMemThiDua2026
                 );
                 return;
             }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Sửa đơn vị", $"Bảng: {tenBang} | ID={idSua} | Tên mới: {tenDonViMoi}");
             // Load lại dữ liệu, cập nhật label và reset input
             LoadDanhSachDonVi(idSua);
             ResetInput();
@@ -331,6 +333,7 @@ namespace PhanMemThiDua2026
                 return;
             }
             int idXoa = _selectedID;
+            string tenXoa = textBox_TenDonVi.Text.Trim();
             string csdlPath = _csdl2Path;
             string tenBang = Module_DonVi.LayTenBangDonVi(); // Gọi hàm định tuyến
             _dangGhiCSDL = true;
@@ -347,6 +350,7 @@ namespace PhanMemThiDua2026
                 });
             }
             finally { _dangGhiCSDL = false; }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa đơn vị", $"Bảng: {tenBang} | ID={idXoa} | Tên: {tenXoa}");
             if (IsDisposed) return;
             LoadDanhSachDonVi();
             ResetInput();

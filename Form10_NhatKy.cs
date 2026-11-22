@@ -1248,10 +1248,13 @@ namespace PhanMemThiDua2026
                     Module_BanQuyen.DongDauExcel(wb);
                     Module_ExcelAnToan.LuuAnToan(wb, fullPath);
                 });
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất Excel nhật ký phần mềm",
+                    $"{listExport.Count} dòng | Tệp: {Path.GetFileName(fullPath)}");
                 Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(fullPath);
             }
             catch (Exception ex)
             {
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel nhật ký phần mềm", ex.Message);
                 MessageBox.Show($"Lỗi khi xuất tệp Excel: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -1340,6 +1343,8 @@ namespace PhanMemThiDua2026
                     if (daXoa > 0)
                     {
                         Debug.WriteLine($"[TuDongXoa] Đã dọn dẹp {daXoa} dòng nhật ký cũ.");
+                        Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Tự động xóa nhật ký cũ",
+                            $"Đã xóa {daXoa} dòng (giữ lại {nguong} dòng mới nhất)");
                     }
                 }
                 await Module_BaoVeDuLieu.KiemTraVaVaccumTheoSoDongAsync(Module_DanduongGPS.DuongDanCSDL3);

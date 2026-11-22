@@ -35,8 +35,8 @@ namespace PhanMemThiDua2026
             (Color.FromArgb(254, 242, 242), Color.FromArgb(254, 226, 226), Color.FromArgb(252, 205, 205), Color.FromArgb(252, 165, 165), Color.FromArgb(185, 28, 28));
         public static void ApDung(Form f)
         {
-            f.SuspendLayout();
-            try
+            // Tạm dừng bố cục CẢ CÂY (không chỉ form gốc): 180–250 ms -> ~5 ms, xem Module_TamDungBoCuc
+            Module_TamDungBoCuc.ChayKhongDanTrang(f, () =>
             {
                 f.BackColor = MauNen;
                 DinhBoCuc(f);
@@ -47,11 +47,7 @@ namespace PhanMemThiDua2026
                 DinhLuoi(f);
                 DinhThanhTrangThai(f);
                 BoTronCacCombo(f);
-            }
-            finally
-            {
-                f.ResumeLayout(true);
-            }
+            });
             // Code gốc đặt lại vài thuộc tính sau khi nạp dữ liệu -> áp dụng lại (đăng ký sau nên chạy sau)
             f.Load += (s, e) => HoanThien(f);
             f.Shown += (s, e) => HoanThien(f);

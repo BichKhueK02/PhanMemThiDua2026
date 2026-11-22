@@ -30,7 +30,6 @@ namespace PhanMemThiDua2026
             }
         }
     }
-
     [DesignerCategory("Code")]
     internal sealed class OComboWebF12 : Control
     {
@@ -44,7 +43,6 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuKhoa = Color.FromArgb(150, 160, 175);
         private static readonly Color MauMuiTen = Color.FromArgb(100, 112, 130);
         private const float DuongKinhBo = 10f;   // bo nhẹ (bán kính 5px ở 100%)
-
         private readonly ComboBox _cb;
         private readonly TextBox? _tb;          // chỉ có khi cb là DropDown (cho gõ)
         private readonly List<Control> _chuoi = new List<Control>();
@@ -52,9 +50,7 @@ namespace PhanMemThiDua2026
         private bool _hover, _dongBoChu;
         private PopupDanhSachF12? _popup;
         private long _tDong;
-
         public static void Gan(ComboBox cb) { _ = new OComboWebF12(cb); }
-
         private OComboWebF12(ComboBox cb)
         {
             _cb = cb;
@@ -104,7 +100,6 @@ namespace PhanMemThiDua2026
             cb.Disposed += (s, e) => Dispose();
             GanChuoi();
         }
-
         // ---------- Bám vị trí ComboBox gốc ----------
         // Ô vẽ nằm ở khung chứa (không nằm trong TableLayoutPanel để khỏi chen vào ô lưới)
         private void GanChuoi()
@@ -149,7 +144,6 @@ namespace PhanMemThiDua2026
             int w = Math.Max(1, Width - LeTrai - VungNut);
             _tb.SetBounds(LeTrai, Math.Max(0, (Height - _tb.Height) / 2), w, _tb.Height);
         }
-
         // ---------- Đồng bộ chữ 2 chiều (chỉ ô cho gõ) ----------
         private void Tb_TextChanged(object? sender, EventArgs e)
         {
@@ -180,7 +174,6 @@ namespace PhanMemThiDua2026
             else if (e.KeyCode == Keys.Down) { Chon(_cb.SelectedIndex + 1); e.Handled = e.SuppressKeyPress = true; }
             else if (e.KeyCode == Keys.Up) { Chon(Math.Max(0, _cb.SelectedIndex - 1)); e.Handled = e.SuppressKeyPress = true; }
         }
-
         // ---------- Vẽ ----------
         private static Color MauChuCua(ComboBox cb) => cb.ForeColor == SystemColors.WindowText ? MauChu : cb.ForeColor;
         private string LayChu()
@@ -221,7 +214,6 @@ namespace PhanMemThiDua2026
             { StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round };
             g.DrawLines(penM, new[] { new PointF(cx - w, cy - dy * h / 2f), new PointF(cx, cy + dy * h / 2f), new PointF(cx + w, cy - dy * h / 2f) });
         }
-
         // ---------- Trạng thái chuột / focus: chỉ vẽ lại khi thật sự đổi ----------
         private void CapNhatHover()
         {
@@ -247,7 +239,6 @@ namespace PhanMemThiDua2026
             if (Environment.TickCount64 - _tDong < 300) return;   // vừa bấm để đóng danh sách
             MoDanhSach();
         }
-
         // ---------- Bàn phím ----------
         // Tab / Shift+Tab: đi tiếp theo thứ tự của ComboBox gốc trong form
         protected override bool ProcessDialogKey(Keys keyData)
@@ -294,7 +285,6 @@ namespace PhanMemThiDua2026
             if (i < 0 || i >= _cb.Items.Count || i == _cb.SelectedIndex) return;
             _cb.SelectedIndex = i;      // kích hoạt SelectedIndexChanged của code gốc
         }
-
         // ---------- Danh sách sổ xuống ----------
         private void MoDanhSach()
         {
@@ -342,7 +332,6 @@ namespace PhanMemThiDua2026
             base.Dispose(disposing);
         }
     }
-
     /// <summary>Danh sách sổ xuống bo góc nhẹ: hover xanh nhạt, mục đang chọn có nền + dấu tick, thanh cuộn mảnh, hỗ trợ bàn phím + lăn chuột.</summary>
     [DesignerCategory("Code")]
     internal sealed class PopupDanhSachF12 : Form

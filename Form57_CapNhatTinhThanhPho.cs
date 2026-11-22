@@ -871,6 +871,7 @@ namespace PhanMemThiDua2026
                 catch
                 {
                 }
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất Excel danh mục Tỉnh / Thành phố", $"{danhSachDto.Count} dòng | Tệp: {Path.GetFileName(filePath)}");
                 Module_ThongBao.ThanhCong($"Xuất Excel thành công! Đã xuất {danhSachDto.Count:N0} Tỉnh / Thành phố.");
             }
             catch (Exception ex)
@@ -986,6 +987,7 @@ namespace PhanMemThiDua2026
                     newID = Convert.ToInt32(cmdInsert.ExecuteScalar());
                     tx.Commit();
                 }
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Thêm Tỉnh / Thành phố", $"ID={newID} | Tên: {tenTinhVaThanhPho}");
                 // 5. CẬP NHẬT GIAO DIỆN
                 LoadDanhSachTinhVaThanhPho(newID);
                 ResetInput();
@@ -1115,6 +1117,7 @@ namespace PhanMemThiDua2026
                     ResetInput();
                     return;
                 }
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Sửa Tỉnh / Thành phố", $"ID={idDangSua} | Tên mới: {tenTinhVaThanhPhoMoi}");
                 // 7. LOAD LẠI + CUỘN TỚI DÒNG VỪA SỬA
                 LoadDanhSachTinhVaThanhPho(idDangSua);
                 ResetInput();
@@ -1221,6 +1224,7 @@ namespace PhanMemThiDua2026
                     ResetInput();
                     return;
                 }
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa Tỉnh / Thành phố", $"ID={idCanXoa} | Tên: {tenTinhVaThanhPho}");
                 // 5. LOAD LẠI + RESET
                 LoadDanhSachTinhVaThanhPho();
                 ResetInput();

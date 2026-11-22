@@ -281,18 +281,21 @@ namespace PhanMemThiDua2026
                 cs.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 cs.Margin = new Padding(0);
             }
-            // Thẻ "2. Khối điều khiển": 2 nút xếp ngang
+            // Thẻ "2. Khối điều khiển": 2 nút GỌN xếp ngang bên trái (bản cũ chia đôi 50% - 50% nên mỗi nút dài gần nửa màn hình)
             var t3 = Tim<TableLayoutPanel>(f, "tableLayoutPanel3");
             if (t3 != null)
             {
+                int w = Px(t3, Module_BoLocKhenThuong.RongNut + 12);
                 t3.Margin = new Padding(0);
+                t3.ColumnCount = 3;
                 t3.ColumnStyles.Clear();
-                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));   // Làm mới
-                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));   // Xuất dữ liệu
+                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, w));    // Làm mới
+                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, w));    // Xuất dữ liệu
+                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));  // khoảng trống
                 BatDoubleBuffer(t3);
             }
-            NutTrongO(f, "kryptonButton_CapNhat", NutTimDam, new Padding(0, 0, 6, 0));
-            NutTrongO(f, "kryptonButton_XuatData", NutTim, new Padding(6, 0, 0, 0));
+            NutTrongO(f, "kryptonButton_CapNhat", NutTimDam, new Padding(0, 0, Px(f, 12), 0));
+            NutTrongO(f, "kryptonButton_XuatData", NutTim, new Padding(0, 0, Px(f, 12), 0));
         }
         // ===================== COMBO BO TRÒN (dùng OComboWebF4 của Form4) =====================
         private static void BoTronCacCombo(Form f)

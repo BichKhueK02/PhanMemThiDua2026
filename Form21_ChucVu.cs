@@ -256,6 +256,7 @@ namespace PhanMemThiDua2026
                 );
                 return;
             }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Thêm chức vụ", $"Tên: {tenChucVu}");
             // Load lại dữ liệu và chọn dòng cuối
             LoadDanhSachChucVu();
             CapNhatLabelTongCongChucVu();
@@ -323,6 +324,7 @@ namespace PhanMemThiDua2026
                 );
                 return;
             }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Sửa chức vụ", $"ID={idSua} | Tên mới: {tenChucVuMoi}");
             LoadDanhSachChucVu(idSua);
             CapNhatLabelTongCongChucVu();
             ResetInput();
@@ -363,6 +365,7 @@ namespace PhanMemThiDua2026
                 return;
             }
             int idXoa = _selectedID;
+            string tenXoa = textBox_TenChucVu.Text.Trim();
             string csdlPath = _csdl2Path;
             _dangGhiCSDL = true;
             try
@@ -378,6 +381,7 @@ namespace PhanMemThiDua2026
                 });
             }
             finally { _dangGhiCSDL = false; }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa chức vụ", $"ID={idXoa} | Tên: {tenXoa}");
             if (IsDisposed) return;
             LoadDanhSachChucVu();
             CapNhatLabelTongCongChucVu();

@@ -551,6 +551,7 @@ WHERE ID = 1";
                 tran.Rollback();
                 throw;
             }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Cập nhật thi đua tập thể", $"Cột: {tenCot} = {giaTri}");
             LoadBangThongKe();
             ChinhTieuDeBangThongKe();
             CapNhatTrangThaiKetNoi();

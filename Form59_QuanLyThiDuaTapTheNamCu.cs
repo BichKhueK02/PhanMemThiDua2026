@@ -562,6 +562,7 @@ namespace PhanMemThiDua2026
                 {
                     List<NamThiDuaTapTheItem> danhSachHople = await Task.Run(() =>
                     {
+                        Module_HoTroLuuDataTheoNamCu.DonRacThuMucLichSu();   // dọn tệp năm cũ đã trống hết dữ liệu
                         var dsResult = new List<NamThiDuaTapTheItem>();
                         string[] cacFile = Directory.GetFiles(_thuMucLichSuPath, "ThiDua_CBCS_Nam*.db");
                         foreach (string file in cacFile)
@@ -671,11 +672,14 @@ namespace PhanMemThiDua2026
                     $"Xóa bảng thi đua tập thể năm {itemChon.TenHienThi} thành công!",
                     DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
                 );
-                // Dọn dẹp DataGridView
                 // Dọn dẹp DataGridView & ẩn vùng lưới trống
                 kryptonDataGridView1.DataSource = null;
                 XoaTrangCacTextBox();
                 SetDataGridViewVisible(false);
+                // Bảng thi đua cá nhân (ThiDuaThang) của năm này cũng trống => tệp chỉ còn là rác: xóa hẳn khỏi thư mục lịch sử.
+                // Danh sách năm quét lại (năm vừa xóa bảng tập thể luôn biến khỏi combo vì không còn bảng ThongKe_PhanLoaiTapThe).
+                Module_HoTroLuuDataTheoNamCu.XoaTepLichSuNeuRong(duongDanCSDLCu);
+                await TaiDanhSachCoSoDuLieuNamCuAsync();
                 // 🌟 Thông báo xóa thành công -> Delay 200ms -> Đếm lại số dòng DataGrid (bằng 0)
                 await HienThiThongBaoTamThoiAsync($"Đã xóa toàn bộ dữ liệu bảng thi đua tập thể năm {itemChon.TenHienThi} thành công!", 200);
             }

@@ -1124,7 +1124,8 @@ namespace PhanMemThiDua2026
             if (IsDisposed || !IsHandleCreated) return;
             // Chống bấm/gọi liên tục và chống chạy chồng khi đang nạp dở
             if ((DateTime.Now - _lastReload).TotalMilliseconds < 500) { NK("ReloadData: bỏ qua (gọi lại < 500ms)"); return; }
-            if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1) { NK("ReloadData: bỏ qua (đang bận)"); return; }
+            // Đang bận (lượt đang chạy có thể đã đọc Form6 TRƯỚC khi Form6 đổi): hẹn chạy lại 1 lượt khi lượt hiện tại xong
+            if (Interlocked.Exchange(ref _dangXuLyLuongNen, 1) == 1) { NK("ReloadData: đang bận -> hẹn chạy lại"); _canLamMoiLai = true; return; }
             _lastReload = DateTime.Now;
             var sw = Stopwatch.StartNew();
             try
@@ -3681,6 +3682,8 @@ namespace PhanMemThiDua2026
                 }
                 // 5. Thực hiện lưu trữ
                 string duongDan = await Task.Run(() => Module_HoTroLuuDataTheoNamCu.LuuTruDuLieuThiDuaNam());
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lưu trữ dữ liệu thi đua năm sang hệ thống năm cũ",
+                    $"Tệp: {Path.GetFileName(duongDan)}" + (xoaTepCu ? " (đã xóa tệp cũ và tạo lại)" : ""));
                 // 6. Form46 đang mở -> nạp lại danh sách file
                 var f46Check = Application.OpenForms.OfType<Form46_ThongKeThiDuaNamCu>().FirstOrDefault();
                 if (f46Check != null && !f46Check.IsDisposed)
@@ -3699,6 +3702,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi lưu trữ dữ liệu thi đua năm", ex.Message);
                 MessageBox.Show(ex.Message, "Không thể lưu trữ dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally

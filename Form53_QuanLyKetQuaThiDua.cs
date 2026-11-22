@@ -8,7 +8,6 @@
         /// Chuyển tab mà dữ liệu form đó vừa tải trong vòng N giây thì KHÔNG tải lại.
         /// Đặt 0 = luôn tải lại (nhưng tải ngầm, không chặn giao diện).
         /// </summary>
-        private const int TuoiDuLieuToiDaGiay = 10;
         /// <summary>Tạo sẵn các form con còn lại vào RAM sau khi trang đầu đã hiện xong.</summary>
         private const bool NapTruocNen = true;
         private readonly int _namHeThong = Module_HeThong.LayNamHeThong();
@@ -77,6 +76,9 @@
                     if (Dung()) return;
                     // Chờ "đèn đỏ" đăng nhập + người dùng rảnh tay (trang có thể đang được nạp sẵn lúc còn ở màn hình đăng nhập)
                     await Module_UuTienDangNhap.NhuongAsync();
+                    // Xếp hàng với các bộ dựng sẵn khác (Form52, Form6 -> Form55): không dồn nhiều khối nặng vào cùng 1 nhịp rảnh
+                    using var luot = await Module_NhuongUI.GiuLuotNangAsync(Dung);
+                    if (luot == null) return;
                     // Khối new + InitializeComponent (tới ~240 ms) không chia nhỏ được: chỉ làm khi người dùng rời tay hẳn 0,5 s
                     if (!await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 500, toiDaMs: 10000)) return;
                     try { await buoc(); }
@@ -226,8 +228,9 @@
                 return dangChay;
             }
             // Dữ liệu còn tươi (vừa tải, hoặc CSDL không đổi kể từ lần tải trước) -> khỏi tải lại
-            if (!ep && _lanTaiCuoi.TryGetValue(t, out long truoc)
-                    && (Environment.TickCount64 - truoc < TuoiDuLieuToiDaGiay * 1000L || DuLieuChuaDoi(t, truoc)))
+            // Chỉ coi là "tươi" khi CSDL KHÔNG đổi (so chữ ký, < 1 ms). Bản cũ còn coi "vừa tải < 10 giây" là tươi dù CSDL đã đổi:
+            // xóa/sửa ở Form6 rồi quay lại Form15 ngay thì vẫn thấy tình trạng cũ (Form52 đã sửa tương tự).
+            if (!ep && _lanTaiCuoi.TryGetValue(t, out long truoc) && DuLieuChuaDoi(t, truoc))
             {
                 if (form == _activeSubForm) DaLoadDuLieu = true;
                 return Task.CompletedTask;

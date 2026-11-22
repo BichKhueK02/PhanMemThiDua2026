@@ -5,8 +5,6 @@ namespace PhanMemThiDua2026
     public partial class Form52_QuanLyKhenThuong : Form // hoặc KryptonForm
     {
         // ================= CẤU HÌNH =================
-        /// <summary>Tab vừa tải dữ liệu trong vòng N giây thì chuyển lại không tải lại. 0 = luôn tải lại (ngầm).</summary>
-        private const int TuoiDuLieuToiDaGiay = 10;
         /// <summary>Đặt false nếu form con có handler sự kiện static chạy khi chưa hiện.</summary>
         private const bool NapTruocTaoHandle = true;
         /// <summary>Tên các hàm reload công khai (không tham số) sẽ được tự nhận diện trên form con.</summary>
@@ -219,13 +217,15 @@ namespace PhanMemThiDua2026
             Type chu = _activeSubForm?.GetType() ?? typeof(Form);
             Form? dangHien = TrangDangHien();
             if (!_chiTiet.TryGetValue(chu, out List<Form>? ds)) _chiTiet[chu] = ds = new List<Form>();
-            ds.Add(frmDuocNemLen);
+            if (!ds.Contains(frmDuocNemLen)) ds.Add(frmDuocNemLen);   // form chi tiết dùng lại: không thêm trùng
             _tieuDe[frmDuocNemLen] = tieuDeMoi;
             frmDuocNemLen.TopLevel = false;
             frmDuocNemLen.FormBorderStyle = FormBorderStyle.None;
             frmDuocNemLen.Dock = DockStyle.Fill;
             frmDuocNemLen.FormClosed -= FormChiTiet_FormClosed;
             frmDuocNemLen.FormClosed += FormChiTiet_FormClosed;
+            frmDuocNemLen.FormClosing -= FormChiTiet_FormClosing;
+            frmDuocNemLen.FormClosing += FormChiTiet_FormClosing;
             panelContent.SuspendLayout();
             try
             {
@@ -241,35 +241,79 @@ namespace PhanMemThiDua2026
             CapNhatTieuDeFormChinh(tieuDeMoi);
         }
         // Quản lý vòng đời chặt chẽ khi đóng Form chi tiết
+        /// <summary>
+        /// Form chi tiết DÙNG LẠI (Form35 do Form34 giữ 1 bản duy nhất trong RAM): bấm Đóng thì KHÔNG hủy - hủy là lần mở sau
+        /// phải dựng lại cả form (~300 ms InitializeComponent + ~230 ms tạo handle + ~130 ms dựng cột lưới). Chặn lệnh đóng,
+        /// gỡ khỏi trang rồi cất lại vào kho giao diện; lần mở sau chỉ còn nạp dữ liệu người mới.
+        /// </summary>
+        private async void FormChiTiet_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            if (sender is not Form35_ChiTietKhenThuong { DungLai: true } f35) return;
+            if (_isClosing || IsDisposed || e.CloseReason == CloseReason.ApplicationExitCall || e.CloseReason == CloseReason.WindowsShutDown) return;
+            e.Cancel = true;
+            await DongChiTietAsync(f35, huy: false);
+        }
         private async void FormChiTiet_FormClosed(object? sender, FormClosedEventArgs e)
         {
             if (sender is not Form frmChiTiet) return;
-            frmChiTiet.FormClosed -= FormChiTiet_FormClosed;
+            await DongChiTietAsync(frmChiTiet, huy: true);
+        }
+        private async Task DongChiTietAsync(Form frmChiTiet, bool huy)
+        {
+            if (huy)
+            {
+                frmChiTiet.FormClosed -= FormChiTiet_FormClosed;
+                frmChiTiet.FormClosing -= FormChiTiet_FormClosing;
+            }
             if (_isClosing || IsDisposed) return;
             // Chi tiết này có đang là trang hiện trên màn hình không?
             bool dangHien = ReferenceEquals(frmChiTiet, TrangDangHien());
-            // BƯỚC 1: gỡ khỏi danh sách + Panel để cắt liên kết giao diện
+            // BƯỚC 1: gỡ khỏi danh sách
             Type? chu = null;
             foreach (var kv in _chiTiet)
             {
                 if (kv.Value.Remove(frmChiTiet)) { chu = kv.Key; break; }
             }
+            if (chu == null && !huy) return;   // không nằm trong trang nào (đã được gỡ trước đó)
             _tieuDe.Remove(frmChiTiet);
-            if (!panelContent.IsDisposed) panelContent.Controls.Remove(frmChiTiet);
-            // BƯỚC 2: huỷ để GC dọn RAM
-            if (!frmChiTiet.IsDisposed) frmChiTiet.Dispose();
-            if (chu == null) return;
-            if (_chiTiet.TryGetValue(chu, out List<Form>? ds) && ds.Count == 0) _chiTiet.Remove(chu);
-            if (!_boNho.TryGetValue(chu, out Form? goc) || goc.IsDisposed) return;
+            Form? goc = null;
+            if (chu != null && (!_chiTiet.TryGetValue(chu, out List<Form>? conLai) || conLai.Count == 0))
+            {
+                _chiTiet.Remove(chu);
+            }
+            if (chu != null) _boNho.TryGetValue(chu, out goc);
+            bool canHienLai = chu != null && goc != null && !goc.IsDisposed && dangHien
+                              && _activeSubForm != null && _activeSubForm.GetType() == chu;
+            if (huy)
+            {
+                if (!panelContent.IsDisposed) panelContent.Controls.Remove(frmChiTiet);
+                // BƯỚC 2: huỷ để GC dọn RAM
+                if (!frmChiTiet.IsDisposed) frmChiTiet.Dispose();
+            }
+            else
+            {
+                // Dùng lại: HIỆN trang bên dưới TRƯỚC rồi mới ẩn chi tiết (không lộ 1 khung hình nền trống).
+                // CHỈ ẨN, để nguyên trong panel: gỡ ra / đổi cha làm lưới Form35 gắn lại nguồn dữ liệu và tạo lại cửa sổ
+                // (đo: đóng ~80 ms, khựng ~65 ms). Form52 chọn trang theo _chiTiet nên form ẩn nằm lại trong panel không ảnh hưởng.
+                if (canHienLai)
+                {
+                    Form hienTruoc = TrangTrenCung(chu!, goc!);
+                    hienTruoc.BringToFront();
+                    hienTruoc.Show();
+                }
+                frmChiTiet.Hide();
+            }
+            if (chu == null || goc == null || goc.IsDisposed) return;
             // BƯỚC 3: đánh thức trang bên dưới (form gốc hoặc chi tiết trước đó)
-            if (dangHien && _activeSubForm != null && _activeSubForm.GetType() == chu)
+            if (canHienLai)
             {
                 Form hien = TrangTrenCung(chu, goc);
                 hien.BringToFront();
                 hien.Show();
                 CapNhatTieuDeFormChinh(_tieuDe.TryGetValue(hien, out string? td) ? td : string.Empty);
                 hien.Update();
-                if (hien == goc) await TaiDuLieuAsync(goc, ep: true);   // như cũ: làm mới sau khi đóng chi tiết
+                // Làm mới sau khi đóng chi tiết - nhưng chỉ khi CSDL đã đổi (chỉ xem chi tiết rồi đóng thì khỏi đọc + giải mã lại cả CSDL2/CSDL4)
+                if (hien == goc && !ChuKyChuaDoi(chu)) await TaiDuLieuAsync(goc, ep: true);
             }
             else if (_activeSubForm == null || _activeSubForm.GetType() != chu)
             {
@@ -287,9 +331,9 @@ namespace PhanMemThiDua2026
                 if (ep) _canTaiLai.Add(t);   // tải xong sẽ tải thêm 1 vòng nữa
                 return dangChay;
             }
-            // Dữ liệu còn tươi (vừa tải, hoặc CSDL không đổi kể từ lần tải trước) -> khỏi tải lại
-            if (!ep && _lanTaiCuoi.TryGetValue(t, out long truoc)
-                    && (Environment.TickCount64 - truoc < TuoiDuLieuToiDaGiay * 1000L || DuLieuChuaDoi(t, truoc)))
+            // Dữ liệu còn tươi (CSDL không đổi kể từ lần tải trước) -> khỏi tải lại.
+            // Bản cũ còn coi "vừa tải < 10 giây" là tươi dù CSDL đã đổi: sửa/xóa ở Form6 rồi quay lại ngay thì Form34 hiện dữ liệu cũ.
+            if (!ep && _lanTaiCuoi.TryGetValue(t, out long truoc) && DuLieuChuaDoi(t, truoc))
             {
                 if (form == _activeSubForm) DaLoadDuLieu = true;
                 return Task.CompletedTask;
@@ -334,6 +378,10 @@ namespace PhanMemThiDua2026
         }
         private readonly Dictionary<Type, string> _chuKyLanTai = new();
         private const int TuoiDuLieuKhongDoiToiDaPhut = 10;
+        private bool ChuKyChuaDoi(Type t)
+            => _lanTaiCuoi.ContainsKey(t)
+               && _chuKyLanTai.TryGetValue(t, out string? ck)
+               && string.Equals(ck, Module_ChuKyCSDL.Lay(), StringComparison.Ordinal);
         private bool DuLieuChuaDoi(Type t, long lanTai)
             => Environment.TickCount64 - lanTai < TuoiDuLieuKhongDoiToiDaPhut * 60_000L
                && _chuKyLanTai.TryGetValue(t, out string? ck)
@@ -431,6 +479,9 @@ namespace PhanMemThiDua2026
                     // Mỗi form dựng là 1 khối nặng không chia nhỏ được: chờ "đèn đỏ" đăng nhập + người dùng rảnh tay
                     // (trang này có thể đang được nạp sẵn từ lúc người dùng còn gõ mật khẩu)
                     await Module_UuTienDangNhap.NhuongAsync();
+                    // Xếp hàng với các bộ dựng sẵn khác (Form53, Form6 -> Form55): không dồn nhiều khối nặng vào cùng 1 nhịp rảnh
+                    using var luot = await Module_NhuongUI.GiuLuotNangAsync(Dung);
+                    if (luot == null) return;
                     // new + InitializeComponent của mỗi trang là 1 khối 40–240 ms không chia nhỏ được: chỉ làm khi người dùng
                     // đã rời chuột/bàn phím hẳn 0,5 s (trước: 0,18 s - vẫn hay rơi trúng lúc đang thao tác)
                     if (!await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 500, toiDaMs: 10000)) return;

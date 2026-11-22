@@ -509,6 +509,8 @@ namespace PhanMemThiDua2026
                 }
                 // Thành công
                 HienThongBao($"[{DateTime.Now:HH:mm:ss}] Đã cập nhật thành công {soDongCapNhat} bản ghi của đơn vị \"{donViChon}\".", UiColors.GreenDark);
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Nạp kết quả phân loại từ Excel",
+                    $"Đơn vị: {donViChon} | Cập nhật {soDongCapNhat} bản ghi | Tệp: {Path.GetFileName(duongDanFile)}");
                 // Lưu lịch sử để chống người dùng bấm trùng
                 _donViDaNapThanhCong = donViChon;
                 _fileDaNapThanhCong = duongDanFile;
@@ -521,6 +523,7 @@ namespace PhanMemThiDua2026
                 {
                     DatTrangThaiBan(false);
                     HienThongBao("Nhập kết quả không thành công.", UiColors.Danger);
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi nạp kết quả phân loại từ Excel", $"Đơn vị: {donViChon} | {ex.Message}");
                     MessageBox.Show(this, $"Có lỗi xảy ra: {ex.Message}", "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }

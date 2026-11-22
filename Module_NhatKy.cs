@@ -365,8 +365,10 @@ WHERE ID <
     SELECT MAX(ID) - 50000
     FROM NhatKyUngDung
 );";
-                cmd.ExecuteNonQuery();
+                int soDongXoa = cmd.ExecuteNonQuery();
                 transaction.Commit();
+                if (soDongXoa > 0)   // chỉ xếp vào hàng đợi, lượt xả sau mới ghi => không đệ quy
+                    GhiNhatKy("SYSTEM", "Tự động dọn nhật ký cũ", $"Xóa {soDongXoa} dòng, giữ lại 50.000 dòng mới nhất");
             }
             catch (Exception ex)
             {

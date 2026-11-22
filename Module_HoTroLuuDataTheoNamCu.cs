@@ -40,8 +40,96 @@ namespace PhanMemThiDua2026
     // CLASS CHÍNH: XỬ LÝ LƯU TRỮ VÀ LỊCH SỬ
     internal static class Module_HoTroLuuDataTheoNamCu
     {
+        // ===================== DỌN TỆP NĂM CŨ RỖNG (không để rác trong LuuTruThiDua_LichSu) =====================
+        /// <summary>
+        /// Các bảng DỮ LIỆU THẬT của từng họ tệp lịch sử. Mọi bảng trong danh sách đều trống (hoặc đã bị xóa hẳn) => tệp là rác.
+        /// Bảng tổng ThongKeCBCS_DuocKhenThuong không tính: xóa giấy khen chỉ đặt SoLuong_Khen = 0, dòng vẫn còn.
+        /// Tên tệp không thuộc họ nào => null (KHÔNG BAO GIỜ đụng tới).
+        /// </summary>
+        private static string[]? BangDuLieuCuaTep(string? duongDan)
+        {
+            string ten = Path.GetFileName(duongDan ?? "");
+            if (!ten.EndsWith(".db", StringComparison.OrdinalIgnoreCase)) return null;
+            if (ten.StartsWith("KhenThuong_CBCS_Nam", StringComparison.OrdinalIgnoreCase))
+                return new[] { "ThongKe_GiayKhen", "ThongKe_KhenThuongTapThe" };        // Form50 cá nhân + Form51 tập thể
+            if (ten.StartsWith("ThiDua_CBCS_Nam", StringComparison.OrdinalIgnoreCase))
+                return new[] { "ThiDuaThang", "ThongKe_PhanLoaiTapThe" };               // Form46 cá nhân + Form59 tập thể
+            if (ten.StartsWith("ThiDua_TanBinh_Nam", StringComparison.OrdinalIgnoreCase))
+                return new[] { "ThiDuaThang_TanBinh" };
+            return null;
+        }
+        /// <summary>
+        /// Xóa hẳn tệp năm cũ (kèm -wal/-shm/-journal) khi MỌI bảng dữ liệu của nó đều trống / không còn.
+        /// An toàn: chỉ tệp nằm đúng trong thư mục lịch sử + đúng họ tên; tệp không mở được (đang khóa, hỏng) thì GIỮ nguyên,
+        /// không đoán là rỗng; tệp đang bị nơi khác mở thì Windows từ chối xóa => bỏ qua, lần quét sau thử lại.
+        /// Trả về true nếu đã xóa.
+        /// </summary>
+        public static bool XoaTepLichSuNeuRong(string? duongDan)
+        {
+            string[]? bang = BangDuLieuCuaTep(duongDan);
+            if (bang == null || string.IsNullOrEmpty(duongDan) || !File.Exists(duongDan)) return false;
+            try
+            {
+                string thuMuc = Path.GetFullPath(Module_DanduongGPS.ThuMucLichSuThiDua).TrimEnd(Path.DirectorySeparatorChar);
+                string cha = Path.GetDirectoryName(Path.GetFullPath(duongDan))?.TrimEnd(Path.DirectorySeparatorChar) ?? "";
+                if (!string.Equals(thuMuc, cha, StringComparison.OrdinalIgnoreCase)) return false;
+                using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(duongDan, chiDoc: true)))
+                {
+                    conn.Open();
+                    foreach (string b in bang)
+                    {
+                        using var kt = conn.CreateCommand();
+                        kt.CommandText = "SELECT 1 FROM sqlite_master WHERE type='table' AND name=$t LIMIT 1";
+                        kt.Parameters.AddWithValue("$t", b);
+                        if (kt.ExecuteScalar() == null) continue;                    // bảng đã bị xóa hẳn (DROP) = trống
+                        using var co = conn.CreateCommand();
+                        co.CommandText = $"SELECT EXISTS(SELECT 1 FROM \"{b}\" LIMIT 1)";
+                        if (Convert.ToInt64(co.ExecuteScalar()) == 1) return false;  // còn dữ liệu => giữ tệp
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[XoaTepLichSuNeuRong] Không đọc được {duongDan}: {ex.Message}");
+                return false;
+            }
+            try
+            {
+                SqliteConnection.ClearAllPools();   // nhả mọi kết nối đang giữ tệp (kể cả kết nối chỉ đọc vừa dùng)
+                File.Delete(duongDan);
+                foreach (string duoi in new[] { "-wal", "-shm", "-journal" })
+                    if (File.Exists(duongDan + duoi)) File.Delete(duongDan + duoi);
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                Debug.WriteLine($"[XoaTepLichSuNeuRong] Chưa xóa được {duongDan}: {ex.Message}");
+                return false;
+            }
+            try
+            {
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Tự xóa tệp CSDL năm cũ không còn dữ liệu",
+                    $"{Path.GetFileName(duongDan)} (mọi bảng dữ liệu đã trống)");
+            }
+            catch { }
+            return true;
+        }
+        /// <summary>Quét cả thư mục lịch sử, xóa mọi tệp năm cũ đã rỗng (rác còn sót từ các bản trước). Trả về số tệp đã xóa.</summary>
+        public static int DonRacThuMucLichSu()
+        {
+            int dem = 0;
+            try
+            {
+                string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
+                if (!Directory.Exists(dir)) return 0;
+                foreach (string f in Directory.GetFiles(dir, "*.db"))
+                    if (XoaTepLichSuNeuRong(f)) dem++;
+            }
+            catch (Exception ex) { Debug.WriteLine("[DonRacThuMucLichSu] " + ex.Message); }
+            return dem;
+        }
         public static List<FileLichSuDTO> LayDanhSachFileLichSu()
         {
+            DonRacThuMucLichSu();   // tệp năm cũ đã rỗng thì xóa luôn, không liệt kê rác
             var danhSach = new List<FileLichSuDTO>();
             string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
             if (!Directory.Exists(dir)) return danhSach;
@@ -73,6 +161,7 @@ namespace PhanMemThiDua2026
         }
         public static List<FileLichSuDTO> LayDanhSachFileLichSu_KhenThuongCaNhan()
         {
+            DonRacThuMucLichSu();   // tệp năm cũ đã rỗng (cả giấy khen + tập thể) thì xóa luôn
             var danhSach = new List<FileLichSuDTO>();
             // [CHẶN CỬA]: Tân binh không có khen thưởng -> Trả về danh sách trống luôn
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";

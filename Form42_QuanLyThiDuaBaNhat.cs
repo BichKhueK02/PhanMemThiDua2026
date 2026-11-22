@@ -61,12 +61,16 @@ namespace PhanMemThiDua2026
         public Form42_QuanLyThiDuaBaNhat()
         {
             InitializeComponent();
-            textBox_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
-            Module_GiaoDienForm42_44Web.ApDung(this);
-            // Tinh chỉnh hiển thị: DoubleBuffered sớm cho các khối bố cục + lưới
-            BatDoubleBufferDeQuy(this);
-            EnableDoubleBuffer(kryptonDataGridView1);
-            Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
+            // Mọi chỉnh sửa giao diện sau InitializeComponent gom vào 1 lượt tạm dừng bố cục cả cây => dàn trang đúng 1 lần
+            Module_TamDungBoCuc.ChayKhongDanTrang(this, () =>
+            {
+                textBox_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
+                Module_GiaoDienForm42_44Web.ApDung(this);
+                // Tinh chỉnh hiển thị: DoubleBuffered sớm cho các khối bố cục + lưới
+                BatDoubleBufferDeQuy(this);
+                EnableDoubleBuffer(kryptonDataGridView1);
+                Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
+            });
             Shown += Form42_QuanLyThiDuaBaNhat_Shown;
             Disposed += (s, e) => GiaiPhongTaiNguyenForm42();
             StartPosition = FormStartPosition.CenterScreen;
@@ -323,10 +327,14 @@ namespace PhanMemThiDua2026
                 _cotCatChu[g.Columns[ten]!.Index] = true;
             _daCauHinhGrid = true;
         }
-        private static DataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,
+        // Tạo THẲNG cột Krypton: nếu để DataGridViewTextBoxColumn thường, mỗi lần gán DataSource KryptonDataGridView
+        // (AutoGenerateKryptonColumns) gỡ ra + chèn lại từng cột để đổi kiểu; gặp cột "Họ và tên" Frozen thì ném
+        // "Column cannot be added because it is unfrozen and placed before a frozen column" giữa chừng => lưới mất dần
+        // cột ID/STT, bộ lọc không nạp, DaLoadDuLieu = false nên lần mở nào cũng nạp + đồng bộ lại cả bảng (đo 22/11/2026).
+        private static Krypton.Toolkit.KryptonDataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,
             DataGridViewContentAlignment canh, bool hien = true, int minW = 0)
         {
-            var c = new DataGridViewTextBoxColumn
+            var c = new Krypton.Toolkit.KryptonDataGridViewTextBoxColumn
             {
                 Name = ten,
                 DataPropertyName = ten,
@@ -573,13 +581,21 @@ namespace PhanMemThiDua2026
             {
                 string bang = TenBangDanhSachBaNhat;
                 var moi = await Task.Run(() => DocTinhTrang(bang));
-                if (IsDisposed || kryptonDataGridView1.DataSource is not DataTable dt) return;
+                var g = kryptonDataGridView1;
+                if (IsDisposed || g.IsDisposed || g.DataSource is not DataTable dt) return;
+                // Gom các dòng đổi trước: thường là 0 dòng -> không đụng tới lưới. Có đổi thì tắt vẽ 1 lần
+                // (mỗi lần gán ô bắn ListChanged -> lưới vẽ lại + DataView lọc lại theo từng dòng).
+                List<(DataRow Row, string TinhTrang)>? doi = null;
                 foreach (DataRow r in dt.Rows)
                 {
                     if (r["ID"] is int id && moi.TryGetValue(id, out string? tt)
                         && !string.Equals(r["TinhTrang"] as string ?? "", tt, StringComparison.Ordinal))
-                        r["TinhTrang"] = tt;
+                        (doi ??= new()).Add((r, tt));
                 }
+                if (doi == null) return;
+                TatVe(g);
+                try { foreach (var (r, tt) in doi) r["TinhTrang"] = tt; }
+                finally { BatVe(g); }
             }
             catch (Exception ex) { Debug.WriteLine("[LamMoiTinhTrang] " + ex.Message); }
         }
@@ -588,7 +604,13 @@ namespace PhanMemThiDua2026
         private async Task<bool> DongBoLoai1CoThayDoiAsync()
         {
             await _khoaDongBo.WaitAsync();
-            try { return await Task.Run(() => DongBoLoai1()); }
+            try
+            {
+                bool coThayDoi = await Task.Run(() => DongBoLoai1());
+                if (coThayDoi)
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Đồng bộ danh sách Loại 1 sang bảng Ba Nhất", $"Bảng: {TenBangDanhSachBaNhat}");
+                return coThayDoi;
+            }
             finally { _khoaDongBo.Release(); }
         }
         // So khớp theo SỐ HIỆU ĐÃ GIẢI MÃ (MaHoa dùng IV ngẫu nhiên nên so chuỗi mã hóa sẽ sai ngay khi một nơi nào đó mã hóa lại Số hiệu:
@@ -1055,6 +1077,8 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                     MessageBox.Show("Không tìm thấy CBCS cần cập nhật.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lưu đề nghị Ba Nhất",
+                    $"{textBox_HoVaTen.Text.Trim()} (Số hiệu: {textBox_SoHieu.Text.Trim()}) | Đề nghị: {(deNghi == "X" ? "Có" : "Không")} | Thành tích: {thanhTich.Length} ký tự");
                 // Đồng bộ lên lưới: cập nhật thẳng DataRow nguồn (không qua ô lưới). Khi bộ lọc "Đề nghị/Không"
                 // đang bật, dòng có thể biến mất khỏi lưới ngay khi DeNghi đổi -> ghi qua ô lưới sẽ mất cập nhật thứ hai.
                 CapNhatDongNguonSauKhiLuu(idBaNhat, deNghi, thanhTich);

@@ -29,7 +29,9 @@ namespace PhanMemThiDua2026
         private bool _canNapLai;                    // dữ liệu nguồn (Loại 1) đổi  -> đồng bộ + nạp lại Form42
         private bool _canLamMoiTinhTrang42;         // Sổ vàng đổi                -> chỉ vá cột "Tình trạng" của Form42
         private bool _canNapLai44;                  // Sổ vàng đổi                -> nạp lại Form44
-        //public void DanhDauCanNapLai() => _canNapLai = true;                          // gọi khi dữ liệu nguồn thay đổi
+        // Form6 gọi mỗi lần mở lại trang Ba Nhất: đồng bộ NỀN với danh sách Loại 1 (chỉ so khớp trong RAM, chỉ ghi/nạp lại
+        // khi thật sự có đổi; không đổi thì chỉ vá cột "Tình trạng"). Lưới cũ vẫn hiện ngay, người dùng không phải chờ.
+        public void DanhDauCanNapLai() => _canNapLai = true;
         public void DanhDauCanNapLaiSoVang() => _canNapLai44 = true;                  // Form42 gọi sau khi lưu vào Sổ vàng
         public void DanhDauCanLamMoiTinhTrang42() => _canLamMoiTinhTrang42 = true;    // Form44 gọi sau khi sửa/xóa/nhập Sổ vàng
         // ===================== BỘ NẠP MỘT LUỒNG =====================
@@ -193,9 +195,44 @@ namespace PhanMemThiDua2026
             _timerNen.Tick += (s, e) =>
             {
                 if (Control.MouseButtons != MouseButtons.None) return;     // đang nhấn/kéo chuột: nhường người dùng
+                // Vừa gõ phím / di chuột: chờ nhịp sau. Bước dựng Form44 (new + InitializeComponent) là một khối liền ~200 ms,
+                // chạy đúng lúc người dùng đang cuộn/gõ trên lưới Ba Nhất là thấy khựng.
+                if (Module_NhuongUI.MsKeTuLanThaoTacCuoi() < 300) return;
                 if (!ChuanBiGiaoDienTungPhan(8)) DungTimerNen();
             };
             _timerNen.Start();
+        }
+        /// <summary>
+        /// Form6 gọi khi Form55 còn ẨN (lúc người dùng rảnh, sau khi kho giao diện chính nạp xong): dựng Form42, tạo handle
+        /// theo lát và NẠP SẴN LƯỚI (chỉ đọc CSDL, không ghi). Lần bấm "Thi đua Ba Nhất" đầu tiên chỉ còn Show + đồng bộ nền.
+        /// Bước đồng bộ Loại 1 / Sổ vàng (có ghi CSDL) để tới lúc mở thật (cờ _canNapLai), nên dữ liệu luôn mới nhất.
+        /// Dừng ngay khi form được hiện giữa chừng (Show tự làm nốt phần còn lại).
+        /// </summary>
+        public async Task DungSanKhiAnAsync(Func<bool> huy)
+        {
+            bool Dung() => huy() || Dong() || Visible;
+            if (Dung()) return;
+            try
+            {
+                using (Module_DoHieuNang.Doan("Form55 dựng sẵn: new Form42 (InitializeComponent + giao diện web)"))
+                    TaoForm42NeuCan();
+                var f42 = _frm42;
+                if (f42 == null || f42.IsDisposed || Dung()) return;
+                await Task.Delay(1);                                 // trả luồng UI một nhịp giữa 2 khối
+                if (Dung()) return;
+                using (Module_DoHieuNang.Doan("Form55 dựng sẵn: Form42.ChuanBiGiaoDienTruoc"))
+                    f42.ChuanBiGiaoDienTruoc();
+                if (!await Module_NhuongUI.TaoHandleTheoLatAsync(f42, () => Dung() || f42.IsDisposed)) return;
+                if (!f42.DaLoadDuLieu)
+                {
+                    if (!await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 300, toiDaMs: 5000)) return;
+                    using (Module_DoHieuNang.Khoang("Form55 dựng sẵn: nạp sẵn lưới Ba Nhất"))
+                        await f42.LoadDuLieuToanBoDanhSachBaNhatAsync();
+                    if (f42.DaLoadDuLieu) _canNapLai = true;         // lúc mở thật: đồng bộ Loại 1 + Sổ vàng ở nền
+                }
+                if (!Dung()) BatDauChuanBiNen();                     // bố cục + Form44: chia lát lúc rảnh
+            }
+            catch (Exception ex) { Debug.WriteLine("[Form55.DungSanKhiAn] " + ex.Message); }
         }
         private void DungTimerNen()
         {

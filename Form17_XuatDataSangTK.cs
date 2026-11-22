@@ -188,10 +188,13 @@ namespace PhanMemThiDua2026
                 if (thongBao.Contains("thành công", StringComparison.OrdinalIgnoreCase))
                 {
                     HienThongBao($"✔ {thongBao} lúc {DateTime.Now:HH:mm:ss}", Color.DarkGreen);
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất dữ liệu phân loại sang Thống kê",
+                        $"Bảng: {tenBang} | Cột: {tenCot} ({thangHienThi})");
                 }
                 else
                 {
                     HienThongBao("✘ Xuất dữ liệu thất bại!", Color.Red);
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất dữ liệu phân loại sang Thống kê", thongBao);
                     MessageBox.Show(thongBao, "Lỗi hệ thống", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }

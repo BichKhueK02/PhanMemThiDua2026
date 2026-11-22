@@ -1,13 +1,10 @@
 using PhanMemThiDua2026;
 using Xunit;
-
 namespace PhanMemThiDua2026.Tests;
-
 /// <summary>Quy tắc phân loại tháng từ 4 tuần (Module_QuyTacPhanLoai, tách từ Form36).</summary>
 public class QuyTacPhanLoaiTests
 {
     private const string L1 = Module_HeThong.Loai_1, L2 = Module_HeThong.Loai_2, L3 = Module_HeThong.Loai_3, L4 = Module_HeThong.Loai_4;
-
     [Theory]
     // Không tuần nào hợp lệ => Loại 4
     [InlineData(null, null, null, null, L4)]
@@ -31,7 +28,6 @@ public class QuyTacPhanLoaiTests
     [InlineData("Loại 5", "Loại 1", "Loại 1", null, L1)]
     public void PhanLoaiThang_DungQuyTac(string? t1, string? t2, string? t3, string? t4, string mongDoi)
         => Assert.Equal(mongDoi, Module_QuyTacPhanLoai.PhanLoaiThangTu4Tuan(t1, t2, t3, t4));
-
     /// <summary>
     /// Đối chiếu VÉT CẠN với bản gốc trong Form36 (chép nguyên văn bên dưới): mọi tổ hợp 4 tuần trên tập giá trị đại diện
     /// (null, rỗng, khoảng trắng, chữ, Loại 0-5, số nhiều chữ số, chữ số Unicode) phải cho cùng kết quả.
@@ -55,7 +51,6 @@ public class QuyTacPhanLoaiTests
         }
         Assert.Equal(giaTri.Length * giaTri.Length * giaTri.Length * giaTri.Length, soCa);
     }
-
     /// <summary>Bản gốc Form36.TinhLogicPhanLoaiMDK_Fast trước khi tách (giữ làm chuẩn đối chiếu).</summary>
     private static string BanGoc(string? t1, string? t2, string? t3, string? t4)
     {

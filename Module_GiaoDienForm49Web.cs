@@ -425,6 +425,11 @@ namespace PhanMemThiDua2026
                 b.Margin = new Padding(0);
                 b.Size = new Size(44, 30);
             }
+            // Nút GỌN: bản gốc chia 3 cột 33% nên Thêm/Sửa/Xóa dài theo cả thẻ => 3 cột bề ngang cố định dồn phải
+            Module_BoLocKhenThuong.XepNutThaoTacGon(t9,
+                Tim<Control>(f, "kryptonButton_ThemKhenThuong"), Tim<Control>(f, "kryptonButton_SuaVaLuuKhenThuong"),
+                Tim<Control>(f, "kryptonButton_XoaKhenThuong"), Tim<Control>(f, "kryptonButton2_GiamCoChuRichText"),
+                Tim<Control>(f, "kryptonButton2_TangCoChuRichText"));
         }
         // ===================== COMBO BO TRÒN (chỉ combo DropDownList) =====================
         private static void BoTronCacCombo(Form f)

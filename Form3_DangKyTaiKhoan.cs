@@ -268,12 +268,15 @@ namespace PhanMemThiDua2026
                 // Đặt dòng này tại Form3_DangKyTaiKhoan lúc lưu thành công tài khoản/ảnh:
                 // ⭐ XÓA CACHE TOÀN CỤC SAU KHI LƯU ẢNH THÀNH CÔNG
                 Module_DanduongGPS.XoaCacheAvatarToanCuc();
+                Module_NhatKy.GhiNhatKy(taiKhoanMoi, "Cập nhật thông tin tài khoản Admin",
+                    "Đổi tài khoản/mật khẩu/Token, câu hỏi bảo mật" + (_hinhAnhDaiDienBytes != null ? " và ảnh đại diện" : ""));
                 MessageBox.Show("Cập nhật thông tin tài khoản thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             catch (Exception ex)
             {
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi cập nhật thông tin tài khoản Admin", ex.Message);
                 MessageBox.Show($"Lỗi hệ thống: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

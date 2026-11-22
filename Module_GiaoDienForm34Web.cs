@@ -194,20 +194,29 @@ namespace PhanMemThiDua2026
                 t5.ColumnStyles.Clear();
                 // Cột nhãn AutoSize: rộng đúng bằng chữ (kể cả khi Windows phóng to chữ/DPI) nên nhãn không bao giờ rớt dòng.
                 // Các cột ô nhập chia phần còn lại theo tỷ lệ.
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));          // 0 Họ và tên
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));      // 1 ô tên
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));          // 2 Đơn vị
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 18F));      // 3 combo đơn vị
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));          // 4 Tình trạng
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16F));      // 5 combo tình trạng
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));          // 6 Đơn vị (khen thưởng)
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22F));      // 7 combo đơn vị khen thưởng
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 56F));     // 8 nút làm mới
+                // Form34 tự thêm cột 8-9 (bộ lọc "Khen thưởng") rồi dời nút làm mới sang cột 10 => đủ 11 cột.
+                // Không có bộ lọc đó (bản Form34 cũ: 9 cột) thì giữ bố cục 9 cột như trước.
+                bool coLocKhen = t5.ColumnCount >= 11;
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));                       // 0 Họ và tên
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, coLocKhen ? 24F : 28F)); // 1 ô tên
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));                       // 2 Đơn vị
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, coLocKhen ? 15F : 18F)); // 3 combo đơn vị
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));                       // 4 Tình trạng
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, coLocKhen ? 14F : 16F)); // 5 combo tình trạng
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));                       // 6 Đơn vị (khen thưởng)
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, coLocKhen ? 19F : 22F)); // 7 combo đơn vị khen thưởng
+                if (coLocKhen)
+                {
+                    t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));                   // 8 Khen thưởng
+                    t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16F));               // 9 combo Đã / Chưa khen thưởng
+                }
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 56F));                  // nút làm mới
             }
             DinhNhan(Tim<Label>(f, "label3"), dauHang: true);   // Họ và tên
             DinhNhan(Tim<Label>(f, "label4"));                  // Đơn vị
             DinhNhan(Tim<Label>(f, "label5"));                  // Tình trạng
             DinhNhan(Tim<Label>(f, "label2"));                  // Đơn vị (khen thưởng)
+            DinhNhan(Tim<Label>(f, "label_LocKhenThuong"));     // Khen thưởng (Đã / Chưa)
             var o = Tim<Krypton.Toolkit.KryptonTextBox>(f, "textBox_TimKiemTheoTen");
             if (o != null)
             {
@@ -216,7 +225,7 @@ namespace PhanMemThiDua2026
                 o.StateCommon.Back.Color1 = Color.White;
                 KieuVienO(o.StateCommon.Border, o.StateActive.Border);
             }
-            foreach (var ten in new[] { "comboBox_TimKiemDonVi", "comboBox_TinhTrangCongTac", "comboBox1_DonViKhenThuong" })
+            foreach (var ten in new[] { "comboBox_TimKiemDonVi", "comboBox_TinhTrangCongTac", "comboBox1_DonViKhenThuong", "comboBox_LocKhenThuong" })
             {
                 var cb = Tim<ComboBox>(f, ten);
                 if (cb == null) continue;
@@ -255,7 +264,7 @@ namespace PhanMemThiDua2026
                 t8.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22F));     // 9  ô tình trạng
                 t8.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));         // 10 Số lượng khen thưởng
                 t8.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 70F));    // 11 ô số lượng
-                t8.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));   // 12 nút Cập nhật
+                t8.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, Module_BoLocKhenThuong.RongNut + 12));   // 12 nút Cập nhật (bề ngang chuẩn chung)
             }
             DinhNhan(Tim<Label>(f, "label6"), dauHang: true);   // STT
             DinhNhan(Tim<Label>(f, "label7"));                  // Họ và tên

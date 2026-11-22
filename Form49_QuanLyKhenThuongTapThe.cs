@@ -686,6 +686,7 @@ namespace PhanMemThiDua2026
                         throw;
                     }
                 });
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Thêm khen thưởng tập thể", $"Tập thể: {kryptonTextBox_TenTapThe.Text?.Trim()}");
                 if (IsDisposed) return;
                 _ = ShowHanhDongStatusAsync("✔ Thêm mới dữ liệu thành công!", true);
                 // ================= FIX LỖI Ở ĐÂY =================
@@ -734,6 +735,7 @@ namespace PhanMemThiDua2026
                     ThemThamSoKhenThuong(cmd, kt);
                     cmd.ExecuteNonQuery();
                 });
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Sửa khen thưởng tập thể", $"ID={_selectedID} | Tập thể: {kryptonTextBox_TenTapThe.Text?.Trim()}");
                 if (IsDisposed) return;
                 _ = ShowHanhDongStatusAsync("✔ Cập nhật dữ liệu thành công!", true);
                 // ================= FIX LỖI Ở ĐÂY =================
@@ -787,6 +789,7 @@ namespace PhanMemThiDua2026
                         throw;
                     }
                 });
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xóa khen thưởng tập thể", $"ID={idXoa} | Tập thể: {tenTapThe}");
                 if (IsDisposed) return;
                 await DanhLaiSoThuTuAsync();
                 _ = ShowHanhDongStatusAsync("✔ Xóa dữ liệu thành công!", true);

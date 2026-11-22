@@ -2525,6 +2525,8 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                     return;
                 }
                 daGhiCsdl = true;
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Sửa thông tin CBCS",
+                    $"STT={sttSo} | {hoVaTenTxt} (Số hiệu: {soHieuTxt}) | Đơn vị: {donViTxt} | Phân loại: {phanLoaiGoc}");
                 DataCache.Clear(); // các form khác (Form4/15/34...) sẽ tự đọc lại dữ liệu mới khi cần
                 // 4. CẬP NHẬT TẠI CHỖ: chỉ sửa đúng 1 dòng trong RAM, KHÔNG dựng lại lưới
                 DataRow? dongDaVa = CapNhatDongTaiCho(sttSo, hoVaTenTxt, donViTxt, phanLoaiGoc, banGhi,
@@ -2988,6 +2990,54 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             base.OnLoad(e);
             Instance = this;
             LenLichChuanBiForm60(1500); // dựng sẵn khung form 60 lúc rảnh để nút "Thêm CBCS/tân binh" mở tức thì
+            _ = ChuanBiTruocForm55Async(); // dựng sẵn trang Ba Nhất (Form55 -> Form42 + lưới) lúc rảnh
+        }
+        // ===== MỞ TRANG BA NHẤT TỨC THÌ =====
+        // Trước đây Form55 + Form42 chỉ được tạo lúc bấm nút => lần mở đầu phải chờ new + InitializeComponent của 2 form lớn,
+        // tạo handle, bố cục rồi mới đọc + giải mã cả bảng. Nay dựng sẵn ở trạng thái ẨN khi người dùng rảnh tay
+        // (sau khi kho giao diện chính đã xong), cùng mô hình trang con cấp 2 của Form52/Form53.
+        private bool _daLenLichForm55;
+        private async Task ChuanBiTruocForm55Async()
+        {
+            if (_daLenLichForm55) return;
+            _daLenLichForm55 = true;
+            try
+            {
+                bool Dung() => this.IsDisposed || this.Disposing;
+                await Task.Delay(2500);
+                if (!await Module_NhuongUI.ChoKhoChinhXongAsync(Dung)) return;
+                await Module_UuTienDangNhap.NhuongAsync();
+                // Xếp hàng với bộ dựng sẵn của Form52/Form53 (đo: 3 bộ cùng chạy 1 nhịp rảnh => UI kẹt 434 ms)
+                using var luot = await Module_NhuongUI.GiuLuotNangAsync(Dung);
+                if (luot == null) return;
+                // Khối new + InitializeComponent Form42 không chia nhỏ được: chỉ làm khi người dùng rời tay hẳn 0,5 s
+                if (!await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 500, toiDaMs: 15000)) return;
+                if (dtDanhSachGoc == null || dtDanhSachGoc.Rows.Count == 0) return;   // chưa có dữ liệu: nút cũng không mở được
+                var panel = LayPanelContainerForm60(out _);
+                if (panel == null || panel.IsDisposed) return;
+                var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
+                if (form55 != null && (form55.IsDisposed || form55.Visible || form55.DaLoadDuLieu)) return;   // đã có / đang dùng
+                form55 ??= TaoForm55An(panel);
+                await form55.DungSanKhiAnAsync(Dung);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[ChuanBiTruocForm55] " + ex.Message);
+            }
+        }
+        private static Form55_QuanLyHeThongThiDuaBaNhat TaoForm55An(Panel panel)
+        {
+            var f = new Form55_QuanLyHeThongThiDuaBaNhat
+            {
+                TopLevel = false,
+                FormBorderStyle = FormBorderStyle.None,
+                Dock = DockStyle.Fill
+            };
+            // Đặt sẵn đúng cỡ vùng chứa (form ẩn không được Dock dàn trang): Form42 dựng bên trong khỏi phải bố trí lại lần 2
+            Rectangle r = panel.ClientRectangle;
+            if (r.Width > 0 && r.Height > 0) f.Bounds = r;
+            panel.Controls.Add(f); // đang ẩn nên chưa vẽ gì
+            return f;
         }
         // NÚT MENU GỐC: Gọi luồng xuất bình thường
         private void xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem_Click(object? sender, EventArgs e)
@@ -3705,38 +3755,25 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             if (formCha == null || formCha.IsDisposed) return;
             var panel = formCha.Controls.Find("PanelContainer", true).FirstOrDefault() as Panel;
             if (panel == null || panel.IsDisposed) return;
-            // 3. Ẩn tất cả các Form hiện tại trong PanelContainer
-            foreach (Control ctl in panel.Controls)
-            {
-                if (ctl is Form frm) frm.Hide();
-            }
-            // 4. KIỂM TRA TRONG RAM: Tìm Form55 đã tồn tại chưa
+            Module_DoHieuNang.BatDau("Mở trang Ba Nhất (Form55/Form42)", toiDaMs: 5000);
+            // 3. KIỂM TRA TRONG RAM: Form55 đã có (dựng sẵn lúc rảnh / đã mở trước đó) chưa
             var form55 = panel.Controls.OfType<Form55_QuanLyHeThongThiDuaBaNhat>().FirstOrDefault();
+            bool daCo = form55 != null && !form55.IsDisposed;
             if (form55 == null || form55.IsDisposed)
-            {
-                // Chưa có -> Khởi tạo lần đầu
-                form55 = new Form55_QuanLyHeThongThiDuaBaNhat
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-                panel.Controls.Add(form55);
-                form55.Show();
-            }
+                form55 = TaoForm55An(panel);   // chưa kịp dựng sẵn: tạo ngay (Form55.Load hiện khung chờ rồi dựng Form42)
             else
-            {
-                // Đã có sẵn trong RAM -> Chỉ việc hiện lại và đồng bộ nhẹ
-                form55.Dock = DockStyle.Fill;
-                form55.Show();
-                form55.BringToFront();
-                await form55.MoForm42Async(); // Kích hoạt nạp lại Tab Form 42 mượt mà
-            }
+                form55.DanhDauCanNapLai();     // mở lại / đã nạp sẵn khi ẩn: đồng bộ NỀN với Loại 1 vừa sửa ở Form6
+                                               // (lưới đang có hiện ngay; chỉ nạp lại / vá cột khi thật sự có thay đổi)
+            // 4. Hiện Form55 + ẩn các trang khác trong 1 lượt vẽ (trước đây ẩn hết rồi mới hiện => chớp nền trống)
+            using (Module_DoHieuNang.Doan("Ba Nhất: Show Form55 (chuyển trang)"))
+                Module_ChuyenTrangMuot.Chuyen(panel, form55);
             // 5. Cập nhật tiêu đề lớn của phần mềm
             if (formCha.Label1 != null)
             {
                 formCha.Label1.Text = "Hệ thống quản lý phong trào thi đua Ba Nhất";
             }
+            // Lần đầu Show đã chạy Form55.Load -> MoForm42Async; gọi lại chỉ gộp vào lượt nạp đang chạy (không nạp lặp)
+            if (daCo) await form55.MoForm42Async();
         }
         private void KryptonDataGridView1_CellClick(object? sender, DataGridViewCellEventArgs e)
         {

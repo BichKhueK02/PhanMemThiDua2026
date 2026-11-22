@@ -398,6 +398,11 @@ namespace PhanMemThiDua2026
                 b.Margin = new Padding(0);
                 b.Size = new Size(44, 30);
             }
+            // Nút GỌN: bản gốc chia 3 cột 33% nên Thêm/Sửa/Xóa dài theo cả thẻ => 3 cột bề ngang cố định dồn phải
+            Module_BoLocKhenThuong.XepNutThaoTacGon(t9,
+                Tim<Control>(f, "kryptonButton_ThemKhenThuong"), Tim<Control>(f, "kryptonButton_SuaVaLuuKhenThuong"),
+                Tim<Control>(f, "kryptonButton_XoaKhenThuong"), Tim<Control>(f, "kryptonButton2_GiamCoChuRichText"),
+                Tim<Control>(f, "kryptonButton2_TangCoChuRichText"));
         }
         // ===================== COMBO BO TRÒN (chỉ combo DropDownList) =====================
         private static void BoTronCacCombo(Form f)
@@ -405,6 +410,14 @@ namespace PhanMemThiDua2026
             foreach (var cb in TatCa<ComboBox>(f).ToList())
                 if (cb.GetType() == typeof(ComboBox) && cb.DropDownStyle == ComboBoxStyle.DropDownList)
                     OComboWebF4.Gan(cb);
+            // 2 combo NHẬP LIỆU cho gõ tự do (DropDown): dùng ô bo tròn của Form12 — có TextBox không viền bên trong đồng bộ 2 chiều
+            // với cb.Text => vẫn gõ được, không bị Windows bôi xanh chữ, không nhấp nháy. Code gốc đọc/ghi cb.Text như cũ.
+            foreach (var ten in new[] { "comboBox_HinhThucKhenThuong", "comboBox_DonViKhenThuong" })
+            {
+                var cb = Tim<ComboBox>(f, ten);
+                if (cb != null && cb.GetType() == typeof(ComboBox) && cb.DropDownStyle == ComboBoxStyle.DropDown)
+                    OComboWebF12.Gan(cb);
+            }
         }
         // ===================== LƯỚI =====================
         private static void BocLuoi(Form f)

@@ -1084,6 +1084,8 @@ namespace PhanMemThiDua2026
                 var viec = XepHangGhiDb(() =>
                 {
                     CapNhatSTTCSDL(currentID, otherSTT, otherID, currentSTT);
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Di chuyển thứ tự CBCS {(huong < 0 ? "lên" : "xuống")}",
+                        $"ID={currentID}: STT {currentSTT} -> {otherSTT} (đổi chỗ với ID={otherID})");
                     return 0;
                 });
                 _ = viec.ContinueWith(t => BaoLoiGhiNen(t.Exception?.GetBaseException().Message),

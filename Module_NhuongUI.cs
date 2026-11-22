@@ -48,6 +48,27 @@ namespace PhanMemThiDua2026
                 await Task.WhenAny(t, Task.Delay(250));
             return !dung();
         }
+        // ---------------- "Lượt nặng" dùng chung giữa các bộ dựng sẵn ----------------
+        // Form52 (Form49/50/51/34), Form53 (Form23/59/46) và Form6 (Form55 -> Form42) đều chờ "người dùng rảnh 0,5 s" rồi mới
+        // dựng 1 khối nặng => cả 3 cùng thức dậy ở CÙNG một nhịp rảnh và chạy dồn liền nhau. Đo 22/11 12:55: UI kẹt 434 ms
+        // (new Form42 -> new Form49 -> tạo handle ComboBox -> Form53...). Nay mỗi lúc chỉ 1 bộ được giữ lượt.
+        private static readonly SemaphoreSlim _luotNang = new(1, 1);
+        /// <summary>
+        /// Xếp hàng giữ "lượt nặng" (không chặn UI). Trả null nếu phải dừng hẳn trong lúc chờ. Dispose để nhả lượt.
+        /// Giữ lượt rồi mới <see cref="ChoRanhAsync"/>: khối nặng chạy ngay sau khi rảnh, không chạy chồng bộ khác.
+        /// </summary>
+        public static async Task<IDisposable?> GiuLuotNangAsync(Func<bool> dung)
+        {
+            while (!await _luotNang.WaitAsync(250).ConfigureAwait(true))
+                if (dung()) return null;
+            if (dung()) { _luotNang.Release(); return null; }
+            return new NhaLuotNang();
+        }
+        private sealed class NhaLuotNang : IDisposable
+        {
+            private int _daNha;
+            public void Dispose() { if (Interlocked.Exchange(ref _daNha, 1) == 0) _luotNang.Release(); }
+        }
         /// <summary>Số ms kể từ lần cuối người dùng bấm phím / di chuột (toàn hệ thống). Lỗi thì coi như đã rảnh.</summary>
         public static int MsKeTuLanThaoTacCuoi()
         {

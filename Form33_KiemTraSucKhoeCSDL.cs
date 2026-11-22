@@ -1096,6 +1096,8 @@ namespace PhanMemThiDua2026
                     StopProgressBar();
                 }
             }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, coLoi ? "Thu gọn CSDL (có mục chưa hoàn tất)" : "Thu gọn CSDL",
+                $"{string.Join(", ", chiSo.Select(i => _tenCSDL[i]))} | {Module_ThuGonCSDL.DinhDang(tongTruoc)} -> {Module_ThuGonCSDL.DinhDang(tongSau)}");
             if (IsDisposed) return;
             if (coThayDoi)
             {
@@ -1114,8 +1116,7 @@ namespace PhanMemThiDua2026
         {
             var thuMuc = new (string Ten, string DuongDan)[]
             {
-                ("Database\\Bansaoluu (ServiceBackup)", Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, "Bansaoluu")),
-                (Module_BaoVeDuLieu.TenThuMucBackup + " (tự động, giữ 3 bản/tháng)", Module_BaoVeDuLieu.ThuMucBackup)
+                ("Database\\Bansaoluu (ServiceBackup)", Path.Combine(Module_DanduongGPS.ThuMucCoSoDuLieu, "Bansaoluu"))
             };
             dong.Add("=== THƯ MỤC SAO LƯU (không tự xóa) ===");
             foreach (var (ten, duongDan) in thuMuc)

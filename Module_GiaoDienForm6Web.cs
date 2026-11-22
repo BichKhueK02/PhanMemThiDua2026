@@ -180,8 +180,8 @@ namespace PhanMemThiDua2026
         // =====================================================================================
         private void Chay()
         {
-            _f.SuspendLayout();
-            try
+            // Tạm dừng bố cục CẢ CÂY (không chỉ form gốc) để các khung con không dàn lại sau từng thay đổi - xem Module_TamDungBoCuc
+            Module_TamDungBoCuc.ChayKhongDanTrang(_f, () =>
             {
                 _f.BackColor = MauNenTrang;
                 DinhBoCucTong();
@@ -193,11 +193,7 @@ namespace PhanMemThiDua2026
                 DinhVungLuoi();
                 DinhThanhTrangThai();
                 DinhMenuNguCanh();
-            }
-            finally
-            {
-                _f.ResumeLayout(true);
-            }
+            });
             // Các phần bị Form6_Load đặt lại -> áp dụng lại SAU Form6_Load (đăng ký sau nên chạy sau).
             _f.Load += (s, e) => { HoanThienGiaoDienSauLoad(); CanGiuaNoiDung(); };
             _f.SizeChanged += (s, e) => CanGiuaNoiDung();

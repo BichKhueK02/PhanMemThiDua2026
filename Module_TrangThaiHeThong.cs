@@ -1531,6 +1531,7 @@ namespace PhanMemThiDua2026
                         }
                     }
                     File.WriteAllText(sfd.FileName, sb.ToString(), new UTF8Encoding(true));
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất báo cáo trạng thái hệ thống", $"Tệp: {Path.GetFileName(sfd.FileName)}");
                     MessageBox.Show(
                         this,
                         "Xuất báo cáo hệ thống thành công!",

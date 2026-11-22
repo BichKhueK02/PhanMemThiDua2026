@@ -46,12 +46,16 @@ namespace PhanMemThiDua2026
         public Form44_SoVangBaNhat()
         {
             InitializeComponent();
-            // Designer add statusStrip1 trước tableLayoutPanel1 (Dock = Fill) nên bảng bị thanh trạng thái đè mất ~26px đáy.
-            // Đưa vùng Fill lên trước để WinForms dock thanh trạng thái trước, bảng chiếm phần còn lại.
-            tableLayoutPanel1.BringToFront();
-            kryptonTextBox1_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
-            Module_GiaoDienForm42_44Web.ApDung(this);
-            Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
+            // Mọi chỉnh sửa giao diện sau InitializeComponent gom vào 1 lượt tạm dừng bố cục cả cây => dàn trang đúng 1 lần
+            Module_TamDungBoCuc.ChayKhongDanTrang(this, () =>
+            {
+                // Designer add statusStrip1 trước tableLayoutPanel1 (Dock = Fill) nên bảng bị thanh trạng thái đè mất ~26px đáy.
+                // Đưa vùng Fill lên trước để WinForms dock thanh trạng thái trước, bảng chiếm phần còn lại.
+                tableLayoutPanel1.BringToFront();
+                kryptonTextBox1_TimKiemTheoTen.CueHint.CueHintText = Module_HeThong.Nhap_Tim_Kiem;
+                Module_GiaoDienForm42_44Web.ApDung(this);
+                Module_HeThong.BocBoTronGiaoDien(richTextBox1_ThanhTich);
+            });
             Shown += Form44_SoVangBaNhat_Shown;
             Disposed += (s, e) => GiaiPhongTaiNguyen();
             // Bộ lọc: gõ tên thì lọc trễ 150ms (gõ nhanh không giật), đổi đơn vị thì lọc ngay.
@@ -171,10 +175,12 @@ namespace PhanMemThiDua2026
             _cotThanhTich = g.Columns["ThanhTich"]!.Index;
             _daCauHinhGrid = true;
         }
-        private static DataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,
+        // Tạo THẲNG cột Krypton: cột thường bị KryptonDataGridView gỡ + chèn lại từng cột ở mỗi lần gán DataSource
+        // (AutoGenerateKryptonColumns) - tốn công và từng làm lưới Form42 mất cột (xem Form42.Cot).
+        private static Krypton.Toolkit.KryptonDataGridViewTextBoxColumn Cot(string ten, string tieuDe, int rong,
             DataGridViewContentAlignment canh, bool hien = true, bool fill = true)
         {
-            var c = new DataGridViewTextBoxColumn
+            var c = new Krypton.Toolkit.KryptonDataGridViewTextBoxColumn
             {
                 Name = ten,
                 DataPropertyName = ten,
@@ -598,6 +604,7 @@ namespace PhanMemThiDua2026
                     MessageBox.Show("Không tìm thấy cán bộ cần cập nhật trong Sổ vàng (có thể đã bị xóa).", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Sửa thông tin Sổ vàng Ba Nhất ({bang})", $"ID={id} | {giaTri[0]} | Đơn vị: {giaTri[6]}");
                 // Cập nhật thẳng dòng nguồn của lưới (không nạp + giải mã lại cả bảng).
                 // Không cần CapNhatTinhTrangSoVangAsync: Số hiệu không bị ghi lại nên tình trạng "Đã đề nghị" không thể đổi.
                 string donViCu = "";

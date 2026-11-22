@@ -1048,6 +1048,8 @@ PRAGMA busy_timeout=15000;
                 string thongBao = await SaveToSQLiteAsync();
                 if (thongBao.Contains("thành công", StringComparison.OrdinalIgnoreCase))
                 {
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lưu thông tin cài đặt đơn vị",
+                        $"Tự động xóa nhật ký: {comboBox1_TuDongXoaNhatKy.Text.Trim()}");
                     if (label1_ThongBaoThanhCong != null)
                     {
                         label1_ThongBaoThanhCong.ForeColor = Color.DarkGreen;
@@ -1056,6 +1058,7 @@ PRAGMA busy_timeout=15000;
                 }
                 else
                 {
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi lưu thông tin cài đặt đơn vị", thongBao);
                     if (label1_ThongBaoThanhCong != null)
                     {
                         label1_ThongBaoThanhCong.ForeColor = Color.Red;
@@ -1113,6 +1116,8 @@ PRAGMA busy_timeout=15000;
                 if (ketQua.Contains("thành công", StringComparison.OrdinalIgnoreCase))
                 {
                     HienThongBaoStatus("✔ Đã lưu cấu hình thành công!", Color.DarkGreen, 2000);
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lưu cấu hình phần mềm",
+                        $"Tự động xóa nhật ký: {tuDongXoa} | Thời gian đổi ảnh: {thoiGianAnh} | Đối tượng: {doiTuongMoi}");
                     Module_TaiKhoan.XoaBoDemPhienBan(); // PhienBan_DoiTuong vừa ghi -> bảng DanhSach/DanhSachTanBinh chọn lại ngay
                     var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                     formCha?.KhoiTaoHeThongHinhNenAsync();
@@ -2379,6 +2384,8 @@ PRAGMA busy_timeout=15000;
                     HienThiFormAo_Loi("KHÔNG TÌM THẤY DỊCH VỤ SAO LƯU", "Hệ thống không tìm thấy tệp:\n\nServiceBackup.exe\n\nVui lòng kiểm tra lại thư mục cài đặt.");
                     return;
                 }
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Sao lưu dữ liệu hệ thống", "Khởi chạy ServiceBackup, phần mềm tự đóng");
+                try { Module_NhatKy.FlushQueueToDatabase(); } catch { }   // ghi ngay xuống CSDL3 TRƯỚC khi checkpoint và giao tệp cho dịch vụ
                 if (!ChuanBiTruocKhiGoiDichVu(thuMucDatabase, out string loiChuanBi))
                 {
                     HienThiFormAo_Loi("CHƯA SẴN SÀNG SAO LƯU", loiChuanBi);
@@ -2425,6 +2432,8 @@ PRAGMA busy_timeout=15000;
                     HienThiFormAo_Loi("KHÔNG TÌM THẤY DỊCH VỤ KHÔI PHỤC", "Hệ thống không tìm thấy tệp:\n\nServiceRestore.exe\n\nVui lòng kiểm tra lại thư mục cài đặt.");
                     return;
                 }
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Khôi phục dữ liệu hệ thống", "Khởi chạy ServiceRestore, phần mềm tự đóng");
+                try { Module_NhatKy.FlushQueueToDatabase(); } catch { }   // ghi ngay xuống CSDL3 TRƯỚC khi checkpoint và giao tệp cho dịch vụ
                 if (!ChuanBiTruocKhiGoiDichVu(Path.Combine(AppContext.BaseDirectory, "Database"), out string loiChuanBi))
                 {
                     HienThiFormAo_Loi("CHƯA SẴN SÀNG KHÔI PHỤC", loiChuanBi);

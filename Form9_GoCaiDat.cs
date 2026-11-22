@@ -1,4 +1,4 @@
-///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+﻿///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
 using Krypton.Toolkit;                    // Thêm để dùng KryptonTextBox và các tính năng viền
 using Microsoft.Data.Sqlite;
 using System.Diagnostics;
@@ -222,7 +222,7 @@ namespace PhanMemThiDua2026
         {
             DialogResult r = MessageBox.Show(this,
                 "Bạn có muốn GIỮ LẠI dữ liệu (cơ sở dữ liệu và các bản sao lưu) sau khi gỡ cài đặt không?\n\n" +
-                "• Có: chỉ gỡ chương trình, giữ lại thư mục Database và CSDL_Backups.\n" +
+                "• Có: chỉ gỡ chương trình, giữ lại thư mục Database.\n" +
                 "• Không: xóa TOÀN BỘ, kể cả dữ liệu (không thể khôi phục).\n" +
                 "• Hủy: không gỡ cài đặt.",
                 "Gỡ cài đặt - dữ liệu",
@@ -266,7 +266,7 @@ namespace PhanMemThiDua2026
                 "    - Tick vào ô \"Hiện mật khẩu\" nếu muốn xem lại mật khẩu vừa nhập.\n\n" +
                 "3️. Nút \"Gỡ cài đặt\":\n" +
                 "    - Sau khi xác thực mật khẩu thành công, phần mềm hỏi bạn muốn GIỮ LẠI hay XÓA dữ liệu " +
-                "(thư mục Database và CSDL_Backups), rồi khởi chạy trình gỡ cài đặt " +
+                "(thư mục Database), rồi khởi chạy trình gỡ cài đặt " +
                 "(Uninstall_PhanMemThiDua2026.exe) và tự động thoát ứng dụng chính.\n" +
                 "    - Nếu còn ServiceBackup / ServiceRestore đang mở, trình gỡ cài đặt sẽ yêu cầu đóng chúng (không ép tắt).\n\n" +
                 "4️. Nút \"Thoát\":\n" +

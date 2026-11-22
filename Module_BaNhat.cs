@@ -1181,6 +1181,8 @@ public static class Module_BaNhat
                 HienThongBao(parentForm, loiCauTruc, tieuDeLoi, MessageBoxIcon.Error);
                 return 0;
             }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Nhập Excel danh sách Ba Nhất",
+                $"Cập nhật {soThanhCong} CBCS | Tệp: {Path.GetFileName(excelPath)}");
             int tongLoi = dsKhongCoSoHieu.Count + dsKhongPhaiLoai1.Count + dsChuaDongBo.Count + dsLoiKyThuat.Count;
             if (tongLoi > 0)
             {
@@ -1196,6 +1198,7 @@ public static class Module_BaNhat
         catch (Exception ex)
         {
             Debug.WriteLine("[Lỗi NhapDanhSachGoc] " + ex.Message);
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi nhập Excel danh sách Ba Nhất", ex.Message);
             MessageBox.Show("Lỗi hệ thống khi đọc file Excel: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         return soThanhCong;

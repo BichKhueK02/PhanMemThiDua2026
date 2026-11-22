@@ -324,6 +324,8 @@ WHERE ID = 1;";
                         "Không tìm thấy bản ghi thống kê tập thể cần cập nhật.");
                 }
                 tran.Commit();
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Cập nhật thi đua tập thể (năm cũ)",
+                    $"Cột: {tenCot} = {giaTri} | CSDL: {Path.GetFileName(_duongDanCSDL)}");
                 // 5. LÀM MỚI GIAO DIỆN
                 LoadBangThongKe();
                 ChinhTieuDeBangThongKe();

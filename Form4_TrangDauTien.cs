@@ -420,6 +420,7 @@ namespace PhanMemThiDua2026
                 catch (Exception ex)
                 {
                     Progress_End();
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi lưu thông tin khai báo vào CSDL", ex.Message);
                     Module_ThongBao.Loi("Lỗi khi lưu thông tin vào CSDL:\n" + ex.Message);
                 }
             }
@@ -2739,6 +2740,7 @@ WHERE ID = 1", conn);
             catch (Exception ex)
             {
                 label11.ForeColor = Color.Red;
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất danh sách trình ký", ex.Message);
                 Module_ThongBao.Loi("Lỗi khi xuất trình ký:\n" + ex.Message);
             }
             finally
@@ -2826,6 +2828,7 @@ WHERE ID = 1", conn);
             }
             catch (Exception ex)
             {
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất danh sách tất cả phân loại", ex.Message);
                 Module_ThongBao.Loi("Lỗi xuất dữ liệu tất cả phân loại:\n" + ex.Message);
             }
             finally
@@ -2907,6 +2910,7 @@ WHERE ID = 1", conn);
             }
             catch (Exception ex)
             {
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất danh sách theo loại", ex.Message);
                 Module_ThongBao.DangXuLy("Lỗi khi xuất dữ liệu:\n" + ex.Message);
             }
             finally
@@ -3209,6 +3213,7 @@ WHERE ID = 1", conn);
                 // Update UI
                 label11.Text = duongDanMoi;
                 label11.ForeColor = Color.FromArgb(85, 107, 47);
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Đổi thư mục lưu tệp xuất", $"Thư mục: {duongDanMoi}");
                 Module_ThongBao.ThanhCong("Đã lưu thư mục thành công.");
             }
             catch (Exception ex)
@@ -3626,7 +3631,10 @@ WHERE ID = 1", conn);
             try
             {
                 string val = comboBox1_CheDoXetThiDua.Text?.Trim() ?? "";
+                bool laNamTruoc = Module_HeThong.IsCheDoXetThiDuaNam();
                 Module_HeThong.LuuCheDoXetThiDuaNam(val);
+                if (laNamTruoc != Module_HeThong.IsCheDoXetThiDuaNam())   // chỉ ghi khi thật sự đổi (nạp combo lúc mở form cũng kích hoạt sự kiện này)
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Đổi chế độ xét thi đua", $"Chế độ: {val}");
                 LoadComboBoxDeNghi();           // Đổi danh sách đề nghị theo Tháng/Năm
                 CapNhatDanhSachPhanLoaiDeXuat(); // ⭐ Gọi cập nhật & ánh xạ lại danh sách loại đề xuất ngay lập tức
                 LoadQuyDinhTheoDeNghi();        // Nạp lại tỷ lệ theo bảng tương ứng
