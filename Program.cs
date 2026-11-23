@@ -70,6 +70,8 @@ namespace PhanMemThiDua2026
             bool isPrimaryInstance = false;
             try
             {
+                // 2b. Được mở lại từ Module_KhoiDongLai (vd. đổi kiểu giao diện): chờ bản cũ thoát hẳn rồi mới giữ khóa / mở CSDL
+                Module_KhoiDongLai.ChoTienTrinhCuThoat();
                 // 3. Single instance
                 isPrimaryInstance = AcquireInstanceLock();
                 if (!isPrimaryInstance)
@@ -472,6 +474,13 @@ namespace PhanMemThiDua2026
                     LogException("Cảnh báo (bỏ qua) - tiếp nối async gửi vào form đã đóng", ex);
                     return;
                 }
+                if (Module_ThoatAnToan.DangThoat)
+                {
+                    // Phần mềm đang chủ động thoát (vd. khởi động lại để áp dụng giao diện): lỗi của tác vụ nền còn dở là vô hại,
+                    // tiến trình sắp kết thúc => chỉ ghi nhật ký, không bật hộp thoại chớp nhoáng.
+                    LogException("Cảnh báo (bỏ qua) - lỗi luồng nền trong lúc thoát", ex);
+                    return;
+                }
                 LogException("Fatal Error", ex);
                 ShowErrorDialogOnce("Lỗi Hệ Thống", ex?.Message ?? "Ứng dụng buộc phải đóng.");
             };
@@ -485,7 +494,9 @@ namespace PhanMemThiDua2026
         private static bool LaLoiPostVaoFormDaDong(Exception? ex)
             => ex is InvalidOperationException
                && ex.Message.Contains("window handle has been created", StringComparison.OrdinalIgnoreCase)
-               && (ex.StackTrace?.Contains("WindowsFormsSynchronizationContext.Post", StringComparison.Ordinal) ?? false);
+               && ((ex.StackTrace?.Contains("WindowsFormsSynchronizationContext.Post", StringComparison.Ordinal) ?? false)
+                   // Cùng loại lỗi nhưng đi qua đường tiếp nối await khác (nhật ký 23/11/2026 ghi nhầm thành "Fatal Error")
+                   || (ex.StackTrace?.Contains("SynchronizationContextAwaitTaskContinuation.PostAction", StringComparison.Ordinal) ?? false));
         private static void HandleUiThreadException(Exception ex)
         {
             LogException("UI Error", ex);

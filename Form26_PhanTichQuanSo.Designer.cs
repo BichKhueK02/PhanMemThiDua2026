@@ -58,7 +58,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(139, 21);
             toolStripStatusLabel1.Text = "toolStripStatusLabel1";
@@ -95,7 +94,6 @@
             kryptonButton1_Dong.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Dong.TabIndex = 3;
             kryptonButton1_Dong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Dong.Values.Image = (Image)resources.GetObject("kryptonButton1_Dong.Values.Image");
             kryptonButton1_Dong.Values.Text = "Đóng";
             kryptonButton1_Dong.Click += kryptonButton1_Dong_Click;
             // 
@@ -114,7 +112,6 @@
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.None;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(3, 3);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(69, 41);

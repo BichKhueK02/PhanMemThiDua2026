@@ -226,7 +226,6 @@
             // PictureBox1
             // 
             PictureBox1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            PictureBox1.Image = (Image)resources.GetObject("PictureBox1.Image");
             PictureBox1.Location = new Point(450, 4);
             PictureBox1.Name = "PictureBox1";
             PictureBox1.Size = new Size(47, 34);
@@ -350,7 +349,6 @@
             // pictureBox2_ThongTin_DKTK
             // 
             pictureBox2_ThongTin_DKTK.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox2_ThongTin_DKTK.Image = (Image)resources.GetObject("pictureBox2_ThongTin_DKTK.Image");
             pictureBox2_ThongTin_DKTK.Location = new Point(3, 4);
             pictureBox2_ThongTin_DKTK.Name = "pictureBox2_ThongTin_DKTK";
             pictureBox2_ThongTin_DKTK.Size = new Size(54, 37);
@@ -423,7 +421,6 @@
             btn_Thoat.StateCommon.Border.Rounding = 4F;
             btn_Thoat.TabIndex = 1;
             btn_Thoat.Values.DropDownArrowColor = Color.Empty;
-            btn_Thoat.Values.Image = (Image)resources.GetObject("btn_Thoat.Values.Image");
             btn_Thoat.Values.Text = "Thoát";
             btn_Thoat.Click += btn_Thoat_Click;
             // 
@@ -436,7 +433,6 @@
             btn_Luu.StateCommon.Border.Rounding = 4F;
             btn_Luu.TabIndex = 0;
             btn_Luu.Values.DropDownArrowColor = Color.Empty;
-            btn_Luu.Values.Image = (Image)resources.GetObject("btn_Luu.Values.Image");
             btn_Luu.Values.Text = "Đăng ký";
             btn_Luu.Click += btn_Luu_Click;
             // 
@@ -583,7 +579,6 @@
             kryptonButton1_ThemAnhDaiDien.StateCommon.Border.Rounding = 4F;
             kryptonButton1_ThemAnhDaiDien.TabIndex = 2;
             kryptonButton1_ThemAnhDaiDien.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_ThemAnhDaiDien.Values.Image = (Image)resources.GetObject("kryptonButton1_ThemAnhDaiDien.Values.Image");
             kryptonButton1_ThemAnhDaiDien.Values.Text = "Thêm ảnh";
             kryptonButton1_ThemAnhDaiDien.Click += kryptonButton1_ThemAnhDaiDien_Click;
             // 
@@ -605,7 +600,6 @@
             // pictureBox2_AnhDaiDienAdmin
             // 
             pictureBox2_AnhDaiDienAdmin.Anchor = AnchorStyles.None;
-            pictureBox2_AnhDaiDienAdmin.Image = (Image)resources.GetObject("pictureBox2_AnhDaiDienAdmin.Image");
             pictureBox2_AnhDaiDienAdmin.Location = new Point(5, 6);
             pictureBox2_AnhDaiDienAdmin.Name = "pictureBox2_AnhDaiDienAdmin";
             pictureBox2_AnhDaiDienAdmin.Size = new Size(113, 86);
@@ -632,7 +626,6 @@
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.None;
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
             pictureBox2.Location = new Point(261, 18);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(723, 65);

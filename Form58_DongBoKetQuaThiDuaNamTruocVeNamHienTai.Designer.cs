@@ -108,7 +108,6 @@
             kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
             kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai.TabIndex = 1;
             kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai.Values.Image = (Image)resources.GetObject("kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai.Values.Image");
             kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai.Values.Text = "Đồng bộ";
             kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai.Click += kryptonButton_DongBoDuLieuNamCuVaoCSDLHienTai_Click;
             // 
@@ -123,7 +122,6 @@
             kryptonButton_HuongDanSuDung.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F, FontStyle.Regular, GraphicsUnit.Point, 0);
             kryptonButton_HuongDanSuDung.TabIndex = 0;
             kryptonButton_HuongDanSuDung.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_HuongDanSuDung.Values.Image = (Image)resources.GetObject("kryptonButton_HuongDanSuDung.Values.Image");
             kryptonButton_HuongDanSuDung.Values.Text = "Hướng dẫn";
             kryptonButton_HuongDanSuDung.Click += kryptonButton_HuongDanSuDung_Click;
             // 
@@ -203,7 +201,6 @@
             // pictureBox1
             // 
             pictureBox1.Dock = DockStyle.Fill;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 3);
             pictureBox1.Margin = new Padding(2, 3, 2, 3);
             pictureBox1.Name = "pictureBox1";

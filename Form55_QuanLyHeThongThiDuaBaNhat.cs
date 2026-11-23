@@ -65,6 +65,7 @@ namespace PhanMemThiDua2026
         public Form55_QuanLyHeThongThiDuaBaNhat()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             _bo42 = new BoNapMotLuong(NapDuLieu42Async);
             _bo44 = new BoNapMotLuong(NapDuLieu44Async);
             BatDoubleBufferDeQuy(this);               // chỉ tinh chỉnh hiển thị: giảm chớp khi chuyển trang con

@@ -22,6 +22,7 @@ namespace PhanMemThiDua2026
         public Form57_CapNhatTinhThanhPho()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // Sự kiện Load đã được Designer gắn sẵn => KHÔNG gắn lại ở đây (bản cũ gắn thêm lần 2 làm Load chạy 2 lần: đọc CSDL + bind lưới 2 lần)
             FormBorderStyle = FormBorderStyle.FixedSingle;     // đặt từ constructor để form không "nhảy" khung lúc vừa hiện
             MaximizeBox = false;

@@ -61,6 +61,7 @@ namespace PhanMemThiDua2026
         public Form42_QuanLyThiDuaBaNhat()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // Mọi chỉnh sửa giao diện sau InitializeComponent gom vào 1 lượt tạm dừng bố cục cả cây => dàn trang đúng 1 lần
             Module_TamDungBoCuc.ChayKhongDanTrang(this, () =>
             {
@@ -512,6 +513,8 @@ namespace PhanMemThiDua2026
                 }
             }
             finally { dt.EndLoadData(); }
+            // Cột ẩn "họ tên | số hiệu" đã bỏ dấu: ô tìm kiếm gõ "nguyen van" hoặc số hiệu đều ra (dựng ở luồng nền, trước khi gắn lưới)
+            Module_BoLocKhenThuong.DamBaoCotTimKiem(dt, "HoVaTen", "SoHieu");
             return (dt, soDeNghi);
         }
         /// <summary>Nạp lại lưới. Lần gọi mới hơn sẽ hủy lần cũ nên chỉ có kết quả mới nhất được ghi vào lưới.</summary>
@@ -849,6 +852,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                 if (gc.Length > 0 && daCoGhiChu.Add(gc)) dsGhiChu.Add(gc);
             }
             dsGhiChu.Sort(StringComparer.CurrentCultureIgnoreCase);
+            _thuTuDonVi = dsDonVi;   // thứ tự gốc (theo STT) để bộ lọc kép thu hẹp combo mà không đảo thứ tự
             CapNhatDanhSachDonVi(dsDonVi);
             CapNhatDanhSachGhiChu(dsGhiChu);
             ThucHienLocDuLieu(tinhLaiTyLe: true); // áp lại trạng thái các ô lọc lên bảng mới + cập nhật thanh trạng thái + tính lại tỷ lệ
@@ -948,6 +952,31 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
             string s = (chiSo > 0 ? mucDangChon?.ToString() : chuoiHienThi)?.Trim() ?? "";
             return s.Length == 0 || s.Equals(TenTatCa, StringComparison.OrdinalIgnoreCase) ? null : s;
         }
+        private List<string> _thuTuDonVi = new();
+        /// <summary>
+        /// BỘ LỌC KÉP: combo Đơn vị chỉ còn đơn vị có người thỏa tên + đề nghị + ghi chú đang chọn; combo Ghi chú chỉ còn ghi chú
+        /// có trong đơn vị (và tên, đề nghị) đang chọn => không chọn ra tổ hợp rỗng. Giá trị đang chọn luôn được giữ.
+        /// </summary>
+        private void CapNhatComboBoLocKep(DataTable dt, string[] tu, int deNghi, string donVi, string ghiChu)
+        {
+            var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donVi, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"));
+            var tcGc = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(ghiChu, r => Module_BoLocKhenThuong.Chuoi(r, "GhiChu"));
+            Module_BoLocKhenThuong.LocKep(Module_BoLocKhenThuong.DongConSong(dt), r =>
+            {
+                if (deNghi > 0 && Module_BoLocKhenThuong.Chuoi(r, "DeNghi").Equals("X", StringComparison.OrdinalIgnoreCase) != (deNghi == 1))
+                    return false;
+                return Module_BoLocKhenThuong.KhopCotTimKiem(r, tu);
+            }, tcDv, tcGc);
+            bool cu = _dangNapBoLoc;
+            _dangNapBoLoc = true;   // nạp lại combo không được bắn lọc lẻ tẻ
+            try
+            {
+                Module_BoLocKhenThuong.NapLaiCombo(comboBox_TimKiemDonVi,
+                    Module_BoLocKhenThuong.SapTheoThuTuChuan(tcDv.Con, _thuTuDonVi), TenTatCa);
+                Module_BoLocKhenThuong.NapLaiCombo(comboBox_LocGhiChu, Module_BoLocKhenThuong.SapABC(tcGc.Con), TenTatCa);
+            }
+            finally { _dangNapBoLoc = cu; }
+        }
         /// <summary>
         /// Đọc trạng thái 3 ô lọc -> dựng 1 chuỗi RowFilter -> áp lên bảng đang bind -> cập nhật thanh trạng thái.
         /// Luôn lọc theo ĐỦ 3 ô cùng lúc (AND), nên gọi từ ô nào kết quả cũng như nhau.
@@ -958,17 +987,21 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
             if (_dangNapBoLoc || IsDisposed) return;
             if (kryptonDataGridView1.DataSource is not DataTable dt) return;
             var dieuKien = new List<string>(4);
-            // 1) Tên: chứa chuỗi đã gõ (đã escape ký tự đặc biệt của LIKE và dấu nháy đơn)
-            string ten = textBox_TimKiemTheoTen.Text.Trim();
-            if (ten.Length > 0)
-                dieuKien.Add($"HoVaTen LIKE '%{EscapeLikeRowFilter(ten.Replace("'", "''"))}%'");
+            // 1) Tên / số hiệu: KHÔNG phân biệt dấu, hoa/thường; nhiều từ thì từ nào cũng phải có ("nguyen van" khớp "Nguyễn Văn An")
+            string ten = textBox_TimKiemTheoTen.Text;
+            bool coCotTim = dt.Columns.Contains(Module_BoLocKhenThuong.COT_TIM_KIEM);
+            string[] tu = coCotTim ? Module_BoLocKhenThuong.TachTuKhoa(ten) : Array.Empty<string>();
+            if (coCotTim) { string dk = Module_BoLocKhenThuong.DieuKienTimKiem(ten); if (dk.Length > 0) dieuKien.Add(dk); }
+            else if (ten.Trim().Length > 0)
+                dieuKien.Add($"HoVaTen LIKE '%{EscapeLikeRowFilter(ten.Trim().Replace("'", "''"))}%'");
             // 2) Đơn vị: "Tất cả" -> bỏ qua điều kiện này
             string? donVi = LayGiaTriLoc(
                 comboBox_TimKiemDonVi.SelectedIndex, comboBox_TimKiemDonVi.SelectedItem, comboBox_TimKiemDonVi.Text);
             if (donVi != null)
                 dieuKien.Add($"DonVi = '{donVi.Replace("'", "''")}'");
             // 3) Đề nghị: 0 = Tất cả, 1 = Đề nghị, 2 = Không
-            switch (comboBox1_DeNghi.SelectedIndex)
+            int deNghi = comboBox1_DeNghi.SelectedIndex;
+            switch (deNghi)
             {
                 case 1: dieuKien.Add("DeNghi = 'X'"); break;
                 case 2: dieuKien.Add("(DeNghi IS NULL OR DeNghi <> 'X')"); break;
@@ -979,9 +1012,12 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
             if (!string.IsNullOrEmpty(ghiChu))
                 dieuKien.Add($"GhiChu = '{ghiChu.Replace("'", "''")}'");
             string boLoc = string.Join(" AND ", dieuKien);
+            CapNhatComboBoLocKep(dt, tu, deNghi, donVi ?? "", ghiChu ?? "");
             try
             {
-                dt.DefaultView.RowFilter = boLoc;
+                // Cùng biểu thức thì không gán lại: gán RowFilter luôn dựng lại chỉ mục + lưới vẽ lại toàn bộ
+                if (!string.Equals(dt.DefaultView.RowFilter, boLoc, StringComparison.Ordinal))
+                    dt.DefaultView.RowFilter = boLoc;
             }
             catch (Exception ex)
             {

@@ -36,6 +36,7 @@ namespace PhanMemThiDua2026
         public Form25_ThongKeTaiKhoanDaSuDung()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm25Web.ApDung(this);          // giao diện kiểu web như Form4/Form10 (thẻ, nút tím, khung lưới) - chỉ đổi trình bày
             this.CancelButton = kryptonButton_Dong;  // tooltip của nút Đóng ghi "Phím tắt: ESC" nhưng trước đây chưa gắn phím này
             this.FormBorderStyle = FormBorderStyle.FixedDialog;

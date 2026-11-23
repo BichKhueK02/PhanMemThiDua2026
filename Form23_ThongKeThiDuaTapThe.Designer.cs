@@ -70,7 +70,6 @@
             // 
             // toolStripLabel1
             // 
-            toolStripLabel1.Image = (Image)resources.GetObject("toolStripLabel1.Image");
             toolStripLabel1.Name = "toolStripLabel1";
             toolStripLabel1.Size = new Size(107, 22);
             toolStripLabel1.Text = "toolStripLabel1";
@@ -175,7 +174,6 @@
             kryptonButton_XuatTepExcel.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatTepExcel.TabIndex = 3;
             kryptonButton_XuatTepExcel.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatTepExcel.Values.Image = (Image)resources.GetObject("kryptonButton_XuatTepExcel.Values.Image");
             kryptonButton_XuatTepExcel.Values.Text = "Xuất tệp excel";
             kryptonButton_XuatTepExcel.Click += kryptonButton_XuatTepExcel_Click;
             // 
@@ -190,7 +188,6 @@
             kryptonButton1_XoaTatCaDataPhanLoaiTapThe.StateCommon.Border.Rounding = 4F;
             kryptonButton1_XoaTatCaDataPhanLoaiTapThe.TabIndex = 25;
             kryptonButton1_XoaTatCaDataPhanLoaiTapThe.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_XoaTatCaDataPhanLoaiTapThe.Values.Image = (Image)resources.GetObject("kryptonButton1_XoaTatCaDataPhanLoaiTapThe.Values.Image");
             kryptonButton1_XoaTatCaDataPhanLoaiTapThe.Values.Text = "Xóa tất cả";
             kryptonButton1_XoaTatCaDataPhanLoaiTapThe.Click += kryptonButton1_XoaTatCaDataPhanLoaiTapThe_Click;
             // 
@@ -252,7 +249,6 @@
             kryptonButton1_CapNhat.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CapNhat.TabIndex = 2;
             kryptonButton1_CapNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CapNhat.Values.Image = Properties.Resources.ic_database;
             kryptonButton1_CapNhat.Values.Text = "Cập nhật";
             kryptonButton1_CapNhat.Click += kryptonButton1_CapNhat_Click;
             // 

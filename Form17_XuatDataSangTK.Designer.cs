@@ -106,7 +106,6 @@
             kryptonButton_XuatDuLieuSangThongKe.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatDuLieuSangThongKe.TabIndex = 1;
             kryptonButton_XuatDuLieuSangThongKe.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatDuLieuSangThongKe.Values.Image = (Image)resources.GetObject("kryptonButton_XuatDuLieuSangThongKe.Values.Image");
             kryptonButton_XuatDuLieuSangThongKe.Values.Text = "Xuất dữ liệu";
             kryptonButton_XuatDuLieuSangThongKe.Click += kryptonButton_XuatDuLieuSangThongKe_Click;
             // 
@@ -136,7 +135,6 @@
             // pictureBox1
             // 
             pictureBox1.Dock = DockStyle.Fill;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(3, 2);
             pictureBox1.Margin = new Padding(3, 2, 3, 2);
             pictureBox1.Name = "pictureBox1";
@@ -158,14 +156,12 @@
             // 
             // toolStripStatusLabel1_PhienBanPhanMem
             // 
-            toolStripStatusLabel1_PhienBanPhanMem.Image = (Image)resources.GetObject("toolStripStatusLabel1_PhienBanPhanMem.Image");
             toolStripStatusLabel1_PhienBanPhanMem.Name = "toolStripStatusLabel1_PhienBanPhanMem";
             toolStripStatusLabel1_PhienBanPhanMem.Size = new Size(76, 16);
             toolStripStatusLabel1_PhienBanPhanMem.Text = "Phiên bản";
             // 
             // toolStripStatusLabel1_ThongBaoThanhCong
             // 
-            toolStripStatusLabel1_ThongBaoThanhCong.Image = (Image)resources.GetObject("toolStripStatusLabel1_ThongBaoThanhCong.Image");
             toolStripStatusLabel1_ThongBaoThanhCong.Name = "toolStripStatusLabel1_ThongBaoThanhCong";
             toolStripStatusLabel1_ThongBaoThanhCong.Size = new Size(28, 16);
             toolStripStatusLabel1_ThongBaoThanhCong.Text = "*";

@@ -108,7 +108,6 @@ namespace PhanMemThiDua2026
             // toolStripStatusLabel1
             // 
             toolStripStatusLabel1.ForeColor = Color.FromArgb(71, 85, 105);
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(33, 20);
             toolStripStatusLabel1.Text = "*";
@@ -277,7 +276,6 @@ namespace PhanMemThiDua2026
             kryptonButton3_DongForm.StateTracking.Back.Color2 = Color.FromArgb(241, 245, 249);
             kryptonButton3_DongForm.TabIndex = 3;
             kryptonButton3_DongForm.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton3_DongForm.Values.Image = (Image)resources.GetObject("kryptonButton3_DongForm.Values.Image");
             kryptonButton3_DongForm.Values.Text = "Đóng";
             kryptonButton3_DongForm.Click += kryptonButton3_DongForm_Click;
             // 
@@ -718,7 +716,6 @@ namespace PhanMemThiDua2026
             kryptonButton_Them.StateTracking.Border.Color2 = Color.FromArgb(67, 56, 202);
             kryptonButton_Them.TabIndex = 11;
             kryptonButton_Them.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_Them.Values.Image = (Image)resources.GetObject("kryptonButton_Them.Values.Image");
             kryptonButton_Them.Values.Text = "Thêm mới";
             kryptonButton_Them.Click += kryptonButton_Them_Click;
             // 
@@ -743,7 +740,6 @@ namespace PhanMemThiDua2026
             kryptonButton_Sua.StateTracking.Back.Color2 = Color.FromArgb(239, 246, 255);
             kryptonButton_Sua.TabIndex = 10;
             kryptonButton_Sua.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_Sua.Values.Image = (Image)resources.GetObject("kryptonButton_Sua.Values.Image");
             kryptonButton_Sua.Values.Text = "Sửa";
             kryptonButton_Sua.Click += kryptonButton_Sua_Click;
             // 
@@ -768,7 +764,6 @@ namespace PhanMemThiDua2026
             kryptonButton_Xoa.StateTracking.Back.Color2 = Color.FromArgb(254, 242, 242);
             kryptonButton_Xoa.TabIndex = 9;
             kryptonButton_Xoa.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_Xoa.Values.Image = (Image)resources.GetObject("kryptonButton_Xoa.Values.Image");
             kryptonButton_Xoa.Values.Text = "Xóa";
             kryptonButton_Xoa.Click += kryptonButton_Xoa_Click;
             // 

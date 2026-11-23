@@ -212,7 +212,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_DiChuyenDataCBCSXuong.StateTracking.Border.Rounding = 4F;
             kryptonButton1_DiChuyenDataCBCSXuong.TabIndex = 1;
             kryptonButton1_DiChuyenDataCBCSXuong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_DiChuyenDataCBCSXuong.Values.Image = (Image)resources.GetObject("kryptonButton1_DiChuyenDataCBCSXuong.Values.Image");
             kryptonButton1_DiChuyenDataCBCSXuong.Values.Text = "Di chuyển xuống";
             kryptonButton1_DiChuyenDataCBCSXuong.Click += kryptonButton1_DiChuyenDataCBCSXuong_Click;
             // 
@@ -228,7 +227,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_DiChuyenDataCBCSLen.StateTracking.Border.Rounding = 4F;
             kryptonButton1_DiChuyenDataCBCSLen.TabIndex = 0;
             kryptonButton1_DiChuyenDataCBCSLen.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_DiChuyenDataCBCSLen.Values.Image = (Image)resources.GetObject("kryptonButton1_DiChuyenDataCBCSLen.Values.Image");
             kryptonButton1_DiChuyenDataCBCSLen.Values.Text = "Di chuyển lên";
             kryptonButton1_DiChuyenDataCBCSLen.Click += kryptonButton1_DiChuyenDataCBCSLen_Click;
             // 
@@ -243,7 +241,6 @@ namespace PhanMemThiDua2026
             btnThemMoi.StateTracking.Border.Rounding = 4F;
             btnThemMoi.TabIndex = 2;
             btnThemMoi.Values.DropDownArrowColor = Color.Empty;
-            btnThemMoi.Values.Image = (Image)resources.GetObject("btnThemMoi.Values.Image");
             btnThemMoi.Values.Text = "Thêm mới";
             btnThemMoi.Click += btnThemMoi_Click;
             // 
@@ -671,7 +668,6 @@ namespace PhanMemThiDua2026
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 2;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
             kryptonButton_LamMoiCacOTimKiem.Click += kryptonButton_LamMoiCacOTimKiem_Click;
             // 
@@ -714,7 +710,6 @@ namespace PhanMemThiDua2026
             kryptonButton_RefershCSDL.StateTracking.Border.Rounding = 4F;
             kryptonButton_RefershCSDL.TabIndex = 0;
             kryptonButton_RefershCSDL.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_RefershCSDL.Values.Image = (Image)resources.GetObject("kryptonButton_RefershCSDL.Values.Image");
             kryptonButton_RefershCSDL.Values.Text = "Làm mới";
             kryptonButton_RefershCSDL.Click += kryptonButton_RefershCSDL_Click;
             // 
@@ -729,7 +724,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_DongForm.StateTracking.Border.Rounding = 4F;
             kryptonButton1_DongForm.TabIndex = 1;
             kryptonButton1_DongForm.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_DongForm.Values.Image = (Image)resources.GetObject("kryptonButton1_DongForm.Values.Image");
             kryptonButton1_DongForm.Values.Text = "Đóng";
             kryptonButton1_DongForm.Click += kryptonButton1_DongForm_Click;
             // 
@@ -746,7 +740,6 @@ namespace PhanMemThiDua2026
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(79, 28);
             toolStripStatusLabel1.Text = "TongCong";
@@ -760,7 +753,6 @@ namespace PhanMemThiDua2026
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
-            xoaTimKiem_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaTimKiem_ToolStripMenuItem.Image");
             xoaTimKiem_ToolStripMenuItem.Name = "xoaTimKiem_ToolStripMenuItem";
             xoaTimKiem_ToolStripMenuItem.Size = new Size(206, 22);
             xoaTimKiem_ToolStripMenuItem.Text = "Xóa tìm kiếm";
@@ -768,7 +760,6 @@ namespace PhanMemThiDua2026
             // 
             // lamMoiTrang_ToolStripMenuItem
             // 
-            lamMoiTrang_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoiTrang_ToolStripMenuItem.Image");
             lamMoiTrang_ToolStripMenuItem.Name = "lamMoiTrang_ToolStripMenuItem";
             lamMoiTrang_ToolStripMenuItem.Size = new Size(206, 22);
             lamMoiTrang_ToolStripMenuItem.Text = "Làm mới trang";
@@ -781,7 +772,6 @@ namespace PhanMemThiDua2026
             // 
             // diChuyenLen_ToolStripMenuItem
             // 
-            diChuyenLen_ToolStripMenuItem.Image = (Image)resources.GetObject("diChuyenLen_ToolStripMenuItem.Image");
             diChuyenLen_ToolStripMenuItem.Name = "diChuyenLen_ToolStripMenuItem";
             diChuyenLen_ToolStripMenuItem.Size = new Size(206, 22);
             diChuyenLen_ToolStripMenuItem.Text = "Di chuyển lên";
@@ -789,7 +779,6 @@ namespace PhanMemThiDua2026
             // 
             // diChuyenXuong_ToolStripMenuItem
             // 
-            diChuyenXuong_ToolStripMenuItem.Image = (Image)resources.GetObject("diChuyenXuong_ToolStripMenuItem.Image");
             diChuyenXuong_ToolStripMenuItem.Name = "diChuyenXuong_ToolStripMenuItem";
             diChuyenXuong_ToolStripMenuItem.Size = new Size(206, 22);
             diChuyenXuong_ToolStripMenuItem.Text = "Di chuyển xuống";
@@ -802,7 +791,6 @@ namespace PhanMemThiDua2026
             // 
             // nhapDuLieuTuTepExcel_ToolStripMenuItem
             // 
-            nhapDuLieuTuTepExcel_ToolStripMenuItem.Image = (Image)resources.GetObject("nhapDuLieuTuTepExcel_ToolStripMenuItem.Image");
             nhapDuLieuTuTepExcel_ToolStripMenuItem.Name = "nhapDuLieuTuTepExcel_ToolStripMenuItem";
             nhapDuLieuTuTepExcel_ToolStripMenuItem.Size = new Size(206, 22);
             nhapDuLieuTuTepExcel_ToolStripMenuItem.Text = "Nhập dữ liệu từ tệp excel";
@@ -810,7 +798,6 @@ namespace PhanMemThiDua2026
             // 
             // xuatTepMau_ToolStripMenuItem
             // 
-            xuatTepMau_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatTepMau_ToolStripMenuItem.Image");
             xuatTepMau_ToolStripMenuItem.Name = "xuatTepMau_ToolStripMenuItem";
             xuatTepMau_ToolStripMenuItem.Size = new Size(206, 22);
             xuatTepMau_ToolStripMenuItem.Text = "Xuất file mẫu ra tệp excel";
@@ -823,7 +810,6 @@ namespace PhanMemThiDua2026
             // 
             // dongFrom_ToolStripMenuItem
             // 
-            dongFrom_ToolStripMenuItem.Image = (Image)resources.GetObject("dongFrom_ToolStripMenuItem.Image");
             dongFrom_ToolStripMenuItem.Name = "dongFrom_ToolStripMenuItem";
             dongFrom_ToolStripMenuItem.Size = new Size(206, 22);
             dongFrom_ToolStripMenuItem.Text = "Đóng form";

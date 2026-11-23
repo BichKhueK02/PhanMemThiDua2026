@@ -143,6 +143,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex) { Debug.WriteLine("[Form34] Không tải sẵn được: " + ex.Message); _taiTruoc = null; }
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             ThemBoLocKhenThuong();   // trước DangKyBoLoc + giao diện web
             DoubleBuffered = true;
             DangKyBoLoc();

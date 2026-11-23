@@ -21,6 +21,7 @@ namespace PhanMemThiDua2026
         public Form58_DongBoKetQuaThiDuaNamTruocVeNamHienTai()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;

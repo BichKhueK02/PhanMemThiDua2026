@@ -28,6 +28,11 @@ namespace PhanMemThiDua2026
         private static readonly Color NormalBorderColor = Color.Silver;
         private const int FocusBorderWidth = 2;
         private const int NormalBorderWidth = 1;
+        // Kiểu giao diện (Form12 > Tab 2 > mục 10): true = "Hiện đại" (Module_GiaoDienForm1HienDai), false = "Cổ điển" (Designer)
+        private readonly bool _hienDai;
+        private Color VienThuong => _hienDai ? Module_GiaoDienForm1HienDai.MauVienThuong : NormalBorderColor;
+        private Color VienFocus => _hienDai ? Module_GiaoDienForm1HienDai.MauVienFocus : FocusBorderColor;
+        private Color NenOTrong => _hienDai ? Module_GiaoDienForm1HienDai.MauNenLoi : Color.LightGreen;
         private bool _daKhoiTaoToolTip = false;
         private KryptonTextBox[] _oNhap = Array.Empty<KryptonTextBox>();
         // Checkbox "hiện mật khẩu": phân biệt người dùng bấm với code gán giá trị nạp từ CSDL
@@ -100,6 +105,19 @@ namespace PhanMemThiDua2026
                 typeof(Form6_XuLyData), typeof(Module_GiaoDienForm6Web), typeof(Form53_QuanLyKetQuaThiDua),
                 typeof(Form12), typeof(Form10_NhatKy), typeof(Module_GiaoDienForm10Web));
             InitializeComponent();
+            // Đọc kiểu giao diện CHỈ ĐỌC (không tạo bảng/không ghi); lỗi hoặc chưa có => "Hiện đại"
+            _hienDai = !Module_KieuGiaoDien.LaCoDien(Module_KieuGiaoDien.DocChiDoc());
+            if (_hienDai)
+            {
+                try
+                {
+                    Module_GiaoDienForm1HienDai.ApDung(this, TableLayoutPanel6, PictureBox1, lblChaoMung, lblMoTa,
+                        panelDangNhap, label3_HienThiTenPhanMem, lblPhuDe, label1, text_TenDangNhap, label2, text_MatKhau,
+                        Check_HienMatKhau, LinkLabel_QuenMatKhau, btn_DangNhap, btn_Thoat, LinkLabel1_DangKyTaiKhoanMoi,
+                        label1_ThongBaoPhienBan, label1_PhienBanPhanMem, lblDong, lblThuNho);
+                }
+                catch (Exception ex) { Debug.WriteLine("[Form1] Giao diện hiện đại: " + ex.Message); }   // lỗi trình bày không chặn đăng nhập
+            }
             ApplyPerformanceTuning();
             this.Load += Form1_Load;
             this.Shown += Form1_Show;
@@ -174,6 +192,7 @@ namespace PhanMemThiDua2026
         private void SetTableLayoutPanelColor_ChinhSach(TableLayoutPanel panel, string phienBan)
         {
             panel.BackColor = LaPhienBanTanBinh(phienBan) ? Color.LightGreen : Color.FromArgb(192, 192, 255);
+            if (_hienDai) Module_GiaoDienForm1HienDai.DatTanBinh(panel, LaPhienBanTanBinh(phienBan));   // nền gradient theo phiên bản
         }
         // ================= TÁC VỤ NỀN SAU KHI HIỆN FORM =================
         private async Task ChayCacTacVuNangNgamAsync()
@@ -325,8 +344,8 @@ namespace PhanMemThiDua2026
                 {
                     if (ktb == null || ktb.IsDisposed) continue;
                     ktb.StateCommon.Border.DrawBorders = PaletteDrawBorders.All;
-                    ktb.StateCommon.Border.Color1 = NormalBorderColor;
-                    ktb.StateCommon.Border.Color2 = NormalBorderColor;
+                    ktb.StateCommon.Border.Color1 = VienThuong;
+                    ktb.StateCommon.Border.Color2 = VienThuong;
                     ktb.StateCommon.Border.Width = NormalBorderWidth;
                     // Chống Memory Leak: rút event trước khi gắn
                     ktb.Enter -= KryptonTextBox_EnterFocus;
@@ -354,8 +373,8 @@ namespace PhanMemThiDua2026
         {
             if (sender is KryptonTextBox ktb)
             {
-                ktb.StateCommon.Border.Color1 = FocusBorderColor;
-                ktb.StateCommon.Border.Color2 = FocusBorderColor;
+                ktb.StateCommon.Border.Color1 = VienFocus;
+                ktb.StateCommon.Border.Color2 = VienFocus;
                 ktb.StateCommon.Border.Width = FocusBorderWidth;
             }
         }
@@ -363,8 +382,8 @@ namespace PhanMemThiDua2026
         {
             if (sender is KryptonTextBox ktb)
             {
-                ktb.StateCommon.Border.Color1 = NormalBorderColor;
-                ktb.StateCommon.Border.Color2 = NormalBorderColor;
+                ktb.StateCommon.Border.Color1 = VienThuong;
+                ktb.StateCommon.Border.Color2 = VienThuong;
                 ktb.StateCommon.Border.Width = NormalBorderWidth;
             }
         }
@@ -558,16 +577,17 @@ namespace PhanMemThiDua2026
                 KryptonTextBox? oCanFocus = null;
                 if (string.IsNullOrWhiteSpace(tenNhap))
                 {
-                    text_TenDangNhap.StateCommon.Back.Color1 = Color.LightGreen;
+                    text_TenDangNhap.StateCommon.Back.Color1 = NenOTrong;
                     oCanFocus = text_TenDangNhap;
                 }
                 if (string.IsNullOrWhiteSpace(mkNhap))
                 {
-                    text_MatKhau.StateCommon.Back.Color1 = Color.LightGreen;
+                    text_MatKhau.StateCommon.Back.Color1 = NenOTrong;
                     oCanFocus ??= text_MatKhau;
                 }
                 if (oCanFocus != null)
                 {
+                    if (_hienDai) panelDangNhap.Invalidate(true);   // nút con mắt (tự vẽ) cập nhật theo nền ô vừa tô
                     oCanFocus.Focus();
                     MessageBox.Show("Vui lòng nhập đầy đủ tài khoản và mật khẩu!", "Thiếu thông tin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
@@ -1103,7 +1123,10 @@ namespace PhanMemThiDua2026
                 if (Environment.OSVersion.Version.Build < 22000) return false;
                 int kieuBo = 2;   // DWMWCP_ROUND
                 if (DwmSetWindowAttribute(Handle, 33 /*DWMWA_WINDOW_CORNER_PREFERENCE*/, ref kieuBo, sizeof(int)) != 0) return false;
-                int mauVien = 192 | (192 << 8) | (255 << 16);   // COLORREF 0x00BBGGRR: tím nhạt (192,192,255) khớp panel
+                // COLORREF 0x00BBGGRR. Cổ điển: tím nhạt (192,192,255) khớp panel trái.
+                // Hiện đại: DWMWA_COLOR_NONE (0xFFFFFFFE) = KHÔNG vẽ viền hệ thống => nền tối bên trái tràn sát mép,
+                // không còn vệt sáng mờ bao quanh (viền 1 màu không thể khớp cùng lúc nền tối bên trái và nền trắng bên phải).
+                int mauVien = _hienDai ? unchecked((int)0xFFFFFFFE) : 192 | (192 << 8) | (255 << 16);
                 DwmSetWindowAttribute(Handle, 34 /*DWMWA_BORDER_COLOR*/, ref mauVien, sizeof(int));
                 return true;
             }

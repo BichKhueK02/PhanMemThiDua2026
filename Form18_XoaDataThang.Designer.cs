@@ -70,7 +70,6 @@
             //
             pictureBox1.BackColor = Color.White;
             pictureBox1.Dock = DockStyle.Fill;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Name = "pictureBox1";
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox1.TabIndex = 0;
@@ -146,7 +145,6 @@
                 Color.FromArgb(220, 38, 38), Color.FromArgb(185, 28, 28), Color.FromArgb(153, 27, 27),
                 Color.FromArgb(220, 38, 38), Color.White);
             kryptonButton_XoaDuLieuThangThongKe.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XoaDuLieuThangThongKe.Values.Image = (Image)resources.GetObject("kryptonButton_XoaDuLieuThangThongKe.Values.Image");
             kryptonButton_XoaDuLieuThangThongKe.Values.Text = " Xóa dữ liệu";
             kryptonButton_XoaDuLieuThangThongKe.Click += kryptonButton_XoaDuLieuThangThongKe_Click;
             // ===================== THÂN (xám nhạt) =====================

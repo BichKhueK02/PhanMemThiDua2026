@@ -23,6 +23,7 @@
         public Form53_QuanLyKetQuaThiDua()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // Chống giật nháy cho Form cha & Panel chứa
             DoubleBuffered = true;
             typeof(Panel).GetProperty("DoubleBuffered",

@@ -95,7 +95,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_ThoatHeThong.StateTracking.Back.Color2 = Color.FromArgb(255, 128, 255);
             kryptonButton1_ThoatHeThong.TabIndex = 11;
             kryptonButton1_ThoatHeThong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_ThoatHeThong.Values.Image = (Image)resources.GetObject("kryptonButton1_ThoatHeThong.Values.Image");
             kryptonButton1_ThoatHeThong.Values.Text = "Thoát";
             kryptonButton1_ThoatHeThong.Click += kryptonButton1_ThoatHeThong_Click;
             // 
@@ -113,7 +112,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_HuongDan.StateTracking.Back.Color2 = Color.FromArgb(220, 255, 220);
             kryptonButton1_HuongDan.TabIndex = 10;
             kryptonButton1_HuongDan.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_HuongDan.Values.Image = (Image)resources.GetObject("kryptonButton1_HuongDan.Values.Image");
             kryptonButton1_HuongDan.Values.Text = "Hướng dẫn";
             kryptonButton1_HuongDan.Click += kryptonButton1_HuongDan_Click;
             // 
@@ -131,7 +129,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_KhenThuong.StateTracking.Back.Color2 = Color.FromArgb(220, 255, 220);
             kryptonButton1_KhenThuong.TabIndex = 8;
             kryptonButton1_KhenThuong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_KhenThuong.Values.Image = (Image)resources.GetObject("kryptonButton1_KhenThuong.Values.Image");
             kryptonButton1_KhenThuong.Values.Text = "Khen thưởng";
             kryptonButton1_KhenThuong.Click += kryptonButton1_KhenThuong_Click;
             // 
@@ -149,7 +146,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_ThongKe.StateTracking.Back.Color2 = Color.FromArgb(220, 255, 220);
             kryptonButton1_ThongKe.TabIndex = 4;
             kryptonButton1_ThongKe.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_ThongKe.Values.Image = (Image)resources.GetObject("kryptonButton1_ThongKe.Values.Image");
             kryptonButton1_ThongKe.Values.Text = "Thống kê";
             kryptonButton1_ThongKe.Click += kryptonButton_ThongKe_Click;
             // 
@@ -167,7 +163,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_NhatKyPhanMem.StateTracking.Back.Color2 = Color.FromArgb(220, 255, 220);
             kryptonButton1_NhatKyPhanMem.TabIndex = 3;
             kryptonButton1_NhatKyPhanMem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_NhatKyPhanMem.Values.Image = (Image)resources.GetObject("kryptonButton1_NhatKyPhanMem.Values.Image");
             kryptonButton1_NhatKyPhanMem.Values.Text = "Nhật ký";
             kryptonButton1_NhatKyPhanMem.Click += kryptonButton_NhatKyPhanMem_Click;
             // 
@@ -185,7 +180,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_CaiDatPhanMem.StateTracking.Back.Color2 = Color.FromArgb(220, 255, 220);
             kryptonButton1_CaiDatPhanMem.TabIndex = 2;
             kryptonButton1_CaiDatPhanMem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CaiDatPhanMem.Values.Image = (Image)resources.GetObject("kryptonButton1_CaiDatPhanMem.Values.Image");
             kryptonButton1_CaiDatPhanMem.Values.Text = "Cài đặt";
             kryptonButton1_CaiDatPhanMem.Click += kryptonButton1_CaiDatPhanMem_Click;
             // 
@@ -217,7 +211,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_XuLyData.StateTracking.Back.Color2 = Color.FromArgb(220, 255, 220);
             kryptonButton1_XuLyData.TabIndex = 1;
             kryptonButton1_XuLyData.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_XuLyData.Values.Image = (Image)resources.GetObject("kryptonButton1_XuLyData.Values.Image");
             kryptonButton1_XuLyData.Values.Text = "Dữ liệu";
             kryptonButton1_XuLyData.Click += Btn_XuLyData_Click;
             // 
@@ -235,7 +228,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_Trangchu.StateTracking.Back.Color2 = Color.FromArgb(220, 255, 220);
             kryptonButton1_Trangchu.TabIndex = 0;
             kryptonButton1_Trangchu.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Trangchu.Values.Image = (Image)resources.GetObject("kryptonButton1_Trangchu.Values.Image");
             kryptonButton1_Trangchu.Values.Text = "Trang chủ";
             kryptonButton1_Trangchu.Click += Btn_Trangchu_Click;
             // 
@@ -356,12 +348,11 @@ namespace PhanMemThiDua2026
             // pictureBox3
             // 
             pictureBox3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
             pictureBox3.Location = new Point(837, 3);
             pictureBox3.Margin = new Padding(2, 3, 2, 3);
             pictureBox3.Name = "pictureBox3";
             pictureBox3.Size = new Size(82, 35);
-            pictureBox3.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox3.SizeMode = PictureBoxSizeMode.Zoom;
             pictureBox3.TabIndex = 7;
             pictureBox3.TabStop = false;
             pictureBox3.Click += pictureBox3_Click;

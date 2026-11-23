@@ -103,7 +103,6 @@
             kryptonButton1_DongFrom.StateCommon.Border.Rounding = 4F;
             kryptonButton1_DongFrom.TabIndex = 4;
             kryptonButton1_DongFrom.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_DongFrom.Values.Image = (Image)resources.GetObject("kryptonButton1_DongFrom.Values.Image");
             kryptonButton1_DongFrom.Values.Text = "Đóng";
             kryptonButton1_DongFrom.Click += kryptonButton1_DongFrom_Click;
             // 

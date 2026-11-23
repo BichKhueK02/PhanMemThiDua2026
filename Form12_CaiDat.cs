@@ -64,6 +64,7 @@ namespace PhanMemThiDua2026
             public string CheDoXemHuongDan { get; set; } = "";
             public string ThoiGianThayDoiAnh { get; set; } = "";
             public string MauSacMenu { get; set; } = "";
+            public string KieuGiaoDien { get; set; } = Module_KieuGiaoDien.MacDinh;   // Form2: "Hiện đại" / "Cổ điển"
         }
         private sealed class DuLieuKhoiTao
         {
@@ -78,6 +79,7 @@ namespace PhanMemThiDua2026
             public int? Nam;
             public string CheDoXem = "Chế độ web";
             public string MauMenu = "Mặc định";
+            public string KieuGiaoDien = Module_KieuGiaoDien.MacDinh;
             public string? SuKienThoat;          // null = DB không có -> chọn dòng đầu
             public string KyHieuTrungDoan = "";
             public string KyHieuTieuDoan = "";
@@ -109,14 +111,18 @@ namespace PhanMemThiDua2026
                 TuDongXoaNhatKy = comboBox1_TuDongXoaNhatKy.Text?.Trim() ?? "Không xóa",
                 CheDoXemHuongDan = comboBox1_XemHuongDanSuDung.Text?.Trim() ?? "Chế độ web",
                 ThoiGianThayDoiAnh = comboBox1_ThoiGianThayDoiAnh?.Text?.Trim() ?? "Mặc định",
-                MauSacMenu = comboBox_MauSacMenu?.Text?.Trim() ?? "Mặc định"
+                MauSacMenu = comboBox_MauSacMenu?.Text?.Trim() ?? "Mặc định",
+                KieuGiaoDien = Module_KieuGiaoDien.ChuanHoa(comboBox_KieuGiaoDien?.Text)
             };
         }
         public Form12()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             BatDoubleBufferDeQuy(this);   // giảm chớp khi layout/resize các TableLayoutPanel/GroupBox lồng nhau
             Module_GiaoDienForm12Web.ApDung(this);   // giao diện kiểu web (module GiaoDienForm12Web.cs + Module_TabWeb.cs) - chỉ trình bày
+            // Biểu tượng nút + bánh răng đầu trang: Hiện đại = tự vẽ (bỏ GIF động); Cổ điển = ảnh gốc nhúng trong exe
+            Module_BieuTuongForm12.ApDung(this);
             // Đã bỏ this.UpdateStyles(): không có lệnh SetStyle nào đi trước nên gọi nó chỉ tốn thêm
             // một lượt gửi WM_STYLECHANGED / vẽ lại toàn form.
         }
@@ -354,6 +360,9 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine($"[DocCauHinhChung] Lỗi: {ex.Message}");
             }
+            // Kiểu giao diện Form2 (bảng KieuGiaoDien_HeThong - tự tạo nếu chưa có); đọc riêng để lỗi ở đây không ảnh hưởng cấu hình khác
+            try { d.KieuGiaoDien = Module_KieuGiaoDien.Doc(cn); }
+            catch (Exception ex) { Debug.WriteLine($"[DocCauHinhChung] Kiểu giao diện: {ex.Message}"); }
         }
         private static void DocThongTin(SqliteConnection cn, DuLieuKhoiTao d)
         {
@@ -994,6 +1003,8 @@ PRAGMA busy_timeout=15000;
                     cmdBatch.CommandText = sqlBatch.ToString();
                     cmdBatch.ExecuteNonQuery();
                 }
+                // Kiểu giao diện Form2 - cùng giao dịch (bảng KieuGiaoDien_HeThong tự tạo nếu chưa có)
+                Module_KieuGiaoDien.Ghi(cn, tran, uiData.KieuGiaoDien);
                 // 3. COMMIT
                 tran.Commit();
                 CheckpointSQLite(cn);
@@ -1122,6 +1133,7 @@ PRAGMA busy_timeout=15000;
                     Module_TaiKhoan.XoaBoDemPhienBan(); // PhienBan_DoiTuong vừa ghi -> bảng DanhSach/DanhSachTanBinh chọn lại ngay
                     var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                     formCha?.KhoiTaoHeThongHinhNenAsync();
+                    formCha?.ApDungMauMenu(comboBox_MauSacMenu.Text?.Trim());   // Hiện đại: thanh menu trái đổi màu ngay
                     Module_DonVi.KhoiTao();
                     Module_ThongBao.ResetCacheSoDong();
                     CapNhatTenNutCaiDatTyLe();
@@ -1135,6 +1147,8 @@ PRAGMA busy_timeout=15000;
                         _doiTuongBanDau = doiTuongMoi;
                         _isDoiTuongChanged = false;
                     }
+                    // Cuối cùng (sau mọi bước khác của lần lưu): đổi kiểu giao diện => hỏi đóng phần mềm để áp dụng
+                    HoiDongPhanMemDeApDungGiaoDien();
                 }
                 else
                 {
@@ -1747,14 +1761,60 @@ PRAGMA busy_timeout=15000;
                 comboBox_KyHieu_TenTieuDoan.EndUpdate();
             }
         }
+        private string? _kieuGiaoDienDaHoi;   // kiểu đã hỏi và người dùng chọn "Không" -> lưu lại cùng kiểu không hỏi lặp
+        /// <summary>
+        /// Kiểu giao diện vừa lưu khác kiểu Form2 đang dùng (Form2 chỉ dựng giao diện 1 lần lúc khởi động) => hỏi người dùng:
+        ///  - Có   : đóng hẳn phần mềm rồi TỰ MỞ LẠI (Module_KhoiDongLai; dữ liệu đã lưu + commit xong trước khi hỏi).
+        ///  - Không: tiếp tục làm việc với giao diện hiện tại; giao diện mới tự áp dụng ở lần mở phần mềm sau.
+        /// </summary>
+        private void HoiDongPhanMemDeApDungGiaoDien()
+        {
+            string kieuMoi = Module_KieuGiaoDien.ChuanHoa(comboBox_KieuGiaoDien.Text);
+            string? dangDung = Module_KieuGiaoDien.DangApDung;
+            if (dangDung == null || dangDung == kieuMoi) { _kieuGiaoDienDaHoi = null; return; }
+            if (_kieuGiaoDienDaHoi == kieuMoi) return;
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Đổi kiểu giao diện", $"{dangDung} -> {kieuMoi}");
+            var traLoi = MessageBox.Show(this,
+                $"Đã lưu giao diện \"{kieuMoi}\".\nKhởi động lại để áp dụng ngay? (Chọn Không để áp dụng lần sau.)",
+                "Áp dụng giao diện mới",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2);
+            if (traLoi != DialogResult.Yes)
+            {
+                _kieuGiaoDienDaHoi = kieuMoi;
+                HienThongBaoStatus($"Giao diện \"{kieuMoi}\" sẽ áp dụng ở lần mở phần mềm sau.", Color.DarkGreen, 3000);
+                return;
+            }
+            Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Khởi động lại để áp dụng giao diện", $"Giao diện mới: {kieuMoi}");
+            try { Module_HuongDanSuDung.DongCuaSoHuongDanKhiThoat(); } catch { }   // như nhánh thoát của Form2
+            // Mở bản mới (chờ bản này thoát hẳn mới khởi động) rồi thoát dứt khoát: không đi qua FormClosing của Form2
+            // (chế độ "Trở về form đăng nhập" sẽ chặn việc đóng), ghi nốt nhật ký rồi kết thúc tiến trình
+            Module_KhoiDongLai.KhoiDongLaiPhanMem();
+        }
         private void ApCauHinhChung(DuLieuKhoiTao d)
         {
             // Gốc nạp tĩnh 2 combo này ngay cả khi chưa đọc được dữ liệu -> giữ nguyên
             // Bổ sung màu còn thiếu (kể cả khi Designer chỉ có danh sách cũ 4 màu)
-            foreach (string mau in new[] { "Mặc định", "Xanh lá", "Xanh dương", "Xám trắng", "Hồng cánh sen", "Tím nhạt" })
-                if (!comboBox_MauSacMenu.Items.Contains(mau)) comboBox_MauSacMenu.Items.Add(mau);
+            if (!Module_KieuGiaoDien.LaCoDien(Module_KieuGiaoDien.DangApDung ?? Module_KieuGiaoDien.DocChiDoc()))
+            {
+                // Kiểu Hiện đại: đủ bộ màu của thanh menu trái (gồm 6 màu cũ + màu mới), "Mặc định" = màu tím than hiện tại
+                comboBox_MauSacMenu.BeginUpdate();
+                try
+                {
+                    comboBox_MauSacMenu.Items.Clear();
+                    foreach (string mau in Module_SidebarHienDai.DanhSachMau) comboBox_MauSacMenu.Items.Add(mau);
+                }
+                finally { comboBox_MauSacMenu.EndUpdate(); }
+            }
+            else
+                foreach (string mau in new[] { "Mặc định", "Xanh lá", "Xanh dương", "Xám trắng", "Hồng cánh sen", "Tím nhạt" })
+                    if (!comboBox_MauSacMenu.Items.Contains(mau)) comboBox_MauSacMenu.Items.Add(mau);
             if (comboBox1_ChonSuKienThoat.Items.Count == 0)
                 comboBox1_ChonSuKienThoat.Items.AddRange(new object[] { "Thoát ngay", "Đóng về khay hệ thống" });
+            foreach (string kieu in Module_KieuGiaoDien.DanhSach)
+                if (!comboBox_KieuGiaoDien.Items.Contains(kieu)) comboBox_KieuGiaoDien.Items.Add(kieu);
+            comboBox_KieuGiaoDien.SelectedItem = Module_KieuGiaoDien.ChuanHoa(d.KieuGiaoDien);
             if (!d.CoCauHinh) return;
             if (d.Nam.HasValue)
                 comboBox1_NamHienTai.SelectedItem = d.Nam.Value;

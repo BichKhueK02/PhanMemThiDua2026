@@ -137,18 +137,88 @@ namespace PhanMemThiDua2026
             if (_daCloak && !IsDisposed && Disposing) { var t = _timerHien; _timerHien = null; t?.Stop(); t?.Dispose(); }
             base.OnHandleDestroyed(e);
         }
+        // ===== ĐỔI DPI (vd. 125% -> 100%, kéo sang màn hình khác tỷ lệ) =====
+        // sidebarWidth/sidebarMinWidth là số px chụp lúc Load: sau khi đổi DPI mà không tính lại thì bấm "Thu gọn/Mở rộng"
+        // hay tự động thu gọn đặt menu về bề rộng của DPI cũ => thanh menu trái "thòi ra thụt vào" sai cỡ.
+        protected override void OnDpiChanged(DpiChangedEventArgs e)
+        {
+            int cu = e.DeviceDpiOld, moi = e.DeviceDpiNew;
+            base.OnDpiChanged(e);
+            if (cu <= 0 || moi <= 0 || cu == moi || !IsHandleCreated) return;
+            // Chờ WinForms co giãn xong toàn bộ control con (DeviceDpi của PanelLeft cập nhật sau OnDpiChanged)
+            try { BeginInvoke(new Action(() => DongBoSidebarTheoDpi(cu, moi))); } catch (InvalidOperationException) { }
+        }
+        private void DongBoSidebarTheoDpi(int dpiCu, int dpiMoi)
+        {
+            if (IsDisposed || _isClosing) return;
+            try
+            {
+                XoaAnhNhoTrang();   // ảnh nhớ chụp ở DPI cũ: không dùng lại
+                if (_giaoDienCoDien)
+                {
+                    if (dpiCu > 0 && dpiMoi > 0 && dpiCu != dpiMoi)
+                    {
+                        sidebarWidth = (int)Math.Round(sidebarWidth * dpiMoi / (double)dpiCu);
+                        sidebarMinWidth = (int)Math.Round(sidebarMinWidth * dpiMoi / (double)dpiCu);
+                    }
+                }
+                else
+                {
+                    Module_SidebarHienDai.CapNhatTheoDpi(PanelLeft, DeviceDpi);
+                    sidebarWidth = Module_SidebarHienDai.RongDayDu(DeviceDpi);
+                    sidebarMinWidth = Module_SidebarHienDai.RongThuGon(DeviceDpi);
+                }
+                int rongDung = sidebarExpanded ? sidebarWidth : sidebarMinWidth;
+                if (rongDung > 0 && PanelLeft.Width != rongDung)
+                {
+                    SuspendLayout();
+                    try { PanelLeft.Width = rongDung; }
+                    finally { ResumeLayout(true); }
+                }
+            }
+            catch (Exception ex) { Debug.WriteLine("[Form2] Đồng bộ DPI sidebar: " + ex.Message); }
+        }
         public Form2_FormCha()
         {
             InitializeComponent();
-            Module_AnhDongNhe.ApDung(pictureBox3);   // GIF động 640x480 trong ô 82x35: co sẵn khung hình, chạy nhẹ (hết vẽ lại liên tục)
+            // Biểu tượng chứng thư số VẼ bằng GDI+ (thay ảnh GIF động 1,7 MB trước đây: hết giải mã ảnh lớn lúc dựng Form2)
+            Module_BieuTuongMenu.GanBieuTuongChungThu(pictureBox3);
             ApplyPerformanceTuning();
             // 🎨 BO TRÒN GIAO DIỆN: áp cho form cha và tự động cho mọi form con (kể cả control tạo sau)
             // Sidebar kiểu web hiện đại (viên thuốc bo tròn, hover sáng, mục đang chọn màu trắng)
-            Module_SidebarHienDai.KhoiTao(PanelLeft,
-            kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
-            kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
-            kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
-            checkBox1_TuDongAnMenu.ForeColor = Module_SidebarHienDai.ChuThuong;
+            // Kiểu giao diện người dùng chọn ở Form12 (Tab 2, mục 10) - đọc 1 lần lúc dựng, lỗi => "Hiện đại"
+            _giaoDienCoDien = Module_KieuGiaoDien.LaCoDien(Module_KieuGiaoDien.DocTuCSDL2());
+            Module_KieuGiaoDien.DangApDung = _giaoDienCoDien ? Module_KieuGiaoDien.CoDien : Module_KieuGiaoDien.HienDai;
+            if (_giaoDienCoDien)
+            {
+                // "Cổ điển": menu trái tím lavender + thanh trên như Designer, ẩn menu là ẩn hẳn (bản trước 2026-11-23)
+                Module_SidebarCoDien.KhoiTao(PanelLeft,
+                kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
+                kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
+                kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
+                checkBox1_TuDongAnMenu.ForeColor = Module_SidebarCoDien.ChuThuong;
+                // Ảnh gốc của các nút (nhúng trong exe) - chỉ nạp ở kiểu Cổ điển; kiểu Hiện đại tự vẽ biểu tượng
+                Module_BieuTuongMenu.GanAnhCoDien(
+                kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
+                kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
+                kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
+            }
+            else
+            {
+                // Bộ màu thanh menu (Form12 > mục 9) - đọc lại từ csdl2 (chỉ đọc, rất nhanh) phòng khi bản nạp nền lúc khởi động chưa xong
+                try { Module_MenuChuotPhai.KhoiTaoMauTuCSDL(Module_DanduongGPS.DuongDanCSDL2); } catch { }
+                Module_SidebarHienDai.DatChuDe(Module_MenuChuotPhai.MauHienTai);
+                Module_SidebarHienDai.KhoiTao(PanelLeft, PictureBox1, checkBox1_TuDongAnMenu,
+                kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
+                kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
+                kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
+                // Thanh trên kiểu web: nền trắng, kẻ mảnh, tiêu đề trái, chip người dùng có avatar bên phải
+                Module_SidebarHienDai.KhoiTaoThanhTren(PanelTop, TableLayoutPanel1, TableLayoutPanel2,
+                    kryptonButton1_MoMenuPhanMem, PictureBox2, Label1, Label2, pictureBox3, PanelContainer);
+                BackColor = Module_SidebarHienDai.NenNoiDung;
+                sidebarMinWidth = Module_SidebarHienDai.RongThuGon(PanelLeft);   // thu gọn = thanh icon, không ẩn hẳn
+            }
+            kryptonButton1_MoMenuPhanMem.Text = ChuNutThuGon;
             Module_GiaoDienBoTron.ApDung(this);
             // === THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ICON TASKBAR ===
             // 🌟 ĐĂNG KÝ SỰ KIỆN: Cứ mỗi khi chữ của Label1 bị đổi, lập tức chạy hàm kiểm tra màu
@@ -318,23 +388,26 @@ namespace PhanMemThiDua2026
             // Khởi tạo chuỗi gốc làm mốc so sánh sử dụng biến đệm siêu tốc
             string chuoiTrangChu = $"PHẦN MỀM THI ĐUA NĂM {_namHienTaiCache}";
             // TỐI ƯU GIAO DIỆN: So sánh chuỗi và chỉ gán màu khi màu thực sự bị lệch (Chống chớp nháy màn hình)
-            if (Label1.Text.Trim().Equals(chuoiTrangChu, StringComparison.OrdinalIgnoreCase))
-            {
-                if (Label1.ForeColor != Color.Green)
-                    Label1.ForeColor = Color.Green;
-            }
-            else
-            {
-                if (Label1.ForeColor != Color.Blue)
-                    Label1.ForeColor = Color.Blue;
-            }
+            bool laTrangChu = Label1.Text.Trim().Equals(chuoiTrangChu, StringComparison.OrdinalIgnoreCase);
+            Color mau = _giaoDienCoDien
+                ? (laTrangChu ? Color.Green : Color.Blue)   // "Cổ điển": màu tiêu đề như bản gốc
+                : Module_SidebarHienDai.MauTieuDe(laTrangChu);
+            if (Label1.ForeColor != mau)
+                Label1.ForeColor = mau;
         }
         public void KhoiTaoDuLieuNguoiDung(bool daNapTaiKhoan = false)
         {
             if (!daNapTaiKhoan) Module_TaiKhoan.NapTaiKhoanTuCSDL();   // Form2_Load đã nạp ở luồng nền thì bỏ qua
+            if (!_giaoDienCoDien && sidebarWidth == 0 && IsHandleCreated && Module_SidebarHienDai.CapNhatTheoDpi(PanelLeft, DeviceDpi))
+            {
+                // Form2 dựng ở DPI khác DPI màn hình thật (vd. vừa đổi tỷ lệ Windows mà chưa đăng xuất): đặt lại cỡ menu theo DPI thật
+                sidebarMinWidth = Module_SidebarHienDai.RongThuGon(DeviceDpi);
+                if (sidebarExpanded) PanelLeft.Width = Module_SidebarHienDai.RongDayDu(DeviceDpi);
+            }
             sidebarWidth = PanelLeft.Width;
             string ten = SessionInfo.TenTaiKhoan;
             DateTime thoiGian = SessionInfo.ThoiGianDangNhap;
+            if (!_giaoDienCoDien) Module_SidebarHienDai.DatNguoiDung(Label2, ten);
             if (string.IsNullOrWhiteSpace(ten))
             {
                 Label2.Text = "Xin chào!";
@@ -507,7 +580,7 @@ namespace PhanMemThiDua2026
             var tips = new Dictionary<System.Windows.Forms.Control, string>
     {
         { pictureBox3, "Xem giới thiệu về chứng thư số và chữ ký số" },
-        { kryptonButton1_MoMenuPhanMem, "Mở menu chức năng của phần mềm" }
+        { kryptonButton1_MoMenuPhanMem, "Thu gọn / mở rộng menu chức năng" }
     };
             foreach (var tip in tips)
             {
@@ -534,11 +607,52 @@ namespace PhanMemThiDua2026
             timerTuDongAnMenu.Stop();
             timerTuDongAnMenu.Start();
         }
+        private bool _giaoDienCoDien;   // true = kiểu "Cổ điển" (xem Module_KieuGiaoDien)
+        // ===== CHUYỂN TRANG TỨC THÌ (Hiện đại): ẢNH NHỚ CỦA TỪNG TRANG =====
+        // Mỗi lần rời 1 trang: lưu ảnh vùng nội dung của trang đó. Lần sau bấm vào trang ấy: ảnh hiện NGAY (lớp phủ layered,
+        // DWM ghép hình - không chờ luồng giao diện) trong khi trang thật được dựng/vẽ phía sau, rồi thay vào bằng nhịp mờ ngắn.
+        // => người dùng thấy trang mới "ra ngay" như web thay vì đứng hình 70–180 ms (vẽ lại lưới Krypton) rồi mới hiện.
+        // Ảnh chỉ dùng khi cùng kích thước vùng nội dung (đổi cỡ cửa sổ / thu gọn menu => tự bỏ qua, dùng ảnh trang cũ).
+        private readonly Dictionary<Type, Bitmap> _anhNhoTrang = new();
+        private const int SoAnhNhoToiDa = 8;   // ~6 MB/ảnh ở 1920x1080 => tối đa ~50 MB
+        private LopChuyenTrang? PhuAnhChuyenTrang(Type trangCu, Type trangDich)
+        {
+            var anhCu = LopChuyenTrang.ChupVung(PanelContainer, out var vung);
+            if (anhCu == null) return null;
+            // Lưu ảnh trang đang rời đi (thay ảnh cũ của nó)
+            if (_anhNhoTrang.TryGetValue(trangCu, out var cu)) cu.Dispose();
+            _anhNhoTrang[trangCu] = anhCu;
+            if (_anhNhoTrang.Count > SoAnhNhoToiDa)
+                foreach (var k in _anhNhoTrang.Keys.Where(k => k != trangCu && k != trangDich).Take(_anhNhoTrang.Count - SoAnhNhoToiDa).ToList())
+                { _anhNhoTrang[k].Dispose(); _anhNhoTrang.Remove(k); }
+            // Có ảnh trang đích đúng kích thước => hiện ngay trang đích; không thì giữ hình trang cũ (che cảnh vẽ dở)
+            // Nhịp mờ NGẮN: mờ dài (160 ms) làm trang cũ và trang mới chồng lên nhau như "bóng ma" - người dùng thấy khựng,
+            // không mượt (chụp từng khung 23/11: trang mới đã vẽ xong mà vẫn còn bóng trang cũ thêm ~160 ms).
+            if (_anhNhoTrang.TryGetValue(trangDich, out var anhDich) && anhDich.Size == anhCu.Size)
+                return LopChuyenTrang.BatDau(this, anhDich, vung, thoiGianMoMs: 60);
+            return LopChuyenTrang.BatDau(this, anhCu, vung, thoiGianMoMs: 80);
+        }
+        /// <summary>Bỏ toàn bộ ảnh nhớ trang (dữ liệu/bố cục các trang vừa đổi lớn, vd. đổi phiên bản).</summary>
+        private void XoaAnhNhoTrang()
+        {
+            foreach (var a in _anhNhoTrang.Values) a.Dispose();
+            _anhNhoTrang.Clear();
+        }
+        /// <summary>Form12 gọi sau khi lưu "Chọn màu sắc menu hệ thống": kiểu Hiện đại tô lại thanh menu trái NGAY (Cổ điển: không đổi).</summary>
+        public void ApDungMauMenu(string? tenMau)
+        {
+            if (_giaoDienCoDien || IsDisposed) return;
+            // Gọi thẳng khi đang ở luồng giao diện (SafeInvoke bỏ qua nếu form chưa có handle); luồng khác => chuyển về luồng giao diện
+            if (InvokeRequired) { try { BeginInvoke(new Action(() => ApDungMauMenu(tenMau))); } catch (InvalidOperationException) { } return; }
+            Module_SidebarHienDai.ApDungChuDe(PanelLeft, tenMau);
+        }
+        private string ChuNutThuGon => _giaoDienCoDien ? "Ẩn menu" : "≡   Thu gọn menu";
+        private string ChuNutMoRong => _giaoDienCoDien ? "Hiện menu" : "≡   Mở rộng menu";
         private void AnMenu()
         {
             DoiRongMenu(sidebarMinWidth);
             sidebarExpanded = false;
-            kryptonButton1_MoMenuPhanMem.Text = "Hiện menu";
+            kryptonButton1_MoMenuPhanMem.Text = ChuNutMoRong;
             // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi ẩn menu
             CapNhatMuiTenGiaoDien();
         }
@@ -548,6 +662,7 @@ namespace PhanMemThiDua2026
             if (_isClosing || IsDisposed) return;
             if (Interlocked.Exchange(ref _switching, 1) == 1)
                 return; // chống spam click
+            LopChuyenTrang? lopChuyen = null;
             try
             {
                 if (InvokeRequired)
@@ -569,6 +684,10 @@ namespace PhanMemThiDua2026
                     (_forms.TryGetValue(type, out var coSan) && !coSan.IsDisposed
                         ? (Module_KhoGiaoDien.LaTrongKho(coSan) ? " (lấy từ kho)" : " (đã mở trước đó)")
                         : " (CHƯA có trong kho - dựng mới)"));
+                // Hiện đại: phủ ảnh trang cũ, trang mới dựng + vẽ phía sau, rồi mờ dần (xem LopChuyenTrang). Chỉ khi Form2 đã hiện
+                // xong (không phải lúc khởi động còn "cloak") và đang có trang để chuyển đi.
+                if (!_giaoDienCoDien && _daHienXong && !_daCloak && _currentChild != null && !_currentChild.IsDisposed)
+                    lopChuyen = PhuAnhChuyenTrang(_currentChild.GetType(), type);
                 if (!_forms.TryGetValue(type, out var form) || form.IsDisposed)
                     _forms[type] = form = new T();
                 var formCu = _currentChild;
@@ -601,6 +720,7 @@ namespace PhanMemThiDua2026
             }
             finally
             {
+                lopChuyen?.KetThuc();   // trang mới đã vẽ xong phía sau => lớp phủ mờ dần (kể cả khi có lỗi)
                 Interlocked.Exchange(ref _switching, 0);
             }
         }
@@ -615,7 +735,7 @@ namespace PhanMemThiDua2026
             {
                 DoiRongMenu(sidebarWidth);
                 sidebarExpanded = true;
-                kryptonButton1_MoMenuPhanMem.Text = "Ẩn menu";
+                kryptonButton1_MoMenuPhanMem.Text = ChuNutThuGon;
                 // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi hiện menu
                 CapNhatMuiTenGiaoDien();
             }
@@ -850,6 +970,7 @@ namespace PhanMemThiDua2026
                 }
                 // TRƯỜNG HỢP 2: THOÁT HOÀN TOÀN HỆ THỐNG
                 _isClosing = true;
+                Module_ThoatAnToan.DangThoat = true;   // lỗi vô hại của tác vụ nền lúc thoát: chỉ ghi nhật ký, không bật hộp thoại
                 Module_HuongDanSuDung.DongCuaSoHuongDanKhiThoat();   // đóng cửa sổ hướng dẫn web do phần mềm mở
                 // 1. Dọn dẹp Timer
                 if (timerTuDongAnMenu != null)
@@ -1103,6 +1224,7 @@ namespace PhanMemThiDua2026
                 bool laTanBinh = phienBan.LaCheDoTanBinh();
                 // 1b. Bảng gốc đổi (DanhSach <-> DanhSachTanBinh): bỏ bộ đệm phiên bản + dữ liệu danh sách cũ trong RAM
                 Module_TaiKhoan.XoaBoDemPhienBan();
+                XoaAnhNhoTrang();   // các trang dữ liệu sắp dựng lại theo phiên bản mới => ảnh nhớ cũ không còn đúng
                 DataCache.Clear();
                 // 2. Ẩn/Hiện nút Khen thưởng
                 if (kryptonButton1_KhenThuong != null)
@@ -1197,6 +1319,9 @@ namespace PhanMemThiDua2026
             _currentButton = clickedButton;
             // 5. Gọi hàm tô màu cho nút mới
             ApplyHighlightColor(_currentButton);
+            // 6. VẼ NGAY thanh menu (vài ms) trước khi luồng giao diện bận dựng trang mới (~100 ms). Trước đây mục được chọn chỉ
+            //    sáng lên SAU khi trang mới hiện => nội dung đổi trước, menu đổi sau, nhìn như thanh menu "giật/thụt" theo sau.
+            try { if (PanelLeft.IsHandleCreated && PanelLeft.Visible) PanelLeft.Update(); } catch { }
         }
         private async void kryptonButton1_HuongDan_Click(object? sender, EventArgs e)
         {
@@ -1372,13 +1497,15 @@ namespace PhanMemThiDua2026
         private void ApplyHighlightColor(KryptonButton btn)
         {
             if (btn == null || btn.IsDisposed) return;
-            // Mục đang chọn: viên trắng, chữ chàm đậm (xem Module_SidebarHienDai)
-            Module_SidebarHienDai.DatTrangThai(btn, true);
+            // Mục đang chọn: viên tím nổi (xem Module_SidebarHienDai / Module_SidebarCoDien)
+            if (_giaoDienCoDien) Module_SidebarCoDien.DatTrangThai(btn, true);
+            else Module_SidebarHienDai.DatTrangThai(btn, true);
         }
         private void ResetKryptonButton(KryptonButton btn)
         {
             if (btn == null || btn.IsDisposed) return;
-            Module_SidebarHienDai.DatTrangThai(btn, false);
+            if (_giaoDienCoDien) Module_SidebarCoDien.DatTrangThai(btn, false);
+            else Module_SidebarHienDai.DatTrangThai(btn, false);
         }
         // ================= PRELOAD AN TOÀN (gọi từ Module_GiaoDienForm2Web, trên luồng UI) =================
         internal Task<bool>? TacVuPreloadDuLieu;
@@ -1506,7 +1633,9 @@ namespace PhanMemThiDua2026
                 // bấm tới: chờ rảnh tay ngắn (120 ms) và mỗi bước chờ tối đa 600 ms (trước: 180 ms / 2 s), mỗi bước vẫn chia lát.
                 return truocDangNhap
                     ? await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 120, toiDaMs: 450)
-                    : await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 120, toiDaMs: 600);
+                    // Sau đăng nhập: chỉ dựng trang nền khi người dùng đã RẢNH TAY ≥ 0,3 s (chờ tối đa 3 s). Trước đây 0,12 s / 0,6 s
+                    // => đang bấm chuyển trang vẫn bị chen việc dựng form 150–450 ms (đo 23/11: 10 lần đứng, tổng ~2 s trong 5 s đầu).
+                    : await Module_NhuongUI.ChoRanhAsync(Dung, ranhMs: 300, toiDaMs: 3000);
             }
             try
             {
@@ -1710,7 +1839,12 @@ namespace PhanMemThiDua2026
             if (PanelLeft.Width == rongMoi) return;
             SuspendLayout();
             TamDungVe(PanelContainer);   // đổi bề rộng menu làm form con layout lại toàn bộ: chỉ vẽ 1 lần sau khi xong
-            try { PanelLeft.Width = rongMoi; }
+            try
+            {
+                // Hẹp hơn bề rộng đầy đủ => sidebar thành thanh icon (ẩn chữ, logo, ô tự động thu gọn)
+                Module_SidebarHienDai.DatThuGon(PanelLeft, sidebarWidth > 0 && rongMoi < sidebarWidth);
+                PanelLeft.Width = rongMoi;
+            }
             finally { ResumeLayout(true); ChoPhepVe(PanelContainer); }
         }
     }

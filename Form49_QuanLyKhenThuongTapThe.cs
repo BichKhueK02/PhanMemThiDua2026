@@ -19,17 +19,22 @@ namespace PhanMemThiDua2026
         private System.Threading.CancellationTokenSource _searchCts = null!;
         private int _msgCounter = 0;
         // LỚP CACHE TOÀN CỤC CHỐNG QUÉT DB
-        private class DuLieuCache
+        private sealed class DuLieuCache
         {
-            public int ID { get; set; }
-            public string TenTapThe { get; set; } = null!;
-            public string DonVi { get; set; } = null!;
-            public string HinhThucKhenThuong { get; set; } = null!;
+            public int ID, STT;
+            public long TienThuong;
+            public string TenTapThe = "", DonVi = "", HinhThucKhenThuong = "", TenTim = "";
+            public string SoQuyetDinh = "", NgayQuyetDinh = "", NguoiKy = "", NoiDung = "", NgayCapPhat = "",
+                          CanBoCapPhat = "", NguoiDaiDienNhan = "", GhiChu = "";
         }
-        private List<DuLieuCache>? _globalCache = null; // Chứa toàn bộ ID, Tên, Đơn vị đã giải mã
+        private List<DuLieuCache>? _globalCache = null; // TOÀN BỘ bảng đã giải mã (đọc 1 lần ở luồng nền) -> lọc chỉ chạy trên RAM
+        private Task<List<DuLieuCache>>? _dangDocCache;   // gộp các lần đọc chồng nhau
+        private bool _dangNapCombo;                       // đang nạp lại combo lọc bằng code -> bỏ qua TextChanged
+        private List<int>? _idHienThi;                    // tập ID đang hiển thị: lọc ra đúng tập cũ thì không gắn lại lưới
         public Form49_QuanLyKhenThuongTapThe()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_HeThong.BocBoTronGiaoDien(richTextBox1_NoiDungKhenThuong);
             Module_GiaoDienForm49Web.ApDung(this);
             // Đăng ký sự kiện Shown
@@ -218,31 +223,58 @@ namespace PhanMemThiDua2026
             }
         }
         // HÀM BẢO VỆ GIAO DIỆN (MÃ HÓA & GIẢI MÃ AN TOÀN)
+        /// <summary>
+        /// Đọc + giải mã TOÀN BỘ bảng khen thưởng tập thể vào RAM ở luồng nền (1 lần cho tới khi dữ liệu đổi). Bản cũ chỉ giữ
+        /// Tên/Đơn vị/Hình thức rồi MỖI LẦN GÕ lại truy vấn + giải mã các cột còn lại và cắt cụt ở 500 dòng.
+        /// </summary>
         private async Task BuildGlobalCacheAsync(bool forceReload = false)
         {
-            if (_globalCache != null && !forceReload) return;
-            _globalCache = new List<DuLieuCache>();
-            string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
-            using (var conn = new SqliteConnection(connectionString))
+            if (forceReload) _globalCache = null;
+            if (_globalCache != null) return;
+            Task<List<DuLieuCache>> viec;
+            if (!forceReload && _dangDocCache != null) viec = _dangDocCache;
+            else
             {
-                await conn.OpenAsync();
-                // Quét 1 lần duy nhất toàn bộ bảng, thêm HinhThuc_KhenThuong vào câu SELECT
-                string query = "SELECT ID, TenTapThe, DonVi_CapKhenThuong, HinhThuc_KhenThuong FROM ThongKe_KhenThuongTapThe";
-                using (var cmd = new SqliteCommand(query, conn))
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        _globalCache.Add(new DuLieuCache
-                        {
-                            ID = Convert.ToInt32(reader["ID"]),
-                            TenTapThe = SafeDecrypt(reader["TenTapThe"]),
-                            DonVi = SafeDecrypt(reader["DonVi_CapKhenThuong"]),
-                            HinhThucKhenThuong = SafeDecrypt(reader["HinhThuc_KhenThuong"]) // <--- THÊM DÒNG NÀY
-                        });
-                    }
-                }
+                string chuoiKetNoi = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
+                viec = Task.Run(() => DocToanBoBang(chuoiKetNoi));
+                _dangDocCache = viec;
             }
+            List<DuLieuCache> ds;
+            try { ds = await viec; }
+            finally { if (ReferenceEquals(_dangDocCache, viec)) _dangDocCache = null; }
+            if (IsDisposed) return;
+            _globalCache ??= ds;
+        }
+        // Chạy ở LUỒNG NỀN: không đụng control.
+        private List<DuLieuCache> DocToanBoBang(string chuoiKetNoi)
+        {
+            var ds = new List<DuLieuCache>();
+            using var conn = new SqliteConnection(chuoiKetNoi);
+            conn.Open();
+            using (var kt = new SqliteCommand("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ThongKe_KhenThuongTapThe' LIMIT 1", conn))
+                if (kt.ExecuteScalar() == null) return ds;
+            const string sql = @"SELECT ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh,
+                                        NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu
+                                 FROM ThongKe_KhenThuongTapThe ORDER BY STT ASC, ID ASC";
+            using var cmd = new SqliteCommand(sql, conn);
+            using var rd = cmd.ExecuteReader();
+            string S(int i) => rd.IsDBNull(i) ? "" : SafeDecrypt(rd.GetValue(i));
+            while (rd.Read())
+            {
+                string tien = S(9);
+                long.TryParse(tien.Replace(".", string.Empty).Replace(",", string.Empty), out long soTien);
+                string ten = S(2);
+                ds.Add(new DuLieuCache
+                {
+                    ID = rd.IsDBNull(0) ? 0 : Convert.ToInt32(rd.GetValue(0)),
+                    STT = rd.IsDBNull(1) ? 0 : Convert.ToInt32(rd.GetValue(1)),
+                    TenTapThe = ten, TenTim = BoLocDanhSach.ChuanHoaTimKiem(ten),
+                    HinhThucKhenThuong = S(3), DonVi = S(4),
+                    SoQuyetDinh = S(5), NgayQuyetDinh = S(6), NguoiKy = S(7), NoiDung = S(8),
+                    TienThuong = soTien, NgayCapPhat = S(10), CanBoCapPhat = S(11), NguoiDaiDienNhan = S(12), GhiChu = S(13)
+                });
+            }
+            return ds;
         }
         private string SafeDecrypt(object? value)
         {
@@ -304,27 +336,8 @@ namespace PhanMemThiDua2026
             cmd.Parameters.AddWithValue("@GhiChu", SafeEncrypt(kt.GhiChu));
         }
         // LOAD VÀ CACHE DANH SÁCH ĐƠN VỊ VÀO COMBOBOX
-        private async Task LoadComboBoxDonViAsync(bool forceReload = false)
-        {
-            if (comboBox_TimKiemDonViKhenThuong == null) return;
-            // Đảm bảo cache đã có sẵn
-            await BuildGlobalCacheAsync(forceReload);
-            comboBox_TimKiemDonViKhenThuong.TextChanged -= comboBox_TimKiemDonViKhenThuong_TextChanged;
-            string currentText = comboBox_TimKiemDonViKhenThuong.Text;
-            // Rút trích danh sách Đơn Vị trực tiếp từ RAM (Cực kỳ nhanh)
-            var dsDonVi = _globalCache!
-                .Where(x => !string.IsNullOrWhiteSpace(x.DonVi) && x.DonVi != "[Lỗi giải mã]")
-                .Select(x => x.DonVi)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(x => x)
-                .ToArray();
-            comboBox_TimKiemDonViKhenThuong.Items.Clear();
-            // --- THÊM DÒNG NÀY ĐỂ TẠO GIÁ TRỊ RỖNG ---
-            comboBox_TimKiemDonViKhenThuong.Items.Add("");
-            comboBox_TimKiemDonViKhenThuong.Items.AddRange(dsDonVi);
-            comboBox_TimKiemDonViKhenThuong.Text = currentText;
-            comboBox_TimKiemDonViKhenThuong.TextChanged += comboBox_TimKiemDonViKhenThuong_TextChanged;
-        }
+        // Danh sách 2 combo lọc do LoadDataToGridAsync dựng theo BỘ LỌC KÉP; 2 hàm cũ (nơi gọi không đổi) chỉ còn bảo đảm bộ đệm.
+        private Task LoadComboBoxDonViAsync(bool forceReload = false) => BuildGlobalCacheAsync(forceReload);
         // SỰ KIỆN TEXT CHANGED & DEBOUNCE TÌM KIẾM
         private void kryptonTextBox_TienThuong_TextChanged(object? sender, EventArgs e)
         {
@@ -361,158 +374,93 @@ namespace PhanMemThiDua2026
                 kryptonTextBox_TienThuong.TextChanged += kryptonTextBox_TienThuong_TextChanged;
             }
         }
+        // Ô gõ tên: chờ 150 ms sau phím cuối mới lọc. Chọn combo: lọc ngay (lọc trên RAM chỉ tốn vài mili-giây).
         private async void textBox_TimKiemTheoTen_TextChanged(object? sender, EventArgs e)
         {
-            await DebouncedSearchAsync();
+            if (!_dangNapCombo) await DebouncedSearchAsync(150);
         }
         private async void comboBox_TimKiemDonViKhenThuong_TextChanged(object? sender, EventArgs e)
         {
-            await DebouncedSearchAsync();
+            if (!_dangNapCombo) await DebouncedSearchAsync(0);
         }
-        private async Task DebouncedSearchAsync()
+        private async void comboBox1_HinhThucKT_TextChanged(object? sender, EventArgs e)
         {
-            // Hủy triệt để lệnh tìm kiếm VÀ vòng lặp DB trước đó
+            if (!_dangNapCombo) await DebouncedSearchAsync(0);
+        }
+        private async Task DebouncedSearchAsync(int treMs)
+        {
             _searchCts?.Cancel();
+            _searchCts?.Dispose();
             _searchCts = new System.Threading.CancellationTokenSource();
             var token = _searchCts.Token;
             try
             {
-                await Task.Delay(350, token); // Đợi 350ms sau phím bấm cuối cùng
-                // Truyền Token thẳng vào hàm Load, nếu người dùng gõ tiếp, SQLite sẽ dừng quét ngay lập tức
-                if (!token.IsCancellationRequested)
-                {
-                    await LoadDataToGridAsync(token);
-                }
+                if (treMs > 0) await Task.Delay(treMs, token);
+                if (!token.IsCancellationRequested) await LoadDataToGridAsync(token);
             }
-            catch (TaskCanceledException) { /* Nuốt lỗi hủy task do người dùng đang gõ tiếp */ }
+            catch (OperationCanceledException) { /* người dùng đang gõ tiếp */ }
         }
-        // LOAD DATA GRID (CÓ TOKEN HỦY TÁC VỤ & GIẢI MÃ THÔNG MINH)
-        /// Bổ sung tham số CancellationToken với giá trị mặc định
-        private const int MaxMatchedItems = 500;
+        private static bool GiaTriHopLe(string s) => s != "[Lỗi giải mã]" && s != "[Lỗi dữ liệu]";
+        /// <summary>
+        /// Lọc bảng khen thưởng tập thể trên RAM (tên tập thể không dấu, nhiều từ + đơn vị khen + hình thức, so khớp CHÍNH XÁC giá trị
+        /// combo) và dựng BỘ LỌC KÉP cho 2 combo trong cùng lượt: combo nào cũng chỉ còn giá trị có trong các dòng thỏa mọi bộ lọc khác.
+        /// Không truy vấn lại CSDL, không giới hạn số dòng (bản cũ cắt ở 500). Ra đúng tập dòng đang hiển thị thì không gắn lại lưới.
+        /// </summary>
         public async Task LoadDataToGridAsync(System.Threading.CancellationToken token = default)
         {
-            string keywordTen = textBox_TimKiemTheoTen?.Text.Trim().ToLower() ?? string.Empty;
-            string keywordDonVi = comboBox_TimKiemDonViKhenThuong?.Text.Trim().ToLower() ?? string.Empty;
-            string keywordHinhThuc = comboBox1_HinhThucKT?.Text.Trim().ToLower() ?? string.Empty;
-            await BuildGlobalCacheAsync(); // Đảm bảo RAM đã có dữ liệu
             try
             {
-                token.ThrowIfCancellationRequested();
-                // BƯỚC 1: LỌC TRÊN RAM (CPU-bound) -> chạy trên thread pool
-                // Lambda ở đây là HÀM ĐỒNG BỘ (không async), nên Task.Run
-                // dùng đúng mục đích: giải phóng UI thread khi lọc dữ liệu lớn,
-                // không có tình trạng "async lambda lồng trong Task.Run".
-                var matchedItems = await Task.Run(() =>
+                await BuildGlobalCacheAsync();
+                if (token.IsCancellationRequested || IsDisposed) return;
+                var ds = _globalCache ?? new List<DuLieuCache>();
+                string[] tu = Module_BoLocKhenThuong.TachTuKhoa(textBox_TimKiemTheoTen?.Text);
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DuLieuCache>(
+                    Module_BoLocKhenThuong.GiaTriLoc(comboBox_TimKiemDonViKhenThuong), x => x.DonVi, GiaTriHopLe);
+                var tcHt = new Module_BoLocKhenThuong.TieuChiKep<DuLieuCache>(
+                    Module_BoLocKhenThuong.GiaTriLoc(comboBox1_HinhThucKT), x => x.HinhThucKhenThuong, GiaTriHopLe);
+                var chiSo = Module_BoLocKhenThuong.LocKep(ds,
+                    tu.Length == 0 ? null : x => Module_BoLocKhenThuong.KhopTuKhoa(x.TenTim, tu), tcDv, tcHt);
+                _dangNapCombo = true;
+                try
                 {
-                    var query = _globalCache!.AsEnumerable();
-                    if (!string.IsNullOrEmpty(keywordTen))
-                        query = query.Where(x => x.TenTapThe.ToLower().Contains(keywordTen));
-                    if (!string.IsNullOrEmpty(keywordDonVi))
-                        query = query.Where(x => x.DonVi.ToLower().Contains(keywordDonVi));
-                    if (!string.IsNullOrEmpty(keywordHinhThuc))
-                        query = query.Where(x => x.HinhThucKhenThuong.ToLower().Contains(keywordHinhThuc));
-                    token.ThrowIfCancellationRequested();
-                    // Lấy tối đa MaxMatchedItems ID khớp để đưa xuống DB
-                    return query.Take(MaxMatchedItems).ToDictionary(x => x.ID, x => x);
-                }, token);
-                DataTable dtThuTu = CreateDataTableSchema();
-                if (matchedItems.Count == 0)
-                {
-                    kryptonDataGridView1.DataSource = dtThuTu;
-                    CapNhatNhanTongSo();
-                    CapNhatTrangThaiNutThaoTac();
-                    return;
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_TimKiemDonViKhenThuong, Module_BoLocKhenThuong.SapABC(tcDv.Con), "");
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox1_HinhThucKT, Module_BoLocKhenThuong.SapABC(tcHt.Con), "");
                 }
-                // BƯỚC 2: TRUY VẤN DB CHỈ VỚI CÁC ID ĐÃ KHỚP (I/O-bound)
-                // Await trực tiếp trên async context hiện tại - KHÔNG bọc
-                // trong Task.Run vì ADO.NET/SQLite Async API đã non-blocking.
-                string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path);
-                using (var conn = new SqliteConnection(connectionString))
-                {
-                    await conn.OpenAsync(token).ConfigureAwait(false);
-                    // Parameterize danh sách ID thay vì nối chuỗi trực tiếp vào SQL
-                    // (tránh SQL injection, tránh cảnh báo CA2100 của Roslyn analyzer)
-                    var idList = matchedItems.Keys.ToList();
-                    var paramNames = new string[idList.Count];
-                    string queryFull = $@"
-                SELECT ID, STT, HinhThuc_KhenThuong, SoQuyetDinh,
-                       NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong,
-                       TienThuong, NgayCapPhat, CanBoCapPhat,
-                       NguoiDaiDienNhan, GhiChu
-                FROM ThongKe_KhenThuongTapThe
-                WHERE ID IN ({string.Join(",", BuildIdParameters(idList, paramNames))})
-                ORDER BY STT ASC";
-                    using (var cmdFull = new SqliteCommand(queryFull, conn))
-                    {
-                        for (int i = 0; i < idList.Count; i++)
-                            cmdFull.Parameters.AddWithValue(paramNames[i], idList[i]);
-                        using (SqliteDataReader reader = await cmdFull.ExecuteReaderAsync(token).ConfigureAwait(false))
-                        {
-                            // Lấy ordinal một lần để tránh tra cứu theo tên cột lặp lại (hiệu năng tốt hơn)
-                            int idxId = reader.GetOrdinal("ID");
-                            int idxStt = reader.GetOrdinal("STT");
-                            int idxSoQuyetDinh = reader.GetOrdinal("SoQuyetDinh");
-                            int idxNgayQuyetDinh = reader.GetOrdinal("NgayQuyetDinh");
-                            int idxNguoiKy = reader.GetOrdinal("NguoiKy");
-                            int idxNoiDung = reader.GetOrdinal("NoiDung_KhenThuong");
-                            int idxTienThuong = reader.GetOrdinal("TienThuong");
-                            int idxNgayCapPhat = reader.GetOrdinal("NgayCapPhat");
-                            int idxCanBoCapPhat = reader.GetOrdinal("CanBoCapPhat");
-                            int idxNguoiDaiDienNhan = reader.GetOrdinal("NguoiDaiDienNhan");
-                            int idxGhiChu = reader.GetOrdinal("GhiChu");
-                            while (await reader.ReadAsync(token).ConfigureAwait(false))
-                            {
-                                int id = reader.GetInt32(idxId);
-                                var cacheItem = matchedItems[id]; // Lấy Tên, Đơn vị, Hình thức từ RAM, khỏi giải mã lại
-                                string tienThuongStr = SafeDecrypt(reader.GetValue(idxTienThuong));
-                                long.TryParse(
-                                    tienThuongStr.Replace(".", "").Replace(",", ""),
-                                    out long tien);
-                                dtThuTu.Rows.Add(
-                                    id,
-                                    reader.IsDBNull(idxStt) ? 0 : reader.GetInt32(idxStt),
-                                    cacheItem.TenTapThe,
-                                    cacheItem.HinhThucKhenThuong, // Lấy thẳng từ Cache cho nhanh
-                                    cacheItem.DonVi,
-                                    SafeDecrypt(reader.GetValue(idxSoQuyetDinh)),
-                                    SafeDecrypt(reader.GetValue(idxNgayQuyetDinh)),
-                                    SafeDecrypt(reader.GetValue(idxNguoiKy)),
-                                    SafeDecrypt(reader.GetValue(idxNoiDung)),
-                                    tien,
-                                    SafeDecrypt(reader.GetValue(idxNgayCapPhat)),
-                                    SafeDecrypt(reader.GetValue(idxCanBoCapPhat)),
-                                    SafeDecrypt(reader.GetValue(idxNguoiDaiDienNhan)),
-                                    SafeDecrypt(reader.GetValue(idxGhiChu))
-                                );
-                            }
-                        }
-                    }
-                }
-                token.ThrowIfCancellationRequested();
-                kryptonDataGridView1.DataSource = dtThuTu;
+                finally { _dangNapCombo = false; }
+                GanLuoi(ds, chiSo);
                 CapNhatNhanTongSo();
                 CapNhatTrangThaiNutThaoTac();
             }
-            catch (OperationCanceledException)
-            {
-                // Tác vụ bị hủy có chủ đích (ví dụ người dùng gõ tiếp từ khóa tìm kiếm) -> bỏ qua im lặng
-            }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        /// <summary>
-        /// Sinh danh sách tên tham số (@p0, @p1, ...) tương ứng 1-1 với danh sách ID,
-        /// dùng để dựng mệnh đề "IN (@p0, @p1, ...)" an toàn thay vì nối chuỗi trực tiếp.
-        /// </summary>
-        private static IEnumerable<string> BuildIdParameters(List<int> idList, string[] paramNamesOut)
+        private List<DuLieuCache>? _cacheDaGan;   // bộ đệm của lần gắn lưới trước (nạp lại CSDL = bộ đệm mới => luôn gắn lại)
+        /// <summary>Gắn kết quả lọc lên lưới (tắt vẽ trong lúc gắn). Cùng bộ đệm + cùng tập ID với lần trước thì bỏ qua.</summary>
+        private void GanLuoi(List<DuLieuCache> ds, List<int> chiSo)
         {
-            for (int i = 0; i < idList.Count; i++)
+            var grid = kryptonDataGridView1;
+            if (grid == null || grid.IsDisposed) return;
+            var ids = new List<int>(chiSo.Count);
+            foreach (int i in chiSo) ids.Add(ds[i].ID);
+            if (ReferenceEquals(_cacheDaGan, ds) && grid.DataSource is DataTable && Module_BoLocKhenThuong.CungChiSo(_idHienThi, ids)) return;
+            DataTable dt = CreateDataTableSchema();
+            dt.BeginLoadData();
+            foreach (int i in chiSo)
             {
-                paramNamesOut[i] = "@p" + i;
-                yield return paramNamesOut[i];
+                var x = ds[i];
+                dt.Rows.Add(x.ID, x.STT, x.TenTapThe, x.HinhThucKhenThuong, x.DonVi, x.SoQuyetDinh, x.NgayQuyetDinh, x.NguoiKy,
+                            x.NoiDung, x.TienThuong, x.NgayCapPhat, x.CanBoCapPhat, x.NguoiDaiDienNhan, x.GhiChu);
             }
+            dt.EndLoadData();
+            using (Module_LuoiAo.TamDungVe(grid))
+            {
+                grid.DataSource = dt;
+            }
+            _idHienThi = ids;
+            _cacheDaGan = ds;
         }
         private DataTable CreateDataTableSchema()
         {
@@ -535,25 +483,18 @@ namespace PhanMemThiDua2026
         }
         private async void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e)
         {
-            // Ngắt event
-            if (textBox_TimKiemTheoTen != null) textBox_TimKiemTheoTen.TextChanged -= textBox_TimKiemTheoTen_TextChanged;
-            if (comboBox_TimKiemDonViKhenThuong != null) comboBox_TimKiemDonViKhenThuong.TextChanged -= comboBox_TimKiemDonViKhenThuong_TextChanged;
-            if (comboBox1_HinhThucKT != null) comboBox1_HinhThucKT.TextChanged -= comboBox1_HinhThucKT_TextChanged; // <--- THÊM
-            // Xóa trắng
-            if (textBox_TimKiemTheoTen != null) textBox_TimKiemTheoTen.Text = string.Empty;
-            if (comboBox_TimKiemDonViKhenThuong != null) comboBox_TimKiemDonViKhenThuong.Text = string.Empty;
-            if (comboBox1_HinhThucKT != null) comboBox1_HinhThucKT.SelectedIndex = -1; // <--- THÊM (Trả về rỗng)
-            // Bật lại event
-            if (textBox_TimKiemTheoTen != null) textBox_TimKiemTheoTen.TextChanged += textBox_TimKiemTheoTen_TextChanged;
-            if (comboBox_TimKiemDonViKhenThuong != null) comboBox_TimKiemDonViKhenThuong.TextChanged += comboBox_TimKiemDonViKhenThuong_TextChanged;
-            if (comboBox1_HinhThucKT != null) comboBox1_HinhThucKT.TextChanged += comboBox1_HinhThucKT_TextChanged; // <--- THÊM
+            // Đưa 3 ô lọc về mặc định mà không bắn lọc lẻ tẻ, rồi lọc đúng 1 lần
+            _searchCts?.Cancel();
+            _dangNapCombo = true;
+            try
+            {
+                if (textBox_TimKiemTheoTen != null) textBox_TimKiemTheoTen.Text = string.Empty;
+                if (comboBox_TimKiemDonViKhenThuong != null && comboBox_TimKiemDonViKhenThuong.Items.Count > 0) comboBox_TimKiemDonViKhenThuong.SelectedIndex = 0;
+                if (comboBox1_HinhThucKT != null && comboBox1_HinhThucKT.Items.Count > 0) comboBox1_HinhThucKT.SelectedIndex = 0;
+            }
+            finally { _dangNapCombo = false; }
             await LoadDataToGridAsync();
             _ = ShowHanhDongStatusAsync("✔ Đã làm mới bộ lọc!", true);
-        }
-        // Thêm hàm này vào khu vực chứa các sự kiện tìm kiếm
-        private async void comboBox1_HinhThucKT_TextChanged(object? sender, EventArgs e)
-        {
-            await DebouncedSearchAsync();
         }
         private void ResetInput()
         {
@@ -967,26 +908,7 @@ namespace PhanMemThiDua2026
             float currentSize = richTextBox1_NoiDungKhenThuong.Font.Size;
             if (currentSize > 8.0f) { richTextBox1_NoiDungKhenThuong.Font = new Font(richTextBox1_NoiDungKhenThuong.Font.FontFamily, currentSize - 2, richTextBox1_NoiDungKhenThuong.Font.Style); }
         }
-        private async Task LoadComboBoxHinhThucKTAsync(bool forceReload = false)
-        {
-            if (comboBox1_HinhThucKT == null) return;
-            // Đảm bảo cache RAM đã có sẵn
-            await BuildGlobalCacheAsync(forceReload);
-            comboBox1_HinhThucKT.TextChanged -= comboBox1_HinhThucKT_TextChanged;
-            string currentText = comboBox1_HinhThucKT.Text;
-            // Rút trích danh sách Hình thức trực tiếp từ RAM (Cực kỳ nhanh và tự động bỏ trùng)
-            var dsHinhThuc = _globalCache!
-                .Where(x => !string.IsNullOrWhiteSpace(x.HinhThucKhenThuong) && x.HinhThucKhenThuong != "[Lỗi giải mã]")
-                .Select(x => x.HinhThucKhenThuong)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(x => x)
-                .ToArray();
-            comboBox1_HinhThucKT.Items.Clear();
-            comboBox1_HinhThucKT.Items.Add(""); // Thêm 1 dòng rỗng ở đầu để người dùng có thể xóa lọc
-            comboBox1_HinhThucKT.Items.AddRange(dsHinhThuc);
-            comboBox1_HinhThucKT.Text = currentText;
-            comboBox1_HinhThucKT.TextChanged += comboBox1_HinhThucKT_TextChanged;
-        }
+        private Task LoadComboBoxHinhThucKTAsync(bool forceReload = false) => BuildGlobalCacheAsync(forceReload);
         private async void xoaToanBoDuLieu_ToolStripMenuItem_Click(object? sender, EventArgs e)
         {
             try
@@ -1062,9 +984,8 @@ namespace PhanMemThiDua2026
                 }
                 catch { }
                 _ = ShowHanhDongStatusAsync("✔ Đã xóa sạch toàn bộ dữ liệu!", true);
+                await BuildGlobalCacheAsync(forceReload: true);   // đọc lại bảng (đã trống) TRƯỚC khi gắn lưới, kẻo lưới hiện bộ đệm cũ
                 await LoadDataToGridAsync();
-                await LoadComboBoxHinhThucKTAsync(true); // Ép update combobox
-                await LoadComboBoxDonViAsync(true); // Ép update combobox
                 ResetInput();
             }
             catch (Exception ex)

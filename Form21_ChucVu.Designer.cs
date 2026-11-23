@@ -153,7 +153,6 @@
             kryptonButton1_Xoa.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Xoa.TabIndex = 0;
             kryptonButton1_Xoa.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Xoa.Values.Image = (Image)resources.GetObject("kryptonButton1_Xoa.Values.Image");
             kryptonButton1_Xoa.Values.Text = "Xóa";
             kryptonButton1_Xoa.Click += kryptonButton1_Xoa_Click;
             // 
@@ -167,7 +166,6 @@
             kryptonButton1_Sua.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Sua.TabIndex = 1;
             kryptonButton1_Sua.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Sua.Values.Image = (Image)resources.GetObject("kryptonButton1_Sua.Values.Image");
             kryptonButton1_Sua.Values.Text = "Sửa";
             kryptonButton1_Sua.Click += kryptonButton1_Sua_Click;
             // 
@@ -181,7 +179,6 @@
             kryptonButton1_Them.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Them.TabIndex = 2;
             kryptonButton1_Them.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Them.Values.Image = (Image)resources.GetObject("kryptonButton1_Them.Values.Image");
             kryptonButton1_Them.Values.Text = "Thêm chức vụ";
             kryptonButton1_Them.Click += kryptonButton1_Them_Click;
             // 

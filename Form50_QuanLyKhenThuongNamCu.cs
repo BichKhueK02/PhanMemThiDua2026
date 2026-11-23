@@ -58,6 +58,7 @@ namespace PhanMemThiDua2026
         public Form50_QuanLyKhenThuongNamCu()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm50Web.ApDung(this);   // giao diện kiểu web như Form4 - chỉ đổi trình bày (đây là dòng DUY NHẤT thêm vào code gốc)
             this.KeyPreview = true;
             this.VisibleChanged += Form50_VisibleChanged;

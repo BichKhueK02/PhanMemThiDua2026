@@ -472,7 +472,6 @@
             kryptonButton1_Btn_Capnhat.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Btn_Capnhat.TabIndex = 0;
             kryptonButton1_Btn_Capnhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Btn_Capnhat.Values.Image = (Image)resources.GetObject("kryptonButton1_Btn_Capnhat.Values.Image");
             kryptonButton1_Btn_Capnhat.Values.Text = "Cập nhật";
             kryptonButton1_Btn_Capnhat.Click += kryptonButton1_Btn_Capnhat_Click;
             // 

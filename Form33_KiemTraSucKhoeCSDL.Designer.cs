@@ -81,7 +81,6 @@
             // 
             // toolStripStatusLabel1_ThoiGianKhaiThac
             // 
-            toolStripStatusLabel1_ThoiGianKhaiThac.Image = (Image)resources.GetObject("toolStripStatusLabel1_ThoiGianKhaiThac.Image");
             toolStripStatusLabel1_ThoiGianKhaiThac.Name = "toolStripStatusLabel1_ThoiGianKhaiThac";
             toolStripStatusLabel1_ThoiGianKhaiThac.Size = new Size(129, 21);
             toolStripStatusLabel1_ThoiGianKhaiThac.Text = "Thoi gian khai thac";
@@ -159,7 +158,6 @@
             // pictureBox3
             // 
             pictureBox3.Anchor = AnchorStyles.None;
-            pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
             pictureBox3.Location = new Point(2, 7);
             pictureBox3.Margin = new Padding(2, 3, 2, 3);
             pictureBox3.Name = "pictureBox3";
@@ -192,7 +190,6 @@
             kryptonButton1_KiemTraTaiNguyenLoi.StateCommon.Border.Rounding = 4F;
             kryptonButton1_KiemTraTaiNguyenLoi.TabIndex = 30;
             kryptonButton1_KiemTraTaiNguyenLoi.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_KiemTraTaiNguyenLoi.Values.Image = (Image)resources.GetObject("kryptonButton1_KiemTraTaiNguyenLoi.Values.Image");
             kryptonButton1_KiemTraTaiNguyenLoi.Values.Text = "Kiểm tra tài nguyên";
             kryptonButton1_KiemTraTaiNguyenLoi.Click += kryptonButton1_KiemTraTaiNguyenLoi_Click;
             // 
@@ -215,7 +212,6 @@
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.None;
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
             pictureBox2.Location = new Point(2, 7);
             pictureBox2.Margin = new Padding(2, 3, 2, 3);
             pictureBox2.Name = "pictureBox2";
@@ -248,7 +244,6 @@
             kryptonButton1_CapNhat.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CapNhat.TabIndex = 3;
             kryptonButton1_CapNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton1_CapNhat.Values.Image");
             kryptonButton1_CapNhat.Values.Text = "Làm mới";
             kryptonButton1_CapNhat.Click += kryptonButton1_CapNhat_Click;
             // 
@@ -263,7 +258,6 @@
             kryptonButton1_CauhinhCSDL.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CauhinhCSDL.TabIndex = 29;
             kryptonButton1_CauhinhCSDL.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CauhinhCSDL.Values.Image = (Image)resources.GetObject("kryptonButton1_CauhinhCSDL.Values.Image");
             kryptonButton1_CauhinhCSDL.Values.Text = "Cấu hình CSDL";
             kryptonButton1_CauhinhCSDL.Click += kryptonButton1_CauhinhCSDL_Click;
             // 
@@ -305,7 +299,6 @@
             // 
             // lamMoi_ToolStripMenuItem
             // 
-            lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.Size = new Size(215, 26);
             lamMoi_ToolStripMenuItem.Text = "Làm mới trang";
@@ -318,7 +311,6 @@
             // 
             // chayVacuum_ToolStripMenuItem
             // 
-            chayVacuum_ToolStripMenuItem.Image = Properties.Resources.ic_database;
             chayVacuum_ToolStripMenuItem.Name = "chayVacuum_ToolStripMenuItem";
             chayVacuum_ToolStripMenuItem.Size = new Size(215, 26);
             chayVacuum_ToolStripMenuItem.Text = "Chạy Vacuum (thu gọn CSDL đang chọn)";
@@ -331,7 +323,6 @@
             // 
             // ToolStripMenuItem_ChiTietCSDL
             // 
-            ToolStripMenuItem_ChiTietCSDL.Image = Properties.Resources.ic_help;
             ToolStripMenuItem_ChiTietCSDL.Name = "ToolStripMenuItem_ChiTietCSDL";
             ToolStripMenuItem_ChiTietCSDL.Size = new Size(215, 26);
             ToolStripMenuItem_ChiTietCSDL.Text = "Thông tin chi tiết về CSDL";

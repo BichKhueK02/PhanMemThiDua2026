@@ -89,6 +89,7 @@ namespace PhanMemThiDua2026
         public Form15_ThongKeThiDua()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm15Web.ApDung(this);
             _mauChuTrangThai = toolStripStatusLabel1.ForeColor;
             BatDoubleBufferDeQuy(this);   // giảm chớp khi layout/resize các container lồng nhau
@@ -981,23 +982,20 @@ namespace PhanMemThiDua2026
                 int oTT = dt.Columns.IndexOf("TinhTrang"), oGC = dt.Columns.IndexOf("GhiChu");
                 int oTenSearch = dt.Columns.IndexOf(COT_TEN_SEARCH), oTen = dt.Columns.IndexOf("HoVaTen");
                 var ketQua = new List<int>(count);
+                var kep = new KetQuaBoLocKep();
                 for (int i = 0; i < count; i++)
                 {
                     var r = view[i];
-                    if (bl.CoDv)
-                    {
-                        string k = oDvKey >= 0 ? r[oDvKey]?.ToString() ?? "" : ChuanHoaDonViSoSanh(r[oDv]?.ToString());
-                        if (k != bl.DvKey) continue;
-                    }
                     if (bl.CoTT && !string.Equals((r[oTT]?.ToString() ?? "").Trim(), bl.TinhTrang, StringComparison.OrdinalIgnoreCase)) continue;
-                    if (bl.CoGC && !KhopGhiChu(oGC >= 0 ? r[oGC]?.ToString() : "", bl.GCTrong, bl.GCKey)) continue;
                     if (bl.CoTen)
                     {
                         string s = oTenSearch >= 0 ? r[oTenSearch]?.ToString() ?? "" : BoLocDanhSach.ChuanHoaTimKiem(r[oTen]?.ToString());
                         if (!bl.KhopTen(s)) continue;
                     }
-                    ketQua.Add(i);
+                    string k = oDvKey >= 0 ? r[oDvKey]?.ToString() ?? "" : ChuanHoaDonViSoSanh(r[oDv]?.ToString());
+                    if (kep.Xet(bl, k, oGC >= 0 ? r[oGC]?.ToString() : "")) ketQua.Add(i);
                 }
+                CapNhatComboBoLocKep(kep);
                 if (ketQua.Count > 1) ketQua = new List<int>(SapXepChiSo(ketQua, TaoBoLaySXHienTai()));
                 CapNhatLuoiSauLoc(ketQua);
                 DatTrangThai(ketQua.Count, false);
@@ -1035,6 +1033,7 @@ namespace PhanMemThiDua2026
             var bl = LayBoLoc();
             try
             {
+                var kep = new KetQuaBoLocKep();
                 var ketQua = await Task.Run(() =>
                 {
                     var tam = new List<int>(total);
@@ -1043,11 +1042,9 @@ namespace PhanMemThiDua2026
                         string donViKey, tinhTrang, ghiChu, hoTenSearch;
                         if (laTanBinh) { var it = dsTB[i]; donViKey = it.DonViKey; tinhTrang = it.TinhTrang; ghiChu = it.GhiChu; hoTenSearch = it.HoTenSearch; }
                         else { var it = dsCB[i]; donViKey = it.DonViKey; tinhTrang = it.TinhTrang; ghiChu = it.GhiChu; hoTenSearch = it.HoTenSearch; }
-                        if (bl.CoDv && donViKey != bl.DvKey) continue;
                         if (bl.CoTT && !string.Equals(tinhTrang, bl.TinhTrang, StringComparison.OrdinalIgnoreCase)) continue;
-                        if (bl.CoGC && !KhopGhiChu(ghiChu, bl.GCTrong, bl.GCKey)) continue;
                         if (bl.CoTen && !bl.KhopTen(hoTenSearch)) continue;
-                        tam.Add(i);
+                        if (kep.Xet(bl, donViKey, ghiChu)) tam.Add(i);
                     }
                     if (tam.Count <= 1) return tam;
                     Func<int, (string, string, string)> lay = laTanBinh
@@ -1058,6 +1055,7 @@ namespace PhanMemThiDua2026
                 // Trong lúc chờ đã có lần lọc/nạp mới hơn (hoặc form đã đóng) -> bỏ kết quả cũ
                 if (phienLoc != Volatile.Read(ref _locSeq) || IsDisposed || grid.IsDisposed) { NK($"LọcDataMax: bỏ kết quả cũ ({ketQua.Count} dòng)"); return; }
                 NK($"LọcDataMax: {ketQua.Count}/{total} dòng tanBinh={laTanBinh}");
+                CapNhatComboBoLocKep(kep);
                 using var _do = Module_DoHieuNang.Doan("Form15: cập nhật lưới sau lọc DataMax");
                 grid.SuspendLayout();
                 try
@@ -1330,10 +1328,78 @@ namespace PhanMemThiDua2026
         }
         private void LoadComboBoxDonVi()
         {
-            var dsDonVi = Module_DonVi.GetDanhSachDonVi();
-            dsDonVi.Insert(0, Module_HeThong.Tat_Ca); // thêm tùy chọn đầu
-            comboBox_TimKiemDonVi.DataSource = dsDonVi;
-            comboBox_TimKiemDonVi.SelectedIndex = 0;
+            // Nạp bằng Items (không dùng DataSource) để BỘ LỌC KÉP thu hẹp được danh sách; giữ đơn vị đang chọn nếu còn
+            var dsDonVi = Module_DonVi.GetDanhSachDonVi().Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+            _dsDonViLoc = dsDonVi;
+            _khoaDonViLoc = dsDonVi.Select(ChuanHoaDonViSoSanh).ToArray();
+            var cb = comboBox_TimKiemDonVi;
+            string dangChon = cb.SelectedIndex > 0 ? cb.Text : "";
+            cb.BeginUpdate();
+            try
+            {
+                if (cb.DataSource != null) cb.DataSource = null;
+                cb.Items.Clear();
+                cb.Items.Add(Module_HeThong.Tat_Ca);
+                foreach (var dv in dsDonVi) cb.Items.Add(dv);
+                int vt = dangChon.Length > 0 ? dsDonVi.FindIndex(x => string.Equals(x, dangChon, StringComparison.OrdinalIgnoreCase)) : -1;
+                cb.SelectedIndex = vt >= 0 ? vt + 1 : 0;
+            }
+            finally { cb.EndUpdate(); }
+        }
+        private List<string> _dsDonViLoc = new();
+        private string[] _khoaDonViLoc = Array.Empty<string>();
+        /// <summary>
+        /// Gom BỘ LỌC KÉP trong lúc lọc (an toàn ở luồng nền: chỉ ghi vào tập của chính nó). Dòng đã qua tên + tình trạng:
+        /// thỏa ghi chú thì góp đơn vị cho combo Đơn vị, thỏa đơn vị thì góp ghi chú cho combo Ghi chú.
+        /// </summary>
+        private sealed class KetQuaBoLocKep
+        {
+            public readonly HashSet<string> DonViKey = new(StringComparer.Ordinal);
+            public readonly HashSet<string> GhiChu = new(StringComparer.OrdinalIgnoreCase);
+            public bool CoGhiChuTrong;
+            /// <summary>Trả về true nếu dòng thỏa cả đơn vị lẫn ghi chú (nằm trong kết quả lọc).</summary>
+            public bool Xet(BoLoc bl, string donViKey, string? ghiChu)
+            {
+                bool okDv = !bl.CoDv || donViKey == bl.DvKey;
+                bool okGc = !bl.CoGC || KhopGhiChu(ghiChu, bl.GCTrong, bl.GCKey);
+                if (okGc && !string.IsNullOrEmpty(donViKey)) DonViKey.Add(donViKey);
+                if (okDv)
+                {
+                    string n = ChuanHoaGhiChu(ghiChu);
+                    if (n.Length == 0) CoGhiChuTrong = true; else GhiChu.Add(n);
+                }
+                return okDv && okGc;
+            }
+        }
+        /// <summary>
+        /// Combo Đơn vị chỉ còn đơn vị có người thỏa tên + tình trạng + ghi chú; combo Ghi chú chỉ còn ghi chú có trong đơn vị
+        /// (và tên, tình trạng) đang chọn. Giữ giá trị đang chọn, danh sách không đổi thì không đụng tới combo.
+        /// </summary>
+        private void CapNhatComboBoLocKep(KetQuaBoLocKep kep)
+        {
+            if (IsDisposed) return;
+            _tamHoanLoc++;
+            try
+            {
+                var cb = comboBox_TimKiemDonVi;
+                if (cb != null && !cb.IsDisposed && cb.DataSource == null && _dsDonViLoc.Count == _khoaDonViLoc.Length)
+                {
+                    var ds = new List<string>(_dsDonViLoc.Count);
+                    for (int i = 0; i < _dsDonViLoc.Count; i++)
+                        if (kep.DonViKey.Contains(_khoaDonViLoc[i])) ds.Add(_dsDonViLoc[i]);
+                    Module_BoLocKhenThuong.NapLaiCombo(cb, ds, Module_HeThong.Tat_Ca);
+                }
+                var cg = comboBox1_GhiChu;
+                if (cg != null && !cg.IsDisposed && cg.Items.Count > 0)
+                {
+                    var ds = new List<string>(kep.GhiChu.Count + 1);
+                    if (kep.CoGhiChuTrong) ds.Add(GHICHU_TRONG);
+                    ds.AddRange(Module_BoLocKhenThuong.SapABC(kep.GhiChu));
+                    Module_BoLocKhenThuong.NapLaiCombo(cg, ds, Module_HeThong.Tat_Ca);
+                }
+            }
+            catch (Exception ex) { Debug.WriteLine("[Form15.BoLocKep] " + ex.Message); }
+            finally { _tamHoanLoc--; }
         }
         private void KryptonDataGridView1_RowPostPaint(object? sender, DataGridViewRowPostPaintEventArgs e)
         {

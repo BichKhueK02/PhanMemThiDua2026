@@ -31,6 +31,7 @@ namespace PhanMemThiDua2026
         public Form24_XacMinhAdmin()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             SetupFormProperties();
             RegisterEvents();
             InitToolTips();

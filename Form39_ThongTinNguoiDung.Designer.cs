@@ -76,7 +76,6 @@ namespace PhanMemThiDua2026
             // pictureBox2_AnhDaiDienAdmin
             // 
             pictureBox2_AnhDaiDienAdmin.BackColor = Color.Transparent;
-            pictureBox2_AnhDaiDienAdmin.Image = (Image)resources.GetObject("pictureBox2_AnhDaiDienAdmin.Image");
             pictureBox2_AnhDaiDienAdmin.Location = new Point(0, 4);
             pictureBox2_AnhDaiDienAdmin.Name = "pictureBox2_AnhDaiDienAdmin";
             pictureBox2_AnhDaiDienAdmin.Size = new Size(64, 64);
@@ -238,7 +237,6 @@ namespace PhanMemThiDua2026
             kryptonButton1_DongFrom.StateTracking.Border.Color2 = Color.FromArgb(67, 56, 202);
             kryptonButton1_DongFrom.TabIndex = 0;
             kryptonButton1_DongFrom.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_DongFrom.Values.Image = (Image)resources.GetObject("kryptonButton1_DongFrom.Values.Image");
             kryptonButton1_DongFrom.Values.Text = "Đóng";
             kryptonButton1_DongFrom.Click += kryptonButton1_DongFrom_Click;
             // 

@@ -33,6 +33,7 @@ namespace PhanMemThiDua2026
         public Form41_TyLeBCHD()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm41Web.ApDung(this);
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;

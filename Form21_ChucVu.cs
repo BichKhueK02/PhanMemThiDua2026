@@ -14,6 +14,7 @@ namespace PhanMemThiDua2026
         public Form21_ChucVu()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm21Web.ApDung(this);   // Form21: Module_GiaoDienForm21Web.ApDung(this);
             // Ẩn icon trên Taskbar
             this.ShowInTaskbar = false;

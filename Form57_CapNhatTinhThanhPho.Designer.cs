@@ -159,7 +159,6 @@
             kryptonButton1_XuatData.StateCommon.Border.Rounding = 4F;
             kryptonButton1_XuatData.TabIndex = 4;
             kryptonButton1_XuatData.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_XuatData.Values.Image = (Image)resources.GetObject("kryptonButton1_XuatData.Values.Image");
             kryptonButton1_XuatData.Values.Text = "Xuất dữ liệu";
             kryptonButton1_XuatData.Click += kryptonButton1_XuatData_Click;
             // 
@@ -173,7 +172,6 @@
             kryptonButton1_NhapData.StateCommon.Border.Rounding = 4F;
             kryptonButton1_NhapData.TabIndex = 3;
             kryptonButton1_NhapData.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_NhapData.Values.Image = (Image)resources.GetObject("kryptonButton1_NhapData.Values.Image");
             kryptonButton1_NhapData.Values.Text = "Nhập dữ liệu";
             kryptonButton1_NhapData.Click += kryptonButton1_NhapData_Click;
             // 
@@ -187,7 +185,6 @@
             kryptonButton1_Them.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Them.TabIndex = 2;
             kryptonButton1_Them.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Them.Values.Image = (Image)resources.GetObject("kryptonButton1_Them.Values.Image");
             kryptonButton1_Them.Values.Text = "Thêm đơn vị";
             kryptonButton1_Them.Click += kryptonButton1_Them_Click;
             // 
@@ -201,7 +198,6 @@
             kryptonButton1_Sua.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Sua.TabIndex = 1;
             kryptonButton1_Sua.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Sua.Values.Image = (Image)resources.GetObject("kryptonButton1_Sua.Values.Image");
             kryptonButton1_Sua.Values.Text = "Sửa";
             kryptonButton1_Sua.Click += kryptonButton1_Sua_Click;
             // 
@@ -215,7 +211,6 @@
             kryptonButton1_Xoa.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Xoa.TabIndex = 0;
             kryptonButton1_Xoa.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Xoa.Values.Image = (Image)resources.GetObject("kryptonButton1_Xoa.Values.Image");
             kryptonButton1_Xoa.Values.Text = "Xóa";
             kryptonButton1_Xoa.Click += kryptonButton1_Xoa_Click;
             // 

@@ -70,6 +70,7 @@ namespace PhanMemThiDua2026
         {
             var swKhoiTao = Stopwatch.StartNew();
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             _taskLogo ??= Task.Run(TaoLogoThuNho);   // decode logo 549x455 ở luồng nền, không chặn constructor
             BatDoubleBufferForm60();
             StartPosition = FormStartPosition.CenterScreen;
@@ -642,6 +643,7 @@ namespace PhanMemThiDua2026
             using var cmd = new SqliteCommand("SELECT * FROM DanhSach_Nhap ORDER BY STT ASC;", conn);
             using var reader = cmd.ExecuteReader();
             dt.Load(reader);
+            Module_BoLocKhenThuong.DamBaoCotTimKiem(dt, "HoVaTen", "SoHieu");   // cột ẩn tìm kiếm không dấu (dựng ở luồng nền)
             return dt;
         }
         // Khai báo cột 1 lần duy nhất (AutoGenerateColumns = false)
@@ -669,6 +671,9 @@ namespace PhanMemThiDua2026
             var dgv = kryptonDataGridView1;
             if (dgv == null || dgv.IsDisposed) return;
             DinhDangDataGridViewHienDai(); // chỉ chạy lần đầu
+            // Bảo đảm cột ẩn tìm kiếm không dấu TRƯỚC khi gắn lưới (bảng dựng từ luồng khác chưa có thì dựng ở đây)
+            if (!dt.Columns.Contains(Module_BoLocKhenThuong.COT_TIM_KIEM))
+                Module_BoLocKhenThuong.DamBaoCotTimKiem(dt, "HoVaTen", "SoHieu");
             _dtGoc = dt;
             try { dt.DefaultView.Sort = SapXepMacDinh; }
             catch (Exception ex) { Debug.WriteLine("[SORT_ERR] " + ex.Message); }
@@ -708,9 +713,11 @@ namespace PhanMemThiDua2026
             comboBox_TimKiemDonVi.SelectedIndexChanged -= ThucHienLocKep;
             comboBox_TimKiemDonVi.SelectedIndexChanged += ThucHienLocKep;
         }
+        private IReadOnlyList<string> _thuTuDonViLoc = Array.Empty<string>();   // thứ tự gốc của combo Đơn vị lọc
+        private bool _dangDatLaiLoc;   // đang đặt lại / nạp combo lọc bằng code -> không bắn lọc lẻ tẻ
         private void KhoiDongLocTre(object? sender, EventArgs e)
         {
-            if (_timerLoc == null) return;
+            if (_timerLoc == null || _dangDatLaiLoc) return;
             _timerLoc.Stop();
             _timerLoc.Start();
         }
@@ -722,7 +729,7 @@ namespace PhanMemThiDua2026
             TextRenderer.DrawText(e.Graphics, (e.RowIndex + 1).ToString(), LayFontStt(), headerBounds, SystemColors.ControlText,
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix);
         }
-        private void ThucHienLocKep(object? sender, EventArgs? e) => ApDungBoLoc();
+        private void ThucHienLocKep(object? sender, EventArgs? e) { if (!_dangDatLaiLoc) ApDungBoLoc(); }
         /// <summary>Lọc kết hợp Tên/Số hiệu (không phân biệt hoa thường) và Đơn vị bằng RowFilter của DataView.</summary>
         private void ApDungBoLoc()
         {
@@ -731,16 +738,39 @@ namespace PhanMemThiDua2026
             if (dt == null) return;
             string tuKhoa = textBox_TimKiemTheoTen.Text.Trim();
             if (tuKhoa == "Nhập tìm kiếm...") tuKhoa = string.Empty;
-            string donViDuocChon = comboBox_TimKiemDonVi.SelectedItem?.ToString() ?? "Tất cả";
+            string donViDuocChon = comboBox_TimKiemDonVi.SelectedIndex > 0 ? comboBox_TimKiemDonVi.SelectedItem?.ToString() ?? "" : "";
+            if (donViDuocChon == "Tất cả") donViDuocChon = "";
             var dieuKien = new List<string>(2);
-            if (tuKhoa.Length > 0)
+            bool coCotTim = dt.Columns.Contains(Module_BoLocKhenThuong.COT_TIM_KIEM);
+            if (coCotTim)
+            {
+                // Họ tên / số hiệu KHÔNG phân biệt dấu, hoa/thường; nhiều từ thì từ nào cũng phải có
+                string dk = Module_BoLocKhenThuong.DieuKienTimKiem(tuKhoa);
+                if (dk.Length > 0) dieuKien.Add(dk);
+            }
+            else if (tuKhoa.Length > 0)
             {
                 string an = EscapeLikeRowFilter(tuKhoa.Replace("'", "''"));
                 dieuKien.Add($"(HoVaTen LIKE '%{an}%' OR SoHieu LIKE '%{an}%')");
             }
-            if (donViDuocChon != "Tất cả" && donViDuocChon.Length > 0)
+            if (donViDuocChon.Length > 0)
                 dieuKien.Add($"DonVi = '{donViDuocChon.Replace("'", "''")}'");
             string filter = string.Join(" AND ", dieuKien);
+            // BỘ LỌC KÉP: combo Đơn vị chỉ còn đơn vị có người khớp ô tìm kiếm (giữ thứ tự gốc + giá trị đang chọn)
+            if (coCotTim)
+            {
+                string[] tu = Module_BoLocKhenThuong.TachTuKhoa(tuKhoa);
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donViDuocChon, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"));
+                Module_BoLocKhenThuong.LocKep(Module_BoLocKhenThuong.DongConSong(dt),
+                    tu.Length == 0 ? null : r => Module_BoLocKhenThuong.KhopCotTimKiem(r, tu), tcDv);
+                _dangDatLaiLoc = true;
+                try
+                {
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_TimKiemDonVi,
+                        Module_BoLocKhenThuong.SapTheoThuTuChuan(tcDv.Con, _thuTuDonViLoc), "Tất cả");
+                }
+                finally { _dangDatLaiLoc = false; }
+            }
             var view = dt.DefaultView;
             try
             {
@@ -767,8 +797,14 @@ namespace PhanMemThiDua2026
         }
         private void kryptonButton_LamMoiCacOTimKiem_Click(object sender, EventArgs e)
         {
-            textBox_TimKiemTheoTen.Text = string.Empty;
-            if (comboBox_TimKiemDonVi.Items.Count > 0) comboBox_TimKiemDonVi.SelectedIndex = 0; // "Tất cả"
+            _timerLoc?.Stop();
+            _dangDatLaiLoc = true;   // đặt lại 2 ô mà không bắn lọc lẻ tẻ (bản cũ lọc 3 lần: theo ô tên, combo, rồi lần cuối)
+            try
+            {
+                textBox_TimKiemTheoTen.Text = string.Empty;
+                if (comboBox_TimKiemDonVi.Items.Count > 0) comboBox_TimKiemDonVi.SelectedIndex = 0; // "Tất cả"
+            }
+            finally { _dangDatLaiLoc = false; }
             ApDungBoLoc();
         }
         /// <summary>Làm mới: nạp lại bảng nhập từ CSDL (sau mọi lệnh ghi đang chờ), khôi phục ô tìm kiếm.</summary>
@@ -803,6 +839,7 @@ namespace PhanMemThiDua2026
         private void DoDuLieuLenCacCombo(GoiDuLieuKhoiTao goi)
         {
             string[] dsDonVi = goi.DonVi;
+            _thuTuDonViLoc = dsDonVi;
             NapCombo(comboBox_TimKiemDonVi, "Tất cả", dsDonVi, boTrung: false);
             CauHinhAnToanComboBox(comboBox_ChucVu);
             NapCombo(comboBox_ChucVu, "", goi.ChucVu, boTrung: true);

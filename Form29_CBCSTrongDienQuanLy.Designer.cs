@@ -75,7 +75,6 @@
             // 
             // toolStripStatusLabel4
             // 
-            toolStripStatusLabel4.Image = (Image)resources.GetObject("toolStripStatusLabel4.Image");
             toolStripStatusLabel4.Name = "toolStripStatusLabel4";
             toolStripStatusLabel4.Size = new Size(139, 21);
             toolStripStatusLabel4.Text = "toolStripStatusLabel4";
@@ -128,7 +127,6 @@
             kryptonButton1_Dong.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
             kryptonButton1_Dong.TabIndex = 27;
             kryptonButton1_Dong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Dong.Values.Image = (Image)resources.GetObject("kryptonButton1_Dong.Values.Image");
             kryptonButton1_Dong.Values.Text = "Đóng";
             kryptonButton1_Dong.Click += kryptonButton1_Dong_Click;
             // 
@@ -191,14 +189,12 @@
             kryptonButton1_TimKiemThongTinCBCSQuanLy.StateCommon.Border.Rounding = 4F;
             kryptonButton1_TimKiemThongTinCBCSQuanLy.TabIndex = 33;
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_TimKiemThongTinCBCSQuanLy.Values.Image = (Image)resources.GetObject("kryptonButton1_TimKiemThongTinCBCSQuanLy.Values.Image");
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Values.Text = "Tìm kiếm";
             kryptonButton1_TimKiemThongTinCBCSQuanLy.Click += kryptonButton1_TimKiemThongTinCBCSQuanLy_Click;
             // 
             // pictureBox3
             // 
             pictureBox3.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
             pictureBox3.Location = new Point(2, 6);
             pictureBox3.Margin = new Padding(2, 3, 2, 3);
             pictureBox3.Name = "pictureBox3";
@@ -269,7 +265,6 @@
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 9;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
             kryptonButton_LamMoiCacOTimKiem.Click += kryptonButton_LamMoiCacOTimKiem_Click;
             // 
@@ -370,7 +365,6 @@
             // 
             // lamMoi_ToolStripMenuItem
             // 
-            lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
             lamMoi_ToolStripMenuItem.Size = new Size(182, 28);
@@ -384,7 +378,6 @@
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
-            xoaTimKiem_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaTimKiem_ToolStripMenuItem.Image");
             xoaTimKiem_ToolStripMenuItem.Name = "xoaTimKiem_ToolStripMenuItem";
             xoaTimKiem_ToolStripMenuItem.ShortcutKeys = Keys.F4;
             xoaTimKiem_ToolStripMenuItem.Size = new Size(182, 28);
@@ -393,7 +386,6 @@
             // 
             // xuatDuLieu_ToolStripMenuItem
             // 
-            xuatDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieu_ToolStripMenuItem.Image");
             xuatDuLieu_ToolStripMenuItem.Name = "xuatDuLieu_ToolStripMenuItem";
             xuatDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
             xuatDuLieu_ToolStripMenuItem.Size = new Size(182, 28);
@@ -402,7 +394,6 @@
             // 
             // quayLaiTrangXuLyData_ToolStripMenuItem
             // 
-            quayLaiTrangXuLyData_ToolStripMenuItem.Image = (Image)resources.GetObject("quayLaiTrangXuLyData_ToolStripMenuItem.Image");
             quayLaiTrangXuLyData_ToolStripMenuItem.Name = "quayLaiTrangXuLyData_ToolStripMenuItem";
             quayLaiTrangXuLyData_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
             quayLaiTrangXuLyData_ToolStripMenuItem.Size = new Size(182, 28);

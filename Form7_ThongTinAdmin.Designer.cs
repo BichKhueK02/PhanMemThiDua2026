@@ -362,7 +362,6 @@
             kryptonButton1_Dong.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Dong.TabIndex = 27;
             kryptonButton1_Dong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Dong.Values.Image = (Image)resources.GetObject("kryptonButton1_Dong.Values.Image");
             kryptonButton1_Dong.Values.Text = "Đóng";
             kryptonButton1_Dong.Click += kryptonButton1_Dong_Click;
             // 
@@ -441,7 +440,6 @@
             // 
             PictureBox1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             PictureBox1.BackColor = SystemColors.Control;
-            PictureBox1.Image = (Image)resources.GetObject("PictureBox1.Image");
             PictureBox1.Location = new Point(2, 185);
             PictureBox1.Margin = new Padding(2);
             PictureBox1.Name = "PictureBox1";
@@ -605,7 +603,6 @@
             kryptonButton1_DongFrom.StateCommon.Border.Rounding = 4F;
             kryptonButton1_DongFrom.TabIndex = 28;
             kryptonButton1_DongFrom.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_DongFrom.Values.Image = (Image)resources.GetObject("kryptonButton1_DongFrom.Values.Image");
             kryptonButton1_DongFrom.Values.Text = "Đóng";
             kryptonButton1_DongFrom.Click += kryptonButton1_DongFrom_Click;
             // 
@@ -670,7 +667,6 @@
             // 
             pictureBox2.Anchor = AnchorStyles.None;
             pictureBox2.BackColor = SystemColors.Control;
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
             pictureBox2.Location = new Point(34, 32);
             pictureBox2.Margin = new Padding(2);
             pictureBox2.Name = "pictureBox2";
@@ -793,7 +789,6 @@
             // 
             pictureBox4.Anchor = AnchorStyles.None;
             pictureBox4.BackColor = SystemColors.Control;
-            pictureBox4.Image = (Image)resources.GetObject("pictureBox4.Image");
             pictureBox4.Location = new Point(357, 6);
             pictureBox4.Margin = new Padding(2);
             pictureBox4.Name = "pictureBox4";
@@ -836,7 +831,6 @@
             // 
             pictureBox3.Anchor = AnchorStyles.None;
             pictureBox3.BackColor = SystemColors.Control;
-            pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
             pictureBox3.Location = new Point(731, 7);
             pictureBox3.Margin = new Padding(2);
             pictureBox3.Name = "pictureBox3";

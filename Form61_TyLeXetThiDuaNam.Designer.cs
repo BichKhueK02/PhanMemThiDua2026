@@ -208,7 +208,6 @@
             kryptonButton1_LuuVaDongForm.StateTracking.Border.Rounding = 4F;
             kryptonButton1_LuuVaDongForm.TabIndex = 0;
             kryptonButton1_LuuVaDongForm.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_LuuVaDongForm.Values.Image = (Image)resources.GetObject("kryptonButton1_LuuVaDongForm.Values.Image");
             kryptonButton1_LuuVaDongForm.Values.Text = "Đóng";
             kryptonButton1_LuuVaDongForm.Click += kryptonButton1_LuuVaDongForm_Click;
             // 

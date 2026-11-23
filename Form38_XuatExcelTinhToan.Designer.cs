@@ -173,7 +173,6 @@ namespace PhanMemThiDua2026
             kryptonButton_TaoTepExcel.StateCommon.Border.Rounding = 4F;
             kryptonButton_TaoTepExcel.TabIndex = 0;
             kryptonButton_TaoTepExcel.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_TaoTepExcel.Values.Image = (Image)resources.GetObject("kryptonButton_TaoTepExcel.Values.Image");
             kryptonButton_TaoTepExcel.Values.Text = "Tạo tệp";
             kryptonButton_TaoTepExcel.Click += kryptonButton_TaoTepExcel_Click;
             // 
@@ -264,7 +263,6 @@ namespace PhanMemThiDua2026
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.None;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(5, 62);
             pictureBox1.Margin = new Padding(3, 2, 3, 2);
             pictureBox1.Name = "pictureBox1";

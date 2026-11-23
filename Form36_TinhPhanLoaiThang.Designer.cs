@@ -96,7 +96,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(138, 20);
             toolStripStatusLabel1.Text = "toolStripStatusLabel1";
@@ -135,7 +134,6 @@
             // 
             // lamMoi_ToolStripMenuItem
             // 
-            lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
             lamMoi_ToolStripMenuItem.Size = new Size(181, 26);
@@ -149,7 +147,6 @@
             // 
             // xuatDuLieu_ToolStripMenuItem
             // 
-            xuatDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieu_ToolStripMenuItem.Image");
             xuatDuLieu_ToolStripMenuItem.Name = "xuatDuLieu_ToolStripMenuItem";
             xuatDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
             xuatDuLieu_ToolStripMenuItem.Size = new Size(181, 26);
@@ -158,7 +155,6 @@
             // 
             // troVeThongKe_ToolStripMenuItem
             // 
-            troVeThongKe_ToolStripMenuItem.Image = (Image)resources.GetObject("troVeThongKe_ToolStripMenuItem.Image");
             troVeThongKe_ToolStripMenuItem.Name = "troVeThongKe_ToolStripMenuItem";
             troVeThongKe_ToolStripMenuItem.Size = new Size(181, 26);
             troVeThongKe_ToolStripMenuItem.Text = "Trở về Thống kê";
@@ -288,7 +284,6 @@
             kryptonButton1_TinhToan.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
             kryptonButton1_TinhToan.TabIndex = 38;
             kryptonButton1_TinhToan.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_TinhToan.Values.Image = (Image)resources.GetObject("kryptonButton1_TinhToan.Values.Image");
             kryptonButton1_TinhToan.Values.Text = "Tính phân loại";
             kryptonButton1_TinhToan.Click += kryptonButton1_TinhToan_Click;
             // 
@@ -451,7 +446,6 @@
             // pictureBox3
             // 
             pictureBox3.Anchor = AnchorStyles.None;
-            pictureBox3.Image = (Image)resources.GetObject("pictureBox3.Image");
             pictureBox3.Location = new Point(4, 11);
             pictureBox3.Margin = new Padding(2, 3, 2, 3);
             pictureBox3.Name = "pictureBox3";
@@ -484,7 +478,6 @@
             kryptonButton1_Dong.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 9.216F);
             kryptonButton1_Dong.TabIndex = 27;
             kryptonButton1_Dong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Dong.Values.Image = (Image)resources.GetObject("kryptonButton1_Dong.Values.Image");
             kryptonButton1_Dong.Values.Text = "Đóng";
             kryptonButton1_Dong.Click += kryptonButton1_Dong_Click;
             // 
@@ -498,7 +491,6 @@
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 3;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
             kryptonButton_LamMoiCacOTimKiem.Click += kryptonButton_LamMoiCacOTimKiem_Click;
             // 

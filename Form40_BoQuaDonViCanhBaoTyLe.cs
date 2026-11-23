@@ -22,6 +22,7 @@ namespace PhanMemThiDua2026
         public Form40_BoQuaDonViCanhBaoTyLe()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // Cấu hình UI chặn co dãn và căn giữa màn hình ngay từ hàm khởi tạo
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;

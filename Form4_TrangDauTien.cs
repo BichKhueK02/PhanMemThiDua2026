@@ -66,6 +66,7 @@ namespace PhanMemThiDua2026
         public Form4_TrangDauTien()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_HeThong.BocBoTronGiaoDien(listBox1);
             Module_GiaoDienForm4Web.ApDung(this);
             CoDinhThanhTienTrinh();   // gọi SAU ApDung (ApDung đổi padding/font statusStrip)

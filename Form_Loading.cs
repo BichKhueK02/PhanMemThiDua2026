@@ -37,8 +37,10 @@ namespace PhanMemThiDua2026
         private const float MarginX = 28f;        // lề trái/phải chứa bóng
         private const float MarginTop = 22f;      // lề trên
         private const float MarginBottom = 38f;   // lề dưới (bóng đổ xuống nhiều hơn)
-        private const float CardH = 210f;         // chiều cao thẻ
-        private const float CardRadius = 20f;
+        // Kiểu giao diện (Form12 > Tab 2 > mục 10): "Hiện đại" = thẻ ngang phẳng kiểu web; "Cổ điển" = thẻ 3D như cũ
+        private readonly bool _hienDai;
+        private float CardH => _hienDai ? 116f : 210f;          // chiều cao thẻ
+        private float CardRadius => _hienDai ? 14f : 20f;
         private const float RingSize = 80f;
         private const float RingThickness = 8f;
         private float CardW => Width / _s - 2f * MarginX;
@@ -147,6 +149,8 @@ namespace PhanMemThiDua2026
         {
             _message = message ?? string.Empty;
             _s = Math.Max(1f, DeviceDpi / 96f);
+            try { _hienDai = !Module_KieuGiaoDien.LaCoDien(Module_KieuGiaoDien.DangApDung ?? Module_KieuGiaoDien.DocChiDoc()); }
+            catch { _hienDai = true; }
             FormBorderStyle = FormBorderStyle.None;
             StartPosition = FormStartPosition.CenterScreen;
             ShowInTaskbar = false;
@@ -226,7 +230,9 @@ namespace PhanMemThiDua2026
         }
         private void CapNhatKichThuocForm(string text)
         {
-            float cardW = Math.Clamp(DoRongChu(text) + 90f, 280f, 560f);
+            float cardW = _hienDai
+                ? Math.Clamp(DoRongChu(text) + HdChuX + 36f, 360f, 620f)     // vòng quay bên trái + chữ bên phải
+                : Math.Clamp(DoRongChu(text) + 90f, 280f, 560f);
             Size = new Size((int)Math.Round((cardW + 2f * MarginX) * _s),
                             (int)Math.Round((CardH + MarginTop + MarginBottom) * _s));   // OnSizeChanged sẽ đánh dấu dựng lại
         }
@@ -279,6 +285,7 @@ namespace PhanMemThiDua2026
         private void TaoDoiTuongDong()
         {
             DisposeDoiTuongDong();
+            if (_hienDai) { TaoDoiTuongHienDai(); return; }
             float cardW = CardW;
             float th = RingThickness;
             _ringRect = new RectangleF((cardW - RingSize) / 2f, 24f, RingSize, RingSize);
@@ -336,10 +343,12 @@ namespace PhanMemThiDua2026
             _dotBrush?.Dispose(); _dotBrush = null;
             _pctBrush?.Dispose(); _pctBrush = null;
             _pctEmbossBrush?.Dispose(); _pctEmbossBrush = null;
+            if (_hdButSaoChoi != null) { foreach (var p in _hdButSaoChoi) p.Dispose(); _hdButSaoChoi = null; }
         }
         // ====== Lớp nền tĩnh (vẽ 1 lần khi đổi kích thước / đổi thông báo) ======
         private void VeNenTinh()
         {
+            if (_hienDai) { VeNenTinhHienDai(); return; }
             _staticDirty = false;
             _bg?.Dispose();
             _bg = new Bitmap(_pxW, _pxH, PixelFormat.Format32bppPArgb);
@@ -487,9 +496,134 @@ namespace PhanMemThiDua2026
             // Phần động (toạ độ thẻ)
             g.ScaleTransform(_s, _s);
             g.TranslateTransform(MarginX, MarginTop);
-            VeVong(g);
-            VeThanhTienTrinh(g);
+            if (_hienDai) VeDongHienDai(g);
+            else
+            {
+                VeVong(g);
+                VeThanhTienTrinh(g);
+            }
             DayLenManHinh();
+        }
+        // =====================================================================================
+        //  KIỂU "HIỆN ĐẠI": thẻ ngang phẳng kiểu web (vòng quay mảnh bên trái, chữ + thanh tiến trình mảnh bên phải)
+        //  Cùng cơ chế tối ưu: nền tĩnh vẽ 1 lần, mỗi khung chỉ vẽ cung quay + thanh + % (đối tượng GDI+ dựng sẵn).
+        // =====================================================================================
+        private const float HdVongX = 26f, HdVongY = 26f, HdVongCo = 46f, HdVongDay = 4.5f;
+        private const float HdChuX = HdVongX + HdVongCo + 20f;
+        private static readonly Color HdTim = Color.FromArgb(124, 58, 237);
+        private static readonly Color HdXanh = Color.FromArgb(59, 130, 246);
+        private static readonly Color HdChuDam = Color.FromArgb(15, 23, 42);
+        private static readonly Color HdChuPhu = Color.FromArgb(100, 116, 139);
+        private static readonly Font HdFontThongBao = new Font("Segoe UI Semibold", 10.5F, FontStyle.Regular);
+        private static readonly Font HdFontPhu = new Font(Module_HeThong.TenFontHeThong, 8.5F, FontStyle.Regular);
+        private static readonly Font HdFontPhanTram = new Font("Segoe UI Semibold", 9F, FontStyle.Regular);
+        private static readonly StringFormat HdSfTrai = new StringFormat(StringFormatFlags.NoWrap)
+        { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter };
+        private static readonly StringFormat HdSfPhai = new StringFormat(StringFormatFlags.NoWrap)
+        { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Center };
+        private RectangleF _hdPctRect;
+        private const int HdSoDoan = 24;
+        private Pen[]? _hdButSaoChoi;
+        private void TaoDoiTuongHienDai()
+        {
+            float cardW = CardW;
+            _ringRect = new RectangleF(HdVongX, HdVongY, HdVongCo, HdVongCo);
+            float barY = CardH - 30f;
+            _barRect = new RectangleF(HdChuX, barY, cardW - HdChuX - 26f - 44f, 6f);
+            _hdPctRect = new RectangleF(_barRect.Right + 6f, barY - 7f, 38f, 20f);
+            // Vòng quay "sao chổi": HdSoDoan đoạn cung nối nhau, đuôi trong suốt -> đầu đậm, màu chuyển tím -> xanh.
+            // Bút dựng sẵn 1 lần (mỗi khung hình chỉ vẽ, không cấp phát).
+            _hdButSaoChoi = new Pen[HdSoDoan];
+            for (int i = 0; i < HdSoDoan; i++)
+            {
+                float t = (i + 1f) / HdSoDoan;                       // 0 = đuôi, 1 = đầu
+                Color c = Color.FromArgb((int)(255 * t * t),
+                    (int)(HdTim.R + (HdXanh.R - HdTim.R) * t), (int)(HdTim.G + (HdXanh.G - HdTim.G) * t), (int)(HdTim.B + (HdXanh.B - HdTim.B) * t));
+                _hdButSaoChoi[i] = new Pen(c, HdVongDay) { StartCap = LineCap.Flat, EndCap = i == HdSoDoan - 1 ? LineCap.Round : LineCap.Flat };
+            }
+            _pctBrush = new SolidBrush(HdTim);
+            _barBrush = new LinearGradientBrush(new RectangleF(_barRect.X - 1f, _barRect.Y, _barRect.Width + 2f, _barRect.Height),
+                HdTim, HdXanh, LinearGradientMode.Horizontal);
+            _shimmerW = 60f;
+            _shimmerBrush = new LinearGradientBrush(new RectangleF(0f, _barRect.Y, _shimmerW, _barRect.Height),
+                Color.Transparent, Color.Transparent, LinearGradientMode.Horizontal)
+            {
+                InterpolationColors = new ColorBlend
+                {
+                    Positions = new[] { 0f, 0.5f, 1f },
+                    Colors = new[] { Color.FromArgb(0, 255, 255, 255), Color.FromArgb(150, 255, 255, 255), Color.FromArgb(0, 255, 255, 255) }
+                }
+            };
+        }
+        private void VeNenTinhHienDai()
+        {
+            _staticDirty = false;
+            _bg?.Dispose();
+            _bg = new Bitmap(_pxW, _pxH, PixelFormat.Format32bppPArgb);
+            _bg.SetResolution(96f, 96f);
+            using var g = Graphics.FromImage(_bg);
+            g.Clear(Color.Transparent);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+            float cardW = CardW;
+            // Bóng đổ mềm, nhẹ (kiểu web)
+            var card = new RectangleF(MarginX, MarginTop, cardW, CardH);
+            VeBongMem(g, new RectangleF(card.X + 4f, card.Y + 12f, card.Width - 8f, card.Height - 6f), CardRadius, Color.FromArgb(46, 15, 23, 42), 6);
+            VeBongMem(g, new RectangleF(card.X, card.Y + 3f, card.Width, card.Height - 1f), CardRadius, Color.FromArgb(30, 15, 23, 42), 2);
+            g.ResetTransform();
+            g.ScaleTransform(_s, _s);
+            g.TranslateTransform(MarginX, MarginTop);
+            // Thẻ trắng phẳng + viền mảnh
+            var cardRect = new RectangleF(0f, 0f, cardW, CardH);
+            using (var p = RoundRect(cardRect, CardRadius))
+            using (var nen = new SolidBrush(Color.White))
+                g.FillPath(nen, p);
+            using (var p = RoundRect(new RectangleF(0.5f, 0.5f, cardW - 1f, CardH - 1f), CardRadius))
+            using (var vien = new Pen(Color.FromArgb(226, 232, 240), 1f))
+                g.DrawPath(vien, p);
+            // (Không vẽ vòng nền / chấm giữa: vòng quay "sao chổi" vẽ ở phần động, nhìn gọn kiểu web)
+            // Chữ
+            float rongChu = cardW - HdChuX - 26f;
+            using (var b1 = new SolidBrush(HdChuDam))
+                g.DrawString(_message, HdFontThongBao, b1, new RectangleF(HdChuX, 22f, rongChu, 24f), HdSfTrai);
+            using (var b2 = new SolidBrush(HdChuPhu))
+                g.DrawString("Vui lòng đợi trong giây lát…", HdFontPhu, b2, new RectangleF(HdChuX, 46f, rongChu, 18f), HdSfTrai);
+            // Rãnh thanh tiến trình
+            using (var p = RoundRect(_barRect, _barRect.Height / 2f))
+            using (var ranhThanh = new SolidBrush(Color.FromArgb(241, 245, 249)))
+                g.FillPath(ranhThanh, p);
+        }
+        private void VeDongHienDai(Graphics g)
+        {
+            // Vòng quay "sao chổi": cung dài 270°, đuôi mờ dần, đầu tròn đậm, quay đều
+            if (_hdButSaoChoi != null)
+            {
+                const float tongDai = 270f;
+                float moiDoan = tongDai / HdSoDoan;
+                float dau = (_spinAngle * 1.25f) % 360f;            // vị trí đầu sao chổi
+                for (int i = 0; i < HdSoDoan; i++)
+                {
+                    float batDau = dau - tongDai + i * moiDoan;
+                    g.DrawArc(_hdButSaoChoi[i], _ringRect, batDau, moiDoan + 0.6f);   // +0.6°: nối liền, không hở khe
+                }
+            }
+            // Thanh tiến trình mảnh + vệt sáng chạy
+            float h = _barRect.Height;
+            float w = _barRect.Width * Math.Clamp(_displayPercent, 0f, 100f) / 100f;
+            if (w >= h)
+            {
+                var fill = new RectangleF(_barRect.X, _barRect.Y, w, h);
+                using var p = RoundRect(fill, h / 2f);
+                g.FillPath(_barBrush!, p);
+                g.SetClip(p);
+                float x = _barRect.X + (_spinAngle / 360f) * (w + _shimmerW) - _shimmerW;
+                _shimmerBrush!.ResetTransform();
+                _shimmerBrush.TranslateTransform(x, 0f);
+                g.FillRectangle(_shimmerBrush, x, _barRect.Y, _shimmerW, h);
+                g.ResetClip();
+            }
+            g.DrawString(_pctText, HdFontPhanTram, _pctBrush!, _hdPctRect, HdSfPhai);
         }
         private void DayLenManHinh()
         {

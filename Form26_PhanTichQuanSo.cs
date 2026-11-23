@@ -21,6 +21,7 @@ namespace PhanMemThiDua2026
         public Form26_PhanTichQuanSo()
         {
             InitializeComponent();   // Designer đã nối Load + Paint + nút Đóng -> KHÔNG nối lại (bản cũ nối 2 lần)
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             StartPosition = FormStartPosition.CenterScreen;
             MaximizeBox = false;
             FormBorderStyle = FormBorderStyle.FixedDialog;

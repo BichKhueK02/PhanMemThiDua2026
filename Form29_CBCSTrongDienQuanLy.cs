@@ -46,6 +46,7 @@ namespace PhanMemThiDua2026
         public Form29_CBCSTrongDienQuanLy()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // Giao diện kiểu web nằm trọn trong module riêng (không đụng Designer, không đổi tên control/sự kiện)
             Module_GiaoDienForm29Web.ApDung(this);
             StartPosition = FormStartPosition.CenterScreen;
@@ -163,7 +164,8 @@ namespace PhanMemThiDua2026
                     HoVaTen = hoTen,
                     SoHieu = soHieu,
                     // Khóa tìm kiếm viết thường dựng 1 lần: lọc chỉ còn 1 phép Contains/dòng, không phải đổi chữ hoa-thường mỗi lần gõ
-                    KhoaTim = (hoTen + "\u0001" + soHieu).ToLowerInvariant(),
+                    // Họ tên + số hiệu đã BỎ DẤU, chữ thường ("nguyen van" khớp "Nguyễn Văn"); \u0001 chặn khớp vắt ngang 2 trường
+                    KhoaTim = BoLocDanhSach.ChuanHoaTimKiem(hoTen) + "\u0001" + BoLocDanhSach.ChuanHoaTimKiem(soHieu),
                     NamSinh = GiaiMaVaGop(2),
                     QueQuan = GiaiMaVaGop(3),
                     NgayVaoCAND = GiaiMaVaGop(4),
@@ -185,40 +187,38 @@ namespace PhanMemThiDua2026
             string? v = (i >= 0 && i < cb.Items.Count) ? cb.GetItemText(cb.Items[i]) : (cb.Text ?? string.Empty);
             return v?.Trim() ?? string.Empty;
         }
+        private string LayPhanLoaiLoc(CBCSQuanLyModel x) => string.IsNullOrWhiteSpace(x.PhanLoai) ? Module_HeThong.PL_KHONG_PL : x.PhanLoai;
         private void ApplyFilter_Virtual()
         {
             if (IsDisposed || !IsHandleCreated)
                 return;
             try
             {
-                string keyword = textBoxKyToon_TimTen.Text.Trim().ToLowerInvariant();
+                string keyword = textBoxKyToon_TimTen.Text.Trim();
                 string donVi = GiaTriChon(comboBox_TimKiemDonVi);
                 string phanLoai = GiaTriChon(comboBox_XepLoaiThiDua);
                 string ghiChu = GiaTriChon(comboBox1_GhiChu);
-                bool locTen = keyword.Length > 0;
-                bool locDonVi = donVi.Length > 0 && donVi != Module_HeThong.Tat_Ca;
-                bool locPhanLoai = phanLoai.Length > 0 && phanLoai != Module_HeThong.Tat_Ca;
-                bool locKhongPL = locPhanLoai && phanLoai == Module_HeThong.PL_KHONG_PL;
-                bool locGhiChu = ghiChu.Length > 0 && ghiChu != Module_HeThong.Tat_Ca;
+                if (donVi == Module_HeThong.Tat_Ca) donVi = "";
+                if (phanLoai == Module_HeThong.Tat_Ca) phanLoai = "";
+                if (ghiChu == Module_HeThong.Tat_Ca) ghiChu = "";
                 bool cungCombo = donVi == _locDonViCu && phanLoai == _locPhanLoaiCu && ghiChu == _locGhiChuCu;
                 // Điều kiện y hệt lần trước -> kết quả y hệt, không làm gì thêm (vd: gõ xong đợi 300ms rồi bấm Enter / nút Tìm)
                 if (_coKetQuaLoc && cungCombo && keyword == _locTenCu)
                     return;
-                // Combo giữ nguyên + từ khóa mới chứa từ khóa cũ -> kết quả mới chắc chắn nằm trong kết quả cũ: lọc trên tập nhỏ hơn
-                var nguon = (_coKetQuaLoc && cungCombo && keyword.Contains(_locTenCu, StringComparison.Ordinal)) ? _viewData : _dataGoc;
-                var ketQua = new List<CBCSQuanLyModel>(nguon.Count);
+                // Tên/số hiệu KHÔNG phân biệt dấu, hoa/thường; nhiều từ thì từ nào cũng phải có
+                string[] tu = Module_BoLocKhenThuong.TachTuKhoa(keyword);
+                // BỘ LỌC KÉP (1 lượt): mỗi combo chỉ còn giá trị có trong các dòng thỏa mọi bộ lọc khác
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<CBCSQuanLyModel>(donVi, x => x.DonVi);
+                var tcPl = new Module_BoLocKhenThuong.TieuChiKep<CBCSQuanLyModel>(phanLoai, LayPhanLoaiLoc);
+                var tcGc = new Module_BoLocKhenThuong.TieuChiKep<CBCSQuanLyModel>(ghiChu, x => x.GhiChu);
+                var chiSo = Module_BoLocKhenThuong.LocKep(_dataGoc,
+                    tu.Length == 0 ? null : x => Module_BoLocKhenThuong.KhopTuKhoa(x.KhoaTim, tu), tcDv, tcPl, tcGc);
+                var ketQua = new List<CBCSQuanLyModel>(chiSo.Count);
                 var cacDonVi = new HashSet<string>(StringComparer.Ordinal);
                 int loai1 = 0, loai2 = 0, loai3 = 0, loai4 = 0, khongPL = 0;
-                foreach (var x in nguon)
+                foreach (int i in chiSo)
                 {
-                    if (locTen && !x.KhoaTim.Contains(keyword, StringComparison.Ordinal)) continue;
-                    if (locDonVi && x.DonVi != donVi) continue;
-                    if (locPhanLoai)
-                    {
-                        if (locKhongPL) { if (!string.IsNullOrWhiteSpace(x.PhanLoai)) continue; }
-                        else if (x.PhanLoai != phanLoai) continue;
-                    }
-                    if (locGhiChu && x.GhiChu != ghiChu) continue;
+                    var x = _dataGoc[i];
                     ketQua.Add(x);
                     if (!string.IsNullOrWhiteSpace(x.DonVi)) cacDonVi.Add(x.DonVi);
                     switch (NormalizePhanLoai(x.PhanLoai))
@@ -230,10 +230,24 @@ namespace PhanMemThiDua2026
                         default: khongPL++; break;
                     }
                 }
+                Interlocked.Exchange(ref _isUpdatingUI, 1);   // thu hẹp combo không được bắn lọc lại
+                try
+                {
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_TimKiemDonVi, Module_BoLocKhenThuong.SapABC(tcDv.Con), Module_HeThong.Tat_Ca);
+                    bool coKhongPL = tcPl.Con.Remove(Module_HeThong.PL_KHONG_PL);
+                    var dsPl = Module_BoLocKhenThuong.SapABC(tcPl.Con);
+                    if (coKhongPL) dsPl.Add(Module_HeThong.PL_KHONG_PL);
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_XepLoaiThiDua, dsPl, Module_HeThong.Tat_Ca);
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox1_GhiChu, Module_BoLocKhenThuong.SapABC(tcGc.Con), Module_HeThong.Tat_Ca);
+                }
+                finally { Interlocked.Exchange(ref _isUpdatingUI, 0); }
+                bool giongHet = _coKetQuaLoc && _viewData.Count == ketQua.Count && kryptonDataGridView2.RowCount == ketQua.Count;
+                for (int i = 0; giongHet && i < ketQua.Count; i++)
+                    if (!ReferenceEquals(_viewData[i], ketQua[i])) giongHet = false;
                 _viewData = ketQua;
                 _coKetQuaLoc = true;
                 _locTenCu = keyword; _locDonViCu = donVi; _locPhanLoaiCu = phanLoai; _locGhiChuCu = ghiChu;
-                CapNhatLuoi(_viewData.Count);
+                if (!giongHet) CapNhatLuoi(_viewData.Count);   // cùng tập người -> giữ nguyên lưới + vị trí cuộn
                 CapNhatThongKeDonVi(_viewData.Count, cacDonVi.Count);
                 HienThiThongKe(_viewData.Count, loai1, loai2, loai3, loai4, khongPL);
             }

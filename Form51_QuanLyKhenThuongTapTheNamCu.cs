@@ -40,6 +40,7 @@ namespace PhanMemThiDua2026
         public Form51_QuanLyKhenThuongTapTheNamCu()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_HeThong.BocBoTronGiaoDien(richTextBox1_NoiDungKhenThuong);
             Module_GiaoDienForm51Web.ApDung(this);
             // Tệp năm cũ bị xóa / ghi đè ở Form34 / Form50: danh sách năm + lưới ở đây khớp theo

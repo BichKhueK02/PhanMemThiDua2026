@@ -45,6 +45,7 @@ namespace PhanMemThiDua2026
         public Form48_XuatTepPdf()
         {
             InitializeComponent();   // Designer đã đăng ký Load, nút Xuất, nút chọn thư mục, 2 label: KHÔNG đăng ký lại (bản cũ làm Load chạy 2 lần)
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Trình chuyển đổi tệp excel sang *.pdf";
             ShowInTaskbar = false;

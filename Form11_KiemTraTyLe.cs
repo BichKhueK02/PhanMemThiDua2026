@@ -18,6 +18,7 @@ namespace PhanMemThiDua2026
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(cheDo);
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_HeThong.BocBoTronGiaoDien(ListBox2);
             CheDoXet = cheDo;
             ConfigureForm();

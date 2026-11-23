@@ -21,6 +21,7 @@ namespace PhanMemThiDua2026
             this.StartPosition = FormStartPosition.CenterScreen;
             this.ShowInTaskbar = false;
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm23Web.ApDung(this);
             comboBox1_ChonThangCanXuat.SelectedIndexChanged += comboBox1_ChonThangCanXuat_SelectedIndexChanged;
             // Đăng ký sự kiện lắng nghe khi tên đơn vị thay đổi từ Module_HeThong

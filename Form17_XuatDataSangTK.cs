@@ -62,6 +62,7 @@ namespace PhanMemThiDua2026
         public Form17_XuatDataSangTK()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm17Web.ApDung(this); // giao diện kiểu web (Module_GiaoDienForm17Web.cs) - chỉ trình bày
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;

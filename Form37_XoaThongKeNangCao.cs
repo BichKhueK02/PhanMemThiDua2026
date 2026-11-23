@@ -10,6 +10,7 @@ namespace PhanMemThiDua2026
         public Form37_XoaThongKeNangCao(Form15_ThongKeThiDua parent)
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             this._formCha = parent;
             this.MaximizeBox = false; // Mờ nút Phóng to (Maximize) trên thanh tiêu đề
             this.FormBorderStyle = FormBorderStyle.FixedSingle; // Khóa viền, ngăn dùng chuột kéo giãn Form

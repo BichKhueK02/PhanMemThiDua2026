@@ -17,6 +17,7 @@ namespace PhanMemThiDua2026
         public Form30_ChinhSuaDataTanBinh(int id, string donVi)
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -28,6 +29,7 @@ namespace PhanMemThiDua2026
         public Form30_ChinhSuaDataTanBinh(string soHieu, string hoTen, string donVi, bool isViewOnly)
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;

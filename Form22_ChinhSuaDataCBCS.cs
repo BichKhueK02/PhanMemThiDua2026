@@ -25,6 +25,7 @@ namespace PhanMemThiDua2026
             this.StartPosition = FormStartPosition.CenterScreen;
             this.ShowInTaskbar = false;
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // ⭐ Bật DoubleBuffered để Form vẽ mượt hơn
             this.DoubleBuffered = true;
             // ⭐ SỬA LỖI Ở ĐÂY: Kết nối sự kiện Load để Form nhận lệnh in dữ liệu lên Label

@@ -283,7 +283,6 @@
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 3;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
             kryptonButton_LamMoiCacOTimKiem.Click += kryptonButton_LamMoiCacOTimKiem_Click;
             // 
@@ -330,7 +329,6 @@
             kryptonButton1_HuongDanThemDuLieu.StateTracking.Border.Rounding = 4F;
             kryptonButton1_HuongDanThemDuLieu.TabIndex = 3;
             kryptonButton1_HuongDanThemDuLieu.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_HuongDanThemDuLieu.Values.Image = (Image)resources.GetObject("kryptonButton1_HuongDanThemDuLieu.Values.Image");
             kryptonButton1_HuongDanThemDuLieu.Values.Text = "Thêm CBCS";
             kryptonButton1_HuongDanThemDuLieu.Click += kryptonButton1_HuongDanThemDuLieu_Click;
             // 
@@ -345,7 +343,6 @@
             kryptonButton_XoaKetQuaPhanLoai.StateTracking.Border.Rounding = 4F;
             kryptonButton_XoaKetQuaPhanLoai.TabIndex = 1;
             kryptonButton_XoaKetQuaPhanLoai.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XoaKetQuaPhanLoai.Values.Image = (Image)resources.GetObject("kryptonButton_XoaKetQuaPhanLoai.Values.Image");
             kryptonButton_XoaKetQuaPhanLoai.Values.Text = "Đặt lại";
             kryptonButton_XoaKetQuaPhanLoai.Click += kryptonButton_XoaKetQuaPhanLoai_Click;
             // 
@@ -361,7 +358,6 @@
             kryptonButton1_ThiDuaBaNhat.StateTracking.Border.Rounding = 4F;
             kryptonButton1_ThiDuaBaNhat.TabIndex = 2;
             kryptonButton1_ThiDuaBaNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_ThiDuaBaNhat.Values.Image = (Image)resources.GetObject("kryptonButton1_ThiDuaBaNhat.Values.Image");
             kryptonButton1_ThiDuaBaNhat.Values.Text = "Thi đua Ba nhất";
             kryptonButton1_ThiDuaBaNhat.Click += kryptonButton1_ThiDuaBaNhat_Click;
             // 
@@ -376,7 +372,6 @@
             kryptonButton_RefershCSDL.StateTracking.Border.Rounding = 4F;
             kryptonButton_RefershCSDL.TabIndex = 0;
             kryptonButton_RefershCSDL.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_RefershCSDL.Values.Image = (Image)resources.GetObject("kryptonButton_RefershCSDL.Values.Image");
             kryptonButton_RefershCSDL.Values.Text = "Làm mới";
             kryptonButton_RefershCSDL.Click += kryptonButton_RefershCSDL_Click;
             // 
@@ -810,7 +805,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(33, 21);
             toolStripStatusLabel1.Text = "*";
@@ -860,7 +854,6 @@
             // 
             // lamMoiHeThong
             // 
-            lamMoiHeThong.Image = (Image)resources.GetObject("lamMoiHeThong.Image");
             lamMoiHeThong.Name = "lamMoiHeThong";
             lamMoiHeThong.ShortcutKeys = Keys.F5;
             lamMoiHeThong.Size = new Size(280, 28);
@@ -869,7 +862,6 @@
             // 
             // kiemTraKetNoi
             // 
-            kiemTraKetNoi.Image = (Image)resources.GetObject("kiemTraKetNoi.Image");
             kiemTraKetNoi.Name = "kiemTraKetNoi";
             kiemTraKetNoi.ShortcutKeys = Keys.F7;
             kiemTraKetNoi.Size = new Size(280, 28);
@@ -878,7 +870,6 @@
             // 
             // xoaTimKiem
             // 
-            xoaTimKiem.Image = (Image)resources.GetObject("xoaTimKiem.Image");
             xoaTimKiem.Name = "xoaTimKiem";
             xoaTimKiem.ShortcutKeys = Keys.Control | Keys.D;
             xoaTimKiem.Size = new Size(280, 28);
@@ -887,7 +878,6 @@
             // 
             // xoaToanBoDuLieuDSCBCS_ToolStripMenuItem
             // 
-            xoaToanBoDuLieuDSCBCS_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaToanBoDuLieuDSCBCS_ToolStripMenuItem.Image");
             xoaToanBoDuLieuDSCBCS_ToolStripMenuItem.Name = "xoaToanBoDuLieuDSCBCS_ToolStripMenuItem";
             xoaToanBoDuLieuDSCBCS_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.Delete;
             xoaToanBoDuLieuDSCBCS_ToolStripMenuItem.Size = new Size(280, 28);
@@ -901,7 +891,6 @@
             // 
             // nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem
             // 
-            nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem.Image = (Image)resources.GetObject("nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem.Image");
             nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem.Name = "nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem";
             nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem.ShortcutKeys = Keys.F12;
             nhapKetQuaPhanLoaiTuDonVi_ToolStripMenuItem.Size = new Size(280, 28);
@@ -910,7 +899,6 @@
             // 
             // themDuLieuTuFileExce_ToolStripMenuItem
             // 
-            themDuLieuTuFileExce_ToolStripMenuItem.Image = (Image)resources.GetObject("themDuLieuTuFileExce_ToolStripMenuItem.Image");
             themDuLieuTuFileExce_ToolStripMenuItem.Name = "themDuLieuTuFileExce_ToolStripMenuItem";
             themDuLieuTuFileExce_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
             themDuLieuTuFileExce_ToolStripMenuItem.Size = new Size(280, 28);
@@ -924,7 +912,6 @@
             // 
             // xuatDuLieuSangThongKe_ToolStripMenuItem
             // 
-            xuatDuLieuSangThongKe_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieuSangThongKe_ToolStripMenuItem.Image");
             xuatDuLieuSangThongKe_ToolStripMenuItem.Name = "xuatDuLieuSangThongKe_ToolStripMenuItem";
             xuatDuLieuSangThongKe_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.T;
             xuatDuLieuSangThongKe_ToolStripMenuItem.Size = new Size(280, 28);
@@ -933,7 +920,6 @@
             // 
             // xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem
             // 
-            xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Image");
             xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Name = "xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem";
             xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
             xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.Size = new Size(280, 28);
@@ -947,7 +933,6 @@
             // 
             // toolStripMenuItem_PhanTichQuanSo
             // 
-            toolStripMenuItem_PhanTichQuanSo.Image = (Image)resources.GetObject("toolStripMenuItem_PhanTichQuanSo.Image");
             toolStripMenuItem_PhanTichQuanSo.Name = "toolStripMenuItem_PhanTichQuanSo";
             toolStripMenuItem_PhanTichQuanSo.Size = new Size(280, 28);
             toolStripMenuItem_PhanTichQuanSo.Text = "Phân tích quân số";
@@ -955,7 +940,6 @@
             // 
             // phanTichDuLieuTrungTen_ToolStripMenuItem
             // 
-            phanTichDuLieuTrungTen_ToolStripMenuItem.Image = (Image)resources.GetObject("phanTichDuLieuTrungTen_ToolStripMenuItem.Image");
             phanTichDuLieuTrungTen_ToolStripMenuItem.Name = "phanTichDuLieuTrungTen_ToolStripMenuItem";
             phanTichDuLieuTrungTen_ToolStripMenuItem.ShortcutKeys = Keys.F10;
             phanTichDuLieuTrungTen_ToolStripMenuItem.Size = new Size(280, 28);
@@ -969,7 +953,6 @@
             // 
             // cBCSTrongDienQuanLy_ToolStripMenuItem
             // 
-            cBCSTrongDienQuanLy_ToolStripMenuItem.Image = (Image)resources.GetObject("cBCSTrongDienQuanLy_ToolStripMenuItem.Image");
             cBCSTrongDienQuanLy_ToolStripMenuItem.Name = "cBCSTrongDienQuanLy_ToolStripMenuItem";
             cBCSTrongDienQuanLy_ToolStripMenuItem.ShortcutKeys = Keys.F11;
             cBCSTrongDienQuanLy_ToolStripMenuItem.Size = new Size(280, 28);
@@ -978,7 +961,6 @@
             // 
             // ToolStripMenuItem_QuanLyThiDuaBaNhat
             // 
-            ToolStripMenuItem_QuanLyThiDuaBaNhat.Image = (Image)resources.GetObject("ToolStripMenuItem_QuanLyThiDuaBaNhat.Image");
             ToolStripMenuItem_QuanLyThiDuaBaNhat.Name = "ToolStripMenuItem_QuanLyThiDuaBaNhat";
             ToolStripMenuItem_QuanLyThiDuaBaNhat.Size = new Size(280, 28);
             ToolStripMenuItem_QuanLyThiDuaBaNhat.Text = "Quản lý thi đua Ba nhất";

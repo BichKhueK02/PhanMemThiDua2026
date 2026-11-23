@@ -69,6 +69,7 @@ namespace PhanMemThiDua2026
         public Form6_XuLyData()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm6Web.ApDung(this);                  // giao diện kiểu web (module GiaoDienForm6Web.cs) - chỉ trình bày
             BatDoubleBufferDeQuy(this);                    // giảm chớp khi layout/resize các khối lồng nhau
             kryptonDataGridView1.EnableDoubleBuffered(true);   // bật sớm (trước đây chỉ bật trong Load)
@@ -2231,6 +2232,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             try
             {
                 ResetCacOTimKiem();
+                timerLocDuLieu?.Stop();   // xóa ô tên vừa khởi động lượt lọc trễ -> hủy, chỉ lọc 1 lần ở dưới
             }
             catch (Exception ex)
             {
@@ -4850,6 +4852,23 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                 }
             }
         }
+        /// <summary>
+        /// Combo Đơn vị chỉ còn đơn vị có người khớp ô tìm kiếm + xếp loại đang chọn (giữ thứ tự ưu tiên, giữ giá trị đang chọn).
+        /// Danh sách không đổi thì không đụng tới combo.
+        /// </summary>
+        private void CapNhatComboDonViTheoBoLocKep(HashSet<string> conDonVi)
+        {
+            var cb = comboBox_TimKiemDonVi;
+            if (cb == null || cb.IsDisposed || cb.Items.Count == 0) return;   // combo chưa nạp lần đầu (LoadComboBoxDonVi)
+            string[] thuTu = _snap?.UuTien ?? Module_DonVi.LayDanhSachDonViUuTienArray();
+            bool cu = _isUpdatingCombo;
+            _isUpdatingCombo = true;
+            try
+            {
+                Module_BoLocKhenThuong.NapLaiCombo(cb, Module_BoLocKhenThuong.SapTheoThuTuChuan(conDonVi, thuTu), Module_HeThong.Tat_Ca);
+            }
+            finally { _isUpdatingCombo = cu; }
+        }
         // Lõi lọc: đọc điều kiện từ giao diện -> lọc trên mảng chuỗi chuẩn hóa sẵn -> cập nhật số dòng lưới + thống kê.
         private void ApDungBoLoc()
         {
@@ -4898,8 +4917,10 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                 else
                     phanLoaiDb = giaTri;
             }
-            // ---- Lọc (1 vòng for trên mảng chuỗi) ----
-            int[]? moi = boLoc.Loc(tuKhoa, donVi, phanLoaiDb, laKhongPL, new[] { "Không PL", Module_HeThong.PL_KHONG_PL });
+            // ---- Lọc (1 vòng for trên mảng chuỗi) + BỘ LỌC KÉP: gom luôn các đơn vị còn người thỏa tên + phân loại ----
+            var conDonVi = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int[]? moi = boLoc.Loc(tuKhoa, donVi, phanLoaiDb, laKhongPL, new[] { "Không PL", Module_HeThong.PL_KHONG_PL }, conDonVi);
+            CapNhatComboDonViTheoBoLocKep(conDonVi);
             int[]? cu = _hienThi;
             bool doi = !BoLocDanhSach.CungTap(cu, moi, dt.Rows.Count);
             // Dòng đang chọn (nếu có) thuộc nguồn nào trước khi đổi -> sau khi đổi mà vị trí đó trỏ sang người khác thì bỏ chọn

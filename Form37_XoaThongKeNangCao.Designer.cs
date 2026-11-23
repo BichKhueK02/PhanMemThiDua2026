@@ -87,7 +87,6 @@
             btn_XoaDuLieuThongKe.StateCommon.Border.Rounding = 4F;
             btn_XoaDuLieuThongKe.TabIndex = 1;
             btn_XoaDuLieuThongKe.Values.DropDownArrowColor = Color.Empty;
-            btn_XoaDuLieuThongKe.Values.Image = (Image)resources.GetObject("btn_XoaDuLieuThongKe.Values.Image");
             btn_XoaDuLieuThongKe.Values.Text = "OK";
             btn_XoaDuLieuThongKe.Click += btn_XoaDuLieuThongKe_Click;
             // 
@@ -140,7 +139,6 @@
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.None;
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
             pictureBox2.Location = new Point(3, 48);
             pictureBox2.Margin = new Padding(3, 2, 3, 2);
             pictureBox2.Name = "pictureBox2";

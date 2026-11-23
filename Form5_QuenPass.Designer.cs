@@ -19,7 +19,7 @@
         }
         #region Windows Form Designer generated code
         /// <summary>
-        /// Giao diện kiểu "web": trang nền xám xanh nhạt, thẻ trắng bo góc,
+        /// Giao diện kiểu "web": trang nền xám xanh nhạt, thẻ trắng bo góc, ô nhập nền đặc không viền,
         /// bên trái là panel gradient thương hiệu, bên phải là form (nhãn nằm trên ô nhập).
         /// </summary>
         private void InitializeComponent()
@@ -33,19 +33,26 @@
             lblMoTa = new Label();
             lblCauHoi1 = new Label();
             pnlCombo1 = new WebFieldPanel();
-            ComboBox1_CauHoi1 = new ComboBox();
-            TextBox1_TraLoi1 = new Krypton.Toolkit.KryptonTextBox();
+            ComboBox1_CauHoi1 = new WebComboBox();
+            pnlTraLoi1 = new WebFieldPanel();
+            TextBox1_TraLoi1 = new WebTextBox();
             lblCauHoi2 = new Label();
             pnlCombo2 = new WebFieldPanel();
-            ComboBox2_CauHoi2 = new ComboBox();
-            TextBox2_TraLoi2 = new Krypton.Toolkit.KryptonTextBox();
+            ComboBox2_CauHoi2 = new WebComboBox();
+            pnlTraLoi2 = new WebFieldPanel();
+            TextBox2_TraLoi2 = new WebTextBox();
+            tlpNut = new BufferedTableLayoutPanel();
+            Btn_Thoat = new Krypton.Toolkit.KryptonButton();
+         
             Btn_KiemTra = new Krypton.Toolkit.KryptonButton();
             lblKetQua = new Label();
             tlpKetQua = new BufferedTableLayoutPanel();
             lblTaiKhoan = new Label();
             lblMatKhau = new Label();
-            Text_TenTaiKhoan = new Krypton.Toolkit.KryptonTextBox();
-            Text_MatKhauLayLai = new Krypton.Toolkit.KryptonTextBox();
+            pnlTaiKhoan = new WebFieldPanel();
+            Text_TenTaiKhoan = new WebTextBox();
+            pnlMatKhau = new WebFieldPanel();
+            Text_MatKhauLayLai = new WebTextBox();
             pnlHero = new HeroGradientPanel();
             tlpHero = new BufferedTableLayoutPanel();
             pnlBadge = new WebCardPanel();
@@ -62,8 +69,13 @@
             pnlRight.SuspendLayout();
             tlpForm.SuspendLayout();
             pnlCombo1.SuspendLayout();
+            pnlTraLoi1.SuspendLayout();
             pnlCombo2.SuspendLayout();
+            pnlTraLoi2.SuspendLayout();
+            tlpNut.SuspendLayout();
             tlpKetQua.SuspendLayout();
+            pnlTaiKhoan.SuspendLayout();
+            pnlMatKhau.SuspendLayout();
             pnlHero.SuspendLayout();
             tlpHero.SuspendLayout();
             pnlBadge.SuspendLayout();
@@ -78,8 +90,8 @@
             pnlRoot.Dock = DockStyle.Fill;
             pnlRoot.Location = new Point(0, 0);
             pnlRoot.Name = "pnlRoot";
-            pnlRoot.Padding = new Padding(28);
-            pnlRoot.Size = new Size(900, 618);
+            pnlRoot.Padding = new Padding(0);
+            pnlRoot.Size = new Size(900, 642);
             pnlRoot.TabIndex = 0;
             // 
             // pnlCard
@@ -91,7 +103,7 @@
             pnlCard.Dock = DockStyle.Fill;
             pnlCard.Location = new Point(28, 28);
             pnlCard.Name = "pnlCard";
-            pnlCard.Size = new Size(844, 562);
+            pnlCard.Size = new Size(844, 586);
             pnlCard.TabIndex = 0;
             // 
             // pnlRight
@@ -101,7 +113,7 @@
             pnlRight.Dock = DockStyle.Fill;
             pnlRight.Location = new Point(300, 0);
             pnlRight.Name = "pnlRight";
-            pnlRight.Size = new Size(544, 562);
+            pnlRight.Size = new Size(544, 586);
             pnlRight.TabIndex = 0;
             // 
             // tlpForm
@@ -112,11 +124,11 @@
             tlpForm.Controls.Add(lblMoTa, 0, 1);
             tlpForm.Controls.Add(lblCauHoi1, 0, 2);
             tlpForm.Controls.Add(pnlCombo1, 0, 3);
-            tlpForm.Controls.Add(TextBox1_TraLoi1, 0, 4);
+            tlpForm.Controls.Add(pnlTraLoi1, 0, 4);
             tlpForm.Controls.Add(lblCauHoi2, 0, 5);
             tlpForm.Controls.Add(pnlCombo2, 0, 6);
-            tlpForm.Controls.Add(TextBox2_TraLoi2, 0, 7);
-            tlpForm.Controls.Add(Btn_KiemTra, 0, 8);
+            tlpForm.Controls.Add(pnlTraLoi2, 0, 7);
+            tlpForm.Controls.Add(tlpNut, 0, 8);
             tlpForm.Controls.Add(lblKetQua, 0, 9);
             tlpForm.Controls.Add(tlpKetQua, 0, 10);
             tlpForm.Dock = DockStyle.Fill;
@@ -136,7 +148,7 @@
             tlpForm.RowStyles.Add(new RowStyle());
             tlpForm.RowStyles.Add(new RowStyle());
             tlpForm.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tlpForm.Size = new Size(544, 562);
+            tlpForm.Size = new Size(544, 586);
             tlpForm.TabIndex = 0;
             // 
             // lblTieuDe
@@ -183,33 +195,45 @@
             pnlCombo1.Dock = DockStyle.Fill;
             pnlCombo1.Location = new Point(44, 152);
             pnlCombo1.Margin = new Padding(0, 0, 0, 8);
-            pnlCombo1.MinimumSize = new Size(0, 36);
+            pnlCombo1.MinimumSize = new Size(0, 40);
             pnlCombo1.Name = "pnlCombo1";
-            pnlCombo1.Padding = new Padding(10, 0, 4, 0);
-            pnlCombo1.Size = new Size(456, 36);
+            pnlCombo1.Padding = new Padding(10, 0, 6, 0);
+            pnlCombo1.Size = new Size(456, 40);
             pnlCombo1.TabIndex = 0;
             // 
             // ComboBox1_CauHoi1
             // 
-            ComboBox1_CauHoi1.BackColor = Color.White;
+            ComboBox1_CauHoi1.BackColor = Color.FromArgb(241, 245, 249);
             ComboBox1_CauHoi1.FlatStyle = FlatStyle.Flat;
             ComboBox1_CauHoi1.Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
             ComboBox1_CauHoi1.ForeColor = Color.FromArgb(15, 23, 42);
             ComboBox1_CauHoi1.FormattingEnabled = true;
-            ComboBox1_CauHoi1.Location = new Point(10, 4);
+            ComboBox1_CauHoi1.Location = new Point(10, 6);
             ComboBox1_CauHoi1.Name = "ComboBox1_CauHoi1";
-            ComboBox1_CauHoi1.Size = new Size(442, 27);
+            ComboBox1_CauHoi1.Size = new Size(440, 27);
             ComboBox1_CauHoi1.TabIndex = 0;
+            // 
+            // pnlTraLoi1
+            // 
+            pnlTraLoi1.BackColor = Color.White;
+            pnlTraLoi1.Controls.Add(TextBox1_TraLoi1);
+            pnlTraLoi1.Cursor = Cursors.IBeam;
+            pnlTraLoi1.Dock = DockStyle.Fill;
+            pnlTraLoi1.Location = new Point(44, 200);
+            pnlTraLoi1.Margin = new Padding(0);
+            pnlTraLoi1.MinimumSize = new Size(0, 40);
+            pnlTraLoi1.Name = "pnlTraLoi1";
+            pnlTraLoi1.Padding = new Padding(12, 0, 12, 0);
+            pnlTraLoi1.Size = new Size(456, 40);
+            pnlTraLoi1.TabIndex = 1;
             // 
             // TextBox1_TraLoi1
             // 
-            TextBox1_TraLoi1.CueHint.CueHintText = "Nhập câu trả lời của bạn";
-            TextBox1_TraLoi1.Dock = DockStyle.Fill;
-            TextBox1_TraLoi1.Location = new Point(44, 196);
-            TextBox1_TraLoi1.Margin = new Padding(0);
+            TextBox1_TraLoi1.PlaceholderText = "Nhập câu trả lời của bạn";
+            TextBox1_TraLoi1.Location = new Point(12, 8);
             TextBox1_TraLoi1.Name = "TextBox1_TraLoi1";
-            TextBox1_TraLoi1.Size = new Size(456, 23);
-            TextBox1_TraLoi1.TabIndex = 1;
+            TextBox1_TraLoi1.Size = new Size(432, 23);
+            TextBox1_TraLoi1.TabIndex = 0;
             // 
             // lblCauHoi2
             // 
@@ -230,49 +254,87 @@
             pnlCombo2.Dock = DockStyle.Fill;
             pnlCombo2.Location = new Point(44, 254);
             pnlCombo2.Margin = new Padding(0, 0, 0, 8);
-            pnlCombo2.MinimumSize = new Size(0, 36);
+            pnlCombo2.MinimumSize = new Size(0, 40);
             pnlCombo2.Name = "pnlCombo2";
-            pnlCombo2.Padding = new Padding(10, 0, 4, 0);
-            pnlCombo2.Size = new Size(456, 36);
+            pnlCombo2.Padding = new Padding(10, 0, 6, 0);
+            pnlCombo2.Size = new Size(456, 40);
             pnlCombo2.TabIndex = 2;
             // 
             // ComboBox2_CauHoi2
             // 
-            ComboBox2_CauHoi2.BackColor = Color.White;
+            ComboBox2_CauHoi2.BackColor = Color.FromArgb(241, 245, 249);
             ComboBox2_CauHoi2.FlatStyle = FlatStyle.Flat;
             ComboBox2_CauHoi2.Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
             ComboBox2_CauHoi2.ForeColor = Color.FromArgb(15, 23, 42);
             ComboBox2_CauHoi2.FormattingEnabled = true;
-            ComboBox2_CauHoi2.Location = new Point(10, 4);
+            ComboBox2_CauHoi2.Location = new Point(10, 6);
             ComboBox2_CauHoi2.Name = "ComboBox2_CauHoi2";
-            ComboBox2_CauHoi2.Size = new Size(442, 27);
+            ComboBox2_CauHoi2.Size = new Size(440, 27);
             ComboBox2_CauHoi2.TabIndex = 0;
+            // 
+            // pnlTraLoi2
+            // 
+            pnlTraLoi2.BackColor = Color.White;
+            pnlTraLoi2.Controls.Add(TextBox2_TraLoi2);
+            pnlTraLoi2.Cursor = Cursors.IBeam;
+            pnlTraLoi2.Dock = DockStyle.Fill;
+            pnlTraLoi2.Location = new Point(44, 306);
+            pnlTraLoi2.Margin = new Padding(0);
+            pnlTraLoi2.MinimumSize = new Size(0, 40);
+            pnlTraLoi2.Name = "pnlTraLoi2";
+            pnlTraLoi2.Padding = new Padding(12, 0, 12, 0);
+            pnlTraLoi2.Size = new Size(456, 40);
+            pnlTraLoi2.TabIndex = 3;
             // 
             // TextBox2_TraLoi2
             // 
-            TextBox2_TraLoi2.CueHint.CueHintText = "Nhập câu trả lời của bạn";
-            TextBox2_TraLoi2.Dock = DockStyle.Fill;
-            TextBox2_TraLoi2.Location = new Point(44, 298);
-            TextBox2_TraLoi2.Margin = new Padding(0);
+            TextBox2_TraLoi2.PlaceholderText = "Nhập câu trả lời của bạn";
+            TextBox2_TraLoi2.Location = new Point(12, 8);
             TextBox2_TraLoi2.Name = "TextBox2_TraLoi2";
-            TextBox2_TraLoi2.Size = new Size(456, 23);
-            TextBox2_TraLoi2.TabIndex = 3;
-            // 
-            // Btn_KiemTra
-            // 
+            TextBox2_TraLoi2.Size = new Size(432, 23);
+            TextBox2_TraLoi2.TabIndex = 0;
+            //
+            // tlpNut
+            // ===== tlpNut: 2 cột đều nhau =====
+            tlpNut.AutoSize = true;
+            tlpNut.ColumnCount = 2;
+            tlpNut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpNut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tlpNut.Controls.Add(Btn_Thoat, 0, 0);
+            tlpNut.Controls.Add(Btn_KiemTra, 1, 0);
+            tlpNut.Dock = DockStyle.Fill;
+            tlpNut.Location = new Point(44, 368);
+            tlpNut.Margin = new Padding(0, 22, 0, 0);
+            tlpNut.Name = "tlpNut";
+            tlpNut.RowCount = 1;
+            tlpNut.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // ⭐ cho nút cao đầy ô
+            tlpNut.Size = new Size(456, 46);
+            tlpNut.TabIndex = 4;
+
+            // ===== Btn_Thoat =====
+            Btn_Thoat.Cursor = Cursors.Hand;
+            Btn_Thoat.DialogResult = DialogResult.Cancel;
+            Btn_Thoat.Dock = DockStyle.Fill;
+            Btn_Thoat.Margin = new Padding(0, 0, 6, 0);   // ⭐ gap 6px bên phải
+            Btn_Thoat.MinimumSize = new Size(0, 46);
+            Btn_Thoat.Name = "Btn_Thoat";
+            Btn_Thoat.Size = new Size(222, 46);
+            Btn_Thoat.TabIndex = 1;
+            Btn_Thoat.Values.DropDownArrowColor = Color.Empty;
+            Btn_Thoat.Values.Text = "Thoát";
+
+            // ===== Btn_KiemTra =====
             Btn_KiemTra.Cursor = Cursors.Hand;
             Btn_KiemTra.Dock = DockStyle.Fill;
-            Btn_KiemTra.Location = new Point(44, 343);
-            Btn_KiemTra.Margin = new Padding(0, 22, 0, 0);
+            Btn_KiemTra.Margin = new Padding(6, 0, 0, 0); // ⭐ gap 6px bên trái
             Btn_KiemTra.MinimumSize = new Size(0, 46);
             Btn_KiemTra.Name = "Btn_KiemTra";
-            Btn_KiemTra.Size = new Size(456, 46);
-            Btn_KiemTra.TabIndex = 4;
+            Btn_KiemTra.Size = new Size(222, 46);
+            Btn_KiemTra.TabIndex = 0;
             Btn_KiemTra.Values.DropDownArrowColor = Color.Empty;
-            Btn_KiemTra.Values.Text = "Xác minh && lấy lại mật khẩu";
+            Btn_KiemTra.Values.Text = "Xác minh";
             Btn_KiemTra.Click += Btn_KiemTra_Click;
-            // 
-            // lblKetQua
+
             // 
             lblKetQua.AutoSize = true;
             lblKetQua.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
@@ -292,8 +354,8 @@
             tlpKetQua.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tlpKetQua.Controls.Add(lblTaiKhoan, 0, 0);
             tlpKetQua.Controls.Add(lblMatKhau, 1, 0);
-            tlpKetQua.Controls.Add(Text_TenTaiKhoan, 0, 1);
-            tlpKetQua.Controls.Add(Text_MatKhauLayLai, 1, 1);
+            tlpKetQua.Controls.Add(pnlTaiKhoan, 0, 1);
+            tlpKetQua.Controls.Add(pnlMatKhau, 1, 1);
             tlpKetQua.Dock = DockStyle.Fill;
             tlpKetQua.Location = new Point(44, 432);
             tlpKetQua.Margin = new Padding(0);
@@ -301,7 +363,7 @@
             tlpKetQua.RowCount = 2;
             tlpKetQua.RowStyles.Add(new RowStyle());
             tlpKetQua.RowStyles.Add(new RowStyle());
-            tlpKetQua.Size = new Size(456, 44);
+            tlpKetQua.Size = new Size(456, 61);
             tlpKetQua.TabIndex = 5;
             // 
             // lblTaiKhoan
@@ -328,24 +390,46 @@
             lblMatKhau.TabIndex = 1;
             lblMatKhau.Text = "Mật khẩu của bạn";
             // 
+            // pnlTaiKhoan
+            // 
+            pnlTaiKhoan.BackColor = Color.White;
+            pnlTaiKhoan.Controls.Add(Text_TenTaiKhoan);
+            pnlTaiKhoan.Dock = DockStyle.Fill;
+            pnlTaiKhoan.Location = new Point(0, 21);
+            pnlTaiKhoan.Margin = new Padding(0, 0, 6, 0);
+            pnlTaiKhoan.MinimumSize = new Size(0, 40);
+            pnlTaiKhoan.Name = "pnlTaiKhoan";
+            pnlTaiKhoan.Padding = new Padding(12, 0, 12, 0);
+            pnlTaiKhoan.Size = new Size(222, 40);
+            pnlTaiKhoan.TabIndex = 2;
+            // 
             // Text_TenTaiKhoan
             // 
-            Text_TenTaiKhoan.Dock = DockStyle.Fill;
-            Text_TenTaiKhoan.Location = new Point(0, 21);
-            Text_TenTaiKhoan.Margin = new Padding(0, 0, 6, 0);
+            Text_TenTaiKhoan.Location = new Point(12, 8);
             Text_TenTaiKhoan.Name = "Text_TenTaiKhoan";
-            Text_TenTaiKhoan.Size = new Size(222, 23);
-            Text_TenTaiKhoan.TabIndex = 2;
+            Text_TenTaiKhoan.Size = new Size(198, 23);
+            Text_TenTaiKhoan.TabIndex = 0;
             Text_TenTaiKhoan.TabStop = false;
+            // 
+            // pnlMatKhau
+            // 
+            pnlMatKhau.BackColor = Color.White;
+            pnlMatKhau.Controls.Add(Text_MatKhauLayLai);
+            pnlMatKhau.Dock = DockStyle.Fill;
+            pnlMatKhau.Location = new Point(234, 21);
+            pnlMatKhau.Margin = new Padding(6, 0, 0, 0);
+            pnlMatKhau.MinimumSize = new Size(0, 40);
+            pnlMatKhau.Name = "pnlMatKhau";
+            pnlMatKhau.Padding = new Padding(12, 0, 12, 0);
+            pnlMatKhau.Size = new Size(222, 40);
+            pnlMatKhau.TabIndex = 3;
             // 
             // Text_MatKhauLayLai
             // 
-            Text_MatKhauLayLai.Dock = DockStyle.Fill;
-            Text_MatKhauLayLai.Location = new Point(234, 21);
-            Text_MatKhauLayLai.Margin = new Padding(6, 0, 0, 0);
+            Text_MatKhauLayLai.Location = new Point(12, 8);
             Text_MatKhauLayLai.Name = "Text_MatKhauLayLai";
-            Text_MatKhauLayLai.Size = new Size(222, 23);
-            Text_MatKhauLayLai.TabIndex = 3;
+            Text_MatKhauLayLai.Size = new Size(198, 23);
+            Text_MatKhauLayLai.TabIndex = 0;
             Text_MatKhauLayLai.TabStop = false;
             // 
             // pnlHero
@@ -354,7 +438,7 @@
             pnlHero.Dock = DockStyle.Left;
             pnlHero.Location = new Point(0, 0);
             pnlHero.Name = "pnlHero";
-            pnlHero.Size = new Size(300, 562);
+            pnlHero.Size = new Size(300, 586);
             pnlHero.TabIndex = 1;
             // 
             // tlpHero
@@ -375,7 +459,7 @@
             tlpHero.RowStyles.Add(new RowStyle());
             tlpHero.RowStyles.Add(new RowStyle());
             tlpHero.RowStyles.Add(new RowStyle(SizeType.Percent, 55F));
-            tlpHero.Size = new Size(300, 562);
+            tlpHero.Size = new Size(300, 586);
             tlpHero.TabIndex = 0;
             // 
             // pnlBadge
@@ -398,7 +482,6 @@
             PictureBox2.BackColor = Color.White;
             PictureBox2.Cursor = Cursors.Hand;
             PictureBox2.Dock = DockStyle.Fill;
-            PictureBox2.Image = (Image)resources.GetObject("PictureBox2.Image");
             PictureBox2.Location = new Point(22, 22);
             PictureBox2.Name = "PictureBox2";
             PictureBox2.Size = new Size(96, 96);
@@ -468,7 +551,7 @@
             statusStrip1.BackColor = Color.FromArgb(238, 242, 249);
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { label1_PhienBanPhanMem, toolStripStatusLabel1 });
-            statusStrip1.Location = new Point(0, 618);
+            statusStrip1.Location = new Point(0, 642);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(12, 0, 16, 0);
             statusStrip1.Size = new Size(900, 22);
@@ -495,11 +578,12 @@
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
             BackColor = Color.FromArgb(238, 242, 249);
-            ClientSize = new Size(900, 640);
+            CancelButton = Btn_Thoat;
+            ClientSize = new Size(900, 664);
             Controls.Add(pnlRoot);
             Controls.Add(statusStrip1);
             Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
+            FormBorderStyle = FormBorderStyle.None;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "Form5_QuenPass";
@@ -512,9 +596,18 @@
             tlpForm.ResumeLayout(false);
             tlpForm.PerformLayout();
             pnlCombo1.ResumeLayout(false);
+            pnlTraLoi1.ResumeLayout(false);
+            pnlTraLoi1.PerformLayout();
             pnlCombo2.ResumeLayout(false);
+            pnlTraLoi2.ResumeLayout(false);
+            pnlTraLoi2.PerformLayout();
+            tlpNut.ResumeLayout(false);
             tlpKetQua.ResumeLayout(false);
             tlpKetQua.PerformLayout();
+            pnlTaiKhoan.ResumeLayout(false);
+            pnlTaiKhoan.PerformLayout();
+            pnlMatKhau.ResumeLayout(false);
+            pnlMatKhau.PerformLayout();
             pnlHero.ResumeLayout(false);
             tlpHero.ResumeLayout(false);
             tlpHero.PerformLayout();
@@ -536,17 +629,24 @@
         private Label lblCauHoi2;
         private WebFieldPanel pnlCombo1;
         private WebFieldPanel pnlCombo2;
-        internal ComboBox ComboBox1_CauHoi1;
-        internal ComboBox ComboBox2_CauHoi2;
-        private Krypton.Toolkit.KryptonTextBox TextBox1_TraLoi1;
-        private Krypton.Toolkit.KryptonTextBox TextBox2_TraLoi2;
+        private WebFieldPanel pnlTraLoi1;
+        private WebFieldPanel pnlTraLoi2;
+        private WebFieldPanel pnlTaiKhoan;
+        private WebFieldPanel pnlMatKhau;
+        internal WebComboBox ComboBox1_CauHoi1;
+        internal WebComboBox ComboBox2_CauHoi2;
+        private WebTextBox TextBox1_TraLoi1;
+        private WebTextBox TextBox2_TraLoi2;
+        private BufferedTableLayoutPanel tlpNut;
+        internal Krypton.Toolkit.KryptonButton Btn_Thoat;
+     
         internal Krypton.Toolkit.KryptonButton Btn_KiemTra;
         private Label lblKetQua;
         private BufferedTableLayoutPanel tlpKetQua;
         private Label lblTaiKhoan;
         private Label lblMatKhau;
-        private Krypton.Toolkit.KryptonTextBox Text_TenTaiKhoan;
-        private Krypton.Toolkit.KryptonTextBox Text_MatKhauLayLai;
+        private WebTextBox Text_TenTaiKhoan;
+        private WebTextBox Text_MatKhauLayLai;
         private ProgressBar progressBar1;
         private HeroGradientPanel pnlHero;
         private BufferedTableLayoutPanel tlpHero;

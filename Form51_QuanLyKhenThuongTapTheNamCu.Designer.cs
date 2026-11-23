@@ -211,7 +211,6 @@
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.None;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 6);
             pictureBox1.Margin = new Padding(2, 3, 2, 3);
             pictureBox1.Name = "pictureBox1";
@@ -376,7 +375,6 @@
             kryptonButton_LamMoiCacOTimKiem.StateTracking.Border.Rounding = 4F;
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 4;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
             kryptonButton_LamMoiCacOTimKiem.Click += kryptonButton_LamMoiCacOTimKiem_Click;
             // 
@@ -781,7 +779,6 @@
             kryptonButton_ThemKhenThuong.StateTracking.Border.Rounding = 4F;
             kryptonButton_ThemKhenThuong.TabIndex = 0;
             kryptonButton_ThemKhenThuong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_ThemKhenThuong.Values.Image = (Image)resources.GetObject("kryptonButton_ThemKhenThuong.Values.Image");
             kryptonButton_ThemKhenThuong.Values.Text = "Thêm";
             kryptonButton_ThemKhenThuong.Click += kryptonButton_ThemKhenThuong_Click;
             // 
@@ -796,7 +793,6 @@
             kryptonButton_XoaKhenThuong.StateTracking.Border.Rounding = 4F;
             kryptonButton_XoaKhenThuong.TabIndex = 2;
             kryptonButton_XoaKhenThuong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XoaKhenThuong.Values.Image = (Image)resources.GetObject("kryptonButton_XoaKhenThuong.Values.Image");
             kryptonButton_XoaKhenThuong.Values.Text = "Xóa";
             kryptonButton_XoaKhenThuong.Click += kryptonButton_XoaKhenThuong_Click;
             // 
@@ -811,7 +807,6 @@
             kryptonButton_SuaVaLuuKhenThuong.StateTracking.Border.Rounding = 4F;
             kryptonButton_SuaVaLuuKhenThuong.TabIndex = 1;
             kryptonButton_SuaVaLuuKhenThuong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_SuaVaLuuKhenThuong.Values.Image = (Image)resources.GetObject("kryptonButton_SuaVaLuuKhenThuong.Values.Image");
             kryptonButton_SuaVaLuuKhenThuong.Values.Text = "Sửa";
             kryptonButton_SuaVaLuuKhenThuong.Click += kryptonButton_SuaVaLuuKhenThuong_Click;
             // 
@@ -825,7 +820,6 @@
             kryptonButton2_TangCoChuRichText.StateCommon.Border.Rounding = 4F;
             kryptonButton2_TangCoChuRichText.TabIndex = 4;
             kryptonButton2_TangCoChuRichText.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton2_TangCoChuRichText.Values.Image = (Image)resources.GetObject("kryptonButton2_TangCoChuRichText.Values.Image");
             kryptonButton2_TangCoChuRichText.Values.Text = "";
             kryptonButton2_TangCoChuRichText.Click += kryptonButton2_TangCoChuRichText_Click;
             // 
@@ -839,7 +833,6 @@
             kryptonButton2_GiamCoChuRichText.StateCommon.Border.Rounding = 4F;
             kryptonButton2_GiamCoChuRichText.TabIndex = 3;
             kryptonButton2_GiamCoChuRichText.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton2_GiamCoChuRichText.Values.Image = (Image)resources.GetObject("kryptonButton2_GiamCoChuRichText.Values.Image");
             kryptonButton2_GiamCoChuRichText.Values.Text = "";
             kryptonButton2_GiamCoChuRichText.Click += kryptonButton2_GiamCoChuRichText_Click;
             // 
@@ -850,7 +843,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(20, 20);
             // 
@@ -878,7 +870,6 @@
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
-            xoaTimKiem_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaTimKiem_ToolStripMenuItem.Image");
             xoaTimKiem_ToolStripMenuItem.Name = "xoaTimKiem_ToolStripMenuItem";
             xoaTimKiem_ToolStripMenuItem.Size = new Size(209, 26);
             xoaTimKiem_ToolStripMenuItem.Text = "Xóa tìm kiếm";
@@ -891,7 +882,6 @@
             // 
             // xuatDuLieuRaTepExcel_ToolStripMenuItem
             // 
-            xuatDuLieuRaTepExcel_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieuRaTepExcel_ToolStripMenuItem.Image");
             xuatDuLieuRaTepExcel_ToolStripMenuItem.Name = "xuatDuLieuRaTepExcel_ToolStripMenuItem";
             xuatDuLieuRaTepExcel_ToolStripMenuItem.Size = new Size(209, 26);
             xuatDuLieuRaTepExcel_ToolStripMenuItem.Text = "Xuất danh sách thống kê";
@@ -899,7 +889,6 @@
             // 
             // xoaToanBoDuLieu_ToolStripMenuItem
             // 
-            xoaToanBoDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaToanBoDuLieu_ToolStripMenuItem.Image");
             xoaToanBoDuLieu_ToolStripMenuItem.Name = "xoaToanBoDuLieu_ToolStripMenuItem";
             xoaToanBoDuLieu_ToolStripMenuItem.Size = new Size(209, 26);
             xoaToanBoDuLieu_ToolStripMenuItem.Text = "Xóa toàn bộ dữ liệu";

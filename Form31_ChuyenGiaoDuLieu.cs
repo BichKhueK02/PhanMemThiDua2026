@@ -113,6 +113,7 @@ namespace PhanMemThiDua2026
         public Form31_ChuyenGiaoDuLieu()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             KhoiTaoFormCauHinh();
             DangKyChuoiSuKien();
             KhoiTaoToolTips();

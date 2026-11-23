@@ -94,7 +94,6 @@
             kryptonButton_LuuTyLeBCHE09.StateCommon.Border.Rounding = 4F;
             kryptonButton_LuuTyLeBCHE09.TabIndex = 29;
             kryptonButton_LuuTyLeBCHE09.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LuuTyLeBCHE09.Values.Image = (Image)resources.GetObject("kryptonButton_LuuTyLeBCHE09.Values.Image");
             kryptonButton_LuuTyLeBCHE09.Values.Text = "Lưu tỷ lệ";
             kryptonButton_LuuTyLeBCHE09.Click += kryptonButton_LuuTyLeBCHE09_Click;
             // 
@@ -480,7 +479,6 @@
             // toolStripStatusLabel1
             // 
             toolStripStatusLabel1.ForeColor = Color.Black;
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(80, 21);
             toolStripStatusLabel1.Text = "Phiên bản";

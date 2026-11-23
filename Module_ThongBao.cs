@@ -106,6 +106,10 @@ namespace PhanMemThiDua2026
             _listBox.DrawMode = DrawMode.OwnerDrawFixed;
             _listBox.DrawItem -= VeDong;
             _listBox.DrawItem += VeDong;
+            // Kiểu giao diện "Hiện đại": cách vẽ mới (Module_ThongBaoHienDai) + chiều cao dòng theo DPI
+            try { _hienDai = !Module_KieuGiaoDien.LaCoDien(Module_KieuGiaoDien.DangApDung ?? Module_KieuGiaoDien.DocChiDoc()); }
+            catch { _hienDai = false; }
+            _listBox.ItemHeight = ChieuCaoDong();
             // Xóa sạch ở lần load Form đầu tiên
             _listBox.Items.Clear();
             // Kích hoạt việc đọc CSDL ngay từ đầu
@@ -258,7 +262,7 @@ namespace PhanMemThiDua2026
             _listBox.BeginUpdate();
             try
             {
-                _listBox.ItemHeight = 23;
+                _listBox.ItemHeight = ChieuCaoDong();
                 // Xóa các dòng ghim cũ
                 for (int i = _listBox.Items.Count - 1; i >= 0; i--)
                 {
@@ -278,6 +282,8 @@ namespace PhanMemThiDua2026
                 _listBox.EndUpdate(); // AN TOÀN 3: Đảm bảo luôn EndUpdate dù có lỗi xảy ra để không đơ ListBox
             }
         }
+        private static bool _hienDai;
+        private static int ChieuCaoDong() => _hienDai && _listBox != null ? Module_ThongBaoHienDai.ChieuCaoDong(_listBox) : 23;
         private static void VeDong(object? sender, DrawItemEventArgs e)
         {
             if (_listBox == null ||
@@ -285,6 +291,12 @@ namespace PhanMemThiDua2026
                 e.Index < 0 ||
                 e.Index >= _listBox.Items.Count)
             {
+                return;
+            }
+            if (_hienDai)
+            {
+                try { Module_ThongBaoHienDai.VeDong(_listBox, e); }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[ThongBaoHienDai] " + ex.Message); }
                 return;
             }
             bool dangChon = (e.State & DrawItemState.Selected) == DrawItemState.Selected;

@@ -77,6 +77,8 @@
             tableLayoutPanel8 = new TableLayoutPanel();
             comboBox_MauSacMenu = new ComboBox();
             label1 = new Label();
+            comboBox_KieuGiaoDien = new ComboBox();
+            label_KieuGiaoDien = new Label();
             label16 = new Label();
             comboBox_SoLuongDongChoPhepHienThi = new ComboBox();
             label4 = new Label();
@@ -182,7 +184,6 @@
             // pictureBox1
             // 
             pictureBox1.Dock = DockStyle.Fill;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 4);
             pictureBox1.Margin = new Padding(2, 4, 2, 4);
             pictureBox1.Name = "pictureBox1";
@@ -208,7 +209,6 @@
             // 
             quenMatKhauAd_ToolStripMenuItem.Font = new Font("Segoe UI", 12.096F);
             quenMatKhauAd_ToolStripMenuItem.ForeColor = Color.FromArgb(0, 0, 192);
-            quenMatKhauAd_ToolStripMenuItem.Image = (Image)resources.GetObject("quenMatKhauAd_ToolStripMenuItem.Image");
             quenMatKhauAd_ToolStripMenuItem.Name = "quenMatKhauAd_ToolStripMenuItem";
             quenMatKhauAd_ToolStripMenuItem.Size = new Size(162, 68);
             quenMatKhauAd_ToolStripMenuItem.Text = "Quên mật khẩu";
@@ -218,7 +218,6 @@
             // 
             taoTaiKhoan_ToolStripMenuItem.Font = new Font("Segoe UI", 12.096F);
             taoTaiKhoan_ToolStripMenuItem.ForeColor = Color.FromArgb(0, 0, 192);
-            taoTaiKhoan_ToolStripMenuItem.Image = (Image)resources.GetObject("taoTaiKhoan_ToolStripMenuItem.Image");
             taoTaiKhoan_ToolStripMenuItem.Name = "taoTaiKhoan_ToolStripMenuItem";
             taoTaiKhoan_ToolStripMenuItem.Size = new Size(147, 68);
             taoTaiKhoan_ToolStripMenuItem.Text = "Tạo tài khoản";
@@ -228,7 +227,6 @@
             // 
             goCaiDat_ToolStripMenuItem.Font = new Font("Segoe UI", 12.096F);
             goCaiDat_ToolStripMenuItem.ForeColor = Color.Blue;
-            goCaiDat_ToolStripMenuItem.Image = (Image)resources.GetObject("goCaiDat_ToolStripMenuItem.Image");
             goCaiDat_ToolStripMenuItem.Name = "goCaiDat_ToolStripMenuItem";
             goCaiDat_ToolStripMenuItem.Size = new Size(121, 68);
             goCaiDat_ToolStripMenuItem.Text = "Gỡ cài đặt";
@@ -238,7 +236,6 @@
             // 
             chuKySo_ToolStripMenuItem.Font = new Font("Segoe UI", 12.096F);
             chuKySo_ToolStripMenuItem.ForeColor = Color.Blue;
-            chuKySo_ToolStripMenuItem.Image = (Image)resources.GetObject("chuKySo_ToolStripMenuItem.Image");
             chuKySo_ToolStripMenuItem.Name = "chuKySo_ToolStripMenuItem";
             chuKySo_ToolStripMenuItem.Size = new Size(195, 68);
             chuKySo_ToolStripMenuItem.Text = "Thông tin và liên hệ";
@@ -248,7 +245,6 @@
             // 
             thongTin_ToolStripMenuItem.Font = new Font("Segoe UI", 12.096F);
             thongTin_ToolStripMenuItem.ForeColor = Color.Blue;
-            thongTin_ToolStripMenuItem.Image = (Image)resources.GetObject("thongTin_ToolStripMenuItem.Image");
             thongTin_ToolStripMenuItem.Name = "thongTin_ToolStripMenuItem";
             thongTin_ToolStripMenuItem.Size = new Size(120, 68);
             thongTin_ToolStripMenuItem.Text = "Phiên bản";
@@ -405,7 +401,6 @@
             // pictureBox9
             // 
             pictureBox9.Anchor = AnchorStyles.Left;
-            pictureBox9.Image = (Image)resources.GetObject("pictureBox9.Image");
             pictureBox9.Location = new Point(851, 13);
             pictureBox9.Margin = new Padding(2, 4, 2, 4);
             pictureBox9.Name = "pictureBox9";
@@ -733,7 +728,6 @@
             kryptonButton_LuuThongTin.StateCommon.Border.Rounding = 4F;
             kryptonButton_LuuThongTin.TabIndex = 0;
             kryptonButton_LuuThongTin.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LuuThongTin.Values.Image = (Image)resources.GetObject("kryptonButton_LuuThongTin.Values.Image");
             kryptonButton_LuuThongTin.Values.Text = "Lưu thông tin";
             kryptonButton_LuuThongTin.Click += kryptonButton_LuuThongTin_Click;
             // 
@@ -828,7 +822,9 @@
             tableLayoutPanel8.Controls.Add(label4, 0, 3);
             tableLayoutPanel8.Controls.Add(label8, 0, 5);
             tableLayoutPanel8.Controls.Add(comboBox1_ChonSuKienThoat, 1, 3);
-            tableLayoutPanel8.Controls.Add(kryptonButton_LuuCauHinh, 1, 9);
+            tableLayoutPanel8.Controls.Add(comboBox_KieuGiaoDien, 1, 9);
+            tableLayoutPanel8.Controls.Add(label_KieuGiaoDien, 0, 9);
+            tableLayoutPanel8.Controls.Add(kryptonButton_LuuCauHinh, 1, 10);
             tableLayoutPanel8.Controls.Add(label22, 0, 4);
             tableLayoutPanel8.Controls.Add(comboBox1_TuDongXoaNhatKy, 1, 4);
             tableLayoutPanel8.Controls.Add(checkBox1_ChoPhepDupChuotVaoAnhGoiYssaP, 1, 1);
@@ -844,17 +840,18 @@
             tableLayoutPanel8.Location = new Point(2, 22);
             tableLayoutPanel8.Margin = new Padding(2, 4, 2, 4);
             tableLayoutPanel8.Name = "tableLayoutPanel8";
-            tableLayoutPanel8.RowCount = 10;
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 10.0028362F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999799F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.9998F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.9998F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.998802F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999549F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999557F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.99921F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.999102F));
-            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 10.0015488F));
+            tableLayoutPanel8.RowCount = 11;
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
+            tableLayoutPanel8.RowStyles.Add(new RowStyle(SizeType.Percent, 9.090909F));
             tableLayoutPanel8.Size = new Size(667, 413);
             tableLayoutPanel8.TabIndex = 0;
             // 
@@ -863,6 +860,7 @@
             comboBox_MauSacMenu.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox_MauSacMenu.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_MauSacMenu.Font = new Font("Segoe UI", 10.2F);
+            comboBox_MauSacMenu.ForeColor = Color.FromArgb(0, 0, 192);
             comboBox_MauSacMenu.FormattingEnabled = true;
             comboBox_MauSacMenu.Items.AddRange(new object[] { "Mặc định", "Xanh lá", "Xanh dương", "Xám trắng", "Hồng cánh sen", "Tím nhạt" });
             comboBox_MauSacMenu.Location = new Point(419, 335);
@@ -884,6 +882,33 @@
             label1.TabIndex = 35;
             label1.Text = "9. Chọn màu sắc menu hệ thống";
             // 
+            // comboBox_KieuGiaoDien
+            // 
+            comboBox_KieuGiaoDien.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            comboBox_KieuGiaoDien.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox_KieuGiaoDien.Font = new Font("Segoe UI", 10.2F);
+            comboBox_KieuGiaoDien.ForeColor = Color.FromArgb(0, 0, 192);
+            comboBox_KieuGiaoDien.FormattingEnabled = true;
+            comboBox_KieuGiaoDien.Items.AddRange(new object[] { "Hiện đại", "Cổ điển" });
+            comboBox_KieuGiaoDien.Location = new Point(419, 371);
+            comboBox_KieuGiaoDien.Margin = new Padding(2, 4, 2, 4);
+            comboBox_KieuGiaoDien.Name = "comboBox_KieuGiaoDien";
+            comboBox_KieuGiaoDien.Size = new Size(246, 27);
+            comboBox_KieuGiaoDien.TabIndex = 38;
+            // 
+            // label_KieuGiaoDien
+            // 
+            label_KieuGiaoDien.Anchor = AnchorStyles.Right;
+            label_KieuGiaoDien.AutoSize = true;
+            label_KieuGiaoDien.Font = new Font("Segoe UI", 10.8F, FontStyle.Italic);
+            label_KieuGiaoDien.ForeColor = Color.Green;
+            label_KieuGiaoDien.Location = new Point(244, 374);
+            label_KieuGiaoDien.Margin = new Padding(2, 0, 2, 0);
+            label_KieuGiaoDien.Name = "label_KieuGiaoDien";
+            label_KieuGiaoDien.Size = new Size(171, 20);
+            label_KieuGiaoDien.TabIndex = 37;
+            label_KieuGiaoDien.Text = "10. Chọn kiểu giao diện";
+            // 
             // label16
             // 
             label16.Anchor = AnchorStyles.Right;
@@ -902,6 +927,7 @@
             comboBox_SoLuongDongChoPhepHienThi.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox_SoLuongDongChoPhepHienThi.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox_SoLuongDongChoPhepHienThi.Font = new Font("Segoe UI", 10.2F);
+            comboBox_SoLuongDongChoPhepHienThi.ForeColor = Color.FromArgb(0, 0, 192);
             comboBox_SoLuongDongChoPhepHienThi.FormattingEnabled = true;
             comboBox_SoLuongDongChoPhepHienThi.Location = new Point(419, 212);
             comboBox_SoLuongDongChoPhepHienThi.Margin = new Padding(2, 4, 2, 4);
@@ -959,7 +985,6 @@
             kryptonButton_LuuCauHinh.StateCommon.Border.Rounding = 4F;
             kryptonButton_LuuCauHinh.TabIndex = 0;
             kryptonButton_LuuCauHinh.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LuuCauHinh.Values.Image = (Image)resources.GetObject("kryptonButton_LuuCauHinh.Values.Image");
             kryptonButton_LuuCauHinh.Values.Text = "Lưu cấu hình";
             kryptonButton_LuuCauHinh.Click += kryptonButton_LuuCauHinh_Click;
             // 
@@ -1103,6 +1128,7 @@
             comboBox1_ThoiGianThayDoiAnh.Anchor = AnchorStyles.Left | AnchorStyles.Right;
             comboBox1_ThoiGianThayDoiAnh.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1_ThoiGianThayDoiAnh.Font = new Font("Segoe UI", 10.2F);
+            comboBox1_ThoiGianThayDoiAnh.ForeColor = Color.FromArgb(0, 0, 192);
             comboBox1_ThoiGianThayDoiAnh.FormattingEnabled = true;
             comboBox1_ThoiGianThayDoiAnh.Items.AddRange(new object[] { "Mặc định", "15 giây", "30 giây", "1 phút" });
             comboBox1_ThoiGianThayDoiAnh.Location = new Point(419, 294);
@@ -1170,7 +1196,6 @@
             kryptonButton_CapNhatDanhSachChiHuyD.StateCommon.Border.Rounding = 4F;
             kryptonButton_CapNhatDanhSachChiHuyD.TabIndex = 2;
             kryptonButton_CapNhatDanhSachChiHuyD.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_CapNhatDanhSachChiHuyD.Values.Image = (Image)resources.GetObject("kryptonButton_CapNhatDanhSachChiHuyD.Values.Image");
             kryptonButton_CapNhatDanhSachChiHuyD.Values.Text = "Danh sách chỉ huy";
             kryptonButton_CapNhatDanhSachChiHuyD.Click += kryptonButton_CapNhatDanhSachChiHuyD_Click;
             // 
@@ -1184,7 +1209,6 @@
             kryptonButton1_CapNhatChucVu.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CapNhatChucVu.TabIndex = 1;
             kryptonButton1_CapNhatChucVu.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CapNhatChucVu.Values.Image = (Image)resources.GetObject("kryptonButton1_CapNhatChucVu.Values.Image");
             kryptonButton1_CapNhatChucVu.Values.Text = "Cập nhật chức vụ";
             kryptonButton1_CapNhatChucVu.Click += kryptonButton1_CapNhatChucVu_Click;
             // 
@@ -1198,7 +1222,6 @@
             kryptonButton1_CapNhatDanhSachDonVi.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CapNhatDanhSachDonVi.TabIndex = 0;
             kryptonButton1_CapNhatDanhSachDonVi.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CapNhatDanhSachDonVi.Values.Image = (Image)resources.GetObject("kryptonButton1_CapNhatDanhSachDonVi.Values.Image");
             kryptonButton1_CapNhatDanhSachDonVi.Values.Text = "Cập nhật đơn vị";
             kryptonButton1_CapNhatDanhSachDonVi.Click += kryptonButton1_CapNhatDanhSachDonVi_Click;
             // 
@@ -1212,7 +1235,6 @@
             kryptonButton1_Khoiphuc.StateCommon.Border.Rounding = 4F;
             kryptonButton1_Khoiphuc.TabIndex = 8;
             kryptonButton1_Khoiphuc.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_Khoiphuc.Values.Image = (Image)resources.GetObject("kryptonButton1_Khoiphuc.Values.Image");
             kryptonButton1_Khoiphuc.Values.Text = "Khôi phục CSDL";
             kryptonButton1_Khoiphuc.Click += kryptonButton1_Khoiphuc_Click;
             // 
@@ -1226,7 +1248,6 @@
             kryptonButton1_SaoLuu.StateCommon.Border.Rounding = 4F;
             kryptonButton1_SaoLuu.TabIndex = 8;
             kryptonButton1_SaoLuu.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_SaoLuu.Values.Image = (Image)resources.GetObject("kryptonButton1_SaoLuu.Values.Image");
             kryptonButton1_SaoLuu.Values.Text = "Sao lưu CSDL";
             kryptonButton1_SaoLuu.Click += kryptonButton1_SaoLuu_Click;
             // 
@@ -1240,7 +1261,6 @@
             kryptonButton1_CapNhatTinhThanhPho.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CapNhatTinhThanhPho.TabIndex = 54;
             kryptonButton1_CapNhatTinhThanhPho.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CapNhatTinhThanhPho.Values.Image = (Image)resources.GetObject("kryptonButton1_CapNhatTinhThanhPho.Values.Image");
             kryptonButton1_CapNhatTinhThanhPho.Values.Text = "Cập nhật tỉnh thành";
             kryptonButton1_CapNhatTinhThanhPho.Click += kryptonButton1_CapNhatTinhThanhPho_Click;
             // 
@@ -1254,7 +1274,6 @@
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.StateCommon.Border.Rounding = 4F;
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.TabIndex = 49;
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Values.Image = (Image)resources.GetObject("kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Values.Image");
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Values.Text = "Đơn vị đặc biệt";
             kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Click += kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet_Click;
             // 
@@ -1268,7 +1287,6 @@
             kryptonButton1_CaiDatFileExcel.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CaiDatFileExcel.TabIndex = 40;
             kryptonButton1_CaiDatFileExcel.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CaiDatFileExcel.Values.Image = (Image)resources.GetObject("kryptonButton1_CaiDatFileExcel.Values.Image");
             kryptonButton1_CaiDatFileExcel.Values.Text = "Tối ưu tệp nhúng";
             kryptonButton1_CaiDatFileExcel.Click += kryptonButton1_CaiDatFileExcel_Click;
             // 
@@ -1282,7 +1300,6 @@
             kryptonButton2_ChuyenGiaoDuLieu.StateCommon.Border.Rounding = 4F;
             kryptonButton2_ChuyenGiaoDuLieu.TabIndex = 47;
             kryptonButton2_ChuyenGiaoDuLieu.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton2_ChuyenGiaoDuLieu.Values.Image = (Image)resources.GetObject("kryptonButton2_ChuyenGiaoDuLieu.Values.Image");
             kryptonButton2_ChuyenGiaoDuLieu.Values.Text = "Chuyển dữ liệu";
             kryptonButton2_ChuyenGiaoDuLieu.Click += kryptonButton2_ChuyenGiaoDuLieu_Click;
             // 
@@ -1296,7 +1313,6 @@
             kryptonButton1_CaiDatTyLePhanTramBCH.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CaiDatTyLePhanTramBCH.TabIndex = 52;
             kryptonButton1_CaiDatTyLePhanTramBCH.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CaiDatTyLePhanTramBCH.Values.Image = (Image)resources.GetObject("kryptonButton1_CaiDatTyLePhanTramBCH.Values.Image");
             kryptonButton1_CaiDatTyLePhanTramBCH.Values.Text = "Tỷ lệ % BCH";
             kryptonButton1_CaiDatTyLePhanTramBCH.Click += kryptonButton1_CaiDatTyLePhanTramBCH_Click;
             // 
@@ -1310,7 +1326,6 @@
             kryptonButton1_CaiDatTyLePhanTramE29.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CaiDatTyLePhanTramE29.TabIndex = 37;
             kryptonButton1_CaiDatTyLePhanTramE29.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CaiDatTyLePhanTramE29.Values.Image = (Image)resources.GetObject("kryptonButton1_CaiDatTyLePhanTramE29.Values.Image");
             kryptonButton1_CaiDatTyLePhanTramE29.Values.Text = "Tỷ lệ % CBCS";
             kryptonButton1_CaiDatTyLePhanTramE29.Click += kryptonButton1_CaiDatTyLePhanTramE29_Click;
             // 
@@ -1324,7 +1339,6 @@
             kryptonButton_TyLePhanTramBaNhat.StateCommon.Border.Rounding = 4F;
             kryptonButton_TyLePhanTramBaNhat.TabIndex = 53;
             kryptonButton_TyLePhanTramBaNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_TyLePhanTramBaNhat.Values.Image = (Image)resources.GetObject("kryptonButton_TyLePhanTramBaNhat.Values.Image");
             kryptonButton_TyLePhanTramBaNhat.Values.Text = "Tỷ lệ % Ba nhất";
             kryptonButton_TyLePhanTramBaNhat.Click += kryptonButton_TyLePhanTramBaNhat_Click;
             // 
@@ -1338,7 +1352,6 @@
             kryptonButton1_TyLePhanTramXetThiDuaNam.StateCommon.Border.Rounding = 4F;
             kryptonButton1_TyLePhanTramXetThiDuaNam.TabIndex = 55;
             kryptonButton1_TyLePhanTramXetThiDuaNam.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_TyLePhanTramXetThiDuaNam.Values.Image = (Image)resources.GetObject("kryptonButton1_TyLePhanTramXetThiDuaNam.Values.Image");
             kryptonButton1_TyLePhanTramXetThiDuaNam.Values.Text = "Tỷ lệ % xét Năm";
             kryptonButton1_TyLePhanTramXetThiDuaNam.Click += kryptonButton1_TyLePhanTramXetThiDuaNam_Click;
             // 
@@ -1356,7 +1369,6 @@
             // toolStripStatusLabel1
             // 
             toolStripStatusLabel1.ForeColor = Color.Blue;
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(31, 27);
             toolStripStatusLabel1.Text = "*";
@@ -1524,6 +1536,8 @@
         internal Krypton.Toolkit.KryptonButton kryptonButton_CapNhat;
         private ComboBox comboBox_MauSacMenu;
         private Label label1;
+        private ComboBox comboBox_KieuGiaoDien;
+        private Label label_KieuGiaoDien;
         internal Krypton.Toolkit.KryptonButton kryptonButton1_CapNhatTinhThanhPho;
         private TableLayoutPanel tableLayoutPanel2;
         private Krypton.Toolkit.KryptonTextBox kryptonTextBox1_DonViBanHanhToTrinh;

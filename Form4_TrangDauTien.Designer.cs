@@ -149,7 +149,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.RightToLeft = RightToLeft.No;
             toolStripStatusLabel1.Size = new Size(139, 21);
@@ -929,7 +928,6 @@
             kryptonButton1_TomTatThanhTich.StateCommon.Border.Rounding = 4F;
             kryptonButton1_TomTatThanhTich.TabIndex = 4;
             kryptonButton1_TomTatThanhTich.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_TomTatThanhTich.Values.Image = (Image)resources.GetObject("kryptonButton1_TomTatThanhTich.Values.Image");
             kryptonButton1_TomTatThanhTich.Values.Text = "Thành tích";
             kryptonButton1_TomTatThanhTich.Click += kryptonButton1_TomTatThanhTich_Click;
             // 
@@ -944,7 +942,6 @@
             kryptonButton_MayTinh.StateCommon.Border.Rounding = 4F;
             kryptonButton_MayTinh.TabIndex = 3;
             kryptonButton_MayTinh.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_MayTinh.Values.Image = (Image)resources.GetObject("kryptonButton_MayTinh.Values.Image");
             kryptonButton_MayTinh.Values.Text = "Máy tính";
             kryptonButton_MayTinh.Click += kryptonButton_MayTinh_Click;
             // 
@@ -959,7 +956,6 @@
             kryptonButton_KiemTraTLvaQS.StateCommon.Border.Rounding = 4F;
             kryptonButton_KiemTraTLvaQS.TabIndex = 2;
             kryptonButton_KiemTraTLvaQS.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_KiemTraTLvaQS.Values.Image = (Image)resources.GetObject("kryptonButton_KiemTraTLvaQS.Values.Image");
             kryptonButton_KiemTraTLvaQS.Values.Text = "Kiểm tra";
             kryptonButton_KiemTraTLvaQS.Click += kryptonButton_KiemTraTLvaQS_Click;
             // 
@@ -974,7 +970,6 @@
             kryptonButton_Refresh.StateCommon.Border.Rounding = 4F;
             kryptonButton_Refresh.TabIndex = 1;
             kryptonButton_Refresh.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_Refresh.Values.Image = (Image)resources.GetObject("kryptonButton_Refresh.Values.Image");
             kryptonButton_Refresh.Values.Text = "Làm mới";
             kryptonButton_Refresh.Click += kryptonButton_Refresh_Click;
             // 
@@ -1008,7 +1003,6 @@
             kryptonButton_XuatTrinhKy.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatTrinhKy.TabIndex = 0;
             kryptonButton_XuatTrinhKy.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatTrinhKy.Values.Image = (Image)resources.GetObject("kryptonButton_XuatTrinhKy.Values.Image");
             kryptonButton_XuatTrinhKy.Values.Text = "Xuất trình họp";
             kryptonButton_XuatTrinhKy.Click += kryptonButton_XuatTrinhKy_Click;
             // 
@@ -1023,7 +1017,6 @@
             kryptonButton_XuatTatCa.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatTatCa.TabIndex = 1;
             kryptonButton_XuatTatCa.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatTatCa.Values.Image = (Image)resources.GetObject("kryptonButton_XuatTatCa.Values.Image");
             kryptonButton_XuatTatCa.Values.Text = "Xuất tất cả";
             kryptonButton_XuatTatCa.Click += kryptonButton_XuatTatCa_Click;
             // 
@@ -1038,7 +1031,6 @@
             kryptonButton1_XuatTepPdf.StateCommon.Border.Rounding = 4F;
             kryptonButton1_XuatTepPdf.TabIndex = 2;
             kryptonButton1_XuatTepPdf.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_XuatTepPdf.Values.Image = (Image)resources.GetObject("kryptonButton1_XuatTepPdf.Values.Image");
             kryptonButton1_XuatTepPdf.Values.Text = "Xuất tệp (*.pdf)";
             kryptonButton1_XuatTepPdf.Click += kryptonButton1_XuatTepPdf_Click;
             // 
@@ -1066,7 +1058,6 @@
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.None;
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
             pictureBox2.Location = new Point(4, 4);
             pictureBox2.Name = "pictureBox2";
             pictureBox2.Size = new Size(45, 35);
@@ -1163,7 +1154,6 @@
             kryptonButton_XuatDanhSachLoai.StateCommon.Border.Rounding = 4F;
             kryptonButton_XuatDanhSachLoai.TabIndex = 1;
             kryptonButton_XuatDanhSachLoai.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatDanhSachLoai.Values.Image = (Image)resources.GetObject("kryptonButton_XuatDanhSachLoai.Values.Image");
             kryptonButton_XuatDanhSachLoai.Values.Text = "Xuất tệp";
             kryptonButton_XuatDanhSachLoai.Click += kryptonButton_XuatDanhSachLoai_Click;
             // 
@@ -1193,7 +1183,6 @@
             kryptonButton_MoThuMuc.StateCommon.Border.Rounding = 4F;
             kryptonButton_MoThuMuc.TabIndex = 2;
             kryptonButton_MoThuMuc.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_MoThuMuc.Values.Image = (Image)resources.GetObject("kryptonButton_MoThuMuc.Values.Image");
             kryptonButton_MoThuMuc.Values.Text = "Mở thư mục";
             kryptonButton_MoThuMuc.Click += kryptonButton_MoThuMuc_Click;
             // 

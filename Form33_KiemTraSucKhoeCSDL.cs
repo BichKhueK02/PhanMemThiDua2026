@@ -56,6 +56,7 @@ namespace PhanMemThiDua2026
         public Form33_KiemTraSucKhoeCSDL()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             this.Shown += Form33_KiemTraSucKhoeCSDL_Shown;
             _pathCSDL = new[]
             {

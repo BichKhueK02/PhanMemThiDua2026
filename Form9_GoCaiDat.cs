@@ -21,6 +21,7 @@ namespace PhanMemThiDua2026
         public Form9_GoCaiDat()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             this.Load += Form9_Load;
         }
         // ĐỔI THÀNH async void ĐỂ TẢI DỮ LIỆU NGẦM, CHỐNG GIẬT FORM

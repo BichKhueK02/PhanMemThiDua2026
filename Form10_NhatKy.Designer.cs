@@ -133,7 +133,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(33, 26);
             toolStripStatusLabel1.Text = "*";
@@ -327,7 +326,6 @@
             kryptonButton_TiepTheo.StateCommon.Border.Rounding = 4F;
             kryptonButton_TiepTheo.TabIndex = 3;
             kryptonButton_TiepTheo.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_TiepTheo.Values.Image = (Image)resources.GetObject("kryptonButton_TiepTheo.Values.Image");
             kryptonButton_TiepTheo.Values.Text = "Tiếp theo";
             kryptonButton_TiepTheo.Click += kryptonButton_TiepTheo_Click;
             // 
@@ -341,7 +339,6 @@
             kryptonButton_TroLai.StateCommon.Border.Rounding = 4F;
             kryptonButton_TroLai.TabIndex = 2;
             kryptonButton_TroLai.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_TroLai.Values.Image = (Image)resources.GetObject("kryptonButton_TroLai.Values.Image");
             kryptonButton_TroLai.Values.Text = "Trở lại";
             kryptonButton_TroLai.Click += kryptonButton_TroLai_Click;
             // 
@@ -417,7 +414,6 @@
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 8);
             pictureBox1.Margin = new Padding(2, 3, 2, 3);
             pictureBox1.Name = "pictureBox1";
@@ -485,7 +481,6 @@
             kryptonButton1_LocTheoNgayThangNam.StateCommon.Border.Rounding = 4F;
             kryptonButton1_LocTheoNgayThangNam.TabIndex = 3;
             kryptonButton1_LocTheoNgayThangNam.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_LocTheoNgayThangNam.Values.Image = (Image)resources.GetObject("kryptonButton1_LocTheoNgayThangNam.Values.Image");
             kryptonButton1_LocTheoNgayThangNam.Values.Text = "Tiến hành lọc";
             kryptonButton1_LocTheoNgayThangNam.Click += kryptonButton1_LocTheoNgayThangNam_Click;
             // 
@@ -499,7 +494,6 @@
             kryptonButton1_LamMoiBoLoc.StateCommon.Border.Rounding = 4F;
             kryptonButton1_LamMoiBoLoc.TabIndex = 3;
             kryptonButton1_LamMoiBoLoc.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_LamMoiBoLoc.Values.Image = (Image)resources.GetObject("kryptonButton1_LamMoiBoLoc.Values.Image");
             kryptonButton1_LamMoiBoLoc.Values.Text = "Làm mới";
             kryptonButton1_LamMoiBoLoc.Click += kryptonButton1_LamMoiBoLoc_Click;
             // 
@@ -655,7 +649,6 @@
             // 
             // lamMoi_ToolStripMenuItem
             // 
-            lamMoi_ToolStripMenuItem.Image = Properties.Resources.ic_database;
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
             lamMoi_ToolStripMenuItem.Size = new Size(234, 28);
@@ -664,7 +657,6 @@
             // 
             // xuatNhatKy_ToolStripMenuItem
             // 
-            xuatNhatKy_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatNhatKy_ToolStripMenuItem.Image");
             xuatNhatKy_ToolStripMenuItem.Name = "xuatNhatKy_ToolStripMenuItem";
             xuatNhatKy_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
             xuatNhatKy_ToolStripMenuItem.Size = new Size(234, 28);
@@ -678,7 +670,6 @@
             // 
             // trangTiepTheo_ToolStripMenuItem
             // 
-            trangTiepTheo_ToolStripMenuItem.Image = (Image)resources.GetObject("trangTiepTheo_ToolStripMenuItem.Image");
             trangTiepTheo_ToolStripMenuItem.Name = "trangTiepTheo_ToolStripMenuItem";
             trangTiepTheo_ToolStripMenuItem.ShortcutKeyDisplayString = "▶";
             trangTiepTheo_ToolStripMenuItem.Size = new Size(234, 28);
@@ -687,7 +678,6 @@
             // 
             // trangTroLai_ToolStripMenuItem
             // 
-            trangTroLai_ToolStripMenuItem.Image = (Image)resources.GetObject("trangTroLai_ToolStripMenuItem.Image");
             trangTroLai_ToolStripMenuItem.Name = "trangTroLai_ToolStripMenuItem";
             trangTroLai_ToolStripMenuItem.ShortcutKeyDisplayString = "◀";
             trangTroLai_ToolStripMenuItem.Size = new Size(234, 28);
@@ -701,7 +691,6 @@
             // 
             // xoaToanBoDuLieu_ToolStripMenuItem
             // 
-            xoaToanBoDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaToanBoDuLieu_ToolStripMenuItem.Image");
             xoaToanBoDuLieu_ToolStripMenuItem.Name = "xoaToanBoDuLieu_ToolStripMenuItem";
             xoaToanBoDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.D;
             xoaToanBoDuLieu_ToolStripMenuItem.Size = new Size(234, 28);
@@ -710,7 +699,6 @@
             // 
             // thongKeTaiKhoanDaTungSuDungToolStripMenuItem
             // 
-            thongKeTaiKhoanDaTungSuDungToolStripMenuItem.Image = (Image)resources.GetObject("thongKeTaiKhoanDaTungSuDungToolStripMenuItem.Image");
             thongKeTaiKhoanDaTungSuDungToolStripMenuItem.Name = "thongKeTaiKhoanDaTungSuDungToolStripMenuItem";
             thongKeTaiKhoanDaTungSuDungToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.T;
             thongKeTaiKhoanDaTungSuDungToolStripMenuItem.Size = new Size(234, 28);

@@ -63,6 +63,14 @@
   <ItemGroup>
     <Content Include="Resources\ic_PhanMem.ico" />
   </ItemGroup>
+  <!-- 8 ảnh nút menu của Form2 kiểu "Cổ điển": nhúng vào exe, CHỈ nạp khi người dùng chọn Cổ điển (Module_BieuTuongMenu).
+       Kiểu "Hiện đại" vẽ biểu tượng bằng GDI+ => lúc dựng Form2 không còn giải mã ảnh nào cho menu. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Icon\Form2CoDien\*.*" LogicalName="Form2CoDien.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Icon\Form12CoDien\*.*" LogicalName="Form12CoDien.%(Filename)%(Extension)" />
+    <!-- Ảnh biểu tượng NÚT của mọi form (tách khỏi Designer/.resx): chỉ nạp ở kiểu "Cổ điển" (Module_BieuTuongNut) -->
+    <EmbeddedResource Include="Icon\CoDien\*.*" LogicalName="CoDien.%(Filename)%(Extension)" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="ClosedXML" Version="0.105.1" />

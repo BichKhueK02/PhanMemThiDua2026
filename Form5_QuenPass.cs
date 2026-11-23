@@ -24,7 +24,11 @@ namespace PhanMemThiDua2026
         public Form5_QuenPass()
         {
             InitializeComponent();
+            pnlCard.CornerRadius = 18;   // thẻ trắng bo 18px
+            pnlHero.CornerRadius = 0;    // ⭐ Hero KHÔNG tự bo → để Card clip
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             ApplyWebTheme(); // Giao diện kiểu web (xem Form5_QuenPass.Theme.cs)
+            ApplyBorderless();   // form không viền, bo tròn, kéo thả được
             //this.ShowInTaskbar = false;
             this.Shown += Form5_Shown;
             ComboBox1_CauHoi1.HandleCreated += ComboBox_ClearHighlight;
@@ -52,6 +56,31 @@ namespace PhanMemThiDua2026
             // ⭐ GỌI HÀM TẢI ẢNH ĐẠI DIỆN LÊN PictureBox2
             await LoadAnhDaiDienAsync();
         }
+        // Khai báo P/Invoke
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+        private const int DWMWA_NCRENDERING_POLICY = 2;
+        private const int DWMNCRP_DISABLED = 1;
+        private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;  // Win11 only
+        private const int DWMWCP_DONOTROUND = 1;
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            try
+            {
+                // Tắt viền glass DWM
+                int policy = DWMNCRP_DISABLED;
+                DwmSetWindowAttribute(Handle, DWMWA_NCRENDERING_POLICY, ref policy, sizeof(int));
+
+                // Win11: tắt tự bo góc của hệ điều hành (nếu không sẽ đè lên Region ta vẽ)
+                int corner = DWMWCP_DONOTROUND;
+                DwmSetWindowAttribute(Handle, DWMWA_WINDOW_CORNER_PREFERENCE, ref corner, sizeof(int));
+            }
+            catch { /* OS cũ không hỗ trợ */ }
+        }
+
         private async Task LoadAnhDaiDienAsync()
         {
             try
@@ -176,19 +205,46 @@ namespace PhanMemThiDua2026
             catch { }
             base.OnFormClosed(e);
         }
-        private void SetupReadOnlyBox(Krypton.Toolkit.KryptonTextBox tb)
+        private void SetupReadOnlyBox(TextBox tb)
         {
             if (tb == null) return;
             tb.ReadOnly = true;
             tb.ShortcutsEnabled = true;
-            // Màu nền xanh nhẹ
-            Color mauNen = Color.FromArgb(241, 245, 249);
-            tb.StateCommon.Back.Color1 = mauNen;
-            // Giữ chữ rõ
-            tb.StateCommon.Content.Color1 = Color.FromArgb(15, 23, 42);
-            // Viền xanh nhẹ để dễ phân biệt
-            tb.StateCommon.Border.Color1 = Color.FromArgb(203, 213, 225);
+            // Màu nền/viền do WebFieldPanel bọc ngoài quyết định (xem ApplyWebTheme)
         }
+        // ====== Form không viền + bo tròn ======
+        [DllImport("user32.dll")] private static extern bool ReleaseCapture();
+        private const int WM_NCLBUTTONDOWN = 0x00A1;
+        private const int HTCAPTION = 2;
+
+        private void ApplyBorderless()
+        {
+            FormBorderStyle = FormBorderStyle.None;
+            SizeChanged += (s, e) => CapNhatBoGoc();
+            Load += (s, e) => CapNhatBoGoc();   // ⭐ cập nhật lại sau khi form đã show
+            CapNhatBoGoc();
+            // Không còn thanh tiêu đề: bấm giữ chuột trên nền/hero để kéo form
+            foreach (Control c in new Control[] { pnlRoot, pnlCard, pnlRight, pnlHero, tlpHero, lblHeroTitle, lblHeroDesc, lblHeroHint, lblTieuDe, lblMoTa, statusStrip1 })
+                c.MouseDown += KeoForm;
+        }
+        // 1. Bo góc Form mượt hơn + làm dịu viền Region
+        private void CapNhatBoGoc()
+        {
+            if (Width <= 0 || Height <= 0) return;
+            int r = (int)Math.Round(20 * DeviceDpi / 96f);
+            using var path = WebCardPanel.RoundedRect(new Rectangle(0, 0, Width, Height), r);
+            var cu = Region;
+            Region = new Region(path);
+            cu?.Dispose();
+            Invalidate();
+        }
+        private void KeoForm(object? sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left) return;
+            ReleaseCapture();
+            SendMessage(Handle, WM_NCLBUTTONDOWN, (IntPtr)HTCAPTION, IntPtr.Zero);
+        }
+
         private void Form5_Shown(object? sender, EventArgs e)
         {
             InitCauHoiVaFocus();
@@ -392,10 +448,10 @@ namespace PhanMemThiDua2026
         }
         //private void StartProgressBar()
         //{
-            //if (progressBar1 == null) return;
-            //progressBar1.Style = ProgressBarStyle.Marquee;
-            //progressBar1.MarqueeAnimationSpeed = 30; // tốc độ vừa phải
-            //// Đảm bảo handle đã tạo
+        //if (progressBar1 == null) return;
+        //progressBar1.Style = ProgressBarStyle.Marquee;
+        //progressBar1.MarqueeAnimationSpeed = 30; // tốc độ vừa phải
+        //// Đảm bảo handle đã tạo
         private void StopProgressBar()
         {
             if (progressBar1 == null) return;
@@ -578,8 +634,14 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChinhHover = Color.FromArgb(29, 78, 216);   // blue-700
         private static readonly Color MauChinhNhan = Color.FromArgb(30, 64, 175);   // blue-800
         private static readonly Color MauChu = Color.FromArgb(15, 23, 42);     // slate-900
-        private static readonly Color MauVien = Color.FromArgb(203, 213, 225);  // slate-300
-        private static readonly Color MauNenReadOnly = Color.FromArgb(241, 245, 249);  // slate-100
+        private static readonly Color MauNhan = Color.FromArgb(51, 65, 85);    // slate-700
+        private static readonly Color MauNutPhu = Color.FromArgb(241, 245, 249);  // slate-100
+        private static readonly Color MauNutPhuHover = Color.FromArgb(226, 232, 240);  // slate-200
+        private static readonly Color MauNutPhuNhan = Color.FromArgb(203, 213, 225);  // slate-300
+                                                                                      // 2. Bảng màu: thêm màu đỏ cho nút Thoát
+        private static readonly Color MauDo = Color.FromArgb(220, 38, 38);         // red-600
+        private static readonly Color MauDoHover = Color.FromArgb(185, 28, 28);    // red-700
+        private static readonly Color MauDoNhan = Color.FromArgb(153, 27, 27);     // red-800
         /// <summary>
         /// WS_EX_COMPOSITED: vẽ toàn bộ control con qua một bộ đệm chung,
         /// hết giật/nhấp nháy khi rê chuột hoặc khi form vừa hiện lên.
@@ -596,27 +658,80 @@ namespace PhanMemThiDua2026
         /// <summary>Gọi một lần ngay sau InitializeComponent().</summary>
         private void ApplyWebTheme()
         {
-            StyleInput(TextBox1_TraLoi1, readOnly: false);
-            StyleInput(TextBox2_TraLoi2, readOnly: false);
-            StyleInput(Text_TenTaiKhoan, readOnly: true);
-            StyleInput(Text_MatKhauLayLai, readOnly: true);
+            StyleInput(TextBox1_TraLoi1);
+            StyleInput(TextBox2_TraLoi2);
+            StyleInput(Text_TenTaiKhoan);
+            StyleInput(Text_MatKhauLayLai);
+            // Ô kết quả chỉ đọc: không đổi màu khi bấm vào (chỉ để bôi đen/sao chép)
+            pnlTaiKhoan.MauNenFocus = pnlTaiKhoan.MauNen;
+            pnlMatKhau.MauNenFocus = pnlMatKhau.MauNen;
+            // Ô đang nhập: nhãn câu hỏi tương ứng chuyển xanh (thay cho viền focus)
+            GanNhanFocus(lblCauHoi1, pnlCombo1, pnlTraLoi1);
+            GanNhanFocus(lblCauHoi2, pnlCombo2, pnlTraLoi2);
+            // Trong ApplyWebTheme():
             StylePrimaryButton(Btn_KiemTra);
+            StyleDangerButton(Btn_Thoat);
         }
-        private void StyleInput(Krypton.Toolkit.KryptonTextBox tb, bool readOnly)
+        private static void StyleDangerButton(Krypton.Toolkit.KryptonButton btn)
         {
-            tb.StateCommon.Back.Color1 = readOnly ? MauNenReadOnly : Color.White;
-            tb.StateCommon.Content.Color1 = MauChu;
-            tb.StateCommon.Content.Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            tb.StateCommon.Content.Padding = new Padding(6, 5, 6, 5);
-            tb.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
-            tb.StateCommon.Border.Color1 = MauVien;
-            tb.StateCommon.Border.Width = 1;
-            tb.StateCommon.Border.Rounding = 10F;
-            if (!readOnly)
+            btn.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            btn.StateCommon.Back.Color1 = MauDo;
+            btn.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
+            btn.StateCommon.Border.Color1 = MauDo;
+            btn.StateCommon.Border.Width = 1;
+            btn.StateCommon.Border.Rounding = 12F;
+            btn.StateCommon.Content.ShortText.Color1 = Color.White;
+            btn.StateCommon.Content.ShortText.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
+
+            btn.StateTracking.Back.Color1 = MauDoHover;
+            btn.StateTracking.Border.Color1 = MauDoHover;
+            btn.StatePressed.Back.Color1 = MauDoNhan;
+            btn.StatePressed.Border.Color1 = MauDoNhan;
+
+            btn.OverrideDefault.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            btn.OverrideDefault.Back.Color1 = MauDo;
+            btn.OverrideDefault.Border.Color1 = MauDo;
+            btn.OverrideDefault.Border.Rounding = 12F;
+
+            btn.OverrideFocus.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            btn.OverrideFocus.Back.Color1 = MauDoHover;
+            btn.OverrideFocus.Border.Color1 = MauDoHover;
+            btn.OverrideFocus.Border.Rounding = 12F;
+        }
+        /// <summary>Ô nhập không viền: nền do WebFieldPanel bọc ngoài tô (bo góc, đổi màu khi focus).</summary>
+        private static void StyleInput(TextBox tb)
+        {
+            tb.BorderStyle = BorderStyle.None;   // WebTextBox: không còn viền Windows
+            tb.ForeColor = MauChu;
+            tb.Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
+        }
+        private static void GanNhanFocus(Label nhan, params Control[] cacO)
+        {
+            foreach (var o in cacO)
             {
-                // Viền xanh khi ô đang được focus (giống :focus trên web)
-                tb.StateActive.Border.Color1 = MauChinh;
+                o.Enter += (s, e) => nhan.ForeColor = MauChinh;
+                o.Leave += (s, e) => nhan.ForeColor = MauNhan;
             }
+        }
+        /// <summary>Nút phụ (Thoát): nền xám nhạt, không viền (viền trùng màu nền để giữ bo góc).</summary>
+        private static void StyleSecondaryButton(Krypton.Toolkit.KryptonButton btn)
+        {
+            btn.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            btn.StateCommon.Back.Color1 = MauNutPhu;
+            btn.StateCommon.Border.DrawBorders = Krypton.Toolkit.PaletteDrawBorders.All;
+            btn.StateCommon.Border.Color1 = MauNutPhu;
+            btn.StateCommon.Border.Width = 1;
+            btn.StateCommon.Border.Rounding = 10F;
+            btn.StateCommon.Content.ShortText.Color1 = MauNhan;
+            btn.StateCommon.Content.ShortText.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btn.StateTracking.Back.Color1 = MauNutPhuHover;
+            btn.StateTracking.Border.Color1 = MauNutPhuHover;
+            btn.StatePressed.Back.Color1 = MauNutPhuNhan;
+            btn.StatePressed.Border.Color1 = MauNutPhuNhan;
+            btn.OverrideFocus.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
+            btn.OverrideFocus.Back.Color1 = MauNutPhuHover;
+            btn.OverrideFocus.Border.Color1 = MauNutPhuHover;
+            btn.OverrideFocus.Border.Rounding = 10F;
         }
         private void StylePrimaryButton(Krypton.Toolkit.KryptonButton btn)
         {
@@ -651,23 +766,28 @@ namespace PhanMemThiDua2026
     public class WebCardPanel : Panel
     {
         private int _cornerRadius = 16;
+
         public WebCardPanel()
         {
             SetStyle(ControlStyles.OptimizedDoubleBuffer |
                      ControlStyles.AllPaintingInWmPaint |
-                     ControlStyles.ResizeRedraw, true);
+                     ControlStyles.ResizeRedraw |
+                     ControlStyles.UserPaint, true);
         }
+
         [DefaultValue(16)]
         public int CornerRadius
         {
             get => _cornerRadius;
             set { _cornerRadius = Math.Max(0, value); UpdateRegion(); }
         }
+
         protected override void OnSizeChanged(EventArgs e)
         {
             base.OnSizeChanged(e);
             UpdateRegion();
         }
+
         private void UpdateRegion()
         {
             if (Width <= 0 || Height <= 0) return;
@@ -683,15 +803,21 @@ namespace PhanMemThiDua2026
             }
             old?.Dispose();
         }
+
+        // Overload cho pixel nguyên
         internal static GraphicsPath RoundedRect(Rectangle r, int radius)
+            => RoundedRect(new RectangleF(r.X, r.Y, r.Width, r.Height), radius);
+
+        // ⭐ Overload cho nửa-pixel (chống răng cưa) — trước đây bị thiếu
+        internal static GraphicsPath RoundedRect(RectangleF r, int radius)
         {
-            int d = Math.Min(radius * 2, Math.Min(r.Width, r.Height));
             var path = new GraphicsPath();
-            if (d <= 0)
+            if (radius <= 0 || r.Width <= 0 || r.Height <= 0)
             {
                 path.AddRectangle(r);
                 return path;
             }
+            float d = Math.Min(radius * 2f, Math.Min(r.Width, r.Height));
             path.AddArc(r.X, r.Y, d, d, 180, 90);
             path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
             path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
@@ -703,8 +829,12 @@ namespace PhanMemThiDua2026
     /// <summary>
     /// Panel nền gradient xanh → tím kèm vài hình tròn mờ trang trí (kiểu hero banner của web).
     /// </summary>
+
+
     public class HeroGradientPanel : Panel
     {
+        private int _cornerRadius = 16;   // ⭐ BỔ SUNG field bị thiếu
+
         public HeroGradientPanel()
         {
             SetStyle(ControlStyles.OptimizedDoubleBuffer |
@@ -712,27 +842,52 @@ namespace PhanMemThiDua2026
                      ControlStyles.ResizeRedraw |
                      ControlStyles.UserPaint, true);
         }
+
+        [DefaultValue(16)]
+        public int CornerRadius
+        {
+            get => _cornerRadius;
+            set { _cornerRadius = Math.Max(0, value); Invalidate(); }
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
-            var rc = ClientRectangle;
-            if (rc.Width <= 0 || rc.Height <= 0) return;
+            base.OnPaint(e);
+            if (Width <= 2 || Height <= 2) return;
             var g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            using (var br = new LinearGradientBrush(rc,
-                       Color.FromArgb(37, 99, 235),    // blue-600
-                       Color.FromArgb(124, 58, 237),   // violet-600
-                       125F))
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+            float r = _cornerRadius * DeviceDpi / 96f;
+            // ⭐ Gọi qua WebCardPanel.RoundedRect (method static của class khác)
+            using var path = WebCardPanel.RoundedRect(
+                new RectangleF(0.5f, 0.5f, Width - 1f, Height - 1f),
+                (int)Math.Round(r));
+
+            // Nền gradient xanh → tím (đúng tinh thần "HeroGradientPanel")
+            using (var brush = new LinearGradientBrush(
+                new RectangleF(0, 0, Width, Height),
+                Color.FromArgb(37, 99, 235),    // blue-600
+                Color.FromArgb(99, 102, 241),   // indigo-500
+                45f))
             {
-                g.FillRectangle(br, rc);
+                g.FillPath(brush, path);
             }
-            // Hình tròn trang trí, trong suốt nhẹ
-            using (var soft = new SolidBrush(Color.FromArgb(26, 255, 255, 255)))
-            using (var softer = new SolidBrush(Color.FromArgb(16, 255, 255, 255)))
+
+            // Hình tròn mờ trang trí kiểu hero banner
+            using (var br = new SolidBrush(Color.FromArgb(28, 255, 255, 255)))
             {
-                g.FillEllipse(soft, rc.Right - 150, rc.Y - 90, 240, 240);
-                g.FillEllipse(softer, rc.X - 110, rc.Bottom - 190, 300, 300);
-                g.FillEllipse(softer, rc.Right - 70, rc.Bottom - 130, 120, 120);
+                g.FillEllipse(br, Width - 110, -70, 200, 200);
+                g.FillEllipse(br, -70, Height - 130, 220, 220);
             }
+        }
+    }
+    /// <summary>TextBox phẳng không viền, đặt trong WebFieldPanel (khung bo tròn do panel vẽ).</summary>
+    public class WebTextBox : TextBox
+    {
+        public WebTextBox()
+        {
+            BorderStyle = BorderStyle.None;
         }
     }
     /// <summary>Panel có double-buffer.</summary>
@@ -754,14 +909,18 @@ namespace PhanMemThiDua2026
         }
     }
     /// <summary>
-    /// Khung ô nhập bo góc, có viền xám và đổi sang viền xanh khi control bên trong đang focus.
-    /// Dùng để bọc ComboBox (vẫn là ComboBox gốc nên code cũ không đổi).
-    /// Control con được căn giữa theo chiều dọc.
+    /// Khung ô nhập kiểu "filled" của web: nền đặc bo góc, KHÔNG viền.
+    /// Khi control bên trong đang focus thì nền chuyển sang xanh rất nhạt.
+    /// Tự đồng bộ màu nền cho control con (ComboBox/KryptonTextBox) để không lộ mép.
+    /// BackColor của panel = màu nền thẻ phía sau (để 4 góc bo trùng màu thẻ).
+    /// Control con được căn giữa theo chiều dọc; bấm vào phần đệm cũng focus vào ô.
     /// </summary>
     public class WebFieldPanel : Panel
     {
-        private static readonly Color MauVien = Color.FromArgb(203, 213, 225);
-        private static readonly Color MauFocus = Color.FromArgb(37, 99, 235);
+        private Color _mauNen = Color.FromArgb(241, 245, 249);      // slate-100
+        private Color _mauNenFocus = Color.FromArgb(232, 240, 254); // xanh rất nhạt
+        private int _boGoc = 10;
+        private bool _dangFocus;
         public WebFieldPanel()
         {
             SetStyle(ControlStyles.OptimizedDoubleBuffer |
@@ -769,13 +928,63 @@ namespace PhanMemThiDua2026
                      ControlStyles.ResizeRedraw |
                      ControlStyles.UserPaint, true);
         }
+        [DefaultValue(typeof(Color), "241, 245, 249")]
+        public Color MauNen
+        {
+            get => _mauNen;
+            set { _mauNen = value; CapNhatMau(); }
+        }
+        [DefaultValue(typeof(Color), "232, 240, 254")]
+        public Color MauNenFocus
+        {
+            get => _mauNenFocus;
+            set { _mauNenFocus = value; CapNhatMau(); }
+        }
+        [DefaultValue(10)]
+        public int BoGoc
+        {
+            get => _boGoc;
+            set { _boGoc = Math.Max(0, value); Invalidate(); }
+        }
+        private Color MauHienTai => _dangFocus ? _mauNenFocus : _mauNen;
         protected override void OnControlAdded(ControlEventArgs e)
         {
             base.OnControlAdded(e);
-            e.Control!.Enter += (s, a) => Invalidate();
-            e.Control.Leave += (s, a) => Invalidate();
-            e.Control.GotFocus += (s, a) => Invalidate();
-            e.Control.LostFocus += (s, a) => Invalidate();
+            if (e.Control != null) GanMauNen(e.Control, MauHienTai);
+        }
+        protected override void OnEnter(EventArgs e)
+        {
+            _dangFocus = true;
+            CapNhatMau();
+            base.OnEnter(e);
+        }
+        protected override void OnLeave(EventArgs e)
+        {
+            _dangFocus = false;
+            CapNhatMau();
+            base.OnLeave(e);
+        }
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            if (Controls.Count > 0 && Controls[0].CanFocus) Controls[0].Focus();
+        }
+        private void CapNhatMau()
+        {
+            Color c = MauHienTai;
+            foreach (Control con in Controls) GanMauNen(con, c);
+            Invalidate();
+        }
+        private static void GanMauNen(Control con, Color c)
+        {
+            if (con is Krypton.Toolkit.KryptonTextBox ktb)
+            {
+                if (ktb.StateCommon.Back.Color1 != c) ktb.StateCommon.Back.Color1 = c;
+            }
+            else if (con.BackColor != c)
+            {
+                con.BackColor = c;
+            }
         }
         protected override void OnLayout(LayoutEventArgs levent)
         {
@@ -793,10 +1002,128 @@ namespace PhanMemThiDua2026
             g.Clear(BackColor);
             if (Width < 4 || Height < 4) return;
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            bool focus = ContainsFocus;
-            using var pen = new Pen(focus ? MauFocus : MauVien, focus ? 1.6F : 1F);
-            using var path = WebCardPanel.RoundedRect(new Rectangle(0, 0, Width - 1, Height - 1), 10);
-            g.DrawPath(pen, path);
+            int r = (int)Math.Round(_boGoc * DeviceDpi / 96f);
+            using var br = new SolidBrush(MauHienTai);
+            using var path = WebCardPanel.RoundedRect(new Rectangle(0, 0, Width, Height), r);
+            g.FillPath(br, path);
+        }
+    }
+    /// <summary>
+    /// ComboBox phẳng không viền: vẫn là ComboBox gốc (code cũ không đổi), nhưng sau khi
+    /// WinForms vẽ kiểu Flat (viền 1px + ô nút xám, đổi màu khi rê chuột/focus) thì phủ lại
+    /// toàn bộ phần ngoài ô chữ bằng màu nền và tự vẽ mũi tên chevron mảnh.
+    /// Vẽ trên CHÍNH DC của WM_PAINT nên không bị form WS_EX_COMPOSITED vẽ đè mất.
+    /// </summary>
+    public class WebComboBox : ComboBox
+    {
+        private const int WM_PAINT = 0x000F;
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT { public int Left, Top, Right, Bottom; }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct COMBOBOXINFO
+        {
+            public int cbSize;
+            public RECT rcItem;
+            public RECT rcButton;
+            public int stateButton;
+            public IntPtr hwndCombo;
+            public IntPtr hwndItem;
+            public IntPtr hwndList;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PAINTSTRUCT
+        {
+            public IntPtr hdc;
+            public int fErase;
+            public RECT rcPaint;
+            public int fRestore;
+            public int fIncUpdate;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
+            public byte[] rgbReserved;
+        }
+        [DllImport("user32.dll")]
+        private static extern bool GetComboBoxInfo(IntPtr hwndCombo, ref COMBOBOXINFO pcbi);
+        [DllImport("user32.dll")]
+        private static extern IntPtr BeginPaint(IntPtr hWnd, out PAINTSTRUCT lpPaint);
+        [DllImport("user32.dll")]
+        private static extern bool EndPaint(IntPtr hWnd, ref PAINTSTRUCT lpPaint);
+        private Color _mauMuiTen = Color.FromArgb(100, 116, 139); // slate-500
+        public WebComboBox()
+        {
+            FlatStyle = FlatStyle.Flat;
+        }
+        [DefaultValue(typeof(Color), "100, 116, 139")]
+        public Color MauMuiTen
+        {
+            get => _mauMuiTen;
+            set { _mauMuiTen = value; Invalidate(); }
+        }
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg != WM_PAINT || DropDownStyle == ComboBoxStyle.Simple)
+            {
+                base.WndProc(ref m);
+                return;
+            }
+            if (m.WParam != IntPtr.Zero)
+            {
+                // Đã có DC sẵn (WM_PAINT gửi kèm HDC / in): vẽ gốc rồi phủ lên cùng DC
+                base.WndProc(ref m);
+                VePhu(m.WParam);
+                return;
+            }
+            IntPtr hdc = BeginPaint(Handle, out PAINTSTRUCT ps);
+            try
+            {
+                m.WParam = hdc;          // WinForms vẽ Flat vào DC này thay vì tự BeginPaint
+                base.WndProc(ref m);
+                VePhu(hdc);
+            }
+            finally
+            {
+                m.WParam = IntPtr.Zero;
+                EndPaint(Handle, ref ps);
+            }
+        }
+        private void VePhu(IntPtr hdc)
+        {
+            try
+            {
+                var info = new COMBOBOXINFO { cbSize = Marshal.SizeOf<COMBOBOXINFO>() };
+                if (!GetComboBoxInfo(Handle, ref info)) return;
+                var rcItem = Rectangle.FromLTRB(info.rcItem.Left, info.rcItem.Top, info.rcItem.Right, info.rcItem.Bottom);
+                var rcNut = Rectangle.FromLTRB(info.rcButton.Left, info.rcButton.Top, info.rcButton.Right, info.rcButton.Bottom);
+                using var g = Graphics.FromHdc(hdc);
+                // 1. Xóa viền + ô nút xám: tô màu nền mọi chỗ trừ ô chữ
+                using (var vung = new Region(ClientRectangle))
+                {
+                    vung.Exclude(rcItem);
+                    using var brNen = new SolidBrush(Enabled ? BackColor : SystemColors.Control);
+                    g.FillRegion(brNen, vung);
+                }
+                // 2. Mũi tên chevron mảnh ở giữa vùng nút
+                if (rcNut.Width <= 0 || rcNut.Height <= 0) return;
+                float k = DeviceDpi / 96f;
+                float nuaRong = 4.5f * k, cao = 2.5f * k;
+                float cx = rcNut.Left + rcNut.Width / 2f, cy = rcNut.Top + rcNut.Height / 2f;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                using var pen = new Pen(Enabled ? _mauMuiTen : SystemColors.GrayText, 1.6f * k)
+                {
+                    StartCap = LineCap.Round,
+                    EndCap = LineCap.Round,
+                    LineJoin = LineJoin.Round
+                };
+                g.DrawLines(pen, new[]
+                {
+                    new PointF(cx - nuaRong, cy - cao),
+                    new PointF(cx, cy + cao),
+                    new PointF(cx + nuaRong, cy - cao)
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[WebComboBox] " + ex.Message);
+            }
         }
     }
 }

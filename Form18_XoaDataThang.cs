@@ -40,6 +40,7 @@ namespace PhanMemThiDua2026
         public Form18_XoaDataThang(Form15_ThongKeThiDua frm15)
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             _parentForm15 = frm15;
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;

@@ -187,7 +187,6 @@
             // pictureBox2
             // 
             pictureBox2.Anchor = AnchorStyles.None;
-            pictureBox2.Image = (Image)resources.GetObject("pictureBox2.Image");
             pictureBox2.Location = new Point(4, 9);
             pictureBox2.Margin = new Padding(3, 2, 3, 2);
             pictureBox2.Name = "pictureBox2";
@@ -327,7 +326,6 @@
             // 
             // toolStripStatusLabel1_TongCongTepPdf
             // 
-            toolStripStatusLabel1_TongCongTepPdf.Image = (Image)resources.GetObject("toolStripStatusLabel1_TongCongTepPdf.Image");
             toolStripStatusLabel1_TongCongTepPdf.Name = "toolStripStatusLabel1_TongCongTepPdf";
             toolStripStatusLabel1_TongCongTepPdf.Size = new Size(87, 26);
             toolStripStatusLabel1_TongCongTepPdf.Text = "Tổng cộng:";

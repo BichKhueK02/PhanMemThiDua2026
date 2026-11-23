@@ -69,7 +69,6 @@ namespace PhanMemThiDua2026
             //
             PictureBox1.Anchor = AnchorStyles.None;
             PictureBox1.BackColor = Color.Transparent;
-            PictureBox1.Image = (Image)resources.GetObject("PictureBox1.Image");
             PictureBox1.Location = new Point(22, 25);
             PictureBox1.Margin = new Padding(0);
             PictureBox1.Name = "PictureBox1";
@@ -308,7 +307,6 @@ namespace PhanMemThiDua2026
             btn_XacThuc.StateTracking.Back.Color2 = Color.FromArgb(79, 70, 229);
             btn_XacThuc.TabIndex = 4;
             btn_XacThuc.Values.DropDownArrowColor = Color.Empty;
-            btn_XacThuc.Values.Image = (Image)resources.GetObject("btn_XacThuc.Values.Image");
             btn_XacThuc.Values.Text = " Xác thực";
             btn_XacThuc.Click += btn_XacThuc_Click;
             //
@@ -335,7 +333,6 @@ namespace PhanMemThiDua2026
             btn_Thoat.StateTracking.Back.Color2 = Color.FromArgb(248, 250, 252);
             btn_Thoat.TabIndex = 5;
             btn_Thoat.Values.DropDownArrowColor = Color.Empty;
-            btn_Thoat.Values.Image = (Image)resources.GetObject("btn_Thoat.Values.Image");
             btn_Thoat.Values.Text = " Thoát";
             btn_Thoat.Click += btn_Thoat_Click;
             //

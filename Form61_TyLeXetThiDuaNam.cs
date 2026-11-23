@@ -15,6 +15,7 @@ namespace PhanMemThiDua2026
         public Form61_TyLeXetThiDuaNam()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm61Web.ApDung(this);
             _connectionString = new SqliteConnectionStringBuilder
             {

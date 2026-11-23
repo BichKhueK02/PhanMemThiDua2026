@@ -53,7 +53,6 @@
             // 
             quanLyKhenThuongNamHienTai_ToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_KhenThuongCBCSNamHienTai, toolStripMenuItem_KhenThuongTapTheNamHienTai });
             quanLyKhenThuongNamHienTai_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
-            quanLyKhenThuongNamHienTai_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyKhenThuongNamHienTai_ToolStripMenuItem.Image");
             quanLyKhenThuongNamHienTai_ToolStripMenuItem.Name = "quanLyKhenThuongNamHienTai_ToolStripMenuItem";
             quanLyKhenThuongNamHienTai_ToolStripMenuItem.Size = new Size(275, 25);
             quanLyKhenThuongNamHienTai_ToolStripMenuItem.Text = "Quản lý khen thưởng năm hiện tại";
@@ -61,7 +60,6 @@
             // toolStripMenuItem_KhenThuongCBCSNamHienTai
             // 
             toolStripMenuItem_KhenThuongCBCSNamHienTai.Font = new Font("Segoe UI", 12F);
-            toolStripMenuItem_KhenThuongCBCSNamHienTai.Image = (Image)resources.GetObject("toolStripMenuItem_KhenThuongCBCSNamHienTai.Image");
             toolStripMenuItem_KhenThuongCBCSNamHienTai.Name = "toolStripMenuItem_KhenThuongCBCSNamHienTai";
             toolStripMenuItem_KhenThuongCBCSNamHienTai.Size = new Size(295, 26);
             toolStripMenuItem_KhenThuongCBCSNamHienTai.Text = "1. Quản lý khen thưởng CBCS";
@@ -70,7 +68,6 @@
             // toolStripMenuItem_KhenThuongTapTheNamHienTai
             // 
             toolStripMenuItem_KhenThuongTapTheNamHienTai.Font = new Font("Segoe UI", 12F);
-            toolStripMenuItem_KhenThuongTapTheNamHienTai.Image = (Image)resources.GetObject("toolStripMenuItem_KhenThuongTapTheNamHienTai.Image");
             toolStripMenuItem_KhenThuongTapTheNamHienTai.Name = "toolStripMenuItem_KhenThuongTapTheNamHienTai";
             toolStripMenuItem_KhenThuongTapTheNamHienTai.Size = new Size(295, 26);
             toolStripMenuItem_KhenThuongTapTheNamHienTai.Text = "2. Quản lý khen thưởng tập thể";
@@ -86,7 +83,6 @@
             // 
             quanLyKhenThuongNamCu_ToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem_QuanLyKhenThuongCBCSNamCu, toolStripMenuItem_QuanLyKhenThuongTapTheNamCu });
             quanLyKhenThuongNamCu_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
-            quanLyKhenThuongNamCu_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyKhenThuongNamCu_ToolStripMenuItem.Image");
             quanLyKhenThuongNamCu_ToolStripMenuItem.Name = "quanLyKhenThuongNamCu_ToolStripMenuItem";
             quanLyKhenThuongNamCu_ToolStripMenuItem.Size = new Size(240, 25);
             quanLyKhenThuongNamCu_ToolStripMenuItem.Text = "Quản lý khen thưởng năm cũ";
@@ -94,7 +90,6 @@
             // toolStripMenuItem_QuanLyKhenThuongCBCSNamCu
             // 
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Font = new Font("Segoe UI", 12F);
-            toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Image = (Image)resources.GetObject("toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Image");
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Name = "toolStripMenuItem_QuanLyKhenThuongCBCSNamCu";
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Size = new Size(350, 26);
             toolStripMenuItem_QuanLyKhenThuongCBCSNamCu.Text = "1. Quản lý khen thưởng CBCS năm cũ";
@@ -103,7 +98,6 @@
             // toolStripMenuItem_QuanLyKhenThuongTapTheNamCu
             // 
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Font = new Font("Segoe UI", 12F);
-            toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Image = (Image)resources.GetObject("toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Image");
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Name = "toolStripMenuItem_QuanLyKhenThuongTapTheNamCu";
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Size = new Size(350, 26);
             toolStripMenuItem_QuanLyKhenThuongTapTheNamCu.Text = "2. Quản lý khen thưởng tập thể năm cũ";

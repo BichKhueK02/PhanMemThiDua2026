@@ -13,6 +13,7 @@ namespace PhanMemThiDua2026
         public Form59_QuanLyThiDuaTapTheNamCu()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm59Web.ApDung(this);   // giao diện kiểu web như Form4 - chỉ đổi trình bày (đây là dòng DUY NHẤT thêm vào code gốc)
             // Chỉ đăng ký sự kiện CellClick ở đây
             this.kryptonDataGridView1.CellClick += kryptonDataGridView1_CellClick;

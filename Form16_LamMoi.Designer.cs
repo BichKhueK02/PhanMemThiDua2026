@@ -301,7 +301,6 @@
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.None;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 62);
             pictureBox1.Margin = new Padding(2, 3, 2, 3);
             pictureBox1.Name = "pictureBox1";
@@ -320,7 +319,6 @@
             btn_ResetPhanLoai.StateCommon.Border.Rounding = 4F;
             btn_ResetPhanLoai.TabIndex = 0;
             btn_ResetPhanLoai.Values.DropDownArrowColor = Color.Empty;
-            btn_ResetPhanLoai.Values.Image = (Image)resources.GetObject("btn_ResetPhanLoai.Values.Image");
             btn_ResetPhanLoai.Values.Text = "Đặt lại";
             btn_ResetPhanLoai.Click += btn_ResetPhanLoai_Click;
             // 

@@ -152,7 +152,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(33, 21);
             toolStripStatusLabel1.Text = "*";
@@ -296,7 +295,6 @@
             kryptonButton_XuatData.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
             kryptonButton_XuatData.TabIndex = 1;
             kryptonButton_XuatData.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatData.Values.Image = (Image)resources.GetObject("kryptonButton_XuatData.Values.Image");
             kryptonButton_XuatData.Values.Text = "Xuất dữ liệu";
             kryptonButton_XuatData.Click += kryptonButton_XuatData_Click;
             // 
@@ -311,14 +309,12 @@
             kryptonButton_CapNhat.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F, FontStyle.Regular, GraphicsUnit.Point, 0);
             kryptonButton_CapNhat.TabIndex = 0;
             kryptonButton_CapNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton_CapNhat.Values.Image");
             kryptonButton_CapNhat.Values.Text = "Làm mới";
             kryptonButton_CapNhat.Click += kryptonButton_CapNhat_Click;
             // 
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 3);
             pictureBox1.Margin = new Padding(2, 3, 2, 3);
             pictureBox1.Name = "pictureBox1";
@@ -419,7 +415,6 @@
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Content.LongText.Font = new Font("Segoe UI Semibold", 8.064F, FontStyle.Bold, GraphicsUnit.Point, 0);
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 3;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
             kryptonButton_LamMoiCacOTimKiem.Click += kryptonButton_LamMoiCacOTimKiem_Click;
             // 
@@ -468,7 +463,6 @@
             // 
             // toolStripMenuItem_LamMoi
             // 
-            toolStripMenuItem_LamMoi.Image = (Image)resources.GetObject("toolStripMenuItem_LamMoi.Image");
             toolStripMenuItem_LamMoi.Name = "toolStripMenuItem_LamMoi";
             toolStripMenuItem_LamMoi.Size = new Size(292, 22);
             toolStripMenuItem_LamMoi.Text = "Làm mới trang";
@@ -481,7 +475,6 @@
             // 
             // toolStripMenuItem_XuatDuLieu
             // 
-            toolStripMenuItem_XuatDuLieu.Image = (Image)resources.GetObject("toolStripMenuItem_XuatDuLieu.Image");
             toolStripMenuItem_XuatDuLieu.Name = "toolStripMenuItem_XuatDuLieu";
             toolStripMenuItem_XuatDuLieu.Size = new Size(292, 22);
             toolStripMenuItem_XuatDuLieu.Text = "Xuất dữ liệu khen thưởng ra tệp excel";
@@ -489,7 +482,6 @@
             // 
             // toolStripMenuItem_XoaDuLieuNam
             // 
-            toolStripMenuItem_XoaDuLieuNam.Image = (Image)resources.GetObject("toolStripMenuItem_XoaDuLieuNam.Image");
             toolStripMenuItem_XoaDuLieuNam.Name = "toolStripMenuItem_XoaDuLieuNam";
             toolStripMenuItem_XoaDuLieuNam.Size = new Size(292, 22);
             toolStripMenuItem_XoaDuLieuNam.Text = "Xóa dữ liệu khen thưởng cá nhân năm cũ";

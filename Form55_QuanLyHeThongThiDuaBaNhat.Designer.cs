@@ -56,7 +56,6 @@
             // quanLyThiDuaBaNhat_ToolStripMenuItem
             // 
             quanLyThiDuaBaNhat_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
-            quanLyThiDuaBaNhat_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLyThiDuaBaNhat_ToolStripMenuItem.Image");
             quanLyThiDuaBaNhat_ToolStripMenuItem.Name = "quanLyThiDuaBaNhat_ToolStripMenuItem";
             quanLyThiDuaBaNhat_ToolStripMenuItem.Size = new Size(200, 25);
             quanLyThiDuaBaNhat_ToolStripMenuItem.Text = "Quản lý thi đua Ba nhất";
@@ -71,7 +70,6 @@
             // quanLySoVangThiDuaBaNhat_ToolStripMenuItem
             // 
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Font = new Font("Segoe UI", 12F);
-            quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Image = (Image)resources.GetObject("quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Image");
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Name = "quanLySoVangThiDuaBaNhat_ToolStripMenuItem";
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Size = new Size(202, 25);
             quanLySoVangThiDuaBaNhat_ToolStripMenuItem.Text = "Sổ vàng thi đua Ba nhất";

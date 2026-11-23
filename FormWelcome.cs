@@ -11,6 +11,7 @@ namespace PhanMemThiDua2026
         {
             this.SuspendLayout();
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // ===== 1. CẤU HÌNH UI =====
             this.FormBorderStyle = FormBorderStyle.None; // ẩn tiêu đề + viền ngoài
             this.MaximizeBox = false;

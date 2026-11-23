@@ -21,6 +21,7 @@ namespace PhanMemThiDua2026
         public Form8_CauHinhCSDL()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             NapLogo();
             DoubleBuffered = true;
             AcceptButton = btn_DangNhap;     // Enter = Xác thực

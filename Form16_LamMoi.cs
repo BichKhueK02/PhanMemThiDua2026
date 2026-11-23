@@ -22,6 +22,7 @@ namespace PhanMemThiDua2026
         public Form16_LamMoi()
         {
             InitializeComponent();   // Designer đã nối sự kiện Load + nút Đặt lại -> KHÔNG nối lại (bản cũ làm Load chạy 2 lần)
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;

@@ -934,6 +934,10 @@ namespace PhanMemThiDua2026
                     ControlStyles.ResizeRedraw,
                     true);
                 InitializeModernUI_SplitLayout();
+                // Đọc RAM ngay (rất nhanh: GlobalMemoryStatusEx + WorkingSet) để lần vẽ đầu tiên
+                // đã có số liệu, không phải chờ nạp xong bảng cấu hình + 1 nhịp timer mới hiện.
+                DocSoLieuRam(new ComputerInfo());
+                ApSoLieuLenBieuDo();
                 Load += Form_TaskManagerMini_Load;
             }
             private async void Form_TaskManagerMini_Load(object? sender, EventArgs e)
@@ -943,9 +947,7 @@ namespace PhanMemThiDua2026
                 _daKhoiTao = true;
                 try
                 {
-                    await LoadListViewDataAsync();
-                    if (IsDisposed || !IsHandleCreated)
-                        return;
+                    // Bắt đầu giám sát RAM ngay, song song với việc nạp bảng cấu hình (Registry, ổ đĩa, UUID...)
                     _monitorCts = new CancellationTokenSource();
                     CancellationToken token = _monitorCts.Token;
                     _monitorTask = Task.Run(
@@ -958,6 +960,7 @@ namespace PhanMemThiDua2026
                     updateTimer.Start();
                     lblSystemStatus.Text = "● Đang giám sát tài nguyên";
                     lblSystemStatus.ForeColor = Color.FromArgb(22, 128, 72);
+                    await LoadListViewDataAsync();
                 }
                 catch (Exception ex)
                 {
@@ -1440,53 +1443,50 @@ namespace PhanMemThiDua2026
                 var computerInfo = new ComputerInfo();
                 while (!token.IsCancellationRequested)
                 {
+                    // Số liệu đầu tiên đã đọc trong constructor -> chờ trước rồi mới đọc lại
                     try
                     {
-                        ulong total = computerInfo.TotalPhysicalMemory;
-                        ulong available = computerInfo.AvailablePhysicalMemory;
-                        double totalGB = total / 1024d / 1024d / 1024d;
-                        double freeGB = available / 1024d / 1024d / 1024d;
-                        if (totalGB > 0)
-                        {
-                            freeGB = Math.Clamp(freeGB, 0, totalGB);
-                            double usedGB = Math.Clamp(totalGB - freeGB, 0, totalGB);
-                            float sysPercent = (float)(usedGB / totalGB * 100f);
-                            _bgSysRamPercent = sysPercent;
-                            _bgSysRamText = $"{usedGB:0.00} GB / {totalGB:0.00} GB";
-                            long appPrivateBytes = GC.GetTotalMemory(false);
-                            try
-                            {
-                                using var curProc = Process.GetCurrentProcess();
-                                appPrivateBytes = curProc.WorkingSet64;
-                            }
-                            catch { }
-                            double appMB = appPrivateBytes / 1024d / 1024d;
-                            float appPercent = (float)Math.Clamp(appMB / (totalGB * 1024d) * 100f, 0, 100f);
-                            _bgAppRamPercent = appPercent;
-                            _bgAppRamText = appMB >= 1024
-                                ? $"{appMB / 1024d:0.00} GB"
-                                : $"{appMB:0.0} MB";
-                        }
+                        if (token.WaitHandle.WaitOne(1000))
+                            break;
                     }
-                    catch (OperationCanceledException)
+                    catch (ObjectDisposedException)
                     {
                         break;
                     }
-                    catch { }
-                    try
-                    {
-                        Thread.Sleep(1000);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        break;
-                    }
+                    DocSoLieuRam(computerInfo);
                 }
             }
-            private void UpdateTimer_Tick(object? sender, EventArgs e)
+            private void DocSoLieuRam(ComputerInfo computerInfo)
             {
-                if (_dangDong || IsDisposed || !IsHandleCreated)
-                    return;
+                try
+                {
+                    ulong total = computerInfo.TotalPhysicalMemory;
+                    ulong available = computerInfo.AvailablePhysicalMemory;
+                    double totalGB = total / 1024d / 1024d / 1024d;
+                    double freeGB = available / 1024d / 1024d / 1024d;
+                    if (totalGB <= 0)
+                        return;
+                    freeGB = Math.Clamp(freeGB, 0, totalGB);
+                    double usedGB = Math.Clamp(totalGB - freeGB, 0, totalGB);
+                    _bgSysRamPercent = (float)(usedGB / totalGB * 100f);
+                    _bgSysRamText = $"{usedGB:0.00} GB / {totalGB:0.00} GB";
+                    long appPrivateBytes = GC.GetTotalMemory(false);
+                    try
+                    {
+                        using var curProc = Process.GetCurrentProcess();
+                        appPrivateBytes = curProc.WorkingSet64;
+                    }
+                    catch { }
+                    double appMB = appPrivateBytes / 1024d / 1024d;
+                    _bgAppRamPercent = (float)Math.Clamp(appMB / (totalGB * 1024d) * 100f, 0, 100f);
+                    _bgAppRamText = appMB >= 1024
+                        ? $"{appMB / 1024d:0.00} GB"
+                        : $"{appMB:0.0} MB";
+                }
+                catch { }
+            }
+            private void ApSoLieuLenBieuDo()
+            {
                 try
                 {
                     chartSysRam.Percent = _bgSysRamPercent;
@@ -1495,6 +1495,12 @@ namespace PhanMemThiDua2026
                     lblAppRamDetail.Text = $"Đang sử dụng: {_bgAppRamText}";
                 }
                 catch { }
+            }
+            private void UpdateTimer_Tick(object? sender, EventArgs e)
+            {
+                if (_dangDong || IsDisposed || !IsHandleCreated)
+                    return;
+                ApSoLieuLenBieuDo();
             }
             private void BtnExport_Click(object? sender, EventArgs e)
             {

@@ -110,9 +110,15 @@ namespace PhanMemThiDua2026
             {
                 t3.BackColor = MauNen;
                 t3.Margin = new Padding(0);
-                // Cột "Chọn sắp xếp" rộng cố định: nới ra để tiêu đề thẻ không bị cắt chữ
-                if (t3.ColumnStyles.Count >= 4 && t3.ColumnStyles[3].SizeType == SizeType.Absolute)
-                    t3.ColumnStyles[3].Width = 180F;
+                // Hàng thẻ trên cùng: [hình 128 cố định] [Bộ lọc 55%] [Phân trang 45%] [Chọn sắp xếp 180 cố định].
+                // Trước: hình chiếm 16,5% bề ngang => thẻ "Phân trang điều hướng" quá hẹp, nút "Áp dụng" bị tràn khi màn hình 125–150%.
+                if (t3.ColumnStyles.Count >= 4)
+                {
+                    t3.ColumnStyles[0] = new ColumnStyle(SizeType.Absolute, 128F);
+                    t3.ColumnStyles[1] = new ColumnStyle(SizeType.Percent, 55F);
+                    t3.ColumnStyles[2] = new ColumnStyle(SizeType.Percent, 45F);
+                    t3.ColumnStyles[3] = new ColumnStyle(SizeType.Absolute, 180F);
+                }
             }
         }
         // ===================== THẺ =====================
@@ -228,7 +234,8 @@ namespace PhanMemThiDua2026
                 t4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));    // "Trang x / y"
             }
             // Nhập số trang | ô số | Áp dụng
-            DatCot(f, "tableLayoutPanel7", (SizeType.Absolute, 116F), (SizeType.Absolute, 84F), (SizeType.Percent, 100F));
+            // Cột nhãn tự co theo chữ (đúng ở mọi DPI), ô số và nút chia phần còn lại
+            DatCot(f, "tableLayoutPanel7", (SizeType.AutoSize, 0F), (SizeType.Percent, 42F), (SizeType.Percent, 58F));
             DinhNhan(Tim<Label>(f, "label1"), true);
             var o = Tim<Krypton.Toolkit.KryptonTextBox>(f, "textBox_SoDongHienThi");
             if (o != null)

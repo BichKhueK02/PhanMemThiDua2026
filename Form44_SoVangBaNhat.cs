@@ -46,6 +46,7 @@ namespace PhanMemThiDua2026
         public Form44_SoVangBaNhat()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // Mọi chỉnh sửa giao diện sau InitializeComponent gom vào 1 lượt tạm dừng bố cục cả cây => dàn trang đúng 1 lần
             Module_TamDungBoCuc.ChayKhongDanTrang(this, () =>
             {
@@ -239,6 +240,8 @@ namespace PhanMemThiDua2026
                 }
             }
             finally { dt.EndLoadData(); }
+            // Cột ẩn "họ tên | số hiệu" đã bỏ dấu cho ô tìm kiếm (dựng ở luồng nền, trước khi gắn lưới)
+            Module_BoLocKhenThuong.DamBaoCotTimKiem(dt, "HoVaTen", "SoHieu");
             return dt;
         }
         /// <summary>Nạp lại lưới. Lần gọi mới hơn sẽ hủy lần cũ nên chỉ có kết quả mới nhất được ghi vào lưới.</summary>
@@ -452,12 +455,32 @@ namespace PhanMemThiDua2026
             if (_dangDatLaiLoc || IsDisposed) return;
             if (kryptonDataGridView1.DataSource is not DataTable dt) return;
             var dk = new List<string>(2);
-            string ten = kryptonTextBox1_TimKiemTheoTen.Text.Trim();
-            if (ten.Length > 0)
-                dk.Add($"HoVaTen LIKE '%{EscapeLike(ten.Replace("'", "''"))}%'");
-            if (comboBox_TimKiemDonVi.SelectedIndex > 0 && comboBox_TimKiemDonVi.SelectedItem is string donVi)
+            // Tên / số hiệu: KHÔNG phân biệt dấu, hoa/thường; nhiều từ thì từ nào cũng phải có
+            string ten = kryptonTextBox1_TimKiemTheoTen.Text;
+            bool coCotTim = dt.Columns.Contains(Module_BoLocKhenThuong.COT_TIM_KIEM);
+            if (coCotTim) { string d = Module_BoLocKhenThuong.DieuKienTimKiem(ten); if (d.Length > 0) dk.Add(d); }
+            else if (ten.Trim().Length > 0)
+                dk.Add($"HoVaTen LIKE '%{EscapeLike(ten.Trim().Replace("'", "''"))}%'");
+            string donVi = comboBox_TimKiemDonVi.SelectedIndex > 0 ? comboBox_TimKiemDonVi.SelectedItem as string ?? "" : "";
+            if (donVi.Length > 0)
                 dk.Add($"DonVi = '{donVi.Replace("'", "''")}'");
-            try { dt.DefaultView.RowFilter = string.Join(" AND ", dk); }
+            // BỘ LỌC KÉP: combo Đơn vị chỉ còn đơn vị có người khớp ô tìm kiếm (giữ thứ tự chuẩn, giữ giá trị đang chọn)
+            if (coCotTim)
+            {
+                string[] tu = Module_BoLocKhenThuong.TachTuKhoa(ten);
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donVi, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"));
+                Module_BoLocKhenThuong.LocKep(Module_BoLocKhenThuong.DongConSong(dt),
+                    tu.Length == 0 ? null : r => Module_BoLocKhenThuong.KhopCotTimKiem(r, tu), tcDv);
+                _dangDatLaiLoc = true;
+                try
+                {
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_TimKiemDonVi,
+                        Module_BoLocKhenThuong.SapTheoThuTuChuan(tcDv.Con, Module_DonVi.GetDanhSachDonVi()), Module_HeThong.Tat_Ca);
+                }
+                finally { _dangDatLaiLoc = false; }
+            }
+            string boLoc = string.Join(" AND ", dk);
+            try { if (!string.Equals(dt.DefaultView.RowFilter, boLoc, StringComparison.Ordinal)) dt.DefaultView.RowFilter = boLoc; }
             catch (Exception ex) { Debug.WriteLine("[LOC] " + ex.Message); dt.DefaultView.RowFilter = string.Empty; }
             CapNhatThongKeSoLuong();
         }

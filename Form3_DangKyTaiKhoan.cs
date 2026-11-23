@@ -19,6 +19,7 @@ namespace PhanMemThiDua2026
         public Form3_DangKyTaiKhoan()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             InitToolTips();
             this.Shown += Form3_Shown;
             // ⭐ 1. Căn giữa Form chuẩn UI/UX

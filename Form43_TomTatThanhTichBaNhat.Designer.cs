@@ -96,7 +96,6 @@ namespace PhanMemThiDua2026
             // pictureBox1
             // 
             pictureBox1.BackColor = Color.Transparent;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(32, 24);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(48, 48);
@@ -238,7 +237,6 @@ namespace PhanMemThiDua2026
             kryptonButton_LuuDataDeNghi.StateTracking.Content.ShortText.Color2 = Color.White;
             kryptonButton_LuuDataDeNghi.TabIndex = 2;
             kryptonButton_LuuDataDeNghi.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LuuDataDeNghi.Values.Image = (Image)resources.GetObject("kryptonButton_LuuDataDeNghi.Values.Image");
             kryptonButton_LuuDataDeNghi.Values.Text = "  Lưu";
             kryptonButton_LuuDataDeNghi.Click += kryptonButton_LuuDataDeNghi_Click;
             // 
@@ -291,7 +289,6 @@ namespace PhanMemThiDua2026
             kryptonButton2_TangCoChuRichText.TabIndex = 40;
             toolTip1.SetToolTip(kryptonButton2_TangCoChuRichText, "Tăng cỡ chữ");
             kryptonButton2_TangCoChuRichText.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton2_TangCoChuRichText.Values.Image = (Image)resources.GetObject("kryptonButton2_TangCoChuRichText.Values.Image");
             kryptonButton2_TangCoChuRichText.Values.Text = "";
             kryptonButton2_TangCoChuRichText.Click += kryptonButton2_TangCoChuRichText_Click;
             // 
@@ -318,7 +315,6 @@ namespace PhanMemThiDua2026
             kryptonButton2_GiamCoChuRichText.TabIndex = 39;
             toolTip1.SetToolTip(kryptonButton2_GiamCoChuRichText, "Giảm cỡ chữ");
             kryptonButton2_GiamCoChuRichText.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton2_GiamCoChuRichText.Values.Image = (Image)resources.GetObject("kryptonButton2_GiamCoChuRichText.Values.Image");
             kryptonButton2_GiamCoChuRichText.Values.Text = "";
             kryptonButton2_GiamCoChuRichText.Click += kryptonButton2_GiamCoChuRichText_Click;
             // 
@@ -363,7 +359,6 @@ namespace PhanMemThiDua2026
             // toolStripStatusLabel1_SoLuongKyTu
             // 
             toolStripStatusLabel1_SoLuongKyTu.ForeColor = Color.FromArgb(71, 85, 105);
-            toolStripStatusLabel1_SoLuongKyTu.Image = (Image)resources.GetObject("toolStripStatusLabel1_SoLuongKyTu.Image");
             toolStripStatusLabel1_SoLuongKyTu.Name = "toolStripStatusLabel1_SoLuongKyTu";
             toolStripStatusLabel1_SoLuongKyTu.Size = new Size(28, 17);
             toolStripStatusLabel1_SoLuongKyTu.Text = "*";

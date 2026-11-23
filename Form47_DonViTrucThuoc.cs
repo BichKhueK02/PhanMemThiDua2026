@@ -18,6 +18,7 @@ namespace PhanMemThiDua2026
         public Form47_DonViTrucThuoc()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm47Web.ApDung(this);
             // Cho phép kéo giãn form bằng chuột
             this.FormBorderStyle = FormBorderStyle.Sizable;

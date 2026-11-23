@@ -31,6 +31,7 @@ namespace PhanMemThiDua2026
         public Form52_QuanLyKhenThuong()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             BatDoubleBufferDeQuy(this);   // giảm chớp khi chuyển trang con
             _ui = System.Threading.SynchronizationContext.Current;
             DangKy<Form34_ThongKeKhenThuong>();

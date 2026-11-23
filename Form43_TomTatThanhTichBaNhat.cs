@@ -50,6 +50,7 @@ namespace PhanMemThiDua2026
         public Form43_TomTatThanhTichBaNhat()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             this.ShowInTaskbar = false;
             this.MaximizeBox = false;
             this.MinimizeBox = false;

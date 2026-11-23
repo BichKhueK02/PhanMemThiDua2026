@@ -68,7 +68,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(139, 21);
             toolStripStatusLabel1.Text = "toolStripStatusLabel1";
@@ -127,7 +126,6 @@
             kryptonButton_Dong.StateCommon.Border.Rounding = 4F;
             kryptonButton_Dong.TabIndex = 4;
             kryptonButton_Dong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_Dong.Values.Image = (Image)resources.GetObject("kryptonButton_Dong.Values.Image");
             kryptonButton_Dong.Values.Text = "Đóng";
             kryptonButton_Dong.Click += kryptonButton_Dong_Click;
             // 
@@ -167,7 +165,6 @@
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.None;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(3, 2);
             pictureBox1.Margin = new Padding(3, 2, 3, 2);
             pictureBox1.Name = "pictureBox1";
@@ -186,7 +183,6 @@
             //
             // lamMoi_ToolStripMenuItem
             //
-            lamMoi_ToolStripMenuItem.Image = (Image)resources.GetObject("lamMoi_ToolStripMenuItem.Image");
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
             lamMoi_ToolStripMenuItem.Size = new Size(200, 26);
@@ -200,7 +196,6 @@
             //
             // xuatDuLieuExcel_ToolStripMenuItem
             //
-            xuatDuLieuExcel_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieuExcel_ToolStripMenuItem.Image");
             xuatDuLieuExcel_ToolStripMenuItem.Name = "xuatDuLieuExcel_ToolStripMenuItem";
             xuatDuLieuExcel_ToolStripMenuItem.Size = new Size(200, 26);
             xuatDuLieuExcel_ToolStripMenuItem.Text = "Xuất dữ liệu (Tệp excel)";
@@ -213,7 +208,6 @@
             //
             // dongForm_ToolStripMenuItem
             //
-            dongForm_ToolStripMenuItem.Image = (Image)resources.GetObject("dongForm_ToolStripMenuItem.Image");
             dongForm_ToolStripMenuItem.Name = "dongForm_ToolStripMenuItem";
             dongForm_ToolStripMenuItem.Size = new Size(200, 26);
             dongForm_ToolStripMenuItem.Text = "Đóng form";

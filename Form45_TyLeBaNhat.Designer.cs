@@ -95,7 +95,6 @@
             btnLuu.StateCommon.Border.Rounding = 4F;
             btnLuu.TabIndex = 30;
             btnLuu.Values.DropDownArrowColor = Color.Empty;
-            btnLuu.Values.Image = (Image)resources.GetObject("btnLuu.Values.Image");
             btnLuu.Values.Text = "Lưu tỷ lệ";
             btnLuu.Click += btnLuu_Click;
             // 

@@ -67,7 +67,6 @@
             // PictureBox3
             //
             PictureBox3.BackColor = Color.Transparent;
-            PictureBox3.Image = (Image)resources.GetObject("PictureBox3.Image");
             PictureBox3.Location = new Point(0, 8);
             PictureBox3.Name = "PictureBox3";
             PictureBox3.Size = new Size(56, 56);

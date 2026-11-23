@@ -288,8 +288,15 @@ namespace PhanMemThiDua2026
             }
             catch { }
         }
+        /// <summary>
+        /// true khi phần mềm đang CHỦ ĐỘNG thoát (ThoatDutKhoat / ThoatKhanCap / thoát thường, Form2 thoát hẳn).
+        /// Lúc này các tác vụ nền còn dở (await gửi về form đã hủy...) có thể ném lỗi vô hại:
+        /// bộ bẫy lỗi toàn cục (Program) chỉ ghi nhật ký, KHÔNG bật hộp thoại (trước đây hộp "Lỗi Hệ Thống" chớp lên rồi biến mất).
+        /// </summary>
+        public static volatile bool DangThoat;
         private static void DatDongHoKetThuc(int mili)
         {
+            DangThoat = true;
             try
             {
                 new Thread(() =>

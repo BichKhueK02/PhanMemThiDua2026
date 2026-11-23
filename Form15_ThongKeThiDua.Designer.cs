@@ -292,7 +292,6 @@
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Content.LongText.Font = new Font("Segoe UI Semibold", 8.064F, FontStyle.Bold, GraphicsUnit.Point, 0);
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 4;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
             kryptonButton_LamMoiCacOTimKiem.Click += kryptonButton_LamMoiCacOTimKiem_Click;
             // 
@@ -339,7 +338,6 @@
             kryptonButton_XuatData.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
             kryptonButton_XuatData.TabIndex = 1;
             kryptonButton_XuatData.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatData.Values.Image = (Image)resources.GetObject("kryptonButton_XuatData.Values.Image");
             kryptonButton_XuatData.Values.Text = "Xuất dữ liệu";
             kryptonButton_XuatData.Click += kryptonButton_XuatData_Click;
             // 
@@ -354,7 +352,6 @@
             kryptonButton_CapNhat.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F, FontStyle.Regular, GraphicsUnit.Point, 0);
             kryptonButton_CapNhat.TabIndex = 0;
             kryptonButton_CapNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton_CapNhat.Values.Image");
             kryptonButton_CapNhat.Values.Text = "Đồng bộ";
             kryptonButton_CapNhat.Click += kryptonButton_CapNhat_Click;
             // 
@@ -386,7 +383,6 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(33, 23);
             toolStripStatusLabel1.Text = "*";
@@ -398,7 +394,6 @@
             // 
             // toolStripStatusLabel2
             // 
-            toolStripStatusLabel2.Image = (Image)resources.GetObject("toolStripStatusLabel2.Image");
             toolStripStatusLabel2.Name = "toolStripStatusLabel2";
             toolStripStatusLabel2.Size = new Size(33, 23);
             toolStripStatusLabel2.Text = "*";
@@ -413,7 +408,6 @@
             // 
             // lamMoi_ToolStripMenuItem
             // 
-            lamMoi_ToolStripMenuItem.Image = Properties.Resources.ic_database;
             lamMoi_ToolStripMenuItem.Name = "lamMoi_ToolStripMenuItem";
             lamMoi_ToolStripMenuItem.ShortcutKeys = Keys.F5;
             lamMoi_ToolStripMenuItem.Size = new Size(289, 28);
@@ -422,7 +416,6 @@
             // 
             // dongBoDuLieu_ToolStripMenuItem
             // 
-            dongBoDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("dongBoDuLieu_ToolStripMenuItem.Image");
             dongBoDuLieu_ToolStripMenuItem.Name = "dongBoDuLieu_ToolStripMenuItem";
             dongBoDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.F6;
             dongBoDuLieu_ToolStripMenuItem.Size = new Size(289, 28);
@@ -436,7 +429,6 @@
             // 
             // suaThongTin_ToolStripMenuItem
             // 
-            suaThongTin_ToolStripMenuItem.Image = (Image)resources.GetObject("suaThongTin_ToolStripMenuItem.Image");
             suaThongTin_ToolStripMenuItem.Name = "suaThongTin_ToolStripMenuItem";
             suaThongTin_ToolStripMenuItem.Size = new Size(289, 28);
             suaThongTin_ToolStripMenuItem.Text = "Sửa thông tin";
@@ -444,7 +436,6 @@
             // 
             // dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem
             // 
-            dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Image = (Image)resources.GetObject("dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Image");
             dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Name = "dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem";
             dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Size = new Size(289, 28);
             dongBoKetQuaThiDuaNamTruocVeHienTaiToolStripMenuItem.Text = "Đồng bộ kết quả thi đua năm trước";
@@ -457,7 +448,6 @@
             // 
             // xuatDuLieu_ToolStripMenuItem
             // 
-            xuatDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieu_ToolStripMenuItem.Image");
             xuatDuLieu_ToolStripMenuItem.Name = "xuatDuLieu_ToolStripMenuItem";
             xuatDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.E;
             xuatDuLieu_ToolStripMenuItem.Size = new Size(289, 28);
@@ -466,7 +456,6 @@
             // 
             // nhapDuLieuTuTepExcel_ExcelToolStripMenuItem
             // 
-            nhapDuLieuTuTepExcel_ExcelToolStripMenuItem.Image = (Image)resources.GetObject("nhapDuLieuTuTepExcel_ExcelToolStripMenuItem.Image");
             nhapDuLieuTuTepExcel_ExcelToolStripMenuItem.Name = "nhapDuLieuTuTepExcel_ExcelToolStripMenuItem";
             nhapDuLieuTuTepExcel_ExcelToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
             nhapDuLieuTuTepExcel_ExcelToolStripMenuItem.Size = new Size(289, 28);
@@ -475,7 +464,6 @@
             // 
             // tinhPhanLoaiThang_ToolStripMenuItem
             // 
-            tinhPhanLoaiThang_ToolStripMenuItem.Image = (Image)resources.GetObject("tinhPhanLoaiThang_ToolStripMenuItem.Image");
             tinhPhanLoaiThang_ToolStripMenuItem.Name = "tinhPhanLoaiThang_ToolStripMenuItem";
             tinhPhanLoaiThang_ToolStripMenuItem.ShortcutKeys = Keys.F9;
             tinhPhanLoaiThang_ToolStripMenuItem.Size = new Size(289, 28);
@@ -489,7 +477,6 @@
             // 
             // taoBanSaoLuuTruTheoNamToolStripMenuItem
             // 
-            taoBanSaoLuuTruTheoNamToolStripMenuItem.Image = (Image)resources.GetObject("taoBanSaoLuuTruTheoNamToolStripMenuItem.Image");
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Name = "taoBanSaoLuuTruTheoNamToolStripMenuItem";
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Size = new Size(289, 28);
             taoBanSaoLuuTruTheoNamToolStripMenuItem.Text = "Lưu kết quả thi đua năm";
@@ -502,7 +489,6 @@
             // 
             // xoaTatCaDuLieu_ToolStripMenuItem
             // 
-            xoaTatCaDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaTatCaDuLieu_ToolStripMenuItem.Image");
             xoaTatCaDuLieu_ToolStripMenuItem.Name = "xoaTatCaDuLieu_ToolStripMenuItem";
             xoaTatCaDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.Delete;
             xoaTatCaDuLieu_ToolStripMenuItem.Size = new Size(289, 28);
@@ -511,7 +497,6 @@
             // 
             // xoaDuLieu_ToolStripMenuItem
             // 
-            xoaDuLieu_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaDuLieu_ToolStripMenuItem.Image");
             xoaDuLieu_ToolStripMenuItem.Name = "xoaDuLieu_ToolStripMenuItem";
             xoaDuLieu_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.C;
             xoaDuLieu_ToolStripMenuItem.Size = new Size(289, 28);
@@ -520,7 +505,6 @@
             // 
             // xoaDuLieuThiDuaThang_ToolStripMenuItem
             // 
-            xoaDuLieuThiDuaThang_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaDuLieuThiDuaThang_ToolStripMenuItem.Image");
             xoaDuLieuThiDuaThang_ToolStripMenuItem.Name = "xoaDuLieuThiDuaThang_ToolStripMenuItem";
             xoaDuLieuThiDuaThang_ToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Shift | Keys.M;
             xoaDuLieuThiDuaThang_ToolStripMenuItem.Size = new Size(289, 28);

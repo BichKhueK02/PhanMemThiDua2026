@@ -57,6 +57,7 @@ namespace PhanMemThiDua2026
         public Form39_ThongTinNguoiDung()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             SetupUI();
             InitBorderlessStyle();
             this.VisibleChanged += Form39_ThongTinNguoiDung_VisibleChanged;

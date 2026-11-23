@@ -142,7 +142,6 @@
             kryptonButton1_HuongDanSuDung.StateCommon.Border.Rounding = 4F;
             kryptonButton1_HuongDanSuDung.TabIndex = 34;
             kryptonButton1_HuongDanSuDung.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_HuongDanSuDung.Values.Image = (Image)resources.GetObject("kryptonButton1_HuongDanSuDung.Values.Image");
             kryptonButton1_HuongDanSuDung.Values.Text = "Hướng dẫn";
             kryptonButton1_HuongDanSuDung.Click += kryptonButton1_HuongDanSuDung_Click;
             // 
@@ -315,7 +314,6 @@
             btn_NhapDuLieuJson.StateCommon.Border.Rounding = 4F;
             btn_NhapDuLieuJson.TabIndex = 27;
             btn_NhapDuLieuJson.Values.DropDownArrowColor = Color.Empty;
-            btn_NhapDuLieuJson.Values.Image = (Image)resources.GetObject("btn_NhapDuLieuJson.Values.Image");
             btn_NhapDuLieuJson.Values.Text = "Nhập dữ liệu";
             btn_NhapDuLieuJson.Click += btn_NhapDuLieuJson_Click;
             // 
@@ -329,7 +327,6 @@
             btn_XuatDuLieuJson.StateCommon.Border.Rounding = 4F;
             btn_XuatDuLieuJson.TabIndex = 22;
             btn_XuatDuLieuJson.Values.DropDownArrowColor = Color.Empty;
-            btn_XuatDuLieuJson.Values.Image = (Image)resources.GetObject("btn_XuatDuLieuJson.Values.Image");
             btn_XuatDuLieuJson.Values.Text = "Xuất dữ liệu";
             btn_XuatDuLieuJson.Click += btn_XuatDuLieuJson_Click;
             // 
@@ -343,7 +340,6 @@
             btn_QuetTimKiem.StateCommon.Border.Rounding = 4F;
             btn_QuetTimKiem.TabIndex = 22;
             btn_QuetTimKiem.Values.DropDownArrowColor = Color.Empty;
-            btn_QuetTimKiem.Values.Image = (Image)resources.GetObject("btn_QuetTimKiem.Values.Image");
             btn_QuetTimKiem.Values.Text = "Quét tìm kiếm";
             // 
             // label1_DuongDanCSDLDuocChon
@@ -369,7 +365,6 @@
             kryptonButton2_MoThuMuc.StateCommon.Border.Rounding = 4F;
             kryptonButton2_MoThuMuc.TabIndex = 29;
             kryptonButton2_MoThuMuc.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton2_MoThuMuc.Values.Image = (Image)resources.GetObject("kryptonButton2_MoThuMuc.Values.Image");
             kryptonButton2_MoThuMuc.Values.Text = "Mở thư mục";
             kryptonButton2_MoThuMuc.Click += kryptonButton2_MoThuMuc_Click;
             // 
@@ -437,7 +432,6 @@
             kryptonButton_Dong.StateCommon.Border.Rounding = 4F;
             kryptonButton_Dong.TabIndex = 26;
             kryptonButton_Dong.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_Dong.Values.Image = (Image)resources.GetObject("kryptonButton_Dong.Values.Image");
             kryptonButton_Dong.Values.Text = "Đóng";
             kryptonButton_Dong.Click += kryptonButton_Dong_Click;
             // 

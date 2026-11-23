@@ -30,6 +30,7 @@ namespace PhanMemThiDua2026
         public Form36_TinhPhanLoaiThang(DataTable dtTruyenTuForm15, bool laTanBinh)
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             _iconStar = Properties.Resources.ic_star;
             _isTanBinh = laTanBinh;
             // ✅ Nhận null an toàn — Form36 sẽ tự load từ DB trong Load event
@@ -51,6 +52,7 @@ namespace PhanMemThiDua2026
                 _dtXuLy.Columns.Add("IsLoai1", typeof(bool));
             if (!_dtXuLy.Columns.Contains("GhiChu"))
                 _dtXuLy.Columns.Add("GhiChu", typeof(string));
+            Module_BoLocKhenThuong.DamBaoCotTimKiem(_dtXuLy, "HoVaTen", "SoHieu");   // cột ẩn tìm kiếm không dấu
             _dvHienThi = new DataView(_dtXuLy);
             // Gắn sự kiện
             this.Load += Form36_TinhPhanLoaiThang_Load;
@@ -161,6 +163,7 @@ namespace PhanMemThiDua2026
                 _dtXuLy.Columns.Add("IsLoai1", typeof(bool));
             if (!_dtXuLy.Columns.Contains("GhiChu"))
                 _dtXuLy.Columns.Add("GhiChu", typeof(string));
+            Module_BoLocKhenThuong.DamBaoCotTimKiem(_dtXuLy, "HoVaTen", "SoHieu");
             _dvHienThi = new DataView(_dtXuLy);
             kryptonDataGridView1.DataSource = _dvHienThi;
         }
@@ -520,6 +523,7 @@ namespace PhanMemThiDua2026
             if (!_dtXuLy.Columns.Contains("KetQuaTinhToan")) _dtXuLy.Columns.Add("KetQuaTinhToan", typeof(string));
             if (!_dtXuLy.Columns.Contains("IsLoai1")) _dtXuLy.Columns.Add("IsLoai1", typeof(bool));
             if (!_dtXuLy.Columns.Contains("GhiChu")) _dtXuLy.Columns.Add("GhiChu", typeof(string));
+            Module_BoLocKhenThuong.DamBaoCotTimKiem(_dtXuLy, "HoVaTen", "SoHieu");
             _dvHienThi = new DataView(_dtXuLy);
             combobox_GiaTriTuanThang_1.Text = "";
             combobox_GiaTriTuanThang_2.Text = "";
@@ -970,7 +974,8 @@ namespace PhanMemThiDua2026
             comboBox_TimKiemDonVi.Items.Clear();
             comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
             var dsDonVi = _dtXuLy.AsEnumerable().Select(r => r.Field<string>("DonVi")).Where(x => !string.IsNullOrEmpty(x)).Distinct().OrderBy(x => x);
-            foreach (var dv in dsDonVi) comboBox_TimKiemDonVi.Items.Add(dv!);
+            _thuTuDonVi = dsDonVi.Select(x => x!.Trim()).ToList();
+            foreach (var dv in _thuTuDonVi) comboBox_TimKiemDonVi.Items.Add(dv);
             comboBox_TimKiemDonVi.SelectedIndex = 0;
             comboBox_XepLoaiThiDua.Items.Clear();
             comboBox_XepLoaiThiDua.Items.AddRange(new string[] { Module_HeThong.Tat_Ca, Module_HeThong.Loai_1, Module_HeThong.Loai_2, Module_HeThong.Loai_3, Module_HeThong.Loai_4 });
@@ -979,15 +984,8 @@ namespace PhanMemThiDua2026
             comboBox_TimKiemTinhTrang.Items.AddRange(new string[] { Module_HeThong.Tat_Ca, Module_HeThong.TT_DANG_CONG_TAC, Module_HeThong.TT_CHUYEN_CONG_TAC });
             comboBox_TimKiemTinhTrang.SelectedIndex = 0;
         }
-        private string EscapeFilter(string value)
-        {
-            if (string.IsNullOrEmpty(value)) return "";
-            return value.Replace("'", "''")
-                        .Replace("[", "[[]")
-                        .Replace("]", "[]]")
-                        .Replace("*", "[*]")
-                        .Replace("%", "[%]");
-        }
+        private List<string> _thuTuDonVi = new();
+        // Ô gõ tên: chờ 200 ms sau phím cuối mới lọc. Chọn combo: lọc ngay (bản cũ chờ 300 ms cho cả combo => cảm giác ì).
         private async void BoLoc_Changed(object? sender, EventArgs e)
         {
             if (_isUpdatingCombos || _dvHienThi == null) return;
@@ -996,32 +994,72 @@ namespace PhanMemThiDua2026
             var token = _ctsFilter.Token;
             try
             {
-                await Task.Delay(300, token);
-                string filter = BuildFilterString(); // Hàm tách logic filter
-                // GIA CỐ: Tạm dừng đồng bộ của BindingContext để Grid không "nhìn" thấy thay đổi
-                this.BindingContext![kryptonDataGridView1.DataSource!]!.SuspendBinding();
-                lock (_dataLock)
-                {
-                    _dvHienThi.RowFilter = filter;
-                }
-                this.BindingContext[kryptonDataGridView1.DataSource].ResumeBinding();
-                CapNhatThongKeStatus();
+                if (ReferenceEquals(sender, textBox_TimKiemTheoTen)) await Task.Delay(200, token);
+                token.ThrowIfCancellationRequested();
+                ApDungBoLoc();
             }
             catch (OperationCanceledException) { }
             catch (Exception ex) { Debug.WriteLine("Lỗi Filter: " + ex.Message); }
         }
-        private string BuildFilterString()
+        private static string GiaTriCombo(ComboBox cb)
         {
-            string ten = EscapeFilter(textBox_TimKiemTheoTen.Text.Trim());
-            string dv = comboBox_TimKiemDonVi.Text == Module_HeThong.Tat_Ca ? "" : EscapeFilter(comboBox_TimKiemDonVi.Text);
-            string loai = comboBox_XepLoaiThiDua.Text == Module_HeThong.Tat_Ca ? "" : EscapeFilter(comboBox_XepLoaiThiDua.Text);
-            string tinhTrang = comboBox_TimKiemTinhTrang.Text == Module_HeThong.Tat_Ca ? "" : EscapeFilter(comboBox_TimKiemTinhTrang.Text);
-            return string.Join(" AND ", new List<string> {
-        !string.IsNullOrEmpty(ten) ? $"HoVaTen LIKE '%{ten}%'" : "",
-        !string.IsNullOrEmpty(dv) ? $"DonVi = '{dv}'" : "",
-        !string.IsNullOrEmpty(loai) ? $"KetQuaTinhToan = '{loai}'" : "",
-        !string.IsNullOrEmpty(tinhTrang) ? $"TinhTrang = '{tinhTrang}'" : ""
-    }.Where(s => !string.IsNullOrEmpty(s)));
+            string v = cb.SelectedIndex > 0 ? (cb.SelectedItem?.ToString() ?? "") : (cb.SelectedIndex < 0 ? cb.Text : "");
+            v = v.Trim();
+            return v == Module_HeThong.Tat_Ca ? "" : v;
+        }
+        private void ApDungBoLoc()
+        {
+            if (_dvHienThi == null || IsDisposed) return;
+            string ten = textBox_TimKiemTheoTen.Text;
+            string dv = GiaTriCombo(comboBox_TimKiemDonVi);
+            string loai = GiaTriCombo(comboBox_XepLoaiThiDua);
+            string tinhTrang = GiaTriCombo(comboBox_TimKiemTinhTrang);
+            string filter = BuildFilterString(ten, dv, loai, tinhTrang);
+            // BỘ LỌC KÉP: combo Đơn vị chỉ còn đơn vị có người khớp tên + xếp loại + tình trạng đang chọn (giữ giá trị đang chọn)
+            if (_dtXuLy != null)
+            {
+                string[] tu = Module_BoLocKhenThuong.TachTuKhoa(ten);
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(dv, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"));
+                DataRow[] dong;
+                lock (_dataLock) dong = Module_BoLocKhenThuong.DongConSong(_dtXuLy);
+                Module_BoLocKhenThuong.LocKep(dong, r =>
+                    (loai.Length == 0 || string.Equals(Module_BoLocKhenThuong.Chuoi(r, "KetQuaTinhToan"), loai, StringComparison.OrdinalIgnoreCase))
+                    && (tinhTrang.Length == 0 || string.Equals(Module_BoLocKhenThuong.Chuoi(r, "TinhTrang"), tinhTrang, StringComparison.OrdinalIgnoreCase))
+                    && Module_BoLocKhenThuong.KhopCotTimKiem(r, tu), tcDv);
+                _isUpdatingCombos = true;
+                try
+                {
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_TimKiemDonVi,
+                        Module_BoLocKhenThuong.SapTheoThuTuChuan(tcDv.Con, _thuTuDonVi), Module_HeThong.Tat_Ca);
+                }
+                finally { _isUpdatingCombos = false; }
+            }
+            if (string.Equals(_dvHienThi.RowFilter ?? "", filter, StringComparison.Ordinal)) { CapNhatThongKeStatus(); return; }
+            // GIA CỐ: Tạm dừng đồng bộ của BindingContext để Grid không "nhìn" thấy thay đổi
+            var cm = kryptonDataGridView1.DataSource != null ? BindingContext?[kryptonDataGridView1.DataSource] : null;
+            cm?.SuspendBinding();
+            try
+            {
+                lock (_dataLock) _dvHienThi.RowFilter = filter;
+            }
+            finally { cm?.ResumeBinding(); }
+            CapNhatThongKeStatus();
+        }
+        private string BuildFilterString(string ten, string dv, string loai, string tinhTrang)
+        {
+            var dk = new List<string>(4);
+            // Tên / số hiệu: KHÔNG phân biệt dấu, hoa/thường; nhiều từ thì từ nào cũng phải có
+            if (_dtXuLy != null && _dtXuLy.Columns.Contains(Module_BoLocKhenThuong.COT_TIM_KIEM))
+            {
+                string t = Module_BoLocKhenThuong.DieuKienTimKiem(ten);
+                if (t.Length > 0) dk.Add(t);
+            }
+            else if (ten.Trim().Length > 0) dk.Add($"HoVaTen LIKE '%{Module_BoLocKhenThuong.ThoatLike(ten.Trim())}%'");
+            // So sánh "=" chỉ thoát nháy đơn (bản cũ thoát cả [ ] * % như LIKE nên đơn vị có dấu ngoặc vuông không bao giờ khớp)
+            if (dv.Length > 0) dk.Add($"DonVi = '{Module_BoLocKhenThuong.ThoatBang(dv)}'");
+            if (loai.Length > 0) dk.Add($"KetQuaTinhToan = '{Module_BoLocKhenThuong.ThoatBang(loai)}'");
+            if (tinhTrang.Length > 0) dk.Add($"TinhTrang = '{Module_BoLocKhenThuong.ThoatBang(tinhTrang)}'");
+            return string.Join(" AND ", dk);
         }
         private void CapNhatThongKeStatus()
         {
@@ -1061,12 +1099,17 @@ namespace PhanMemThiDua2026
         }
         private void kryptonButton_LamMoiCacOTimKiem_Click(object? sender, EventArgs e)
         {
-            textBox_TimKiemTheoTen.Text = "";
-            if (comboBox_TimKiemDonVi.Items.Count > 0) comboBox_TimKiemDonVi.SelectedIndex = 0;
-            if (comboBox_XepLoaiThiDua.Items.Count > 0) comboBox_XepLoaiThiDua.SelectedIndex = 0;
-            if (comboBox_TimKiemTinhTrang.Items.Count > 0) comboBox_TimKiemTinhTrang.SelectedIndex = 0;
-            if (_dvHienThi != null) _dvHienThi.RowFilter = "";
-            CapNhatThongKeStatus();
+            _ctsFilter?.Cancel();
+            _isUpdatingCombos = true;   // đặt lại 4 ô mà không bắn 4 lượt lọc lẻ tẻ
+            try
+            {
+                textBox_TimKiemTheoTen.Text = "";
+                if (comboBox_TimKiemDonVi.Items.Count > 0) comboBox_TimKiemDonVi.SelectedIndex = 0;
+                if (comboBox_XepLoaiThiDua.Items.Count > 0) comboBox_XepLoaiThiDua.SelectedIndex = 0;
+                if (comboBox_TimKiemTinhTrang.Items.Count > 0) comboBox_TimKiemTinhTrang.SelectedIndex = 0;
+            }
+            finally { _isUpdatingCombos = false; }
+            ApDungBoLoc();
         }
         private void troVeThongKe_ToolStripMenuItem_Click(object? sender, EventArgs e) => kryptonButton1_Dong.PerformClick();
         private void xuatDuLieu_ToolStripMenuItem_Click(object? sender, EventArgs e)

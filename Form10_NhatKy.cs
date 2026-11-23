@@ -85,6 +85,7 @@ namespace PhanMemThiDua2026
         public Form10_NhatKy()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm10Web.ApDung(this);   // giao diện kiểu web như Form4 (thẻ, combo bo tròn, nút tím, khung lưới) - chỉ đổi trình bày
             BatDoubleBufferDeQuy(this);   // chỉ tinh chỉnh hiển thị: giảm chớp khi layout/resize các khối lồng nhau
             // BẬT DOUBLE BUFFERING NGAY TẠI ĐÂY
@@ -1089,6 +1090,7 @@ namespace PhanMemThiDua2026
         {
             comboBox_LocTaiKhoan.Items.Clear();
             comboBox_LocTaiKhoan.Items.Add(Module_HeThong.Tat_Ca);
+            _dsTaiKhoanDay = Array.Empty<string>();
             // 🔥 TỐI ƯU 4: Không chọc CSDL nữa, lấy luôn data từ RAM đã giải mã
             if (_listFull != null && _listFull.Count > 0)
             {
@@ -1098,6 +1100,7 @@ namespace PhanMemThiDua2026
                     .Distinct(StringComparer.OrdinalIgnoreCase) // Distinct loại bỏ trùng lặp siêu tốc
                     .OrderBy(x => x)
                     .ToArray();
+                _dsTaiKhoanDay = danhSachDaLoc;
                 comboBox_LocTaiKhoan.Items.AddRange(danhSachDaLoc);
             }
             if (comboBox_LocTaiKhoan.Items.Count > 0)
@@ -1654,6 +1657,7 @@ namespace PhanMemThiDua2026
                     comboBox1_MayTinh_SelectedIndexChanged;
                 comboBox1_MayTinh.BeginUpdate();
                 comboBox1_MayTinh.Items.Clear();
+                _dsMayTinhDay = Array.Empty<string>();
                 // Luôn có Module_HeThong.Tat_Ca
                 comboBox1_MayTinh.Items.Add(Module_HeThong.Tat_Ca);
                 if (_listFull != null && _listFull.Count > 0)
@@ -1674,6 +1678,7 @@ namespace PhanMemThiDua2026
                         Debug.WriteLine(
                             $"[Form10] Máy: [{may}]");
                     }
+                    _dsMayTinhDay = danhSachMay.ToArray();
                     if (danhSachMay.Count > 0)
                     {
                         comboBox1_MayTinh.Items.AddRange(
@@ -1862,30 +1867,39 @@ namespace PhanMemThiDua2026
                     toolStripStatusLabel2.Text = "Đang xử lý dữ liệu...";
                     toolStripStatusLabel2.ForeColor = Color.Blue;
                 }
+                HashSet<string>? conTK = null, conMT = null;   // BỘ LỌC KÉP: giá trị còn lại của 2 combo
                 var ketQua = await Task.Run(() =>
                 {
-                    if (coLoc)
-                        GiaiMaNenSongSong(snapshot);        // chỉ giải mã khi thật sự cần lọc (đa số lần mở form không cần)
-                    IEnumerable<NhatKyModel> query = snapshot;
-                    if (locTK)
-                        query = query.Where(x => string.Equals(x.TaiKhoan, tk, StringComparison.OrdinalIgnoreCase));
-                    if (locMT)
-                        query = query.Where(x => string.Equals(x.TenMay, mt, StringComparison.OrdinalIgnoreCase));
-                    if (tuNgay.HasValue || denNgay.HasValue)
+                    if (!coLoc)
+                        return asc ? snapshot.OrderBy(x => x.ID).ToList() : snapshot.OrderByDescending(x => x.ID).ToList();
+                    GiaiMaNenSongSong(snapshot);        // chỉ giải mã khi thật sự cần lọc (đa số lần mở form không cần)
+                    var tkCon = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var mtCon = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var tam = new List<NhatKyModel>(snapshot.Count);
+                    bool locNgay = tuNgay.HasValue || denNgay.HasValue;
+                    foreach (var x in snapshot)
                     {
-                        query = query.Where(x =>
+                        if (locNgay)
                         {
-                            if (!x.ThoiGianParsed.HasValue) return false;
+                            if (!x.ThoiGianParsed.HasValue) continue;
                             var d = x.ThoiGianParsed.Value;
-                            if (tuNgay.HasValue && d < tuNgay.Value.Date) return false;
-                            if (denNgay.HasValue && d > denNgay.Value.Date) return false;
-                            return true;
-                        });
+                            if (tuNgay.HasValue && d < tuNgay.Value.Date) continue;
+                            if (denNgay.HasValue && d > denNgay.Value.Date) continue;
+                        }
+                        string tenMay = x.TenMay?.Trim() ?? "";
+                        bool okTK = !locTK || string.Equals(x.TaiKhoan, tk, StringComparison.OrdinalIgnoreCase);
+                        // Tên máy so khớp sau khi Trim (combo liệt kê tên đã Trim nên bản cũ lọc ra rỗng nếu CSDL còn khoảng trắng thừa)
+                        bool okMT = !locMT || string.Equals(tenMay, mt, StringComparison.OrdinalIgnoreCase);
+                        if (okMT && !string.IsNullOrWhiteSpace(x.TaiKhoan)) tkCon.Add(x.TaiKhoan);
+                        if (okTK && tenMay.Length > 0) mtCon.Add(tenMay);
+                        if (okTK && okMT) tam.Add(x);
                     }
-                    return (asc ? query.OrderBy(x => x.ID) : query.OrderByDescending(x => x.ID)).ToList();
+                    conTK = tkCon; conMT = mtCon;
+                    return asc ? tam.OrderBy(x => x.ID).ToList() : tam.OrderByDescending(x => x.ID).ToList();
                 });
                 // Có lần lọc mới hơn đã được kích hoạt -> bỏ kết quả cũ
                 if (version != Volatile.Read(ref _filterVersion) || IsDisposed) return;
+                CapNhatComboBoLocKep(conTK, conMT);
                 _listFiltered = ketQua;
                 if (!imLang)
                 {
@@ -1914,6 +1928,28 @@ namespace PhanMemThiDua2026
                     CapNhatTrangThaiNutPhanTrang();
                 }
             }
+        }
+        private string[] _dsTaiKhoanDay = Array.Empty<string>(), _dsMayTinhDay = Array.Empty<string>();
+        /// <summary>
+        /// Combo Tài khoản chỉ còn tài khoản có nhật ký trên máy + khoảng ngày đang chọn, combo Máy tính chỉ còn máy mà tài khoản
+        /// đang chọn đã dùng (null = không lọc gì => trả lại danh sách đầy đủ). Giữ giá trị đang chọn, không bắn lọc lại.
+        /// </summary>
+        private void CapNhatComboBoLocKep(HashSet<string>? conTK, HashSet<string>? conMT)
+        {
+            if (IsDisposed) return;
+            bool cu = _dangNapComboBox;
+            _dangNapComboBox = true;
+            try
+            {
+                if (comboBox_LocTaiKhoan.Items.Count > 0)
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_LocTaiKhoan,
+                        conTK == null ? _dsTaiKhoanDay : Module_BoLocKhenThuong.SapABC(conTK), Module_HeThong.Tat_Ca);
+                if (comboBox1_MayTinh.Items.Count > 0)
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox1_MayTinh,
+                        conMT == null ? _dsMayTinhDay : Module_BoLocKhenThuong.SapABC(conMT), Module_HeThong.Tat_Ca);
+            }
+            catch (Exception ex) { Debug.WriteLine("[Form10.BoLocKep] " + ex.Message); }
+            finally { _dangNapComboBox = cu; }
         }
         private async Task HieuUngKetQuaLoc(int soDongPhuHop, int version)
         {

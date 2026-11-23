@@ -27,6 +27,7 @@ namespace PhanMemThiDua2026
         public Form35_ChiTietKhenThuong()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // 4 nút thao tác cùng 1 bề ngang chuẩn (bản thiết kế mỗi nút 1 cỡ: 120 / 108 / 98 / 98)
             foreach (var b in new[] { kryptonButton_Them, kryptonButton_Sua, kryptonButton_Xoa, kryptonButton3_DongForm })
                 if (b != null) b.Width = Module_BoLocKhenThuong.Px(b, Module_BoLocKhenThuong.RongNut);

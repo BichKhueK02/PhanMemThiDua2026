@@ -17,10 +17,12 @@ namespace PhanMemThiDua2026
         public Form38_XuatExcelTinhToan()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
         }
         public Form38_XuatExcelTinhToan(DataView dvHienThi, Dictionary<string, string> mapCotThoiGian, string h1, string h2, string h3, string h4)
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             _dvHienThi = dvHienThi;
             _mapCotThoiGian = mapCotThoiGian;
             _h1 = h1; _h2 = h2; _h3 = h3; _h4 = h4;

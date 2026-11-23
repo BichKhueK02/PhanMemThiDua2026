@@ -71,6 +71,7 @@ namespace PhanMemThiDua2026
         public Form56_TomTatThanhTichTapTheHangThang()
         {
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             ShowInTaskbar = false;
             MaximizeBox = false;
             MinimizeBox = false;

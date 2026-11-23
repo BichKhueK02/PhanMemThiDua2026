@@ -97,7 +97,6 @@
             // 
             // toolStripLabel1
             // 
-            toolStripLabel1.Image = (Image)resources.GetObject("toolStripLabel1.Image");
             toolStripLabel1.Name = "toolStripLabel1";
             toolStripLabel1.Size = new Size(33, 22);
             toolStripLabel1.Text = "*";
@@ -729,7 +728,6 @@
             kryptonButton1_CapNhat.StateCommon.Border.Rounding = 4F;
             kryptonButton1_CapNhat.TabIndex = 0;
             kryptonButton1_CapNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton1_CapNhat.Values.Image");
             kryptonButton1_CapNhat.Values.Text = "Cập nhật";
             kryptonButton1_CapNhat.Click += kryptonButton1_CapNhat_Click;
             // 

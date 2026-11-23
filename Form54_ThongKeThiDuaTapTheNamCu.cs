@@ -18,6 +18,7 @@ namespace PhanMemThiDua2026
             this.StartPosition = FormStartPosition.CenterScreen;
             this.ShowInTaskbar = false;
             InitializeComponent();
+            Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             comboBox1_ChonThangCanXuat.SelectedIndexChanged += comboBox1_ChonThangCanXuat_SelectedIndexChanged;
             InitToolTips();
         }

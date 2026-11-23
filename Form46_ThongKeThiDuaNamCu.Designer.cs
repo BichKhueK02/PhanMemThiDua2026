@@ -89,21 +89,18 @@
             // 
             // toolStripStatusLabel1
             // 
-            toolStripStatusLabel1.Image = (Image)resources.GetObject("toolStripStatusLabel1.Image");
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
             toolStripStatusLabel1.Size = new Size(33, 21);
             toolStripStatusLabel1.Text = "*";
             // 
             // toolStripMenuItem_XoaTimKiem
             // 
-            toolStripMenuItem_XoaTimKiem.Image = (Image)resources.GetObject("toolStripMenuItem_XoaTimKiem.Image");
             toolStripMenuItem_XoaTimKiem.Name = "toolStripMenuItem_XoaTimKiem";
             toolStripMenuItem_XoaTimKiem.Size = new Size(202, 28);
             toolStripMenuItem_XoaTimKiem.Text = "Xóa tìm kiếm";
             // 
             // lamMoiTrangToolStripMenuItem
             // 
-            lamMoiTrangToolStripMenuItem.Image = (Image)resources.GetObject("lamMoiTrangToolStripMenuItem.Image");
             lamMoiTrangToolStripMenuItem.Name = "lamMoiTrangToolStripMenuItem";
             lamMoiTrangToolStripMenuItem.Size = new Size(202, 28);
             lamMoiTrangToolStripMenuItem.Text = "Làm mới trang";
@@ -111,21 +108,18 @@
             // 
             // xuatDuLieuToolStripMenuItem
             // 
-            xuatDuLieuToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieuToolStripMenuItem.Image");
             xuatDuLieuToolStripMenuItem.Name = "xuatDuLieuToolStripMenuItem";
             xuatDuLieuToolStripMenuItem.Size = new Size(202, 28);
             xuatDuLieuToolStripMenuItem.Text = "Xuất dữ liệu (Tệp excel)";
             // 
             // toolStripMenuItem_XoaCSDL
             // 
-            toolStripMenuItem_XoaCSDL.Image = (Image)resources.GetObject("toolStripMenuItem_XoaCSDL.Image");
             toolStripMenuItem_XoaCSDL.Name = "toolStripMenuItem_XoaCSDL";
             toolStripMenuItem_XoaCSDL.Size = new Size(202, 28);
             toolStripMenuItem_XoaCSDL.Text = "Xóa CSDL";
             // 
             // dongFomTroVeFrom15ToolStripMenuItem
             // 
-            dongFomTroVeFrom15ToolStripMenuItem.Image = (Image)resources.GetObject("dongFomTroVeFrom15ToolStripMenuItem.Image");
             dongFomTroVeFrom15ToolStripMenuItem.Name = "dongFomTroVeFrom15ToolStripMenuItem";
             dongFomTroVeFrom15ToolStripMenuItem.Size = new Size(202, 28);
             dongFomTroVeFrom15ToolStripMenuItem.Text = "Đóng";
@@ -252,7 +246,6 @@
             kryptonButton1_XemKetQuaThiDuaTapThe.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
             kryptonButton1_XemKetQuaThiDuaTapThe.TabIndex = 2;
             kryptonButton1_XemKetQuaThiDuaTapThe.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_XemKetQuaThiDuaTapThe.Values.Image = (Image)resources.GetObject("kryptonButton1_XemKetQuaThiDuaTapThe.Values.Image");
             kryptonButton1_XemKetQuaThiDuaTapThe.Values.Text = "Xem kết quả thi đua tập thể";
             kryptonButton1_XemKetQuaThiDuaTapThe.Click += kryptonButton1_XemKetQuaThiDuaTapThe_Click;
             // 
@@ -267,7 +260,6 @@
             kryptonButton_CapNhat.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F, FontStyle.Regular, GraphicsUnit.Point, 0);
             kryptonButton_CapNhat.TabIndex = 0;
             kryptonButton_CapNhat.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_CapNhat.Values.Image = (Image)resources.GetObject("kryptonButton_CapNhat.Values.Image");
             kryptonButton_CapNhat.Values.Text = "Làm mới";
             kryptonButton_CapNhat.Click += kryptonButton_CapNhat_Click;
             // 
@@ -282,7 +274,6 @@
             kryptonButton_XuatData.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
             kryptonButton_XuatData.TabIndex = 1;
             kryptonButton_XuatData.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_XuatData.Values.Image = (Image)resources.GetObject("kryptonButton_XuatData.Values.Image");
             kryptonButton_XuatData.Values.Text = "Xuất dữ liệu";
             kryptonButton_XuatData.Click += kryptonButton_XuatData_Click;
             // 
@@ -346,7 +337,6 @@
             // pictureBox1
             // 
             pictureBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(2, 3);
             pictureBox1.Margin = new Padding(2, 3, 2, 3);
             pictureBox1.Name = "pictureBox1";
@@ -476,7 +466,6 @@
             kryptonButton_LamMoiCacOTimKiem.StateCommon.Content.LongText.Font = new Font("Segoe UI Semibold", 8.064F, FontStyle.Bold, GraphicsUnit.Point, 0);
             kryptonButton_LamMoiCacOTimKiem.TabIndex = 4;
             kryptonButton_LamMoiCacOTimKiem.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton_LamMoiCacOTimKiem.Values.Image = (Image)resources.GetObject("kryptonButton_LamMoiCacOTimKiem.Values.Image");
             kryptonButton_LamMoiCacOTimKiem.Values.Text = "";
             kryptonButton_LamMoiCacOTimKiem.Click += kryptonButton_LamMoiCacOTimKiem_Click;
             // 
@@ -541,7 +530,6 @@
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
-            xoaTimKiem_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaTimKiem_ToolStripMenuItem.Image");
             xoaTimKiem_ToolStripMenuItem.Name = "xoaTimKiem_ToolStripMenuItem";
             xoaTimKiem_ToolStripMenuItem.Size = new Size(200, 26);
             xoaTimKiem_ToolStripMenuItem.Text = "Xóa tìm kiếm";
@@ -554,7 +542,6 @@
             // 
             // xuatDuLieuTepExcel_ToolStripMenuItem
             // 
-            xuatDuLieuTepExcel_ToolStripMenuItem.Image = (Image)resources.GetObject("xuatDuLieuTepExcel_ToolStripMenuItem.Image");
             xuatDuLieuTepExcel_ToolStripMenuItem.Name = "xuatDuLieuTepExcel_ToolStripMenuItem";
             xuatDuLieuTepExcel_ToolStripMenuItem.Size = new Size(200, 26);
             xuatDuLieuTepExcel_ToolStripMenuItem.Text = "Xuất dữ liệu (Tệp excel)";
@@ -562,7 +549,6 @@
             // 
             // xoaCSDL_ToolStripMenuItem
             // 
-            xoaCSDL_ToolStripMenuItem.Image = (Image)resources.GetObject("xoaCSDL_ToolStripMenuItem.Image");
             xoaCSDL_ToolStripMenuItem.Name = "xoaCSDL_ToolStripMenuItem";
             xoaCSDL_ToolStripMenuItem.Size = new Size(200, 26);
             xoaCSDL_ToolStripMenuItem.Text = "Xóa tệp CSDL";
@@ -575,7 +561,6 @@
             // 
             // huongDan_ToolStripMenuItem
             // 
-            huongDan_ToolStripMenuItem.Image = (Image)resources.GetObject("huongDan_ToolStripMenuItem.Image");
             huongDan_ToolStripMenuItem.Name = "huongDan_ToolStripMenuItem";
             huongDan_ToolStripMenuItem.Size = new Size(200, 26);
             huongDan_ToolStripMenuItem.Text = "Hướng dấn sử dụng";

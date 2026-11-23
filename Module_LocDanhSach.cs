@@ -7,7 +7,8 @@
 //  - Kết quả là mảng chỉ số dòng (int[]) -> lưới ảo đọc thẳng DataTable.Rows[chỉ số], không cần DataView.
 //
 // Ngữ nghĩa giữ nguyên bản cũ: Họ tên chứa từ khóa; Đơn vị bằng đúng; Phân loại bằng/chứa; "Không PL" gồm rỗng.
-// Nâng cấp: tìm tên KHÔNG phân biệt dấu/hoa thường ("nguyen van a" khớp "Nguyễn Văn A"), nhiều từ => mỗi từ đều phải có mặt.
+// Nâng cấp: tìm tên KHÔNG phân biệt dấu/hoa thường ("nguyen van a" khớp "Nguyễn Văn A"), nhiều từ => mỗi từ đều phải có mặt;
+// gõ số hiệu cũng ra; tùy chọn gom tập đơn vị còn người thỏa các điều kiện khác (bộ lọc kép cho combo Đơn vị).
 using System.Data;
 using System.Globalization;
 using System.Text;
@@ -19,21 +20,22 @@ namespace PhanMemThiDua2026
         private readonly string[] _donVi;     // Đơn vị (đã Trim)
         private readonly string[] _phanLoai;  // Phân loại (đã Trim)
         private readonly bool[] _dongAo;      // Họ tên rỗng = dòng đệm ảo cuối bảng
-        private readonly int _oHoTen, _oDonVi, _oPhanLoai;
-        private BoLocDanhSach(int n, int oH, int oD, int oP)
+        private readonly int _oHoTen, _oDonVi, _oPhanLoai, _oSoHieu;
+        private BoLocDanhSach(int n, int oH, int oD, int oP, int oS)
         {
             _ten = new string[n];
             _donVi = new string[n];
             _phanLoai = new string[n];
             _dongAo = new bool[n];
-            _oHoTen = oH; _oDonVi = oD; _oPhanLoai = oP;
+            _oHoTen = oH; _oDonVi = oD; _oPhanLoai = oP; _oSoHieu = oS;
         }
         public int SoDong => _ten.Length;
         /// <summary>Dựng chỉ mục từ bảng (an toàn gọi ở luồng nền khi bảng chưa dùng chung).</summary>
         public static BoLocDanhSach TaoTu(DataTable dt)
         {
             int n = dt.Rows.Count;
-            var bo = new BoLocDanhSach(n, dt.Columns.IndexOf("HoVaTen"), dt.Columns.IndexOf("DonVi"), dt.Columns.IndexOf("PhanLoai"));
+            var bo = new BoLocDanhSach(n, dt.Columns.IndexOf("HoVaTen"), dt.Columns.IndexOf("DonVi"), dt.Columns.IndexOf("PhanLoai"),
+                                       dt.Columns.IndexOf("SoHieu"));
             for (int i = 0; i < n; i++) bo.GhiDong(dt.Rows[i], i);
             return bo;
         }
@@ -47,7 +49,9 @@ namespace PhanMemThiDua2026
         {
             string ten = Doc(r, _oHoTen);
             _dongAo[i] = ten.Length == 0 || string.IsNullOrWhiteSpace(ten);
-            _ten[i] = ChuanHoaTimKiem(ten);
+            // "họ tên|số hiệu" đã bỏ dấu: ô tìm kiếm gõ tên hay số hiệu đều ra ("|" chặn khớp vắt ngang 2 trường)
+            string soHieu = Doc(r, _oSoHieu).Trim();
+            _ten[i] = soHieu.Length == 0 ? ChuanHoaTimKiem(ten) : ChuanHoaTimKiem(ten) + "|" + ChuanHoaTimKiem(soHieu);
             _donVi[i] = Doc(r, _oDonVi).Trim();
             _phanLoai[i] = Doc(r, _oPhanLoai).Trim();
         }
@@ -83,20 +87,23 @@ namespace PhanMemThiDua2026
         /// <param name="donVi">Đơn vị cần khớp đúng (null/rỗng = bỏ qua).</param>
         /// <param name="phanLoai">Giá trị phân loại trong CSDL cần khớp (null/rỗng = bỏ qua).</param>
         /// <param name="laKhongPL">true = lọc người chưa phân loại (rỗng hoặc nằm trong tenKhongPL).</param>
-        public int[]? Loc(string? tuKhoaTen, string? donVi, string? phanLoai, bool laKhongPL, string[] tenKhongPL)
+        /// <param name="conDonVi">BỘ LỌC KÉP (tùy chọn): nhận các đơn vị còn người thỏa tên + phân loại (bỏ qua điều kiện đơn vị).</param>
+        public int[]? Loc(string? tuKhoaTen, string? donVi, string? phanLoai, bool laKhongPL, string[] tenKhongPL,
+                          HashSet<string>? conDonVi = null)
         {
             string[] tu = TachTu(tuKhoaTen);
             string dv = (donVi ?? string.Empty).Trim();
             string pl = (phanLoai ?? string.Empty).Trim();
             bool coTen = tu.Length > 0, coDv = dv.Length > 0, coPl = laKhongPL || pl.Length > 0;
-            if (!coTen && !coDv && !coPl) return null;
+            if (!coTen && !coDv && !coPl && conDonVi == null) return null;
             int n = _ten.Length;
             var kq = new int[n];
             int dem = 0;
             for (int i = 0; i < n; i++)
             {
                 if (_dongAo[i]) continue;
-                if (coDv && !string.Equals(_donVi[i], dv, StringComparison.OrdinalIgnoreCase)) continue;
+                bool okDv = !coDv || string.Equals(_donVi[i], dv, StringComparison.OrdinalIgnoreCase);
+                if (!okDv && conDonVi == null) continue;
                 if (coPl)
                 {
                     string p = _phanLoai[i];
@@ -117,8 +124,11 @@ namespace PhanMemThiDua2026
                     }
                     if (!khop) continue;
                 }
+                if (conDonVi != null && _donVi[i].Length > 0) conDonVi.Add(_donVi[i]);
+                if (!okDv) continue;
                 kq[dem++] = i;
             }
+            if (!coTen && !coDv && !coPl) return null;   // chỉ đi gom đơn vị: không có điều kiện nào => mọi dòng
             if (dem == n) return null;     // lọc xong vẫn đủ mọi dòng (hiếm) -> dùng đường nhanh không ánh xạ
             return kq.AsSpan(0, dem).ToArray();
         }
