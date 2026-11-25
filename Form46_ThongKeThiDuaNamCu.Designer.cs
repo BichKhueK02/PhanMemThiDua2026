@@ -26,7 +26,6 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form46_ThongKeThiDuaNamCu));
             toolStripStatusLabel1 = new ToolStripStatusLabel();
             toolStripMenuItem_XoaTimKiem = new ToolStripMenuItem();
             lamMoiTrangToolStripMenuItem = new ToolStripMenuItem();
@@ -41,7 +40,6 @@
             tableLayoutPanel4 = new TableLayoutPanel();
             groupBox2 = new GroupBox();
             tableLayoutPanel3 = new TableLayoutPanel();
-            kryptonButton1_XemKetQuaThiDuaTapThe = new Krypton.Toolkit.KryptonButton();
             kryptonButton_CapNhat = new Krypton.Toolkit.KryptonButton();
             kryptonButton_XuatData = new Krypton.Toolkit.KryptonButton();
             groupBox3 = new GroupBox();
@@ -90,7 +88,7 @@
             // toolStripStatusLabel1
             // 
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(33, 21);
+            toolStripStatusLabel1.Size = new Size(12, 17);
             toolStripStatusLabel1.Text = "*";
             // 
             // toolStripMenuItem_XoaTimKiem
@@ -129,10 +127,10 @@
             statusStrip1.BackColor = Color.FromArgb(220, 248, 198);
             statusStrip1.ImageScalingSize = new Size(21, 21);
             statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1 });
-            statusStrip1.Location = new Point(0, 655);
+            statusStrip1.Location = new Point(0, 659);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 11, 0);
-            statusStrip1.Size = new Size(1264, 26);
+            statusStrip1.Size = new Size(1264, 22);
             statusStrip1.TabIndex = 3;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -219,13 +217,12 @@
             // 
             // tableLayoutPanel3
             // 
-            tableLayoutPanel3.ColumnCount = 3;
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 41.9254646F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24.53416F));
-            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.3333321F));
-            tableLayoutPanel3.Controls.Add(kryptonButton1_XemKetQuaThiDuaTapThe, 0, 0);
-            tableLayoutPanel3.Controls.Add(kryptonButton_CapNhat, 2, 0);
-            tableLayoutPanel3.Controls.Add(kryptonButton_XuatData, 1, 0);
+            tableLayoutPanel3.ColumnCount = 2;
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42.3971367F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 57.6028633F));
+            tableLayoutPanel3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel3.Controls.Add(kryptonButton_CapNhat, 1, 0);
+            tableLayoutPanel3.Controls.Add(kryptonButton_XuatData, 0, 0);
             tableLayoutPanel3.Dock = DockStyle.Fill;
             tableLayoutPanel3.Location = new Point(2, 20);
             tableLayoutPanel3.Margin = new Padding(2, 3, 2, 3);
@@ -235,24 +232,10 @@
             tableLayoutPanel3.Size = new Size(644, 49);
             tableLayoutPanel3.TabIndex = 0;
             // 
-            // kryptonButton1_XemKetQuaThiDuaTapThe
-            // 
-            kryptonButton1_XemKetQuaThiDuaTapThe.Anchor = AnchorStyles.None;
-            kryptonButton1_XemKetQuaThiDuaTapThe.Location = new Point(15, 8);
-            kryptonButton1_XemKetQuaThiDuaTapThe.Margin = new Padding(2, 3, 2, 3);
-            kryptonButton1_XemKetQuaThiDuaTapThe.Name = "kryptonButton1_XemKetQuaThiDuaTapThe";
-            kryptonButton1_XemKetQuaThiDuaTapThe.Size = new Size(239, 32);
-            kryptonButton1_XemKetQuaThiDuaTapThe.StateCommon.Border.Rounding = 4F;
-            kryptonButton1_XemKetQuaThiDuaTapThe.StateCommon.Content.ShortText.Font = new Font("Segoe UI", 8.064F);
-            kryptonButton1_XemKetQuaThiDuaTapThe.TabIndex = 2;
-            kryptonButton1_XemKetQuaThiDuaTapThe.Values.DropDownArrowColor = Color.Empty;
-            kryptonButton1_XemKetQuaThiDuaTapThe.Values.Text = "Xem kết quả thi đua tập thể";
-            kryptonButton1_XemKetQuaThiDuaTapThe.Click += kryptonButton1_XemKetQuaThiDuaTapThe_Click;
-            // 
             // kryptonButton_CapNhat
             // 
             kryptonButton_CapNhat.Anchor = AnchorStyles.None;
-            kryptonButton_CapNhat.Location = new Point(471, 8);
+            kryptonButton_CapNhat.Location = new Point(393, 8);
             kryptonButton_CapNhat.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_CapNhat.Name = "kryptonButton_CapNhat";
             kryptonButton_CapNhat.Size = new Size(130, 32);
@@ -266,7 +249,7 @@
             // kryptonButton_XuatData
             // 
             kryptonButton_XuatData.Anchor = AnchorStyles.None;
-            kryptonButton_XuatData.Location = new Point(284, 8);
+            kryptonButton_XuatData.Location = new Point(71, 8);
             kryptonButton_XuatData.Margin = new Padding(2, 3, 2, 3);
             kryptonButton_XuatData.Name = "kryptonButton_XuatData";
             kryptonButton_XuatData.Size = new Size(130, 32);
@@ -526,43 +509,43 @@
             contextMenuStrip1.ImageScalingSize = new Size(19, 19);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieuTepExcel_ToolStripMenuItem, xoaCSDL_ToolStripMenuItem, toolStripMenuItem2, huongDan_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(201, 120);
+            contextMenuStrip1.Size = new Size(198, 104);
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
             xoaTimKiem_ToolStripMenuItem.Name = "xoaTimKiem_ToolStripMenuItem";
-            xoaTimKiem_ToolStripMenuItem.Size = new Size(200, 26);
+            xoaTimKiem_ToolStripMenuItem.Size = new Size(197, 22);
             xoaTimKiem_ToolStripMenuItem.Text = "Xóa tìm kiếm";
             xoaTimKiem_ToolStripMenuItem.Click += xoaTimKiem_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(197, 6);
+            toolStripMenuItem1.Size = new Size(194, 6);
             // 
             // xuatDuLieuTepExcel_ToolStripMenuItem
             // 
             xuatDuLieuTepExcel_ToolStripMenuItem.Name = "xuatDuLieuTepExcel_ToolStripMenuItem";
-            xuatDuLieuTepExcel_ToolStripMenuItem.Size = new Size(200, 26);
+            xuatDuLieuTepExcel_ToolStripMenuItem.Size = new Size(197, 22);
             xuatDuLieuTepExcel_ToolStripMenuItem.Text = "Xuất dữ liệu (Tệp excel)";
             xuatDuLieuTepExcel_ToolStripMenuItem.Click += xuatDuLieuTepExcel_ToolStripMenuItem_Click;
             // 
             // xoaCSDL_ToolStripMenuItem
             // 
             xoaCSDL_ToolStripMenuItem.Name = "xoaCSDL_ToolStripMenuItem";
-            xoaCSDL_ToolStripMenuItem.Size = new Size(200, 26);
+            xoaCSDL_ToolStripMenuItem.Size = new Size(197, 22);
             xoaCSDL_ToolStripMenuItem.Text = "Xóa tệp CSDL";
             xoaCSDL_ToolStripMenuItem.Click += xoaCSDL_ToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(197, 6);
+            toolStripMenuItem2.Size = new Size(194, 6);
             // 
             // huongDan_ToolStripMenuItem
             // 
             huongDan_ToolStripMenuItem.Name = "huongDan_ToolStripMenuItem";
-            huongDan_ToolStripMenuItem.Size = new Size(200, 26);
+            huongDan_ToolStripMenuItem.Size = new Size(197, 22);
             huongDan_ToolStripMenuItem.Text = "Hướng dấn sử dụng";
             huongDan_ToolStripMenuItem.Click += huongDan_ToolStripMenuItem_Click;
             // 
@@ -639,7 +622,6 @@
         private ToolStripSeparator toolStripMenuItem1;
         private ToolStripSeparator toolStripMenuItem2;
         private ToolStripMenuItem huongDan_ToolStripMenuItem;
-        private Krypton.Toolkit.KryptonButton kryptonButton1_XemKetQuaThiDuaTapThe;
         private SplitContainer splitContainer1;
         private TableLayoutPanel tableLayoutPanel2;
     }

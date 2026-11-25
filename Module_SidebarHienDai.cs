@@ -45,8 +45,8 @@ namespace PhanMemThiDua2026
         public static int BanKinhBo = 10;
         public static int ChieuCaoThanhTren = 56;
         private static readonly Font FontThuong = new Font(Module_HeThong.TenFontHeThong, 10f, FontStyle.Regular);
-        private static readonly Font FontDam = new Font("Segoe UI Semibold", 10f, FontStyle.Regular);
-        private static readonly Font FontTieuDe = new Font("Segoe UI Semibold", 12.5f, FontStyle.Regular);
+        private static readonly Font FontDam = new Font(Module_HeThong.TenFontHeThongDam, 10f, FontStyle.Regular);
+        private static readonly Font FontTieuDe = new Font(Module_HeThong.TenFontHeThongDam, 12.5f, FontStyle.Regular);
         private static readonly Font FontNguoiDung = new Font(Module_HeThong.TenFontHeThong, 9f, FontStyle.Regular);
         private static readonly Font FontNutGhost = new Font(Module_HeThong.TenFontHeThong, 9f, FontStyle.Regular);
         private static readonly Font FontPhu = new Font(Module_HeThong.TenFontHeThong, 8.5f, FontStyle.Regular);
@@ -462,7 +462,7 @@ namespace PhanMemThiDua2026
                 g.FillEllipse(to, tron);
             string chu = string.IsNullOrEmpty(_vietTat) ? "?" : _vietTat;
             float co = _vietTat.Length > 1 ? 7.5f : 8.5f;
-            using var font = new Font("Segoe UI Semibold", co, FontStyle.Regular);
+            using var font = new Font(Module_HeThong.TenFontHeThongDam, co, FontStyle.Regular);
             TextRenderer.DrawText(g, chu, font, tron, Color.White,
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
         }

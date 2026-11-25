@@ -14,9 +14,14 @@ namespace PhanMemThiDua2026
         private const string TextChuaChonTep = "Bấm để chọn tệp Excel (.xlsx, .xlsm)";
         private const string TextNutNhap = "Nhập kết quả";
         private const string GlyphNutNhap = "\uE896";
+        /// <summary>Mục đầu combo: nạp mọi dòng của tệp, mỗi dòng theo đúng đơn vị ghi ở dòng đó.</summary>
+        internal const string MucTatCaDonVi = "Tất cả đơn vị";
         private const string TextDangXuLy = "Đang xử lý, vui lòng không đóng cửa sổ ...";
         private readonly Form6_XuLyData _form6Ref;
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
+        /// <summary>Chế độ (CBCS/Tân binh/Học viên) lúc mở form: đổi chế độ thì danh sách đơn vị + bảng đã khác => phải mở form mới.</summary>
+        internal CheDoDoiTuong CheDoKhiTao { get; } = Module_CheDoDoiTuong.Hien;
+        internal string Csdl2KhiTao => _csdl2Path;
         // --- Chống nạp trùng ---
         private string _donViDaNapThanhCong = "";
         private string _fileDaNapThanhCong = "";
@@ -101,7 +106,7 @@ namespace PhanMemThiDua2026
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(640, 380);
-            Font = NewFont("Segoe UI", 9.75F);
+            Font = NewFont(Module_HeThong.TenFontHeThong, 9.75F);
             BackColor = UiColors.Bg;
             Text = "Nhập kết quả phân loại từ đơn vị";
             DoubleBuffered = true;
@@ -111,14 +116,14 @@ namespace PhanMemThiDua2026
                 if (rm.GetObject("$this.Icon") is Icon icon) Icon = icon;
             }
             catch { /* icon không bắt buộc */ }
-            var fTitle = NewFont("Segoe UI Semibold", 15F);
-            var fLabel = NewFont("Segoe UI Semibold", 9.5F);
-            var fSmall = NewFont("Segoe UI", 9F);
-            var fBtn = NewFont("Segoe UI Semibold", 9.75F);
-            var fInput = NewFont("Segoe UI", 10.5F);
+            var fTitle = NewFont(Module_HeThong.TenFontHeThongDam, 15F);
+            var fLabel = NewFont(Module_HeThong.TenFontHeThongDam, 9.5F);
+            var fSmall = NewFont(Module_HeThong.TenFontHeThong, 9F);
+            var fBtn = NewFont(Module_HeThong.TenFontHeThongDam, 9.75F);
+            var fInput = NewFont(Module_HeThong.TenFontHeThong, 10.5F);
             var fIcon = NewFont("Segoe MDL2 Assets", 12F);
             _fontDuongDan = fInput;
-            _fontChuaChon = NewFont("Segoe UI", 10.5F, FontStyle.Italic);
+            _fontChuaChon = NewFont(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Italic);
             _toolTip = new ToolTip(components);
             // ===== Status strip =====
             _statusStrip = new StatusStrip { Dock = DockStyle.Bottom, BackColor = Color.White, SizingGrip = false, ImageScalingSize = new Size(20, 20) };
@@ -317,6 +322,9 @@ namespace PhanMemThiDua2026
             dt.Columns.Add("SoHieu");
             dt.Columns.Add("DonVi");
             dt.Columns.Add("PhanLoai");
+            dt.Columns.Add("HoVaTen");
+            dt.Columns.Add("NamSinh");
+            dt.Columns.Add("DongExcel", typeof(int));
             try
             {
                 using var stream = File.Open(duongDanFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
@@ -342,17 +350,22 @@ namespace PhanMemThiDua2026
                         throw new Exception($"File Excel thiếu cột bắt buộc: {vnName}");
                     }
                 }
+                int oTen = colMap.TryGetValue("HoVaTen", out int ct) ? ct : -1;
+                int oNs = colMap.TryGetValue("NamSinh", out int cs) ? cs : -1;
                 int lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
                 for (int r = 2; r <= lastRow; r++)
                 {
                     var row = ws.Row(r);
                     if (row == null) continue;
-                    string soHieu = row.Cell(colMap["SoHieu"]).GetString().Trim();
+                    string soHieu = BoNhay(row.Cell(colMap["SoHieu"]).GetString());
                     string donVi = row.Cell(colMap["DonVi"]).GetString().Trim();
                     string phanLoai = row.Cell(colMap["PhanLoai"]).GetString().Trim();
-                    if (string.IsNullOrWhiteSpace(soHieu) || string.IsNullOrWhiteSpace(donVi))
+                    string hoTen = oTen > 0 ? row.Cell(oTen).GetString().Trim() : "";
+                    string namSinh = oNs > 0 ? BoNhay(row.Cell(oNs).GetString()) : "";
+                    // Dòng phải có đơn vị và (số hiệu hoặc họ tên). Học viên/Tân binh có thể chưa có số hiệu => tìm theo họ tên.
+                    if (donVi.Length == 0 || (soHieu.Length == 0 && hoTen.Length == 0))
                         continue;
-                    dt.Rows.Add(soHieu, donVi, phanLoai);
+                    dt.Rows.Add(soHieu, donVi, phanLoai, hoTen, namSinh, r);
                 }
             }
             catch (Exception ex)
@@ -361,70 +374,130 @@ namespace PhanMemThiDua2026
             }
             return dt;
         }
-        private int CapNhatPhanLoai(string donViChon, DataTable dtExcel)
+        // Tệp xuất ra ghi dấu nháy đơn trước số hiệu/năm sinh để Excel giữ dạng chữ => bỏ nếu còn sót
+        private static string BoNhay(string? s) => (s ?? "").Trim().TrimStart('\'').Trim();
+
+        /// <summary>Kết quả 1 lần nạp: đủ để báo rõ cho người dùng VÌ SAO không có dòng nào được cập nhật.</summary>
+        private sealed class KetQuaNap
         {
+            public int SoDongTep;                              // số dòng hợp lệ trong tệp
+            public int SoDongCuaDonVi;                         // số dòng có Đơn vị đúng bằng đơn vị đang chọn
+            public int SoCapNhat;
+            public int SoDonViDaNap;                           // số đơn vị có ít nhất 1 người được cập nhật
+            public List<string> KhongTimThay = new();          // dòng của đơn vị nhưng không tìm được người trong CSDL
+            public List<string> DonViTrongTep = new();         // các tên đơn vị có trong tệp (khi không dòng nào khớp đơn vị chọn)
+        }
+
+        private KetQuaNap CapNhatPhanLoai(string donViChon, DataTable dtExcel)
+        {
+            var kq = new KetQuaNap { SoDongTep = dtExcel.Rows.Count };
+            var cheDo = Module_CheDoDoiTuong.Hien;
+            bool coMaTam = Module_CheDoDoiTuong.LaNhomTuan(cheDo);   // Tân binh / Học viên: số hiệu là mã tạm TB00001 / HV00001
+            string ChuanSoHieu(string sh)
+            {
+                sh = BoNhay(sh);
+                return coMaTam && Module_CheDoDoiTuong.LaMaTam(cheDo, sh) ? Module_CheDoDoiTuong.ChuanHoaMaTam(cheDo, sh) : sh;
+            }
+            bool tatCa = string.Equals(donViChon, MucTatCaDonVi, StringComparison.Ordinal);
+            bool ThuocDonViChon(string dv) => tatCa ? dv.Length > 0 : Module_DonVi.CungDonVi(dv, donViChon);
+            // Khóa tra cứu luôn kèm tên đơn vị (nguyên văn) => chế độ "Tất cả" không lẫn người trùng tên/số hiệu ở đơn vị khác
+            static string Khoa(string dv, string giaTri) => dv + "\u001F" + giaTri;
+            static string KhoaTen(string dv, string ten, string namSinh) => Khoa(dv, BoLocDanhSach.ChuanHoaTimKiem(ten.Trim()) + "\u001F" + namSinh.Trim());
+
             using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
             cn.Open();
             using var tran = cn.BeginTransaction();
             try
             {
-                // Từ điển tra cứu không phân biệt chữ hoa/thường
-                var lookup = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                // Chỉ xét người của ĐÚNG đơn vị đang chọn — so tên đơn vị nguyên văn (chuỗi chính xác)
+                var theoSoHieu = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                var theoTenNamSinh = new Dictionary<string, int>(StringComparer.Ordinal);   // -1 = trùng => không dùng
+                var theoTen = new Dictionary<string, int>(StringComparer.Ordinal);
                 using (var cmdAll = new SqliteCommand(
-                    $"SELECT ID, DonVi, SoHieu FROM {Module_TaiKhoan.BangDanhSach}",
-                    cn,
-                    tran))
+                    $"SELECT ID, DonVi, SoHieu, HoVaTen, NamSinh FROM {Module_TaiKhoan.BangDanhSach}", cn, tran))
                 using (var reader = cmdAll.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         try
                         {
-                            int id = Convert.ToInt32(reader["ID"]);
                             string donViCS = Module_BaoMatAES.GiaiMa(reader["DonVi"]?.ToString() ?? "").Trim();
-                            string soHieuCS = Module_BaoMatAES.GiaiMa(reader["SoHieu"]?.ToString() ?? "").Trim();
-                            if (!string.IsNullOrWhiteSpace(donViCS) &&
-                                !string.IsNullOrWhiteSpace(soHieuCS))
+                            if (!ThuocDonViChon(donViCS)) continue;
+                            int id = Convert.ToInt32(reader["ID"]);
+                            string soHieuCS = ChuanSoHieu(Module_BaoMatAES.GiaiMa(reader["SoHieu"]?.ToString() ?? ""));
+                            string tenCS = Module_BaoMatAES.GiaiMa(reader["HoVaTen"]?.ToString() ?? "").Trim();
+                            string nsCS = BoNhay(Module_BaoMatAES.GiaiMa(reader["NamSinh"]?.ToString() ?? ""));
+                            if (soHieuCS.Length > 0) theoSoHieu[Khoa(donViCS, soHieuCS)] = id;
+                            if (tenCS.Length > 0)
                             {
-                                lookup[donViCS + "|" + soHieuCS] = id;
+                                string k1 = KhoaTen(donViCS, tenCS, nsCS), k2 = KhoaTen(donViCS, tenCS, "");
+                                theoTenNamSinh[k1] = theoTenNamSinh.ContainsKey(k1) ? -1 : id;
+                                theoTen[k2] = theoTen.ContainsKey(k2) ? -1 : id;
                             }
                         }
                         catch
                         {
-                            // Bỏ qua bản ghi lỗi và tiếp tục xử lý
+                            // Bỏ qua bản ghi lỗi giải mã và tiếp tục
                         }
                     }
                 }
-                int soDongCapNhat = 0;
                 using var cmdUpdate = new SqliteCommand(
-                    $"UPDATE {Module_TaiKhoan.BangDanhSach} SET PhanLoai=@PhanLoai WHERE ID=@ID",
-                    cn,
-                    tran);
+                    $"UPDATE {Module_TaiKhoan.BangDanhSach} SET PhanLoai=@PhanLoai WHERE ID=@ID", cn, tran);
                 var pPhanLoai = cmdUpdate.Parameters.Add("@PhanLoai", SqliteType.Text);
                 var pID = cmdUpdate.Parameters.Add("@ID", SqliteType.Integer);
+                var donViTep = new List<string>();
+                var daGapDonVi = new HashSet<string>(StringComparer.Ordinal);
+                var daCapNhat = new HashSet<int>();
+                var soDonViDaNap = new HashSet<string>(StringComparer.Ordinal);
                 foreach (DataRow excelRow in dtExcel.Rows)
                 {
-                    string soHieuExcel = excelRow["SoHieu"]?.ToString()?.Trim() ?? "";
                     string donViExcel = excelRow["DonVi"]?.ToString()?.Trim() ?? "";
-                    string phanLoaiExcel = excelRow["PhanLoai"]?.ToString()?.Trim() ?? "";
-                    if (!donViExcel.Equals(donViChon, StringComparison.OrdinalIgnoreCase))
-                        continue;
-                    if (lookup.TryGetValue(donViExcel + "|" + soHieuExcel, out int id))
+                    if (daGapDonVi.Add(donViExcel)) donViTep.Add(donViExcel);
+                    if (!ThuocDonViChon(donViExcel)) continue;
+                    kq.SoDongCuaDonVi++;
+                    string soHieuExcel = ChuanSoHieu(excelRow["SoHieu"]?.ToString() ?? "");
+                    string tenExcel = excelRow["HoVaTen"]?.ToString()?.Trim() ?? "";
+                    string nsExcel = excelRow["NamSinh"]?.ToString() ?? "";
+                    // 1) Số hiệu (CBCS: số hiệu thật; TB/HV: mã tạm). 2) Họ tên + năm sinh. 3) Họ tên (chỉ khi không trùng tên trong đơn vị).
+                    int id = -1;
+                    if (soHieuExcel.Length > 0 && theoSoHieu.TryGetValue(Khoa(donViExcel, soHieuExcel), out int a)) id = a;
+                    else if (tenExcel.Length > 0 && theoTenNamSinh.TryGetValue(KhoaTen(donViExcel, tenExcel, nsExcel), out int b) && b >= 0) id = b;
+                    else if (tenExcel.Length > 0 && theoTen.TryGetValue(KhoaTen(donViExcel, tenExcel, ""), out int c) && c >= 0) id = c;
+                    if (id < 0)
                     {
-                        pPhanLoai.Value = Module_BaoMatAES.MaHoa(phanLoaiExcel);
-                        pID.Value = id;
-                        cmdUpdate.ExecuteNonQuery();
-                        soDongCapNhat++;
+                        kq.KhongTimThay.Add($"Dòng {excelRow["DongExcel"]}: {tenExcel} (Số hiệu: {soHieuExcel}){(tatCa ? " - " + donViExcel : "")}");
+                        continue;
                     }
+                    pPhanLoai.Value = Module_BaoMatAES.MaHoa(excelRow["PhanLoai"]?.ToString()?.Trim() ?? "");
+                    pID.Value = id;
+                    cmdUpdate.ExecuteNonQuery();
+                    if (daCapNhat.Add(id)) kq.SoCapNhat++;
+                    soDonViDaNap.Add(donViExcel);
                 }
                 tran.Commit();
-                return soDongCapNhat;
+                if (kq.SoDongCuaDonVi == 0) kq.DonViTrongTep = donViTep;
+                kq.SoDonViDaNap = tatCa ? soDonViDaNap.Count : (kq.SoCapNhat > 0 ? 1 : 0);
+                return kq;
             }
             catch
             {
                 tran.Rollback();
                 throw;
             }
+        }
+        private static string LietKe(List<string> ds, int toiDa = 15)
+            => string.Join("\n", ds.Take(toiDa)) + (ds.Count > toiDa ? $"\n... và {ds.Count - toiDa} dòng khác" : "");
+        /// <summary>Giải thích vì sao 0 dòng được cập nhật (đơn vị không khớp / không tìm thấy người).</summary>
+        private static string MoTaKhongCapNhat(string donViChon, KetQuaNap kq)
+        {
+            if (kq.SoDongCuaDonVi == 0 && donViChon == MucTatCaDonVi)
+                return $"Tệp có {kq.SoDongTep} dòng nhưng không dòng nào ghi Đơn vị.";
+            if (kq.SoDongCuaDonVi == 0)
+                return $"Tệp có {kq.SoDongTep} dòng nhưng KHÔNG có dòng nào thuộc đơn vị \"{donViChon}\".\n\n"
+                     + "Các đơn vị có trong tệp (cột Đơn vị):\n" + LietKe(kq.DonViTrongTep.Select(x => $"\"{x}\"").ToList())
+                     + "\n\nTên đơn vị phải ghi giống hệt tên đã khai báo trong phần mềm.";
+            return $"Tệp có {kq.SoDongCuaDonVi} dòng thuộc đơn vị \"{donViChon}\" nhưng không tìm thấy người tương ứng trong phần mềm "
+                 + "(so theo Số hiệu, rồi Họ tên + Năm sinh):\n\n" + LietKe(kq.KhongTimThay);
         }
         private void LoadComboBoxDonVi()
         {
@@ -433,11 +506,10 @@ namespace PhanMemThiDua2026
                 _cboDonVi.BeginUpdate();
                 _cboDonVi.Items.Clear();
                 var danhSachDonVi = Module_DonVi.GetDanhSachDonVi();
+                _cboDonVi.Items.Add(MucTatCaDonVi);
                 if (danhSachDonVi is { Count: > 0 })
-                {
                     _cboDonVi.Items.AddRange(danhSachDonVi.ToArray());
-                    _cboDonVi.SelectedIndex = 0;
-                }
+                _cboDonVi.SelectedIndex = 0;
             }
             finally { _cboDonVi.EndUpdate(); }
         }
@@ -476,7 +548,7 @@ namespace PhanMemThiDua2026
                 return;
             }
             // 2. Chốt chặn: bấm lại y xì thông tin vừa nạp thành công
-            if (donViChon.Equals(_donViDaNapThanhCong, StringComparison.OrdinalIgnoreCase) &&
+            if (Module_DonVi.CungDonVi(donViChon, _donViDaNapThanhCong) &&
                 duongDanFile.Equals(_fileDaNapThanhCong, StringComparison.OrdinalIgnoreCase))
             {
                 HienThongBao($"Dữ liệu của \"{donViChon}\" từ tệp này đã nạp rồi. Vui lòng chọn đơn vị/tệp khác!", UiColors.Warn);
@@ -487,16 +559,17 @@ namespace PhanMemThiDua2026
                 DatTrangThaiBan(true);
                 await Task.Delay(100); // Đợi UI cập nhật trạng thái nút bấm
                 // Chạy ngầm tác vụ nạp DB
-                int soDongCapNhat = await Task.Run(() =>
+                KetQuaNap? kqNap = await Task.Run(() =>
                 {
                     Module_BaNhat.NhapDuLieuVaoBangQuanLyBaNhat(duongDanFile, _csdl2Path);
                     // Dùng using để thu hồi RAM của DataTable ngay sau khi lấy xong
                     using (DataTable dtExcel = DocExcel(duongDanFile))
                     {
-                        if (dtExcel == null || dtExcel.Rows.Count == 0) return -1;
+                        if (dtExcel == null || dtExcel.Rows.Count == 0) return null;
                         return CapNhatPhanLoai(donViChon, dtExcel);
                     }
                 });
+                int soDongCapNhat = kqNap?.SoCapNhat ?? -1;
                 // Chặn lỗi văng nếu người dùng lỡ tắt Form lúc đang chạy ngầm
                 if (IsDisposed || Disposing)
                     return;
@@ -507,8 +580,18 @@ namespace PhanMemThiDua2026
                     MessageBox.Show(this, "File Excel không có dữ liệu hợp lệ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
+                if (kqNap != null && soDongCapNhat == 0)
+                {
+                    HienThongBao("Không có bản ghi nào được cập nhật.", UiColors.Warn);
+                    MessageBox.Show(this, MoTaKhongCapNhat(donViChon, kqNap), "Không nạp được kết quả", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                if (kqNap != null && kqNap.KhongTimThay.Count > 0)
+                    MessageBox.Show(this, $"Đã cập nhật {soDongCapNhat} bản ghi. Có {kqNap.KhongTimThay.Count} dòng của đơn vị \"{donViChon}\" không tìm thấy trong phần mềm:\n\n"
+                        + LietKe(kqNap.KhongTimThay), "Một số dòng chưa nạp", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // Thành công
-                HienThongBao($"[{DateTime.Now:HH:mm:ss}] Đã cập nhật thành công {soDongCapNhat} bản ghi của đơn vị \"{donViChon}\".", UiColors.GreenDark);
+                string phamVi = donViChon == MucTatCaDonVi ? $"{kqNap?.SoDonViDaNap ?? 0} đơn vị" : $"đơn vị \"{donViChon}\"";
+                HienThongBao($"[{DateTime.Now:HH:mm:ss}] Đã cập nhật thành công {soDongCapNhat} bản ghi của {phamVi}.", UiColors.GreenDark);
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Nạp kết quả phân loại từ Excel",
                     $"Đơn vị: {donViChon} | Cập nhật {soDongCapNhat} bản ghi | Tệp: {Path.GetFileName(duongDanFile)}");
                 // Lưu lịch sử để chống người dùng bấm trùng
@@ -540,7 +623,8 @@ namespace PhanMemThiDua2026
                 "Chức năng này giúp nạp hàng loạt kết quả phân loại thi đua từ file Excel vào hệ thống tự động, bảo mật và chính xác.\n\n" +
                 "HƯỚNG DẪN SỬ DỤNG:\n" +
                 "1. Chuẩn bị file Excel: Đảm bảo có dòng tiêu đề và chứa 3 cột bắt buộc (viết đúng chính tả): Số hiệu, Đơn vị, Phân loại.\n" +
-                "2. Chọn đơn vị: Bấm vào danh sách và chọn đúng đơn vị cần nạp.\n" +
+                "2. Chọn đơn vị: chọn đúng đơn vị cần nạp, hoặc chọn [ Tất cả đơn vị ] để nạp mọi dòng trong tệp một lần (mỗi dòng theo đơn vị ghi ở dòng đó).\n" +
+                "   Tên đơn vị trong tệp phải ghi giống hệt tên đã khai báo trong phần mềm. Người được tìm theo Số hiệu, nếu không có thì theo Họ tên + Năm sinh.\n" +
                 "3. Chọn tệp: Bấm [ Chọn tệp ] (hoặc bấm vào ô đường dẫn) rồi tìm tệp Excel vừa chuẩn bị.\n" +
                 "4. Thực hiện: Bấm [ Nhập kết quả ] và đợi hệ thống xử lý.\n\n" +
                 "LƯU Ý:\n" +

@@ -32,10 +32,10 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(75, 20, 130);
         private static readonly Color MauVienBang = Color.FromArgb(221, 214, 254);
         private static readonly Color MauKeDong = Color.FromArgb(235, 238, 243);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNhanBang = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontO = new Font("Segoe UI Semibold", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhanBang = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontO = new Font(Module_HeThong.TenFontHeThongDam, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
         private const int BanKinhBang = 10;        // bán kính góc bo của khung bảng nhập
         private const int CaoDauBang = 44;         // chiều cao hàng tiêu đề của bảng nhập
         private const int CaoChanTrang = 56;       // hàng chứa thông báo + nút Lưu

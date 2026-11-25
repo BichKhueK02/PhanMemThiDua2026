@@ -37,7 +37,25 @@ namespace PhanMemThiDua2026
                         return tenFont;
                 }
                 catch { }
-                return "Segoe UI";
+                return Module_HeThong.TenFontHeThong;
+            }
+        }
+        // Thanh trạng thái đã từng ghi (Form4 dựng sẵn TRƯỚC khi đăng nhập => nhãn chưa có giờ truy cập).
+        // Đăng nhập xong (SessionInfo.ThoiGianDangNhap đổi) thì LamMoiTatCa() ghi lại các nhãn này.
+        private static readonly List<(WeakReference<StatusStrip> Status, WeakReference<ToolStripStatusLabel> Label)> _daGhi = new();
+        public static void LamMoiTatCa()
+        {
+            List<(StatusStrip, ToolStripStatusLabel)> ds = new();
+            lock (_daGhi)
+            {
+                _daGhi.RemoveAll(x => !x.Status.TryGetTarget(out var s) || s.IsDisposed || !x.Label.TryGetTarget(out _));
+                foreach (var x in _daGhi)
+                    if (x.Status.TryGetTarget(out var s) && x.Label.TryGetTarget(out var l)) ds.Add((s, l));
+            }
+            foreach (var (s, l) in ds)
+            {
+                if (!s.IsHandleCreated) continue;   // chưa có handle: lần ghi đầu tiên (khi hiện) sẽ tự đúng
+                CapNhatStatusCSDL(s, l);
             }
         }
         public static void CapNhatStatusCSDL(StatusStrip status, ToolStripStatusLabel label)
@@ -45,6 +63,12 @@ namespace PhanMemThiDua2026
             if (status == null || label == null ||
                 status.IsDisposed || label.IsDisposed)
                 return;
+            lock (_daGhi)
+            {
+                bool daCo = _daGhi.Exists(x => x.Status.TryGetTarget(out var s) && ReferenceEquals(s, status)
+                                              && x.Label.TryGetTarget(out var l) && ReferenceEquals(l, label));
+                if (!daCo) _daGhi.Add((new WeakReference<StatusStrip>(status), new WeakReference<ToolStripStatusLabel>(label)));
+            }
             try
             {
                 if (status.InvokeRequired)
@@ -61,14 +85,16 @@ namespace PhanMemThiDua2026
                 bool csdlSanSang =
                     Module_DanduongGPS.KiemTraTrangThaiSanSangCuaHeThongCSDL();
                 DateTime thoiGianDangNhap = SessionInfo.ThoiGianDangNhap;
+                // Chưa đăng nhập: bỏ hẳn phần thời gian (không ghi "(chưa đăng nhập)")
                 string thoiGianStr = thoiGianDangNhap == default
-                    ? "(chưa đăng nhập)"
+                    ? ""
                     : $"Truy cập lúc {thoiGianDangNhap:hh:mm tt}, ngày {thoiGianDangNhap:dd/M/yyyy}";
+                string phanThoiGian = thoiGianStr.Length > 0 ? " | " + thoiGianStr : "";
                 string tenMay = Environment.MachineName;
                 string tenUser = Environment.UserName;
                 label.Text = csdlSanSang
-                    ? $"Đang kết nối CSDL | User: {tenUser} | {thoiGianStr}"
-                    : $"Mất kết nối | User: {tenUser} | {thoiGianStr}";
+                    ? $"Đang kết nối CSDL | User: {tenUser}{phanThoiGian}"
+                    : $"Mất kết nối | User: {tenUser}{phanThoiGian}";
                 label.ForeColor = csdlSanSang ? Color.DarkGreen : Color.DarkRed;
                 status.BackColor = csdlSanSang
                     ? Color.FromArgb(220, 248, 198)
@@ -76,8 +102,8 @@ namespace PhanMemThiDua2026
                 _sharedToolTip.SetToolTip(
                     status,
                     $"Máy tính: {tenMay}\n" +
-                    $"Tài khoản Windows: {tenUser}\n" +
-                    $"Phiên kết nối: {thoiGianStr}");
+                    $"Tài khoản Windows: {tenUser}" +
+                    (thoiGianStr.Length > 0 ? "\nPhiên kết nối: " + thoiGianStr : ""));
             }
             catch (ObjectDisposedException) { }
             catch (InvalidOperationException) { }
@@ -1550,7 +1576,7 @@ namespace PhanMemThiDua2026
                     MessageBox.Show(
                         this,
                         $"Không thể xuất báo cáo.\nChi tiết lỗi: {ex.Message}",
-                        "Lỗi",
+                        Module_HeThong.TieuDe_Loi,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                 }

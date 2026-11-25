@@ -9,7 +9,7 @@ namespace PhanMemThiDua2026
     /// Biểu tượng 8 nút menu trái của Form2.
     ///  - "Hiện đại": VẼ bằng GDI+ lúc chạy (nét mảnh kiểu web, khung 24x24 nhân theo DPI) — không giải mã ảnh nào khi dựng Form2.
     ///    Mỗi nút có 2 bản: màu thường + màu trắng (rê chuột / nhấn / đang chọn).
-    ///  - "Cổ điển": ảnh gốc (Icon\Form2CoDien\*, nhúng vào exe), chỉ nạp khi người dùng chọn kiểu này.
+    ///  - "Cổ điển": cũng VẼ (GanBieuTuongVeCoDien): màu chữ tím đậm của sidebar cổ điển, mục đang chọn => trắng.
     /// Nút được nhận ra theo Name (Trangchu, XuLyData, CaiDat, NhatKy, ThongKe, KhenThuong, HuongDan, Thoat).
     /// Mọi lỗi đều bỏ qua: nút chỉ mất biểu tượng, không ảnh hưởng chức năng.
     /// </summary>
@@ -226,30 +226,21 @@ namespace PhanMemThiDua2026
             return bmp;
         }
         // ======================================================================
-        //  CỔ ĐIỂN: ảnh gốc nhúng trong exe (Icon\Form2CoDien\*)
+        //  CỔ ĐIỂN: cũng vẽ (ảnh gốc đã bỏ khỏi exe)
         // ======================================================================
-        private const string TienToTaiNguyen = "Form2CoDien.";
-        /// <summary>Gán lại ảnh gốc cho các nút (chỉ gọi khi người dùng chọn "Cổ điển").</summary>
-        public static void GanAnhCoDien(params KryptonButton[] cacNut)
+        /// <summary>
+        /// Sidebar cổ điển: nền tím, rê chuột => nền lavender sáng (chữ vẫn tím đậm) nên biểu tượng KHÔNG đổi màu khi rê/nhấn;
+        /// chỉ mục đang chọn (viên tím đậm, chữ trắng) mới dùng bản trắng — Module_SidebarCoDien.DatTrangThai gọi DatDangChon.
+        /// </summary>
+        public static void GanBieuTuongVeCoDien(int coPx, Color mau, params KryptonButton[] cacNut)
         {
-            string[] tatCa;
-            var asm = typeof(Module_BieuTuongMenu).Assembly;
-            try { tatCa = asm.GetManifestResourceNames(); }
-            catch (Exception ex) { Debug.WriteLine("[BieuTuongMenu] " + ex.Message); return; }
             foreach (var b in cacNut)
             {
-                try
-                {
-                    string? loai = b == null ? null : LoaiCuaNut(b);
-                    if (loai == null) continue;
-                    string? ten = tatCa.FirstOrDefault(t => t.StartsWith(TienToTaiNguyen + loai + ".", StringComparison.OrdinalIgnoreCase));
-                    if (ten == null) continue;
-                    using var luong = asm.GetManifestResourceStream(ten);
-                    if (luong == null) continue;
-                    using var goc = Image.FromStream(luong);
-                    b!.Values.Image = new Bitmap(goc);   // chép ra: không phụ thuộc luồng đã đóng
-                }
-                catch (Exception ex) { Debug.WriteLine("[BieuTuongMenu] Ảnh cổ điển " + b?.Name + ": " + ex.Message); }
+                if (b == null) continue;
+                GanBieuTuongVe(b, coPx, mau, Color.White);
+                if (b.Name.Contains("Thoat", StringComparison.OrdinalIgnoreCase)) continue;   // Thoát: rê chuột nền đỏ chữ trắng => giữ bản trắng
+                b.Values.ImageStates.ImageTracking = null;
+                b.Values.ImageStates.ImagePressed = null;
             }
         }
     }

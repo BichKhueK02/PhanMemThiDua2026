@@ -28,6 +28,7 @@ namespace PhanMemThiDua2026
         private const int RongLogo = 76;
         private const int RongTheCSDL = 340;
         private const int CaoDongBang = 36;
+        private const int RongNut = 130;             // Xuất dữ liệu / Làm mới (96 DPI)
         private const int DemKhungBang = 5;
         // ===================== BẢNG MÀU =====================
         // --- Trang và chữ ---
@@ -50,9 +51,9 @@ namespace PhanMemThiDua2026
         // --- Công cụ vẽ dùng chung (tạo 1 lần cho cả chương trình) ---
         private static readonly Pen ButVachCot = new Pen(MauVachCot, 1f);
         private static readonly SolidBrush CoRoDong = new SolidBrush(MauRoDong);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontO = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontO = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
         // Bộ màu một nút: nền thường / rê chuột / nhấn / viền / chữ
         private readonly record struct BoMauNut(Color Nen, Color Hover, Color Down, Color Vien, Color Chu);
         private static readonly BoMauNut NutTim = new(
@@ -228,20 +229,27 @@ namespace PhanMemThiDua2026
         // ===================== THẺ 3: TÌM KIẾM THÔNG TIN CBCS =====================
         private static void DinhBoLoc(Form f)
         {
-            // Họ và tên | ô tên | Đơn vị | combo | Tình trạng | combo | Phân loại | combo | nút làm mới
+            // Họ và tên | ô tên | Đơn vị | combo | Tình trạng | combo | Phân loại | combo | Ghi chú | combo | nút làm mới
+            // (nhãn + combo Ghi chú do Form46.TaoBoLocGhiChu thêm bằng code vào cột 8-9, nút làm mới dời sang cột 10)
             var t5 = Tim<TableLayoutPanel>(f, "tableLayoutPanel5");
             if (t5 != null)
             {
+                bool coGhiChu = t5.ColumnCount >= 11;
                 t5.Margin = new Padding(0);
                 t5.ColumnStyles.Clear();
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));          // Họ và tên
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34F));      // ô tên
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, coGhiChu ? 26F : 34F));   // ô tên
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));          // Đơn vị
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22F));      // combo đơn vị
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, coGhiChu ? 17F : 22F));   // combo đơn vị
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));          // Tình trạng
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));      // combo tình trạng
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, coGhiChu ? 15F : 20F));   // combo tình trạng
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));          // Phân loại
-                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 24F));      // combo phân loại
+                t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, coGhiChu ? 16F : 24F));   // combo phân loại
+                if (coGhiChu)
+                {
+                    t5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));      // Ghi chú
+                    t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));  // combo ghi chú
+                }
                 t5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, Px(t5, 56)));   // nút làm mới
                 BatDoubleBuffer(t5);
             }
@@ -249,6 +257,7 @@ namespace PhanMemThiDua2026
             DinhNhan(Tim<Label>(f, "label4"));                  // Đơn vị
             DinhNhan(Tim<Label>(f, "label1"));                  // Tình trạng
             DinhNhan(Tim<Label>(f, "label2_PhanLoai"));         // Phân loại
+            DinhNhan(Tim<Label>(f, "label_GhiChu"));            // Ghi chú
             // Ô tìm tên: code gốc dùng Text + ForeColor xám làm chữ gợi ý => KHÔNG đụng tới màu/font chữ, chỉ đổi khung
             var o = Tim<Krypton.Toolkit.KryptonTextBox>(f, "textBox_TimKiemTheoTen");
             if (o != null)
@@ -258,7 +267,7 @@ namespace PhanMemThiDua2026
                 o.StateCommon.Back.Color1 = Color.White;
                 KieuVienO(o.StateCommon.Border, o.StateActive.Border);
             }
-            foreach (var ten in new[] { "comboBox_TimKiemDonVi", "comboBox1_TinhTrang", "comboBox1_PhanLoaiThiDuaNamCu", "comboBox_ChonCSDLNam" })
+            foreach (var ten in new[] { "comboBox_TimKiemDonVi", "comboBox1_TinhTrang", "comboBox1_PhanLoaiThiDuaNamCu", "comboBox_LocGhiChu", "comboBox_ChonCSDLNam" })
             {
                 var cb = Tim<ComboBox>(f, ten);
                 if (cb == null) continue;
@@ -296,20 +305,21 @@ namespace PhanMemThiDua2026
                 cs.Anchor = AnchorStyles.Left | AnchorStyles.Right;
                 cs.Margin = new Padding(0);
             }
-            // Thẻ "2. Khối điều khiển": 3 nút xếp ngang
+            // Thẻ "2. Khối điều khiển": [Xuất dữ liệu][Làm mới] rộng cố định, dồn trái; phần còn lại để trống.
+            // (Trước đây chia % theo cả thẻ => thẻ rộng ~800px thì nút dài 200-350px, trông xấu.)
             var t3 = Tim<TableLayoutPanel>(f, "tableLayoutPanel3");
             if (t3 != null)
             {
                 t3.Margin = new Padding(0);
+                t3.ColumnCount = 3;
                 t3.ColumnStyles.Clear();
-                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 44F));   // Xem kết quả thi đua tập thể (chữ dài nhất)
-                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));   // Xuất dữ liệu
-                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));   // Làm mới
+                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, Px(t3, RongNut + 10)));   // Xuất dữ liệu
+                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, Px(t3, RongNut + 10)));   // Làm mới
+                t3.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));                   // khoảng trống
                 BatDoubleBuffer(t3);
             }
-            NutTrongO(f, "kryptonButton1_XemKetQuaThiDuaTapThe", NutTimDam, new Padding(0, 0, 6, 0));
-            NutTrongO(f, "kryptonButton_XuatData", NutTim, new Padding(3, 0, 3, 0));
-            NutTrongO(f, "kryptonButton_CapNhat", NutTimDam, new Padding(6, 0, 0, 0));
+            NutTrongO(f, "kryptonButton_XuatData", NutTim, new Padding(0, 0, 10, 0));
+            NutTrongO(f, "kryptonButton_CapNhat", NutTimDam, new Padding(0, 0, 10, 0));
         }
         // ===================== COMBO BO TRÒN (dùng OComboWebF4 của Form4) =====================
         private static void BoTronCacCombo(Form f)
@@ -581,9 +591,9 @@ namespace PhanMemThiDua2026
             var b = Tim<Krypton.Toolkit.KryptonButton>(f, ten);
             if (b == null) return;
             KieuNut(b, m);
-            b.Anchor = AnchorStyles.Left | AnchorStyles.Right;   // nút lấp đầy chiều ngang ô, cao đều 32
+            b.Anchor = AnchorStyles.Left;   // rộng cố định, canh giữa theo chiều dọc ô
             b.Margin = margin;
-            b.Height = 32;
+            b.Size = new Size(Px(b, RongNut), Px(b, 32));
         }
         private static void KieuNut(Krypton.Toolkit.KryptonButton b, BoMauNut m)
         {

@@ -52,8 +52,8 @@ namespace PhanMemThiDua2026
                         AppendSection(sb, "THÔNG TIN CHỨNG THƯ / CERTIFICATE DETAILS:");
                         AppendKeyValue(sb, "Nhà phát hành", "Publisher", SafeText(cert.Subject));
                         AppendKeyValue(sb, "Cá nhân ký số", "Issued by", SafeText(cert.Issuer));
-                        AppendKeyValue(sb, "Hiệu lực từ", "Valid from", cert.NotBefore.ToString("dd/MM/yyyy HH:mm:ss"));
-                        AppendKeyValue(sb, "Hiệu lực đến", "Valid until", cert.NotAfter.ToString("dd/MM/yyyy HH:mm:ss"));
+                        AppendKeyValue(sb, "Hiệu lực từ", "Valid from", cert.NotBefore.ToString(Module_HeThong.DinhDang_NgayGio_Gach));
+                        AppendKeyValue(sb, "Hiệu lực đến", "Valid until", cert.NotAfter.ToString(Module_HeThong.DinhDang_NgayGio_Gach));
                         AppendHorizontalLine(sb);
                         AppendSection(sb, "ĐÁNH GIÁ AN TOÀN / SECURITY ASSESSMENT:");
                         if (isExpired)

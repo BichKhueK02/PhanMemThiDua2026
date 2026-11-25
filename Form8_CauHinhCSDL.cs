@@ -161,7 +161,7 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine($"[Form8] Lỗi xác thực: {ex}");
                 if (!IsDisposed)
-                    MessageBox.Show(this, $"⚠️ Lỗi hệ thống: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(this, $"⚠️ Lỗi hệ thống: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -205,7 +205,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"❌ Lỗi khi mở phần mềm: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, $"❌ Lỗi khi mở phần mềm: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             Hide();
@@ -317,6 +317,21 @@ namespace PhanMemThiDua2026
     public static class SessionInfo
     {
         public static string TenTaiKhoan { get; set; } = "";
-        public static DateTime ThoiGianDangNhap { get; set; } = DateTime.MinValue;
+        private static DateTime _thoiGianDangNhap = DateTime.MinValue;
+        public static DateTime ThoiGianDangNhap
+        {
+            get => _thoiGianDangNhap;
+            set
+            {
+                bool doi = _thoiGianDangNhap != value;
+                _thoiGianDangNhap = value;
+                // Thanh trạng thái Form4 (dựng sẵn trước khi đăng nhập) ghi lại "Truy cập lúc ..." ngay
+                if (doi)
+                {
+                    try { Module_TrangThaiHeThong.LamMoiTatCa(); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[SessionInfo] " + ex.Message); }
+                }
+            }
+        }
     }
 }

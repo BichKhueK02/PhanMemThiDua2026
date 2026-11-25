@@ -72,12 +72,12 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuNhan = Color.FromArgb(71, 85, 105);
         private static readonly Color MauChinh = Color.FromArgb(37, 99, 235);
         private static readonly Color MauODuongDan = Color.FromArgb(248, 250, 252);
-        private static readonly Font FontTieuDeThe = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNhanDam = new Font("Segoe UI Semibold", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontDuongDan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontDanhSach = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold, GraphicsUnit.Point);
-        private static readonly Font FontTrangThai = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDeThe = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhanDam = new Font(Module_HeThong.TenFontHeThongDam, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontDuongDan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontDanhSach = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 10.5F, FontStyle.Bold, GraphicsUnit.Point);
+        private static readonly Font FontTrangThai = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutVien =
             (Color.White, Color.FromArgb(248, 250, 252), Color.FromArgb(241, 245, 249), Color.FromArgb(203, 213, 225), Color.FromArgb(51, 65, 85));
         private int Px(int v) => _f.LogicalToDeviceUnits(v);

@@ -18,8 +18,6 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
-                // 👉 Thêm dòng giải phóng Icon của bạn vào đây:
-                _iconStar?.Dispose();
             }
             base.Dispose(disposing);
         }

@@ -35,10 +35,8 @@ namespace PhanMemThiDua2026
         }
         private static BangDuLieu ChonBang()
         {
-            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            return phienBan.LaCheDoTanBinh()
-                ? new BangDuLieu("DanhSachBaNhat_TanBinh", "DanhSachTanBinh_SoVangBaNhat")
-                : new BangDuLieu("DanhSachBaNhat", "DanhSach_SoVangBaNhat");
+            var c = (Module_TaiKhoan.LayPhienBanPhanMem() ?? "").LayCheDo();
+            return new BangDuLieu(Module_CheDoDoiTuong.BaNhat(c), Module_CheDoDoiTuong.SoVangBaNhat(c));
         }
         private string TenBangDanhSachBaNhat => LayBang().DanhSach;
         //private string TenBangSoVangHienTai => LayBang().SoVang;
@@ -312,18 +310,18 @@ namespace PhanMemThiDua2026
             g.Columns.AddRange(
                 Cot("ID", "ID", 50, giua, hien: false),
                 Cot("STT", "STT", 35, giua),
-                Cot("HoVaTen", "Họ và tên", 215, trai),
-                Cot("SoHieu", "Số hiệu", 90, giua),
-                Cot("NamSinh", "Năm sinh", 80, giua),
-                Cot("QueQuan", "Quê quán", 210, trai),
-                Cot("NgayVaoCAND", "Vào CAND", 120, giua),
-                Cot("CapBac", "Cấp bậc", 90, giua),
-                Cot("ChucVu", "Chức vụ", 110, giua),
-                Cot("DonVi", "Đơn vị", 85, giua),
-                Cot("PhanLoai", "Phân loại", 90, giua, hien: false),
+                Cot("HoVaTen", Module_HeThong.TieuDeCot.HoVaTen, 215, trai),
+                Cot("SoHieu", Module_HeThong.TieuDeCot.SoHieu, 90, giua),
+                Cot("NamSinh", Module_HeThong.TieuDeCot.NamSinh, 80, giua),
+                Cot("QueQuan", Module_HeThong.TieuDeCot.QueQuan, 210, trai),
+                Cot("NgayVaoCAND", Module_HeThong.TieuDeCot.VaoCAND, 120, giua),
+                Cot("CapBac", Module_HeThong.TieuDeCot.CapBac, 90, giua),
+                Cot("ChucVu", Module_HeThong.TieuDeCot.ChucVu, 110, giua),
+                Cot("DonVi", Module_HeThong.TieuDeCot.DonVi, 85, giua),
+                Cot("PhanLoai", Module_HeThong.TieuDeCot.PhanLoai, 90, giua, hien: false),
                 Cot("DeNghi", "Đề nghị", 70, giua),
                 Cot("TinhTrang", "Tình trạng", 120, giua),
-                Cot("GhiChu", "Ghi chú", GhiChuMin, trai, minW: GhiChuMin),
+                Cot("GhiChu", Module_HeThong.TieuDeCot.GhiChu, GhiChuMin, trai, minW: GhiChuMin),
                 Cot("ThanhTich", "Thành tích", ThanhTichMin, trai, minW: ThanhTichMin));
             g.Columns["HoVaTen"]!.Frozen = true;          // cuộn ngang vẫn thấy STT + Họ tên
             _cotCatChu = new bool[g.Columns.Count];
@@ -959,7 +957,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
         /// </summary>
         private void CapNhatComboBoLocKep(DataTable dt, string[] tu, int deNghi, string donVi, string ghiChu)
         {
-            var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donVi, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"));
+            var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donVi, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"), laDonVi: true);
             var tcGc = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(ghiChu, r => Module_BoLocKhenThuong.Chuoi(r, "GhiChu"));
             Module_BoLocKhenThuong.LocKep(Module_BoLocKhenThuong.DongConSong(dt), r =>
             {
@@ -998,7 +996,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
             string? donVi = LayGiaTriLoc(
                 comboBox_TimKiemDonVi.SelectedIndex, comboBox_TimKiemDonVi.SelectedItem, comboBox_TimKiemDonVi.Text);
             if (donVi != null)
-                dieuKien.Add($"DonVi = '{donVi.Replace("'", "''")}'");
+                dieuKien.Add(Module_DonVi.DieuKienRowFilter(dt, "DonVi", donVi));
             // 3) Đề nghị: 0 = Tất cả, 1 = Đề nghị, 2 = Không
             int deNghi = comboBox1_DeNghi.SelectedIndex;
             switch (deNghi)
@@ -1158,7 +1156,7 @@ CapBac=@p4,ChucVu=@p5,DonVi=@p6,PhanLoai=@p7,GhiChu=@p8 WHERE ID=@id";
                 int soDong = await Task.Run(() => LuuDeNghi(bang, idBaNhat, deNghi, thanhTich));
                 if (soDong == 0)
                 {
-                    MessageBox.Show("Không tìm thấy CBCS cần cập nhật.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Không tìm thấy CBCS cần cập nhật.", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lưu đề nghị Ba Nhất",
@@ -1477,7 +1475,7 @@ VALUES (@stt, @p0, @sh, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @tb, @sott,
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không thể chuyển dữ liệu vào Sổ vàng.\n\n" + $"Chi tiết: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không thể chuyển dữ liệu vào Sổ vàng.\n\n" + $"Chi tiết: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private async void toolStripMenuItem_MoSoVang_Click(object? sender, EventArgs e)
@@ -1644,7 +1642,7 @@ VALUES (@stt, @p0, @sh, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @tb, @sott,
             string templatePath = Module_DanduongGPS.DuongDanCSDL4ex;
             if (!File.Exists(templatePath))
             {
-                MessageBox.Show("Không tìm thấy file mẫu Excel tại: " + templatePath, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy file mẫu Excel tại: " + templatePath, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             // Yêu cầu chọn nơi lưu TRƯỚC KHI hiện màn hình chờ
@@ -1670,7 +1668,7 @@ VALUES (@stt, @p0, @sh, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @tb, @sott,
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi hệ thống khi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi hệ thống khi xuất file: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1762,7 +1760,7 @@ VALUES (@stt, @p0, @sh, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @tb, @sott,
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi hệ thống: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi hệ thống: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1920,7 +1918,7 @@ VALUES (@stt, @p0, @sh, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @tb, @sott,
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi hệ thống khi xuất tờ trình: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi hệ thống khi xuất tờ trình: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

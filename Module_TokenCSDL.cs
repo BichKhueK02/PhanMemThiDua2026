@@ -30,7 +30,7 @@ namespace PhanMemThiDua2026
         private const string BANG_MOI = "Token_ChuKyCSDL";
         private const string BANG_CU = "Token_XacDinhChinhChu";
         private const string NHAN_KHOA = "PMTD2026|TOKEN-CSDL|v2";
-        private const string DINH_DANG_THOI_GIAN = "dd-MM-yyyy HH:mm:ss";
+        private const string DINH_DANG_THOI_GIAN = Module_HeThong.DinhDang_NgayGio;
         internal enum TrangThai
         {
             HopLe,          // chữ ký đúng, cùng bộ, cùng phiên bản

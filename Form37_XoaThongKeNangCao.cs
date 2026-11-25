@@ -26,7 +26,7 @@ namespace PhanMemThiDua2026
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             bool laTanBinh = phienBan.LaCheDoTanBinh();
             string loaiDoiTuong = laTanBinh ? Module_TaiKhoan.TenTB_Thuong : "CBCS";
-            string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
+            string tenBang = Module_CheDoDoiTuong.ThiDuaThang(phienBan.LayCheDo());
             // 2. Đếm số lượng thực tế từ Database
             int tong = 0, dangCongTac = 0, chuyenCongTac = 0;
             try
@@ -47,7 +47,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi truy xuất dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi truy xuất dữ liệu: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btn_XoaDuLieuThongKe.Enabled = false;
                 return;
             }
@@ -97,7 +97,7 @@ namespace PhanMemThiDua2026
             }
             string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
             bool laTanBinh = phienBan.LaCheDoTanBinh();
-            string tenBang = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
+            string tenBang = Module_CheDoDoiTuong.ThiDuaThang(phienBan.LayCheDo());
             string sqlQuery = "";
             string thongBaoLog = "";
             // 2. Xác định điều kiện xóa
@@ -166,7 +166,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi hệ thống khi xóa dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi hệ thống khi xóa dữ liệu: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

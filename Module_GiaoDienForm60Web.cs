@@ -92,11 +92,11 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuNhan = Color.FromArgb(71, 85, 105);
         private static readonly Color MauChuPhu = Color.FromArgb(100, 116, 139);
         private static readonly Color MauChinh = Color.FromArgb(37, 99, 235);
-        private static readonly Font FontTieuDeThe = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontTrangThai = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontMenu = new Font("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDeThe = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTrangThai = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontMenu = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutXanhLa =
             (Color.FromArgb(22, 163, 74), Color.FromArgb(21, 128, 61), Color.FromArgb(22, 101, 52), Color.FromArgb(22, 163, 74), Color.White);
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutVien =

@@ -197,8 +197,8 @@ namespace PhanMemThiDua2026
                 kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
                 kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
                 checkBox1_TuDongAnMenu.ForeColor = Module_SidebarCoDien.ChuThuong;
-                // Ảnh gốc của các nút (nhúng trong exe) - chỉ nạp ở kiểu Cổ điển; kiểu Hiện đại tự vẽ biểu tượng
-                Module_BieuTuongMenu.GanAnhCoDien(
+                // Biểu tượng tự vẽ (ảnh gốc đã bỏ khỏi exe): màu chữ tím đậm của sidebar cổ điển, mục đang chọn => trắng
+                Module_BieuTuongMenu.GanBieuTuongVeCoDien((int)Math.Round(24 * DeviceDpi / 96f), Module_SidebarCoDien.ChuThuong,
                 kryptonButton1_Trangchu, kryptonButton1_XuLyData, kryptonButton1_CaiDatPhanMem,
                 kryptonButton1_NhatKyPhanMem, kryptonButton1_ThongKe, kryptonButton1_KhenThuong,
                 kryptonButton1_HuongDan, kryptonButton1_ThoatHeThong);
@@ -219,6 +219,7 @@ namespace PhanMemThiDua2026
                 sidebarMinWidth = Module_SidebarHienDai.RongThuGon(PanelLeft);   // thu gọn = thanh icon, không ẩn hẳn
             }
             kryptonButton1_MoMenuPhanMem.Text = ChuNutThuGon;
+            LopTruotMenu.ChuanBiNen();   // biên dịch sẵn hiệu ứng trượt menu ở nền: lần bấm đầu không bị trễ
             Module_GiaoDienBoTron.ApDung(this);
             // === THÊM ĐOẠN CODE NÀY ĐỂ HIỂN THỊ ICON TASKBAR ===
             // 🌟 ĐĂNG KÝ SỰ KIỆN: Cứ mỗi khi chữ của Label1 bị đổi, lập tức chạy hàm kiểm tra màu
@@ -297,6 +298,7 @@ namespace PhanMemThiDua2026
             // 5. KHỞI TẠO TIMER VÀ EVENT
             KhoiTaoTimerTuDongAnMenu();
             DangKySuKienTuDongAnMenu();
+            if (checkBox1_TuDongAnMenu.Checked) ThuGonNgayKhiMo();   // đã lưu "Tự động thu gọn" => mở lên là menu đã thu gọn sẵn
             _ = Task.Run(EnsureSuKienThoatTonTai);   // CREATE TABLE + INSERT: không cần chặn luồng UI lúc mở form
             FormClosed += (s, ev) => Module_KhoGiaoDien.Huy();   // dọn kho giao diện (các trang chưa từng mở) khi thoát
             // 6. CẬP NHẬT UI BAN ĐẦU
@@ -338,6 +340,7 @@ namespace PhanMemThiDua2026
             string phienBan = "";
             try { phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? ""; }
             catch (Exception ex) { Debug.WriteLine("[Form2_Load] LayPhienBan: " + ex.Message); }
+            AppRuntime.TuDongAnMenu = Module_TuDongThuGonMenu.Doc();   // ô "Tự động thu gọn" đã lưu trong csdl2
             return (nam, phienBan);
         }
         /// <summary>Chờ (không chặn UI) việc nạp danh sách CSDL xong; nếu chưa có ai nạp thì nạp ở nền.</summary>
@@ -503,15 +506,12 @@ namespace PhanMemThiDua2026
         {
             OpenChildForm<Form4_TrangDauTien>(
                 $"PHẦN MỀM THI ĐUA NĂM {namHienTai}");
-            // 🚀 TỐI ƯU UX: ẨN NÚT KHEN THƯỞNG NẾU LÀ TÂN BINH
+            // Khen thưởng có ở CẢ 3 chế độ (CBCS / Tân binh / Học viên - mỗi chế độ bộ bảng riêng) => nút luôn hiện
             try
             {
-                bool laTanBinh = phienBan.LaCheDoTanBinh();
-                // Nếu là Tân binh -> Visible = false (Ẩn nút)
-                // Nếu là CBCS -> Visible = true (Hiện nút)
                 if (kryptonButton1_KhenThuong != null)
                 {
-                    kryptonButton1_KhenThuong.Visible = !laTanBinh;
+                    kryptonButton1_KhenThuong.Visible = true;
                 }
             }
             catch (Exception ex)
@@ -579,8 +579,7 @@ namespace PhanMemThiDua2026
             };
             var tips = new Dictionary<System.Windows.Forms.Control, string>
     {
-        { pictureBox3, "Xem giới thiệu về chứng thư số và chữ ký số" },
-        { kryptonButton1_MoMenuPhanMem, "Thu gọn / mở rộng menu chức năng" }
+        { pictureBox3, "Xem giới thiệu về chứng thư số và chữ ký số" }
     };
             foreach (var tip in tips)
             {
@@ -650,11 +649,66 @@ namespace PhanMemThiDua2026
         private string ChuNutMoRong => _giaoDienCoDien ? "Hiện menu" : "≡   Mở rộng menu";
         private void AnMenu()
         {
-            DoiRongMenu(sidebarMinWidth);
+            // Đổi chữ nút + mũi tên và VẼ NGAY trước khi đổi bề rộng (đổi rộng + vẽ lại trang mất ~0,2 s): bấm là thấy nút phản hồi
             sidebarExpanded = false;
             kryptonButton1_MoMenuPhanMem.Text = ChuNutMoRong;
-            // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi ẩn menu
             CapNhatMuiTenGiaoDien();
+            VeNgayNutMenu();
+            DoiRongMenu(sidebarMinWidth);
+        }
+        /// <summary>
+        /// Mở Form2 khi ô "Tự động thu gọn" đã tích: thu gọn menu NGAY lúc dựng (form còn ẩn/cloak) — không hiệu ứng trượt,
+        /// không chờ 3 giây => người dùng thấy ngay menu dạng thanh icon.
+        /// </summary>
+        private void ThuGonNgayKhiMo()
+        {
+            try
+            {
+                if (!sidebarExpanded) return;
+                if (sidebarWidth <= 0) sidebarWidth = PanelLeft.Width;   // giữ bề rộng đầy đủ để lúc mở lại menu
+                sidebarExpanded = false;
+                kryptonButton1_MoMenuPhanMem.Text = ChuNutMoRong;
+                CapNhatMuiTenGiaoDien();
+                DoiRongMenuNgay(sidebarMinWidth);
+            }
+            catch (Exception ex) { Debug.WriteLine("[Form2] Thu gọn menu khi mở: " + ex.Message); }
+        }
+        private void HienMenu()
+        {
+            sidebarExpanded = true;
+            kryptonButton1_MoMenuPhanMem.Text = ChuNutThuGon;
+            CapNhatMuiTenGiaoDien();
+            VeNgayNutMenu();
+            DoiRongMenu(sidebarWidth);
+        }
+        private void VeNgayNutMenu()
+        {
+            try { kryptonButton1_MoMenuPhanMem.Update(); PictureBox2.Update(); } catch { }
+        }
+        // Bấm Thu gọn/Mở rộng khi menu đang trượt: không bỏ qua (người dùng tưởng nút "không nhận") mà ghi nhận, trượt xong làm tiếp
+        private System.Windows.Forms.Timer? _timerBamMenuCho;
+        private int _soBamMenuCho;
+        private void ChoTruotXongRoiBam()
+        {
+            _soBamMenuCho = (_soBamMenuCho + 1) % 2;   // bấm 2 lần trong lúc trượt = về như cũ
+            if (_timerBamMenuCho == null)
+            {
+                _timerBamMenuCho = new System.Windows.Forms.Timer { Interval = 15 };
+                _timerBamMenuCho.Tick += (s, e) =>
+                {
+                    if (LopTruotMenu.DangChay) return;
+                    _timerBamMenuCho!.Stop();
+                    if (_soBamMenuCho == 0 || _isClosing || IsDisposed) { _soBamMenuCho = 0; return; }
+                    _soBamMenuCho = 0;
+                    DoiTrangThaiMenu();
+                };
+            }
+            _timerBamMenuCho.Start();
+        }
+        private void DoiTrangThaiMenu()
+        {
+            if (sidebarExpanded) AnMenu();
+            else HienMenu();
         }
         private readonly ConcurrentDictionary<Type, Form> _forms = new();
         public void OpenChildForm<T>(string title = "") where T : Form, new()
@@ -727,18 +781,8 @@ namespace PhanMemThiDua2026
         private void MoMenuPhanMem_Click(object? sender, EventArgs e)
         {
             ResetTuDongAnMenu();
-            if (sidebarExpanded)
-            {
-                AnMenu();
-            }
-            else
-            {
-                DoiRongMenu(sidebarWidth);
-                sidebarExpanded = true;
-                kryptonButton1_MoMenuPhanMem.Text = ChuNutThuGon;
-                // ⭐ THÊM VÀO ĐÂY: Đồng bộ mũi tên khi hiện menu
-                CapNhatMuiTenGiaoDien();
-            }
+            if (LopTruotMenu.DangChay) { ChoTruotXongRoiBam(); return; }   // đang trượt (~0,3 s): trượt xong làm tiếp
+            DoiTrangThaiMenu();
         }
         // 1. Thêm từ khóa 'async' vào chữ ký của sự kiện
         private async void Btn_Trangchu_Click(object? sender, EventArgs e)
@@ -826,6 +870,9 @@ namespace PhanMemThiDua2026
             // lưu RAM
             AppRuntime.TuDongAnMenu =
                 checkBox1_TuDongAnMenu.Checked;
+            // lưu csdl2 (luồng nền) => lần mở phần mềm sau giữ nguyên lựa chọn
+            bool giaTriLuu = AppRuntime.TuDongAnMenu;
+            _ = Task.Run(() => Module_TuDongThuGonMenu.Ghi(giaTriLuu));
             if (AppRuntime.TuDongAnMenu)
             {
                 ResetTuDongAnMenu();
@@ -857,7 +904,7 @@ namespace PhanMemThiDua2026
             {
                 MessageBox.Show(
                     "Lỗi khởi tạo trang Quản lý Thi đua: " + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -978,6 +1025,9 @@ namespace PhanMemThiDua2026
                     timerTuDongAnMenu.Stop();
                     timerTuDongAnMenu.Dispose();
                 }
+                _timerBamMenuCho?.Stop();
+                _timerBamMenuCho?.Dispose();
+                _timerBamMenuCho = null;
                 // 👇 Bổ sung dọn dẹp Timer Hình Nền
                 if (_timerHinhNen != null)
                 {
@@ -1220,23 +1270,23 @@ namespace PhanMemThiDua2026
             UIHelper.SafeInvoke(this, () =>
             {
                 // 1. Kiểm tra lại phiên bản mới nhất
-                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                bool laTanBinh = phienBan.LaCheDoTanBinh();
                 // 1b. Bảng gốc đổi (DanhSach <-> DanhSachTanBinh): bỏ bộ đệm phiên bản + dữ liệu danh sách cũ trong RAM
                 Module_TaiKhoan.XoaBoDemPhienBan();
                 XoaAnhNhoTrang();   // các trang dữ liệu sắp dựng lại theo phiên bản mới => ảnh nhớ cũ không còn đúng
                 DataCache.Clear();
+                Module_HoSoThiDua.Huy();   // Form22/Form30 giữ trong RAM: dựng lại theo chế độ mới
                 // 2. Ẩn/Hiện nút Khen thưởng
                 if (kryptonButton1_KhenThuong != null)
                 {
-                    kryptonButton1_KhenThuong.Visible = !laTanBinh;
+                    kryptonButton1_KhenThuong.Visible = true;   // khen thưởng có ở cả 3 chế độ
                 }
                 // 3. QUAN TRỌNG: Đóng các Form dữ liệu cũ đang mở để tránh ghi nhầm dữ liệu
                 // Xóa chúng khỏi bộ nhớ Cache (_forms) để khi click lại Menu, chúng sẽ tự tạo mới 100%
                 var danhSachFormCanDong = new[] {
                     typeof(Form6_XuLyData),
                     typeof(Form15_ThongKeThiDua),
-                    typeof(Form34_ThongKeKhenThuong)
+                    typeof(Form34_ThongKeKhenThuong),
+                    typeof(Form52_QuanLyKhenThuong)   // khung chứa khen thưởng (giữ Form34/35/49/50/51 của chế độ cũ trong RAM)
                 };
                 bool formHienTaiBiDong = false;
                 foreach (var type in danhSachFormCanDong)
@@ -1287,8 +1337,8 @@ namespace PhanMemThiDua2026
             // Gọi hàm đổi màu và truyền nút hiện tại vào
             HighlightNavButton((KryptonButton)sender!);
             // BẮT ĐẦU CODE ĐÃ ĐỔI SANG Form52_QuanLyKhenThuong
-            // Tên Form: Quản lý khen thưởng CBCS + năm hệ thống
-            string tieuDeForm = "Trang Quản lý khen thưởng CBCS năm " +
+            // Tên Form: Quản lý khen thưởng CBCS / Tân binh / Học viên + năm hệ thống
+            string tieuDeForm = $"Trang Quản lý khen thưởng {Module_CheDoDoiTuong.TenDoiTuongHienTai} năm " +
                                 Module_HeThong.LayNamHeThong();
             OpenChildForm<Form52_QuanLyKhenThuong>(tieuDeForm);
             if (_currentChild is Form52_QuanLyKhenThuong frm)
@@ -1648,7 +1698,7 @@ namespace PhanMemThiDua2026
                 moc.Append($", Form6 {sw.ElapsedMilliseconds}");
                 if (NapTruocFormConThongKe && !await BuocKho<Form53_QuanLyKetQuaThiDua>(f => f.DamBaoDaTaiAsync())) return;
                 moc.Append($", Form15 {sw.ElapsedMilliseconds}");
-                if (NapTruocFormConKhenThuong && LaBanCBCS())
+                if (NapTruocFormConKhenThuong)   // khen thưởng có ở cả 3 chế độ
                 {
                     if (!await BuocKho<Form52_QuanLyKhenThuong>(f => f.ChoTrangDauNapXongAsync())) return;
                     moc.Append($", Form34 {sw.ElapsedMilliseconds}");
@@ -1747,11 +1797,6 @@ namespace PhanMemThiDua2026
             Form1.GhiDongNhatKyDo($"Chờ Trang chủ trước khi vào: {sw.ElapsedMilliseconds} ms ({(xong ? "đã sẵn" : "chưa xong - Form2 nạp nốt sau khi hiện")})");
             return xong;
         }
-        private static bool LaBanCBCS()
-        {
-            try { return Module_HoTroLuuDataTheoNamCu.LaPhienBanCBCS(); }
-            catch { return true; }
-        }
         /// <summary>Ước lượng cỡ PanelContainer khi Form2 phóng to (trước đăng nhập Form2 chưa hiện nên chưa biết cỡ thật).</summary>
         private Size UocLuongCoVungChua()
         {
@@ -1833,8 +1878,17 @@ namespace PhanMemThiDua2026
             typeof(Control).GetProperty("DoubleBuffered",
                 BindingFlags.Instance | BindingFlags.NonPublic)?.SetValue(c, true);
         }
-        /// <summary>Ẩn/hiện menu trái: gom thành 1 lần layout thay vì nhiều lần.</summary>
+        /// <summary>Ẩn/hiện menu trái có hiệu ứng trượt kiểu web (LopTruotMenu); không làm được hiệu ứng => đổi tức thì.</summary>
         private void DoiRongMenu(int rongMoi)
+        {
+            if (PanelLeft.Width == rongMoi) return;
+            if (!_daCloak && !_isClosing && Visible)
+                LopTruotMenu.Chay(this, PanelLeft, PanelContainer, rongMoi, () => DoiRongMenuNgay(rongMoi));
+            else
+                DoiRongMenuNgay(rongMoi);
+        }
+        /// <summary>Đổi bề rộng menu trái thật: gom thành 1 lần layout thay vì nhiều lần.</summary>
+        private void DoiRongMenuNgay(int rongMoi)
         {
             if (PanelLeft.Width == rongMoi) return;
             SuspendLayout();

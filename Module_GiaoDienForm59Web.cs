@@ -26,9 +26,9 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(75, 20, 130);
         private static readonly Color MauKeBang = Color.FromArgb(235, 238, 243);
         private static readonly Color MauVienThe = Color.FromArgb(226, 232, 240);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontO = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontO = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
         private const int DemKhungBang = 5;     // khoảng đệm giữa khung bo tròn và bảng (px thiết kế)
         private const int CaoHangChonCsdl = 102;   // hàng thẻ "Chọn CSDL" (gồm khe 10px phía dưới)
         private const int CaoHangCapNhat = 226;    // hàng thẻ "Cập nhật thông tin thi đua" (gồm khe 10px phía dưới)

@@ -8,12 +8,10 @@ namespace PhanMemThiDua2026
     {
         // Đường dẫn CSDL lấy tập trung từ Module hệ thống
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
-        private const string SqlTaoBang = @"
-            CREATE TABLE IF NOT EXISTS ""ChonDonVi_DeBoQuaCanhBao"" (
-                ""ID""                        INTEGER NOT NULL,
-                ""Ten_DonViBoQuaCanhBaoTyLe"" TEXT,
-                PRIMARY KEY(""ID"" AUTOINCREMENT)
-            );";
+        // Mỗi chế độ (CBCS / Tân binh / Học viên) 1 danh sách riêng: ChonDonVi_DeBoQuaCanhBao[_TanBinh|_HocVien].
+        // Chụp tên bảng 1 lần lúc mở form => đọc và ghi luôn cùng 1 bảng dù luồng nền chạy lúc nào.
+        private readonly string _bangBoQua = Module_CheDoDoiTuong.BangBoQuaCanhBao;
+        private readonly string _bangDonVi = Module_DonVi.LayTenBangDonVi();   // DanhSach_DonVi_CBCS / _TanBinh / _HocVien
         // Danh sách đơn vị kiểu web (do Module_GiaoDienForm40Web dựng ở đầu sự kiện Load)
         private DanhSachDonViWebF40? _dsDonVi;
         private bool _daNapXong; // Chỉ khi nạp thành công mới cho phép ghi CSDL (tránh xóa nhầm cấu hình cũ)
@@ -22,6 +20,7 @@ namespace PhanMemThiDua2026
         public Form40_BoQuaDonViCanhBaoTyLe()
         {
             InitializeComponent();
+            Module_CheDoDoiTuong.ApNhanTheoCheDo(this);   // nhãn "CBCS" -> "Tân binh"/"Học viên" theo chế độ
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // Cấu hình UI chặn co dãn và căn giữa màn hình ngay từ hàm khởi tạo
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -51,7 +50,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Lỗi dựng giao diện biểu mẫu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, $"Lỗi dựng giao diện biểu mẫu: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.Close();
                 return;
             }
@@ -60,7 +59,8 @@ namespace PhanMemThiDua2026
             try
             {
                 string duongDan = _csdl2Path;
-                var danhSach = await Task.Run(() => TaiDanhSachDonVi(duongDan));
+                string bangBoQua = _bangBoQua, bangDonVi = _bangDonVi;
+                var danhSach = await Task.Run(() => TaiDanhSachDonVi(duongDan, bangBoQua, bangDonVi));
                 if (this.IsDisposed || this.Disposing) return;
                 dsUi.NapDuLieu(danhSach);
                 _daNapXong = true;
@@ -70,7 +70,7 @@ namespace PhanMemThiDua2026
                 if (!this.IsDisposed)
                 {
                     dsUi.DangTai = false;
-                    MessageBox.Show(this, $"Lỗi khởi tạo biểu mẫu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(this, $"Lỗi khởi tạo biểu mẫu: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             finally
@@ -89,21 +89,21 @@ namespace PhanMemThiDua2026
         /// <summary>
         /// Tạo bảng cấu hình nếu chưa có, đọc danh sách đã tích, đọc danh sách gốc, giải mã tên và đối chiếu trên RAM.
         /// </summary>
-        private static List<(string Ten, bool Chon)> TaiDanhSachDonVi(string duongDan)
+        private static List<(string Ten, bool Chon)> TaiDanhSachDonVi(string duongDan, string bangBoQua, string bangDonVi)
         {
             var ketQua = new List<(string Ten, bool Chon)>();
             using var cn = new SqliteConnection(TaoChuoiKetNoi(duongDan));
             cn.Open();
             using (var cmdTao = cn.CreateCommand())
             {
-                cmdTao.CommandText = SqlTaoBang;
+                cmdTao.CommandText = Module_CheDoDoiTuong.DdlBoQuaCanhBao(bangBoQua);
                 cmdTao.ExecuteNonQuery();
             }
             // 1. Các đơn vị ĐÃ LƯU TÍCH CHỌN (không phân biệt hoa/thường)
             var daTich = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using (var cmd = cn.CreateCommand())
             {
-                cmd.CommandText = "SELECT Ten_DonViBoQuaCanhBaoTyLe FROM ChonDonVi_DeBoQuaCanhBao";
+                cmd.CommandText = $@"SELECT Ten_DonViBoQuaCanhBaoTyLe FROM ""{bangBoQua}""";
                 using var rd = cmd.ExecuteReader();
                 while (rd.Read())
                 {
@@ -115,7 +115,7 @@ namespace PhanMemThiDua2026
             // 2. Danh sách GỐC (tên đang mã hóa) → giải mã → đối chiếu trạng thái
             using (var cmd = cn.CreateCommand())
             {
-                cmd.CommandText = "SELECT Ten_DonVi FROM DanhSach_DonVi ORDER BY ID ASC";
+                cmd.CommandText = $@"SELECT Ten_DonVi FROM ""{bangDonVi}"" ORDER BY ID ASC";   // đơn vị của đúng chế độ đang chạy
                 using var rd = cmd.ExecuteReader();
                 while (rd.Read())
                 {
@@ -133,7 +133,7 @@ namespace PhanMemThiDua2026
         /// <summary>
         /// Xóa cũ ghi mới trong 1 TRANSACTION: hoặc ghi đủ hoặc không ghi gì, cấu hình cũ không bao giờ bị mất giữa chừng.
         /// </summary>
-        private static void LuuDanhSachBoQua(string duongDan, List<string> dsDonVi)
+        private static void LuuDanhSachBoQua(string duongDan, string bangBoQua, List<string> dsDonVi)
         {
             using var cn = new SqliteConnection(TaoChuoiKetNoi(duongDan));
             cn.Open();
@@ -143,16 +143,16 @@ namespace PhanMemThiDua2026
                 using (var cmd = cn.CreateCommand())
                 {
                     cmd.Transaction = trans;
-                    cmd.CommandText = SqlTaoBang;
+                    cmd.CommandText = Module_CheDoDoiTuong.DdlBoQuaCanhBao(bangBoQua);
                     cmd.ExecuteNonQuery();
-                    cmd.CommandText = "DELETE FROM ChonDonVi_DeBoQuaCanhBao;";
+                    cmd.CommandText = $@"DELETE FROM ""{bangBoQua}"";";
                     cmd.ExecuteNonQuery();
                 }
                 if (dsDonVi.Count > 0)
                 {
                     using var cmdThem = cn.CreateCommand();
                     cmdThem.Transaction = trans;
-                    cmdThem.CommandText = "INSERT INTO ChonDonVi_DeBoQuaCanhBao (Ten_DonViBoQuaCanhBaoTyLe) VALUES (@ten);";
+                    cmdThem.CommandText = $@"INSERT INTO ""{bangBoQua}"" (Ten_DonViBoQuaCanhBaoTyLe) VALUES (@ten);";
                     var paramTen = cmdThem.Parameters.Add("@ten", SqliteType.Text);
                     foreach (var tenDonVi in dsDonVi)
                     {
@@ -200,7 +200,8 @@ namespace PhanMemThiDua2026
             try
             {
                 string duongDan = _csdl2Path;
-                await Task.Run(() => LuuDanhSachBoQua(duongDan, dsDonViDuocTich));
+                string bangBoQua = _bangBoQua;
+                await Task.Run(() => LuuDanhSachBoQua(duongDan, bangBoQua, dsDonViDuocTich));
             }
             catch (Exception ex)
             {
@@ -227,7 +228,7 @@ namespace PhanMemThiDua2026
         {
             var taiKhoan = Module_TaiKhoan.TenTaiKhoan_RAM; // đọc sẵn ở luồng giao diện
             int soLuong = dsDonVi.Count;
-            string chiTietDonVi = soLuong > 0 ? string.Join(", ", dsDonVi) : "Không chọn đơn vị nào (Trống)";
+            string chiTietDonVi = soLuong > 0 ? string.Join(" | ", dsDonVi) : "Không chọn đơn vị nào (Trống)";
             string ghiChu = $"Chi tiết đơn vị: {chiTietDonVi} | Thời gian: {DateTime.Now:dd-MM-yyyy HH:mm:ss}";
             _ = Task.Run(() =>
             {
@@ -235,7 +236,7 @@ namespace PhanMemThiDua2026
                 {
                     Module_NhatKy.GhiNhatKy(
                         taiKhoan: taiKhoan,
-                        hanhDong: $"Cập nhật cấu hình: Bỏ qua cảnh báo tỷ lệ cho {soLuong} đơn vị.",
+                        hanhDong: $"Cập nhật cấu hình ({Module_CheDoDoiTuong.TenDoiTuongHienTai}): Bỏ qua cảnh báo tỷ lệ cho {soLuong} đơn vị.",
                         ghiChu: ghiChu
                     );
                 }

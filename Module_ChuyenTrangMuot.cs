@@ -116,7 +116,7 @@ namespace PhanMemThiDua2026
         /// cửa sổ đang vắt giữa 2 màn hình khác tỷ lệ) thì Windows co giãn tọa độ => ảnh chụp và lớp phủ lệch khỏi vùng nội dung.
         /// Máy cũ không có các API này => giữ hành vi cũ.
         /// </summary>
-        private static bool ToaDoManHinhTinCay(Form f)
+        internal static bool ToaDoManHinhTinCay(Form f)
         {
             try
             {

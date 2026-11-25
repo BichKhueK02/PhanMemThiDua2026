@@ -238,7 +238,8 @@ namespace PhanMemThiDua2026
             try
             {
                 using var cmdBC = conn.CreateCommand();
-                cmdBC.CommandText = "SELECT ChonLoaiBaoCao, ChonTuan FROM ChonLoaiBaoCao WHERE ID = 1";
+                string? bangBC = Module_CheDoDoiTuong.BangChonLoaiBaoCao;   // CBCS: không có => báo cáo theo tháng
+                cmdBC.CommandText = bangBC == null ? "SELECT NULL, NULL WHERE 0" : $"SELECT ChonLoaiBaoCao, ChonTuan FROM [{bangBC}] WHERE ID = 1";
                 using var rdBC = cmdBC.ExecuteReader();
                 if (rdBC.Read())
                 {
@@ -264,10 +265,10 @@ namespace PhanMemThiDua2026
                 }
                 catch (Exception ex) { GhiNhatKyLoi("Xuất PL: đọc đơn vị ban hành", ex); }
             }
-            // 4) Người ký (bảng ChiHuyD hoặc ChiHuyD_TanBinh – tên bảng cố định, không nhận từ bên ngoài)
+            // 4) Người ký (ChiHuyD / ChiHuyD_TanBinh / ChiHuyD_HocVien – tên bảng cố định, không nhận từ bên ngoài)
             if (canNguoiKy)
             {
-                string bang = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
+                string bang = Module_CheDoDoiTuong.BangChiHuyD;
                 using var cmdCH = conn.CreateCommand();
                 cmdCH.CommandText = $"SELECT HoVaTen, ChucVu FROM [{bang}] ORDER BY ID ASC";
                 using var rdCH = cmdCH.ExecuteReader();
@@ -301,12 +302,10 @@ namespace PhanMemThiDua2026
         }
         private static DataTable DocBangTyLe(SqliteConnection conn)
         {
-            var dt = new DataTable();
-            using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT * FROM TyLe ORDER BY ID";
-            using var rd = cmd.ExecuteReader();
-            dt.Load(rd);
-            return dt;
+            // Dùng đúng kết quả Bảng 2 mà Form4 vừa tính cho CHẾ ĐỘ ĐANG CHẠY (CBCS / Tân binh / Học viên).
+            // Không còn bảng TyLe trong CSDL; chưa tính (hoặc vừa đổi chế độ) => dừng xuất, không ghi số sai.
+            if (Module_TyLeBang2.Hien is KetQuaBang2 kq) return Module_TyLeBang2.TaoBangTyLe(kq);
+            throw new InvalidOperationException(Module_TyLeBang2.ThongBaoChuaTinh);
         }
         // Đọc ô bảng TyLe an toàn (thiếu dòng/cột => rỗng, không văng IndexOutOfRange)
         private static string TyLeStr(DataTable dt, int dong, string cot) =>
@@ -328,7 +327,7 @@ namespace PhanMemThiDua2026
             try
             {
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = $"SELECT ID, {cot} FROM QuyDinhTyLeBCH WHERE ID BETWEEN 1 AND 5";
+                cmd.CommandText = $"SELECT ID, {cot} FROM QuyDinhTyLe_BCH_CBCS WHERE ID BETWEEN 1 AND 5";
                 using var rd = cmd.ExecuteReader();
                 while (rd.Read())
                 {
@@ -346,7 +345,7 @@ namespace PhanMemThiDua2026
                 }
                 ok = true;
             }
-            catch (Exception ex) { GhiNhatKyLoi("Xuất PL: đọc QuyDinhTyLeBCH", ex); }
+            catch (Exception ex) { GhiNhatKyLoi("Xuất PL: đọc QuyDinhTyLe_BCH_CBCS", ex); }
             if (!ok) { ts.L1 = 0.50; ts.L2 = 1.00; ts.L3 = 0; ts.L4 = 0; ts.KPL = 0; }
             try
             {
@@ -759,10 +758,16 @@ namespace PhanMemThiDua2026
             stQS.Font.FontSize = 12;
             stQS.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             stQS.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            // % lấy cùng nguồn với số "Cần đạt" (Bảng 2 Form4 vừa tính); PTLoai trong CSDL chỉ có sau khi bấm Lưu nên có thể cũ.
+            var kq = Module_TyLeBang2.Hien;
+            string SoPT(double v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+            string pt1 = kq != null ? SoPT(kq.TyLeLoai1) : tt.PTLoai1;
+            string pt2 = kq != null ? SoPT(kq.TyLeLoai2) : tt.PTLoai2;
+            string pt3 = kq != null ? SoPT(kq.TyLeLoai3) : tt.PTLoai3;
             rangeTQS.Value = $"Tổng QS {TyLeStr(dtTyLe, 0, "KQ Can dat")} {tuTongQS} (Trong đó: " +
-                             $"{nhan1} {tt.PTLoai1}% = {TyLeStr(dtTyLe, 1, "KQ Can dat")} đ/c, " +
-                             $"{nhan2} {tt.PTLoai2}% = {TyLeStr(dtTyLe, 2, "KQ Can dat")} đ/c, " +
-                             $"{nhan3} {tt.PTLoai3}% = {TyLeStr(dtTyLe, 3, "KQ Can dat")} đ/c)";
+                             $"{nhan1} {pt1}% = {TyLeStr(dtTyLe, 1, "KQ Can dat")} đ/c, " +
+                             $"{nhan2} {pt2}% = {TyLeStr(dtTyLe, 2, "KQ Can dat")} đ/c, " +
+                             $"{nhan3} {pt3}% = {TyLeStr(dtTyLe, 3, "KQ Can dat")} đ/c)";
             int lastRowB = ws.Column(2).LastCellUsed()?.Address.RowNumber ?? 11;
             int startRow = lastRowB + 2;
             var rangeGhiChu = ws.Range(startRow, 1, startRow, 7);
@@ -1151,7 +1156,7 @@ namespace PhanMemThiDua2026
         private static void BaoLoiTrinhKyTanBinh(Exception ex)
         {
             Module_ThongBao.DangXuLy("Lỗi xuất Trình Ký:\n" + ex.Message);
-            MessageBox.Show(ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         private static KetQuaXuat TaoTrinhKyTanBinhCore(BoiCanh ctx, string duongDanLuu, bool xoaXinYKien)
         {
@@ -1260,7 +1265,7 @@ namespace PhanMemThiDua2026
         private static void BaoLoiTrinhKyCBCS(Exception ex)
         {
             Module_ThongBao.Loi("Lỗi xuất Trình Ký:\n" + ex.Message);
-            MessageBox.Show("Lỗi xuất Trình Ký: \n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Lỗi xuất Trình Ký: \n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         private static KetQuaXuat TaoTrinhKyCBCSCore(BoiCanh ctx, string duongDanLuu)
         {
@@ -1306,21 +1311,24 @@ namespace PhanMemThiDua2026
             var theoLoai = new Dictionary<string, List<int>>(StringComparer.Ordinal);   // chỉ nhóm KHÔNG BCH
             var plUp = new string[n];
             var dvUp = new string[n];
+            var dvGoc = new string[n];   // tên đơn vị nguyên văn: so với danh sách khai báo
             var khoaSTT = new int[n];
             for (int i = 0; i < n; i++)
             {
                 DataRow r = dt.Rows[i];
                 plUp[i] = gm.Lay(LayChuoi(r, "PhanLoai")).ToUpperInvariant();
-                dvUp[i] = gm.Lay(LayChuoi(r, "DonVi")).ToUpperInvariant();
+                dvGoc[i] = gm.Lay(LayChuoi(r, "DonVi")).Trim();
+                dvUp[i] = dvGoc[i].ToUpperInvariant();
                 khoaSTT[i] = KhoaSTT(r, coSTT);
-                if (dvUp[i] == "BCH") chiMucBCH.Add(i);
+                if (Module_DonVi.LaBCH(dvUp[i])) chiMucBCH.Add(i);
                 else
                 {
                     if (!theoLoai.TryGetValue(plUp[i], out var ds)) theoLoai[plUp[i]] = ds = new List<int>();
                     ds.Add(i);
                 }
             }
-            var donViHopLe = new HashSet<string>(ctx.DonViHopLe, StringComparer.Ordinal);
+            // So tên đơn vị NGUYÊN VĂN (dvGoc) với danh sách khai báo — bản cũ so bản đã viết HOA nên "Trung đội 1" bị loại khỏi tờ trình
+            var donViHopLe = new HashSet<string>(ctx.DonViHopLe, Module_DonVi.SoSanhBang);
             using var wb = new XLWorkbook(ctx.FileMau);
             foreach (var s in wb.Worksheets.Where(s => !s.Name.Equals("DE XUAT", StringComparison.OrdinalIgnoreCase)).ToList())
                 wb.Worksheets.Delete(s.Name);
@@ -1394,7 +1402,7 @@ namespace PhanMemThiDua2026
                 }
                 // CBCS (không BCH), thuộc đơn vị hợp lệ, theo STT tăng dần
                 var dsCBCS = (chiMucLoai ?? new List<int>())
-                    .Where(i => donViHopLe.Contains(dvUp[i]))
+                    .Where(i => donViHopLe.Contains(dvGoc[i]))
                     .OrderBy(i => khoaSTT[i])
                     .ToList();
                 var dongGhiChuDai = new List<int>();

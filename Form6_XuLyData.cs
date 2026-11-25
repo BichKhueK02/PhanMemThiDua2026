@@ -25,19 +25,19 @@ namespace PhanMemThiDua2026
         private static readonly Dictionary<string, string> _tenCotTiengViet = new(StringComparer.Ordinal)
         {
             ["STT"] = "STT",
-            ["HoVaTen"] = "Họ và tên",
-            ["SoHieu"] = "Số hiệu",
-            ["NamSinh"] = "Năm sinh",
-            ["QueQuan"] = "Quê quán",
-            ["NgayVaoCAND"] = "Vào CAND",
-            ["CapBac"] = "Cấp bậc",
-            ["ChucVu"] = "Chức vụ",
-            ["DonVi"] = "Đơn vị",
-            ["PhanLoai"] = "Phân loại",
-            ["GhiChu"] = "Ghi chú"
+            ["HoVaTen"] = Module_HeThong.TieuDeCot.HoVaTen,
+            ["SoHieu"] = Module_HeThong.TieuDeCot.SoHieu,
+            ["NamSinh"] = Module_HeThong.TieuDeCot.NamSinh,
+            ["QueQuan"] = Module_HeThong.TieuDeCot.QueQuan,
+            ["NgayVaoCAND"] = Module_HeThong.TieuDeCot.VaoCAND,
+            ["CapBac"] = Module_HeThong.TieuDeCot.CapBac,
+            ["ChucVu"] = Module_HeThong.TieuDeCot.ChucVu,
+            ["DonVi"] = Module_HeThong.TieuDeCot.DonVi,
+            ["PhanLoai"] = Module_HeThong.TieuDeCot.PhanLoai,
+            ["GhiChu"] = Module_HeThong.TieuDeCot.GhiChu
         };
         // Khai báo biến toàn cục ở đầu Class (bạn có thể đã thêm rồi)
-        private readonly Image _iconStar = Properties.Resources.ic_star;
+        // Icon ngôi sao (Loại 1) tự vẽ + cache dùng chung ở Module_IconLuoi: dựng form không còn giải mã ảnh Resources
         public static Form6_XuLyData? Instance { get; private set; }
         private System.Windows.Forms.Timer? timerLocDuLieu;
         private const string PLACEHOLDER_TIMKIEM = Module_HeThong.Nhap_Tim_Kiem;
@@ -51,8 +51,6 @@ namespace PhanMemThiDua2026
         private readonly Action _actionLuuTinhToan;
         private readonly Action _actionXuatExcel;
         //private const string CHUOI_KHONG_PL = "Không PL";
-        private Form30_ChinhSuaDataTanBinh? _frm30ViewInstance = null;
-        private Form22_ChinhSuaDataCBCS? _frm22ViewInstance = null;
         // 🟢 1. CỜ CHỐNG SPAM CLICK (Chặn mở form lặp lại)
         private bool _isOpeningProfile = false;
         // 🟢 2. CACHE PHIÊN BẢN PHẦN MỀM VÀO RAM (Tránh đọc ổ cứng liên tục)
@@ -70,6 +68,7 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
+            TaoBoLocGhiChu();                   // phải trước module web: module định cột + bo tròn cả combo này
             Module_GiaoDienForm6Web.ApDung(this);                  // giao diện kiểu web (module GiaoDienForm6Web.cs) - chỉ trình bày
             BatDoubleBufferDeQuy(this);                    // giảm chớp khi layout/resize các khối lồng nhau
             kryptonDataGridView1.EnableDoubleBuffered(true);   // bật sớm (trước đây chỉ bật trong Load)
@@ -93,6 +92,68 @@ namespace PhanMemThiDua2026
             _actionLamMoi = SafeAction(() => kryptonButton_RefershCSDL.PerformClick());
             _actionLuuTinhToan = SafeAction(() => kryptonButton_LuuDataCapNhat.PerformClick());
             _actionXuatExcel = SafeAction(() => xuatDuLieuThiDuaRaTepExcel_ToolStripMenuItem.PerformClick());
+        }
+        // ===== Ô lọc Ghi chú (tạo bằng code, không sửa Designer): đứng sau ô Xếp loại, trước nút làm mới bộ lọc =====
+        // Tên trường giữ cố định: Module_GiaoDienForm6Web lấy theo tên bằng reflection.
+        private ComboBox comboBox_LocGhiChu = null!;
+        private Label label_LocGhiChu = null!;
+        private void TaoBoLocGhiChu()
+        {
+            var t5 = tableLayoutPanel5;
+            label_LocGhiChu = new Label
+            {
+                Name = "label_LocGhiChu",
+                Text = Module_HeThong.TieuDeCot.GhiChu,
+                AutoSize = true,
+                Anchor = AnchorStyles.Right,
+                Font = label5.Font,
+                ForeColor = label5.ForeColor,
+                Margin = label5.Margin
+            };
+            comboBox_LocGhiChu = new ComboBox
+            {
+                Name = "comboBox_LocGhiChu",
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                FormattingEnabled = true,
+                Anchor = AnchorStyles.Left | AnchorStyles.Right,
+                Font = comboBox_XepLoaiThiDua.Font,
+                Margin = comboBox_XepLoaiThiDua.Margin
+            };
+            comboBox_LocGhiChu.Items.Add(Module_HeThong.Tat_Ca);
+            comboBox_LocGhiChu.SelectedIndex = 0;
+            t5.SuspendLayout();
+            try
+            {
+                // [Họ tên | ô | Đơn vị | combo | Xếp loại | combo | Ghi chú | combo | nút làm mới]
+                t5.ColumnCount = 9;
+                while (t5.ColumnStyles.Count < 9) t5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 10F));
+                t5.SetColumn(kryptonButton_LamMoiCacOTimKiem, 8);
+                t5.Controls.Add(label_LocGhiChu, 6, 0);
+                t5.Controls.Add(comboBox_LocGhiChu, 7, 0);
+            }
+            finally { t5.ResumeLayout(false); }
+        }
+        /// <summary>Danh sách thả xuống rộng theo ghi chú dài nhất (tối đa 600 px theo DPI) để đọc được trọn câu.</summary>
+        private static void DatRongDanhSach(ComboBox cb)
+        {
+            int rong = cb.Width;
+            foreach (var it in cb.Items)
+                rong = Math.Max(rong, TextRenderer.MeasureText(cb.GetItemText(it), cb.Font).Width + SystemInformation.VerticalScrollBarWidth + 8);
+            cb.DropDownWidth = Math.Min(rong, (int)Math.Round(600 * cb.DeviceDpi / 96.0));
+        }
+        /// <summary>Combo Ghi chú chỉ còn ghi chú của người khớp các ô lọc khác (A-Z, không trùng, bỏ rỗng; giữ giá trị đang chọn).</summary>
+        private void CapNhatComboGhiChuTheoBoLocKep(HashSet<string> conGhiChu)
+        {
+            var cb = comboBox_LocGhiChu;
+            if (cb == null || cb.IsDisposed) return;
+            bool cu = _isUpdatingCombo;
+            _isUpdatingCombo = true;
+            try
+            {
+                if (Module_BoLocKhenThuong.NapLaiCombo(cb, Module_BoLocKhenThuong.SapABC(conGhiChu), Module_HeThong.Tat_Ca))
+                    DatRongDanhSach(cb);
+            }
+            finally { _isUpdatingCombo = cu; }
         }
         private void TimerLocDuLieu_Tick(object? sender, EventArgs e)
         {
@@ -477,7 +538,7 @@ namespace PhanMemThiDua2026
                 using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT ChoPhepCheDoXetThiDuaNam FROM CheDo_XetThiDuaNam WHERE ID = 1 LIMIT 1";
+                cmd.CommandText = "SELECT ChoPhepCheDoXetThiDuaNam FROM CheDo_XetThiDuaNam_CBCS WHERE ID = 1 LIMIT 1";
                 object? result = cmd.ExecuteScalar();
                 if (result != null && result != DBNull.Value)
                 {
@@ -487,7 +548,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Lỗi đọc CheDo_XetThiDuaNam: " + ex.Message);
+                Debug.WriteLine("Lỗi đọc CheDo_XetThiDuaNam_CBCS: " + ex.Message);
             }
             return false;
         }
@@ -647,6 +708,7 @@ namespace PhanMemThiDua2026
                     (textBox_TimKiemTheoTen,             "Nhập họ và tên CBCS cần tìm (có thể nhập một phần)"),
                     (comboBox_TimKiemDonVi,              "Lọc danh sách theo đơn vị công tác"),
                     (comboBox_XepLoaiThiDua,             "Lọc theo kết quả xếp loại thi đua"),
+                    (comboBox_LocGhiChu,                 "Lọc theo Ghi chú (danh sách lấy từ cột Ghi chú, tự thu hẹp theo các ô lọc khác)"),
                     (kryptonButton_LamMoiCacOTimKiem,    "Xóa toàn bộ điều kiện tìm kiếm (Ctrl + D)"),
                     (kryptonButton_RefershCSDL,          "Nạp lại dữ liệu từ CSDL gốc (F5)"),
                     (kryptonButton_XoaKetQuaPhanLoai,    "Xóa kết quả phân loại (F8)"),
@@ -736,7 +798,7 @@ namespace PhanMemThiDua2026
             {
                 MessageBox.Show(
                     "Lỗi khi cập nhật giao diện theo phiên bản:\n" + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -808,6 +870,7 @@ namespace PhanMemThiDua2026
             // Các sự kiện cũ giữ nguyên
             comboBox_TimKiemDonVi.SelectedIndexChanged += (_, __) => ApplyFilter();
             comboBox_XepLoaiThiDua.SelectedIndexChanged += (_, __) => ApplyFilter();
+            comboBox_LocGhiChu.SelectedIndexChanged += (_, __) => ApplyFilter();
             // TextChanged thì dùng Timer để mượt
             textBox_TimKiemTheoTen.TextChanged += (_, __) =>
             {
@@ -996,55 +1059,12 @@ namespace PhanMemThiDua2026
                 toolStripStatusLabel1.Text = $"Đang mở hồ sơ thi đua của {hoTen}...";
                 toolStripStatusLabel1.ForeColor = Color.Blue;
                 this.Cursor = Cursors.WaitCursor;
-                // Nhịp nghỉ ngắn để giao diện kịp cập nhật chữ Status trước khi load Form nặng
-                await Task.Delay(50);
                 // 3. KIỂM TRA PHIÊN BẢN (Đọc từ Cache RAM siêu tốc O(1))
-                bool laTanBinh = KiemTraPhienBanTanBinh();
-                if (laTanBinh)
-                {
-                    // NHÁNH A: DÀNH CHO TÂN BINH (Sử dụng Form 30)
-                    if (_frm30ViewInstance == null || _frm30ViewInstance.IsDisposed)
-                    {
-                        _frm30ViewInstance = new Form30_ChinhSuaDataTanBinh(soHieu, hoTen, donVi, true)
-                        {
-                            Text = $"Hồ sơ thi đua - {hoTen}"
-                        };
-                        _frm30ViewInstance.Show(this);
-                    }
-                    else
-                    {
-                        _frm30ViewInstance.CapNhatDuLieuMoi(soHieu, hoTen, donVi);
-                        if (_frm30ViewInstance.WindowState == FormWindowState.Minimized)
-                            _frm30ViewInstance.WindowState = FormWindowState.Normal;
-                        _frm30ViewInstance.BringToFront();
-                        _frm30ViewInstance.Activate(); // Ép hệ điều hành focus vào form
-                    }
-                }
+                // Form22/Form62 được giữ sẵn trong RAM (Module_HoSoThiDua): mở = nạp dữ liệu + Show, không dựng lại form
+                if (KiemTraPhienBanTanBinh())
+                    Module_HoSoThiDua.MoFormNhomTuan(this, hopThoai: false, -1, soHieu, hoTen, donVi, chiXem: true);
                 else
-                {
-                    // NHÁNH B: DÀNH CHO CÁN BỘ CHIẾN SĨ (Sử dụng Form 22)
-                    if (_frm22ViewInstance == null || _frm22ViewInstance.IsDisposed)
-                    {
-                        _frm22ViewInstance = new Form22_ChinhSuaDataCBCS()
-                        {
-                            SoHieu = soHieu,
-                            HoVaTen = hoTen,
-                            DonVi = donVi,
-                            TinhTrang = tinhTrang,
-                            IsViewOnly = true,
-                            Text = $"Hồ sơ thi đua - {hoTen}"
-                        };
-                        _frm22ViewInstance.Show(this);
-                    }
-                    else
-                    {
-                        _frm22ViewInstance.CapNhatDuLieuMoi(soHieu, hoTen, donVi, tinhTrang);
-                        if (_frm22ViewInstance.WindowState == FormWindowState.Minimized)
-                            _frm22ViewInstance.WindowState = FormWindowState.Normal;
-                        _frm22ViewInstance.BringToFront();
-                        _frm22ViewInstance.Activate(); // Ép hệ điều hành focus vào form
-                    }
-                }
+                    Module_HoSoThiDua.MoForm22(this, hopThoai: false, -1, soHieu, hoTen, donVi, tinhTrang, chiXem: true);
             }
             catch (Exception ex)
             {
@@ -1124,7 +1144,7 @@ namespace PhanMemThiDua2026
             string? csdlPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))
             {
-                MessageBox.Show("Không thể truy cập dữ liệu hệ thống.", "Lỗi",
+                MessageBox.Show("Không thể truy cập dữ liệu hệ thống.", Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
@@ -1532,7 +1552,7 @@ namespace PhanMemThiDua2026
             string? csdlPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))
             {
-                MessageBox.Show(this, "Không tìm thấy csdl2.db!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "Không tìm thấy csdl2.db!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             const int SO_TEN_HIEN = 10;
@@ -1586,7 +1606,7 @@ namespace PhanMemThiDua2026
                         Module_NhatKy.GhiNhatKy(
                             Module_TaiKhoan.TenTaiKhoan_RAM,
                             $"Xóa nhiều CBCS ({soDongDaXoa} người): {tomTat}",
-                            DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                            DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio));
                     }
                     catch (Exception ex) { Debug.WriteLine($"Lỗi ghi log: {ex.Message}"); }
                 });
@@ -1876,7 +1896,7 @@ namespace PhanMemThiDua2026
             string csdlPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(csdlPath) || !File.Exists(csdlPath))
             {
-                MessageBox.Show(this, "Không tìm thấy CSDL2!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, "Không tìm thấy CSDL2!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
             _dangGanPhanLoai = true;
@@ -1965,7 +1985,7 @@ namespace PhanMemThiDua2026
                         Module_NhatKy.GhiNhatKy(
                             Module_TaiKhoan.TenTaiKhoan_RAM,
                             $"Gán phân loại {tenHienThi} cho {soLuong} CBCS: {tomTat}",
-                            DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                            DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio));
                     }
                     catch (Exception ex) { Debug.WriteLine($"Lỗi ghi log: {ex.Message}"); }
                 });
@@ -2280,6 +2300,8 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                 // Chọn phần tử đầu tiên (thường là "Tất cả").
                 comboBox_XepLoaiThiDua.SelectedIndex = comboBox_XepLoaiThiDua.Items.Count > 0 ? 0 : -1;
             }
+            if (comboBox_LocGhiChu != null && comboBox_LocGhiChu.Items.Count > 0)
+                comboBox_LocGhiChu.SelectedIndex = 0;   // "Tất cả"
         }
         private bool KiemTraSqliteMoDuoc(string pathDb)
         {
@@ -2426,7 +2448,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             // 1. VALIDATE DỮ LIỆU ĐẦU VÀO CƠ BẢN
             if (textBox_STT == null || kryptonDataGridView1 == null || dtDanhSachGoc == null)
             {
-                MessageBox.Show("Hệ thống chưa sẵn sàng để lưu dữ liệu.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Hệ thống chưa sẵn sàng để lưu dữ liệu.", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             string stt = textBox_STT.Text?.Trim() ?? "";
@@ -2443,7 +2465,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             string csdlPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(csdlPath) || !System.IO.File.Exists(csdlPath))
             {
-                MessageBox.Show("Không tìm thấy CSDL2!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy CSDL2!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             // 2. LẤY DỮ LIỆU VÀ KIỂM TRA RÀNG BUỘC RỖNG
@@ -2957,6 +2979,12 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             var f19 = Application.OpenForms
                 .OfType<Form19_NapKQPLTuDonVi>()
                 .FirstOrDefault();
+            // Form đang mở từ chế độ/CSDL khác (vd mở ở CBCS rồi chuyển sang Học viên): danh sách đơn vị cũ => đóng, mở lại
+            if (f19 != null && (f19.CheDoKhiTao != Module_CheDoDoiTuong.Hien || f19.Csdl2KhiTao != Module_DanduongGPS.DuongDanCSDL2))
+            {
+                f19.Close();
+                f19 = f19.IsDisposed ? null : f19;
+            }
             if (f19 == null)
             {
                 f19 = new Form19_NapKQPLTuDonVi(this); // Truyền Form6
@@ -2995,6 +3023,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             Instance = this;
             LenLichChuanBiForm60(1500); // dựng sẵn khung form 60 lúc rảnh để nút "Thêm CBCS/tân binh" mở tức thì
             _ = ChuanBiTruocForm55Async(); // dựng sẵn trang Ba Nhất (Form55 -> Form42 + lưới) lúc rảnh
+            _ = Module_HoSoThiDua.DungSanAsync(this); // dựng sẵn Form22/Form62 (bấm đúp xem hồ sơ mở tức thì)
         }
         // ===== MỞ TRANG BA NHẤT TỨC THÌ =====
         // Trước đây Form55 + Form42 chỉ được tạo lúc bấm nút => lần mở đầu phải chờ new + InitializeComponent của 2 form lớn,
@@ -3355,7 +3384,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             string dbPath = _csdl2Path;
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
             {
-                MessageBox.Show("Không tìm thấy csdl2.db!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy csdl2.db!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             // Đếm số dòng trực tiếp từ RAM (dtDanhSachGoc) thay vì chọc CSDL
@@ -3407,7 +3436,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                         Module_NhatKy.GhiNhatKy(
                             Module_TaiKhoan.TenTaiKhoan_RAM,
                             $"Xóa toàn bộ thông tin CBCS ({soDongDaXoa} dòng)",
-                            DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                            DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio));
                     }
                     catch (Exception ex) { Debug.WriteLine($"Lỗi ghi log: {ex.Message}"); }
                 });
@@ -3429,7 +3458,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                     }
                     this.UseWaitCursor = false;
                     this.Enabled = true;
-                    MessageBox.Show($"Lỗi khi xóa dữ liệu:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Lỗi khi xóa dữ liệu:\n{ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 return;
             }
@@ -3599,6 +3628,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
         textBox_TimKiemTheoTen,
         comboBox_TimKiemDonVi,
         comboBox_XepLoaiThiDua,
+        comboBox_LocGhiChu,
         kryptonButton_LamMoiCacOTimKiem,
         kryptonButton1_ThiDuaBaNhat,
         kryptonButton_RefershCSDL
@@ -3921,7 +3951,9 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             }
             //endregion
             // Biến trạng thái để giao tiếp giữa Background và UI
-            string requiredSheet = laTanBinh ? "DSTanBinh_PhanMemThiDua2026" : "DSCBCS_PhanMemThiDua2026";
+            // Mỗi chế độ 1 sheet riêng: DSCBCS_ / DSTanBinh_ / DSHocVien_ (khớp Module_XuatNhapDuLieuThiDua)
+            string requiredSheet = !laTanBinh ? "DSCBCS_PhanMemThiDua2026"
+                : (Module_TaiKhoan.LaPhienBanHocVien() ? "DSHocVien_PhanMemThiDua2026" : "DSTanBinh_PhanMemThiDua2026");
             string dataChuanDeLuu = string.Empty;
             int trangThaiBaoCao = 0;
             int tongSoDongDuLieu = 0;
@@ -4062,7 +4094,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                 if (frm12 != null && frm12.IsHandleCreated && !frm12.IsDisposed)
                     frm12.BeginInvoke(new Action(() => frm12.LoadFromSQLite()));
                 string nhomDoiTuong = laTanBinh ? Module_TaiKhoan.TenTB_Hoa : "CBCS";
-                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Nạp thành công dữ liệu thi đua {nhomDoiTuong} từ tệp Excel", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Nạp thành công dữ liệu thi đua {nhomDoiTuong} từ tệp Excel", DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio));
                 this.UseWaitCursor = false; this.Enabled = true; this.Activate();
                 //endregion
             }
@@ -4254,7 +4286,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                 {
                     ThemDongTrongAnToan(dtKetQua);
                     var sn = TaoSnapshot(dtKetQua);
-                    sn.BoLoc = BoLocDanhSach.TaoTu(dtKetQua);   // chuẩn hóa tên/đơn vị/phân loại 1 lần cho mọi lần lọc sau
+                    sn.BoLoc = BoLocDanhSach.TaoTu(dtKetQua, GiaiMaSafeCoCache);   // chuẩn hóa tên/đơn vị/phân loại 1 lần cho mọi lần lọc sau
                     return sn;
                 });
                 int soLuongThucTe = snap.SoLuongThucTe;
@@ -4316,7 +4348,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                 Debug.WriteLine("ReloadDuLieu lỗi: " + ex.Message);
                 UIHelper.SafeInvoke(this, () =>
                 {
-                    MessageBox.Show($"Lỗi load dữ liệu:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Lỗi load dữ liệu:\n{ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 });
             }
             finally
@@ -4469,15 +4501,15 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                     .Where(val => !string.IsNullOrWhiteSpace(val))
                     .Distinct()
                     .ToList()!;
-                var setCsdl = new HashSet<string>(dsDonViTrongCSDL);
-                var dsFinal = thuTuUuTien.Where(x => setCsdl.Contains(x)).ToList();
-                var dsConLai = dsDonViTrongCSDL.Except(dsFinal).OrderBy(x => x);
-                dsFinal.AddRange(dsConLai);
+                // Đơn vị đã khai báo theo đúng thứ tự cán bộ quy định; đơn vị chưa khai báo xếp sau
+                var dsFinal = Module_DonVi.SapXep(dsDonViTrongCSDL, thuTuUuTien);
                 var items = new List<object>(dsFinal.Count + 1) { Module_HeThong.Tat_Ca };
                 items.AddRange(dsFinal);
                 comboBox_TimKiemDonVi.Items.AddRange(items.ToArray());
-                if (!string.IsNullOrEmpty(giaTriCu) && comboBox_TimKiemDonVi.Items.Contains(giaTriCu))
+                string? giaTriKhop = string.IsNullOrEmpty(giaTriCu) ? null : dsFinal.FirstOrDefault(x => Module_DonVi.CungDonVi(x, giaTriCu));
+                if (giaTriKhop != null)
                 {
+                    giaTriCu = giaTriKhop;
                     comboBox_TimKiemDonVi.SelectedItem = giaTriCu;
                     comboBox_TimKiemDonVi.Text = giaTriCu; // Fix lỗi hiển thị Krypton
                 }
@@ -4497,11 +4529,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             IEnumerable<string> dsDonVi = _snap?.DsDonViModule ?? (IEnumerable<string>)Module_DonVi.GetDanhSachDonVi();
             var thuTuUuTien = _snap?.UuTien ?? Module_DonVi.LayDanhSachDonViUuTienArray();
             // 1. Sắp xếp danh sách đơn vị theo thứ tự ưu tiên
-            var sortedList = dsDonVi.OrderBy(item =>
-            {
-                int index = Array.IndexOf(thuTuUuTien, item);
-                return index == -1 ? int.MaxValue : index;
-            }).ToList();
+            var sortedList = Module_DonVi.SapXep(dsDonVi, thuTuUuTien);
             // 2. Chèn chuỗi rỗng "" vào đầu danh sách
             sortedList.Insert(0, "");
             // 3. Nếu STT hoặc Họ và tên rỗng -> Ép chọn giá trị rỗng ""
@@ -4512,7 +4540,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             textBox_DonVi.DataSource = null;
             textBox_DonVi.DataSource = sortedList;
             // 5. Gán lại giá trị được chọn
-            textBox_DonVi.Text = sortedList.Contains(currentValue) ? currentValue : "";
+            textBox_DonVi.Text = sortedList.FirstOrDefault(x => x.Length > 0 && Module_DonVi.CungDonVi(x, currentValue)) ?? "";
         }
         private void LoadComboBoxChucVu()
         {
@@ -4715,37 +4743,24 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             }
             if (!string.Equals(phanLoai, Module_HeThong.Loai_1, StringComparison.OrdinalIgnoreCase))
                 return;
-            if (_iconStar == null)
-                return;
-            e.Paint(
-                e.CellBounds,
-                DataGridViewPaintParts.Background |
-                DataGridViewPaintParts.SelectionBackground |
-                DataGridViewPaintParts.Focus);
-            const int iconSize = 16;
+            // Chỉ nền + nền bôi đen (KHÔNG Border/Focus => ô có icon không bị vẽ viền riêng)
+            e.Paint(e.CellBounds, Module_IconLuoi.PhanNenO);
             const int paddingLeft = 6;
             const int paddingText = 6;
             int iconX = e.CellBounds.X + paddingLeft;
-            int iconY = e.CellBounds.Y + ((e.CellBounds.Height - iconSize) / 2);
-            try
-            {
-                e.Graphics!.DrawImage(_iconStar, iconX, iconY, iconSize, iconSize);
-            }
-            catch
-            {
-                return;
-            }
+            int matPhaiIcon = Module_IconLuoi.VeTrongO(e.Graphics!, Module_IconLuoi.Loai.Sao, e.CellBounds, iconX,
+                                                      Module_IconLuoi.CoTheoDpi(kryptonDataGridView1));
             string hoTen = Convert.ToString(e.Value) ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(hoTen))
             {
-                int textX = iconX + iconSize + paddingText;
+                int textX = matPhaiIcon + paddingText;
                 Rectangle textBounds = new Rectangle(textX, e.CellBounds.Y, e.CellBounds.Right - textX, e.CellBounds.Height);
                 Color textColor =
                     (e.State & DataGridViewElementStates.Selected) == DataGridViewElementStates.Selected
                     ? e.CellStyle!.SelectionForeColor
                     : e.CellStyle!.ForeColor;
                 TextRenderer.DrawText(
-                    e.Graphics, hoTen, e.CellStyle.Font, textBounds, textColor,
+                    e.Graphics!, hoTen, e.CellStyle.Font, textBounds, textColor,
                     TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
                     TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding |
                     TextFormatFlags.PreserveGraphicsClipping);
@@ -4888,7 +4903,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             // Chỉ mục chưa có / lệch số dòng so với bảng (bảng vừa đổi) -> dựng lại (vài chục mili-giây cho hàng chục nghìn dòng)
             var boLoc = _boLoc;
             if (boLoc == null || boLoc.SoDong != dt.Rows.Count)
-                _boLoc = boLoc = BoLocDanhSach.TaoTu(dt);
+                _boLoc = boLoc = BoLocDanhSach.TaoTu(dt, GiaiMaSafeCoCache);
             // ---- Đọc điều kiện ----
             string tuKhoa = "";
             if (!_dangSetPlaceholder && textBox_TimKiemTheoTen.Text != PLACEHOLDER_TIMKIEM)
@@ -4917,10 +4932,14 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                 else
                     phanLoaiDb = giaTri;
             }
-            // ---- Lọc (1 vòng for trên mảng chuỗi) + BỘ LỌC KÉP: gom luôn các đơn vị còn người thỏa tên + phân loại ----
-            var conDonVi = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            int[]? moi = boLoc.Loc(tuKhoa, donVi, phanLoaiDb, laKhongPL, new[] { "Không PL", Module_HeThong.PL_KHONG_PL }, conDonVi);
+            string ghiChu = Module_BoLocKhenThuong.GiaTriLoc(comboBox_LocGhiChu);   // mục 0 "Tất cả" = không lọc
+            // ---- Lọc (1 vòng for trên mảng chuỗi) + BỘ LỌC KÉP: Đơn vị <-> Ghi chú thu hẹp lẫn nhau (theo tên + phân loại) ----
+            var conDonVi = new HashSet<string>(Module_DonVi.SoSanhBang);
+            var conGhiChu = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int[]? moi = boLoc.Loc(tuKhoa, donVi, phanLoaiDb, laKhongPL, new[] { "Không PL", Module_HeThong.PL_KHONG_PL }, conDonVi,
+                                   ghiChu, conGhiChu);
             CapNhatComboDonViTheoBoLocKep(conDonVi);
+            CapNhatComboGhiChuTheoBoLocKep(conGhiChu);
             int[]? cu = _hienThi;
             bool doi = !BoLocDanhSach.CungTap(cu, moi, dt.Rows.Count);
             // Dòng đang chọn (nếu có) thuộc nguồn nào trước khi đổi -> sau khi đổi mà vị trí đó trỏ sang người khác thì bỏ chọn
@@ -5075,6 +5094,8 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
                     comboBox_TimKiemDonVi.SelectedIndex = 0;
                 if (comboBox_XepLoaiThiDua.Items.Count > 0)
                     comboBox_XepLoaiThiDua.SelectedIndex = 0;
+                if (comboBox_LocGhiChu.Items.Count > 0)
+                    comboBox_LocGhiChu.SelectedIndex = 0;
                 Volatile.Write(ref mucTieuTienTrinh, 100);
                 while (!IsDisposed && IsHandleCreated && toolStripProgressBar1_LamMoi != null && toolStripProgressBar1_LamMoi.Value < 100)
                 {
@@ -5100,7 +5121,7 @@ SET STT = (SELECT NewSTT FROM Ordered WHERE Ordered.rowid = {Module_TaiKhoan.Ban
             catch (Exception ex)
             {
                 toolStripStatusLabel1.Text = "Lỗi hệ thống";
-                MessageBox.Show($"Lỗi khi làm mới dữ liệu:\n\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi làm mới dữ liệu:\n\n{ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

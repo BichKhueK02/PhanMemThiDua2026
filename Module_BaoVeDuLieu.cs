@@ -334,7 +334,7 @@ namespace PhanMemThiDua2026
         private static readonly TimeSpan ChuKyThuGon = TimeSpan.FromDays(182);
         private static readonly TimeSpan TreKhiKhoiDong = TimeSpan.FromMinutes(3);   // không tranh tài nguyên lúc vừa mở phần mềm
         private const string TEN_TEP_LICH_THU_GON = "LichThuGonCSDL.txt";
-        private const string DINH_DANG_MOC = "yyyy-MM-dd HH:mm:ss";
+        private const string DINH_DANG_MOC = Module_HeThong.DinhDang_NgayGio_CSDL;
         private static readonly object _khoaLich = new();
         private static int _daLenLichThuGon;
         private static string DuongDanLichThuGon => Path.Combine(Module_NhatKyNhaPhatTrien.ThuMuc, TEN_TEP_LICH_THU_GON);

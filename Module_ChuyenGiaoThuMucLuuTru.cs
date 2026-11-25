@@ -496,7 +496,7 @@ namespace PhanMemThiDua2026
                     w.WriteString("MoTa", nhom.MoTa);
                     w.WriteString("PhienBanDongGoi", phienBan);
                     w.WriteString("MayTinhTao", Environment.MachineName);
-                    w.WriteString("ThoiGianXuat", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture));
+                    w.WriteString("ThoiGianXuat", DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio, CultureInfo.InvariantCulture));
                     w.WriteNumber("TongSoTep", sapXep.Count);
                     w.WriteString("TongDungLuong", DinhDangDungLuong(tong));
                     w.WriteStartArray("DanhSachTep");

@@ -41,10 +41,7 @@ namespace PhanMemThiDua2026
         {
             get
             {
-                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                return phienBan.LaCheDoTanBinh()
-                    ? "TomTatThanhTichBaNhat_TanBinh"
-                    : "TomTatThanhTichBaNhat_CBCS";
+                return Module_CheDoDoiTuong.TomTatBaNhat((Module_TaiKhoan.LayPhienBanPhanMem() ?? "").LayCheDo());
             }
         }
         public Form43_TomTatThanhTichBaNhat()

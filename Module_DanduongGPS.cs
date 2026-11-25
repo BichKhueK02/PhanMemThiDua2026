@@ -447,47 +447,50 @@ namespace PhanMemThiDua2026
                 string chuoi = (Convert.ToString(result, CultureInfo.InvariantCulture) ?? "").Trim();
                 if (chuoi.Length == 0) return "";
                 string doiTuong = GiaiMaAnToan(chuoi).Trim();
-                if (doiTuong.Equals("Phiên bản dành cho tân binh", StringComparison.OrdinalIgnoreCase))
-                    return "Phần mềm: Phiên bản dành cho tân binh";
-                if (doiTuong.Equals(TEN_PHIEN_BAN_HOC_VIEN, StringComparison.OrdinalIgnoreCase))
-                    return "Phần mềm: " + TEN_PHIEN_BAN_HOC_VIEN;
-                if (doiTuong.Equals("Phiên bản dành cho CBCS", StringComparison.OrdinalIgnoreCase))
-                    return "Phần mềm: Phiên bản dành cho CBCS";
+                if (doiTuong.Equals(Module_CheDoDoiTuong.TEN_TANBINH, StringComparison.OrdinalIgnoreCase))
+                    return "Phần mềm: " + Module_CheDoDoiTuong.TEN_TANBINH;
+                if (doiTuong.Equals(Module_CheDoDoiTuong.TEN_HOCVIEN, StringComparison.OrdinalIgnoreCase))
+                    return "Phần mềm: " + Module_CheDoDoiTuong.TEN_HOCVIEN;
+                if (doiTuong.Equals(Module_CheDoDoiTuong.TEN_CBCS, StringComparison.OrdinalIgnoreCase))
+                    return "Phần mềm: " + Module_CheDoDoiTuong.TEN_CBCS;
                 return "";
             }
             catch { return ""; }
         }
-        // ===================== BẢNG DANH SÁCH THEO PHIÊN BẢN =====================
-        // CBCS     -> CSDL2.DanhSach
-        // Tân binh -> CSDL2.DanhSachTanBinh (cùng cấu trúc với DanhSach)
-        public const string BANG_DANHSACH_CBCS = "DanhSach";
-        public const string BANG_DANHSACH_TANBINH = "DanhSachTanBinh";
+        // ===================== CHẾ ĐỘ ĐỐI TƯỢNG + BẢNG DANH SÁCH =====================
+        // CBCS -> DanhSach_CBCS, Tân binh -> DanhSach_TanBinh, Học viên -> DanhSach_HocVien (tên bảng: Module_CheDoDoiTuong).
+        public static string BANG_DANHSACH_CBCS => Module_CheDoDoiTuong.DanhSach(CheDoDoiTuong.CBCS);
+        public static string BANG_DANHSACH_TANBINH => Module_CheDoDoiTuong.DanhSach(CheDoDoiTuong.TanBinh);
+        public static string BANG_DANHSACH_HOCVIEN => Module_CheDoDoiTuong.DanhSach(CheDoDoiTuong.HocVien);
         // Bộ đệm theo đường dẫn CSDL2: tránh đọc + giải mã PhienBan_DoiTuong ở mỗi câu truy vấn.
         // Tự làm mới khi đổi CSDL2 hoặc khi phát sự kiện đổi phiên bản (ThongBaoPhienBanThayDoi / ThongBaoDoiTuongPhanMemThayDoi).
         // Thêm hạn 5 giây: khôi phục / chuyển giao CSDL ghi đè tệp cùng đường dẫn vẫn tự nhận đúng phiên bản mới.
-        private static volatile Tuple<string, bool, long>? _cachePhienBanTanBinh;
+        private static volatile Tuple<string, CheDoDoiTuong, long>? _cacheCheDo;
         private const long HAN_BO_DEM_PHIEN_BAN_MS = 5000;
-        /// <summary>Phiên bản hiện tại có phải "Phiên bản dành cho tân binh" không (có bộ đệm).</summary>
-        public static bool LaPhienBanTanBinh()
+        /// <summary>Chế độ đang chạy: CBCS / Tân binh / Học viên (có bộ đệm). Lần đầu gặp chế độ nào thì tự tạo đủ bảng của chế độ đó.</summary>
+        public static CheDoDoiTuong CheDoHienTai
         {
-            string db = Module_DanduongGPS.DuongDanCSDL2 ?? "";
-            long now = Environment.TickCount64;
-            var c = _cachePhienBanTanBinh;
-            if (c != null && now - c.Item3 < HAN_BO_DEM_PHIEN_BAN_MS && string.Equals(c.Item1, db, StringComparison.OrdinalIgnoreCase)) return c.Item2;
-            string pb = LayPhienBanPhanMem() ?? "";
-            bool la = pb.LaCheDoTanBinh();
-            if (la) DamBaoBangDanhSachTanBinh(db);
-            _laHocVien = pb.LaCheDoHocVien();
-            _cachePhienBanTanBinh = Tuple.Create(db, la, now);
-            return la;
+            get
+            {
+                string db = Module_DanduongGPS.DuongDanCSDL2 ?? "";
+                long now = Environment.TickCount64;
+                var c = _cacheCheDo;
+                if (c != null && now - c.Item3 < HAN_BO_DEM_PHIEN_BAN_MS && string.Equals(c.Item1, db, StringComparison.OrdinalIgnoreCase)) return c.Item2;
+                var cheDo = Module_CheDoDoiTuong.TuChuoi(LayPhienBanPhanMem());
+                Module_CheDoDoiTuong.DamBaoBang(cheDo, db, Module_DanduongGPS.DuongDanCSDL4);
+                _cacheCheDo = Tuple.Create(db, cheDo, now);
+                return cheDo;
+            }
         }
-        // ===================== CHẾ ĐỘ HỌC VIÊN =====================
-        // Học viên = tên gọi khác của chế độ Tân binh: dùng chung toàn bộ logic + bảng DanhSachTanBinh,
-        // chỉ khác chữ hiển thị ("Học viên" thay cho "Tân binh").
-        public const string TEN_PHIEN_BAN_HOC_VIEN = "Phiên bản dành cho học viên";
-        private static volatile bool _laHocVien;
-        /// <summary>Phiên bản hiện tại có phải "Phiên bản dành cho học viên" không (dùng chung bộ đệm với LaPhienBanTanBinh).</summary>
-        public static bool LaPhienBanHocVien() => LaPhienBanTanBinh() && _laHocVien;
+        /// <summary>
+        /// Nhóm "xét theo tuần" (Tân binh HOẶC Học viên): dùng chung logic nghiệp vụ, KHÔNG dùng để chọn tên bảng
+        /// (tên bảng luôn lấy qua Module_CheDoDoiTuong).
+        /// </summary>
+        public static bool LaPhienBanTanBinh() => CheDoHienTai != CheDoDoiTuong.CBCS;
+        /// <summary>Đúng chế độ Học viên.</summary>
+        public static bool LaPhienBanHocVien() => CheDoHienTai == CheDoDoiTuong.HocVien;
+        /// <summary>Đúng chế độ Tân binh (không gồm Học viên).</summary>
+        public static bool LaPhienBanTanBinhRieng() => CheDoHienTai == CheDoDoiTuong.TanBinh;
         /// <summary>"tân binh" hoặc "học viên" (chữ thường) theo phiên bản đang chạy.</summary>
         public static string TenTB_Thuong => LaPhienBanHocVien() ? "học viên" : "tân binh";
         /// <summary>"Tân binh" hoặc "Học viên".</summary>
@@ -496,51 +499,10 @@ namespace PhanMemThiDua2026
         public static string TenTB_TieuDe => LaPhienBanHocVien() ? "Học Viên" : "Tân Binh";
         /// <summary>"TÂN BINH" hoặc "HỌC VIÊN".</summary>
         public static string TenTB_InHoa => LaPhienBanHocVien() ? "HỌC VIÊN" : "TÂN BINH";
-        // CSDL2 cũ (phát hành trước khi có bảng Tân binh) -> tự tạo bảng cùng cấu trúc DanhSach, mỗi tệp chỉ kiểm tra 1 lần.
-        private static readonly HashSet<string> _daKiemTraBangTanBinh = new(StringComparer.OrdinalIgnoreCase);
-        private static void DamBaoBangDanhSachTanBinh(string db)
-        {
-            if (string.IsNullOrWhiteSpace(db) || !File.Exists(db)) return;
-            lock (_daKiemTraBangTanBinh)
-            {
-                if (_daKiemTraBangTanBinh.Contains(db)) return;
-                try
-                {
-                    using var cn = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = db, DefaultTimeout = 10 }.ToString());
-                    cn.Open();
-                    using var cmd = cn.CreateCommand();
-                    cmd.CommandText = "SELECT 1 FROM sqlite_master WHERE type='table' AND name=$t LIMIT 1";
-                    cmd.Parameters.AddWithValue("$t", BANG_DANHSACH_TANBINH);
-                    if (cmd.ExecuteScalar() == null)
-                    {
-                        cmd.Parameters.Clear();
-                        cmd.CommandText = $@"CREATE TABLE IF NOT EXISTS ""{BANG_DANHSACH_TANBINH}"" (
-    ""ID""          INTEGER NOT NULL,
-    ""STT""         INTEGER NOT NULL,
-    ""HoVaTen""     TEXT NOT NULL,
-    ""SoHieu""      TEXT NOT NULL,
-    ""NamSinh""     TEXT NOT NULL,
-    ""QueQuan""     TEXT,
-    ""NgayVaoCAND"" TEXT,
-    ""CapBac""      TEXT,
-    ""ChucVu""      TEXT,
-    ""DonVi""       TEXT,
-    ""PhanLoai""    TEXT,
-    ""GhiChu""      TEXT,
-    ""ThuTuSapXep"" INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY(""ID"" AUTOINCREMENT)
-);";
-                        cmd.ExecuteNonQuery();
-                    }
-                    _daKiemTraBangTanBinh.Add(db);
-                }
-                catch (Exception ex) { Debug.WriteLine("[DamBaoBangDanhSachTanBinh] " + ex.Message); }
-            }
-        }
-        /// <summary>Tên bảng danh sách gốc trong CSDL2 ứng với phiên bản đang chạy: "DanhSach" hoặc "DanhSachTanBinh".</summary>
-        public static string BangDanhSach => LaPhienBanTanBinh() ? BANG_DANHSACH_TANBINH : BANG_DANHSACH_CBCS;
+        /// <summary>Tên bảng danh sách gốc trong CSDL2 ứng với chế độ đang chạy: DanhSach_CBCS / DanhSach_TanBinh / DanhSach_HocVien.</summary>
+        public static string BangDanhSach => Module_CheDoDoiTuong.DanhSach(CheDoHienTai);
         /// <summary>Xóa bộ đệm phiên bản (gọi sau khi ghi PhienBan_DoiTuong hoặc đổi CSDL).</summary>
-        public static void XoaBoDemPhienBan() => _cachePhienBanTanBinh = null;
+        public static void XoaBoDemPhienBan() => _cacheCheDo = null;
         public static string XacDinhTenTieuDoan()
         {
             const string KHONG_XAC_DINH = "Không xác định";

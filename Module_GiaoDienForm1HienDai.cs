@@ -58,15 +58,15 @@ namespace PhanMemThiDua2026
                 Point D(float y) => new Point(x0, P(y));
                 Chay("chu", () =>
                 {
-                    tieuDe.Font = new Font("Segoe UI Semibold", 17F, FontStyle.Regular);
+                    tieuDe.Font = new Font(Module_HeThong.TenFontHeThongDam, 17F, FontStyle.Regular);
                     tieuDe.ForeColor = MauTieuDe;
                     tieuDe.Location = new Point(x0 - P(2), P(62));
-                    phuDe.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+                    phuDe.Font = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
                     phuDe.ForeColor = MauPhu;
                     phuDe.Location = D(100);
                     foreach (var (nhan, y) in new[] { (nhanTen, 146f), (nhanMk, 226f) })
                     {
-                        nhan.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular);
+                        nhan.Font = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular);
                         nhan.ForeColor = MauNhan;
                         nhan.Location = D(y);
                     }
@@ -85,7 +85,7 @@ namespace PhanMemThiDua2026
                     foreach (var lk in new[] { quenMk, dangKy })
                     {
                         lk.LinkColor = MauChinh; lk.VisitedLinkColor = MauChinh; lk.ActiveLinkColor = MauChinhNhan;
-                        lk.Font = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular);
+                        lk.Font = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular);
                     }
                     quenMk.Location = new Point(x0 + P(400) - quenMk.Width, P(300));
                     dangKy.Location = D(450);
@@ -124,10 +124,10 @@ namespace PhanMemThiDua2026
             logo.BackColor = Color.Transparent;
             chaoMung.BackColor = Color.Transparent;
             chaoMung.ForeColor = Color.White;
-            chaoMung.Font = new Font("Segoe UI Semibold", 16F, FontStyle.Regular);
+            chaoMung.Font = new Font(Module_HeThong.TenFontHeThongDam, 16F, FontStyle.Regular);
             moTa.BackColor = Color.Transparent;
             moTa.ForeColor = Color.FromArgb(160, 170, 200);
-            moTa.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular);
+            moTa.Font = new Font(Module_HeThong.TenFontHeThong, 9.75F, FontStyle.Regular);
             trai.Paint += (s, e) => VeNenTrai(e.Graphics, trai.ClientRectangle, logo.Visible ? logo.Bounds : Rectangle.Empty, k);
             trai.Resize += (s, e) => trai.Invalidate();
         }
@@ -264,7 +264,7 @@ namespace PhanMemThiDua2026
             o.StateCommon.Border.Color1 = MauVienThuong;
             o.StateCommon.Border.Color2 = MauVienThuong;
             o.StateCommon.Border.Rounding = 10F;
-            o.StateCommon.Content.Font = new Font("Segoe UI", 11F, FontStyle.Regular);
+            o.StateCommon.Content.Font = new Font(Module_HeThong.TenFontHeThong, 11F, FontStyle.Regular);
             o.StateCommon.Content.Color1 = MauTieuDe;
             o.StateCommon.Content.Padding = new Padding((int)(4 * k), (int)(8 * k), (int)(8 * k), (int)(8 * k));
             o.Width = (int)Math.Round(400 * k);
@@ -358,7 +358,7 @@ namespace PhanMemThiDua2026
         // ---------------- Nút ----------------
         private static void NutChinh(KryptonButton b, float k)
         {
-            var font = new Font("Segoe UI Semibold", 11F, FontStyle.Regular);
+            var font = new Font(Module_HeThong.TenFontHeThongDam, 11F, FontStyle.Regular);
             Dat(b.StateCommon.Back, b.StateCommon.Border, b.StateCommon.Content, MauChinh, MauChinh, Color.White, font);
             Dat(b.StateNormal.Back, b.StateNormal.Border, b.StateNormal.Content, MauChinh, MauChinh, Color.White, font);
             Dat(b.OverrideDefault.Back, b.OverrideDefault.Border, b.OverrideDefault.Content, MauChinh, MauChinh, Color.White, font);
@@ -373,7 +373,7 @@ namespace PhanMemThiDua2026
         }
         private static void NutVien(KryptonButton b, float k)
         {
-            var font = new Font("Segoe UI", 10F, FontStyle.Regular);
+            var font = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular);
             Color chu = Color.FromArgb(71, 85, 105);
             Dat(b.StateCommon.Back, b.StateCommon.Border, b.StateCommon.Content, Color.White, MauVienNhat, chu, font);
             Dat(b.StateNormal.Back, b.StateNormal.Border, b.StateNormal.Content, Color.White, MauVienNhat, chu, font);

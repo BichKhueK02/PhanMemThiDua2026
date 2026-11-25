@@ -28,7 +28,7 @@ namespace PhanMemThiDua2026
             foreach (var g in giaTri)
             {
                 moi.Add(g);
-                if (!coDangChon && string.Equals(g, dangChon, StringComparison.OrdinalIgnoreCase)) coDangChon = true;
+                if (!coDangChon && Module_DonVi.CungDonVi(g, dangChon)) coDangChon = true;
             }
             if (!coDangChon) moi.Add(dangChon);   // giữ lựa chọn của người dùng dù tổ hợp hiện tại không còn dòng nào
             if (GiongNhau(cb, moi)) return false;
@@ -40,7 +40,7 @@ namespace PhanMemThiDua2026
                 int idx = 0;
                 if (dangChon.Length > 0)
                     for (int i = 1; i < moi.Count; i++)
-                        if (string.Equals(moi[i], dangChon, StringComparison.OrdinalIgnoreCase)) { idx = i; break; }
+                        if (Module_DonVi.CungDonVi(moi[i], dangChon)) { idx = i; break; }
                 cb.SelectedIndex = idx;
             }
             finally { cb.EndUpdate(); }
@@ -71,33 +71,43 @@ namespace PhanMemThiDua2026
                 if (tenDaChuanHoa.IndexOf(tu[i], StringComparison.Ordinal) < 0) return false;
             return true;
         }
-        /// <summary>Sắp xếp: đơn vị nằm trong thứ tự chuẩn đứng trước (giữ thứ tự chuẩn), còn lại xếp ABC.</summary>
+        /// <summary>
+        /// Sắp xếp đơn vị: đơn vị đã khai báo đứng trước (đúng thứ tự cán bộ quy định, hiện bằng tên đã khai báo), còn lại xếp tự nhiên.
+        /// Tên đơn vị so khớp CHÍNH XÁC (chuỗi nguyên văn).
+        /// </summary>
         public static List<string> SapTheoThuTuChuan(IEnumerable<string> tap, IReadOnlyList<string>? thuTuChuan)
         {
-            var con = new HashSet<string>(tap.Where(s => !string.IsNullOrWhiteSpace(s)), StringComparer.OrdinalIgnoreCase);
-            var kq = new List<string>(con.Count);
-            if (thuTuChuan != null)
-                foreach (var dv in thuTuChuan)
-                    if (con.Remove(dv)) kq.Add(dv);
-            kq.AddRange(con.OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase));
-            return kq;
+            if (thuTuChuan == null) return SapABC(tap);
+            return Module_DonVi.TaoBangThuTu(thuTuChuan).SapXep(tap);
         }
-        public static List<string> SapABC(IEnumerable<string> tap) => SapTheoThuTuChuan(tap, null);
+        public static List<string> SapABC(IEnumerable<string> tap)
+        {
+            var con = new HashSet<string>(tap.Where(s => !string.IsNullOrWhiteSpace(s)), StringComparer.OrdinalIgnoreCase);
+            return con.OrderBy(x => x, StringComparer.CurrentCultureIgnoreCase).ToList();
+        }
         /// <summary>Một combo tham gia BỘ LỌC KÉP: giá trị đang chọn ("" = không lọc) + cách đọc giá trị của 1 dòng.</summary>
         public sealed class TieuChiKep<T>
         {
-            public TieuChiKep(string giaTri, Func<T, string?> lay, Func<string, bool>? hopLe = null)
+            /// <param name="laDonVi">true: cột tên đơn vị — so khớp chuỗi tên CHÍNH XÁC (nguyên văn, đã Trim).</param>
+            public TieuChiKep(string giaTri, Func<T, string?> lay, Func<string, bool>? hopLe = null, bool laDonVi = false)
             {
                 GiaTri = (giaTri ?? "").Trim();
                 Lay = lay;
                 HopLe = hopLe;
+                _laDonVi = laDonVi;
+                _khoaGiaTri = laDonVi ? Module_DonVi.GiaTriSoKhop(GiaTri) : "";
+                Con = new HashSet<string>(laDonVi ? Module_DonVi.SoSanhBang : StringComparer.OrdinalIgnoreCase);
             }
+            private readonly bool _laDonVi;
+            private readonly string _khoaGiaTri;
             public string GiaTri { get; }
             public Func<T, string?> Lay { get; }
             public Func<string, bool>? HopLe { get; }
             /// <summary>Kết quả: các giá trị còn xuất hiện trong những dòng thỏa MỌI bộ lọc KHÁC (danh sách mới của combo này).</summary>
-            public HashSet<string> Con { get; } = new(StringComparer.OrdinalIgnoreCase);
-            internal bool Khop(string v) => GiaTri.Length == 0 || string.Equals(v, GiaTri, StringComparison.OrdinalIgnoreCase);
+            public HashSet<string> Con { get; }
+            internal bool Khop(string v) => GiaTri.Length == 0 || (_laDonVi
+                ? string.Equals(Module_DonVi.GiaTriSoKhop(v), _khoaGiaTri, StringComparison.Ordinal)
+                : string.Equals(v, GiaTri, StringComparison.OrdinalIgnoreCase));
         }
         /// <summary>
         /// Lọc + dựng BỘ LỌC KÉP trong 1 lượt duyệt: trả về chỉ số các dòng thỏa <paramref name="dieuKienChung"/> (tên, tình trạng...)
@@ -299,7 +309,8 @@ namespace PhanMemThiDua2026
         }
         /// <summary>
         /// Tệp năm cũ còn bảng <paramref name="tenBang"/> và bảng đó còn ít nhất 1 dòng? Dùng để ẨN năm khỏi combo chọn CSDL khi dữ liệu
-        /// của trang đó đã bị xóa hết: Form50 xét "ThongKe_GiayKhen", Form51 xét "ThongKe_KhenThuongTapThe". Tệp lỗi / khóa = không có.
+        /// của trang đó đã bị xóa hết: Form50 xét bảng giấy khen, Form51 xét bảng tập thể (ThongKe_GiayKhen_* / ThongKe_KhenThuongTapThe_*).
+        /// Tệp của bản trước còn tên bảng cũ vẫn đọc được (TenBangCoTrongTep). Tệp lỗi / khóa = không có.
         /// </summary>
         public static bool CoDuLieuBang(string? duongDan, string tenBang)
         {
@@ -308,6 +319,7 @@ namespace PhanMemThiDua2026
             {
                 using var conn = new Microsoft.Data.Sqlite.SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(duongDan, chiDoc: true));
                 conn.Open();
+                tenBang = Module_TenCotKhongDau.TenBangCoTrongTep(conn, tenBang);
                 using var kt = conn.CreateCommand();
                 kt.CommandText = "SELECT 1 FROM sqlite_master WHERE type='table' AND name=$t LIMIT 1";
                 kt.Parameters.AddWithValue("$t", tenBang);

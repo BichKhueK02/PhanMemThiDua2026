@@ -14,7 +14,8 @@ namespace PhanMemThiDua2026
         private const string THU_MUC_HUONG_DAN = "HuongDanSuDung";
         private const string THU_MUC_REPOSITORY = "CoreDatabaseRepository";
         private const string THU_MUC_BACKUP = "Database Backup";
-        private const string THU_MUC_WINDOW = "window-x64";
+        // Thư mục dự phòng thứ 3 của bản cũ (cs1..cs4, csex mã hóa) — ĐÃ BỎ: khởi động sẽ xóa nếu còn sót
+        private const string THU_MUC_WINDOW_CU = "window-x64";
         private const string THU_MUC_DATABASE = "Database";
         private const string THU_MUC_BAN_SAO_LUU = "Bansaoluu";
         private const string THU_MUC_LUUTRUTHIDUA_LICHSU = "LuuTruThiDua_LichSu";
@@ -36,14 +37,14 @@ namespace PhanMemThiDua2026
         // trước đây dọn rác có thể xóa tệp .tmp đang ghi dở của khởi tạo, hoặc 2 luồng ghi cùng 1 tệp.
         private static readonly object _khoaBaoTri = new();
         private static readonly string[] ThuMucDongBo = { THU_MUC_CONG_CU, THU_MUC_HUONG_DAN };
-        private readonly record struct TaiNguyenCSDL(string Backup, string Win, string Db);
+        private readonly record struct TaiNguyenCSDL(string Backup, string Db);
         private static readonly TaiNguyenCSDL[] DanhSachTaiNguyen =
         {
-            new("cs1.mdf", "cs1", "csdl1.db"),
-            new("cs2.mdf", "cs2", "csdl2.db"),
-            new("cs3.mdf", "cs3", "csdl3.db"),
-            new("cs4.mdf", "cs4", "csdl4.db"),
-            new("csex.mdf", "csex", "csdlex.xlsx")
+            new("cs1.mdf", "csdl1.db"),
+            new("cs2.mdf", "csdl2.db"),
+            new("cs3.mdf", "csdl3.db"),
+            new("cs4.mdf", "csdl4.db"),
+            new("csex.mdf", "csdlex.xlsx")
         };
         // Ánh xạ tệp ẩn -> tệp DLL/Config thực thi
         private static readonly Dictionary<string, string> DanhSachThuVienCore = new()
@@ -75,8 +76,6 @@ namespace PhanMemThiDua2026
         private static readonly HashSet<string> AllowDirsDatabase = new(StringComparer.OrdinalIgnoreCase)
             { THU_MUC_BAN_SAO_LUU, THU_MUC_CONG_CU, THU_MUC_HUONG_DAN, THU_MUC_LUUTRUTHIDUA_LICHSU, Module_TepKhoa.TEN_THU_MUC,
               Module_NhatKyNhaPhatTrien.TEN_THU_MUC };   // nhật ký nhà phát triển + tệp tạm: thiếu tên này thì bị dọn mất
-        private static readonly HashSet<string> AllowFilesWindow = new(StringComparer.OrdinalIgnoreCase)
-            { "cs1", "cs2", "cs3", "cs4", "csex", TEN_NHAT_KY_LAM_SACH };
         private static readonly HashSet<string> AllowFilesBanSaoLuu = new(StringComparer.OrdinalIgnoreCase)
             { TEN_NHAT_KY_LAM_SACH, "GiayPhepCapQuyen_ServiceRestore.dat", "GiayPhepCapQuyen_ServiceBackup.dat" };
         // ===================== TIỆN ÍCH CHUNG =====================
@@ -277,10 +276,9 @@ namespace PhanMemThiDua2026
                 // 2. Khôi phục thư viện hệ thống.
                 KhoiPhucThuVienHeThong();
                 string srcDir = Path.Combine(AppContext.BaseDirectory, THU_MUC_BACKUP);
-                string windowDir = Path.Combine(AppContext.BaseDirectory, THU_MUC_WINDOW);
                 string dbDir = Module_DanduongGPS.ThuMucCoSoDuLieu;
                 Directory.CreateDirectory(srcDir);
-                Directory.CreateDirectory(windowDir);
+                XoaThuMucWindowCu();
                 Directory.CreateDirectory(dbDir);
                 var loi = new List<string>();
                 byte[]? key = null;
@@ -304,7 +302,6 @@ namespace PhanMemThiDua2026
                             KhoiPhucMotTaiNguyen(
                                 res,
                                 srcDir,
-                                windowDir,
                                 dbDir,
                                 key);
                         }
@@ -377,15 +374,30 @@ namespace PhanMemThiDua2026
                 }
             }
         }
-        private static void KhoiPhucMotTaiNguyen(TaiNguyenCSDL res, string srcDir, string windowDir, string dbDir, byte[] key)
+        // Xóa thư mục "window-x64" của bản cũ (tệp bên trong đặt ReadOnly nên phải gỡ trước). Lỗi thì để lần khởi động sau.
+        private static void XoaThuMucWindowCu()
+        {
+            try
+            {
+                string thuMuc = Path.Combine(AppContext.BaseDirectory, THU_MUC_WINDOW_CU);
+                if (!Directory.Exists(thuMuc)) return;
+                if ((new DirectoryInfo(thuMuc).Attributes & FileAttributes.ReparsePoint) != 0) return;
+                RemoveReadOnlyRecursive(thuMuc);
+                Directory.Delete(thuMuc, true);
+                Debug.WriteLine("[KhoiTaoCSDL] Đã xóa thư mục cũ " + THU_MUC_WINDOW_CU);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("[KhoiTaoCSDL] Chưa xóa được " + THU_MUC_WINDOW_CU + ": " + ex.Message);
+            }
+        }
+        private static void KhoiPhucMotTaiNguyen(TaiNguyenCSDL res, string srcDir, string dbDir, byte[] key)
         {
             string pBackup = Path.Combine(srcDir, res.Backup);
-            string pWin = Path.Combine(windowDir, res.Win);
             string pDb = Path.Combine(dbDir, res.Db);
             // Tệp 0 byte (do mất điện lúc ghi) coi như mất — bản gốc chỉ kiểm tra File.Exists nên tệp rỗng tồn tại vĩnh viễn
             bool b = FileCoDuLieuHopLe(pBackup);
             bool d = FileCoDuLieuHopLe(pDb);
-            bool w = FileCoDuLieuHopLe(pWin);
             // Tệp CSDL có dung lượng nhưng phần đầu tệp sai định dạng (ghi đè dở, virus, sửa tay...) => coi như hỏng.
             // KHÔNG xóa: đổi tên giữ lại để còn cứu dữ liệu, rồi khôi phục như trường hợp mất tệp.
             if (d && !DauTepCSDLHopLe(pDb))
@@ -394,7 +406,7 @@ namespace PhanMemThiDua2026
                 GhiCanhBaoKhoiPhuc($"{res.Db}: tệp bị hỏng (sai định dạng), đã đổi tên giữ lại thành \"{Path.GetFileName(giuLai)}\".", luonBao: true);
                 d = false;
             }
-            if (!d && (b || w))
+            if (!d && b)
             {
                 // Tệp -wal/-shm/-journal còn sót của CSDL cũ: để nguyên cạnh tệp CSDL mới thì SQLite sẽ áp nhật ký cũ lên
                 // CSDL mới => hỏng dữ liệu. Đổi tên giữ lại trước khi tạo lại tệp.
@@ -407,26 +419,17 @@ namespace PhanMemThiDua2026
                     GhiAnToan(pDb, tam => Module_BaoMatAES.GiaiMaCSDL(pBackup, tam, key));
                     GhiCanhBaoKhoiPhuc($"{res.Db}: bị mất/hỏng, đã tạo lại từ bản dự phòng gốc trong \"Database Backup\" (dữ liệu gốc, KHÔNG phải dữ liệu đang làm việc gần nhất).");
                 }
-                if (!w) GhiAnToan(pWin, tam => Module_BaoMatAES.MaHoaCSDL(pDb, tam, key));
             }
             else if (d) // Backup mất
             {
                 GhiAnToan(pBackup, tam => Module_BaoMatAES.MaHoaCSDL(pDb, tam, key));
-                if (!w) GhiAnToan(pWin, tam => Module_BaoMatAES.MaHoaCSDL(pDb, tam, key));
-            }
-            else if (w) // Mất cả Backup và DB
-            {
-                GhiAnToan(pDb, tam => Module_BaoMatAES.GiaiMaCSDL(pWin, tam, key));
-                GhiAnToan(pBackup, tam => Module_BaoMatAES.MaHoaCSDL(pDb, tam, key));
-                GhiCanhBaoKhoiPhuc($"{res.Db}: bị mất/hỏng, đã tạo lại từ bản dự phòng trong \"window-x64\" (dữ liệu gốc, KHÔNG phải dữ liệu đang làm việc gần nhất).");
             }
             else
             {
-                GhiCanhBaoKhoiPhuc($"{res.Db}: bị mất ở cả 3 nơi (Database, Database Backup, window-x64), không thể tự khôi phục.", luonBao: true);
+                GhiCanhBaoKhoiPhuc($"{res.Db}: bị mất ở cả 2 nơi (Database, Database Backup), không thể tự khôi phục.", luonBao: true);
             }
             // Bảo vệ các tệp đã đồng bộ
             DatReadOnly(pBackup);
-            DatReadOnly(pWin);
         }
         // ===================== CẢNH BÁO KHÔI PHỤC CSDL =====================
         // Trước đây khi csdl*.db bị mất/hỏng, phần mềm âm thầm tạo lại từ bản gốc: người dùng thấy dữ liệu "biến mất"
@@ -737,11 +740,9 @@ namespace PhanMemThiDua2026
                         ? Path.Combine(baseDir, THU_MUC_DATABASE)
                         : Module_DanduongGPS.ThuMucCoSoDuLieu);
                     DonDepVungQuanLy(dir2, AllowFilesDatabase, AllowDirsDatabase, false, true);
-                    // 3. window-x64
-                    DonDepVungQuanLy(Path.Combine(baseDir, THU_MUC_WINDOW), AllowFilesWindow, null, true, false);
-                    // 4. Database\Bansaoluu — suy ra từ thư mục dữ liệu thực (bản gốc cố định baseDir\Database nên lệch khi ThuMucCoSoDuLieu khác)
+                    // 3. Database\Bansaoluu — suy ra từ thư mục dữ liệu thực (bản gốc cố định baseDir\Database nên lệch khi ThuMucCoSoDuLieu khác)
                     DonDepVungQuanLy(Path.Combine(dir2, THU_MUC_BAN_SAO_LUU), AllowFilesBanSaoLuu, null, true, false);
-                    // 5. Lịch sử thi đua (chỉ giữ họ *.db)
+                    // 4. Lịch sử thi đua (chỉ giữ họ *.db)
                     donRacThuMucBaoVe(Module_DanduongGPS.ThuMucLichSuThiDua);
                 }
                 catch (Exception ex)
@@ -904,10 +905,10 @@ namespace PhanMemThiDua2026
             rootPath = rootChuan;
             // DANH SÁCH TRẮNG CỐ ĐỊNH: khi nâng phiên bản .NET hoặc đổi cách publish (thêm/bớt tệp ở thư mục gốc)
             // PHẢI cập nhật các danh sách dưới đây, nếu không tường lửa sẽ xóa tệp hợp lệ của phiên bản mới.
-            // Chỉ 3 thư mục: Database, Database Backup, window-x64. CSDL_Backups (bản cũ) bị dọn; nhật ký bảo trì trong đó được chuyển trước.
+            // Chỉ 2 thư mục: Database, Database Backup (window-x64 của bản cũ không còn trong danh sách => bị dọn). CSDL_Backups (bản cũ) bị dọn; nhật ký bảo trì trong đó được chuyển trước.
             Module_BaoVeDuLieu.ChuyenNhatKyCuNeuCan();
             var allowedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { THU_MUC_DATABASE, THU_MUC_BACKUP, THU_MUC_WINDOW };
+                { THU_MUC_DATABASE, THU_MUC_BACKUP };
             // <thư mục phần mềm>\KhoaBaoMat là vị trí CŨ của tệp khóa (chỉ đọc để chuyển sang Database\KhoaBaoMat).
             // Nếu việc chuyển chưa thành công (vd Database không ghi được) thì đây là bản khóa DUY NHẤT: xóa đi là mất
             // vĩnh viễn khả năng giải mã dữ liệu. Chỉ cho dọn khi bản chính hoặc bản dự phòng ở vị trí mới đã tồn tại.

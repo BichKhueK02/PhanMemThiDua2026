@@ -27,6 +27,7 @@ namespace PhanMemThiDua2026
         public Form35_ChiTietKhenThuong()
         {
             InitializeComponent();
+            Module_CheDoDoiTuong.ApNhanTheoCheDo(this);   // nhãn "CBCS" -> "Tân binh"/"Học viên" theo chế độ (trước khi dựng giao diện hiện đại)
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // 4 nút thao tác cùng 1 bề ngang chuẩn (bản thiết kế mỗi nút 1 cỡ: 120 / 108 / 98 / 98)
             foreach (var b in new[] { kryptonButton_Them, kryptonButton_Sua, kryptonButton_Xoa, kryptonButton3_DongForm })
@@ -345,10 +346,10 @@ namespace PhanMemThiDua2026
                     if (!_daKiemTraBang) { Module_BangKhenThuong.DamBao(conn); _daKiemTraBangCho = _csdl4Path; }
                     // ID là số nguyên lấy từ chính CSDL -> ghép thẳng vào câu lệnh an toàn; danh sách rỗng thì chỉ lấy cấu trúc cột
                     string sql = idDaBiet == null
-                        ? "SELECT * FROM ThongKe_GiayKhen ORDER BY ID ASC"
+                        ? $"SELECT * FROM {Module_CheDoDoiTuong.BangGiayKhen} ORDER BY ID ASC"
                         : idDaBiet.Length == 0
-                            ? "SELECT * FROM ThongKe_GiayKhen WHERE 0"
-                            : $"SELECT * FROM ThongKe_GiayKhen WHERE ID IN ({string.Join(",", idDaBiet)}) ORDER BY ID ASC";
+                            ? $"SELECT * FROM {Module_CheDoDoiTuong.BangGiayKhen} WHERE 0"
+                            : $"SELECT * FROM {Module_CheDoDoiTuong.BangGiayKhen} WHERE ID IN ({string.Join(",", idDaBiet)}) ORDER BY ID ASC";
                     using var cmd = new SqliteCommand(sql, conn);
                     using var reader = cmd.ExecuteReader();
                     // Kiến tạo cột
@@ -413,9 +414,9 @@ namespace PhanMemThiDua2026
             if (rowId < 0)
             {
                 // Bản cũ đồng bộ ở bước riêng và nuốt lỗi: CSDL chưa có bảng tổng thì vẫn thêm/xóa được giấy khen như cũ
-                using (var cmdCo = new SqliteCommand("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ThongKeCBCS_DuocKhenThuong' LIMIT 1", conn, tran))
+                using (var cmdCo = new SqliteCommand($"SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = '{Module_CheDoDoiTuong.BangKhenThuongNguoi}' LIMIT 1", conn, tran))
                     if (cmdCo.ExecuteScalar() == null) return -1;
-                using var cmdSelect = new SqliteCommand("SELECT rowid, SoHieu FROM ThongKeCBCS_DuocKhenThuong", conn, tran);
+                using var cmdSelect = new SqliteCommand($"SELECT rowid, SoHieu FROM {Module_CheDoDoiTuong.BangKhenThuongNguoi}", conn, tran);
                 using var reader = cmdSelect.ExecuteReader();
                 while (reader.Read())
                 {
@@ -428,14 +429,14 @@ namespace PhanMemThiDua2026
             }
             if (rowId >= 0)
             {
-                using var cmdUpdate = new SqliteCommand("UPDATE ThongKeCBCS_DuocKhenThuong SET SoLuong_Khen = @SL WHERE rowid = @RowId", conn, tran);
+                using var cmdUpdate = new SqliteCommand($"UPDATE {Module_CheDoDoiTuong.BangKhenThuongNguoi} SET SoLuong_Khen = @SL WHERE rowid = @RowId", conn, tran);
                 cmdUpdate.Parameters.AddWithValue("@SL", soLuong.ToString());
                 cmdUpdate.Parameters.AddWithValue("@RowId", rowId);
                 if (cmdUpdate.ExecuteNonQuery() > 0) return rowId;
                 rowId = -1;   // dòng đã bị nơi khác xóa -> chèn lại bên dưới
             }
             if (soLuong <= 0) return -1;
-            using var cmdIn = new SqliteCommand("INSERT INTO ThongKeCBCS_DuocKhenThuong (HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen) VALUES (@HT, @SH, @DV, @TT, @SL); SELECT last_insert_rowid();", conn, tran);
+            using var cmdIn = new SqliteCommand($"INSERT INTO {Module_CheDoDoiTuong.BangKhenThuongNguoi} (HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen) VALUES (@HT, @SH, @DV, @TT, @SL); SELECT last_insert_rowid();", conn, tran);
             cmdIn.Parameters.AddWithValue("@HT", Module_BaoMatAES.MaHoa(hoTen));
             cmdIn.Parameters.AddWithValue("@SH", Module_BaoMatAES.MaHoa(soHieu));
             cmdIn.Parameters.AddWithValue("@DV", Module_BaoMatAES.MaHoa(donVi));
@@ -447,7 +448,7 @@ namespace PhanMemThiDua2026
         private HashSet<long> QuetIdGiayKhen(SqliteConnection conn, SqliteTransaction tran, string soHieu)
         {
             var ds = new HashSet<long>();
-            using var cmd = new SqliteCommand("SELECT ID, SoHieu FROM ThongKe_GiayKhen", conn, tran);
+            using var cmd = new SqliteCommand($"SELECT ID, SoHieu FROM {Module_CheDoDoiTuong.BangGiayKhen}", conn, tran);
             using var rd = cmd.ExecuteReader();
             while (rd.Read())
                 if (string.Equals(SafeDecrypt(rd["SoHieu"]), soHieu, StringComparison.OrdinalIgnoreCase))
@@ -499,7 +500,7 @@ namespace PhanMemThiDua2026
                 conn.Open();
                 if (!string.Equals(_daKiemTraBangCho, duongDan, StringComparison.OrdinalIgnoreCase))
                 { Module_BangKhenThuong.DamBao(conn); _daKiemTraBangCho = duongDan; }
-                using var cmd = new SqliteCommand("SELECT * FROM ThongKe_GiayKhen WHERE 0", conn);
+                using var cmd = new SqliteCommand($"SELECT * FROM {Module_CheDoDoiTuong.BangGiayKhen} WHERE 0", conn);
                 using var reader = cmd.ExecuteReader();
                 for (int i = 0; i < reader.FieldCount; i++)   // đúng kiểu cột như ReloadDuLieuGiayKhen_CuaMotNguoiAsync tạo
                 {
@@ -565,7 +566,7 @@ namespace PhanMemThiDua2026
             (Ten: "TienThuong", TieuDe: "Tiền thưởng", TyLe: 10f, CanLe: DataGridViewContentAlignment.MiddleRight),
             (Ten: "NgayCapPhat", TieuDe: "Ngày cấp phát", TyLe: 9f, CanLe: DataGridViewContentAlignment.MiddleCenter),
             (Ten: "CanBoCapPhat", TieuDe: "Cán bộ cấp", TyLe: 11f, CanLe: DataGridViewContentAlignment.MiddleLeft),
-            (Ten: "GhiChu_Khen", TieuDe: "Ghi chú", TyLe: 14f, CanLe: DataGridViewContentAlignment.MiddleLeft)
+            (Ten: "GhiChu_Khen", TieuDe: Module_HeThong.TieuDeCot.GhiChu, TyLe: 14f, CanLe: DataGridViewContentAlignment.MiddleLeft)
         };
                 foreach (var cot in cauHinhCot)
                 {
@@ -770,7 +771,7 @@ namespace PhanMemThiDua2026
                     try
                     {
                         Module_BangKhenThuong.DamBao(conn, tran);   // CSDL chưa có bảng thì tạo đủ cột rồi mới ghi
-                        string sqlInsert = @"INSERT INTO ThongKe_GiayKhen
+                        string sqlInsert = $@"INSERT INTO {Module_CheDoDoiTuong.BangGiayKhen}
                                          (HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen)
                                          VALUES
                                          (@HT, @SH, @DV, @TT, @HinhThuc, @SoQD, @Ngay, @DVKhen, @VeViec, @TienThuong, @NgayCapPhat, @CanBoCapPhat, @GhiChu)";
@@ -792,7 +793,7 @@ namespace PhanMemThiDua2026
                             cmd.ExecuteNonQuery();
                         }
                         long idMoi;
-                        using (var cmdId = new SqliteCommand("SELECT ID FROM ThongKe_GiayKhen WHERE rowid = last_insert_rowid()", conn, tran))
+                        using (var cmdId = new SqliteCommand($"SELECT ID FROM {Module_CheDoDoiTuong.BangGiayKhen} WHERE rowid = last_insert_rowid()", conn, tran))
                             idMoi = Convert.ToInt64(cmdId.ExecuteScalar());
                         ids ??= QuetIdGiayKhen(conn, tran, soHieu);   // QuetId đã thấy luôn dòng vừa thêm
                         ids.Add(idMoi);
@@ -835,7 +836,7 @@ namespace PhanMemThiDua2026
                 {
                     using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdlPath));
                     conn.Open();
-                    string sqlUpdate = @"UPDATE ThongKe_GiayKhen
+                    string sqlUpdate = $@"UPDATE {Module_CheDoDoiTuong.BangGiayKhen}
                                      SET HinhThuc_Khen = @HinhThuc, QuyetDinh_Khen = @SoQD, NgayCapQD_Khen = @Ngay,
                                          DonVi_Khen = @DVKhen, VeViec_Khen = @VeViec,
                                          TienThuong = @TienThuong, NgayCapPhat = @NgayCapPhat, CanBoCapPhat = @CanBoCapPhat,
@@ -893,7 +894,7 @@ namespace PhanMemThiDua2026
                     using var tran = conn.BeginTransaction();
                     try
                     {
-                        string sqlDelete = "DELETE FROM ThongKe_GiayKhen WHERE ID = @ID";
+                        string sqlDelete = $"DELETE FROM {Module_CheDoDoiTuong.BangGiayKhen} WHERE ID = @ID";
                         using (var cmd = new SqliteCommand(sqlDelete, conn, tran))
                         {
                             cmd.Parameters.AddWithValue("@ID", idXoa);
@@ -940,7 +941,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrWhiteSpace(_currentSoHieu))
             {
-                MessageBox.Show("Lỗi hệ thống: Không xác định được Cán bộ chiến sĩ đang được thao tác!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi hệ thống: Không xác định được Cán bộ chiến sĩ đang được thao tác!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
             if (string.IsNullOrWhiteSpace(combobox_HinhThucKhen.Text))

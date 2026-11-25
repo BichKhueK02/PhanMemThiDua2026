@@ -8,28 +8,25 @@ namespace PhanMemThiDua2026
         public static Dictionary<string, int[]> DeNghiMapping { get; private set; }
             = new Dictionary<string, int[]>();
         private static readonly int[] IDS = { 1, 2, 3 };
+        // Bảng mà DeNghiMapping đang chứa số liệu. Mỗi chế độ (CBCS / Tân binh / Học viên) có bảng tỷ lệ riêng:
+        // đổi chế độ ở Form12 => tên bảng khác => GetLoaiTapThe tự đọc lại (trước đây giữ mãi số của chế độ lúc mở Form4).
+        private static volatile string? _bangDangNap;
         // LOAD E29: CSDL → TextBox Form12 + Dictionary
         // HÀM TRỢ GIÚP ĐỂ LẤY TÊN BẢNG LINH HOẠT
-        private static string TenBangHienTai
-        {
-            get
-            {
-                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                return phienBan.LaCheDoTanBinh()
-                    ? "QuyDinhTyLe_TanBinh"
-                    : "QuyDinhTyLe";
-            }
-        }
+        private static string TenBangHienTai => Module_CheDoDoiTuong.BangQuyDinhTyLe;   // QuyDinhTyLe / _TanBinh / _HocVien
         /// <summary>Kết quả đọc E29 (không chứa control nào: tạo được ở luồng nền).</summary>
         internal sealed class KetQuaE29
         {
             public required Dictionary<string, int[]> Mapping { get; init; }
             public required bool[] CoDong { get; init; }
+            public string? TenBang { get; init; }
         }
         /// <summary>Gán kết quả E29 cho DeNghiMapping (thay nguyên bảng 1 lần: nơi đọc không bao giờ thấy bảng đang dở).</summary>
         public static void ApDungE29(KetQuaE29? kq)
         {
-            if (kq != null) DeNghiMapping = kq.Mapping;
+            if (kq == null) return;
+            DeNghiMapping = kq.Mapping;
+            _bangDangNap = kq.TenBang;
         }
         /// <summary>
         /// Phần CSDL của LoadE29, KHÔNG đụng giao diện -> gọi được trong Task.Run.
@@ -91,6 +88,7 @@ namespace PhanMemThiDua2026
             return new KetQuaE29
             {
                 CoDong = coDong,
+                TenBang = tableName,
                 Mapping = new Dictionary<string, int[]>
                 {
                     ["Loai1_TapThe"] = loai1,
@@ -105,7 +103,6 @@ namespace PhanMemThiDua2026
         {
             string csdlPath = Module_DanduongGPS.DuongDanCSDL2;
             if (string.IsNullOrWhiteSpace(csdlPath)) return;
-            DeNghiMapping.Clear();
             int[] loai1 = new int[3];
             int[] loai2 = new int[3];
             int[] loai3 = new int[3];
@@ -149,15 +146,21 @@ namespace PhanMemThiDua2026
                 loai4[row] = int.TryParse(rd["Loai_4"]?.ToString(), out int v4) ? v4 : 0;
                 khongPL[row] = int.TryParse(rd["Khong_PL"]?.ToString(), out int v5) ? v5 : 0;
             }
-            DeNghiMapping["Loai1_TapThe"] = loai1;
-            DeNghiMapping["Loai2_TapThe"] = loai2;
-            DeNghiMapping["Loai3_TapThe"] = loai3;
-            DeNghiMapping["Loai4_TapThe"] = loai4;
-            DeNghiMapping["KhongPL_TapThe"] = khongPL;
+            // Thay nguyên bảng 1 lần (không Clear rồi điền dần: nơi đọc không thấy bảng rỗng / đang dở)
+            DeNghiMapping = new Dictionary<string, int[]>
+            {
+                ["Loai1_TapThe"] = loai1,
+                ["Loai2_TapThe"] = loai2,
+                ["Loai3_TapThe"] = loai3,
+                ["Loai4_TapThe"] = loai4,
+                ["KhongPL_TapThe"] = khongPL,
+            };
+            _bangDangNap = tableName;
         }
         public static int[] GetLoaiTapThe(string key)
                 {
-                    if (DeNghiMapping.Count == 0)
+                    if (DeNghiMapping.Count == 0 ||
+                        !string.Equals(_bangDangNap, TenBangHienTai, StringComparison.Ordinal))
                         ReloadData();
                     return DeNghiMapping.TryGetValue(key, out var v)
                         ? v

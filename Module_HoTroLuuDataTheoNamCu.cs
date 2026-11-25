@@ -11,7 +11,12 @@ namespace PhanMemThiDua2026
         public int STT { get; set; }
         public string TenHienThi { get; set; } = null!;
         public string DuongDan { get; set; } = null!;
+        /// <summary>Nhóm xét theo tuần (Tân binh HOẶC Học viên) - chỉ để rẽ nhánh giao diện/logic.</summary>
         public bool LaTanBinh { get; set; }
+        /// <summary>Chế độ của tệp năm cũ (CBCS / Tân binh / Học viên).</summary>
+        public CheDoDoiTuong CheDo { get; set; }
+        /// <summary>Bảng thi đua cá nhân trong tệp năm cũ: ThiDuaThang_CBCS / ThiDuaThang_TanBinh / ThiDuaThang_HocVien.</summary>
+        public string BangThiDua => Module_CheDoDoiTuong.ThiDuaThang(CheDo);
     }
     public class HistoryCBCSDTO
     {
@@ -43,19 +48,24 @@ namespace PhanMemThiDua2026
         // ===================== DỌN TỆP NĂM CŨ RỖNG (không để rác trong LuuTruThiDua_LichSu) =====================
         /// <summary>
         /// Các bảng DỮ LIỆU THẬT của từng họ tệp lịch sử. Mọi bảng trong danh sách đều trống (hoặc đã bị xóa hẳn) => tệp là rác.
-        /// Bảng tổng ThongKeCBCS_DuocKhenThuong không tính: xóa giấy khen chỉ đặt SoLuong_Khen = 0, dòng vẫn còn.
+        /// Bảng tổng ThongKe_DuocKhenThuong_* không tính: xóa giấy khen chỉ đặt SoLuong_Khen = 0, dòng vẫn còn.
         /// Tên tệp không thuộc họ nào => null (KHÔNG BAO GIỜ đụng tới).
         /// </summary>
         private static string[]? BangDuLieuCuaTep(string? duongDan)
         {
             string ten = Path.GetFileName(duongDan ?? "");
             if (!ten.EndsWith(".db", StringComparison.OrdinalIgnoreCase)) return null;
-            if (ten.StartsWith("KhenThuong_CBCS_Nam", StringComparison.OrdinalIgnoreCase))
-                return new[] { "ThongKe_GiayKhen", "ThongKe_KhenThuongTapThe" };        // Form50 cá nhân + Form51 tập thể
+            if (ten.StartsWith("KhenThuong_", StringComparison.OrdinalIgnoreCase) && ten.Contains("_Nam", StringComparison.OrdinalIgnoreCase))
+            {
+                var c = Module_CheDoDoiTuong.TuTenTep(ten);   // KhenThuong_CBCS_ / _TanBinh_ / _HocVien_ : bảng theo chế độ của chính tệp
+                return new[] { Module_CheDoDoiTuong.GiayKhen(c), Module_CheDoDoiTuong.KhenThuongTapThe(c) };   // Form50 cá nhân + Form51 tập thể
+            }
             if (ten.StartsWith("ThiDua_CBCS_Nam", StringComparison.OrdinalIgnoreCase))
-                return new[] { "ThiDuaThang", "ThongKe_PhanLoaiTapThe" };               // Form46 cá nhân + Form59 tập thể
+                return new[] { Module_CheDoDoiTuong.ThiDuaThang(CheDoDoiTuong.CBCS), Module_CheDoDoiTuong.CBCS_PhanLoaiTapThe };   // Form46 cá nhân + Form59 tập thể
             if (ten.StartsWith("ThiDua_TanBinh_Nam", StringComparison.OrdinalIgnoreCase))
-                return new[] { "ThiDuaThang_TanBinh" };
+                return new[] { Module_CheDoDoiTuong.ThiDuaThang(CheDoDoiTuong.TanBinh) };
+            if (ten.StartsWith("ThiDua_HocVien_Nam", StringComparison.OrdinalIgnoreCase))
+                return new[] { Module_CheDoDoiTuong.ThiDuaThang(CheDoDoiTuong.HocVien) };
             return null;
         }
         /// <summary>
@@ -68,6 +78,9 @@ namespace PhanMemThiDua2026
         {
             string[]? bang = BangDuLieuCuaTep(duongDan);
             if (bang == null || string.IsNullOrEmpty(duongDan) || !File.Exists(duongDan)) return false;
+            // Tệp của bản trước còn tên bảng cũ (ThiDuaThang, ThongKe_GiayKhen...) => đổi tên TRƯỚC khi xét rỗng,
+            // nếu không bảng tên mới "không có" bị hiểu là trống và tệp còn dữ liệu bị xóa nhầm.
+            Module_TenCotKhongDau.ChuanHoaTepNamCu(duongDan);
             try
             {
                 string thuMuc = Path.GetFullPath(Module_DanduongGPS.ThuMucLichSuThiDua).TrimEnd(Path.DirectorySeparatorChar);
@@ -133,19 +146,22 @@ namespace PhanMemThiDua2026
             var danhSach = new List<FileLichSuDTO>();
             string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
             if (!Directory.Exists(dir)) return danhSach;
-            bool phienBanHienTaiLaTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().LaCheDoTanBinh();
+            var cheDoHienTai = Module_TaiKhoan.LayPhienBanPhanMem().LayCheDo();
             var files = Directory.GetFiles(dir, "*.db");
             foreach (var file in files)
             {
                 string fileName = Path.GetFileNameWithoutExtension(file);
-                bool isFileTanBinh = fileName.Contains("TanBinh", StringComparison.OrdinalIgnoreCase);
-                if (phienBanHienTaiLaTanBinh != isFileTanBinh) continue;
+                if (!fileName.StartsWith("ThiDua_", StringComparison.OrdinalIgnoreCase)) continue;   // chỉ tệp thi đua (không lấy KhenThuong_...)
+                var cheDoTep = Module_CheDoDoiTuong.TuTenTep(fileName);
+                if (cheDoTep != cheDoHienTai) continue;   // mỗi chế độ chỉ thấy tệp năm cũ của chính nó
+                bool isFileTanBinh = Module_CheDoDoiTuong.LaNhomTuan(cheDoTep);
                 string nam = fileName.Split(new string[] { "Nam" }, StringSplitOptions.None).LastOrDefault() ?? "???";
                 danhSach.Add(new FileLichSuDTO
                 {
                     TenHienThi = $"Năm {nam} - {(isFileTanBinh ? Module_TaiKhoan.TenTB_Hoa : "CBCS")}",
                     DuongDan = file,
-                    LaTanBinh = isFileTanBinh
+                    LaTanBinh = isFileTanBinh,
+                    CheDo = cheDoTep
                 });
             }
             // Thay dòng này:
@@ -163,22 +179,22 @@ namespace PhanMemThiDua2026
         {
             DonRacThuMucLichSu();   // tệp năm cũ đã rỗng (cả giấy khen + tập thể) thì xóa luôn
             var danhSach = new List<FileLichSuDTO>();
-            // [CHẶN CỬA]: Tân binh không có khen thưởng -> Trả về danh sách trống luôn
-            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            if (phienBan.LaCheDoTanBinh())
-                return danhSach;
+            // Cả 3 chế độ đều có khen thưởng: chỉ liệt kê tệp năm cũ của ĐÚNG chế độ đang chạy
+            var cheDo = Module_CheDoDoiTuong.Hien;
+            string tienTo = Module_CheDoDoiTuong.TienToTepKhenThuong(cheDo);
             string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
             if (!Directory.Exists(dir)) return danhSach;
-            var files = Directory.GetFiles(dir, "KhenThuong_CBCS_Nam*.db");
+            var files = Directory.GetFiles(dir, tienTo + "*.db");
             foreach (var file in files)
             {
                 string fileName = Path.GetFileNameWithoutExtension(file);
-                string nam = fileName.Replace("KhenThuong_CBCS_Nam", "");
+                string nam = fileName.Replace(tienTo, "", StringComparison.OrdinalIgnoreCase);
                 danhSach.Add(new FileLichSuDTO
                 {
                     TenHienThi = $"Năm {nam}",
                     DuongDan = file,
-                    LaTanBinh = false
+                    LaTanBinh = Module_CheDoDoiTuong.LaNhomTuan(cheDo),
+                    CheDo = cheDo
                 });
             }
             // Thay dòng này:
@@ -206,7 +222,7 @@ namespace PhanMemThiDua2026
                     using var rd = cmd.ExecuteReader();
                     dt.Load(rd);
                 }
-                string[] secureCols = { "HoVaTen", "SoHieu", "DonVi" };
+                string[] secureCols = { "HoVaTen", "SoHieu", "DonVi", "GhiChu" };   // GhiChu: chép nguyên bản mã hóa từ danh sách gốc (csdl2)
                 foreach (DataRow row in dt.Rows)
                 {
                     foreach (string colName in secureCols)
@@ -249,8 +265,11 @@ namespace PhanMemThiDua2026
         }
         // LÕI HỆ THỐNG: HÀM REVERSE ATTACH & CLONE DDL
         // GIÚP COPY 100% CẤU TRÚC (PRIMARY KEY, AUTOINCREMENT, INDEX) TỪ DB GỐC
-        private static void SaoChepBangVaDuLieuChuanXac(string sourceDbPath, string targetDbPath, string[] tableNames)
+        private static void SaoChepBangVaDuLieuChuanXac(string sourceDbPath, string targetDbPath, string[] tableNames, bool thayBangCu = false)
         {
+            // Tệp đích/nguồn của bản trước còn tên bảng cũ (ThiDuaThang...) => đổi tên trước, tránh bảng cũ sót lại giữ chỉ mục trùng tên
+            Module_TenCotKhongDau.ChuanHoaTepNamCu(targetDbPath);
+            Module_TenCotKhongDau.ChuanHoaTepNamCu(sourceDbPath);
             var schemaStatements = new List<string>();
             var cacBangThucTeCo = new List<string>();
             // BƯỚC 1: Lấy schema gốc (Nguyên văn câu lệnh Create Table, Index, Primary Key, AutoIncrement...)
@@ -282,7 +301,8 @@ namespace PhanMemThiDua2026
             }
             if (cacBangThucTeCo.Count == 0)
                 throw new Exception("Không tìm thấy bảng dữ liệu nào trong CSDL nguồn để sao lưu.");
-            // BƯỚC 2: Khởi tạo CSDL Đích (Năm Cũ) và tái tạo cấu trúc
+            // BƯỚC 2: Mở CSDL đích (năm cũ), đính kèm CSDL gốc, rồi (xóa bảng cũ) + tạo cấu trúc + bơm dữ liệu TRONG 1 GIAO DỊCH:
+            // lỗi ở bất kỳ bước nào => rollback, tệp đích giữ nguyên như trước (quan trọng khi cập nhật lại tệp đã có).
             using (var cnTarget = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(targetDbPath, pooling: false)))
             {
                 cnTarget.Open();
@@ -291,56 +311,40 @@ namespace PhanMemThiDua2026
                     cmd.CommandText = "PRAGMA busy_timeout=5000;";
                     cmd.ExecuteNonQuery();
                 }
-                // Chạy DDL gốc để tái tạo hoàn hảo bảng, ràng buộc và index
-                using (var tran = cnTarget.BeginTransaction())
-                {
-                    foreach (string sqlCreate in schemaStatements)
-                    {
-                        using (var cmd = cnTarget.CreateCommand())
-                        {
-                            cmd.Transaction = tran;
-                            cmd.CommandText = sqlCreate;
-                            cmd.ExecuteNonQuery();
-                        }
-                    }
-                    tran.Commit();
-                }
-                // BƯỚC 3: Đính kèm ngược CSDL Gốc vào CSDL Năm cũ để bơm data
+                // ATTACH không chạy được bên trong giao dịch => đính kèm trước
                 using (var cmd = cnTarget.CreateCommand())
                 {
                     cmd.CommandText = $"ATTACH DATABASE '{sourceDbPath.Replace("'", "''")}' AS DBNguon;";
                     cmd.ExecuteNonQuery();
                 }
-                bool attachThanhCong = true;
                 try
                 {
-                    // Bơm toàn bộ dữ liệu an toàn
-                    using (var tran = cnTarget.BeginTransaction())
+                    using var tran = cnTarget.BeginTransaction();
+                    void Chay(string sql)
                     {
-                        foreach (string tbl in cacBangThucTeCo)
-                        {
-                            using (var cmd = cnTarget.CreateCommand())
-                            {
-                                cmd.Transaction = tran;
-                                cmd.CommandText = $"INSERT INTO main.{tbl} SELECT * FROM DBNguon.{tbl};";
-                                cmd.ExecuteNonQuery();
-                            }
-                        }
-                        tran.Commit();
+                        using var cmd = cnTarget.CreateCommand();
+                        cmd.Transaction = tran;
+                        cmd.CommandText = sql;
+                        cmd.ExecuteNonQuery();
                     }
+                    if (thayBangCu)
+                        foreach (string tbl in cacBangThucTeCo) Chay($"DROP TABLE IF EXISTS main.[{tbl}];");   // xóa cả index/trigger đi kèm
+                    // Chạy DDL gốc để tái tạo hoàn hảo bảng, ràng buộc và index (tên không kèm tiền tố => tạo trong main)
+                    foreach (string sqlCreate in schemaStatements) Chay(sqlCreate);
+                    // Bơm toàn bộ dữ liệu
+                    foreach (string tbl in cacBangThucTeCo) Chay($"INSERT INTO main.[{tbl}] SELECT * FROM DBNguon.[{tbl}];");
+                    tran.Commit();
                 }
                 finally
                 {
                     // Luôn luôn tháo CSDL gốc ra dù có lỗi hay không (Defensive)
-                    if (attachThanhCong && cnTarget.State == ConnectionState.Open)
+                    if (cnTarget.State == ConnectionState.Open)
                     {
                         try
                         {
-                            using (var cmd = cnTarget.CreateCommand())
-                            {
-                                cmd.CommandText = "DETACH DATABASE DBNguon;";
-                                cmd.ExecuteNonQuery();
-                            }
+                            using var cmd = cnTarget.CreateCommand();
+                            cmd.CommandText = "DETACH DATABASE DBNguon;";
+                            cmd.ExecuteNonQuery();
                         }
                         catch { }
                     }
@@ -348,7 +352,18 @@ namespace PhanMemThiDua2026
             }
         }
         // 3 HÀM LƯU TRỮ ĐƯỢC CẬP NHẬT GỌN GÀNG VÀ CHUẨN XÁC
-        public static string LuuTruDuLieuThiDuaNam()
+        /// <summary>Đường dẫn tệp lưu kết quả thi đua của NĂM HỆ THỐNG theo phiên bản đang dùng (ThiDua_CBCS_Nam2026.db...).</summary>
+        public static string DuongDanTepThiDuaNamHienTai()
+        {
+            int nam = Module_HeThong.LayNamHeThong();
+            var cheDo = Module_TaiKhoan.LayPhienBanPhanMem().LayCheDo();
+            return Path.Combine(Module_DanduongGPS.ThuMucLichSuThiDua, $"ThiDua_{Module_CheDoDoiTuong.MaTep(cheDo)}_Nam{nam}.db");
+        }
+        /// <summary>
+        /// Lưu kết quả thi đua năm (csdl4) sang tệp năm cũ, KÈM cột GhiChu lấy từ danh sách gốc (csdl2) theo Số hiệu.
+        /// <paramref name="capNhatTepDaCo"/> = true: tệp đã có thì thay các bảng thi đua trong tệp bằng dữ liệu mới (giữ nguyên tệp).
+        /// </summary>
+        public static string LuuTruDuLieuThiDuaNam(bool capNhatTepDaCo = false)
         {
             int nam = Module_HeThong.LayNamHeThong();
             bool laTanBinh = Module_TaiKhoan
@@ -356,8 +371,7 @@ namespace PhanMemThiDua2026
                 .LaCheDoTanBinh();
             string sourcePath = Module_DanduongGPS.DuongDanCSDL4;
             string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
-            string fileName = $"ThiDua_{(laTanBinh ? "TanBinh" : "CBCS")}_Nam{nam}.db";
-            string targetPath = Path.Combine(thuMucLuu, fileName);
+            string targetPath = DuongDanTepThiDuaNamHienTai();
             // Kiểm tra CSDL nguồn
             if (!File.Exists(sourcePath))
                 throw new FileNotFoundException(
@@ -365,28 +379,35 @@ namespace PhanMemThiDua2026
                     sourcePath);
             // Đảm bảo thư mục lưu trữ tồn tại
             Directory.CreateDirectory(thuMucLuu);
-            // Không ghi đè dữ liệu lưu trữ cũ
-            if (File.Exists(targetPath))
+            // Không ghi đè dữ liệu lưu trữ cũ (trừ khi người dùng chọn cập nhật lại tệp đã có)
+            bool tepDaCo = File.Exists(targetPath);
+            if (tepDaCo && !capNhatTepDaCo)
                 throw new InvalidOperationException(
                     $"Dữ liệu lưu trữ năm {nam} đã tồn tại.");
+            string bangThiDua = Module_CheDoDoiTuong.ThiDuaThang(Module_TaiKhoan.LayPhienBanPhanMem().LayCheDo());
             string[] tablesToBackup = laTanBinh
-                ? new[] { "ThiDuaThang_TanBinh" }
-                : new[] { "ThiDuaThang", "ThongKe_PhanLoaiTapThe" };
+                ? new[] { bangThiDua }
+                : new[] { bangThiDua, Module_CheDoDoiTuong.CBCS_PhanLoaiTapThe };
             try
             {
                 SaoChepBangVaDuLieuChuanXac(
                     sourcePath,
                     targetPath,
-                    tablesToBackup);
+                    tablesToBackup,
+                    thayBangCu: tepDaCo);
+                GhiCotGhiChuTuDanhSachGoc(Module_DanduongGPS.DuongDanCSDL2, targetPath, bangThiDua);
                 return targetPath;
             }
             catch
             {
-                // Xóa file dở dang nếu quá trình sao lưu thất bại
+                // Xóa file dở dang nếu quá trình sao lưu thất bại (CHỈ tệp vừa tạo; tệp đã có thì giao dịch đã rollback)
                 try
                 {
-                    if (File.Exists(targetPath))
+                    if (!tepDaCo && File.Exists(targetPath))
+                    {
+                        SqliteConnection.ClearAllPools();
                         File.Delete(targetPath);
+                    }
                 }
                 catch
                 {
@@ -395,12 +416,90 @@ namespace PhanMemThiDua2026
                 throw;
             }
         }
+        /// <summary>
+        /// Bảng thi đua của csdl4 KHÔNG có cột Ghi chú: Form15 hiển thị Ghi chú bằng cách ghép Số hiệu với danh sách gốc (csdl2).
+        /// Vì vậy khi lưu năm phải tự thêm cột GhiChu vào tệp năm cũ và chép Ghi chú của từng người (theo Số hiệu) tại thời điểm lưu,
+        /// để sau này danh sách gốc có đổi thì tệp năm cũ vẫn giữ đúng ghi chú của năm đó. Giá trị chép NGUYÊN BẢN (đang mã hóa
+        /// như trong csdl2), lúc đọc mới giải mã. Số hiệu trùng trong danh sách gốc => lấy dòng đầu (giống Form15).
+        /// Ô đã có Ghi chú (bảng nguồn sau này có cột GhiChu riêng) thì giữ nguyên, chỉ điền ô trống.
+        /// </summary>
+        public static void GhiCotGhiChuTuDanhSachGoc(string pathCsdl2, string pathCsdlNamCu, string tenBang)
+        {
+            if (!File.Exists(pathCsdlNamCu)) return;
+            // 1. Ghi chú của danh sách gốc: Số hiệu (đã giải mã, Trim) -> Ghi chú (nguyên bản)
+            var ghiChuTheoSoHieu = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (File.Exists(pathCsdl2))
+            {
+                var tho = new List<(string sh, string gc)>();
+                using (var cn2 = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(pathCsdl2, chiDoc: true)))
+                {
+                    cn2.Open();
+                    string bangGoc = Module_TaiKhoan.BangDanhSach;
+                    if (CoCot(cn2, bangGoc, "SoHieu") && CoCot(cn2, bangGoc, "GhiChu"))
+                    {
+                        using var cmd = new SqliteCommand($"SELECT SoHieu, GhiChu FROM [{bangGoc}] ORDER BY rowid", cn2);
+                        using var rd = cmd.ExecuteReader();
+                        while (rd.Read())
+                            tho.Add((rd.IsDBNull(0) ? "" : rd.GetValue(0)?.ToString() ?? "",
+                                     rd.IsDBNull(1) ? "" : rd.GetValue(1)?.ToString() ?? ""));
+                    }
+                }
+                var shGiaiMa = new string[tho.Count];
+                Parallel.For(0, tho.Count, i => shGiaiMa[i] = SafeDecrypt(tho[i].sh).Trim());
+                for (int i = 0; i < tho.Count; i++)
+                    if (shGiaiMa[i].Length > 0) ghiChuTheoSoHieu.TryAdd(shGiaiMa[i], tho[i].gc);
+            }
+            // 2. Thêm cột (nếu chưa có) + điền Ghi chú cho từng dòng của tệp năm cũ, trong 1 giao dịch
+            using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(pathCsdlNamCu, pooling: false));
+            cn.Open();
+            using (var cmd = new SqliteCommand("PRAGMA busy_timeout=5000;", cn)) cmd.ExecuteNonQuery();
+            if (!CoCot(cn, tenBang, "SoHieu")) return;
+            var canGhi = new List<(long id, string gc)>();
+            bool daCoCot = CoCot(cn, tenBang, "GhiChu");
+            using (var cmd = new SqliteCommand(daCoCot
+                       ? $"SELECT rowid, SoHieu FROM [{tenBang}] WHERE GhiChu IS NULL OR TRIM(GhiChu) = ''"
+                       : $"SELECT rowid, SoHieu FROM [{tenBang}]", cn))
+            using (var rd = cmd.ExecuteReader())
+            {
+                var tho = new List<(long id, string sh)>();
+                while (rd.Read()) tho.Add((rd.GetInt64(0), rd.IsDBNull(1) ? "" : rd.GetValue(1)?.ToString() ?? ""));
+                var sh = new string[tho.Count];
+                Parallel.For(0, tho.Count, i => sh[i] = SafeDecrypt(tho[i].sh).Trim());
+                for (int i = 0; i < tho.Count; i++)
+                    if (sh[i].Length > 0 && ghiChuTheoSoHieu.TryGetValue(sh[i], out string? gc) && !string.IsNullOrWhiteSpace(gc))
+                        canGhi.Add((tho[i].id, gc));
+            }
+            using var tran = cn.BeginTransaction();
+            if (!daCoCot)
+                using (var cmd = new SqliteCommand($"ALTER TABLE [{tenBang}] ADD COLUMN GhiChu TEXT", cn, tran)) cmd.ExecuteNonQuery();
+            if (canGhi.Count > 0)
+            {
+                using var upd = new SqliteCommand($"UPDATE [{tenBang}] SET GhiChu = @gc WHERE rowid = @id", cn, tran);
+                var pGc = upd.Parameters.Add("@gc", SqliteType.Text);
+                var pId = upd.Parameters.Add("@id", SqliteType.Integer);
+                upd.Prepare();
+                foreach (var (id, gc) in canGhi)
+                {
+                    pGc.Value = gc;
+                    pId.Value = id;
+                    upd.ExecuteNonQuery();
+                }
+            }
+            tran.Commit();
+        }
+        private static bool CoCot(SqliteConnection cn, string tenBang, string tenCot)
+        {
+            using var cmd = new SqliteCommand("SELECT 1 FROM pragma_table_info(@b) WHERE name = @c COLLATE NOCASE LIMIT 1", cn);
+            cmd.Parameters.AddWithValue("@b", tenBang);
+            cmd.Parameters.AddWithValue("@c", tenCot);
+            return cmd.ExecuteScalar() != null;
+        }
         public static string LuuTruDuLieuKhenThuongToanDienNam()
         {
-            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            if (phienBan.LaCheDoTanBinh()) return string.Empty;
+            // Cả 3 chế độ: KhenThuong_CBCS_NamX / KhenThuong_TanBinh_NamX / KhenThuong_HocVien_NamX
+            var cheDo = Module_TaiKhoan.LayPhienBanPhanMem().LayCheDo();
             int nam = Module_HeThong.LayNamHeThong();
-            string fileName = $"KhenThuong_CBCS_Nam{nam}.db";
+            string fileName = $"{Module_CheDoDoiTuong.TienToTepKhenThuong(cheDo)}{nam}.db";
             string thuMucLuu = Module_DanduongGPS.ThuMucLichSuThiDua;
             string targetPath = Path.Combine(thuMucLuu, fileName);
             if (!File.Exists(Module_DanduongGPS.DuongDanCSDL4))
@@ -429,7 +528,9 @@ namespace PhanMemThiDua2026
             }
             try
             {
-                string[] cacBangCanSaoLuu = { "ThongKeCBCS_DuocKhenThuong", "ThongKe_GiayKhen", "ThongKe_KhenThuongTapThe" };
+                // CSDL4 cũ có thể chưa có đủ bảng của chế độ này -> tạo (rỗng) trước khi chép
+                Module_BangKhenThuong.DamBaoTrongTep(Module_DanduongGPS.DuongDanCSDL4, cheDo);
+                string[] cacBangCanSaoLuu = { Module_CheDoDoiTuong.KhenThuongNguoi(cheDo), Module_CheDoDoiTuong.GiayKhen(cheDo), Module_CheDoDoiTuong.KhenThuongTapThe(cheDo) };
                 SaoChepBangVaDuLieuChuanXac(Module_DanduongGPS.DuongDanCSDL4, targetPath, cacBangCanSaoLuu);
             }
             catch
@@ -483,7 +584,7 @@ namespace PhanMemThiDua2026
                     else if (excelCol == 5) ws.Column(excelCol).Width = 20;
                     else ws.Column(excelCol).Width = 15;
                     cell.Style.Font.Bold = true; cell.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center; cell.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center; cell.Style.Alignment.WrapText = true; cell.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-                    if (laTanBinh && (col.Name == "Tuan_1_T2" || col.Name == "Tuan_2_T2" || col.Name == "Tuan_3_T2" || col.Name == "Tuan_4_T2" || col.Name == "Thang_3" || col.Name == "Tuan_1_T4" || col.Name == "Tuan_2_T4" || col.Name == "Tuan_3_T4" || col.Name == "Tuan_4_T4" || col.Name == "Thang_5")) cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromArgb(220, 235, 255);
+                    if (laTanBinh && (Module_LichXet.DotCuaCot(Module_CheDoDoiTuong.Hien, col.Name)?.So ?? 0) % 2 == 1) cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromArgb(220, 235, 255);
                     else if (col.Name.StartsWith("TS_Loai")) cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromArgb(230, 250, 230);
                     else cell.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.LightGray;
                     excelCol++;
@@ -564,7 +665,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrEmpty(pathCsdlNamCu) || !File.Exists(pathCsdlNamCu)) return;
             if (!File.Exists(pathCsdl2)) return;
-            string tableDich = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
+            string tableDich = Module_CheDoDoiTuong.ThiDuaThang(Module_CheDoDoiTuong.TuTenTep(pathCsdlNamCu));   // bảng theo chính tệp năm cũ
             try
             {
                 var hashSoHieuCsdl2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -652,7 +753,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrEmpty(pathCsdlNamCu) || !File.Exists(pathCsdlNamCu)) return;
             if (string.IsNullOrEmpty(pathCsdl2) || !File.Exists(pathCsdl2)) return;
-            string tableDich = laTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
+            string tableDich = Module_CheDoDoiTuong.ThiDuaThang(Module_CheDoDoiTuong.TuTenTep(pathCsdlNamCu));   // bảng theo chính tệp năm cũ
             try
             {
                 var hashSoHieuCsdl2 = new HashSet<string>(10000, StringComparer.OrdinalIgnoreCase);

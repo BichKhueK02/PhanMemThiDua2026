@@ -80,7 +80,7 @@ namespace PhanMemThiDua2026
             var lb = Tim<Label>(f, "label_DonVi");
             if (lb != null)
             {
-                lb.Font = new Font("Segoe UI Semibold", 13F, FontStyle.Regular, GraphicsUnit.Point);
+                lb.Font = new Font(Module_HeThong.TenFontHeThongDam, 13F, FontStyle.Regular, GraphicsUnit.Point);
                 lb.ForeColor = Color.FromArgb(76, 29, 149);
                 lb.Anchor = AnchorStyles.Left;
                 lb.Margin = new Padding(0);
@@ -102,7 +102,7 @@ namespace PhanMemThiDua2026
             b.StateCommon.Back.ColorStyle = Krypton.Toolkit.PaletteColorStyle.Solid;
             b.StateCommon.Border.Rounding = 10F;
             b.StateCommon.Border.Width = 1;
-            b.StateCommon.Content.ShortText.Font = new Font("Segoe UI Semibold", 10F, FontStyle.Regular, GraphicsUnit.Point);
+            b.StateCommon.Content.ShortText.Font = new Font(Module_HeThong.TenFontHeThongDam, 10F, FontStyle.Regular, GraphicsUnit.Point);
             b.StateCommon.Content.ShortText.Color1 = chu;
             b.StateNormal.Back.Color1 = nen; b.StateNormal.Back.Color2 = nen;
             b.StateNormal.Border.Color1 = vien; b.StateNormal.Border.Color2 = vien;
@@ -157,7 +157,7 @@ namespace PhanMemThiDua2026
             ss.ForeColor = MauChuPhu;
             ss.SizingGrip = false;
             ss.Padding = new Padding(10, 0, 10, 0);
-            foreach (ToolStripItem it in ss.Items) it.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            foreach (ToolStripItem it in ss.Items) it.Font = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
         }
     }
     /// <summary>
@@ -180,8 +180,8 @@ namespace PhanMemThiDua2026
     Color.FromArgb(249, 115, 22),   // Hạ sĩ quan: Cam san hô ấm áp
     Color.FromArgb(16, 185, 129)    // Chiến sĩ: Xanh ngọc lục bảo tươi tắn, dịu mắt
 };
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontSo = new Font("Segoe UI Semibold", 8.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontSo = new Font(Module_HeThong.TenFontHeThongDam, 8.5F, FontStyle.Regular, GraphicsUnit.Point);
         private List<Dong> _ds = new();
         private readonly System.Windows.Forms.Timer _timer = new() { Interval = 15 };
         private long _batDau;

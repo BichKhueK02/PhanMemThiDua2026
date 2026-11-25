@@ -58,6 +58,7 @@ namespace PhanMemThiDua2026
         public Form50_QuanLyKhenThuongNamCu()
         {
             InitializeComponent();
+            Module_CheDoDoiTuong.ApNhanTheoCheDo(this);   // nhãn "CBCS" -> "Tân binh"/"Học viên" theo chế độ (trước khi dựng giao diện hiện đại)
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm50Web.ApDung(this);   // giao diện kiểu web như Form4 - chỉ đổi trình bày (đây là dòng DUY NHẤT thêm vào code gốc)
             this.KeyPreview = true;
@@ -297,7 +298,7 @@ namespace PhanMemThiDua2026
             string dbPathLichSu = selectedFile.DuongDan;
             if (!File.Exists(dbPathLichSu))
             {
-                MessageBox.Show("Tệp CSDL không tồn tại trên ổ đĩa!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Tệp CSDL không tồn tại trên ổ đĩa!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             try
@@ -306,7 +307,7 @@ namespace PhanMemThiDua2026
                 using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPathLichSu)))
                 {
                     await conn.OpenAsync();
-                    using (var cmdCheck = new SqliteCommand("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'", conn))
+                    using (var cmdCheck = new SqliteCommand($"SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='{Module_CheDoDoiTuong.BangGiayKhen}'", conn))
                     {
                         if (Convert.ToInt32(await cmdCheck.ExecuteScalarAsync()) == 0)
                         {
@@ -314,7 +315,7 @@ namespace PhanMemThiDua2026
                             return;
                         }
                     }
-                    using (var cmd = new SqliteCommand("SELECT COUNT(*) FROM ThongKe_GiayKhen", conn))
+                    using (var cmd = new SqliteCommand($"SELECT COUNT(*) FROM {Module_CheDoDoiTuong.BangGiayKhen}", conn))
                     {
                         tongSoDong = Convert.ToInt32(await cmd.ExecuteScalarAsync());
                     }
@@ -352,7 +353,7 @@ namespace PhanMemThiDua2026
                     {
                         try
                         {
-                            using (var cmdDelete = new SqliteCommand("DELETE FROM ThongKe_GiayKhen", conn, tran))
+                            using (var cmdDelete = new SqliteCommand($"DELETE FROM {Module_CheDoDoiTuong.BangGiayKhen}", conn, tran))
                             {
                                 await cmdDelete.ExecuteNonQueryAsync();
                             }
@@ -361,18 +362,18 @@ namespace PhanMemThiDua2026
                                 int hasSequenceTable = Convert.ToInt32(await cmdCheckSeq.ExecuteScalarAsync());
                                 if (hasSequenceTable > 0)
                                 {
-                                    using (var cmdResetSeq = new SqliteCommand("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'ThongKe_GiayKhen'", conn, tran))
+                                    using (var cmdResetSeq = new SqliteCommand($"UPDATE sqlite_sequence SET seq = 0 WHERE name = '{Module_CheDoDoiTuong.BangGiayKhen}'", conn, tran))
                                     {
                                         await cmdResetSeq.ExecuteNonQueryAsync();
                                     }
                                 }
                             }
                             // Tệp năm cũ không có bảng tổng thì bỏ qua (bản cũ: lệnh UPDATE lỗi => hoàn tác luôn cả lệnh xóa giấy khen)
-                            using (var cmdCoBang = new SqliteCommand("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ThongKeCBCS_DuocKhenThuong' LIMIT 1", conn, tran))
+                            using (var cmdCoBang = new SqliteCommand($"SELECT 1 FROM sqlite_master WHERE type='table' AND name='{Module_CheDoDoiTuong.BangKhenThuongNguoi}' LIMIT 1", conn, tran))
                             {
                                 if (await cmdCoBang.ExecuteScalarAsync() != null)
                                 {
-                                    using var cmdSync = new SqliteCommand("UPDATE ThongKeCBCS_DuocKhenThuong SET SoLuong_Khen = '0'", conn, tran);
+                                    using var cmdSync = new SqliteCommand($"UPDATE {Module_CheDoDoiTuong.BangKhenThuongNguoi} SET SoLuong_Khen = '0'", conn, tran);
                                     await cmdSync.ExecuteNonQueryAsync();
                                 }
                             }
@@ -409,7 +410,7 @@ namespace PhanMemThiDua2026
         }
         // Năm còn giấy khen cá nhân? (cùng hàm Form51 dùng cho bảng tập thể => 2 trang ẩn năm theo đúng 1 quy tắc)
         private bool KiemTraTonTaiDuLieuKhenThuong(string dbPath)
-            => Module_BoLocKhenThuong.CoDuLieuBang(dbPath, "ThongKe_GiayKhen");
+            => Module_BoLocKhenThuong.CoDuLieuBang(dbPath, Module_CheDoDoiTuong.BangGiayKhen);
         private async Task ThucHienTaiDuLieuLichSuAsync()
         {
             if (comboBox_ChonCSDLNam.SelectedItem == null)
@@ -438,7 +439,7 @@ namespace PhanMemThiDua2026
                     // rồi mới đọc => lưới vẽ dở trỏ vào chỉ số không còn)
                     var moi = new List<HistoryGiayKhenDTO>();
                     string[] donViUuTien = Module_DonVi.LayDanhSachDonViUuTienArray();
-                    var dicDonViUuTien = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                    var dicDonViUuTien = new Dictionary<string, int>(Module_DonVi.SoSanhBang);
                     for (int i = 0; i < donViUuTien.Length; i++) dicDonViUuTien.TryAdd(donViUuTien[i], i);
                     // Đẩy quá trình đọc DB và giải mã AES xuống luồng nền (Background Thread) để không đơ UI
                     await Task.Run(async () =>
@@ -447,13 +448,13 @@ namespace PhanMemThiDua2026
                         {
                             await cn.OpenAsync();
                             // Kiểm tra an toàn xem bảng có tồn tại không trước khi Query
-                            string checkTableSql = "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'";
+                            string checkTableSql = $"SELECT count(*) FROM sqlite_master WHERE type='table' AND name='{Module_CheDoDoiTuong.BangGiayKhen}'";
                             using (var cmdCheck = new SqliteCommand(checkTableSql, cn))
                             {
                                 long count = (long)(await cmdCheck.ExecuteScalarAsync())!;
                                 if (count == 0) return;
                             }
-                            string query = "SELECT * FROM ThongKe_GiayKhen";
+                            string query = $"SELECT * FROM {Module_CheDoDoiTuong.BangGiayKhen}";
                             using (var cmd = new SqliteCommand(query, cn))
                             using (var rd = await cmd.ExecuteReaderAsync())
                             {
@@ -520,7 +521,7 @@ namespace PhanMemThiDua2026
                 catch (Exception ex)
                 {
                     Debug.WriteLine("Lỗi đọc CSDL Khen thưởng cá nhân năm cũ: " + ex.Message);
-                    MessageBox.Show("Có lỗi xảy ra khi đọc tệp dữ liệu năm cũ:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Có lỗi xảy ra khi đọc tệp dữ liệu năm cũ:\n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 finally
                 {
@@ -570,13 +571,14 @@ namespace PhanMemThiDua2026
             try
             {
                 var ketQua = new List<int>(ds.Count);
-                var conDonVi = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var conDonVi = new HashSet<string>(Module_DonVi.SoSanhBang);
                 var conHinhThuc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                string khoaDv = Module_DonVi.GiaTriSoKhop(dvFilter);
                 for (int i = 0; i < ds.Count; i++)
                 {
                     var item = ds[i];
                     if (tu.Length > 0 && !Module_BoLocKhenThuong.KhopTuKhoa(item.HoVaTen_Search ?? "", tu)) continue;
-                    bool okDv = dvFilter.Length == 0 || string.Equals(item.DonVi, dvFilter, StringComparison.OrdinalIgnoreCase);
+                    bool okDv = dvFilter.Length == 0 || string.Equals(Module_DonVi.GiaTriSoKhop(item.DonVi), khoaDv, StringComparison.Ordinal);
                     bool okHt = htFilter.Length == 0 || string.Equals(item.HinhThuc_Khen, htFilter, StringComparison.OrdinalIgnoreCase);
                     if (okHt && GiaTriHopLe(item.DonVi)) conDonVi.Add(item.DonVi);
                     if (okDv && GiaTriHopLe(item.HinhThuc_Khen)) conHinhThuc.Add(item.HinhThuc_Khen);
@@ -803,11 +805,11 @@ namespace PhanMemThiDua2026
             if (selectedFile == null) return;
             string[] parts = selectedFile.TenHienThi.Split(' ');
             string nam = (parts.Length > 1) ? parts[1] : DateTime.Now.Year.ToString();
-            string fileName = $"ThongKe_KhenThuongCBCS_Nam{nam}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            string fileName = $"ThongKe_KhenThuong{Module_CheDoDoiTuong.MaTep(Module_CheDoDoiTuong.Hien)}_Nam{nam}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
             using var sfd = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu file Excel thống kê",
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = Module_HeThong.BoLoc_Excel,
                 FileName = fileName,
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
             };
@@ -927,7 +929,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel giấy khen cá nhân (năm cũ)", ex.Message);
-                MessageBox.Show("Lỗi khi xuất dữ liệu Excel:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi xuất dữ liệu Excel:\n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -983,9 +985,9 @@ namespace PhanMemThiDua2026
             // 1. STT (Ngắn)
             // dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "STT", HeaderText = "STT", Width = 45, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             // 2. Họ và tên
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoVaTen", HeaderText = "Họ và tên", Width = 160, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoVaTen", HeaderText = Module_HeThong.TieuDeCot.HoVaTen, Width = 160, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
             // 3. Số hiệu
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "SoHieu", HeaderText = "Số hiệu", Width = 90, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "SoHieu", HeaderText = Module_HeThong.TieuDeCot.SoHieu, Width = 90, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             // 4. Đơn vị công tác (Thu hẹp lại)
             dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "DonVi", HeaderText = "Đơn vị công tác", Width = 130, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
             // 5. Tình trạng
@@ -1008,7 +1010,7 @@ namespace PhanMemThiDua2026
                 DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft }
             });
             // 11. Ghi chú (Mở rộng ra)
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "GhiChu_Khen", HeaderText = "Ghi chú", Width = 200, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { Name = "GhiChu_Khen", HeaderText = Module_HeThong.TieuDeCot.GhiChu, Width = 200, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
             // Tắt tính năng tự động Sort khi click vào tiêu đề cột (do đang xài Virtual Mode)
             foreach (DataGridViewColumn col in dgv.Columns)
             {
@@ -1019,7 +1021,7 @@ namespace PhanMemThiDua2026
         {
             if (comboBox_ChonCSDLNam.SelectedItem is FileLichSuDTO selectedFile)
             {
-                string tieuDeMoi = $"Thống kê khen thưởng CBCS năm cũ - {selectedFile.TenHienThi}";
+                string tieuDeMoi = $"Thống kê khen thưởng {Module_CheDoDoiTuong.TenDoiTuongHienTai} năm cũ - {selectedFile.TenHienThi}";
                 this.Text = tieuDeMoi;
                 var formCha = Application.OpenForms.OfType<Form2_FormCha>().FirstOrDefault();
                 if (formCha != null) formCha.CapNhatTieuDe(tieuDeMoi);
@@ -1090,12 +1092,12 @@ namespace PhanMemThiDua2026
                 {
                     await cnCu.OpenAsync();
                     // Kiểm tra xem bảng ThongKe_GiayKhen có tồn tại không
-                    using (var cmdCheck = new SqliteCommand("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ThongKe_GiayKhen'", cnCu))
+                    using (var cmdCheck = new SqliteCommand($"SELECT 1 FROM sqlite_master WHERE type='table' AND name='{Module_CheDoDoiTuong.BangGiayKhen}'", cnCu))
                     {
                         if (await cmdCheck.ExecuteScalarAsync() == null) return;
                     }
                     // Đọc ID, SoHieu (Mã hóa), TinhTrang (Thuần) từ năm cũ
-                    using (var cmdSelect = new SqliteCommand("SELECT ID, SoHieu, TinhTrang FROM ThongKe_GiayKhen", cnCu))
+                    using (var cmdSelect = new SqliteCommand($"SELECT ID, SoHieu, TinhTrang FROM {Module_CheDoDoiTuong.BangGiayKhen}", cnCu))
                     using (var rd = await cmdSelect.ExecuteReaderAsync())
                     {
                         while (await rd.ReadAsync())
@@ -1122,7 +1124,7 @@ namespace PhanMemThiDua2026
                         try
                         {
                             // LƯU Ý: TinhTrang được truyền thẳng (Text thuần), KHÔNG MÃ HÓA
-                            using var cmdUpd = new SqliteCommand("UPDATE ThongKe_GiayKhen SET TinhTrang = @tt WHERE ID = @id", cnCu, tran);
+                            using var cmdUpd = new SqliteCommand($"UPDATE {Module_CheDoDoiTuong.BangGiayKhen} SET TinhTrang = @tt WHERE ID = @id", cnCu, tran);
                             var pTt = cmdUpd.Parameters.Add("@tt", SqliteType.Text);
                             var pId = cmdUpd.Parameters.Add("@id", SqliteType.Integer);
                             cmdUpd.Prepare();
@@ -1290,8 +1292,8 @@ namespace PhanMemThiDua2026
                     return rowIndex;
                 }
                 // 8. NẠP DỮ LIỆU VÀO GRID
-                ThemDong("Họ và tên", data.HoVaTen, Color.Green, _fontGrid10Bold);
-                ThemDong("Số hiệu", data.SoHieu);
+                ThemDong(Module_HeThong.TieuDeCot.HoVaTen, data.HoVaTen, Color.Green, _fontGrid10Bold);
+                ThemDong(Module_HeThong.TieuDeCot.SoHieu, data.SoHieu);
                 ThemDong("Đơn vị công tác", data.DonVi);
                 // Tình trạng công tác
                 string tinhTrang = data.TinhTrang?.Trim() ?? "";
@@ -1314,7 +1316,7 @@ namespace PhanMemThiDua2026
                 ThemDong("Ngày ban hành", data.NgayCapQD_Khen);
                 ThemDong("Đơn vị khen", data.DonVi_Khen);
                 ThemDong("Về việc", data.VeViec_Khen);
-                ThemDong("Ghi chú", data.GhiChu_Khen);
+                ThemDong(Module_HeThong.TieuDeCot.GhiChu, data.GhiChu_Khen);
                 // 9. BỐ TRÍ VÀ THÊM DỮ LIỆU VÀO FORM
                 panelContent.Controls.Add(grid);
                 formAo.Controls.Add(panelContent);

@@ -6,9 +6,26 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
         private const string SHEET_THONGTIN = "DuLieuSaoLuu_KhenThuong";
-        private const string SHEET_CBCS = "ThongKeCBCS_DuocKhenThuong";
-        private const string SHEET_GIAYKHEN = "ThongKe_GiayKhen";
-        private const string SHEET_TAPTHE = "ThongKe_KhenThuongTapThe";
+        // Tên sheet theo chế độ. CBCS giữ đúng tên cũ (đọc được tệp sao lưu cũ). Tân binh/Học viên dùng tên ngắn
+        // (Excel giới hạn 31 ký tự) => tệp sao lưu của chế độ này không khôi phục nhầm vào chế độ khác (thiếu sheet).
+        private static string SHEET_CBCS => Module_CheDoDoiTuong.Hien switch
+        {
+            CheDoDoiTuong.TanBinh => "TanBinh_DuocKhenThuong",
+            CheDoDoiTuong.HocVien => "HocVien_DuocKhenThuong",
+            _ => "ThongKeCBCS_DuocKhenThuong"
+        };
+        private static string SHEET_GIAYKHEN => Module_CheDoDoiTuong.Hien switch
+        {
+            CheDoDoiTuong.TanBinh => "TanBinh_GiayKhen",
+            CheDoDoiTuong.HocVien => "HocVien_GiayKhen",
+            _ => "ThongKe_GiayKhen"
+        };
+        private static string SHEET_TAPTHE => Module_CheDoDoiTuong.Hien switch
+        {
+            CheDoDoiTuong.TanBinh => "TanBinh_KhenThuongTapThe",
+            CheDoDoiTuong.HocVien => "HocVien_KhenThuongTapThe",
+            _ => "ThongKe_KhenThuongTapThe"
+        };
         private const int MAX_KY_TU_O_EXCEL = 32767;   // giới hạn cứng của 1 ô Excel: dài hơn sẽ bị cắt => mất dữ liệu
         /// <summary>Toàn bộ nội dung 1 tệp sao lưu (bản mã giữ NGUYÊN như trong CSDL, không giải mã/mã hóa lại).</summary>
         internal sealed class DuLieuSaoLuu
@@ -49,7 +66,7 @@ namespace PhanMemThiDua2026
                 var (soCbcs, soGk, soTt) = GhiTepSaoLuu(sfd.FileName);
                 MessageBox.Show(
                     "Sao lưu dữ liệu khen thưởng thành công!\n\n" +
-                    $"- CBCS: {soCbcs:N0}\n- Giấy khen cá nhân: {soGk:N0}\n- Khen thưởng tập thể: {soTt:N0}\n\n" +
+                    $"- {Module_CheDoDoiTuong.TenDoiTuongHienTai}: {soCbcs:N0}\n- Giấy khen cá nhân: {soGk:N0}\n- Khen thưởng tập thể: {soTt:N0}\n\n" +
                     "Tệp đã được đọc lại và đối chiếu từng ô với CSDL: khớp hoàn toàn.",
                     "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Module_NhatKy.GhiNhatKy(
@@ -59,13 +76,13 @@ namespace PhanMemThiDua2026
                         $"Thời gian: {thoiGianTao:dd-MM-yyyy HH:mm:ss} - " +
                         $"Máy tính: {tenMayTinh} - " +
                         $"User máy tính: {userMayTinh} - " +
-                        $"CBCS: {soCbcs}, giấy khen: {soGk}, tập thể: {soTt} - " +
+                        $"{Module_CheDoDoiTuong.TenDoiTuongHienTai}: {soCbcs}, giấy khen: {soGk}, tập thể: {soTt} - " +
                         $"Đường dẫn: {sfd.FileName}");
                 Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(sfd.FileName);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi sao lưu dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi sao lưu dữ liệu: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         /// <summary>
@@ -92,7 +109,7 @@ namespace PhanMemThiDua2026
                 wsInfo.Cell(5, 1).Value = "Tên người dùng: " + Module_TaiKhoan.TenTaiKhoan_RAM;
                 wsInfo.Cell(6, 1).Value = "Tên máy tính: " + tenMayTinh;
                 wsInfo.Cell(7, 1).Value = "User máy tính: " + userMayTinh;
-                wsInfo.Cell(8, 1).Value = $"Số lượng: CBCS {goc.CBCS.Count} - giấy khen {goc.GiayKhen.Count} - tập thể {goc.TapThe.Count}";
+                wsInfo.Cell(8, 1).Value = $"Số lượng: {Module_CheDoDoiTuong.TenDoiTuongHienTai} {goc.CBCS.Count} - giấy khen {goc.GiayKhen.Count} - tập thể {goc.TapThe.Count}";
                 wsInfo.Columns().AdjustToContents();
                 // 2. 3 sheet dữ liệu nghiệp vụ (ẩn). Không AdjustToContents: sheet ẩn, đo từng ô bằng GDI chỉ tốn thời gian
                 var ws1 = wb.Worksheets.Add(SHEET_CBCS);
@@ -216,7 +233,7 @@ namespace PhanMemThiDua2026
                     $"Tên người dùng: {d.NguoiTao}\n" +
                     $"Tên máy tính: {d.MayTinh}\n" +
                     $"User máy tính: {d.UserMay}\n" +
-                    $"Nội dung: CBCS {d.CBCS.Count:N0} - giấy khen {d.GiayKhen.Count:N0} - tập thể {d.TapThe.Count:N0}\n\n" +
+                    $"Nội dung: {Module_CheDoDoiTuong.TenDoiTuongHienTai} {d.CBCS.Count:N0} - giấy khen {d.GiayKhen.Count:N0} - tập thể {d.TapThe.Count:N0}\n\n" +
                     "PHƯƠNG THỨC KHÔI PHỤC\n\n" +
                     "[Yes]  XÓA SẠCH dữ liệu cũ và nạp mới.\n" +
                     "[No]   GIỮ dữ liệu cũ, chỉ thêm giấy khen còn thiếu (đối chiếu theo Số hiệu;\n" +
@@ -232,7 +249,7 @@ namespace PhanMemThiDua2026
                 MessageBox.Show(
                     $"Khôi phục dữ liệu khen thưởng thành công!\n\n" +
                     $"- Giấy khen cá nhân: thêm {kq.GkThem:N0}, bổ sung thông tin {kq.GkBoSung:N0}, đã có sẵn (bỏ qua) {kq.GkBoQua:N0}.\n" +
-                    $"- CBCS: thêm {kq.CbcsThem:N0}, đã có sẵn (bỏ qua) {kq.CbcsBoQua:N0}.\n" +
+                    $"- {Module_CheDoDoiTuong.TenDoiTuongHienTai}: thêm {kq.CbcsThem:N0}, đã có sẵn (bỏ qua) {kq.CbcsBoQua:N0}.\n" +
                     $"- Khen thưởng tập thể: thêm {kq.TtThem:N0}, đã có sẵn (bỏ qua) {kq.TtBoQua:N0}.\n\n" +
                     "Tình trạng công tác được đối chiếu lại theo danh sách gốc (Form6).\n\n" +
                     $"Tệp được tạo từ máy tính: {d.MayTinh}\n" +
@@ -253,7 +270,7 @@ namespace PhanMemThiDua2026
             {
                 MessageBox.Show(
                     "Lỗi khi khôi phục dữ liệu (CSDL đã được hoàn tác, không bị thay đổi): " + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -307,11 +324,11 @@ namespace PhanMemThiDua2026
                 Module_BangKhenThuong.DamBaoTapThe(conn, trans);
                 if (isClearData)
                 {
-                    using var cmdClear = new SqliteCommand(@"
-                        DELETE FROM ThongKeCBCS_DuocKhenThuong;
-                        DELETE FROM ThongKe_GiayKhen;
-                        DELETE FROM ThongKe_KhenThuongTapThe;
-                        DELETE FROM sqlite_sequence WHERE name IN ('ThongKeCBCS_DuocKhenThuong', 'ThongKe_GiayKhen', 'ThongKe_KhenThuongTapThe');", conn, trans);
+                    using var cmdClear = new SqliteCommand($@"
+                        DELETE FROM {Module_CheDoDoiTuong.BangKhenThuongNguoi};
+                        DELETE FROM {Module_CheDoDoiTuong.BangGiayKhen};
+                        DELETE FROM {Module_CheDoDoiTuong.BangKhenThuongTapThe};
+                        DELETE FROM sqlite_sequence WHERE name IN ('{Module_CheDoDoiTuong.BangKhenThuongNguoi}', '{Module_CheDoDoiTuong.BangGiayKhen}', '{Module_CheDoDoiTuong.BangKhenThuongTapThe}');", conn, trans);
                     cmdClear.ExecuteNonQuery();
                 }
                 LuuCBCS(conn, trans, listCBCS, isClearData, kq);
@@ -332,13 +349,13 @@ namespace PhanMemThiDua2026
             var daCo = new HashSet<string>(Module_DongBoKhenThuong.SoSanhSoHieu);
             if (!giuId)
             {
-                using var cmdDoc = new SqliteCommand("SELECT SoHieu FROM ThongKeCBCS_DuocKhenThuong", conn, trans);
+                using var cmdDoc = new SqliteCommand($"SELECT SoHieu FROM {Module_CheDoDoiTuong.BangKhenThuongNguoi}", conn, trans);
                 using var rd = cmdDoc.ExecuteReader();
                 while (rd.Read()) { string sh = Ro(Doc(rd, 0)); if (sh.Length > 0) daCo.Add(sh); }
             }
             using var cmd = new SqliteCommand(giuId
-                ? "INSERT OR REPLACE INTO ThongKeCBCS_DuocKhenThuong (ID, HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen) VALUES (@ID, @HoVaTen, @SoHieu, @DonVi, @TinhTrang, @SoLuong_Khen, @GhiChu_Khen);"
-                : "INSERT INTO ThongKeCBCS_DuocKhenThuong (HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen) VALUES (@HoVaTen, @SoHieu, @DonVi, @TinhTrang, @SoLuong_Khen, @GhiChu_Khen);", conn, trans);
+                ? $"INSERT OR REPLACE INTO {Module_CheDoDoiTuong.BangKhenThuongNguoi} (ID, HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen) VALUES (@ID, @HoVaTen, @SoHieu, @DonVi, @TinhTrang, @SoLuong_Khen, @GhiChu_Khen);"
+                : $"INSERT INTO {Module_CheDoDoiTuong.BangKhenThuongNguoi} (HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen) VALUES (@HoVaTen, @SoHieu, @DonVi, @TinhTrang, @SoLuong_Khen, @GhiChu_Khen);", conn, trans);
             if (giuId) cmd.Parameters.Add("@ID", SqliteType.Integer);
             foreach (var p in new[] { "@HoVaTen", "@SoHieu", "@DonVi", "@TinhTrang", "@SoLuong_Khen", "@GhiChu_Khen" }) cmd.Parameters.Add(p, SqliteType.Text);
             foreach (var item in ds)
@@ -366,7 +383,7 @@ namespace PhanMemThiDua2026
             var daCo = new Dictionary<string, GiayKhenCo>(StringComparer.Ordinal);
             if (!giuId)
             {
-                using var cmdDoc = new SqliteCommand("SELECT ID, SoHieu, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen FROM ThongKe_GiayKhen", conn, trans);
+                using var cmdDoc = new SqliteCommand($"SELECT ID, SoHieu, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen FROM {Module_CheDoDoiTuong.BangGiayKhen}", conn, trans);
                 using var rd = cmdDoc.ExecuteReader();
                 while (rd.Read())
                 {
@@ -380,15 +397,15 @@ namespace PhanMemThiDua2026
                 }
             }
             using var cmd = new SqliteCommand(giuId
-                ? @"INSERT OR REPLACE INTO ThongKe_GiayKhen (ID, HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen)
+                ? $@"INSERT OR REPLACE INTO {Module_CheDoDoiTuong.BangGiayKhen} (ID, HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen)
                     VALUES (@ID, @HoVaTen, @SoHieu, @DonVi, @TinhTrang, @HinhThuc_Khen, @QuyetDinh_Khen, @NgayCapQD_Khen, @DonVi_Khen, @VeViec_Khen, @TienThuong, @NgayCapPhat, @CanBoCapPhat, @GhiChu_Khen);"
-                : @"INSERT INTO ThongKe_GiayKhen (HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen)
+                : $@"INSERT INTO {Module_CheDoDoiTuong.BangGiayKhen} (HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen)
                     VALUES (@HoVaTen, @SoHieu, @DonVi, @TinhTrang, @HinhThuc_Khen, @QuyetDinh_Khen, @NgayCapQD_Khen, @DonVi_Khen, @VeViec_Khen, @TienThuong, @NgayCapPhat, @CanBoCapPhat, @GhiChu_Khen);", conn, trans);
             if (giuId) cmd.Parameters.Add("@ID", SqliteType.Integer);
             foreach (var p in new[] { "@HoVaTen", "@SoHieu", "@DonVi", "@TinhTrang", "@HinhThuc_Khen", "@QuyetDinh_Khen", "@NgayCapQD_Khen", "@DonVi_Khen", "@VeViec_Khen", "@TienThuong", "@NgayCapPhat", "@CanBoCapPhat", "@GhiChu_Khen" })
                 cmd.Parameters.Add(p, SqliteType.Text);
             // Bổ sung thông tin cho giấy khen ĐÃ CÓ: chỉ ghi vào ô đang trống, không đè thông tin người dùng đã nhập
-            using var cmdBoSung = new SqliteCommand(@"UPDATE ThongKe_GiayKhen SET
+            using var cmdBoSung = new SqliteCommand($@"UPDATE {Module_CheDoDoiTuong.BangGiayKhen} SET
                     TienThuong   = CASE WHEN @boTien = 1 THEN @TienThuong ELSE TienThuong END,
                     NgayCapPhat  = CASE WHEN @boNgay = 1 THEN @NgayCapPhat ELSE NgayCapPhat END,
                     CanBoCapPhat = CASE WHEN @boCanBo = 1 THEN @CanBoCapPhat ELSE CanBoCapPhat END,
@@ -453,7 +470,7 @@ namespace PhanMemThiDua2026
             long sttMax = 0;
             if (!giuId)
             {
-                using var cmdDoc = new SqliteCommand("SELECT STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NoiDung_KhenThuong FROM ThongKe_KhenThuongTapThe", conn, trans);
+                using var cmdDoc = new SqliteCommand($"SELECT STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NoiDung_KhenThuong FROM {Module_CheDoDoiTuong.BangKhenThuongTapThe}", conn, trans);
                 using var rd = cmdDoc.ExecuteReader();
                 while (rd.Read())
                 {
@@ -462,9 +479,9 @@ namespace PhanMemThiDua2026
                 }
             }
             using var cmd = new SqliteCommand(giuId
-                ? @"INSERT OR REPLACE INTO ThongKe_KhenThuongTapThe (ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu)
+                ? $@"INSERT OR REPLACE INTO {Module_CheDoDoiTuong.BangKhenThuongTapThe} (ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu)
                     VALUES (@ID, @STT, @TenTapThe, @HinhThuc_KhenThuong, @DonVi_CapKhenThuong, @SoQuyetDinh, @NgayQuyetDinh, @NguoiKy, @NoiDung_KhenThuong, @TienThuong, @NgayCapPhat, @CanBoCapPhat, @NguoiDaiDienNhan, @GhiChu);"
-                : @"INSERT INTO ThongKe_KhenThuongTapThe (STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu)
+                : $@"INSERT INTO {Module_CheDoDoiTuong.BangKhenThuongTapThe} (STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu)
                     VALUES (@STT, @TenTapThe, @HinhThuc_KhenThuong, @DonVi_CapKhenThuong, @SoQuyetDinh, @NgayQuyetDinh, @NguoiKy, @NoiDung_KhenThuong, @TienThuong, @NgayCapPhat, @CanBoCapPhat, @NguoiDaiDienNhan, @GhiChu);", conn, trans);
             if (giuId) cmd.Parameters.Add("@ID", SqliteType.Integer);
             cmd.Parameters.Add("@STT", SqliteType.Integer);
@@ -514,8 +531,8 @@ namespace PhanMemThiDua2026
             var list = new List<CBCSDuocKhenThuongDTO>();
             using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
             conn.Open();
-            if (!CoBang(conn, SHEET_CBCS)) return list;
-            using var cmd = new SqliteCommand("SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen FROM ThongKeCBCS_DuocKhenThuong ORDER BY ID", conn);
+            if (!CoBang(conn, Module_CheDoDoiTuong.BangKhenThuongNguoi)) return list;
+            using var cmd = new SqliteCommand($"SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen FROM {Module_CheDoDoiTuong.BangKhenThuongNguoi} ORDER BY ID", conn);
             using var dr = cmd.ExecuteReader();
             while (dr.Read())
                 list.Add(new CBCSDuocKhenThuongDTO
@@ -530,8 +547,8 @@ namespace PhanMemThiDua2026
             var list = new List<GiayKhenDTO>();
             using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
             conn.Open();
-            if (!CoBang(conn, SHEET_GIAYKHEN)) return list;
-            using var cmd = new SqliteCommand("SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen FROM ThongKe_GiayKhen ORDER BY ID", conn);
+            if (!CoBang(conn, Module_CheDoDoiTuong.BangGiayKhen)) return list;
+            using var cmd = new SqliteCommand($"SELECT ID, HoVaTen, SoHieu, DonVi, TinhTrang, HinhThuc_Khen, QuyetDinh_Khen, NgayCapQD_Khen, DonVi_Khen, VeViec_Khen, TienThuong, NgayCapPhat, CanBoCapPhat, GhiChu_Khen FROM {Module_CheDoDoiTuong.BangGiayKhen} ORDER BY ID", conn);
             using var dr = cmd.ExecuteReader();
             while (dr.Read())
                 list.Add(new GiayKhenDTO
@@ -547,8 +564,8 @@ namespace PhanMemThiDua2026
             var list = new List<KhenThuongTapTheDTO>();
             using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
             conn.Open();
-            if (!CoBang(conn, SHEET_TAPTHE)) return list;   // máy chưa từng dùng khen thưởng tập thể: sao lưu 0 dòng thay vì báo lỗi
-            using var cmd = new SqliteCommand("SELECT ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu FROM ThongKe_KhenThuongTapThe ORDER BY ID", conn);
+            if (!CoBang(conn, Module_CheDoDoiTuong.BangKhenThuongTapThe)) return list;   // máy chưa từng dùng khen thưởng tập thể: sao lưu 0 dòng thay vì báo lỗi
+            using var cmd = new SqliteCommand($"SELECT ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu FROM {Module_CheDoDoiTuong.BangKhenThuongTapThe} ORDER BY ID", conn);
             using var dr = cmd.ExecuteReader();
             while (dr.Read())
                 list.Add(new KhenThuongTapTheDTO

@@ -45,6 +45,29 @@ namespace PhanMemThiDua2026
         public const string Ha_Sy_Quan = "Hạ sỹ quan";
         public const string Chien_Sy_Nghia_Vu = "Chiến sĩ nghĩa vụ";
         public const string Ngay_Thang_Nam = "dd/MM/yyyy";
+        // ===== Hằng dùng chung (gom chuỗi lặp; const => IL giống hệt khi viết chuỗi trực tiếp) =====
+        public const string TenFontHeThongDam = "Segoe UI Semibold";
+        public const string TieuDe_Loi = "Lỗi";                                // Tiêu đề hộp thông báo lỗi
+        public const string DinhDang_NgayGio = "dd-MM-yyyy HH:mm:ss";          // Hiển thị / nhật ký
+        public const string DinhDang_NgayGio_Gach = "dd/MM/yyyy HH:mm:ss";
+        // ⚠ Định dạng thời gian GHI VÀO CSDL (đã mã hóa) - dữ liệu cũ đọc lại theo đúng mẫu này => KHÔNG ĐỔI GIÁ TRỊ
+        public const string DinhDang_NgayGio_CSDL = "yyyy-MM-dd HH:mm:ss";
+        public const string BoLoc_Excel = "Excel Workbook (*.xlsx)|*.xlsx";
+        /// <summary>Tiêu đề cột hiển thị trên lưới / xuất Excel.
+        /// ⚠ Tệp Excel xuất ra được nạp lại bằng cách dò đúng chữ tiêu đề (Form19, Module_BaNhat) => KHÔNG ĐỔI GIÁ TRỊ.</summary>
+        public static class TieuDeCot
+        {
+            public const string HoVaTen = "Họ và tên";
+            public const string SoHieu = "Số hiệu";
+            public const string NamSinh = "Năm sinh";
+            public const string QueQuan = "Quê quán";
+            public const string VaoCAND = "Vào CAND";
+            public const string CapBac = "Cấp bậc";
+            public const string ChucVu = "Chức vụ";
+            public const string DonVi = "Đơn vị";
+            public const string PhanLoai = "Phân loại";
+            public const string GhiChu = "Ghi chú";
+        }
         private const int ID_NAM_HE_THONG = 1;
         private static string DbPath => Module_DanduongGPS.DuongDanCSDL2;
         // Mảng có thêm "Tất cả" (Dành cho Form46 - Bộ lọc tìm kiếm)
@@ -219,7 +242,7 @@ namespace PhanMemThiDua2026
         //    internal static class Module_HeThong
         //        {
         //============= Ánh xạ tên phân loại chuẩn sang tên cột SQLite =================
-        // 🎯 QUẢN LÝ BẢNG CheDo_XetThiDuaNam ("Tháng" / "Năm")
+        // 🎯 QUẢN LÝ BẢNG CheDo_XetThiDuaNam_CBCS ("Tháng" / "Năm")
         // 1. Cache lưu giá trị trong RAM để truy vấn siêu nhanh
         private static string _cheDoXetThiDuaNamCache = string.Empty;
         /// <summary>
@@ -249,7 +272,7 @@ namespace PhanMemThiDua2026
                 using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(dbPath));
                 conn.Open();
                 using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT ChoPhepCheDoXetThiDuaNam FROM CheDo_XetThiDuaNam WHERE ID = 1 LIMIT 1;";
+                cmd.CommandText = "SELECT ChoPhepCheDoXetThiDuaNam FROM CheDo_XetThiDuaNam_CBCS WHERE ID = 1 LIMIT 1;";
                 object? result = cmd.ExecuteScalar();
                 if (result != null && result != DBNull.Value)
                 {
@@ -298,7 +321,7 @@ namespace PhanMemThiDua2026
                 using (var cmdCreateTable = conn.CreateCommand())
                 {
                     cmdCreateTable.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS CheDo_XetThiDuaNam (
+                        CREATE TABLE IF NOT EXISTS CheDo_XetThiDuaNam_CBCS (
                             ID INTEGER NOT NULL PRIMARY KEY,
                             ChoPhepCheDoXetThiDuaNam TEXT
                         );";
@@ -308,7 +331,7 @@ namespace PhanMemThiDua2026
                 using (var cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                        INSERT OR REPLACE INTO CheDo_XetThiDuaNam (ID, ChoPhepCheDoXetThiDuaNam)
+                        INSERT OR REPLACE INTO CheDo_XetThiDuaNam_CBCS (ID, ChoPhepCheDoXetThiDuaNam)
                         VALUES (1, @val);";
                     cmd.Parameters.AddWithValue("@val", valToSave);
                     cmd.ExecuteNonQuery();
@@ -352,7 +375,7 @@ namespace PhanMemThiDua2026
                 {
                     if (tran != null) cmd.Transaction = tran;
                     cmd.CommandText = @"
-                INSERT OR REPLACE INTO CheDo_XetThiDuaNam (ID, ChoPhepCheDoXetThiDuaNam)
+                INSERT OR REPLACE INTO CheDo_XetThiDuaNam_CBCS (ID, ChoPhepCheDoXetThiDuaNam)
                 VALUES (1, @val);";
                     cmd.Parameters.AddWithValue("@val", valToSave);
                     await cmd.ExecuteNonQueryAsync();
@@ -419,8 +442,8 @@ namespace PhanMemThiDua2026
                         nam = valNam.ToString() ?? nam;
                     }
                 }
-                // 2. Đọc Chế độ xét thi đua (Bảng CheDo_XetThiDuaNam - Không mã hóa)
-                using (var cmdCheDo = new SqliteCommand("SELECT ChoPhepCheDoXetThiDuaNam FROM CheDo_XetThiDuaNam WHERE ID = 1", conn))
+                // 2. Đọc Chế độ xét thi đua (Bảng CheDo_XetThiDuaNam_CBCS - Không mã hóa)
+                using (var cmdCheDo = new SqliteCommand("SELECT ChoPhepCheDoXetThiDuaNam FROM CheDo_XetThiDuaNam_CBCS WHERE ID = 1", conn))
                 {
                     var valCheDo = await cmdCheDo.ExecuteScalarAsync();
                     if (valCheDo != null && valCheDo != DBNull.Value)
@@ -517,7 +540,7 @@ namespace PhanMemThiDua2026
                              ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw |
                              ControlStyles.SupportsTransparentBackColor, true);
                     Cursor = Cursors.Hand;
-                    Font = new Font("Segoe UI Semibold", 9.5F);
+                    Font = new Font(Module_HeThong.TenFontHeThongDam, 9.5F);
                     BackColor = Color.Transparent;
                 }
                 protected override void OnMouseEnter(EventArgs e) { _hover = true; Invalidate(); base.OnMouseEnter(e); }
@@ -612,9 +635,9 @@ namespace PhanMemThiDua2026
                     StartPosition = FormStartPosition.Manual;
                     ShowInTaskbar = false;
                     TopMost = true;
-                    _fTitle = new Font("Segoe UI Semibold", S(15), FontStyle.Regular, GraphicsUnit.Pixel);
-                    _fMsg = new Font("Segoe UI", S(13), FontStyle.Regular, GraphicsUnit.Pixel);
-                    _fBtn = new Font("Segoe UI Semibold", S(13), FontStyle.Regular, GraphicsUnit.Pixel);
+                    _fTitle = new Font(Module_HeThong.TenFontHeThongDam, S(15), FontStyle.Regular, GraphicsUnit.Pixel);
+                    _fMsg = new Font(Module_HeThong.TenFontHeThong, S(13), FontStyle.Regular, GraphicsUnit.Pixel);
+                    _fBtn = new Font(Module_HeThong.TenFontHeThongDam, S(13), FontStyle.Regular, GraphicsUnit.Pixel);
                     _sf = new StringFormat(StringFormat.GenericTypographic);
                     _sf.FormatFlags &= ~StringFormatFlags.LineLimit;
                     _sfCenter = new StringFormat(_sf) { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };

@@ -83,10 +83,10 @@ namespace PhanMemThiDua2026
                 var rowIdCanXoa = new List<long>();
                 var ghiChuCanGop = new List<DongCu>();
                 bool coBang;
-                using (var cmdCo = new SqliteCommand("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ThongKeCBCS_DuocKhenThuong' LIMIT 1", cn4, tran))
+                using (var cmdCo = new SqliteCommand($"SELECT 1 FROM sqlite_master WHERE type='table' AND name='{Module_CheDoDoiTuong.BangKhenThuongNguoi}' LIMIT 1", cn4, tran))
                     coBang = cmdCo.ExecuteScalar() != null;
                 if (coBang)
-                using (var cmd = new SqliteCommand("SELECT rowid, HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen FROM ThongKeCBCS_DuocKhenThuong ORDER BY rowid", cn4, tran))
+                using (var cmd = new SqliteCommand($"SELECT rowid, HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen, GhiChu_Khen FROM {Module_CheDoDoiTuong.BangKhenThuongNguoi} ORDER BY rowid", cn4, tran))
                 using (var rd = cmd.ExecuteReader())
                 {
                     while (rd.Read())
@@ -116,17 +116,17 @@ namespace PhanMemThiDua2026
                 SqliteCommand? cmdCapNhat = null, cmdThem = null;
                 if (ghi)
                 {
-                    cmdCapNhat = new SqliteCommand("UPDATE ThongKeCBCS_DuocKhenThuong SET HoVaTen=@ht, DonVi=@dv, TinhTrang=@tt, SoLuong_Khen=@sl, GhiChu_Khen=@gc WHERE rowid=@id", cn4, tran);
+                    cmdCapNhat = new SqliteCommand($"UPDATE {Module_CheDoDoiTuong.BangKhenThuongNguoi} SET HoVaTen=@ht, DonVi=@dv, TinhTrang=@tt, SoLuong_Khen=@sl, GhiChu_Khen=@gc WHERE rowid=@id", cn4, tran);
                     foreach (var p in new[] { "@ht", "@dv", "@tt", "@sl", "@gc" }) cmdCapNhat.Parameters.Add(p, SqliteType.Text);
                     cmdCapNhat.Parameters.Add("@id", SqliteType.Integer);
-                    cmdThem = new SqliteCommand("INSERT INTO ThongKeCBCS_DuocKhenThuong (HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen) VALUES (@ht, @sh, @dv, @tt, @sl); SELECT last_insert_rowid();", cn4, tran);
+                    cmdThem = new SqliteCommand($"INSERT INTO {Module_CheDoDoiTuong.BangKhenThuongNguoi} (HoVaTen, SoHieu, DonVi, TinhTrang, SoLuong_Khen) VALUES (@ht, @sh, @dv, @tt, @sl); SELECT last_insert_rowid();", cn4, tran);
                     foreach (var p in new[] { "@ht", "@sh", "@dv", "@tt", "@sl" }) cmdThem.Parameters.Add(p, SqliteType.Text);
                 }
                 try
                 {
                     if (ghi)
                     {
-                        using var cmdXoa = new SqliteCommand("DELETE FROM ThongKeCBCS_DuocKhenThuong WHERE rowid=@id", cn4, tran);
+                        using var cmdXoa = new SqliteCommand($"DELETE FROM {Module_CheDoDoiTuong.BangKhenThuongNguoi} WHERE rowid=@id", cn4, tran);
                         var pId = cmdXoa.Parameters.Add("@id", SqliteType.Integer);
                         foreach (long id in rowIdCanXoa) { pId.Value = id; cmdXoa.ExecuteNonQuery(); }
                     }

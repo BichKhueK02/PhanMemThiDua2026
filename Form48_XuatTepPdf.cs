@@ -605,7 +605,7 @@ namespace PhanMemThiDua2026
             if (!string.IsNullOrWhiteSpace(p) && Directory.Exists(p))
             {
                 try { Process.Start(new ProcessStartInfo { FileName = p, UseShellExecute = true, Verb = "open" }); }
-                catch (Exception ex) { MessageBox.Show("Không thể mở thư mục:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+                catch (Exception ex) { MessageBox.Show("Không thể mở thư mục:\n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error); }
             }
             else
             {

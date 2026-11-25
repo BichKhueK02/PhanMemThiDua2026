@@ -125,7 +125,7 @@ namespace PhanMemThiDua2026
                     string[] values = new string[cols];
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = @"SELECT Loai_1, Loai_2, Loai_3, Loai_4, Khong_PL 
-                                        FROM QuyDinhTyLeBCH WHERE ID=@id";
+                                        FROM QuyDinhTyLe_BCH_CBCS WHERE ID=@id";
                     cmd.Parameters.AddWithValue("@id", id);
                     using var reader = await cmd.ExecuteReaderAsync();
                     if (await reader.ReadAsync())
@@ -146,7 +146,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi tải dữ liệu tỷ lệ BCH!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi tải dữ liệu tỷ lệ BCH!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Console.WriteLine(ex);
             }
         }
@@ -164,7 +164,7 @@ namespace PhanMemThiDua2026
                 var tempMapping = new Dictionary<string, string[]>();
                 using var cmd = conn.CreateCommand();
                 cmd.Transaction = tran;
-                cmd.CommandText = @"UPDATE QuyDinhTyLeBCH 
+                cmd.CommandText = @"UPDATE QuyDinhTyLe_BCH_CBCS 
                                     SET Loai_1=@l1, Loai_2=@l2, Loai_3=@l3, Loai_4=@l4, Khong_PL=@kpl
                                     WHERE ID=@id";
                 cmd.Parameters.Add("@l1", SqliteType.Text);

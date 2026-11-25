@@ -28,7 +28,7 @@ namespace PhanMemThiDua2026
         public static int KhoangCach = 5;           // mỗi bên (nút cách nhau 2 x giá trị này)
         public static float BanKinhBo = 16f;
         private static readonly Font FontThuong = new Font(Module_HeThong.TenFontHeThong, 11f, FontStyle.Regular);
-        private static readonly Font FontDam = new Font("Segoe UI Semibold", 11f, FontStyle.Regular);
+        private static readonly Font FontDam = new Font(Module_HeThong.TenFontHeThongDam, 11f, FontStyle.Regular);
         public static void KhoiTao(Panel panel, params KryptonButton[] cacNut)
         {
             panel.BackColor = Nen;
@@ -77,6 +77,7 @@ namespace PhanMemThiDua2026
             b.StatePressed.Content.ShortText.Color1 = chuHover;
             b.StatePressed.Content.ShortText.Color2 = chuHover;
             b.StateCommon.Content.ShortText.Font = dangChon ? FontDam : FontThuong;
+            Module_BieuTuongMenu.DatDangChon(b, dangChon);   // biểu tượng tự vẽ: mục đang chọn => trắng như chữ
             b.Invalidate();
         }
     }

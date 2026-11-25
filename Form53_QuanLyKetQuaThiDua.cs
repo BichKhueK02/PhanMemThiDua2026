@@ -253,7 +253,7 @@
                     await GoiReloadAsync(form);
                     Form15_ThongKeThiDua.NK($"Form53: tải {t.Name} XONG");
                     _lanTaiCuoi[t] = Environment.TickCount64;
-                    _chuKyLanTai[t] = Module_ChuKyCSDL.Lay();   // chụp SAU khi tải (bản thân lần tải có thể đồng bộ/ghi CSDL)
+                    _chuKyLanTai[t] = ChuKyDuLieu();   // chụp SAU khi tải (bản thân lần tải có thể đồng bộ/ghi CSDL)
                 }
                 while (_canTaiLai.Contains(t) && !_isClosing && !form.IsDisposed);
             }
@@ -282,7 +282,24 @@
         private bool DuLieuChuaDoi(Type t, long lanTai)
             => Environment.TickCount64 - lanTai < TuoiDuLieuKhongDoiToiDaPhut * 60_000L
                && _chuKyLanTai.TryGetValue(t, out string? ck)
-               && string.Equals(ck, Module_ChuKyCSDL.Lay(), StringComparison.Ordinal);
+               && string.Equals(ck, ChuKyDuLieu(), StringComparison.Ordinal);
+        /// <summary>
+        /// Chữ ký csdl1/2/4 + các tệp năm cũ (LuuTruThiDua_LichSu\*.db kèm -wal). Form46 xóa/sửa bảng trong tệp năm cũ không chạm
+        /// csdl nào => trước đây Form59 (cùng tệp, bảng tập thể) bị coi là "còn tươi" và không tự nạp lại khi quay về.
+        /// </summary>
+        private static string ChuKyDuLieu()
+        {
+            var sb = new System.Text.StringBuilder(Module_ChuKyCSDL.Lay());
+            try
+            {
+                string dir = Module_DanduongGPS.ThuMucLichSuThiDua;
+                if (Directory.Exists(dir))
+                    foreach (string f in Directory.GetFiles(dir, "*.db").OrderBy(x => x, StringComparer.OrdinalIgnoreCase))
+                        sb.Append('|').Append(Path.GetFileName(f)).Append(':').Append(Module_BoLocKhenThuong.DauVetTep(f));
+            }
+            catch { sb.Append("|?"); }
+            return sb.ToString();
+        }
         /// <summary>Đang có lượt tải nào của tab đang mở thì chờ lượt đó; chưa tải / dữ liệu cũ thì tải. Không bao giờ tải chồng.</summary>
         public Task DamBaoDaTaiAsync()
         {

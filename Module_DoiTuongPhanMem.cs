@@ -2,12 +2,14 @@ namespace PhanMemThiDua2026
 {
     /// <summary>
     /// Nhận diện chế độ phần mềm từ chuỗi phiên bản (PhienBan_DoiTuong).
-    /// Chế độ "Học viên" dùng chung toàn bộ logic với chế độ "Tân binh" (chỉ khác tên hiển thị),
-    /// nên mọi chỗ kiểm tra "có phải Tân binh" đều phải dùng LaCheDoTanBinh() thay vì Contains("tân binh").
+    /// "Học viên" dùng chung LOGIC với "Tân binh" (xét theo tuần) nhưng có BỘ BẢNG RIÊNG (_HocVien).
+    /// LaCheDoTanBinh() chỉ để rẽ nhánh logic; tên bảng luôn lấy qua Module_CheDoDoiTuong.
     /// </summary>
     internal static class Module_DoiTuongPhanMem
     {
-        /// <summary>Chuỗi phiên bản thuộc nhóm Tân binh (gồm cả Học viên).</summary>
+        /// <summary>Chế độ (CBCS / Tân binh / Học viên) của chuỗi phiên bản.</summary>
+        public static CheDoDoiTuong LayCheDo(this string? phienBan) => Module_CheDoDoiTuong.TuChuoi(phienBan);
+        /// <summary>Chuỗi phiên bản thuộc nhóm xét theo tuần (Tân binh HOẶC Học viên).</summary>
         public static bool LaCheDoTanBinh(this string? phienBan)
             => !string.IsNullOrEmpty(phienBan) &&
                (phienBan.Contains("tân binh", StringComparison.OrdinalIgnoreCase) ||

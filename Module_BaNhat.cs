@@ -61,12 +61,12 @@ public static class Module_BaNhat
     // ===================== HẰNG / CẤU TRÚC DÙNG CHUNG =====================
     private static readonly XLColor MauNenTieuDe = XLColor.FromHtml("#EBF1F5");
     private static readonly string[] TieuDeBaNhat =
-        { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú", "Đề nghị", "Thành tích" };
+        { "STT", Module_HeThong.TieuDeCot.HoVaTen, Module_HeThong.TieuDeCot.SoHieu, Module_HeThong.TieuDeCot.NamSinh, Module_HeThong.TieuDeCot.QueQuan, "Ngày vào CAND", Module_HeThong.TieuDeCot.CapBac, Module_HeThong.TieuDeCot.ChucVu, Module_HeThong.TieuDeCot.DonVi, Module_HeThong.TieuDeCot.PhanLoai, Module_HeThong.TieuDeCot.GhiChu, "Đề nghị", "Thành tích" };
     private static readonly double[] DoRongBaNhat = { 6, 25, 12, 10, 25, 12, 14, 15, 15, 12, 20, 10, 35 };
     private static readonly int[] CotTraiBaNhat = { 2, 5, 11, 13 };
     private static readonly int[] CotVanBanBaNhat = { 3, 4, 6 };            // Số hiệu, Năm sinh, Ngày vào CAND: luôn là văn bản
     private static readonly string[] TieuDeSoVangGoc =
-        { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú", "Thành tích", "Thông báo E", "STT Ghi sổ", "Tháng công nhận" };
+        { "STT", Module_HeThong.TieuDeCot.HoVaTen, Module_HeThong.TieuDeCot.SoHieu, Module_HeThong.TieuDeCot.NamSinh, Module_HeThong.TieuDeCot.QueQuan, "Ngày vào CAND", Module_HeThong.TieuDeCot.CapBac, Module_HeThong.TieuDeCot.ChucVu, Module_HeThong.TieuDeCot.DonVi, Module_HeThong.TieuDeCot.PhanLoai, Module_HeThong.TieuDeCot.GhiChu, "Thành tích", "Thông báo E", "STT Ghi sổ", "Tháng công nhận" };
     private static readonly double[] DoRongSoVangGoc = { 6, 25, 12, 10, 25, 12, 14, 15, 15, 12, 20, 35, 15, 12, 15 };
     private static readonly int[] CotTraiSoVangGoc = { 2, 5, 11, 12 };
     private static readonly int[] CotVanBanSoVangGoc = { 3, 4, 6, 13, 14, 15 };
@@ -79,15 +79,13 @@ public static class Module_BaNhat
         { "HoVaTen", "NamSinh", "QueQuan", "NgayVaoCAND", "CapBac", "ChucVu", "DonVi", "PhanLoai", "GhiChu", "DeNghi", "ThanhTich" };
     private static readonly string[] TenThamSo = Enumerable.Range(0, 16).Select(i => "@p" + i).ToArray();
     private static readonly HashSet<string> BangSoVangHopLe =
-        new(StringComparer.Ordinal) { "DanhSach_SoVangBaNhat", "DanhSachTanBinh_SoVangBaNhat" };
-    // Tên bảng theo phiên bản phần mềm. Chỉ có 2 bộ giá trị cố định => không thể bị chèn SQL.
+        new(Module_CheDoDoiTuong.TatCaBangSoVang, StringComparer.Ordinal);
+    // Tên bảng theo chế độ (CBCS / Tân binh / Học viên). Chỉ có 3 bộ giá trị cố định => không thể bị chèn SQL.
     private readonly record struct BangDuLieu(string DanhSach, string SoVang, string TomTat);
     private static BangDuLieu ChonBang()
     {
-        string pb = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-        return pb.LaCheDoTanBinh()
-            ? new BangDuLieu("DanhSachBaNhat_TanBinh", "DanhSachTanBinh_SoVangBaNhat", "TomTatThanhTichBaNhat_TanBinh")
-            : new BangDuLieu("DanhSachBaNhat", "DanhSach_SoVangBaNhat", "TomTatThanhTichBaNhat_CBCS");
+        var c = Module_CheDoDoiTuong.TuChuoi(Module_TaiKhoan.LayPhienBanPhanMem());
+        return new BangDuLieu(Module_CheDoDoiTuong.BaNhat(c), Module_CheDoDoiTuong.SoVangBaNhat(c), Module_CheDoDoiTuong.TomTatBaNhat(c));
     }
     // ===================== TIỆN ÍCH SQLITE / GIẢI MÃ =====================
     // Pooling=false: đóng kết nối là nhả hẳn tệp .db (không làm kẹt sao lưu/khôi phục). chiDoc=true: không thể ghi nhầm.
@@ -370,20 +368,18 @@ public static class Module_BaNhat
         Thu("ChonLoaiBaoCao", () =>
         {
             using var cmd = cn.CreateCommand();
-            cmd.CommandText = "SELECT ChonLoaiBaoCao, ChonTuan FROM ChonLoaiBaoCao ORDER BY ID DESC LIMIT 1";
+            string? bang = Module_CheDoDoiTuong.BangChonLoaiBaoCao;   // CBCS: không có => báo cáo theo tháng
+            if (bang == null || !BangTonTai(cn, bang)) return;
+            cmd.CommandText = $"SELECT ChonLoaiBaoCao, ChonTuan FROM [{bang}] ORDER BY ID DESC LIMIT 1";
             using var rd = cmd.ExecuteReader();
             if (!rd.Read()) return;
             tt.LoaiBaoCao = GiaiCot(rd, 0);
             tt.Tuan = GiaiCot(rd, 1);
         });
-        Thu("TyLe", () =>
-        {
-            using var cmd = cn.CreateCommand();
-            cmd.CommandText = "SELECT ID, [KQ Hien tai], [KQ Can dat] FROM TyLe";
-            using var rd = cmd.ExecuteReader();
-            while (rd.Read())
-                tt.TyLe[ToInt(rd.GetValue(0))] = (ToInt(rd.GetValue(1)), ToInt(rd.GetValue(2)));   // DBNull => 0 (bản cũ ném InvalidCast)
-        });
+        // Số liệu Bảng 2: đúng kết quả Form4 vừa tính cho CHẾ ĐỘ ĐANG CHẠY (CBCS / Tân binh / Học viên) - không còn bảng TyLe trong CSDL.
+        // Nơi gọi đã chặn trường hợp chưa tính (Module_TyLeBang2.Hien == null).
+        if (Module_TyLeBang2.Hien is KetQuaBang2 kq)
+            foreach (var kv in kq.ToTyLe()) tt.TyLe[kv.Key] = kv.Value;
         Thu("TomTat", () =>
         {
             if (!BangTonTai(cn, bangTomTat)) return;
@@ -394,7 +390,7 @@ public static class Module_BaNhat
         Thu("ChiHuyD", () =>
         {
             using var cmd = cn.CreateCommand();
-            cmd.CommandText = $"SELECT HoVaTen, ChucVu FROM [{(Module_TaiKhoan.LaPhienBanTanBinh() ? "ChiHuyD_TanBinh" : "ChiHuyD")}] ORDER BY ID ASC";
+            cmd.CommandText = $"SELECT HoVaTen, ChucVu FROM [{Module_CheDoDoiTuong.BangChiHuyD}] ORDER BY ID ASC";
             using var rd = cmd.ExecuteReader();
             int idx = 0;
             while (rd.Read())
@@ -993,12 +989,17 @@ public static class Module_BaNhat
         string dbPath = Module_DanduongGPS.DuongDanCSDL2;
         if (string.IsNullOrWhiteSpace(templatePath) || !File.Exists(templatePath))
         {
-            MessageBox.Show("Không tìm thấy file mẫu Excel tại: " + templatePath, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Không tìm thấy file mẫu Excel tại: " + templatePath, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
         if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
         {
-            MessageBox.Show("Không tìm thấy cơ sở dữ liệu csdl2.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Không tìm thấy cơ sở dữ liệu csdl2.", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+        if (Module_TyLeBang2.Hien == null)
+        {
+            MessageBox.Show(Module_TyLeBang2.ThongBaoChuaTinh, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
         // Đọc thông tin đơn vị 1 lần (dùng cho tên tệp gợi ý VÀ cho nội dung báo cáo)
@@ -1010,7 +1011,7 @@ public static class Module_BaNhat
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Lỗi đọc thông tin báo cáo: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Lỗi đọc thông tin báo cáo: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
         string kyHieuTieuDoan = tt.KyHieuTieuDoan.Length > 0 ? tt.KyHieuTieuDoan : "D2";
@@ -1058,7 +1059,7 @@ public static class Module_BaNhat
         {
             cho?.Dispose();
             cho = null;
-            MessageBox.Show("Lỗi xuất file: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Lỗi xuất file: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
         {
@@ -1199,7 +1200,7 @@ public static class Module_BaNhat
         {
             Debug.WriteLine("[Lỗi NhapDanhSachGoc] " + ex.Message);
             Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi nhập Excel danh sách Ba Nhất", ex.Message);
-            MessageBox.Show("Lỗi hệ thống khi đọc file Excel: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Lỗi hệ thống khi đọc file Excel: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         return soThanhCong;
     }
@@ -1283,7 +1284,7 @@ public static class Module_BaNhat
                     r.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                     r.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 }
-                string[] tieuDe = { "STT", "Họ và tên", tieuDeThongBao, "Vào sổ vàng số", "Ghi chú" };
+                string[] tieuDe = { "STT", Module_HeThong.TieuDeCot.HoVaTen, tieuDeThongBao, "Vào sổ vàng số", Module_HeThong.TieuDeCot.GhiChu };
                 GhiTieuDeBang(ws, 4, tieuDe, new double[] { 5, 30, 40, 15, 15 }, 0, 24, XLColor.LightGray);
                 var dong = new List<object[]>(danhSach.Count);
                 foreach (var x in danhSach)
@@ -1300,7 +1301,7 @@ public static class Module_BaNhat
         {
             cho?.Dispose();
             cho = null;
-            MessageBox.Show($"Lỗi khi xuất Excel: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show($"Lỗi khi xuất Excel: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
         {
@@ -1445,7 +1446,7 @@ public static class Module_BaNhat
         catch (Exception ex)
         {
             Debug.WriteLine("[Lỗi NhapSoVang] " + ex.Message);
-            MessageBox.Show("Lỗi định dạng tệp Excel: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show("Lỗi định dạng tệp Excel: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         return soThanhCong;
     }

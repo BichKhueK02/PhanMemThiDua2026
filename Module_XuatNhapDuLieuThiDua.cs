@@ -34,10 +34,14 @@ namespace PhanMemThiDua2026
         // HẰNG SỐ & CẤU HÌNH DÙNG CHUNG (khai báo 1 lần, không cấp phát lại mỗi lần gọi)
         private const string SheetCBCS = "DSCBCS_PhanMemThiDua2026";
         private const string SheetTanBinh = "DSTanBinh_PhanMemThiDua2026";
-        private const string SheetTapThe = "ThongKe_PhanLoaiTapThe";
+        private const string SheetHocVien = "DSHocVien_PhanMemThiDua2026";
+        /// <summary>Sheet danh sách của nhóm xét theo tuần: Tân binh / Học viên (mỗi chế độ 1 sheet riêng).</summary>
+        private static string SheetNhomTuan => Module_TaiKhoan.LaPhienBanHocVien() ? SheetHocVien : SheetTanBinh;
+        private const string SheetTapThe = "ThongKe_PhanLoaiTapThe";   // tên sheet Excel giữ nguyên (tệp xuất cũ vẫn nạp được)
+        private const string BangTapThe = Module_CheDoDoiTuong.CBCS_PhanLoaiTapThe;
         private const int SoDongVungMau = 4; // vùng mẫu A2:K5
         private static readonly string[] TieuDe =
-            { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Ngày vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú" };
+            { "STT", Module_HeThong.TieuDeCot.HoVaTen, Module_HeThong.TieuDeCot.SoHieu, Module_HeThong.TieuDeCot.NamSinh, Module_HeThong.TieuDeCot.QueQuan, "Ngày vào CAND", Module_HeThong.TieuDeCot.CapBac, Module_HeThong.TieuDeCot.ChucVu, Module_HeThong.TieuDeCot.DonVi, Module_HeThong.TieuDeCot.PhanLoai, Module_HeThong.TieuDeCot.GhiChu };
         // Độ rộng cố định: bỏ AdjustToContents (đo từng ô bằng GDI -> điểm nghẽn lớn nhất khi xuất hàng ngàn dòng)
         private static readonly double[] DoRongCot = { 7, 30, 14, 11, 34, 16, 10, 20, 24, 16, 30 };
         // Các cột căn trái (1-based): Họ tên, Quê quán, Ghi chú. Các cột còn lại căn giữa.
@@ -56,7 +60,7 @@ namespace PhanMemThiDua2026
         }
         private static string Csdl2Path => Module_DanduongGPS.DuongDanCSDL2;
         private static string ThoiGianHienTai() =>
-            DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+            DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio, CultureInfo.InvariantCulture);
         // MỞ THƯ MỤC & CHỌN TỆP TRONG EXPLORER
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
@@ -122,7 +126,7 @@ namespace PhanMemThiDua2026
             // Chỉ cho lưu .xlsx: ClosedXML luôn ghi định dạng xlsx, đặt đuôi .xlsm sẽ khiến Excel từ chối mở.
             using var sfd = new SaveFileDialog
             {
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = Module_HeThong.BoLoc_Excel,
                 DefaultExt = "xlsx",
                 AddExtension = true,
                 OverwritePrompt = true,
@@ -204,7 +208,7 @@ namespace PhanMemThiDua2026
             var wb = new XLWorkbook();
             try
             {
-                var ws = wb.Worksheets.Add(laTanBinh ? SheetTanBinh : SheetCBCS);
+                var ws = wb.Worksheets.Add(laTanBinh ? SheetNhomTuan : SheetCBCS);
                 if (laTanBinh) ws.TabColor = XLColor.DarkGreen;
                 int fontSize = laTanBinh ? 14 : 13;
                 // Đặt font cho cả sheet TRƯỚC khi ghi ô -> không phải duyệt lại từng ô đã tạo
@@ -212,7 +216,7 @@ namespace PhanMemThiDua2026
                 ws.Style.Font.FontSize = fontSize;
                 GhiTieuDe(ws);
                 // Stream thẳng từ DB -> giải mã -> ghi ô, không qua List<CBCSModel> trung gian
-                if (!chiXuatMau) soDong = DocDanhSachVaoSheet(ws, tienToSoHieu: !laTanBinh, bang: laTanBinh ? Module_TaiKhoan.BANG_DANHSACH_TANBINH : Module_TaiKhoan.BANG_DANHSACH_CBCS);
+                if (!chiXuatMau) soDong = DocDanhSachVaoSheet(ws, tienToSoHieu: !laTanBinh, bang: laTanBinh ? Module_CheDoDoiTuong.BangDanhSach : Module_TaiKhoan.BANG_DANHSACH_CBCS);
                 if (soDong > 0) DinhDangVungDuLieu(ws, soDong);
                 else TaoDuLieuMauVungData(ws, laTanBinh, fontSize);
                 DatDoRongCot(ws);
@@ -370,7 +374,7 @@ namespace PhanMemThiDua2026
         }
         public static List<string> NhapDanhSachExcelTanBinh(string excelPath, bool xoaDuLieuCu)
         {
-            var data = DocDanhSachTuExcel(excelPath, SheetTanBinh);
+            var data = DocDanhSachTuExcel(excelPath, SheetNhomTuan);
             var kq = GhiVaoCsdl(data, xoaDuLieuCu, laTanBinh: true);
             if (kq.DongTrung.Count == 0) GhiNhatKyVaMoThuMuc(kq.SoThanhCong, excelPath, Module_TaiKhoan.TenTB_Hoa, isExport: false);
             return kq.DongTrung;
@@ -432,7 +436,7 @@ namespace PhanMemThiDua2026
                 string str => str,
                 DateTime d => d.TimeOfDay == TimeSpan.Zero
                     ? d.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)
-                    : d.ToString("dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture),
+                    : d.ToString(Module_HeThong.DinhDang_NgayGio_Gach, CultureInfo.InvariantCulture),
                 _ => Convert.ToString(v, CultureInfo.InvariantCulture) ?? ""
             };
             s = s.Trim();
@@ -441,7 +445,8 @@ namespace PhanMemThiDua2026
         // GHI CSDL: xóa cũ + nạp mới nằm TRONG CÙNG 1 TRANSACTION
         private static (List<string> DongTrung, int SoThanhCong) GhiVaoCsdl(List<CBCSModel> data, bool xoaDuLieuCu, bool laTanBinh)
         {
-            bool kiemTraSoHieu = laTanBinh; // chỉ Tân binh mới tự cấp số hiệu ID.....
+            bool kiemTraSoHieu = laTanBinh; // chỉ Tân binh / Học viên mới tự cấp mã tạm (TB00001 / HV00001)
+            var cheDo = Module_CheDoDoiTuong.Hien;
             int soThanhCong = 0;
             using var conn = MoKetNoi(Csdl2Path);
             using var tran = conn.BeginTransaction(); // thoát không Commit => tự Rollback, dữ liệu cũ còn nguyên
@@ -466,9 +471,10 @@ namespace PhanMemThiDua2026
                 for (int i = 0; i < data.Count; i++)
                 {
                     var m = data[i];
-                    if (string.IsNullOrWhiteSpace(m.SoHieu) || !m.SoHieu.StartsWith("ID", StringComparison.Ordinal)) continue;
-                    daDung.Add(m.SoHieu); // đã kiểm tra trùng ở trên -> luôn thêm được
-                    soHieuGan[i] = m.SoHieu;
+                    if (!Module_CheDoDoiTuong.LaMaTam(cheDo, m.SoHieu)) continue;
+                    string ma = Module_CheDoDoiTuong.ChuanHoaMaTam(cheDo, m.SoHieu);
+                    daDung.Add(ma); // đã kiểm tra trùng ở trên -> luôn thêm được
+                    soHieuGan[i] = ma;
                 }
                 // Lượt 2: tự sinh ID cho các dòng còn lại
                 int chiSo = 1;
@@ -476,7 +482,7 @@ namespace PhanMemThiDua2026
                 {
                     if (boQua[i] || soHieuGan[i] != null) continue;
                     string ungVien;
-                    do { ungVien = $"ID{chiSo:D5}"; chiSo++; }
+                    do { ungVien = Module_CheDoDoiTuong.TaoMaTam(cheDo, chiSo); chiSo++; }
                     while (!daDung.Add(ungVien));
                     soHieuGan[i] = ungVien;
                 }
@@ -525,7 +531,11 @@ namespace PhanMemThiDua2026
             {
                 string sh = m.SoHieu?.Trim() ?? "";
                 if (sh.Length == 0) continue;
-                if (laTanBinh && !sh.StartsWith("ID", StringComparison.Ordinal)) continue;
+                if (laTanBinh)
+                {
+                    if (!Module_CheDoDoiTuong.LaMaTam(Module_CheDoDoiTuong.Hien, sh)) continue;
+                    sh = Module_CheDoDoiTuong.ChuanHoaMaTam(Module_CheDoDoiTuong.Hien, sh);   // "tb5" == "TB00005"
+                }
                 string moTa = $"Dòng {m.DongExcel}: {m.HoVaTen} - {m.DonVi} - Số hiệu {sh}";
                 if (dongDauTien.TryGetValue(sh, out int dong))
                     ketQua.Add($"{moTa} (trùng với dòng {dong} trong tệp)");
@@ -623,7 +633,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show(owner, "Lỗi khi nạp dữ liệu tập thể vào CSDL:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(owner, "Lỗi khi nạp dữ liệu tập thể vào CSDL:\n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             // Ghi nhật ký nằm NGOÀI khối ghi CSDL: lỗi nhật ký không còn bị nhầm thành lỗi nạp dữ liệu
@@ -680,9 +690,9 @@ namespace PhanMemThiDua2026
             using var conn = MoKetNoi(csdl4Path);
             // CHỐNG SQL INJECTION: tên cột lấy từ tiêu đề Excel (dữ liệu bên ngoài) -> chỉ chấp nhận
             // tên cột có thật trong bảng, và luôn đặt trong dấu nháy kép.
-            var cotHopLe = DocTenCotBang(conn, SheetTapThe);
+            var cotHopLe = DocTenCotBang(conn, BangTapThe);
             if (cotHopLe.Count == 0)
-                throw new InvalidDataException($"Không tìm thấy bảng '{SheetTapThe}' trong CSDL.");
+                throw new InvalidDataException($"Không tìm thấy bảng '{BangTapThe}' trong CSDL.");
             var cotSql = new List<string>(du.TenCot.Count);
             var laCotId = new List<bool>(du.TenCot.Count);
             var khongHopLe = new List<string>();
@@ -700,7 +710,7 @@ namespace PhanMemThiDua2026
             for (int k = 0; k < dsThamSo.Length; k++) dsThamSo[k] = "$p" + k;
             using var tran = conn.BeginTransaction(); // lỗi giữa chừng => tự Rollback khi thoát khối
             using var cmd = TaoLenh(conn, tran,
-                $"INSERT OR REPLACE INTO \"{SheetTapThe}\" ({string.Join(", ", cotSql)}) VALUES ({string.Join(", ", dsThamSo)})");
+                $"INSERT OR REPLACE INTO \"{BangTapThe}\" ({string.Join(", ", cotSql)}) VALUES ({string.Join(", ", dsThamSo)})");
             var ps = new SqliteParameter[dsThamSo.Length];
             for (int k = 0; k < ps.Length; k++) ps[k] = cmd.Parameters.Add(dsThamSo[k], SqliteType.Text);
             // 1 command + tham số tạo 1 lần, chỉ đổi Value theo từng dòng (trước đây: tạo command + AddWithValue mỗi dòng)

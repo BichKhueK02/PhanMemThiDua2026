@@ -151,9 +151,9 @@ namespace PhanMemThiDua2026
         private static string DinhDangThoiGian(string thoiGian)
         {
             if (string.IsNullOrEmpty(thoiGian)) return string.Empty;
-            if (DateTime.TryParseExact(thoiGian, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime t) ||
+            if (DateTime.TryParseExact(thoiGian, Module_HeThong.DinhDang_NgayGio_CSDL, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime t) ||
                 DateTime.TryParse(thoiGian, out t))
-                return t.ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                return t.ToString(Module_HeThong.DinhDang_NgayGio, CultureInfo.InvariantCulture);
             return thoiGian;
         }
         private void LoadDanhSachTinhVaThanhPho(int? selectID = null)
@@ -342,7 +342,7 @@ namespace PhanMemThiDua2026
             using var openFileDialog = new OpenFileDialog
             {
                 Title = "Chọn tệp Excel chứa dữ liệu Tỉnh và Thành phố",
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = Module_HeThong.BoLoc_Excel,
                 DefaultExt = "xlsx",
                 AddExtension = true,
                 Multiselect = false,
@@ -539,7 +539,7 @@ namespace PhanMemThiDua2026
                     """;
                         var parameterTen = cmdInsert.Parameters.Add("@ten", SqliteType.Text);
                         var parameterThoiGian = cmdInsert.Parameters.Add("@thoigian", SqliteType.Text);
-                        string thoiGianNhap = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                        string thoiGianNhap = DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL);
                         foreach (var dto in danhSachExcel)
                         {
                             parameterTen.Value = dto.TenTinhVaThanhPho.Trim();
@@ -651,7 +651,7 @@ namespace PhanMemThiDua2026
                 """;
                     var parameterTen = cmdInsert.Parameters.Add("@ten", SqliteType.Text);
                     var parameterThoiGian = cmdInsert.Parameters.Add("@thoigian", SqliteType.Text);
-                    string thoiGianNhap = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                    string thoiGianNhap = DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL);
                     foreach (var dto in danhSachNhap)
                     {
                         parameterTen.Value = dto.TenTinhVaThanhPho.Trim();
@@ -710,7 +710,7 @@ namespace PhanMemThiDua2026
             using var saveFileDialog = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu danh sách Tỉnh / Thành phố",
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = Module_HeThong.BoLoc_Excel,
                 DefaultExt = "xlsx",
                 AddExtension = true,
                 FileName = fileName,
@@ -966,7 +966,7 @@ namespace PhanMemThiDua2026
                     // 4. THÊM MỚI
                     string thoiGianMoi =
                         DateTime.Now.ToString(
-                            "yyyy-MM-dd HH:mm:ss",
+                            Module_HeThong.DinhDang_NgayGio_CSDL,
                             CultureInfo.InvariantCulture);
                     using var cmdInsert = cn.CreateCommand();
                     cmdInsert.Transaction = tx;
@@ -1011,7 +1011,7 @@ namespace PhanMemThiDua2026
                     this,
                     "Không thể thêm Tỉnh / Thành phố.\n\n" +
                     $"Chi tiết: {ex.Message}",
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -1086,7 +1086,7 @@ namespace PhanMemThiDua2026
                     // 5. CẬP NHẬT
                     string thoiGianSua =
                         DateTime.Now.ToString(
-                            "yyyy-MM-dd HH:mm:ss",
+                            Module_HeThong.DinhDang_NgayGio_CSDL,
                             CultureInfo.InvariantCulture);
                     using var cmdUpdate = cn.CreateCommand();
                     cmdUpdate.Transaction = tx;
@@ -1141,7 +1141,7 @@ namespace PhanMemThiDua2026
                     this,
                     "Không thể cập nhật Tỉnh / Thành phố.\n\n" +
                     $"Chi tiết: {ex.Message}",
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -1238,7 +1238,7 @@ namespace PhanMemThiDua2026
                     this,
                     "Không thể xóa Tỉnh / Thành phố.\n\n" +
                     $"Chi tiết: {ex.Message}",
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }

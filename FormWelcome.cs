@@ -40,7 +40,7 @@ namespace PhanMemThiDua2026
             richTextBox1.ReadOnly = true;
             richTextBox1.BorderStyle = BorderStyle.None;
             // Tô màu + in đậm các tiêu đề cho dễ nhìn
-            Font headFont = new Font("Segoe UI Semibold", 10.5F, FontStyle.Bold);
+            Font headFont = new Font(Module_HeThong.TenFontHeThongDam, 10.5F, FontStyle.Bold);
             foreach (var title in new[] { "CHỨC NĂNG CHÍNH", "THÔNG TIN PHÁT TRIỂN", "  — Nhóm phát triển —" })
             {
                 int idx = richTextBox1.Text.IndexOf(title, StringComparison.Ordinal);

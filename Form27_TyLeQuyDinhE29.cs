@@ -137,10 +137,7 @@ namespace PhanMemThiDua2026
         {
             get
             {
-                string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-                return phienBan.LaCheDoTanBinh()
-                    ? "QuyDinhTyLe_TanBinh"
-                    : "QuyDinhTyLe";
+                return Module_CheDoDoiTuong.BangQuyDinhTyLe;   // QuyDinhTyLe / _TanBinh / _HocVien
             }
         }
         private static readonly string[] CotDuLieuTyLe = { "Loai_1", "Loai_2", "Loai_3", "Loai_4", "Khong_PL" };
@@ -205,7 +202,7 @@ namespace PhanMemThiDua2026
             {
                 Debug.WriteLine("[LoadQuyDinhTyLeAsync] Lỗi không xác định: " + ex);
                 MessageBox.Show("Lỗi khi load dữ liệu tỷ lệ!\n" + ex.Message,
-                    "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         /// <summary>
@@ -449,7 +446,7 @@ WHERE ID BETWEEN 1 AND @soHang";
                     string tenDayDu = $"{dong1} {tenTrungDoan}".Trim();
                     //groupBox_TyLeTheoQuyDinh.Text = $"{tenDayDu} QUY ĐỊNH";
                     groupBox_TyLeTheoQuyDinh.Text =
-    TenBangHienTai == "QuyDinhTyLe_TanBinh"
+    Module_TaiKhoan.LaPhienBanTanBinh()
         ? $"{tenDayDu} QUY ĐỊNH - TỶ LỆ THI ĐUA {Module_TaiKhoan.TenTB_InHoa}"
         : $"{tenDayDu} QUY ĐỊNH";
                 }

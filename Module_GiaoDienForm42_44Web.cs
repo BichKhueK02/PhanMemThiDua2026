@@ -19,10 +19,10 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuNhan = Color.FromArgb(71, 85, 105);
         private static readonly Color MauTieuDeBang = Color.FromArgb(238, 232, 255);
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(91, 33, 182);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNutLon = new Font("Segoe UI Semibold", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontDemKyTu = new Font("Segoe UI", 8.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNutLon = new Font(Module_HeThong.TenFontHeThongDam, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontDemKyTu = new Font(Module_HeThong.TenFontHeThong, 8.5F, FontStyle.Regular, GraphicsUnit.Point);
         private const int DemKhungBang = 5;
         // Bộ màu nút (Nền, Hover, Nhấn, Viền, Chữ) — cùng theme tím nhạt với Form4
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutTim =

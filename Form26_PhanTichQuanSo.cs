@@ -85,7 +85,7 @@ namespace PhanMemThiDua2026
                 ThemDongTongCong(bang, 0, 0, 0, 0);
                 return new KetQuaPhanTich(bang, dsBieuDo, 0, 0, 0, 0);
             }
-            var thongKe = new Dictionary<string, (int tong, int sy, int ha, int cs)>(StringComparer.OrdinalIgnoreCase);
+            var thongKe = new Dictionary<string, (int tong, int sy, int ha, int cs)>(Module_DonVi.SoSanhBang);
             var cacheDonVi = new Dictionary<string, string>();   // chống giải mã AES trùng lặp
             var cacheCapBac = new Dictionary<string, string>();
             using (var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(db, chiDoc: true)))
@@ -122,9 +122,9 @@ namespace PhanMemThiDua2026
             bang.BeginLoadData();
             // Đơn vị đã cấu hình (đúng thứ tự ưu tiên) trước, sau đó là đơn vị CÓ NGƯỜI nhưng chưa có trong danh sách đơn vị
             // (vd: dữ liệu Tân binh nhập với tên đơn vị khác DanhSach_DonVi_TanBinh) -> quân số không bị "mất" khỏi bảng.
-            var daCo = new HashSet<string>(thuTuDonVi, StringComparer.OrdinalIgnoreCase);
+            var daCo = new HashSet<string>(thuTuDonVi, Module_DonVi.SoSanhBang);
             var thuTuDayDu = thuTuDonVi
-                .Concat(thongKe.Keys.Where(k => !daCo.Contains(k)).OrderBy(k => k, StringComparer.CurrentCultureIgnoreCase))
+                .Concat(thongKe.Keys.Where(k => !daCo.Contains(k)).OrderBy(k => k, Module_DonVi.SoSanhTuNhien))
                 .ToList();
             foreach (string donVi in thuTuDayDu)
             {
@@ -253,7 +253,7 @@ namespace PhanMemThiDua2026
             if (grid.Columns.Contains("DonVi"))
             {
                 var c = grid.Columns["DonVi"]!;
-                c.HeaderText = "Đơn vị";
+                c.HeaderText = Module_HeThong.TieuDeCot.DonVi;
                 c.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
                 c.FillWeight = 160;
             }

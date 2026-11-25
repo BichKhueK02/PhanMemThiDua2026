@@ -94,12 +94,12 @@ namespace PhanMemThiDua2026
                 tl1.Dock = DockStyle.Fill;
                 DatDoubleBuffer(tl1);
                 // ---------- 4. Thẻ bo góc (phẳng) + bố cục bên trong ----------
-                var fTieuDe = TaoFont(fonts, "Segoe UI Semibold", 13F);
-                var fPhu = TaoFont(fonts, "Segoe UI", 9.5F);
-                var fNhan = TaoFont(fonts, "Segoe UI Semibold", 9.5F);
-                var fCombo = TaoFont(fonts, "Segoe UI", 11F);
-                var fNut = TaoFont(fonts, "Segoe UI Semibold", 10.5F);
-                var fTrangThai = TaoFont(fonts, "Segoe UI", 9F);
+                var fTieuDe = TaoFont(fonts, Module_HeThong.TenFontHeThongDam, 13F);
+                var fPhu = TaoFont(fonts, Module_HeThong.TenFontHeThong, 9.5F);
+                var fNhan = TaoFont(fonts, Module_HeThong.TenFontHeThongDam, 9.5F);
+                var fCombo = TaoFont(fonts, Module_HeThong.TenFontHeThong, 11F);
+                var fNut = TaoFont(fonts, Module_HeThong.TenFontHeThongDam, 10.5F);
+                var fTrangThai = TaoFont(fonts, Module_HeThong.TenFontHeThong, 9F);
                 var the = new TheWeb { Dock = DockStyle.Fill, Margin = Padding.Empty };
                 var trong = new TableLayoutPanel
                 {

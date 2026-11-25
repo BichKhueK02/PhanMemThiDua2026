@@ -462,6 +462,15 @@ namespace PhanMemThiDua2026
             ketNoi.Open();
             ApDungCauHinhRam(ketNoi, new FileInfo(fullPathDb).Length, docChiDoc: false);
             // [LOGIC] Trước đây: bảng không tồn tại hoặc không cột nào khớp → "thành công" với 0 dòng rồi XÓA tệp JSON nguồn = mất dữ liệu âm thầm.
+            // Gói xuất từ bản cũ mang tên bảng cũ (vd "DanhSach_DonVi") => nạp vào bảng đã đổi tên ("DanhSach_DonVi_CBCS")
+            if (!BangTonTai(ketNoi, tenBang))
+            {
+                string tenMoi = Module_TenCotKhongDau.TenBangHienTai(tenBang);
+                if (!string.Equals(tenMoi, tenBang, StringComparison.Ordinal) && BangTonTai(ketNoi, tenMoi)) tenBang = tenMoi;
+            }
+            // Gói của bản cũ còn bảng thừa đã loại bỏ khỏi CSDL (vd csdl2.Admin, csdl4.HoSoTepMaHoa) => bỏ qua, không coi là lỗi
+            if (!BangTonTai(ketNoi, tenBang) && Module_TenCotKhongDau.LaBangDaLoaiBo(Path.GetFileNameWithoutExtension(fullPathDb), tenBang))
+                return;
             if (!BangTonTai(ketNoi, tenBang))
                 throw new InvalidOperationException($"Bảng '{tenBang}' không tồn tại trong CSDL đích nên không thể nạp.");
             Dictionary<string, bool> cotCuaBang = LayCotBang(ketNoi, tenBang); // tên cột → khai báo BLOB?
@@ -1020,7 +1029,7 @@ namespace PhanMemThiDua2026
                 INSERT OR REPLACE INTO LichSuNapDuLieu (ID, PhienBanSaoLuu, ThoiGianNap)
                 VALUES (1, @phienBan, @thoiGian);";
                 cmd.Parameters.AddWithValue("@phienBan", phienBanSaoLuu);
-                cmd.Parameters.AddWithValue("@thoiGian", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture));
+                cmd.Parameters.AddWithValue("@thoiGian", DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio, CultureInfo.InvariantCulture));
                 cmd.ExecuteNonQuery();
                 giaoDich.Commit();
             }
@@ -1137,7 +1146,7 @@ namespace PhanMemThiDua2026
                 NgayHeThong = Module_PhienBan.NgayThangNamHeThong,
                 NguoiPhatTrien = Module_PhienBan.NguoiPhatTrienPhanMem,
                 MayTinhTao = Environment.MachineName,
-                ThoiGianXuat = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture),
+                ThoiGianXuat = DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio, CultureInfo.InvariantCulture),
                 TongDungLuong = DinhDangDungLuong(tongDungLuongBytes),
                 DanhSachTepThanhVien = danhSachThongTinFile
             };

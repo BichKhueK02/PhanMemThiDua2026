@@ -24,13 +24,15 @@ namespace PhanMemThiDua2026
         public Form5_QuenPass()
         {
             InitializeComponent();
-            pnlCard.CornerRadius = 18;   // thẻ trắng bo 18px
-            pnlHero.CornerRadius = 0;    // ⭐ Hero KHÔNG tự bo → để Card clip
+            // Thẻ phủ kín form: góc do CỬA SỔ bo (DWM Win11 / Region Win10). Bo thêm ở thẻ sẽ để lộ
+            // nền pnlRoot sáng màu ở 4 góc => vệt viền sáng quanh form.
+            pnlCard.CornerRadius = 0;
+            pnlHero.CornerRadius = 0;
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             ApplyWebTheme(); // Giao diện kiểu web (xem Form5_QuenPass.Theme.cs)
             ApplyBorderless();   // form không viền, bo tròn, kéo thả được
-            //this.ShowInTaskbar = false;
-            this.Shown += Form5_Shown;
+            // Form được giữ lại và ShowDialog nhiều lần (Form12) => ảnh chỉ giải phóng khi form bị hủy thật
+            Disposed += (s, e) => { try { PictureBox2.Image?.Dispose(); } catch { } _timerGoCloak?.Dispose(); _timerGoCloak = null; };
             ComboBox1_CauHoi1.HandleCreated += ComboBox_ClearHighlight;
             ComboBox2_CauHoi2.HandleCreated += ComboBox_ClearHighlight;
             // Cho phép click vào thông tin tác giả trên StatusStrip
@@ -60,97 +62,55 @@ namespace PhanMemThiDua2026
         [DllImport("dwmapi.dll")]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
-        private const int DWMWA_NCRENDERING_POLICY = 2;
-        private const int DWMNCRP_DISABLED = 1;
         private const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;  // Win11 only
-        private const int DWMWCP_DONOTROUND = 1;
+        private const int DWMWCP_ROUND = 2;
+        private const int DWMWA_BORDER_COLOR = 34;              // Win11 only
+        private const int DWMWA_COLOR_NONE = unchecked((int)0xFFFFFFFE);
+        private bool _dungGocDwm;          // true = DWM bo góc (mịn, không dùng Region)
+        private Size _kichThuocBoGoc;      // cỡ đã tạo Region (tránh tạo lại thừa)
+        private bool _choPhepComposited = true;
 
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
+            // Cùng cách Form1: Win11 để DWM bo góc (khử răng cưa) và TẮT viền hệ thống
+            // (viền 1px sáng màu DWM vẽ quanh cửa sổ chính là "viền trắng"). Win10 => Region.
+            _dungGocDwm = ThuBoGocDwm();
+            if (_dungGocDwm)
+            {
+                var cu = Region; Region = null; cu?.Dispose(); _kichThuocBoGoc = Size.Empty;
+            }
+            else CapNhatBoGoc();
+        }
+
+        private bool ThuBoGocDwm()
+        {
             try
             {
-                // Tắt viền glass DWM
-                int policy = DWMNCRP_DISABLED;
-                DwmSetWindowAttribute(Handle, DWMWA_NCRENDERING_POLICY, ref policy, sizeof(int));
-
-                // Win11: tắt tự bo góc của hệ điều hành (nếu không sẽ đè lên Region ta vẽ)
-                int corner = DWMWCP_DONOTROUND;
-                DwmSetWindowAttribute(Handle, DWMWA_WINDOW_CORNER_PREFERENCE, ref corner, sizeof(int));
+                if (Environment.OSVersion.Version.Build < 22000) return false;
+                int kieuBo = DWMWCP_ROUND;
+                if (DwmSetWindowAttribute(Handle, DWMWA_WINDOW_CORNER_PREFERENCE, ref kieuBo, sizeof(int)) != 0) return false;
+                int mauVien = DWMWA_COLOR_NONE;
+                DwmSetWindowAttribute(Handle, DWMWA_BORDER_COLOR, ref mauVien, sizeof(int));
+                return true;
             }
-            catch { /* OS cũ không hỗ trợ */ }
+            catch { return false; }
         }
 
         private async Task LoadAnhDaiDienAsync()
         {
             try
             {
-                Image? img = null;
-                // 1. Thử đọc ảnh từ CSDL (bảng AvatarAdmin ID = 1)
-                if (!string.IsNullOrWhiteSpace(_csdl1Path) && File.Exists(_csdl1Path))
-                {
-                    try
-                    {
-                        using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl1Path, chiDoc: true, thoiGianCho: 5));
-                        await conn.OpenAsync();
-                        using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);
-                        using var reader = await cmd.ExecuteReaderAsync();
-                        if (await reader.ReadAsync())
-                        {
-                            int thumbOrdinal = reader.GetOrdinal("ThumbnailAnh");
-                            int fullOrdinal = reader.GetOrdinal("DuLieuAnh");
-                            foreach (int ordinal in new[] { thumbOrdinal, fullOrdinal })
-                            {
-                                byte[]? imageBytes = DocDuLieuAnhLinhHoat(reader, ordinal);
-                                if (imageBytes != null && imageBytes.Length > 0)
-                                {
-                                    try
-                                    {
-                                        using var ms = new MemoryStream(imageBytes);
-                                        using var tempBmp = Image.FromStream(ms, false, true);
-                                        img = new Bitmap(tempBmp);
-                                        break; // Đã đọc thành công ảnh từ DB
-                                    }
-                                    catch { }
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine("Lỗi đọc ảnh từ CSDL: " + ex.Message);
-                    }
-                }
-                // 2. Nếu CSDL không có ảnh, lấy ảnh mặc định từ Resources (ac.png)
-                if (img == null && Properties.Resources.ac != null)
-                {
-                    img = new Bitmap(Properties.Resources.ac);
-                }
-                // 3. Hiển thị lên PictureBox2 an toàn
-                if (PictureBox2 != null)
-                {
-                    if (PictureBox2.InvokeRequired)
-                    {
-                        PictureBox2.Invoke(new Action(() =>
-                        {
-                            var oldImage = PictureBox2.Image;
-                            PictureBox2.Image = img;
-                            PictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
-                            oldImage?.Dispose();
-                        }));
-                    }
-                    else
-                    {
-                        var oldImage = PictureBox2.Image;
-                        PictureBox2.Image = img;
-                        PictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
-                        oldImage?.Dispose();
-                    }
-                }
-                else
-                {
-                    img?.Dispose();
-                }
+                // Microsoft.Data.Sqlite chạy đồng bộ kể cả hàm ...Async => đưa hẳn đọc CSDL + giải mã ảnh
+                // sang luồng nền để form hiện ra và nhận phím ngay, không khựng lúc mở.
+                string duongDan = _csdl1Path;
+                Image? img = await Task.Run(() => DocAnhDaiDien(duongDan));
+                if (IsDisposed) { img?.Dispose(); return; }
+                // Đã về luồng UI sau await
+                var oldImage = PictureBox2.Image;
+                PictureBox2.Image = img;
+                PictureBox2.SizeMode = PictureBoxSizeMode.StretchImage;
+                oldImage?.Dispose();
             }
             catch (Exception ex)
             {
@@ -166,6 +126,41 @@ namespace PhanMemThiDua2026
                 }
                 catch { }
             }
+        }
+        /// <summary>Chạy trên luồng nền: ảnh AvatarAdmin (ID = 1); không có thì ảnh mặc định (ac.png).</summary>
+        private static Image? DocAnhDaiDien(string duongDan)
+        {
+            if (!string.IsNullOrWhiteSpace(duongDan) && File.Exists(duongDan))
+            {
+                try
+                {
+                    using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(duongDan, chiDoc: true, thoiGianCho: 5));
+                    conn.Open();
+                    using var cmd = new SqliteCommand("SELECT ThumbnailAnh, DuLieuAnh FROM AvatarAdmin WHERE ID = 1 LIMIT 1;", conn);
+                    using var reader = cmd.ExecuteReader();
+                    if (reader.Read())
+                    {
+                        foreach (int ordinal in new[] { reader.GetOrdinal("ThumbnailAnh"), reader.GetOrdinal("DuLieuAnh") })
+                        {
+                            byte[]? imageBytes = DocDuLieuAnhLinhHoat(reader, ordinal);
+                            if (imageBytes == null || imageBytes.Length == 0) continue;
+                            try
+                            {
+                                using var ms = new MemoryStream(imageBytes);
+                                using var tempBmp = Image.FromStream(ms, false, true);
+                                return new Bitmap(tempBmp);
+                            }
+                            catch { }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Lỗi đọc ảnh từ CSDL: " + ex.Message);
+                }
+            }
+            var macDinh = Properties.Resources.ac;
+            return macDinh != null ? new Bitmap(macDinh) : null;
         }
         private static byte[]? DocDuLieuAnhLinhHoat(System.Data.Common.DbDataReader reader, int ordinal)
         {
@@ -196,15 +191,6 @@ namespace PhanMemThiDua2026
                 return null;
             }
         }
-        protected override void OnFormClosed(FormClosedEventArgs e)
-        {
-            try
-            {
-                PictureBox2.Image?.Dispose();
-            }
-            catch { }
-            base.OnFormClosed(e);
-        }
         private void SetupReadOnlyBox(TextBox tb)
         {
             if (tb == null) return;
@@ -220,23 +206,24 @@ namespace PhanMemThiDua2026
         private void ApplyBorderless()
         {
             FormBorderStyle = FormBorderStyle.None;
-            SizeChanged += (s, e) => CapNhatBoGoc();
-            Load += (s, e) => CapNhatBoGoc();   // ⭐ cập nhật lại sau khi form đã show
-            CapNhatBoGoc();
+            // Autoscale/đổi DPI làm đổi kích thước => Region luôn khớp (chỉ khi KHÔNG dùng góc DWM)
+            SizeChanged += (s, e) => { if (IsHandleCreated) CapNhatBoGoc(); };
             // Không còn thanh tiêu đề: bấm giữ chuột trên nền/hero để kéo form
             foreach (Control c in new Control[] { pnlRoot, pnlCard, pnlRight, pnlHero, tlpHero, lblHeroTitle, lblHeroDesc, lblHeroHint, lblTieuDe, lblMoTa, statusStrip1 })
                 c.MouseDown += KeoForm;
         }
-        // 1. Bo góc Form mượt hơn + làm dịu viền Region
+        // Bo góc bằng Region (chỉ Win10 / DWM không hỗ trợ). Cùng cỡ thì không tạo lại.
         private void CapNhatBoGoc()
         {
-            if (Width <= 0 || Height <= 0) return;
-            int r = (int)Math.Round(20 * DeviceDpi / 96f);
-            using var path = WebCardPanel.RoundedRect(new Rectangle(0, 0, Width, Height), r);
+            if (_dungGocDwm || WindowState == FormWindowState.Minimized) return;
+            Size s = Size;
+            if (s.Width <= 0 || s.Height <= 0 || s == _kichThuocBoGoc) return;
+            int r = (int)Math.Round(12 * DeviceDpi / 96f);
+            using var path = WebCardPanel.RoundedRect(new Rectangle(0, 0, s.Width, s.Height), r);
             var cu = Region;
             Region = new Region(path);
             cu?.Dispose();
-            Invalidate();
+            _kichThuocBoGoc = s;
         }
         private void KeoForm(object? sender, MouseEventArgs e)
         {
@@ -245,9 +232,94 @@ namespace PhanMemThiDua2026
             SendMessage(Handle, WM_NCLBUTTONDOWN, (IntPtr)HTCAPTION, IntPtr.Zero);
         }
 
-        private void Form5_Shown(object? sender, EventArgs e)
+        /// <summary>
+        /// Mỗi lần form hiện (kể cả bản giữ trong RAM của Form12 — sự kiện Shown chỉ chạy lần đầu):
+        /// nạp câu hỏi, rồi đặt con trỏ vào "Câu trả lời 1" SAU khi form đã vẽ xong và được kích hoạt.
+        /// </summary>
+        // ===== HIỆN "MỘT PHÁT LÀ XONG" (cùng cách Form2) =====
+        // Không cloak thì Windows hiện cửa sổ trước rồi mới vẽ dần: nửa phải ra trước với các ô đen
+        // (TextBox/ComboBox chưa vẽ), khung xanh bên trái ra sau ~0,1 s => trông rất xấu. Giờ: cửa sổ
+        // vẫn Show bình thường nhưng bị cloak (DWM giấu khỏi màn hình) đến khi vẽ đồng bộ xong cả cây control.
+        private const int DWMWA_CLOAK = 13;
+        private const uint RDW_INVALIDATE = 0x1, RDW_ERASE = 0x4, RDW_ALLCHILDREN = 0x80, RDW_UPDATENOW = 0x100;
+        [DllImport("user32.dll")]
+        private static extern bool RedrawWindow(IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, uint flags);
+        private bool _dangCloak;
+        private System.Windows.Forms.Timer? _timerGoCloak;
+
+        protected override void SetVisibleCore(bool value)
         {
-            InitCauHoiVaFocus();
+            if (value && !Visible && !DesignMode && !_dangCloak) DatCloak(true);
+            base.SetVisibleCore(value);
+            if (value && _dangCloak)
+            {
+                // Chốt chặn: dù có chuyện gì (ngoại lệ, hàng đợi bị nghẽn) form vẫn hiện sau tối đa 1 giây
+                _timerGoCloak?.Dispose();
+                _timerGoCloak = new System.Windows.Forms.Timer { Interval = 1000 };
+                _timerGoCloak.Tick += (s, e) => GoCloak();
+                _timerGoCloak.Start();
+            }
+            else if (!value && _dangCloak) GoCloak();
+        }
+        private void DatCloak(bool bat)
+        {
+            try
+            {
+                int v = bat ? 1 : 0;
+                bool ok = DwmSetWindowAttribute(Handle, DWMWA_CLOAK, ref v, sizeof(int)) == 0;
+                _dangCloak = bat && ok;
+            }
+            catch { _dangCloak = false; }
+        }
+        private void GoCloak()
+        {
+            var t = _timerGoCloak; _timerGoCloak = null;
+            t?.Stop(); t?.Dispose();
+            if (!_dangCloak || !IsHandleCreated || IsDisposed) { _dangCloak = false; return; }
+            DatCloak(false);
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            if (!IsHandleCreated || IsDisposed) return;
+            if (Visible)
+            {
+                InitCauHoiVaFocus();
+                BeginInvoke(new Action(KhiDaHienXong));
+            }
+            else if (!_choPhepComposited)
+            {
+                // Ẩn đi => bật lại vẽ gộp để lần hiện sau không nháy
+                _choPhepComposited = true;
+                UpdateStyles();
+            }
+        }
+        private void KhiDaHienXong()
+        {
+            if (IsDisposed || !Visible) { GoCloak(); return; }
+            try
+            {
+                // WS_EX_COMPOSITED chỉ cần lúc form vừa hiện (chống nháy). Giữ nó thì con trỏ nhập (caret)
+                // của TextBox không nhấp nháy / đứng đơ => tắt ngay sau khung hình đầu.
+                if (_choPhepComposited)
+                {
+                    _choPhepComposited = false;
+                    UpdateStyles();
+                }
+                DatConTroVaoTraLoi1();
+                // Còn cloak: vẽ đồng bộ toàn bộ cây control thành 1 khung hoàn chỉnh rồi mới cho hiện
+                if (_dangCloak)
+                    RedrawWindow(Handle, IntPtr.Zero, IntPtr.Zero, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW);
+            }
+            finally { GoCloak(); }
+        }
+        private void DatConTroVaoTraLoi1()
+        {
+            if (!TextBox1_TraLoi1.CanFocus) return;
+            ActiveControl = TextBox1_TraLoi1;
+            TextBox1_TraLoi1.Focus();
+            TextBox1_TraLoi1.Select(TextBox1_TraLoi1.TextLength, 0);
         }
         private void Btn_KiemTra_Click(object? sender, EventArgs e)
         {
@@ -373,7 +445,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi kiểm tra dữ liệu: {ex.Message}", "Lỗi",
+                MessageBox.Show($"Lỗi khi kiểm tra dữ liệu: {ex.Message}", Module_HeThong.TieuDe_Loi,
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -404,9 +476,8 @@ namespace PhanMemThiDua2026
             {
                 //_isInitializing = false; // Kết thúc nạp
             }
-            // 4. Focus vào ô trả lời
-            this.ActiveControl = TextBox1_TraLoi1;
-            TextBox1_TraLoi1.SelectionStart = TextBox1_TraLoi1.TextLength;
+            // 4. Focus vào ô trả lời (đặt lại lần nữa trong KhiDaHienXong khi form đã kích hoạt)
+            ActiveControl = TextBox1_TraLoi1;
         }
         private void LoadCauHoiDaLuu()
         {
@@ -651,7 +722,7 @@ namespace PhanMemThiDua2026
             get
             {
                 var cp = base.CreateParams;
-                cp.ExStyle |= 0x02000000;
+                if (_choPhepComposited) cp.ExStyle |= 0x02000000;
                 return cp;
             }
         }
@@ -681,7 +752,7 @@ namespace PhanMemThiDua2026
             btn.StateCommon.Border.Width = 1;
             btn.StateCommon.Border.Rounding = 12F;
             btn.StateCommon.Content.ShortText.Color1 = Color.White;
-            btn.StateCommon.Content.ShortText.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btn.StateCommon.Content.ShortText.Font = new Font(Module_HeThong.TenFontHeThongDam, 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
 
             btn.StateTracking.Back.Color1 = MauDoHover;
             btn.StateTracking.Border.Color1 = MauDoHover;
@@ -703,7 +774,7 @@ namespace PhanMemThiDua2026
         {
             tb.BorderStyle = BorderStyle.None;   // WebTextBox: không còn viền Windows
             tb.ForeColor = MauChu;
-            tb.Font = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            tb.Font = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular, GraphicsUnit.Point, 0);
         }
         private static void GanNhanFocus(Label nhan, params Control[] cacO)
         {
@@ -723,7 +794,7 @@ namespace PhanMemThiDua2026
             btn.StateCommon.Border.Width = 1;
             btn.StateCommon.Border.Rounding = 10F;
             btn.StateCommon.Content.ShortText.Color1 = MauNhan;
-            btn.StateCommon.Content.ShortText.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btn.StateCommon.Content.ShortText.Font = new Font(Module_HeThong.TenFontHeThongDam, 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btn.StateTracking.Back.Color1 = MauNutPhuHover;
             btn.StateTracking.Border.Color1 = MauNutPhuHover;
             btn.StatePressed.Back.Color1 = MauNutPhuNhan;
@@ -742,7 +813,7 @@ namespace PhanMemThiDua2026
             btn.StateCommon.Border.Width = 1;
             btn.StateCommon.Border.Rounding = 10F;
             btn.StateCommon.Content.ShortText.Color1 = Color.White;
-            btn.StateCommon.Content.ShortText.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btn.StateCommon.Content.ShortText.Font = new Font(Module_HeThong.TenFontHeThongDam, 11F, FontStyle.Bold, GraphicsUnit.Point, 0);
             // Hover / nhấn
             btn.StateTracking.Back.Color1 = MauChinhHover;
             btn.StateTracking.Border.Color1 = MauChinhHover;
@@ -842,6 +913,8 @@ namespace PhanMemThiDua2026
                      ControlStyles.ResizeRedraw |
                      ControlStyles.UserPaint, true);
         }
+        // OnPaint tự tô kín nền => bỏ bước tô BackColor (trắng) trước đó, hết chớp mép trắng
+        protected override void OnPaintBackground(PaintEventArgs e) { }
 
         [DefaultValue(16)]
         public int CornerRadius
@@ -852,27 +925,31 @@ namespace PhanMemThiDua2026
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
-            if (Width <= 2 || Height <= 2) return;
+            if (Width <= 2 || Height <= 2) { base.OnPaint(e); return; }
             var g = e.Graphics;
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-            float r = _cornerRadius * DeviceDpi / 96f;
-            // ⭐ Gọi qua WebCardPanel.RoundedRect (method static của class khác)
-            using var path = WebCardPanel.RoundedRect(
-                new RectangleF(0.5f, 0.5f, Width - 1f, Height - 1f),
-                (int)Math.Round(r));
-
-            // Nền gradient xanh → tím (đúng tinh thần "HeroGradientPanel")
+            // Vùng brush nới 1px: LinearGradientBrush lặp màu ở hàng/cột mép => vạch sáng
             using (var brush = new LinearGradientBrush(
-                new RectangleF(0, 0, Width, Height),
+                new RectangleF(-1, -1, Width + 2, Height + 2),
                 Color.FromArgb(37, 99, 235),    // blue-600
                 Color.FromArgb(99, 102, 241),   // indigo-500
                 45f))
             {
-                g.FillPath(brush, path);
+                if (_cornerRadius <= 0)
+                {
+                    // Không bo: tô kín cả khung, không khử răng cưa => hết mép nửa pixel lộ nền trắng
+                    g.FillRectangle(brush, ClientRectangle);
+                }
+                else
+                {
+                    g.Clear(Parent?.BackColor ?? BackColor);
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    using var path = WebCardPanel.RoundedRect(new Rectangle(0, 0, Width, Height),
+                        (int)Math.Round(_cornerRadius * DeviceDpi / 96f));
+                    g.FillPath(brush, path);
+                }
             }
+            g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // Hình tròn mờ trang trí kiểu hero banner
             using (var br = new SolidBrush(Color.FromArgb(28, 255, 255, 255)))
@@ -1002,6 +1079,7 @@ namespace PhanMemThiDua2026
             g.Clear(BackColor);
             if (Width < 4 || Height < 4) return;
             g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.Half;   // mép thẳng trùng biên pixel, không có vệt sáng 1px
             int r = (int)Math.Round(_boGoc * DeviceDpi / 96f);
             using var br = new SolidBrush(MauHienTai);
             using var path = WebCardPanel.RoundedRect(new Rectangle(0, 0, Width, Height), r);

@@ -1084,7 +1084,7 @@ PRAGMA busy_timeout=15000;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi phát sinh: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi phát sinh: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1170,7 +1170,7 @@ PRAGMA busy_timeout=15000;
                 HienThongBaoStatus("✘ Lỗi hệ thống!", Color.Red, 3000);
                 MessageBox.Show(
                     "Lỗi hệ thống: " + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -1514,7 +1514,7 @@ PRAGMA busy_timeout=15000;
                 {
                     MessageBox.Show(
                         "Không tìm thấy tệp Excel!",
-                        "Lỗi",
+                        Module_HeThong.TieuDe_Loi,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                     return;
@@ -1543,7 +1543,7 @@ PRAGMA busy_timeout=15000;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không thể mở tệp Excel\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không thể mở tệp Excel\n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         public static class FormManager
@@ -1593,7 +1593,7 @@ PRAGMA busy_timeout=15000;
                         AutoSize = true,
                         Location = new Point(20, 20),
                         ForeColor = Color.Blue,
-                        Font = new Font("Segoe UI", 11F, FontStyle.Italic)
+                        Font = new Font(Module_HeThong.TenFontHeThong, 11F, FontStyle.Italic)
                     });
                     tabPage3.Update();   // vẽ ngay dòng chữ này trước khi dựng form nặng
                 }
@@ -2348,7 +2348,18 @@ PRAGMA busy_timeout=15000;
         private void kryptonButton1_CaiDatTyLePhanTramE29_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form27_TyLeQuyDinhE29>(this);
         private void kryptonButton1_CapNhatChucVu_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form21_ChucVu>(this);
         private void kryptonButton_CapNhatDanhSachChiHuyD_Click(object? sender, EventArgs e) => FormManager.OpenModal<Form13_DSChiHuy>(this);
-        private void kryptonButton1_TyLePhanTramXetThiDuaNam_Click(object sender, EventArgs e) => FormManager.OpenModal<Form61_TyLeXetThiDuaNam>(this);
+        // Tân binh / Học viên: nút "Tỷ lệ xét năm" (chỉ CBCS) được dùng làm nút "Lịch xét" (Form63)
+        private void kryptonButton1_TyLePhanTramXetThiDuaNam_Click(object sender, EventArgs e)
+        {
+            string pb = comboBox_DoiTuongPhanMem.Text.Trim();
+            if (pb.LaCheDoTanBinh())
+            {
+                // Tân binh / Học viên: lịch xét theo tuần (tháng bắt đầu, số tháng) - Form63
+                using var f = new Form63_CaiDatLichXet(pb.LaCheDoHocVien() ? CheDoDoiTuong.HocVien : CheDoDoiTuong.TanBinh);
+                f.ShowDialog(this);
+            }
+            else FormManager.OpenModal<Form61_TyLeXetThiDuaNam>(this);
+        }
         private void kryptonButton1_CaiDatTyLePhanTramBCH_Click(object? sender, EventArgs e)
         {
             if (Module_TaiKhoan.LaPhienBanTanBinh()) return; // Tân binh không xét BCH
@@ -2669,6 +2680,7 @@ PRAGMA busy_timeout=15000;
                 _isSyncingComboBoxes = false; // Tắt cờ chặn
             }
         }
+        private string? _chuNutXetNamGoc;   // chữ gốc của nút "Tỷ lệ xét năm" (đổi thành "Lịch xét ..." ở chế độ Tân binh / Học viên)
         // 🌟 HÀM MỚI: Tự động đổi tên nút cài đặt tỷ lệ theo phiên bản
         private void CapNhatTenNutCaiDatTyLe()
         {
@@ -2681,15 +2693,19 @@ PRAGMA busy_timeout=15000;
             kryptonButton1_CaiDatTyLePhanTramE29.Values.Text = laTanBinh
                 ? (phienBan.LaCheDoHocVien() ? "Tỷ lệ % Học viên" : "Tỷ lệ % Tân binh")
                 : "Tỷ lệ % CBCS";
-            // Tự động ẩn/hiện nút "Bỏ qua kiểm tra tỷ lệ"
+            // Nút "Đơn vị đặc biệt" (bỏ qua cảnh báo tỷ lệ - Form40): có ở CẢ 3 chế độ, mỗi chế độ danh sách riêng
             if (kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet != null)
             {
-                kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Visible = !laTanBinh;
+                kryptonButton1_BoQuaKiemTraTyLeDoViDacBiet.Visible = true;
             }
             // Tự động ẩn/hiện nút "Bỏ qua kiểm tra tỷ lệ"
             if (kryptonButton1_TyLePhanTramXetThiDuaNam != null)
             {
-                kryptonButton1_TyLePhanTramXetThiDuaNam.Visible = !laTanBinh;
+                _chuNutXetNamGoc ??= kryptonButton1_TyLePhanTramXetThiDuaNam.Values.Text;
+                kryptonButton1_TyLePhanTramXetThiDuaNam.Values.Text = laTanBinh
+                    ? (phienBan.LaCheDoHocVien() ? "Lịch xét học viên" : "Lịch xét tân binh")
+                    : _chuNutXetNamGoc;
+                kryptonButton1_TyLePhanTramXetThiDuaNam.Visible = true;   // CBCS: tỷ lệ xét năm; Tân binh / Học viên: lịch xét
             }
             // Tân binh không xét BCH và không có đơn vị BCH -> ẩn nút "Tỷ lệ % BCH"
             if (kryptonButton1_CaiDatTyLePhanTramBCH != null)

@@ -27,8 +27,7 @@ namespace PhanMemThiDua2026
         //private const long NGUONG_KIEM_TRA_DAY_DU_BYTES = 64L * 1024 * 1024; // CSDL > 64MB: dùng quick_check thay integrity_check
         private readonly ConcurrentDictionary<string, string> _cacheDungLuongOTrang = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         // Clone để form này sở hữu bản riêng -> Dispose khi đóng không ảnh hưởng nơi khác
-        private readonly Image _iconSafe = (Image)Properties.Resources._true.Clone();
-        private readonly Image _iconWarning = (Image)Properties.Resources._false.Clone();
+        // Icon trạng thái: tự vẽ + cache dùng chung ở Module_IconLuoi (thay ảnh Resources true/false, KHÔNG Dispose)
         // Quản lý Font tập trung dùng biến hệ thống, chống rò rỉ GDI handle
         //private static readonly Font _fontGridHeader9Bold = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
         //private static readonly Font _fontGridCell9 = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
@@ -73,13 +72,8 @@ namespace PhanMemThiDua2026
             };
             kryptonDataGridView1.CellPainting += KryptonDataGridView_CellPainting_CanhBao;
             kryptonDataGridView2.CellPainting += KryptonDataGridView_CellPainting_CanhBao;
-            // Form đóng/giải phóng: hủy lần quét đang chạy dở (kết quả muộn bị bỏ) và trả icon
-            Disposed += (s, e) =>
-            {
-                Interlocked.Increment(ref _thuTuKiemTra);
-                _iconSafe?.Dispose();
-                _iconWarning?.Dispose();
-            };
+            // Form đóng/giải phóng: hủy lần quét đang chạy dở (kết quả muộn bị bỏ)
+            Disposed += (s, e) => Interlocked.Increment(ref _thuTuKiemTra);
             GiaoDienForm33Web.ApDung(this);
             // Đang thu gọn (giữa chừng tráo tệp CSDL) thì không cho đóng form
             FormClosing += (s, e) =>
@@ -97,7 +91,8 @@ namespace PhanMemThiDua2026
             // Menu thu gọn toàn bộ (đặt ngay sau "Thu gọn CSDL đang chọn"), tạo trước khi áp giao diện menu
             if (_menuThuGonTatCa == null)
             {
-                _menuThuGonTatCa = new ToolStripMenuItem("Thu gọn toàn bộ CSDL (trước khi chuyển máy)", Properties.Resources.ic_database,
+                _menuThuGonTatCa = new ToolStripMenuItem("Thu gọn toàn bộ CSDL (trước khi chuyển máy)",
+                    Module_IconLuoi.BanSao(Module_IconLuoi.Loai.CSDL, contextMenuStrip1.ImageScalingSize.Height),
                     async (s, ev) => await ThuGonCacCSDLAsync(Enumerable.Range(0, _pathCSDL.Length).ToArray()))
                 {
                     Name = "thuGonTatCa_ToolStripMenuItem"
@@ -108,7 +103,7 @@ namespace PhanMemThiDua2026
             Module_MenuChuotPhai.TichHopGiaoDien(contextMenuStrip1);
             label_TenAdminDangNhap.Text = "Người khai thác: " + SessionInfo.TenTaiKhoan;
             toolStripProgressBar1.Visible = false;
-            toolStripStatusLabel1_ThoiGianKhaiThac.Text = "Ngày kiểm tra: " + DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+            toolStripStatusLabel1_ThoiGianKhaiThac.Text = "Ngày kiểm tra: " + DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_Gach);
             toolStripStatusLabel1_ThoiGianKhaiThac.ForeColor = GiaoDienForm33Web.MauChuPhu;
             toolStripStatusLabel1_KetLuan.Spring = true;
             toolStripStatusLabel1_KetLuan.TextAlign = ContentAlignment.MiddleRight;
@@ -217,13 +212,13 @@ namespace PhanMemThiDua2026
             public static readonly string[] WarningKeywords = { "cảnh báo", "lỗi", "nguy hiểm", "false", "cao", "locked" };
             public static readonly string[] SafeKeywords = { "bình thường", "tốt", "ổn định", "true", "thấp", "đang sử dụng", "ok" };
         }
-        private Image? GetIconByStatus(string value)
+        private static Module_IconLuoi.Loai? GetIconByStatus(string value)
         {
             if (string.IsNullOrWhiteSpace(value)) return null;
             foreach (var k in GridConfig.WarningKeywords)
-                if (value.Contains(k, StringComparison.OrdinalIgnoreCase)) return _iconWarning;
+                if (value.Contains(k, StringComparison.OrdinalIgnoreCase)) return Module_IconLuoi.Loai.ChuaDat;
             foreach (var k in GridConfig.SafeKeywords)
-                if (value.Contains(k, StringComparison.OrdinalIgnoreCase)) return _iconSafe;
+                if (value.Contains(k, StringComparison.OrdinalIgnoreCase)) return Module_IconLuoi.Loai.Dat;
             return null;
         }
         private void KryptonDataGridView_CellPainting_CanhBao(object? sender, DataGridViewCellPaintingEventArgs e)
@@ -232,20 +227,17 @@ namespace PhanMemThiDua2026
             if (!(sender is DataGridView dgv)) return;
             if (!GridConfig.StatusColumns.Contains(dgv.Columns[e.ColumnIndex].Name)) return;
             string cellValue = e.Value?.ToString() ?? string.Empty;
-            Image? icon = GetIconByStatus(cellValue);
-            DataGridViewPaintParts paintParts = DataGridViewPaintParts.All & ~DataGridViewPaintParts.ContentForeground & ~DataGridViewPaintParts.Border;
-            e.Paint(e.CellBounds, paintParts);
+            var icon = GetIconByStatus(cellValue);
+            // Chỉ nền + nền bôi đen (KHÔNG Border/Focus => ô có icon không bị vẽ viền riêng)
+            e.Paint(e.CellBounds, Module_IconLuoi.PhanNenO);
             Rectangle cellRect = e.CellBounds;
             int xIcon = cellRect.X + GridConfig.Padding;
-            int yIcon = cellRect.Y + (cellRect.Height - GridConfig.IconSize) / 2;
+            int textOffset = 0;
             if (icon != null)
-            {
-                e.Graphics!.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                e.Graphics.DrawImage(icon, xIcon, yIcon, GridConfig.IconSize, GridConfig.IconSize);
-            }
+                textOffset = Module_IconLuoi.VeTrongO(e.Graphics!, icon.Value, cellRect, xIcon,
+                                 Module_IconLuoi.CoTheoDpi(dgv, GridConfig.IconSize)) - xIcon + GridConfig.Padding;
             if (!string.IsNullOrEmpty(cellValue))
             {
-                int textOffset = (icon != null) ? (GridConfig.IconSize + GridConfig.Padding) : 0;
                 Rectangle textBounds = new Rectangle(xIcon + textOffset, cellRect.Y, cellRect.Width - textOffset - GridConfig.Padding, cellRect.Height);
                 Color textColor = (e.State & DataGridViewElementStates.Selected) != 0 ? e.CellStyle!.SelectionForeColor : e.CellStyle!.ForeColor;
                 TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding;
@@ -466,7 +458,7 @@ namespace PhanMemThiDua2026
                 var di = new DirectoryInfo(path);
                 kq.TonTai = true;
                 kq.ODia = Path.GetPathRoot(Path.GetFullPath(path))!;
-                kq.NgayTao = di.CreationTime.ToString("dd/MM/yyyy HH:mm:ss");
+                kq.NgayTao = di.CreationTime.ToString(Module_HeThong.DinhDang_NgayGio_Gach);
                 if (_cacheKichThuocThuMuc.TryGetValue(path, out var cached)
                     && (DateTime.UtcNow - cached.Time).TotalMinutes < 10)
                 {
@@ -611,7 +603,7 @@ namespace PhanMemThiDua2026
             {
                 var fi = new FileInfo(path);
                 kq.TonTai = true;
-                kq.NgayTao = fi.CreationTime.ToString("dd/MM/yyyy HH:mm:ss");
+                kq.NgayTao = fi.CreationTime.ToString(Module_HeThong.DinhDang_NgayGio_Gach);
                 kq.DungLuong = FormatSize(fi.Length);
                 kq.QuyenDoc = CoDoc(path);
                 kq.QuyenGhi = CoGhi(path);
@@ -698,7 +690,7 @@ namespace PhanMemThiDua2026
                 var fi = new FileInfo(path);
                 kq.TonTai = true;
                 kq.ODia = Path.GetPathRoot(Path.GetFullPath(path))!;
-                kq.NgayTao = fi.CreationTime.ToString("dd/MM/yyyy HH:mm:ss");
+                kq.NgayTao = fi.CreationTime.ToString(Module_HeThong.DinhDang_NgayGio_Gach);
                 kq.DungLuong = FormatSize(fi.Length);
                 kq.QuyenDoc = CoDoc(path);
                 kq.QuyenGhi = CoGhi(path);

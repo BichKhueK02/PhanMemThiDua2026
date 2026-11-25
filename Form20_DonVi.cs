@@ -28,7 +28,7 @@ namespace PhanMemThiDua2026
             this.MaximizeBox = false;
             this.AcceptButton = kryptonButton1_Them; // ✅ Enter = Thêm
             // ⭐ BỔ SUNG UX: Đổi tên Form để Admin khỏi bị nhầm lẫn
-            bool laTanBinh = Module_DonVi.LayTenBangDonVi().Contains("TanBinh");
+            bool laTanBinh = Module_TaiKhoan.LaPhienBanTanBinh();   // Tân binh hoặc Học viên (bảng đơn vị riêng từng chế độ)
             this.Text = laTanBinh ? $"Quản lý Danh sách Đơn vị (Dành cho {Module_TaiKhoan.TenTB_TieuDe})" : "Quản lý Danh sách Đơn vị";
             TaoBangNeuChuaCo();
             LoadDanhSachDonVi();
@@ -106,7 +106,7 @@ namespace PhanMemThiDua2026
                 // MẸO: Thêm khoảng trắng đầu chuỗi để tự tạo khoảng trống cho Icon (Tránh bị lệch viền Grid)
                 if (DateTime.TryParse(thoiGian, out DateTime dtParsed))
                 {
-                    row["ThoiGian"] = "      " + dtParsed.ToString("dd-MM-yyyy HH:mm:ss");
+                    row["ThoiGian"] = "      " + dtParsed.ToString(Module_HeThong.DinhDang_NgayGio);
                 }
                 else
                 {
@@ -248,7 +248,7 @@ namespace PhanMemThiDua2026
                 while (reader.Read())
                 {
                     string existingTen = TryGiaiMa(reader.GetString(1));
-                    if (string.Equals(existingTen, tenDonVi, StringComparison.OrdinalIgnoreCase))
+                    if (Module_DonVi.CungDonVi(existingTen, tenDonVi))
                         return (reader.GetInt32(0), TryGiaiMa(reader.GetString(2)));
                 }
             }
@@ -256,7 +256,7 @@ namespace PhanMemThiDua2026
             using var cmd = cn.CreateCommand();
             cmd.CommandText = $"INSERT INTO {tenBang} (Ten_DonVi, ThoiGian) VALUES (@ten, @time)";
             cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenDonVi));
-            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL)));
             cmd.ExecuteNonQuery();
             return null;
         }
@@ -312,7 +312,7 @@ namespace PhanMemThiDua2026
                 while (reader.Read())
                 {
                     string existingTen = TryGiaiMa(reader.GetString(1));
-                    if (string.Equals(existingTen, tenDonViMoi, StringComparison.OrdinalIgnoreCase))
+                    if (Module_DonVi.CungDonVi(existingTen, tenDonViMoi))
                         return reader.GetInt32(0);
                 }
             }
@@ -320,7 +320,7 @@ namespace PhanMemThiDua2026
             using var cmd = cn.CreateCommand();
             cmd.CommandText = $"UPDATE {tenBang} SET Ten_DonVi=@ten, ThoiGian=@time WHERE ID=@id";
             cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenDonViMoi));
-            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL)));
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
             return null;

@@ -35,7 +35,7 @@ namespace PhanMemThiDua2026
             tc.Appearance = TabAppearance.Normal;
             tc.SizeMode = TabSizeMode.Normal;
             tc.Multiline = false;
-            var fontDam = new Font("Segoe UI Semibold", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
+            var fontDam = new Font(Module_HeThong.TenFontHeThongDam, 10.5F, FontStyle.Regular, GraphicsUnit.Point);
             tc.Font = fontDam;
             tc.Padding = new Point(tc.LogicalToDeviceUnits(18), tc.LogicalToDeviceUnits(6));
             tc.ItemSize = new Size(0, tc.LogicalToDeviceUnits(cao));

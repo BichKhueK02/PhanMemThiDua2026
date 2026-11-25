@@ -40,6 +40,7 @@ namespace PhanMemThiDua2026
         public Form51_QuanLyKhenThuongTapTheNamCu()
         {
             InitializeComponent();
+            Module_CheDoDoiTuong.ApNhanTheoCheDo(this);   // nhãn "CBCS" -> "Tân binh"/"Học viên" theo chế độ (trước khi dựng giao diện hiện đại)
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_HeThong.BocBoTronGiaoDien(richTextBox1_NoiDungKhenThuong);
             Module_GiaoDienForm51Web.ApDung(this);
@@ -189,7 +190,7 @@ namespace PhanMemThiDua2026
             // Chỉ liệt kê năm CÒN dữ liệu khen thưởng tập thể: xóa hết bảng của năm nào thì năm đó biến khỏi combo (Form50 làm
             // tương tự với bảng giấy khen cá nhân).
             var danhSach = Module_HoTroLuuDataTheoNamCu.LayDanhSachFileLichSu_KhenThuongCaNhan()
-                .Where(x => Module_BoLocKhenThuong.CoDuLieuBang(x.DuongDan, "ThongKe_KhenThuongTapThe"))
+                .Where(x => Module_BoLocKhenThuong.CoDuLieuBang(x.DuongDan, Module_CheDoDoiTuong.BangKhenThuongTapThe))
                 .ToList();
             cb.SelectedIndexChanged -= ComboBox1_ChonCscdKhenThuongTapTheNamCu_SelectedIndexChanged;
             try
@@ -300,11 +301,11 @@ namespace PhanMemThiDua2026
             var ds = new List<DuLieuCache>();
             using var conn = new SqliteConnection(chuoiKetNoi);
             conn.Open();
-            using (var kt = new SqliteCommand("SELECT 1 FROM sqlite_master WHERE type='table' AND name='ThongKe_KhenThuongTapThe' LIMIT 1", conn))
+            using (var kt = new SqliteCommand($"SELECT 1 FROM sqlite_master WHERE type='table' AND name='{Module_CheDoDoiTuong.BangKhenThuongTapThe}' LIMIT 1", conn))
                 if (kt.ExecuteScalar() == null) return ds;
-            const string sql = @"SELECT ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh,
+            string sql = $@"SELECT ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong, SoQuyetDinh, NgayQuyetDinh,
                                         NguoiKy, NoiDung_KhenThuong, TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu
-                                 FROM ThongKe_KhenThuongTapThe ORDER BY STT ASC, ID ASC";
+                                 FROM {Module_CheDoDoiTuong.BangKhenThuongTapThe} ORDER BY STT ASC, ID ASC";
             using var cmd = new SqliteCommand(sql, conn);
             using var rd = cmd.ExecuteReader();
             string S(int i) => rd.IsDBNull(i) ? "" : SafeDecrypt(rd.GetValue(i));
@@ -454,7 +455,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private static bool GiaTriHopLe(string? s) => !string.IsNullOrWhiteSpace(s) && s != "[Lỗi giải mã]" && s != "[Lỗi dữ liệu]";
@@ -620,7 +621,7 @@ namespace PhanMemThiDua2026
                     using var tran = conn.BeginTransaction();
                     try
                     {
-                        const string query = @"DELETE FROM ""ThongKe_KhenThuongTapThe"" WHERE ID = @ID;";
+                        string query = $@"DELETE FROM ""{Module_CheDoDoiTuong.BangKhenThuongTapThe}"" WHERE ID = @ID;";
                         using (var cmd = new SqliteCommand(query, conn, tran))
                         {
                             cmd.Parameters.Add("@ID", SqliteType.Integer).Value = idXoa;
@@ -704,7 +705,7 @@ namespace PhanMemThiDua2026
                 string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
                 string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_currentDbPath);
-                string sqlInsert = @"INSERT INTO ThongKe_KhenThuongTapThe
+                string sqlInsert = $@"INSERT INTO {Module_CheDoDoiTuong.BangKhenThuongTapThe}
                     (ID, STT, TenTapThe, HinhThuc_KhenThuong, DonVi_CapKhenThuong,
                      SoQuyetDinh, NgayQuyetDinh, NguoiKy, NoiDung_KhenThuong,
                      TienThuong, NgayCapPhat, CanBoCapPhat, NguoiDaiDienNhan, GhiChu)
@@ -728,7 +729,7 @@ namespace PhanMemThiDua2026
                         int newStt = 1;
                         int newId = 1;
                         // 🌟 TỐI ƯU HÓA: Gộp 2 lệnh MAX() thành 1 truy vấn duy nhất. Giảm 50% thời gian đọc.
-                        string queryMax = "SELECT COALESCE(MAX(ID), 0) AS MaxID, COALESCE(MAX(STT), 0) AS MaxSTT FROM ThongKe_KhenThuongTapThe";
+                        string queryMax = $"SELECT COALESCE(MAX(ID), 0) AS MaxID, COALESCE(MAX(STT), 0) AS MaxSTT FROM {Module_CheDoDoiTuong.BangKhenThuongTapThe}";
                         using (var cmdMax = new SqliteCommand(queryMax, conn, tran))
                         using (var reader = cmdMax.ExecuteReader())
                         {
@@ -811,7 +812,7 @@ namespace PhanMemThiDua2026
                 string tienThuongStr = kryptonTextBox_TienThuong.Text.Replace(".", "").Replace(",", "").Trim();
                 if (string.IsNullOrWhiteSpace(tienThuongStr)) tienThuongStr = "0";
                 string connectionString = Module_KetNoiCSDL.ChuoiKetNoi(_currentDbPath);
-                string query = @"UPDATE ThongKe_KhenThuongTapThe SET
+                string query = $@"UPDATE {Module_CheDoDoiTuong.BangKhenThuongTapThe} SET
              TenTapThe = @TenTapThe,
              HinhThuc_KhenThuong = @HinhThuc_KhenThuong,
              DonVi_CapKhenThuong = @DonVi_CapKhenThuong, SoQuyetDinh = @SoQuyetDinh,
@@ -896,7 +897,7 @@ namespace PhanMemThiDua2026
                     using var tran = conn.BeginTransaction();
                     try
                     {
-                        using (var cmd = new SqliteCommand("DELETE FROM ThongKe_KhenThuongTapThe", conn, tran))
+                        using (var cmd = new SqliteCommand($"DELETE FROM {Module_CheDoDoiTuong.BangKhenThuongTapThe}", conn, tran))
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -940,16 +941,16 @@ namespace PhanMemThiDua2026
             using (var conn = new SqliteConnection(connectionString))
             {
                 await conn.OpenAsync();
-                string updateQuery = @"
+                string updateQuery = $@"
         WITH RankedData AS (
             SELECT ID, ROW_NUMBER() OVER (ORDER BY STT ASC, ID ASC) AS NewSTT
-            FROM ThongKe_KhenThuongTapThe
+            FROM {Module_CheDoDoiTuong.BangKhenThuongTapThe}
         )
-        UPDATE ThongKe_KhenThuongTapThe
+        UPDATE {Module_CheDoDoiTuong.BangKhenThuongTapThe}
         SET STT = RankedData.NewSTT
         FROM RankedData
-        WHERE ThongKe_KhenThuongTapThe.ID = RankedData.ID 
-          AND ThongKe_KhenThuongTapThe.STT != RankedData.NewSTT;";
+        WHERE {Module_CheDoDoiTuong.BangKhenThuongTapThe}.ID = RankedData.ID 
+          AND {Module_CheDoDoiTuong.BangKhenThuongTapThe}.STT != RankedData.NewSTT;";
                 using (var cmd = new SqliteCommand(updateQuery, conn))
                 {
                     await cmd.ExecuteNonQueryAsync();
@@ -972,7 +973,7 @@ namespace PhanMemThiDua2026
                 {
                     conn.Open();
                     // 2. Kiểm tra sự tồn tại của bảng (Dùng COUNT(1) tối ưu hơn COUNT(*))
-                    string checkTableQuery = "SELECT COUNT(1) FROM sqlite_master WHERE type='table' AND name='ThongKe_KhenThuongTapThe';";
+                    string checkTableQuery = $"SELECT COUNT(1) FROM sqlite_master WHERE type='table' AND name='{Module_CheDoDoiTuong.BangKhenThuongTapThe}';";
                     bool isTableExists = false;
                     using (SqliteCommand cmdCheck = new SqliteCommand(checkTableQuery, conn))
                     {
@@ -983,8 +984,8 @@ namespace PhanMemThiDua2026
                     {
                         // TRƯỜNG HỢP A: Bảng chưa tồn tại -> Tạo mới chuẩn chỉ cấu trúc
                         // Bắt buộc phải có AUTOINCREMENT ở đây để phòng hờ trường hợp tạo file trắng từ đầu
-                        string createTableQuery = @"
-                    CREATE TABLE ""ThongKe_KhenThuongTapThe"" (
+                        string createTableQuery = $@"
+                    CREATE TABLE ""{Module_CheDoDoiTuong.BangKhenThuongTapThe}"" (
                         ""ID"" INTEGER PRIMARY KEY AUTOINCREMENT,
                         ""STT"" INTEGER,
                         ""TenTapThe"" TEXT,
@@ -1010,19 +1011,19 @@ namespace PhanMemThiDua2026
                         // TRƯỜNG HỢP B: Bảng ĐÃ TỒN TẠI (Thường do lệnh CREATE TABLE AS sinh ra)
                         // Bảng này bị mất thuộc tính AUTOINCREMENT. 
                         // Cơ chế tự chữa lành: Quét và sửa các ID bị NULL do phần mềm từng bị lỗi Insert
-                        string healDataQuery = @"UPDATE ""ThongKe_KhenThuongTapThe"" SET ID = rowid WHERE ID IS NULL;";
+                        string healDataQuery = $@"UPDATE ""{Module_CheDoDoiTuong.BangKhenThuongTapThe}"" SET ID = rowid WHERE ID IS NULL;";
                         using (SqliteCommand cmdHeal = new SqliteCommand(healDataQuery, conn))
                         {
                             int rowsFixed = cmdHeal.ExecuteNonQuery();
                             if (rowsFixed > 0)
                             {
-                                System.Diagnostics.Debug.WriteLine($"[Tự động sửa lỗi] Đã khôi phục {rowsFixed} bản ghi có ID = NULL trong bảng ThongKe_KhenThuongTapThe.");
+                                System.Diagnostics.Debug.WriteLine($"[Tự động sửa lỗi] Đã khôi phục {rowsFixed} bản ghi có ID = NULL trong bảng {Module_CheDoDoiTuong.BangKhenThuongTapThe}.");
                             }
                         }
                     }
                     // 4. Khởi tạo Index (Luôn chạy để đảm bảo Index không bị mất)
                     // Index giúp các thao tác tìm kiếm bằng Textbox mượt mà hơn trên CSDL lớn
-                    string createIndexQuery = @"CREATE INDEX IF NOT EXISTS ""idx_kt_tentapthe"" ON ""ThongKe_KhenThuongTapThe"" (""TenTapThe"");";
+                    string createIndexQuery = $@"CREATE INDEX IF NOT EXISTS ""{Module_CheDoDoiTuong.BangChiMucTapThe}"" ON ""{Module_CheDoDoiTuong.BangKhenThuongTapThe}"" (""TenTapThe"");";
                     using (SqliteCommand cmdIndex = new SqliteCommand(createIndexQuery, conn))
                     {
                         cmdIndex.ExecuteNonQuery();
@@ -1060,7 +1061,7 @@ namespace PhanMemThiDua2026
             using var sfd = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu file Excel thống kê",
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = Module_HeThong.BoLoc_Excel,
                 // ⭐ 2. CHÈN TÊN FILE SAFE VÀO (Sẽ ra dạng ThongKe_KhenThuongTapThe_Nam2025_...)
                 FileName = $"ThongKe_KhenThuongTapThe_{tenFileSafe}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
@@ -1166,7 +1167,7 @@ namespace PhanMemThiDua2026
             {
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel khen thưởng tập thể (năm cũ)", ex.Message);
                 _ = ShowHanhDongStatusAsync("❌ Lỗi xuất dữ liệu Excel!", false);
-                MessageBox.Show("Lỗi xuất dữ liệu:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi xuất dữ liệu:\n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1242,7 +1243,7 @@ namespace PhanMemThiDua2026
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "NgayCapPhat", Name = "NgayCapPhat", HeaderText = "Ngày cấp phát", Width = 110, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "CanBoCapPhat", Name = "CanBoCapPhat", HeaderText = "Cán bộ cấp", Width = 130, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
             dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "NguoiDaiDienNhan", Name = "NguoiDaiDienNhan", HeaderText = "Người đại diện nhận", Width = 150, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
-            dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "GhiChu", Name = "GhiChu", HeaderText = "Ghi chú", Width = 150, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
+            dgv.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "GhiChu", Name = "GhiChu", HeaderText = Module_HeThong.TieuDeCot.GhiChu, Width = 150, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleLeft } });
             foreach (DataGridViewColumn col in dgv.Columns)
             {
                 col.SortMode = DataGridViewColumnSortMode.NotSortable;

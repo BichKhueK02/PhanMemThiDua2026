@@ -29,11 +29,11 @@ namespace PhanMemThiDua2026
     {
         private static readonly Color MauNen = Color.FromArgb(244, 246, 250);
         private static readonly Color MauChuNhan = Color.FromArgb(71, 85, 105);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontKyHieu = new Font("Segoe UI Semibold", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNutLon = new Font("Segoe UI Semibold", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontDanhSach = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontKyHieu = new Font(Module_HeThong.TenFontHeThongDam, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNutLon = new Font(Module_HeThong.TenFontHeThongDam, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontDanhSach = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular, GraphicsUnit.Point);
         // Khoảng đệm giữa khung bo tròn và bảng (px thiết kế): đủ để 4 góc vuông của bảng nằm lọt trong cung bo bán kính 10
         private const int DemKhungBang = 5;
         // Màu tiêu đề bảng (trùng màu code gốc đặt: nền tím nhạt, chữ tím đậm) — dùng để ép Krypton vẽ tiêu đề PHẲNG, không chuyển sắc
@@ -371,6 +371,8 @@ namespace PhanMemThiDua2026
                 var it = ss.Items.Find(ten, false).FirstOrDefault();
                 if (it != null) it.Font = FontNhan;
             }
+            // Thay biểu tượng cạnh "Đang kết nối CSDL..." bằng chấm xanh nhấp nháy (tự vẽ)
+            Module_ChamKetNoi.GanCho(ss.Items.Find("toolStripStatusLabel1", false).FirstOrDefault() as ToolStripStatusLabel);
         }
         // =====================================================================================
         //  TIỆN ÍCH TRÌNH BÀY
@@ -470,7 +472,7 @@ namespace PhanMemThiDua2026
     [System.ComponentModel.DesignerCategory("Code")]
     internal sealed class TheBoGocF4 : Panel
     {
-        private static readonly Font FontTieuDe = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDe = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Color MauVienKhung = Color.FromArgb(221, 214, 254);
         private static readonly Color MauTieuDeMacDinh = Color.FromArgb(238, 232, 255);
         private string _tieuDe = "";
@@ -483,6 +485,9 @@ namespace PhanMemThiDua2026
         public DataGridView? LuoiBang { get; set; }
         /// <summary>Khoảng đệm (px thiết kế) giữa khung bo tròn và nội dung; đã được cộng vào Padding của thẻ.</summary>
         public int DemKhung { get; set; }
+        /// <summary>true: khung bo tròn ôm đúng bảng (bảng có thể không lấp hết vùng Padding, vd. còn thanh phân trang ở chân thẻ).
+        /// false (mặc định): khung theo vùng Padding của thẻ như trước.</summary>
+        public bool KhungTheoLuoi { get; set; }
         public TheBoGocF4()
         {
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw | ControlStyles.UserPaint, true);
@@ -519,8 +524,10 @@ namespace PhanMemThiDua2026
             var luoi = LuoiBang;
             if (luoi == null || luoi.IsDisposed) return;
             int gap = (int)Math.Round(DemKhung * k);
-            var kh = new Rectangle(Padding.Left - gap, Padding.Top - gap,
-                                   Width - Padding.Horizontal + 2 * gap - 1, Height - Padding.Vertical + 2 * gap - 1);
+            var kh = KhungTheoLuoi && luoi.Parent == this
+                ? Rectangle.FromLTRB(luoi.Left - gap, luoi.Top - gap, luoi.Right + gap - 1, luoi.Bottom + gap - 1)
+                : new Rectangle(Padding.Left - gap, Padding.Top - gap,
+                                Width - Padding.Horizontal + 2 * gap - 1, Height - Padding.Vertical + 2 * gap - 1);
             if (kh.Width < 24 || kh.Height < 24) return;
             int d = (int)Math.Round(20 * k);   // đường kính cung bo (bán kính 10)
             // 1) Dải tiêu đề: từ mép trên khung đến mép dưới hàng tiêu đề của bảng, màu đọc trực tiếp từ code gốc đặt
@@ -569,8 +576,8 @@ namespace PhanMemThiDua2026
     [System.ComponentModel.DesignerCategory("Code")]
     internal sealed class ThanhTabDonGianF4 : Control
     {
-        private static readonly Font FontChon = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontThuong = new Font("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontChon = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontThuong = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
         private static readonly Color MauChon = Color.FromArgb(37, 99, 235);
         private static readonly Color MauThuong = Color.FromArgb(100, 116, 139);
         private static readonly Color MauHover = Color.FromArgb(30, 41, 59);
@@ -891,7 +898,7 @@ namespace PhanMemThiDua2026
         public PopupDanhSachF4(List<string> ds, int dangChon, int rong, float k, Font font, Action<int> chon)
         {
             _ds = ds; _chon = chon; _k = k; _font = font; _dangChon = dangChon;
-            _fontDam = new Font("Segoe UI Semibold", font.SizeInPoints, FontStyle.Regular, GraphicsUnit.Point);
+            _fontDam = new Font(Module_HeThong.TenFontHeThongDam, font.SizeInPoints, FontStyle.Regular, GraphicsUnit.Point);
             AutoScaleMode = AutoScaleMode.None;
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;

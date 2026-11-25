@@ -514,9 +514,9 @@ namespace PhanMemThiDua2026
         private static readonly Color HdXanh = Color.FromArgb(59, 130, 246);
         private static readonly Color HdChuDam = Color.FromArgb(15, 23, 42);
         private static readonly Color HdChuPhu = Color.FromArgb(100, 116, 139);
-        private static readonly Font HdFontThongBao = new Font("Segoe UI Semibold", 10.5F, FontStyle.Regular);
+        private static readonly Font HdFontThongBao = new Font(Module_HeThong.TenFontHeThongDam, 10.5F, FontStyle.Regular);
         private static readonly Font HdFontPhu = new Font(Module_HeThong.TenFontHeThong, 8.5F, FontStyle.Regular);
-        private static readonly Font HdFontPhanTram = new Font("Segoe UI Semibold", 9F, FontStyle.Regular);
+        private static readonly Font HdFontPhanTram = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular);
         private static readonly StringFormat HdSfTrai = new StringFormat(StringFormatFlags.NoWrap)
         { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter };
         private static readonly StringFormat HdSfPhai = new StringFormat(StringFormatFlags.NoWrap)

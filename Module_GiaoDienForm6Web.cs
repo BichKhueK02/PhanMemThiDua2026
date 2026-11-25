@@ -30,6 +30,8 @@ namespace PhanMemThiDua2026
         private readonly ComboBox comboBox_PhanLoai;
         private readonly ComboBox comboBox_TimKiemDonVi;
         private readonly ComboBox comboBox_XepLoaiThiDua;
+        private readonly ComboBox comboBox_LocGhiChu;      // tạo bằng code trong Form6 (TaoBoLocGhiChu)
+        private readonly Label label_LocGhiChu;
         private readonly ContextMenuStrip contextMenuStrip1;
         private readonly GroupBox groupBox1_TimKiemThongTinCBCS;
         private readonly GroupBox groupBox2_KhoiLenhDieuKhien;
@@ -94,6 +96,8 @@ namespace PhanMemThiDua2026
             comboBox_PhanLoai = Lay<ComboBox>("comboBox_PhanLoai");
             comboBox_TimKiemDonVi = Lay<ComboBox>("comboBox_TimKiemDonVi");
             comboBox_XepLoaiThiDua = Lay<ComboBox>("comboBox_XepLoaiThiDua");
+            comboBox_LocGhiChu = Lay<ComboBox>("comboBox_LocGhiChu");
+            label_LocGhiChu = Lay<Label>("label_LocGhiChu");
             contextMenuStrip1 = Lay<ContextMenuStrip>("contextMenuStrip1");
             groupBox1_TimKiemThongTinCBCS = Lay<GroupBox>("groupBox1_TimKiemThongTinCBCS");
             groupBox2_KhoiLenhDieuKhien = Lay<GroupBox>("groupBox2_KhoiLenhDieuKhien");
@@ -159,11 +163,11 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuNhan = Color.FromArgb(71, 85, 105);      // nhãn ô nhập
         private static readonly Color MauChuPhu = Color.FromArgb(100, 116, 139);     // chữ phụ
         private static readonly Color MauChinh = Color.FromArgb(37, 99, 235);        // xanh chủ đạo
-        private static readonly Font FontTieuDeThe = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontTrangThai = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontMenu = new Font("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDeThe = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTrangThai = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontMenu = new Font(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
         // Bộ màu nút: (Nền, Hover, Nhấn, Viền, Chữ)
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutChinh =
             (Color.FromArgb(37, 99, 235), Color.FromArgb(29, 78, 216), Color.FromArgb(30, 64, 175), Color.FromArgb(37, 99, 235), Color.White);
@@ -195,8 +199,15 @@ namespace PhanMemThiDua2026
                 DinhMenuNguCanh();
             });
             // Các phần bị Form6_Load đặt lại -> áp dụng lại SAU Form6_Load (đăng ký sau nên chạy sau).
-            _f.Load += (s, e) => { HoanThienGiaoDienSauLoad(); CanGiuaNoiDung(); };
+            _f.Load += (s, e) => { HoanThienGiaoDienSauLoad(); CanGiuaNoiDung(); CanHangTren(); };
             _f.SizeChanged += (s, e) => CanGiuaNoiDung();
+            // Hàng trên canh lại SAU lượt dàn trang (YeuCauCanHangTren) - không canh ngay trong SizeChanged
+            tableLayoutPanel2.SizeChanged += (s, e) => YeuCauCanHangTren();                // đổi rộng / thu nhỏ - phóng to
+            textBox_TimKiemTheoTen.SizeChanged += (s, e) => YeuCauCanHangTren();           // ô nhập đổi cao (font/DPI) => nút theo
+            _f.DpiChanged += (s, e) => YeuCauCanHangTren();                                // Form6 mở riêng (cửa sổ độc lập)
+            _f.DpiChangedAfterParent += (s, e) => YeuCauCanHangTren();                     // Form6 nằm trong Form2: đổi tỷ lệ 100/125/150%
+            _f.VisibleChanged += (s, e) => { if (_f.Visible) YeuCauCanHangTren(); };      // quay lại trang sau khi cửa sổ đổi cỡ lúc ẩn
+            kryptonButton1_HuongDanThemDuLieu.TextChanged += (s, e) => YeuCauCanHangTren(); // "Thêm CBCS" <-> "Thêm tân binh"
         }
         // ---------- Bố cục tổng: nền trang + khoảng đệm + hàng đầu cố định, phần dưới co giãn ----------
         private void DinhBoCucTong()
@@ -209,8 +220,8 @@ namespace PhanMemThiDua2026
             tableLayoutPanel2.Margin = new Padding(0);
             tableLayoutPanel2.ColumnStyles.Clear();
             tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 88F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 54F));
-            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 46F));
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));   // thẻ Tìm kiếm: phần còn lại
+            tableLayoutPanel2.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 520F));  // thẻ Khối lệnh: CanHangTren đặt đúng theo nút
             // Logo: giữ đúng tỉ lệ ảnh (trước đây kéo giãn làm méo hình)
             pictureBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
@@ -239,14 +250,15 @@ namespace PhanMemThiDua2026
         //    ẩn để code gốc vẫn gán groupBoxN.Text như cũ, và Text đó được đồng bộ lên tiêu đề của thẻ.
         private void DinhTheGroupBox()
         {
-            BocTheTieuDe(groupBox1_TimKiemThongTinCBCS, tableLayoutPanel5, new Padding(0, 0, 10, 0));
-            BocTheTieuDe(groupBox2_KhoiLenhDieuKhien, tableLayoutPanel6, new Padding(0));
-            BocTheTieuDe(groupBox3_ThongTinCBCS, tableLayoutPanel3, new Padding(0));
+            _theTimKiem = BocTheTieuDe(groupBox1_TimKiemThongTinCBCS, tableLayoutPanel5, new Padding(0, 0, 10, 0));
+            _theLenh = BocTheTieuDe(groupBox2_KhoiLenhDieuKhien, tableLayoutPanel6, new Padding(0));
+            _theCapNhat = BocTheTieuDe(groupBox3_ThongTinCBCS, tableLayoutPanel3, new Padding(0));
         }
-        private static void BocTheTieuDe(GroupBox gb, Control noiDung, Padding margin)
+        private TheBoGocF6? _theTimKiem, _theLenh, _theCapNhat;
+        private static TheBoGocF6? BocTheTieuDe(GroupBox gb, Control noiDung, Padding margin)
         {
             var cha = gb.Parent;
-            if (cha == null) return;
+            if (cha == null) return null;
             var the = new TheBoGocF6
             {
                 Dock = DockStyle.Fill,
@@ -280,6 +292,7 @@ namespace PhanMemThiDua2026
             {
                 cha.ResumeLayout(true);
             }
+            return the;
         }
         // ---------- Giữ bố cục gọn trên màn hình rộng: nội dung tối đa RongToiDa, căn giữa ----------
         private const int RongToiDa = 1440; // đơn vị thiết kế (96 DPI). Muốn rộng hơn/hẹp hơn chỉ cần sửa số này.
@@ -294,70 +307,258 @@ namespace PhanMemThiDua2026
             tableLayoutPanel1.Padding = new Padding(le, p.Top, le, p.Bottom);
         }
         // ---------- Thẻ 1: Tìm kiếm ----------
+        // Kiểu thanh lọc web: NHÃN NẰM TRÊN Ô (4 ô lọc + nút làm mới bộ lọc chung 1 hàng) => ô lọc rộng gần gấp đôi so với nhãn đứng cạnh.
+        //   hàng 0: Họ và tên | Đơn vị | Xếp loại | Ghi chú |
+        //   hàng 1: [ô tên]   | [combo]| [combo]  | [combo] | [nút vuông]
+        // Cột ô chia tỉ lệ (tên dài nhất); cột Xếp loại, cao hàng nhãn, cột nút do CanHangTren đặt theo DPI + nội dung.
         private void DinhKhoiTimKiem()
         {
-            // Cột nhãn tự co theo chữ, cột ô nhập chia theo tỉ lệ -> không còn lệch/cắt chữ khi resize
-            tableLayoutPanel5.ColumnStyles.Clear();
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 44F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28F));
-            tableLayoutPanel5.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 50F));
-            tableLayoutPanel5.Margin = new Padding(0);
-            DinhNhan(label3, true);
-            DinhNhan(label4);
-            DinhNhan(label5);
-            DinhODauVao(textBox_TimKiemTheoTen);
-            DinhODauVao(comboBox_TimKiemDonVi);
-            DinhODauVao(comboBox_XepLoaiThiDua);
-            KieuNut(kryptonButton_LamMoiCacOTimKiem, FontNut, NutVien);
-            CanNutTheoO(kryptonButton_LamMoiCacOTimKiem, new Padding(8, 0, 0, 0));
+            var t = tableLayoutPanel5;
+            t.SuspendLayout();
+            try
+            {
+                t.ColumnStyles.Clear();
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32F));      // 0 Họ và tên
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 23F));      // 1 Đơn vị
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 19F));      // 2 Xếp loại
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26F));      // 3 Ghi chú
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 32F));     // 4 nút làm mới bộ lọc
+                t.RowStyles.Clear();
+                t.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));           // 0 nhãn
+                t.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));           // 1 ô nhập
+                t.RowCount = 2;
+                t.Margin = new Padding(0);
+                var cot = new (Label Nhan, Control O)[]
+                {
+                    (label3, textBox_TimKiemTheoTen), (label4, comboBox_TimKiemDonVi),
+                    (label5, comboBox_XepLoaiThiDua), (label_LocGhiChu, comboBox_LocGhiChu)
+                };
+                for (int i = 0; i < cot.Length; i++)
+                {
+                    var (nhan, o) = cot[i];
+                    DinhNhan(nhan, true);
+                    nhan.Anchor = AnchorStyles.Left | AnchorStyles.Bottom;   // sát ngay trên ô của nó
+                    t.SetCellPosition(nhan, new TableLayoutPanelCellPosition(i, 0));
+                    DinhODauVao(o);
+                    t.SetCellPosition(o, new TableLayoutPanelCellPosition(i, 1));
+                }
+                t.SetCellPosition(kryptonButton_LamMoiCacOTimKiem, new TableLayoutPanelCellPosition(4, 1));
+                t.ColumnCount = 5;   // sau khi đã dời hết control về 5 cột đầu
+                KieuNut(kryptonButton_LamMoiCacOTimKiem, FontNut, NutVien);
+                kryptonButton_LamMoiCacOTimKiem.Anchor = AnchorStyles.Right;   // vuông, sát mép phải, căn giữa theo chiều dọc
+                kryptonButton_LamMoiCacOTimKiem.Margin = new Padding(0);
+            }
+            finally { t.ResumeLayout(false); }
         }
         // ---------- Thẻ 2: Khối lệnh ----------
+        // Mỗi nút rộng ĐÚNG theo chữ dài nhất nó có thể hiện + biểu tượng (CanHangTren) => không bao giờ bị cắt chữ / bể biểu tượng;
+        // thẻ Tìm kiếm ăn phần còn lại.
         private void DinhKhoiLenh()
         {
             tableLayoutPanel6.Margin = new Padding(0);
             tableLayoutPanel6.ColumnStyles.Clear();
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
-            tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 29F));
+            for (int i = 0; i < 4; i++) tableLayoutPanel6.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 120F));
+            // Cùng khung 2 hàng với thẻ Tìm kiếm (hàng 0 trống = chỗ nhãn) => nút lệnh thẳng hàng với ô lọc
+            tableLayoutPanel6.RowStyles.Clear();
+            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            tableLayoutPanel6.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutPanel6.RowCount = 2;
+            for (int i = 0; i < NutLenh.Length; i++)
+                tableLayoutPanel6.SetCellPosition(NutLenh[i], new TableLayoutPanelCellPosition(i, 1));
             KieuNut(kryptonButton1_ThiDuaBaNhat, FontNut, NutXanhNhat);
             KieuNut(kryptonButton_RefershCSDL, FontNut, NutVien);
             KieuNut(kryptonButton_XoaKetQuaPhanLoai, FontNut, NutNguyHiem);
             KieuNut(kryptonButton1_HuongDanThemDuLieu, FontNut, NutChinh);
-            CanNutTheoO(kryptonButton1_ThiDuaBaNhat, new Padding(0, 0, 8, 0));
-            CanNutTheoO(kryptonButton_RefershCSDL, new Padding(0, 0, 8, 0));
-            CanNutTheoO(kryptonButton_XoaKetQuaPhanLoai, new Padding(0, 0, 8, 0));
-            CanNutTheoNoiDung(tableLayoutPanel6, kryptonButton1_HuongDanThemDuLieu, new Padding(0), 120);
-        }
-        // Nút co giãn theo NỘI DUNG (chữ + icon), không kéo hết ô: tự tăng/giảm khi chữ đổi
-        // ("Thêm CBCS" <-> "Thêm tân binh"), nằm sát mép phải ô, không bao giờ tràn quá bề ngang ô.
-        private static void CanNutTheoNoiDung(TableLayoutPanel bang, Krypton.Toolkit.KryptonButton b, Padding margin, int rongToiThieu)
-        {
-            const int CAO = 32;
-            b.Margin = margin;
-            b.Anchor = AnchorStyles.Right;                                        // sát phải, căn giữa theo chiều dọc
-            b.StateCommon.Content.Padding = new Padding(12, 0, 12, 0);           // chừa lề chữ 2 bên cho cân đối
-            b.AutoSize = true;
-            b.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            b.MinimumSize = new Size(rongToiThieu, CAO);
-            void GioiHanTheoO()
+            foreach (var b in NutLenh)
             {
-                if (bang.IsDisposed || b.IsDisposed) return;
-                var cot = bang.GetColumn(b);
-                int[] rong = bang.GetColumnWidths();
-                int toiDa = cot >= 0 && cot < rong.Length ? rong[cot] - margin.Horizontal : 0;
-                // Ô hẹp hơn mức tối thiểu thì vẫn không tràn: co mức tối thiểu theo ô
-                int min = toiDa > 0 ? Math.Min(rongToiThieu, toiDa) : rongToiThieu;
-                b.MinimumSize = new Size(min, CAO);
-                b.MaximumSize = new Size(toiDa > 0 ? Math.Max(min, toiDa) : 0, CAO);
+                b.AutoSize = false;
+                b.Anchor = AnchorStyles.Left | AnchorStyles.Right;   // lấp đầy cột (cột đã rộng đúng nội dung)
+                b.Margin = new Padding(0);
             }
-            GioiHanTheoO();
-            bang.SizeChanged += (_, _) => GioiHanTheoO();
-            b.TextChanged += (_, _) => GioiHanTheoO();
+            // Biểu tượng vẽ lại theo chiều cao mới (không kéo giãn bitmap => không bể hình)
+            foreach (var b in NutLenh) Module_BieuTuongNut.TuCoGianBieuTuong(b);
+            Module_BieuTuongNut.TuCoGianBieuTuong(kryptonButton_LamMoiCacOTimKiem);
+        }
+        private Krypton.Toolkit.KryptonButton[] NutLenh => new[]
+            { kryptonButton1_ThiDuaBaNhat, kryptonButton_RefershCSDL, kryptonButton_XoaKetQuaPhanLoai, kryptonButton1_HuongDanThemDuLieu };
+        // Chữ dài nhất mỗi nút lệnh có thể hiện (code nghiệp vụ đổi chữ lúc chạy) => bề rộng cố định, thẻ không "nhảy" khi đổi chữ
+        private static IEnumerable<string> ChuCoTheHien(Krypton.Toolkit.KryptonButton b)
+        {
+            yield return b.Values.Text ?? "";
+            switch (b.Name)
+            {
+                case "kryptonButton_RefershCSDL": yield return "Đang tải..."; break;
+                case "kryptonButton1_HuongDanThemDuLieu": yield return "Thêm CBCS"; yield return "Thêm tân binh"; yield return "Thêm học viên"; break;
+            }
+        }
+        private int _dpiDaChia;
+        private bool _choCanHangTren;
+        /// <summary>
+        /// Xin canh lại hàng trên. Mọi sự kiện (đổi cỡ, đổi DPI, đổi chữ nút...) đi qua đây: dồn nhiều yêu cầu thành 1 lần
+        /// và chạy SAU KHI lượt dàn trang hiện tại xong (BeginInvoke). Trước đây canh ngay trong SizeChanged - tức là giữa lúc
+        /// khung cha đang dàn trang - nên đổi cột chỉ ăn một phần: thu nhỏ/khôi phục xong thẻ Lệnh kẹt ở bề rộng dạng gọn,
+        /// thẻ Tìm kiếm bị kéo giãn.
+        /// </summary>
+        private void YeuCauCanHangTren()
+        {
+            if (_choCanHangTren || _f.IsDisposed || !_f.IsHandleCreated) return;
+            _choCanHangTren = true;
+            _f.BeginInvoke(new Action(() => { _choCanHangTren = false; CanHangTren(); }));
+        }
+        // Nhãn xếp loại có thể hiện (cố định, KHÔNG lấy từ dữ liệu: giá trị lạ/dài trong CSDL không được kéo giãn bố cục)
+        private static IEnumerable<string> ChuXepLoai() => new[]
+        {
+            Module_HeThong.Tat_Ca, "Không PL", Module_HeThong.PL_KHONG_PL, Module_HeThong.Loai_1, Module_HeThong.Loai_2,
+            Module_HeThong.Loai_3, Module_HeThong.Loai_4, Module_HeThong.PL_CSTD, Module_HeThong.PL_CSTT,
+            Module_HeThong.PL_HTNV, Module_HeThong.PL_KHTNV
+        };
+        /// <summary>
+        /// Kích thước hàng trên (thẻ Tìm kiếm + Khối lệnh) + lề 3 thẻ theo DPI THẬT (100/125/150%...): cao hàng, cao/rộng nút,
+        /// cột Xếp loại, cột nút làm mới bộ lọc. KHÔNG giữ trạng thái: kết quả chỉ phụ thuộc bề rộng + DPI hiện tại, nên
+        /// thu nhỏ/phóng to/kéo hẹp-rộng bao nhiêu lần cũng về đúng bố cục mặc định.
+        /// Hẹp dần: (1) ẩn logo; (2) nút lệnh chỉ còn biểu tượng (không bao giờ co nhỏ hơn biểu tượng => không bể hình).
+        /// </summary>
+        private void CanHangTren()
+        {
+            if (_f.IsDisposed || !_f.IsHandleCreated) return;
+            // Đang thu nhỏ / chưa có bề rộng thật (khung chứa đang 0 px khi Form2 thu nhỏ): KHÔNG đổi gì, giữ bố cục cũ
+            var goc = _f.TopLevel ? _f : _f.TopLevelControl as Form;
+            if (goc != null && goc.WindowState == FormWindowState.Minimized) return;
+            float k = Math.Max(1f, _f.DeviceDpi / 96f);
+            int P(float v) => (int)Math.Round(v * k);
+            int rongHang = tableLayoutPanel2.ClientSize.Width;
+            if (rongHang < P(400)) return;
+            var cacBang = new[] { tableLayoutPanel1, tableLayoutPanel2, tableLayoutPanel5, tableLayoutPanel6 };
+            foreach (var t in cacBang) t.SuspendLayout();
+            try
+            {
+                // Cao nút = cao ô nhập (cùng hàng nhìn thẳng đều), tối thiểu 30 px thiết kế => biểu tượng 18 px luôn đủ chỗ
+                int cao = Math.Max(textBox_TimKiemTheoTen.Height, P(30));
+                // Hàng trên: vùng tiêu đề thẻ + hàng nhãn + ô/nút + khoảng thở. Lề thẻ (cả thẻ Cập nhật) nhân DPI như chữ tiêu đề.
+                var vungThe = new Padding(P(12), P(34), P(12), P(8));
+                int caoNhan = label3.PreferredHeight + P(3);
+                foreach (var t in new[] { tableLayoutPanel5, tableLayoutPanel6 })
+                    DatHang(t, 0, caoNhan);
+                var leO = new Padding(0, P(3), P(10), P(3));   // khe giữa các ô lọc
+                var leNhan = new Padding(P(1), 0, P(10), P(2));
+                foreach (var c in new Control[] { textBox_TimKiemTheoTen, comboBox_TimKiemDonVi, comboBox_XepLoaiThiDua, comboBox_LocGhiChu })
+                    if (c.Margin != leO) c.Margin = leO;
+                foreach (var lb in new[] { label3, label4, label5, label_LocGhiChu })
+                    if (lb.Margin != leNhan) lb.Margin = leNhan;
+                DatHang(tableLayoutPanel1, 0, vungThe.Vertical + caoNhan + cao + P(10));
+                foreach (var the in new[] { _theTimKiem, _theLenh, _theCapNhat })
+                    if (the != null && the.Padding != vungThe) the.Padding = vungThe;
+                var leThe = new Padding(0, 0, P(10), 0);
+                if (_theTimKiem != null && _theTimKiem.Margin != leThe) _theTimKiem.Margin = leThe;
+                // Nút làm mới bộ lọc: vuông, cao bằng ô nhập
+                var nutLoc = kryptonButton_LamMoiCacOTimKiem;
+                var coNutLoc = new Size(cao, cao);
+                if (nutLoc.MinimumSize != coNutLoc) nutLoc.MinimumSize = coNutLoc;
+                if (nutLoc.MaximumSize != coNutLoc) nutLoc.MaximumSize = coNutLoc;
+                if (nutLoc.Size != coNutLoc) nutLoc.Size = coNutLoc;
+                DatCot(tableLayoutPanel5, 4, cao);
+                // Cột Xếp loại: đủ hiện trọn nhãn dài nhất + mũi tên; 3 ô còn lại chia phần dư theo tỉ lệ
+                int rongXL = 0;
+                foreach (var t in ChuXepLoai())
+                    rongXL = Math.Max(rongXL, TextRenderer.MeasureText(t ?? "", comboBox_XepLoaiThiDua.Font).Width);
+                int cotXL = rongXL + P(40) + leO.Horizontal;
+                DatCot(tableLayoutPanel5, 2, cotXL);
+                // Nút lệnh: đầy đủ = chữ dài nhất + biểu tượng + lề trong; gọn = chỉ biểu tượng
+                int khe = P(8);
+                int coAnh = Math.Max(12, Math.Min(P(18), cao - P(10)));
+                var nut = NutLenh;
+                var rongDu = new int[nut.Length];
+                var rongGon = new int[nut.Length];
+                int tongDu = 0, tongGon = 0;
+                for (int i = 0; i < nut.Length; i++)
+                {
+                    var font = nut[i].StateCommon.Content.ShortText.Font ?? nut[i].Font;
+                    int chu = 0;
+                    foreach (var t in ChuCoTheHien(nut[i])) chu = Math.Max(chu, TextRenderer.MeasureText(t, font).Width);
+                    int kheSau = i < nut.Length - 1 ? khe : 0;
+                    rongDu[i] = chu + coAnh + P(28) + kheSau;
+                    rongGon[i] = cao + P(12) + kheSau;
+                    tongDu += rongDu[i];
+                    tongGon += rongGon[i];
+                }
+                // Chỗ còn cho 3 ô co giãn (tên, đơn vị, ghi chú) với logo/nút lệnh cho trước
+                int ChoO(int logo, int lenh) => rongHang - logo - (lenh + vungThe.Horizontal + 2) - leThe.Horizontal - vungThe.Horizontal
+                                                - 3 * leO.Horizontal - cao - cotXL;
+                // Ngưỡng = phần chung tối thiểu để MỌI ô co giãn còn đủ chỗ: combo hiện trọn "Tất cả" + mũi tên, ô tên >= 110 px thiết kế.
+                // Phần chung chia theo tỉ lệ cột (32/23/26) => ô nào hụt trước quyết định ngưỡng.
+                int minCombo = TextRenderer.MeasureText(Module_HeThong.Tat_Ca, comboBox_TimKiemDonVi.Font).Width + P(48);   // (khe giữa ô đã trừ trong ChoO)
+                int minTen = P(110);
+                float tong = 0f;
+                foreach (int i in new[] { 0, 1, 3 }) tong += tableLayoutPanel5.ColumnStyles[i].Width;
+                int nguong = (int)Math.Ceiling(Math.Max(minTen * tong / tableLayoutPanel5.ColumnStyles[0].Width,
+                             Math.Max(minCombo * tong / tableLayoutPanel5.ColumnStyles[1].Width, minCombo * tong / tableLayoutPanel5.ColumnStyles[3].Width)));
+                bool anLogo = ChoO(P(88), tongDu) < nguong;
+                bool gon = anLogo && ChoO(0, tongDu) < nguong;
+                int tongLenh = 0;
+                for (int i = 0; i < nut.Length; i++)
+                {
+                    var b = nut[i];
+                    int kheSau = i < nut.Length - 1 ? khe : 0;
+                    int r = gon ? rongGon[i] : rongDu[i];
+                    DatCot(tableLayoutPanel6, i, r);
+                    var m = new Padding(0, 0, kheSau, 0);
+                    if (b.Margin != m) b.Margin = m;
+                    var coMin = new Size(0, cao);
+                    if (b.MinimumSize != coMin) b.MinimumSize = coMin;
+                    if (b.MaximumSize != coMin) b.MaximumSize = coMin;
+                    if (b.Height != cao) b.Height = cao;
+                    // Dạng gọn: KHÔNG đổi chữ của nút (code nghiệp vụ còn đọc/ghi Values.Text) - chỉ để Krypton ẩn chữ không vừa,
+                    // biểu tượng căn giữa. Chữ đầy đủ vẫn ở tooltip.
+                    var trim = gon ? Krypton.Toolkit.PaletteTextTrim.Hide : Krypton.Toolkit.PaletteTextTrim.Inherit;
+                    if (b.StateCommon.Content.ShortText.Trim != trim) b.StateCommon.Content.ShortText.Trim = trim;
+                    var canAnh = gon ? Krypton.Toolkit.PaletteRelativeAlign.Center : Krypton.Toolkit.PaletteRelativeAlign.Inherit;
+                    if (b.StateCommon.Content.Image.ImageH != canAnh) b.StateCommon.Content.Image.ImageH = canAnh;
+                    tongLenh += r;
+                }
+                DatCot(tableLayoutPanel2, 2, tongLenh + vungThe.Horizontal + 2);
+                if (pictureBox1.Visible == anLogo) pictureBox1.Visible = !anLogo;
+                DatCot(tableLayoutPanel2, 0, anLogo ? 0 : P(88));
+                var leLogo = new Padding(0, P(8), P(14), P(8));
+                if (pictureBox1.Margin != leLogo) pictureBox1.Margin = leLogo;
+                // Thẻ Cập nhật (2 hàng ô nhập): cao theo DPI, đặt 1 lần cho mỗi mức DPI (người dùng vẫn kéo thanh chia được)
+                if (_dpiDaChia != _f.DeviceDpi)
+                {
+                    int caoO = Math.Max(textBox_QueQuan.Height, textBox_GhiChu.Height);
+                    int chia = Math.Max(P(134), vungThe.Vertical + 2 * (caoO + P(12)));
+                    var sc = splitContainer1;
+                    if (sc.Height >= chia + sc.Panel2MinSize + sc.SplitterWidth)
+                    {
+                        sc.Panel1MinSize = Math.Min(sc.Panel1MinSize, chia);   // hạ trước (đổi DPI xuống) để gán khoảng chia không lỗi
+                        sc.SplitterDistance = chia;
+                        sc.Panel1MinSize = Math.Min(P(110), chia);
+                        _dpiDaChia = _f.DeviceDpi;
+                    }
+                }
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[Form6Web] CanHangTren: " + ex.Message); }
+            finally
+            {
+                // Mở lại từ trong ra ngoài, rồi dàn lại cả cây MỘT lần với các kiểu cột/hàng mới
+                for (int i = cacBang.Length - 1; i >= 0; i--) cacBang[i].ResumeLayout(false);
+                tableLayoutPanel1.PerformLayout();
+                tableLayoutPanel2.PerformLayout();
+                tableLayoutPanel5.PerformLayout();
+                tableLayoutPanel6.PerformLayout();
+            }
+        }
+        private static void DatHang(TableLayoutPanel t, int hang, int cao)
+        {
+            if (hang >= t.RowStyles.Count) return;
+            var st = t.RowStyles[hang];
+            if (st.SizeType != SizeType.Absolute || Math.Abs(st.Height - cao) > 0.5f)
+                t.RowStyles[hang] = new RowStyle(SizeType.Absolute, cao);
+        }
+        private static void DatCot(TableLayoutPanel t, int cot, int rong)
+        {
+            if (cot >= t.ColumnStyles.Count) return;
+            var st = t.ColumnStyles[cot];
+            if (st.SizeType != SizeType.Absolute || Math.Abs(st.Width - rong) > 0.5f)
+                t.ColumnStyles[cot] = new ColumnStyle(SizeType.Absolute, rong);
         }
         // ---------- Thẻ 3: Form cập nhật thông tin (2 hàng ô nhập) ----------
         private void DinhKhoiCapNhat()
@@ -411,13 +612,56 @@ namespace PhanMemThiDua2026
             KieuNut(kryptonButton_LuuDataCapNhat, FontNut, NutXanhLa);
             CanNutTheoO(kryptonButton_XoaDataCBCS, new Padding(10, 0, 0, 0));
             CanNutTheoO(kryptonButton_LuuDataCapNhat, new Padding(10, 0, 0, 0));
+            // Cột nút trước đây cố định 120px (không nhân DPI) => ở 125-150% chữ + biểu tượng bị cắt ("bể nút").
+            // Nay bề rộng cột / chiều cao nút tính theo DPI + chữ dài nhất mà nút có thể hiện, nên cả 2 nút luôn rộng bằng nhau.
+            var nutCotCuoi = new[] { (tableLayoutPanel8, kryptonButton_XoaDataCBCS), (tableLayoutPanel9, kryptonButton_LuuDataCapNhat) };
+            void CanCotNut()
+            {
+                try
+                {
+                    float k = Math.Max(1f, _f.DeviceDpi / 96f);
+                    int rong = (int)Math.Round(120 * k);
+                    foreach (var (_, b) in nutCotCuoi)
+                    {
+                        var font = b.StateCommon.Content.ShortText.Font ?? b.Font;
+                        foreach (var chu in new[] { b.Values.Text ?? "", "Cập nhật", "Đang lưu..." })
+                        {
+                            // chữ + biểu tượng (~18px) + khoảng cách + lề trong nút + margin trái 10px
+                            int can = TextRenderer.MeasureText(chu, font).Width + (int)Math.Round((18 + 8 + 24 + 10) * k);
+                            rong = Math.Max(rong, can);
+                        }
+                    }
+                    // Nút cao đúng bằng ô nhập Quê quán / Ghi chú (cao THẬT lúc chạy, đã theo DPI + font) => hai hàng thẳng đều
+                    int cao = Math.Max(textBox_QueQuan.Height, textBox_GhiChu.Height);
+                    if (cao <= 0) cao = (int)Math.Round(32 * k);
+                    foreach (var (bang, b) in nutCotCuoi)
+                    {
+                        int cot = bang.ColumnStyles.Count - 1;
+                        var st = bang.ColumnStyles[cot];
+                        if (st.SizeType != SizeType.Absolute || Math.Abs(st.Width - rong) > 0.5f)
+                            bang.ColumnStyles[cot] = new ColumnStyle(SizeType.Absolute, rong);
+                        b.MinimumSize = new Size(0, cao);
+                        b.Height = cao;
+                    }
+                }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("[Form6Web] CanCotNut: " + ex.Message); }
+            }
+            CanCotNut();
+            // Biểu tượng trên 2 nút vẽ lại theo chiều cao mới (không kéo giãn bitmap => không bể hình)
+            Module_BieuTuongNut.TuCoGianBieuTuong(kryptonButton_XoaDataCBCS);
+            Module_BieuTuongNut.TuCoGianBieuTuong(kryptonButton_LuuDataCapNhat);
+            textBox_QueQuan.SizeChanged += (_, _) => CanCotNut();        // ô nhập đổi cao (font/DPI) => nút theo
+            textBox_GhiChu.SizeChanged += (_, _) => CanCotNut();
+            _f.Load += (_, _) => CanCotNut();                             // lúc Load DeviceDpi / font đã chắc chắn
+            _f.DpiChanged += (_, _) => _f.BeginInvoke(new Action(CanCotNut)); // kéo cửa sổ sang màn hình khác DPI
+            _f.DpiChangedAfterParent += (_, _) => { if (_f.IsHandleCreated) _f.BeginInvoke(new Action(CanCotNut)); }; // nằm trong Form2
         }
         // ---------- 4 ComboBox: ô chọn + danh sách sổ xuống bo tròn (dùng chung OComboWebF4 / PopupDanhSachF4 trong Module_GiaoDienForm4Web.cs) ----------
         // ComboBox gốc vẫn còn nguyên (Items, Text, SelectedIndex, sự kiện, Enabled/Visible do logic điều khiển); chỉ được ẩn hình và
         // thay bằng ô vẽ tay đặt đúng vị trí. Chọn trên ô mới sẽ gán SelectedIndex của ComboBox gốc nên mọi sự kiện chạy như cũ.
         private void DinhComboBoTron()
         {
-            foreach (var cb in new[] { comboBox_TimKiemDonVi, comboBox_XepLoaiThiDua, comboBox_ChucVu, textBox_CapBac, textBox_DonVi, comboBox_PhanLoai })
+            foreach (var cb in new[] { comboBox_TimKiemDonVi, comboBox_XepLoaiThiDua, comboBox_LocGhiChu, comboBox_ChucVu, textBox_CapBac, textBox_DonVi, comboBox_PhanLoai })
                 if (cb != null && cb.Parent != null) OComboWebF4.Gan(cb);
         }
         // ---------- Lưới dữ liệu nằm trong 1 thẻ trắng bo góc ----------

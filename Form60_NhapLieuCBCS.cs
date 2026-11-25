@@ -383,7 +383,7 @@ namespace PhanMemThiDua2026
         private static DataTable DungBangTuDong(List<object[]> dong)
         {
             var dt = TaoBangRong();
-            string now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string now = DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL);
             dt.BeginLoadData();
             long id = 0;
             foreach (var d in dong)
@@ -444,7 +444,7 @@ namespace PhanMemThiDua2026
                     var pTuTu = cmdInsert.Parameters.Add("$ThuTuSapXep", SqliteType.Integer);
                     var pTao = cmdInsert.Parameters.Add("$ThoiGianTao", SqliteType.Text);
                     var pCapNhat = cmdInsert.Parameters.Add("$ThoiGianCapNhat", SqliteType.Text);
-                    pTao.Value = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                    pTao.Value = DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL);
                     pCapNhat.Value = DBNull.Value;
                     long id = 0;
                     foreach (object[] d in dong)
@@ -651,16 +651,16 @@ namespace PhanMemThiDua2026
         {
             ("ID",              "ID",        0,   false, false, false),
             ("STT",             "STT",       0,   false, false, false),
-            ("HoVaTen",         "Họ và tên", 210, false, true,  false),
-            ("SoHieu",          "Số hiệu",   105, true,  true,  false),
-            ("NamSinh",         "Năm sinh",  95,  true,  true,  false),
-            ("QueQuan",         "Quê quán",  250, false, true,  false),
-            ("NgayVaoCAND",     "Vào CAND",  125, true,  true,  false),
-            ("CapBac",          "Cấp bậc",   95,  true,  true,  false),
-            ("ChucVu",          "Chức vụ",   105, true,  true,  false),
-            ("DonVi",           "Đơn vị",    110, true,  true,  false),
-            ("PhanLoai",        "Phân loại", 110, true,  true,  false),
-            ("GhiChu",          "Ghi chú",   0,   false, true,  true),
+            ("HoVaTen",         Module_HeThong.TieuDeCot.HoVaTen, 210, false, true,  false),
+            ("SoHieu",          Module_HeThong.TieuDeCot.SoHieu,   105, true,  true,  false),
+            ("NamSinh",         Module_HeThong.TieuDeCot.NamSinh,  95,  true,  true,  false),
+            ("QueQuan",         Module_HeThong.TieuDeCot.QueQuan,  250, false, true,  false),
+            ("NgayVaoCAND",     Module_HeThong.TieuDeCot.VaoCAND,  125, true,  true,  false),
+            ("CapBac",          Module_HeThong.TieuDeCot.CapBac,   95,  true,  true,  false),
+            ("ChucVu",          Module_HeThong.TieuDeCot.ChucVu,   105, true,  true,  false),
+            ("DonVi",           Module_HeThong.TieuDeCot.DonVi,    110, true,  true,  false),
+            ("PhanLoai",        Module_HeThong.TieuDeCot.PhanLoai, 110, true,  true,  false),
+            ("GhiChu",          Module_HeThong.TieuDeCot.GhiChu,   0,   false, true,  true),
             ("ThuTuSapXep",     "ThuTuSapXep", 0, false, false, false),
             ("ThoiGianTao",     "ThoiGianTao", 0, false, false, false),
             ("ThoiGianCapNhat", "ThoiGianCapNhat", 0, false, false, false)
@@ -754,13 +754,13 @@ namespace PhanMemThiDua2026
                 dieuKien.Add($"(HoVaTen LIKE '%{an}%' OR SoHieu LIKE '%{an}%')");
             }
             if (donViDuocChon.Length > 0)
-                dieuKien.Add($"DonVi = '{donViDuocChon.Replace("'", "''")}'");
+                dieuKien.Add(Module_DonVi.DieuKienRowFilter(dt, "DonVi", donViDuocChon));
             string filter = string.Join(" AND ", dieuKien);
             // BỘ LỌC KÉP: combo Đơn vị chỉ còn đơn vị có người khớp ô tìm kiếm (giữ thứ tự gốc + giá trị đang chọn)
             if (coCotTim)
             {
                 string[] tu = Module_BoLocKhenThuong.TachTuKhoa(tuKhoa);
-                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donViDuocChon, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"));
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donViDuocChon, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"), laDonVi: true);
                 Module_BoLocKhenThuong.LocKep(Module_BoLocKhenThuong.DongConSong(dt),
                     tu.Length == 0 ? null : r => Module_BoLocKhenThuong.KhopCotTimKiem(r, tu), tcDv);
                 _dangDatLaiLoc = true;
@@ -902,11 +902,9 @@ namespace PhanMemThiDua2026
                     textBox_SoHieu.Text = SinhSoHieuTanBinhTiepTheo();
                     return;
                 }
-                if (!soHieuNhap.StartsWith("ID", StringComparison.OrdinalIgnoreCase))
-                {
-                    soHieuNhap = int.TryParse(soHieuNhap, out int soThuTu) ? $"ID{soThuTu:D5}" : "ID" + soHieuNhap;
-                    textBox_SoHieu.Text = soHieuNhap;
-                }
+                // Mã tạm theo chế độ: Tân binh TB00001, Học viên HV00001 ("5" -> TB00005; mã "ID....." của dữ liệu cũ giữ nguyên)
+                soHieuNhap = Module_CheDoDoiTuong.ChuanHoaMaTam(Module_CheDoDoiTuong.Hien, soHieuNhap);
+                textBox_SoHieu.Text = soHieuNhap;
                 bool isTrungCSDL2 = false;
                 if (_soHieuGocCache != null)
                 {
@@ -935,7 +933,7 @@ namespace PhanMemThiDua2026
                 }
                 if (isTrungCSDL2)
                 {
-                    MessageBox.Show($"Mã [{soHieuNhap}] đã tồn tại trong cơ sở dữ liệu! Hệ thống sẽ tự động cấp mã ID mới.",
+                    MessageBox.Show($"Mã [{soHieuNhap}] đã tồn tại trong cơ sở dữ liệu! Hệ thống sẽ tự động cấp mã tạm mới.",
                                     "Cảnh báo trùng ID", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     textBox_SoHieu.Text = SinhSoHieuTanBinhTiepTheo();
                     textBox_SoHieu.Focus();
@@ -1037,11 +1035,12 @@ namespace PhanMemThiDua2026
                 }
                 catch { }
             }
+            var cheDo = Module_CheDoDoiTuong.Hien;
             int chiSo = 1;
             string maMoi;
             do
             {
-                maMoi = $"ID{chiSo:D5}";
+                maMoi = Module_CheDoDoiTuong.TaoMaTam(cheDo, chiSo);   // TB00001 / HV00001
                 chiSo++;
             }
             while (soHieuDaTonTai.Contains(maMoi));
@@ -1749,7 +1748,7 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = {Module_TaiKhoan.BangDanh
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi cập nhật giao diện theo phiên bản:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi cập nhật giao diện theo phiên bản:\n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         //  CLICK DÒNG -> ĐỔ LÊN Ô NHẬP
@@ -1951,7 +1950,7 @@ SET STT = (SELECT NewSTT FROM Ranked WHERE Ranked.ID = {Module_TaiKhoan.BangDanh
                 cmd.Parameters.AddWithValue("$DonVi", dto.DonVi ?? "");
                 cmd.Parameters.AddWithValue("$PhanLoai", dto.PhanLoai ?? "");
                 cmd.Parameters.AddWithValue("$GhiChu", dto.GhiChu ?? "");
-                cmd.Parameters.AddWithValue("$ThoiGianTao", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                cmd.Parameters.AddWithValue("$ThoiGianTao", DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL));
                 cmd.ExecuteNonQuery();
             }
             const string reindexSttQuery = @"

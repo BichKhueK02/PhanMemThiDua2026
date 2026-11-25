@@ -46,6 +46,30 @@ namespace PhanMemThiDua2026
             Chay("khung", () => ChinhKhung(f));
             Chay("nhan", () => ChinhNhan(f));
             Chay("nut", () => ChinhNut(f));
+            Chay("le o nhap", () => GiuLeDocONhap(f));
+        }
+        // ------------------------------------------------------------------
+        //  Ô nhập KryptonTextBox bị LỆCH XUỐNG so với nhãn khi màn hình ≠ 100% (vd 125%):
+        //  lúc tự co giãn DPI trong InitializeComponent, WinForms nhân lề TRÊN/DƯỚI của KryptonTextBox
+        //  lặp lại mỗi lần một khung con ResumeLayout (2 -> 3 -> 4 -> 5 -> 7 -> 9 -> 12 ... -> 21),
+        //  còn lề trái/phải giữ nguyên. Lề trên+dưới quá lớn => TableLayoutPanel không căn giữa được,
+        //  đẩy ô xuống và cắt viền đáy. Nhãn vẫn đúng giữa hàng nên trông như "nhãn bị lệch".
+        //  Sửa: đặt lề trên/dưới bằng lề trái (Designer của Form12 đều là Padding(2) đồng đều),
+        //  và canh lại nếu lề bị nhân tiếp (đổi màn hình khác DPI).
+        // ------------------------------------------------------------------
+        private static void GiuLeDocONhap(Form f)
+        {
+            foreach (var tb in LayTatCa<KryptonTextBox>(f))
+            {
+                SuaLeDoc(tb);
+                tb.MarginChanged += (s, e) => { if (s is KryptonTextBox t) SuaLeDoc(t); };
+            }
+        }
+        private static void SuaLeDoc(KryptonTextBox tb)
+        {
+            var m = tb.Margin;
+            if (m.Top == m.Left && m.Bottom == m.Left) return;   // cũng chặn vòng lặp khi chính ta đặt lại
+            tb.Margin = new Padding(m.Left, m.Left, m.Right, m.Left);
         }
         private static void Chay(string ten, Action a)
         {

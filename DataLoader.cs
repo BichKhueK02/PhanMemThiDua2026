@@ -78,7 +78,7 @@ public static class DataLoader
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .ToArray();
             // Đơn vị trùng tên trong cấu hình: giữ thứ tự xuất hiện đầu tiên (ToDictionary bản trước ném lỗi khi trùng khóa)
-            var map = new Dictionary<string, int>(thuTuUuTien.Length);
+            var map = new Dictionary<string, int>(thuTuUuTien.Length, Module_DonVi.SoSanhBang);   // khớp mọi cách viết của đơn vị
             for (int i = 0; i < thuTuUuTien.Length; i++)
                 map.TryAdd(thuTuUuTien[i], i);
             // Bảng rỗng: CopyToDataTable() ném InvalidOperationException => bản trước hiện nhầm lỗi "Bảng hoặc cột không tồn tại".

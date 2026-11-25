@@ -25,23 +25,7 @@ namespace PhanMemThiDua2026
         private bool _daCaiDatCot = false;
         private int _soDongDaXoaTuDong = 0;
         private bool _sortAsc = false;
-        // 🔥 BIẾN CACHE HÌNH ẢNH (Load 1 lần để tối ưu RAM)
-        private Image? _iconLoginC;
-        private Image _iconLogin => _iconLoginC ??= Properties.Resources.ic_login;
-        private Image? _iconDbC;
-        private Image _iconDb => _iconDbC ??= Properties.Resources.ic_database;
-        private Image? _iconSaveC;
-        private Image _iconSave => _iconSaveC ??= Properties.Resources.ic_save;
-        private Image? _iconExportC;
-        private Image _iconExport => _iconExportC ??= Properties.Resources.ic_export;
-        private Image? _iconHelpC;
-        private Image _iconHelp => _iconHelpC ??= Properties.Resources.ic_help;
-        private Image? _iconDeleteC;
-        private Image _iconDelete => _iconDeleteC ??= Properties.Resources.ic_delete;
-        private Image? _iconWarningC;
-        private Image _iconWarning => _iconWarningC ??= Properties.Resources.ic_warning;
-        private Image? _iconDefaultC;
-        private Image _iconDefault => _iconDefaultC ??= Properties.Resources.ic_default;
+        // Icon cột Hành động: tự vẽ + cache dùng chung ở Module_IconLuoi (không giải mã ảnh Resources, không co ảnh mỗi lần vẽ ô)
         // 🔥 BIẾN CACHE FONT TĨNH (Tối ưu RAM & Handle GDI+, dùng chung biến tên Font từ Module_HeThong)
         private static readonly Font _fontGridHeader = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
         private static readonly Font _fontGridCell = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
@@ -81,7 +65,7 @@ namespace PhanMemThiDua2026
         private bool _canChayLaiDongMoi;
         private int _baoTriNenDaChay;                // bảo trì CSDL nhật ký: 1 lần mỗi lần mở chương trình
         private int _phienNap;                       // tăng mỗi lần đổ dữ liệu -> bỏ kết quả giải mã nền của lần cũ
-        private static readonly string[] _cacDinhDangNgay = { "dd-MM-yyyy HH:mm:ss", "dd/MM/yyyy HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "dd-MM-yyyy", Module_HeThong.Ngay_Thang_Nam, "M/d/yyyy h:mm:ss tt" };
+        private static readonly string[] _cacDinhDangNgay = { "dd-MM-yyyy HH:mm:ss", Module_HeThong.DinhDang_NgayGio_Gach, Module_HeThong.DinhDang_NgayGio_CSDL, "dd-MM-yyyy", Module_HeThong.Ngay_Thang_Nam, "M/d/yyyy h:mm:ss tt" };
         public Form10_NhatKy()
         {
             InitializeComponent();
@@ -586,7 +570,7 @@ namespace PhanMemThiDua2026
                 ThemDong("ID My Computer", data.ID_CPU);
                 ThemDong("Tài khoản", data.TaiKhoan, Color.Green, _fontGridHeader);
                 ThemDong("Hành động", data.HanhDong, mauHanhDong, _fontGridHeader);
-                ThemDong("Ghi chú", data.GhiChu, mauGhiChu);
+                ThemDong(Module_HeThong.TieuDeCot.GhiChu, data.GhiChu, mauGhiChu);
                 panelContent.Controls.Add(grid);
                 formAo.Controls.Add(panelContent);
                 formAo.Controls.Add(panelBottom);
@@ -788,7 +772,7 @@ namespace PhanMemThiDua2026
             AddCol(dgv, "ID_CPU", "ID My Computer", 18);
             AddCol(dgv, "TaiKhoan", "Tài khoản", 12);
             AddCol(dgv, "HanhDong", "Hành động", 17, DataGridViewContentAlignment.MiddleLeft);
-            AddCol(dgv, "GhiChu", "Ghi chú", 24, DataGridViewContentAlignment.MiddleLeft);
+            AddCol(dgv, "GhiChu", Module_HeThong.TieuDeCot.GhiChu, 24, DataGridViewContentAlignment.MiddleLeft);
             // 2. CỘT PHỤ DÙNG CHO LOGIC / ICON
             var colIcon = new DataGridViewTextBoxColumn { Name = "IconType", HeaderText = "IconType", Visible = false, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable };
             dgv.Columns.Add(colIcon);
@@ -1053,29 +1037,24 @@ namespace PhanMemThiDua2026
                 int iconType = 0;
                 if (_listCurrentPage != null && e.RowIndex < _listCurrentPage.Count)
                     iconType = _listCurrentPage[e.RowIndex].IconType;
-                Image iconToDraw = iconType switch
+                Module_IconLuoi.Loai iconToDraw = iconType switch
                 {
-                    1 => _iconLogin,
-                    2 => _iconDb,
-                    3 => _iconSave,
-                    4 => _iconExport,
-                    5 => _iconHelp,
-                    6 => _iconDelete,
-                    7 => _iconWarning,
-                    _ => _iconDefault
+                    1 => Module_IconLuoi.Loai.DangNhap,
+                    2 => Module_IconLuoi.Loai.CSDL,
+                    3 => Module_IconLuoi.Loai.Luu,
+                    4 => Module_IconLuoi.Loai.Xuat,
+                    5 => Module_IconLuoi.Loai.TroGiup,
+                    6 => Module_IconLuoi.Loai.Xoa,
+                    7 => Module_IconLuoi.Loai.CanhBao,
+                    _ => Module_IconLuoi.Loai.MacDinh
                 };
-                int iconSize = 16;
                 int paddingLeft = 6;
                 int paddingIconText = 6;
-                int yIcon = e.CellBounds.Y + (e.CellBounds.Height - iconSize) / 2;
                 int xIcon = e.CellBounds.X + paddingLeft;
-                if (iconToDraw != null)
-                {
-                    e.Graphics!.DrawImage(iconToDraw, new Rectangle(xIcon, yIcon, iconSize, iconSize));
-                }
+                int matPhaiIcon = Module_IconLuoi.VeTrongO(e.Graphics!, iconToDraw, e.CellBounds, xIcon, Module_IconLuoi.CoTheoDpi(dgv));
                 if (!string.IsNullOrEmpty(hanhDongText))
                 {
-                    int textStartX = xIcon + iconSize + paddingIconText;
+                    int textStartX = matPhaiIcon + paddingIconText;
                     Rectangle textBounds = new Rectangle(textStartX, e.CellBounds.Y, e.CellBounds.Width - (textStartX - e.CellBounds.X), e.CellBounds.Height);
                     Color textColor = (e.State & DataGridViewElementStates.Selected) == DataGridViewElementStates.Selected
                                       ? e.CellStyle!.SelectionForeColor
@@ -1222,7 +1201,7 @@ namespace PhanMemThiDua2026
                     ws.Cell(2, 1).Value = $"NHẬT KÝ HOẠT ĐỘNG PHẦN MỀM THI ĐUA NĂM {DateTime.Now.Year}";
                     ws.Range(2, 1, 2, 8).Merge().Style.Font.SetBold().Font.SetFontSize(14).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
                     // --- Vẽ Tiêu đề cột ---
-                    string[] headers = { "ID", "Thời gian", "Tên máy", "IP Address", "ID CPU", "Tài khoản", "Hành động", "Ghi chú" };
+                    string[] headers = { "ID", "Thời gian", "Tên máy", "IP Address", "ID CPU", "Tài khoản", "Hành động", Module_HeThong.TieuDeCot.GhiChu };
                     for (int i = 0; i < headers.Length; i++)
                     {
                         var cell = ws.Cell(4, i + 1);
@@ -1258,7 +1237,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel nhật ký phần mềm", ex.Message);
-                MessageBox.Show($"Lỗi khi xuất tệp Excel: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi xuất tệp Excel: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1415,7 +1394,7 @@ namespace PhanMemThiDua2026
             string dbPath = _csdl3Path;
             if (string.IsNullOrWhiteSpace(dbPath) || !File.Exists(dbPath))
             {
-                MessageBox.Show("Không tìm thấy csdl3.db!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy csdl3.db!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             using (Form24_XacMinhAdmin frm = new Form24_XacMinhAdmin())
@@ -1469,7 +1448,7 @@ namespace PhanMemThiDua2026
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     $"Xóa toàn bộ nhật ký hệ thống chứa ({soDongDaXoa} hành động)",
-                    DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
+                    DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio)
                 );
                 MessageBox.Show($"Đã xóa {soDongDaXoa} dòng dữ liệu.", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // Gọi lại tải dữ liệu
@@ -1477,7 +1456,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi xóa dữ liệu:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi xóa dữ liệu:\n{ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1827,7 +1806,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi tải trang: " + ex.Message, "Lỗi",
+                MessageBox.Show("Lỗi khi tải trang: " + ex.Message, Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -2133,7 +2112,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 Debug.WriteLine("Lỗi làm mới bộ lọc: " + ex.Message);
-                MessageBox.Show($"Lỗi khi đặt lại bộ lọc: {ex.Message}", "Lỗi",
+                MessageBox.Show($"Lỗi khi đặt lại bộ lọc: {ex.Message}", Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally

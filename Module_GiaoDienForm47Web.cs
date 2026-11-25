@@ -25,9 +25,9 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(91, 33, 182);
         private static readonly Color MauVienONhap = Color.FromArgb(203, 213, 225);     // viền ô nhập khi không focus
         private static readonly Color MauVienOFocus = Color.FromArgb(167, 139, 250);    // viền ô nhập khi đang focus
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontTieuMuc = new Font("Segoe UI Semibold", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuMuc = new Font(Module_HeThong.TenFontHeThongDam, 10.5F, FontStyle.Regular, GraphicsUnit.Point);
         private const int DemKhungBang = 5;
         private const int ChieuCaoTheNhap = 160;      // 36 tiêu đề thẻ + 54 hàng ô nhập + hàng nút + lề
         private const int ChieuCaoTieuMuc = 30;

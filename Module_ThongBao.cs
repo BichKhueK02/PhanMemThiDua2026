@@ -206,9 +206,9 @@ namespace PhanMemThiDua2026
                 {
                     // TỐI ƯU 2: Dùng OpenAsync để không gây đơ/khựng giao diện (UI Thread)
                     await conn.OpenAsync();
-                    // AN TOÀN 1: Tạo bảng CheDo_XetThiDuaNam nếu chưa có để tránh văng Exception "no such table"
+                    // AN TOÀN 1: Tạo bảng CheDo_XetThiDuaNam_CBCS nếu chưa có để tránh văng Exception "no such table"
                     using (var cmdInit = new SqliteCommand(@"
-                CREATE TABLE IF NOT EXISTS CheDo_XetThiDuaNam (
+                CREATE TABLE IF NOT EXISTS CheDo_XetThiDuaNam_CBCS (
                     ID INTEGER NOT NULL PRIMARY KEY,
                     ChoPhepCheDoXetThiDuaNam TEXT
                 );", conn))
@@ -221,7 +221,7 @@ namespace PhanMemThiDua2026
                     t.DiaDiem, t.Ngay, t.Thang, t.Nam, t.ChiHuyD, t.LoaiDeNghi,
                     c.ChoPhepCheDoXetThiDuaNam
                 FROM ThongTin t
-                LEFT JOIN CheDo_XetThiDuaNam c ON c.ID = 1
+                LEFT JOIN CheDo_XetThiDuaNam_CBCS c ON c.ID = 1
                 WHERE t.ID = 1 LIMIT 1";
                     using var cmd = new SqliteCommand(query, conn);
                     using var reader = await cmd.ExecuteReaderAsync();

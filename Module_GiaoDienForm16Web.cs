@@ -20,11 +20,11 @@ namespace PhanMemThiDua2026
         private static readonly Color XanhNen = Color.FromArgb(220, 252, 231);
         private static readonly Color XanhVien = Color.FromArgb(134, 239, 172);
         private static readonly Color XanhChu = Color.FromArgb(21, 128, 61);
-        private static readonly Font FontNhan = new Font("Segoe UI Semibold", 11F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontChip = new Font("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontDong = new Font("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontPhu = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThongDam, 11F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontChip = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontDong = new Font(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontPhu = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 10.5F, FontStyle.Regular, GraphicsUnit.Point);
         public static void ApDung(Form f)
         {
             f.SuspendLayout();
@@ -298,7 +298,7 @@ namespace PhanMemThiDua2026
     [System.ComponentModel.DesignerCategory("Code")]
     internal sealed class TheF16 : Panel
     {
-        private static readonly Font FontTieuDe = new Font("Segoe UI Semibold", 11.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDe = new Font(Module_HeThong.TenFontHeThongDam, 11.5F, FontStyle.Regular, GraphicsUnit.Point);
         private string _tieuDe = "";
         public string TieuDe { get => _tieuDe; set { _tieuDe = value; Invalidate(); } }
         public TheF16()

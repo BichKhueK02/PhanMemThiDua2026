@@ -104,7 +104,7 @@ namespace PhanMemThiDua2026
                 row["Ten_ChucVu"] = TryGiaiMa(row["Ten_ChucVu"]);
                 string tg = TryGiaiMa(row["ThoiGian"]);
                 if (DateTime.TryParse(tg, out DateTime dtParsed))
-                    row["ThoiGian"] = dtParsed.ToString("dd-MM-yyyy HH:mm:ss");
+                    row["ThoiGian"] = dtParsed.ToString(Module_HeThong.DinhDang_NgayGio);
                 else
                     row["ThoiGian"] = tg;
                 row["STT"] = stt++.ToString();
@@ -289,7 +289,7 @@ namespace PhanMemThiDua2026
             using var cmd = cn.CreateCommand();
             cmd.CommandText = "INSERT INTO DanhSach_ChucVu (Ten_ChucVu, ThoiGian) VALUES (@ten, @time)";
             cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenChucVu));
-            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL)));
             cmd.ExecuteNonQuery();
             return null;
         }
@@ -352,7 +352,7 @@ namespace PhanMemThiDua2026
             using var cmd = cn.CreateCommand();
             cmd.CommandText = "UPDATE DanhSach_ChucVu SET Ten_ChucVu=@ten, ThoiGian=@time WHERE ID=@id";
             cmd.Parameters.AddWithValue("@ten", Module_BaoMatAES.MaHoa(tenChucVuMoi));
-            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")));
+            cmd.Parameters.AddWithValue("@time", Module_BaoMatAES.MaHoa(DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL)));
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
             return null;

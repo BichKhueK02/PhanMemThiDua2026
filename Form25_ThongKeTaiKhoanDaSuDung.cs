@@ -91,7 +91,7 @@ namespace PhanMemThiDua2026
                     int errorCount = 0;
                     const int MAX_ERROR_LOG = 10;
                     // ⭐ KHAI BÁO MẢNG ĐỊNH DẠNG NGÀY GIỜ ĐỂ TRÁNH LỖI PARSE
-                    string[] cacDinhDangNgay = { "yyyy-MM-dd HH:mm:ss", "dd-MM-yyyy HH:mm:ss", "dd/MM/yyyy HH:mm:ss", "dd-MM-yyyy", "dd/MM/yyyy", "M/d/yyyy h:mm:ss tt" };
+                    string[] cacDinhDangNgay = { "yyyy-MM-dd HH:mm:ss", Module_HeThong.DinhDang_NgayGio, Module_HeThong.DinhDang_NgayGio_Gach, "dd-MM-yyyy", "dd/MM/yyyy", "M/d/yyyy h:mm:ss tt" };
                     var builder = new SqliteConnectionStringBuilder
                     {
                         DataSource = csdlPath,
@@ -289,8 +289,8 @@ namespace PhanMemThiDua2026
             dgv.Columns["SoLuotHanhDong"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             dgv.Columns["TinhTrang"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             // FORMAT NGÀY GIỜ
-            dgv.Columns["ThoiGianLanDau"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm:ss";
-            dgv.Columns["ThoiGianLanCuoi"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm:ss";
+            dgv.Columns["ThoiGianLanDau"].DefaultCellStyle.Format = Module_HeThong.DinhDang_NgayGio_Gach;
+            dgv.Columns["ThoiGianLanCuoi"].DefaultCellStyle.Format = Module_HeThong.DinhDang_NgayGio_Gach;
             // FONT ĐẬM CHO CỘT QUAN TRỌNG
             dgv.Columns["TinhTrang"].DefaultCellStyle.Font = _cellBoldFont;
             dgv.Columns["SoLuotHanhDong"].DefaultCellStyle.Font = _cellBoldFont;
@@ -473,7 +473,7 @@ namespace PhanMemThiDua2026
             using var sfd = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu tệp excel thống kê tài khoản",
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = Module_HeThong.BoLoc_Excel,
                 FileName = $"ThongKeTaiKhoanDaSuDung_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
             };
@@ -499,7 +499,7 @@ namespace PhanMemThiDua2026
             {
                 if (!IsDisposed) Cursor = Cursors.Default;
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel thống kê tài khoản đã sử dụng", ex.Message);
-                MessageBox.Show("Không thể xuất tệp excel:\n" + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không thể xuất tệp excel:\n" + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -535,7 +535,7 @@ namespace PhanMemThiDua2026
             vungTieuDe.Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
             Module_ExcelAnToan.NapDong(ws, hangTieuDe + 1, 1, dong);
             int hangCuoi = hangTieuDe + dong.Count;
-            ws.Range(hangTieuDe + 1, 3, hangCuoi, 4).Style.NumberFormat.Format = "dd/MM/yyyy HH:mm:ss";
+            ws.Range(hangTieuDe + 1, 3, hangCuoi, 4).Style.NumberFormat.Format = Module_HeThong.DinhDang_NgayGio_Gach;
             foreach (int c in new[] { 1, 3, 4, 5, 6 })
                 ws.Range(hangTieuDe + 1, c, hangCuoi, c).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
             Module_ExcelAnToan.KeVien(ws.Range(hangTieuDe, 1, hangCuoi, soCot));

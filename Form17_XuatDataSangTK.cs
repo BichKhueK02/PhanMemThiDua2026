@@ -7,8 +7,7 @@ namespace PhanMemThiDua2026
     {
         private readonly string _csdl2Path = Module_DanduongGPS.DuongDanCSDL2;
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
-        private const string TABLE_CBCS = "ThiDuaThang";
-        private const string TABLE_TANBINH = "ThiDuaThang_TanBinh";
+        private static string TABLE_CBCS => Module_CheDoDoiTuong.ThiDuaThang(CheDoDoiTuong.CBCS);
         // Thông báo kết quả hiện bao lâu rồi tự ẩn (ms) - sửa ở đây nếu muốn hiện lâu hơn
         private const int THOI_GIAN_AN_THONG_BAO_MS = 400;
         private int _thongBaoCounter = 0;
@@ -33,32 +32,8 @@ namespace PhanMemThiDua2026
             {"Tháng 11","Thang_11"},
             {"Tổng kết năm","TongKet_Nam"}
         };
-        private static readonly Dictionary<string, string> mapTanBinh = new() {
-            // Cụm 1: Quá trình Tháng 2 -> Chốt kết quả Tháng 3
-            {"Tuần 1 - Tháng 2", "Tuan_1_T2"},
-            {"Tuần 2 - Tháng 2", "Tuan_2_T2"},
-            {"Tuần 3 - Tháng 2", "Tuan_3_T2"},
-            {"Tuần 4 - Tháng 2", "Tuan_4_T2"},
-            {"Kết quả Tháng 3", "Thang_3"},
-            // Cụm 2: Quá trình Tháng 3 -> Chốt kết quả Tháng 4
-            {"Tuần 1 - Tháng 3", "Tuan_1_T3"},
-            {"Tuần 2 - Tháng 3", "Tuan_2_T3"},
-            {"Tuần 3 - Tháng 3", "Tuan_3_T3"},
-            {"Tuần 4 - Tháng 3", "Tuan_4_T3"},
-            {"Kết quả Tháng 4", "Thang_4"},
-            // Cụm 3: Quá trình Tháng 4 -> Chốt kết quả Tháng 5
-            {"Tuần 1 - Tháng 4", "Tuan_1_T4"},
-            {"Tuần 2 - Tháng 4", "Tuan_2_T4"},
-            {"Tuần 3 - Tháng 4", "Tuan_3_T4"},
-            {"Tuần 4 - Tháng 4", "Tuan_4_T4"},
-            {"Kết quả Tháng 5", "Thang_5"},
-            // Cụm 4: Quá trình Tháng 5 -> Chốt kết quả Tháng 6
-            {"Tuần 1 - Tháng 5", "Tuan_1_T5"},
-            {"Tuần 2 - Tháng 5", "Tuan_2_T5"},
-            {"Tuần 3 - Tháng 5", "Tuan_3_T5"},
-            {"Tuần 4 - Tháng 5", "Tuan_4_T5"},
-            {"Kết quả Tháng 6", "Thang_6"}
-        };
+        // Tân binh / Học viên: mốc chọn theo lịch xét (Module_LichXet) - Học viên tùy tháng đã cài
+        private static Dictionary<string, string> mapTanBinh => Module_LichXet.DanhSachChon(Module_CheDoDoiTuong.Hien);
         public Form17_XuatDataSangTK()
         {
             InitializeComponent();
@@ -169,12 +144,12 @@ namespace PhanMemThiDua2026
                 }
                 if (!File.Exists(_csdl2Path) || !File.Exists(_csdl4Path))
                 {
-                    MessageBox.Show("Không tìm thấy CSDL.", "Lỗi",
+                    MessageBox.Show("Không tìm thấy CSDL.", Module_HeThong.TieuDe_Loi,
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 // Đọc các giá trị phụ thuộc giao diện TRƯỚC khi chuyển trạng thái (nếu lỗi thì chưa khóa nút)
-                string tenBang = _laTanBinh ? TABLE_TANBINH : TABLE_CBCS;
+                string tenBang = _laTanBinh ? Module_CheDoDoiTuong.BangThiDuaThang : TABLE_CBCS;   // ThiDuaThang_TanBinh / _HocVien
                 string tenCot = GetTenCotThang(_laTanBinh);
                 string thangHienThi = GetTenThangHienThi();
                 // 3. THIẾT LẬP TRẠNG THÁI "ĐANG XỬ LÝ"
@@ -202,7 +177,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 HienThongBao("✘ Phát sinh lỗi!", Color.Red);
-                MessageBox.Show("Lỗi chương trình: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi chương trình: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -227,7 +202,7 @@ namespace PhanMemThiDua2026
                 using var cn4 = Module_DanduongGPS.MoKetNoiDoc(_csdl4Path);
                 GhiThiDuaThang(cn2, cn4, tenBang, tenCot, laTanBinh);
                 // Cập nhật thống kê tập thể bằng chính 2 kết nối đang mở (trước đây mở thêm 2 kết nối pooling ở luồng UI)
-                // CHỈ CBCS: ThongKe_PhanLoaiTapThe dùng cột tháng của CBCS; Tân binh có cột trùng tên (Thang_3..Thang_6)
+                // CHỈ CBCS: ThongKe_PhanLoaiTapThe_CBCS dùng cột tháng của CBCS; Tân binh có cột trùng tên (Thang_3..Thang_6)
                 // nên nếu ghi sẽ đè mất kết quả tập thể của CBCS.
                 if (!laTanBinh) NapThongKePhanLoaiTapThe(cn2, cn4, tenCot);
                 // Trả về chuỗi chứa từ khóa "thành công" để UI nhận diện
@@ -404,13 +379,13 @@ VALUES(@hvt,@sh,@dv,@tt,'0','0','0','0',@gt)", cn4, tran);
                     ? ""
                     : Module_BaoMatAES.MaHoa(giatriAnhXa);
                 using var tr4 = cn4.BeginTransaction();
-                // 5. Kiểm tra sự tồn tại của ID = 1 trong bảng ThongKe_PhanLoaiTapThe (CSDL4)
-                using var cmdCheck = new SqliteCommand("SELECT COUNT(1) FROM ThongKe_PhanLoaiTapThe WHERE ID = 1", cn4, tr4);
+                // 5. Kiểm tra sự tồn tại của ID = 1 trong bảng ThongKe_PhanLoaiTapThe_CBCS (CSDL4)
+                using var cmdCheck = new SqliteCommand("SELECT COUNT(1) FROM ThongKe_PhanLoaiTapThe_CBCS WHERE ID = 1", cn4, tr4);
                 bool isExisted = Convert.ToInt32(cmdCheck.ExecuteScalar()) > 0;
                 // 6. Cập nhật động theo cột (tenCot) được truyền từ ComboBox
                 string sql = isExisted
-                    ? $"UPDATE ThongKe_PhanLoaiTapThe SET [{tenCot}] = @val WHERE ID = 1"
-                    : $"INSERT INTO ThongKe_PhanLoaiTapThe (ID, [{tenCot}]) VALUES (1, @val)";
+                    ? $"UPDATE ThongKe_PhanLoaiTapThe_CBCS SET [{tenCot}] = @val WHERE ID = 1"
+                    : $"INSERT INTO ThongKe_PhanLoaiTapThe_CBCS (ID, [{tenCot}]) VALUES (1, @val)";
                 using var cmdGhi = new SqliteCommand(sql, cn4, tr4);
                 cmdGhi.Parameters.AddWithValue("@val", giatriMaHoaDuaVaoCSDL);
                 cmdGhi.ExecuteNonQuery();

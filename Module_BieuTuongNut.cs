@@ -10,12 +10,12 @@ namespace PhanMemThiDua2026
     /// <summary>
     /// Biểu tượng NÚT của mọi form (KryptonButton, mục menu, nhãn thanh trạng thái) — gọi 1 dòng ngay sau InitializeComponent():
     ///     Module_BieuTuongNut.ApDung(this);
-    /// Ảnh chèn cũ đã được tách khỏi Designer/.resx sang Icon\CoDien\&lt;Lớp form&gt;__&lt;tên control&gt;.&lt;đuôi&gt; (nhúng vào exe,
-    /// tên tài nguyên "CoDien.&lt;tệp&gt;") => dựng form KHÔNG còn giải mã ảnh nào cho nút.
-    ///  - "Hiện đại": VẼ biểu tượng bằng GDI+ (nét mảnh kiểu web, có màu theo chức năng), chọn theo chữ / tên của nút
-    ///    (Lưu, Xóa, Xuất, Nhập, Làm mới, Tìm kiếm...). Nút nền đậm => biểu tượng trắng (xét lại lúc Load khi đã có màu nền).
-    ///  - "Cổ điển": nạp lại đúng ảnh gốc.
-    /// Không đụng PictureBox (logo, hình minh họa). Mọi lỗi đều bỏ qua: nút chỉ mất biểu tượng, chức năng không đổi.
+    /// Ảnh chèn cũ đã bỏ khỏi Designer/.resx VÀ khỏi exe; danh sách control có biểu tượng nằm ở Module_DanhSachBieuTuongNut.
+    /// Cả 2 kiểu giao diện đều VẼ biểu tượng bằng GDI+ (nét mảnh, có màu theo chức năng), chọn theo chữ / tên của nút
+    /// (Lưu, Xóa, Xuất, Nhập, Làm mới, Tìm kiếm...). Nút nền đậm => biểu tượng trắng (xét lại lúc Load khi đã có màu nền).
+    ///  - "Cổ điển" khác "Hiện đại" duy nhất ở chỗ: KHÔNG thêm biểu tượng cho nút vốn không có ảnh (giữ bố cục cổ điển).
+    /// PictureBox: hình minh họa vẽ (BangHinh); riêng ảnh "GOC" (ảnh đại diện mặc định Form3) vẫn nhúng vì được lưu vào CSDL.
+    /// Mọi lỗi đều bỏ qua: nút chỉ mất biểu tượng, chức năng không đổi.
     /// </summary>
     internal static class Module_BieuTuongNut
     {
@@ -50,17 +50,11 @@ namespace PhanMemThiDua2026
                         object? o = f.GetType().GetField(ten, BF)?.GetValue(f);
                         if (o == null) continue;
                         daXuLy.Add(o);
-                        if (coDien)
-                        {
-                            var anh = NapAnh(taiNguyen);
-                            if (anh != null) GanAnh(o, anh);
-                            continue;
-                        }
                         if (o is PictureBox pb)
                         {
                             if (BangHinh.TryGetValue(lop + "." + ten, out var lh) && lh == "GOC")
                             {
-                                var goc = NapAnh(taiNguyen);   // ảnh có ý nghĩa dữ liệu: dùng ảnh gốc ở cả 2 kiểu
+                                var goc = NapAnh(taiNguyen);   // ảnh có ý nghĩa dữ liệu (lưu vào CSDL): dùng ảnh gốc nhúng
                                 if (goc != null) pb.Image = goc;
                             }
                             else GanHinhMinhHoa(pb, lop, ten);
@@ -80,9 +74,11 @@ namespace PhanMemThiDua2026
                     f.Load -= KhiLoad;
                     try { if (chupDpi != null) Module_TyLeDpi.HieuChinh(f, chupDpi); }
                     catch (Exception ex) { Debug.WriteLine("[BieuTuongNut] DPI " + lop + ": " + ex.Message); }
-                    if (coDien) return;
-                    try { ThemBieuTuongChoNutChuaCo(f, daXuLy, nutCanXetLai, k); }
-                    catch (Exception ex) { Debug.WriteLine("[BieuTuongNut] thêm " + lop + ": " + ex.Message); }
+                    if (!coDien)   // Cổ điển: giữ bố cục cũ, không thêm biểu tượng cho nút vốn không có ảnh
+                    {
+                        try { ThemBieuTuongChoNutChuaCo(f, daXuLy, nutCanXetLai, k); }
+                        catch (Exception ex) { Debug.WriteLine("[BieuTuongNut] thêm " + lop + ": " + ex.Message); }
+                    }
                     foreach (var (nut, loai) in nutCanXetLai)
                     {
                         try
@@ -96,6 +92,64 @@ namespace PhanMemThiDua2026
                 f.Load += KhiLoad;
             }
             catch (Exception ex) { Debug.WriteLine("[BieuTuongNut] " + ex.Message); }
+        }
+        /// <summary>
+        /// Biểu tượng tự co giãn theo chiều cao THẬT của nút: mỗi khi nút đổi cỡ (hoặc bật lại sau khi code tạm bỏ/trả ảnh)
+        /// thì VẼ LẠI đúng số pixel cần, không phóng/thu ảnh bitmap => hình không bao giờ bị bể/nhòe.
+        /// Gọi sau ApDung (loại biểu tượng xác định theo chữ hiện tại của nút).
+        /// </summary>
+        /// <summary>
+        /// Nút đổi chữ lúc chạy (vd Form62: "Cập nhật" <-> "Đóng") => vẽ lại biểu tượng theo CHỮ HIỆN TẠI
+        /// (không xét tên control, vì tên vẫn là "..._CapNhat").
+        /// </summary>
+        public static void VeLaiTheoChu(KryptonButton b)
+        {
+            try
+            {
+                if (b == null || b.IsDisposed) return;
+                string loai = ChonLoai(b, "");
+                int co = CoAnh(b, Math.Max(1f, b.DeviceDpi / 96f));
+                b.Values.Image = VeBieuTuong(loai, co, LaNenDam(b) ? Color.White : MauCua(loai));
+            }
+            catch (Exception ex) { Debug.WriteLine("[BieuTuongNut] vẽ lại " + b?.Name + ": " + ex.Message); }
+        }
+        public static void TuCoGianBieuTuong(KryptonButton b)
+        {
+            try
+            {
+                string loai = ChonLoai(b, b.Name);
+                void VeLai(object? s, EventArgs e)
+                {
+                    try
+                    {
+                        var anh = b.Values.Image;
+                        if (b.IsDisposed || anh == null || b.Height <= 0) return;   // đang tạm bỏ ảnh (vd "Đang lưu...") => để nguyên
+                        int co = CoAnh(b, Math.Max(1f, b.DeviceDpi / 96f));
+                        if (anh.Width == co && anh.Height == co) return;
+                        b.Values.Image = VeBieuTuong(loai, co, LaNenDam(b) ? Color.White : MauCua(loai));
+                    }
+                    catch (Exception ex) { Debug.WriteLine("[BieuTuongNut] co giãn " + b.Name + ": " + ex.Message); }
+                }
+                b.SizeChanged += VeLai;
+                b.EnabledChanged += VeLai;
+                VeLai(b, EventArgs.Empty);
+            }
+            catch (Exception ex) { Debug.WriteLine("[BieuTuongNut] co giãn " + b?.Name + ": " + ex.Message); }
+        }
+        /// <summary>
+        /// Gắn biểu tượng VẼ cho mục menu do CODE tạo thêm lúc chạy (cả 2 kiểu giao diện), theo chữ của mục
+        /// (vd "Làm mới" => mũi tên vòng).
+        /// </summary>
+        public static void GanBieuTuongChoMucThem(Form f, ToolStripItem muc)
+        {
+            try
+            {
+                string loai = ChonLoai(muc, muc.Name ?? "");
+                if (loai is "Diem" or "ThongTin") return;   // không rõ chức năng => không gắn
+                float k = Math.Max(1f, f.DeviceDpi / 96f);
+                GanAnh(muc, VeBieuTuong(loai, CoAnh(muc, k), MauCua(loai)));
+            }
+            catch (Exception ex) { Debug.WriteLine("[BieuTuongNut] mục thêm " + muc?.Name + ": " + ex.Message); }
         }
         /// <summary>
         /// Nút KHÔNG có ảnh từ trước: gán biểu tượng vẽ nếu nhận ra được chức năng VÀ còn đủ chỗ cho cả biểu tượng lẫn chữ
@@ -128,7 +182,8 @@ namespace PhanMemThiDua2026
                 if (c.HasChildren) foreach (var con in TatCaNut(c)) yield return con;
             }
         }
-        // ---------------- Danh sách ảnh đã tách theo lớp form ----------------
+        // ---------------- Danh sách control có biểu tượng, theo lớp form ----------------
+        // Phần tử: (tên control, tiền tố tài nguyên "CoDien.Lop__control") — tiền tố chỉ dùng cho ảnh "GOC" còn nhúng.
         private static List<(string, string)> DanhSachCua(string lop)
         {
             lock (_khoa)
@@ -136,24 +191,25 @@ namespace PhanMemThiDua2026
                 if (_theoLop == null)
                 {
                     _theoLop = new Dictionary<string, List<(string, string)>>(StringComparer.Ordinal);
-                    foreach (var tn in typeof(Module_BieuTuongNut).Assembly.GetManifestResourceNames())
+                    foreach (var tep in Module_DanhSachBieuTuongNut.TenControl)   // Lop__control
                     {
-                        if (!tn.StartsWith(TienTo, StringComparison.Ordinal)) continue;
-                        string tep = tn.Substring(TienTo.Length);          // Lop__control.ext
                         int vt = tep.IndexOf("__", StringComparison.Ordinal);
-                        int cham = tep.LastIndexOf('.');
-                        if (vt <= 0 || cham <= vt) continue;
-                        string l = tep.Substring(0, vt), ctl = tep.Substring(vt + 2, cham - vt - 2);
+                        if (vt <= 0) continue;
+                        string l = tep.Substring(0, vt), ctl = tep.Substring(vt + 2);
                         if (!_theoLop.TryGetValue(l, out var ds)) _theoLop[l] = ds = new();
-                        ds.Add((ctl, tn));
+                        ds.Add((ctl, TienTo + tep));
                     }
                 }
                 return _theoLop.TryGetValue(lop, out var kq) ? kq : new();
             }
         }
-        private static Image? NapAnh(string taiNguyen)
+        private static Image? NapAnh(string tienToTaiNguyen)
         {
-            using var luong = typeof(Module_BieuTuongNut).Assembly.GetManifestResourceStream(taiNguyen);
+            var asm = typeof(Module_BieuTuongNut).Assembly;
+            string? taiNguyen = asm.GetManifestResourceNames()
+                .FirstOrDefault(t => t.StartsWith(tienToTaiNguyen + ".", StringComparison.Ordinal));
+            if (taiNguyen == null) return null;
+            using var luong = asm.GetManifestResourceStream(taiNguyen);
             if (luong == null) return null;
             var ms = new MemoryStream();          // giữ luồng suốt đời ảnh (GIF động cần)
             luong.CopyTo(ms);
@@ -262,6 +318,22 @@ namespace PhanMemThiDua2026
             return System.Text.RegularExpressions.Regex.Replace(sb.ToString(), " +", " ");
         }
         // ---------------- Màu theo chức năng ----------------
+        private static readonly Dictionary<string, Icon> _iconForm = new();
+        /// <summary>
+        /// Biểu tượng thanh tiêu đề cho form tự viết (Form62/Form63...) vẽ bằng cùng bộ biểu tượng tự vẽ (32 px, màu theo loại).
+        /// Mỗi loại tạo 1 lần, giữ suốt phiên (HICON không hủy - số lượng cố định, rất nhỏ).
+        /// </summary>
+        internal static Icon IconForm(string loai)
+        {
+            lock (_iconForm)
+            {
+                if (_iconForm.TryGetValue(loai, out var ico)) return ico;
+                using var bmp = VeBieuTuong(loai, 32, MauCua(loai));
+                ico = Icon.FromHandle(bmp.GetHicon());
+                _iconForm[loai] = ico;
+                return ico;
+            }
+        }
         private static Color MauCua(string loai) => loai switch
         {
             "Luu" or "KinhLup" or "NguoiDung" or "ThongTin" => Color.FromArgb(37, 99, 235),
@@ -273,6 +345,7 @@ namespace PhanMemThiDua2026
             "DongBo" or "CSDL" => Color.FromArgb(8, 145, 178),
             "NhapTep" => Color.FromArgb(79, 70, 229),
             "ButChi" or "ThuMuc" => Color.FromArgb(217, 119, 6),
+            "Lich" => Color.FromArgb(37, 99, 235),
             "HuyChuong" => Color.FromArgb(202, 138, 4),
             "HoiCham" or "NhomNguoi" or "Diem" => Color.FromArgb(124, 58, 237),
             "Anh" => Color.FromArgb(219, 39, 119),
@@ -379,7 +452,7 @@ namespace PhanMemThiDua2026
                 g.DrawPath(vien, p);
             }
             float coChu = Math.Max(10f, Math.Min(h * 0.36f, 17f * k));
-            using var font = new Font("Segoe UI Semibold", coChu, FontStyle.Regular, GraphicsUnit.Pixel);
+            using var font = new Font(Module_HeThong.TenFontHeThongDam, coChu, FontStyle.Regular, GraphicsUnit.Pixel);
             // Nền ảnh trong suốt: KHÔNG dùng TextRenderer/ClearType (viền chữ bị nhòe, đậm) => khử răng cưa thường
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
             using var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center, Trimming = StringTrimming.EllipsisCharacter, FormatFlags = StringFormatFlags.NoWrap };
@@ -566,11 +639,22 @@ namespace PhanMemThiDua2026
                     break;
                 case "ChuTo":
                 case "ChuNho":
-                    using (var f = new Font("Segoe UI Semibold", loai == "ChuTo" ? 13f : 10f, FontStyle.Regular, GraphicsUnit.Pixel))
+                    using (var f = new Font(Module_HeThong.TenFontHeThongDam, loai == "ChuTo" ? 13f : 10f, FontStyle.Regular, GraphicsUnit.Pixel))
                     using (var bc = new SolidBrush(mau))
                         g.DrawString("A", f, bc, loai == "ChuTo" ? 2f : 3.5f, loai == "ChuTo" ? 4f : 7f);
                     g.DrawLine(but, 15f, 12f, 21f, 12f);
                     if (loai == "ChuTo") g.DrawLine(but, 18f, 9f, 18f, 15f);
+                    break;
+                case "Lich":   // tờ lịch: khung + gáy 2 vòng + ô ngày
+                    using (var p = BoGoc(new RectangleF(3.5f, 5f, 17f, 15.5f), 2.2f)) g.DrawPath(but, p);
+                    g.DrawLine(but, 3.5f, 9.6f, 20.5f, 9.6f);
+                    g.DrawLine(but, 8f, 3f, 8f, 6.8f);
+                    g.DrawLine(but, 16f, 3f, 16f, 6.8f);
+                    using (var nen = new SolidBrush(mau))
+                    {
+                        foreach (var (x, y) in new[] { (7.4f, 12.6f), (11.2f, 12.6f), (15f, 12.6f), (7.4f, 16.2f), (11.2f, 16.2f) })
+                            g.FillRectangle(nen, x, y, 2f, 2f);
+                    }
                     break;
                 case "DongHo":
                     g.DrawEllipse(but, 3.5f, 3.5f, 17f, 17f);

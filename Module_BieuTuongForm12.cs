@@ -6,9 +6,8 @@ namespace PhanMemThiDua2026
 {
     /// <summary>
     /// Biểu tượng của Form12 (Cài đặt): ảnh động bánh răng ở đầu trang (pictureBox1) + 15 nút có ảnh.
-    ///  - "Hiện đại": VẼ bằng GDI+ lúc dựng form, mỗi nút một màu (nút chính Lưu: biểu tượng trắng); bánh răng tĩnh có màu.
-    ///    => không giải mã ảnh nào, không còn ảnh GIF động vẽ lại liên tục.
-    ///  - "Cổ điển": ảnh gốc (Icon\Form12CoDien\*, nhúng vào exe), chỉ nạp khi người dùng chọn kiểu này.
+    /// Cả 2 kiểu giao diện (Hiện đại / Cổ điển) đều VẼ bằng GDI+ lúc dựng form, mỗi nút một màu (nút chính Lưu: biểu tượng trắng);
+    /// bánh răng tĩnh có màu => không giải mã ảnh nào, không còn ảnh GIF động; ảnh gốc đã bỏ khỏi exe.
     /// Mọi lỗi đều bỏ qua (nút chỉ mất biểu tượng, không ảnh hưởng chức năng).
     /// </summary>
     internal static class Module_BieuTuongForm12
@@ -41,29 +40,17 @@ namespace PhanMemThiDua2026
             ("chuKySo_ToolStripMenuItem", "DanhThiep", Color.FromArgb(22, 163, 74)),
             ("thongTin_ToolStripMenuItem", "ThongTin", Color.FromArgb(37, 99, 235)),
         };
-        private const string TienToCoDien = "Form12CoDien.";
         public static void ApDung(Form f)
         {
-            bool coDien;
-            try { coDien = Module_KieuGiaoDien.LaCoDien(Module_KieuGiaoDien.DangApDung ?? Module_KieuGiaoDien.DocChiDoc()); }
-            catch { coDien = false; }
             float k = f.DeviceDpi / 96f;
             foreach (var (ten, loai, mau) in BangNut)
             {
                 try
                 {
                     if (f.Controls.Find(ten, true).FirstOrDefault() is not KryptonButton b) continue;
-                    if (coDien)
-                    {
-                        var anh = LayAnhCoDien(ten);
-                        if (anh != null) b.Values.Image = anh;
-                    }
-                    else
-                    {
-                        var anh = Ve(loai, (int)Math.Round(18 * k), mau);
-                        b.Values.Image = anh;
-                        b.Disposed += (s, e) => anh.Dispose();
-                    }
+                    var anh = Ve(loai, (int)Math.Round(18 * k), mau);
+                    b.Values.Image = anh;
+                    b.Disposed += (s, e) => anh.Dispose();
                 }
                 catch (Exception ex) { Debug.WriteLine("[BieuTuongForm12] " + ten + ": " + ex.Message); }
             }
@@ -77,7 +64,7 @@ namespace PhanMemThiDua2026
                         try
                         {
                             if (ms.Items.Find(ten, true).FirstOrDefault() is not ToolStripItem it) continue;
-                            it.Image = coDien ? LayAnhCoDien(ten) : Ve(loai, coMenu, mau);
+                            it.Image = Ve(loai, coMenu, mau);
                         }
                         catch (Exception ex) { Debug.WriteLine("[BieuTuongForm12] " + ten + ": " + ex.Message); }
                     }
@@ -88,33 +75,13 @@ namespace PhanMemThiDua2026
             {
                 if (f.Controls.Find("pictureBox1", true).FirstOrDefault() is PictureBox pb)
                 {
-                    if (coDien) pb.Image = LayAnhCoDien("pictureBox1");   // GIF động gốc
-                    else
-                    {
-                        pb.SizeMode = PictureBoxSizeMode.Zoom;
-                        pb.Image = VeBanhRang((int)Math.Round(56 * k));
-                    }
+                    pb.SizeMode = PictureBoxSizeMode.Zoom;
+                    pb.Image = VeBanhRang((int)Math.Round(56 * k));
                 }
             }
             catch (Exception ex) { Debug.WriteLine("[BieuTuongForm12] pictureBox1: " + ex.Message); }
         }
-        // ---------------- Cổ điển: ảnh gốc nhúng trong exe ----------------
-        private static string[]? _tenTaiNguyen;
-        private static Image? LayAnhCoDien(string tenControl)
-        {
-            var asm = typeof(Module_BieuTuongForm12).Assembly;
-            _tenTaiNguyen ??= asm.GetManifestResourceNames();
-            string? ten = _tenTaiNguyen.FirstOrDefault(t => t.StartsWith(TienToCoDien + tenControl + ".", StringComparison.OrdinalIgnoreCase));
-            if (ten == null) return null;
-            using var luong = asm.GetManifestResourceStream(ten);
-            if (luong == null) return null;
-            // Chép ra MemoryStream giữ suốt đời ảnh: GIF động cần luồng còn mở để chạy các khung hình
-            var ms = new MemoryStream();
-            luong.CopyTo(ms);
-            ms.Position = 0;
-            return Image.FromStream(ms);
-        }
-        // ---------------- Hiện đại: vẽ (khung 24x24, nét 1.8) ----------------
+        // ---------------- Vẽ (khung 24x24, nét 1.8) ----------------
         internal static Bitmap Ve(string loai, int coPx, Color mau)
         {
             coPx = Math.Max(12, coPx);

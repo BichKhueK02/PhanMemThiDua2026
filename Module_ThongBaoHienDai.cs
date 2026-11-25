@@ -12,10 +12,10 @@ namespace PhanMemThiDua2026
     /// </summary>
     internal static class Module_ThongBaoHienDai
     {
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular);
-        private static readonly Font FontGiaTri = new Font("Segoe UI Semibold", 9F, FontStyle.Regular);
-        private static readonly Font FontNoiDung = new Font("Segoe UI", 9F, FontStyle.Regular);
-        private static readonly Font FontGio = new Font("Segoe UI", 8.25F, FontStyle.Regular);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
+        private static readonly Font FontGiaTri = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular);
+        private static readonly Font FontNoiDung = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
+        private static readonly Font FontGio = new Font(Module_HeThong.TenFontHeThong, 8.25F, FontStyle.Regular);
         private static readonly Color MauNhan = Color.FromArgb(100, 116, 139);
         private static readonly Color MauGiaTri = Color.FromArgb(15, 23, 42);
         private static readonly Color MauNoiDung = Color.FromArgb(30, 41, 59);
@@ -26,7 +26,8 @@ namespace PhanMemThiDua2026
         private static readonly Regex MauGioDau = new(@"^(\d{2}:\d{2}:\d{2})\s*", RegexOptions.Compiled);
         private const TextFormatFlags CoChu = TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine | TextFormatFlags.VerticalCenter |
                                               TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.Left;
-        public static int ChieuCaoDong(Control c) => Math.Max(24, (int)Math.Round(30 * c.DeviceDpi / 96f));
+        // Dòng gọn (trước 30 px/96 DPI => quá thưa, ít dòng hiện được): 22 px vừa chữ 9pt + biểu tượng 14 px, vẫn nhân theo DPI
+        public static int ChieuCaoDong(Control c) => Math.Max(18, (int)Math.Round(22 * c.DeviceDpi / 96f));
         public static void VeDong(ListBox lb, DrawItemEventArgs e)
         {
             if (e.Index < 0 || e.Index >= lb.Items.Count) return;
@@ -41,8 +42,8 @@ namespace PhanMemThiDua2026
             g.SmoothingMode = SmoothingMode.AntiAlias;
             if (chon)
             {
-                var o = new Rectangle(r.X + P(4), r.Y + P(2), r.Width - P(8), r.Height - P(4));
-                using var p = BoGoc(o, P(8));
+                var o = new Rectangle(r.X + P(4), r.Y + P(1), r.Width - P(8), r.Height - P(2));
+                using var p = BoGoc(o, P(6));
                 using var bChon = new SolidBrush(MauChon);
                 using var vien = new Pen(MauVienChon);
                 g.FillPath(bChon, p);
@@ -88,9 +89,9 @@ namespace PhanMemThiDua2026
             if (m.Success) { gio = m.Groups[1].Value; text = text.Substring(m.Length); }
             text = text.TrimStart('✔', '⏳', '❌', '✅', '⚠', ' ', '️');
             string loai = LoaiTheoMau(item.Mau);
-            int dIcon = P(16);
+            int dIcon = P(14);
             VeIcon(g, loai, item.Mau, new Rectangle(x, r.Y + (r.Height - dIcon) / 2, dIcon, dIcon));
-            x += dIcon + P(9);
+            x += dIcon + P(8);
             int rongGio = gio.Length > 0 ? TextRenderer.MeasureText(g, gio, FontGio, new Size(int.MaxValue, r.Height), CoChu).Width + P(12) : 0;
             var vungNd = new Rectangle(x, r.Y, Math.Max(1, r.Right - x - rongGio - P(6)), r.Height);
             TextRenderer.DrawText(g, text, FontNoiDung, vungNd, loai == "Loi" ? Color.FromArgb(185, 28, 28) : MauNoiDung, nen, CoChu);

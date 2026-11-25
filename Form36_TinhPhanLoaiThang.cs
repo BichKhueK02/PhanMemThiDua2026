@@ -21,7 +21,6 @@ namespace PhanMemThiDua2026
         private bool _isUpdatingCombos = false;
         private bool _isCalculating = false;
         // 4. Tài nguyên UI
-        private Image? _iconStar;
         // 🔥 GIA CỐ: Token hủy tiến trình ngầm (Chống Crash)
         private CancellationTokenSource _ctsLoadNgam = null!;
         private readonly object _dataLock = new object();
@@ -31,7 +30,6 @@ namespace PhanMemThiDua2026
         {
             InitializeComponent();
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
-            _iconStar = Properties.Resources.ic_star;
             _isTanBinh = laTanBinh;
             // ✅ Nhận null an toàn — Form36 sẽ tự load từ DB trong Load event
             if (dtTruyenTuForm15 != null && dtTruyenTuForm15.Rows.Count > 0)
@@ -99,11 +97,6 @@ namespace PhanMemThiDua2026
         private void Form36_TinhPhanLoaiThang_FormClosing(object? sender, FormClosingEventArgs e)
         {
             _ctsLoadNgam?.Cancel();
-            if (_iconStar != null)
-            {
-                _iconStar.Dispose();
-                _iconStar = null;
-            }
             kryptonDataGridView1.DataSource = null;
             _dvHienThi?.Dispose();
             _dtXuLy?.Dispose();
@@ -136,7 +129,7 @@ namespace PhanMemThiDua2026
             if (!File.Exists(dbPath))
                 return;
             string tableName =
-                _isTanBinh ? "ThiDuaThang_TanBinh" : "ThiDuaThang";
+                Module_CheDoDoiTuong.BangThiDuaThang;   // ThiDuaThang / _TanBinh / _HocVien
             DataTable temp = new DataTable();
             await Task.Run(() =>
             {
@@ -544,6 +537,17 @@ namespace PhanMemThiDua2026
         {
             _mapCotThoiGian.Clear();
             _danhSachThoiGianGoc.Clear();
+            if (_isTanBinh)
+            {
+                // Tân binh / Học viên: mốc theo lịch xét (Module_LichXet), đã đúng thứ tự thời gian
+                foreach (var kv in Module_LichXet.DanhSachChon(Module_CheDoDoiTuong.Hien))
+                {
+                    if (!_dtXuLy.Columns.Contains(kv.Value)) continue;
+                    _mapCotThoiGian[kv.Key] = kv.Value;
+                    _danhSachThoiGianGoc.Add(kv.Key);
+                }
+                return;
+            }
             foreach (DataColumn col in _dtXuLy.Columns)
             {
                 string name = col.ColumnName;
@@ -696,16 +700,16 @@ namespace PhanMemThiDua2026
                 dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
                 // 3. Định nghĩa các cột
                 AddColumn(dgv, "STT", "STT", 45, DataGridViewContentAlignment.MiddleCenter);
-                AddColumn(dgv, "HoVaTen", "Họ và tên", 220, DataGridViewContentAlignment.MiddleLeft, "HoVaTen");
-                AddColumn(dgv, "SoHieu", "Số hiệu", 60, DataGridViewContentAlignment.MiddleCenter, "SoHieu");
-                AddColumn(dgv, "DonVi", "Đơn vị", 60, DataGridViewContentAlignment.MiddleCenter, "DonVi");
+                AddColumn(dgv, "HoVaTen", Module_HeThong.TieuDeCot.HoVaTen, 220, DataGridViewContentAlignment.MiddleLeft, "HoVaTen");
+                AddColumn(dgv, "SoHieu", Module_HeThong.TieuDeCot.SoHieu, 60, DataGridViewContentAlignment.MiddleCenter, "SoHieu");
+                AddColumn(dgv, "DonVi", Module_HeThong.TieuDeCot.DonVi, 60, DataGridViewContentAlignment.MiddleCenter, "DonVi");
                 AddColumn(dgv, "TinhTrang", "Tình trạng", 60, DataGridViewContentAlignment.MiddleCenter, "TinhTrang");
                 for (int i = 1; i <= 4; i++)
                 {
                     AddColumn(dgv, $"CotGiaTri{i}", $"Giá trị {i}", 60, DataGridViewContentAlignment.MiddleCenter);
                 }
                 AddColumn(dgv, "KetQuaPhanLoai", "Kết quả", 90, DataGridViewContentAlignment.MiddleCenter, "KetQuaTinhToan");
-                AddColumn(dgv, "colGhiChu", "Ghi chú", 150, DataGridViewContentAlignment.MiddleLeft, "GhiChu");
+                AddColumn(dgv, "colGhiChu", Module_HeThong.TieuDeCot.GhiChu, 150, DataGridViewContentAlignment.MiddleLeft, "GhiChu");
                 // 4. 🔥 GIẢI PHÁP CHO FORM TRẮNG: Gán DataSource sau khi đã cấu hình xong cấu trúc
                 if (_dvHienThi != null)
                 {
@@ -799,9 +803,6 @@ namespace PhanMemThiDua2026
                     // Không phải loại 1
                     if (!isLoai1)
                         return;
-                    Image? icon = _iconStar;
-                    if (icon == null)
-                        return;
                     // VẼ NỀN + BORDER
                     // KHÔNG VẼ TEXT MẶC ĐỊNH
                     e.Paint(
@@ -809,28 +810,20 @@ namespace PhanMemThiDua2026
                         DataGridViewPaintParts.Background |
                         //DataGridViewPaintParts.Border |
                         DataGridViewPaintParts.SelectionBackground);
-                    // ICON
-                    const int iconSize = 16;
+                    // ICON ngôi sao tự vẽ + cache dùng chung (Module_IconLuoi)
                     const int paddingLeft = 6;
                     const int paddingText = 6;
                     int xIcon =
                         e.CellBounds.X + paddingLeft;
-                    int yIcon =
-                        e.CellBounds.Y +
-                        ((e.CellBounds.Height - iconSize) / 2);
-                    e.Graphics!.DrawImage(
-                        icon,
-                        xIcon,
-                        yIcon,
-                        iconSize,
-                        iconSize);
+                    int matPhaiIcon = Module_IconLuoi.VeTrongO(e.Graphics!, Module_IconLuoi.Loai.Sao, e.CellBounds, xIcon,
+                                                              Module_IconLuoi.CoTheoDpi(dgv));
                     // TEXT
                     string hoTen =
                         drv.Row.Field<string>("HoVaTen") ?? "";
                     if (!string.IsNullOrWhiteSpace(hoTen))
                     {
                         int textX =
-                            xIcon + iconSize + paddingText;
+                            matPhaiIcon + paddingText;
                         Rectangle textBounds =
                             new Rectangle(
                                 textX,
@@ -842,7 +835,7 @@ namespace PhanMemThiDua2026
                             ? e.CellStyle!.SelectionForeColor
                             : e.CellStyle!.ForeColor;
                         TextRenderer.DrawText(
-                            e.Graphics,
+                            e.Graphics!,
                             hoTen,
                             e.CellStyle.Font,
                             textBounds,
@@ -890,24 +883,23 @@ namespace PhanMemThiDua2026
                 sb.AppendLine($"Họ và tên: {hoTen}");
                 sb.AppendLine($"Số hiệu: {soHieu}  |  Đơn vị: {donVi}");
                 bool coDuLieuLogic = false;
-                for (int m = 2; m <= 5; m++)
+                foreach (var dot in Module_LichXet.LichXet(Module_CheDoDoiTuong.Hien))
                 {
-                    int thangKetQua = m + 1;
                     bool coDuLieuThangNay = false;
                     StringBuilder sbThang = new StringBuilder();
-                    for (int w = 1; w <= 4; w++)
+                    for (int w = 1; w <= dot.CotTuan.Length; w++)
                     {
-                        string val = Get($"Tuan_{w}_T{m}");
+                        string val = Get(dot.CotTuan[w - 1]);
                         if (!string.IsNullOrWhiteSpace(val))
                         {
-                            sbThang.AppendLine($"  + Tuần {w} - Tháng {m}: Loại {val}");
+                            sbThang.AppendLine($"  + {Module_LichXet.NhanTuan(dot, w)}: Loại {val}");
                             coDuLieuThangNay = true;
                         }
                     }
-                    string kq = Get($"Thang_{thangKetQua}");
+                    string kq = Get(dot.CotKetQua);
                     if (!string.IsNullOrWhiteSpace(kq))
                     {
-                        sbThang.AppendLine($"  => Kết quả thi đua Tháng {thangKetQua}: Loại {kq.ToUpper()}");
+                        sbThang.AppendLine($"  => Kết quả thi đua {Module_LichXet.NhanThang(dot.ThangKetQua, dot.NamKetQua)}: Loại {kq.ToUpper()}");
                         coDuLieuThangNay = true;
                     }
                     if (coDuLieuThangNay)
@@ -1019,7 +1011,7 @@ namespace PhanMemThiDua2026
             if (_dtXuLy != null)
             {
                 string[] tu = Module_BoLocKhenThuong.TachTuKhoa(ten);
-                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(dv, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"));
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(dv, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"), laDonVi: true);
                 DataRow[] dong;
                 lock (_dataLock) dong = Module_BoLocKhenThuong.DongConSong(_dtXuLy);
                 Module_BoLocKhenThuong.LocKep(dong, r =>
@@ -1056,7 +1048,7 @@ namespace PhanMemThiDua2026
             }
             else if (ten.Trim().Length > 0) dk.Add($"HoVaTen LIKE '%{Module_BoLocKhenThuong.ThoatLike(ten.Trim())}%'");
             // So sánh "=" chỉ thoát nháy đơn (bản cũ thoát cả [ ] * % như LIKE nên đơn vị có dấu ngoặc vuông không bao giờ khớp)
-            if (dv.Length > 0) dk.Add($"DonVi = '{Module_BoLocKhenThuong.ThoatBang(dv)}'");
+            if (dv.Length > 0) dk.Add(Module_DonVi.DieuKienRowFilter(_dtXuLy, "DonVi", dv));
             if (loai.Length > 0) dk.Add($"KetQuaTinhToan = '{Module_BoLocKhenThuong.ThoatBang(loai)}'");
             if (tinhTrang.Length > 0) dk.Add($"TinhTrang = '{Module_BoLocKhenThuong.ThoatBang(tinhTrang)}'");
             return string.Join(" AND ", dk);

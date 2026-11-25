@@ -51,9 +51,9 @@ namespace PhanMemThiDua2026
         // --- Công cụ vẽ dùng chung (tạo 1 lần cho cả chương trình) ---
         private static readonly Pen ButVachCot = new Pen(MauVachCot, 1f);
         private static readonly SolidBrush CoRoDong = new SolidBrush(MauRoDong);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontO = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontO = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
         // Bộ màu một nút: nền thường / rê chuột / nhấn / viền / chữ
         private readonly record struct BoMauNut(Color Nen, Color Hover, Color Down, Color Vien, Color Chu);
         private static readonly BoMauNut NutTim = new(

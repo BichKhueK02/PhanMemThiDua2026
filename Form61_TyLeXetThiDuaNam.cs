@@ -138,7 +138,7 @@ namespace PhanMemThiDua2026
         }
         #endregion
         #region CSDL
-        /// <summary>Kiểm tra và khởi tạo bảng QuyDinhTyLe_XetThiDuaNam trong CSDL2</summary>
+        /// <summary>Kiểm tra và khởi tạo bảng QuyDinhTyLe_XetThiDuaNam_CBCS trong CSDL2</summary>
         private void TaoBang_QuyDinhTyLe_NeuChuaCo()
         {
             try
@@ -147,7 +147,7 @@ namespace PhanMemThiDua2026
                 conn.Open();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = @"
-                    CREATE TABLE IF NOT EXISTS QuyDinhTyLe_XetThiDuaNam (
+                    CREATE TABLE IF NOT EXISTS QuyDinhTyLe_XetThiDuaNam_CBCS (
                         ID INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         TyLe_CSTD TEXT,
                         TyLe_CSTT TEXT,
@@ -157,7 +157,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi kiểm tra/tạo bảng CSDL: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi kiểm tra/tạo bảng CSDL: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void TaiDuLieuTyLe()
@@ -173,7 +173,7 @@ namespace PhanMemThiDua2026
                     using var cmd = conn.CreateCommand();
                     cmd.CommandText = @"
                         SELECT TyLe_CSTD, TyLe_CSTT, TyLe_HTNV
-                        FROM QuyDinhTyLe_XetThiDuaNam
+                        FROM QuyDinhTyLe_XetThiDuaNam_CBCS
                         ORDER BY ID DESC LIMIT 1;";
                     using var reader = cmd.ExecuteReader();
                     if (!reader.Read()) return;
@@ -193,7 +193,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi tải dữ liệu tỷ lệ: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi tải dữ liệu tỷ lệ: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private static string DocTyLe(SqliteDataReader reader, int cot, ref bool coDuLieuLoi)
@@ -230,13 +230,13 @@ namespace PhanMemThiDua2026
                     cmd.Parameters.Add("@TyLe_HTNV", SqliteType.Text).Value = htnv.ToString(CultureInfo.InvariantCulture);
                     // Cập nhật dòng mới nhất; chưa có dòng nào thì thêm mới (1 bước, nằm trong transaction)
                     cmd.CommandText = @"
-                        UPDATE QuyDinhTyLe_XetThiDuaNam
+                        UPDATE QuyDinhTyLe_XetThiDuaNam_CBCS
                         SET TyLe_CSTD = @TyLe_CSTD, TyLe_CSTT = @TyLe_CSTT, TyLe_HTNV = @TyLe_HTNV
-                        WHERE ID = (SELECT MAX(ID) FROM QuyDinhTyLe_XetThiDuaNam);";
+                        WHERE ID = (SELECT MAX(ID) FROM QuyDinhTyLe_XetThiDuaNam_CBCS);";
                     if (cmd.ExecuteNonQuery() == 0)
                     {
                         cmd.CommandText = @"
-                            INSERT INTO QuyDinhTyLe_XetThiDuaNam (TyLe_CSTD, TyLe_CSTT, TyLe_HTNV)
+                            INSERT INTO QuyDinhTyLe_XetThiDuaNam_CBCS (TyLe_CSTD, TyLe_CSTT, TyLe_HTNV)
                             VALUES (@TyLe_CSTD, @TyLe_CSTT, @TyLe_HTNV);";
                         cmd.ExecuteNonQuery();
                     }
@@ -245,7 +245,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi lưu dữ liệu: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             // Ghi nhật ký tách riêng: lỗi nhật ký không được làm người dùng tưởng lưu thất bại

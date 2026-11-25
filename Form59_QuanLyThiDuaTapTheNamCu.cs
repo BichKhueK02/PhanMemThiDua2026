@@ -1,5 +1,6 @@
 ﻿using Krypton.Toolkit;
 ///TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
+using ClosedXML.Excel;
 using Microsoft.Data.Sqlite;
 using System.Data;
 namespace PhanMemThiDua2026
@@ -13,6 +14,7 @@ namespace PhanMemThiDua2026
         public Form59_QuanLyThiDuaTapTheNamCu()
         {
             InitializeComponent();
+            DinhMenuChuotPhai();                // trước ApDung: mục "Làm mới" mới thêm cũng được gắn biểu tượng
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             Module_GiaoDienForm59Web.ApDung(this);   // giao diện kiểu web như Form4 - chỉ đổi trình bày (đây là dòng DUY NHẤT thêm vào code gốc)
             // Chỉ đăng ký sự kiện CellClick ở đây
@@ -51,6 +53,169 @@ namespace PhanMemThiDua2026
             {
                 this.ResumeLayout(true);
             }
+        }
+        /// <summary>
+        /// Menu chuột phải (không sửa Designer): ẩn "Xóa toàn bộ dữ liệu" (đã có nút Xóa trên form),
+        /// thêm "Làm mới" lên đầu = bấm nút Làm mới.
+        /// </summary>
+        private void DinhMenuChuotPhai()
+        {
+            xoaToanBoDuLieu_ToolStripMenuItem.Available = false;
+            xoaTimKiem_ToolStripMenuItem.Available = false;     // form không có ô tìm kiếm
+            xuatDuLieuRaTepExcel_ToolStripMenuItem.Text = "Xuất tệp Excel";
+            xuatDuLieuRaTepExcel_ToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+E";
+            xuatDuLieuRaTepExcel_ToolStripMenuItem.Click += (_, _) => XuatTepExcel();
+            var lamMoi = new ToolStripMenuItem { Name = "lamMoi_ToolStripMenuItem", Text = "Làm mới", ShortcutKeyDisplayString = "F5" };
+            lamMoi.Click += (_, _) => kryptonButton1_LamMoi.PerformClick();
+            contextMenuStrip1.Items.Insert(0, lamMoi);   // gắn vào menu TRƯỚC để lấy đúng cỡ ảnh của menu (ImageScalingSize)
+            Module_BieuTuongNut.GanBieuTuongChoMucThem(this, lamMoi);
+        }
+        // Phím tắt đồng bộ phần mềm: F5 Làm mới, Ctrl+E Xuất tệp Excel (bắt ở đây, menu chỉ hiện chữ phím tắt)
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            try
+            {
+                if (Module_PhimTat.XuLy(
+                    keyData,
+                    actionLamMoi: () => kryptonButton1_LamMoi.PerformClick(),                     // F5
+                    actionXuatExcel: () => xuatDuLieuRaTepExcel_ToolStripMenuItem.PerformClick())) // Ctrl+E
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Lỗi phím tắt Form59: " + ex.Message);
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+        // ===================== XUẤT TỆP EXCEL (cùng mẫu Form23 - thi đua tập thể năm hiện tại) =====================
+        private static string LayTenTieuDoan()
+        {
+            try
+            {
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(Module_DanduongGPS.DuongDanCSDL2, chiDoc: true));
+                cn.Open();
+                using var cmd = cn.CreateCommand();
+                cmd.CommandText = "SELECT TenTieuDoan FROM ThongTin WHERE ID = 1";
+                var kq = cmd.ExecuteScalar();
+                if (kq != null && kq != DBNull.Value)
+                {
+                    string chuoi = kq.ToString()!.Trim();
+                    string giaiMa = Module_BaoMatAES.GiaiMa(chuoi);
+                    return string.IsNullOrEmpty(giaiMa) ? chuoi : giaiMa;
+                }
+            }
+            catch { }
+            return string.Empty;
+        }
+        private void XuatTepExcel()
+        {
+            // 1. Kiểm tra: đã chọn năm + lưới có dòng dữ liệu
+            if (comboBox1_ChonCscdThiDuaTapTheNamCu.SelectedItem is not NamThiDuaTapTheItem itemChon)
+            {
+                MessageBox.Show("Vui lòng chọn năm cần xuất dữ liệu!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            var cot = kryptonDataGridView1.Columns.Cast<DataGridViewColumn>()
+                .Where(c => c.Visible).OrderBy(c => c.DisplayIndex).ToList();   // bỏ cột ID ẩn
+            DataGridViewRow? rowNguon = kryptonDataGridView1.Rows.Cast<DataGridViewRow>().FirstOrDefault(r => !r.IsNewRow);
+            if (!kryptonDataGridView1.Visible || cot.Count == 0 || rowNguon == null)
+            {
+                MessageBox.Show("Không có dữ liệu hợp lệ để xuất Excel.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            // 2. Thông tin cơ bản
+            string tenDonVi = LayTenTieuDoan();
+            if (string.IsNullOrWhiteSpace(tenDonVi)) tenDonVi = "ĐƠN VỊ";
+            string tenHienThi = char.ToUpperInvariant(tenDonVi[0]) + tenDonVi.Substring(1).ToLowerInvariant();
+            string nam = itemChon.TenHienThi;   // năm của tệp năm cũ đang chọn (không phải năm hệ thống)
+            string tenFile = $"BẢNG THỐNG KÊ PHÂN LOẠI THI ĐUA TẬP THỂ {tenDonVi} NĂM {nam}_{DateTime.Now:HHmmss}.xlsx";
+            foreach (char c in Path.GetInvalidFileNameChars()) tenFile = tenFile.Replace(c, '_');
+            using SaveFileDialog sfd = new()
+            {
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                FileName = tenFile,
+                Filter = Module_HeThong.BoLoc_Excel,
+                AddExtension = true,
+                OverwritePrompt = true
+            };
+            if (sfd.ShowDialog() != DialogResult.OK) return;
+            try
+            {
+                Cursor.Current = Cursors.WaitCursor;
+                using var wb = new XLWorkbook();
+                var ws = wb.Worksheets.Add("ThongKe");
+                // Tổng kết năm lưu mức phân loại (Loại 1..4) thì đổi sang danh hiệu; đã là danh hiệu thì giữ nguyên
+                var mapTongKetNam = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    [Module_HeThong.Loai_1] = Form23_ThongKeThiDuaTapThe.DanhHieu_Loai1,
+                    [Module_HeThong.Loai_2] = Form23_ThongKeThiDuaTapThe.DanhHieu_Loai2,
+                    [Module_HeThong.Loai_3] = Form23_ThongKeThiDuaTapThe.DanhHieu_Loai3,
+                    [Module_HeThong.Loai_4] = Form23_ThongKeThiDuaTapThe.DanhHieu_Loai4,
+                    [Module_HeThong.PL_KHONG_PL] = string.Empty
+                };
+                int soCotExcel = cot.Count + 1;
+                string cotCuoi = XLHelper.GetColumnLetterFromNumber(soCotExcel);
+                // Tiêu đề
+                var titleRange = ws.Range($"A1:{cotCuoi}1");
+                titleRange.Merge();
+                titleRange.Value = $"KẾT QUẢ PHÂN LOẠI TẬP THỂ {tenDonVi} NĂM {nam}";
+                titleRange.Style.Font.Bold = true;
+                titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                titleRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                // Hàng tiêu đề cột
+                ws.Cell(3, 1).Value = Module_HeThong.TieuDeCot.DonVi;
+                for (int i = 0; i < cot.Count; i++)
+                    ws.Cell(3, i + 2).Value = (cot[i].HeaderText ?? "").Replace("\r", "").Replace("\n", " ").Trim();
+                var headerRange = ws.Range($"A3:{cotCuoi}3");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                headerRange.Style.Fill.BackgroundColor = XLColor.FromArgb(217, 234, 211);
+                // Dữ liệu: 1 dòng của đơn vị
+                ws.Cell(4, 1).Value = tenHienThi;
+                for (int i = 0; i < cot.Count; i++)
+                {
+                    string giaTriGoc = rowNguon.Cells[cot[i].Index].Value?.ToString()?.Trim() ?? string.Empty;
+                    bool laTongKetNam = cot[i].Name == "TongKet_Nam";
+                    string giaTriXuat = laTongKetNam && mapTongKetNam.TryGetValue(giaTriGoc, out string? danhHieu) ? danhHieu : giaTriGoc;
+                    var cell = ws.Cell(4, i + 2);
+                    cell.Value = giaTriXuat;
+                    if (giaTriXuat is Form23_ThongKeThiDuaTapThe.DanhHieu_Loai1 or Form23_ThongKeThiDuaTapThe.DanhHieu_Loai2)
+                    {
+                        cell.Style.Font.Bold = true;
+                        cell.Style.Font.FontColor = XLColor.DarkGreen;
+                    }
+                    else if (giaTriXuat == Form23_ThongKeThiDuaTapThe.DanhHieu_Loai4)
+                    {
+                        cell.Style.Font.Bold = true;
+                        cell.Style.Font.FontColor = XLColor.DarkRed;
+                    }
+                }
+                ws.Row(4).Height = 36;
+                var row4Range = ws.Range($"A4:{cotCuoi}4");
+                row4Range.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                row4Range.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                row4Range.Style.Alignment.WrapText = true;
+                // Định dạng chung
+                var allRange = ws.Range($"A1:{cotCuoi}4");
+                allRange.Style.Font.FontName = Module_HeThong.Font_Times_New_Roman;
+                allRange.Style.Font.FontSize = 14;
+                allRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                ws.Range($"A3:{cotCuoi}4").Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                ws.Columns($"A:{cotCuoi}").AdjustToContents();
+                Module_BanQuyen.DongDauExcel(wb);
+                Module_ExcelAnToan.LuuAnToan(wb, sfd.FileName);
+                Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất dữ liệu Excel",
+                    $"Xuất kết quả thi đua tập thể năm {nam} | {Path.GetFileName(sfd.FileName)}");
+                if (File.Exists(sfd.FileName)) Module_XuatNhapDuLieuThiDua.MoVaChonTepTrongExplorer(sfd.FileName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Không thể xuất Excel.\nChi tiết: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally { Cursor.Current = Cursors.Default; }
         }
         private void KhoiTaoDanhSachTextBox()
         {
@@ -249,7 +414,7 @@ namespace PhanMemThiDua2026
                 cmd.CommandText = @"
                     SELECT COUNT(*) 
                     FROM sqlite_master 
-                    WHERE type = 'table' AND name = 'ThongKe_PhanLoaiTapThe';";
+                    WHERE type = 'table' AND name = 'ThongKe_PhanLoaiTapThe_CBCS';";
                 long count = (long)(cmd.ExecuteScalar() ?? 0);
                 return count > 0;
             }
@@ -313,7 +478,7 @@ namespace PhanMemThiDua2026
                 using (var cmdExist = cn.CreateCommand())
                 {
                     cmdExist.Transaction = tran;
-                    cmdExist.CommandText = @"INSERT OR IGNORE INTO ""ThongKe_PhanLoaiTapThe"" (ID) VALUES (1);";
+                    cmdExist.CommandText = @"INSERT OR IGNORE INTO ""ThongKe_PhanLoaiTapThe_CBCS"" (ID) VALUES (1);";
                     cmdExist.ExecuteNonQuery();
                 }
                 // Mã hóa dữ liệu phân loại bằng AES trước khi lưu
@@ -322,7 +487,7 @@ namespace PhanMemThiDua2026
                 using (var cmdUpdate = cn.CreateCommand())
                 {
                     cmdUpdate.Transaction = tran;
-                    cmdUpdate.CommandText = $"UPDATE \"ThongKe_PhanLoaiTapThe\" SET \"{tenCot}\" = @Val WHERE ID = 1;";
+                    cmdUpdate.CommandText = $"UPDATE \"ThongKe_PhanLoaiTapThe_CBCS\" SET \"{tenCot}\" = @Val WHERE ID = 1;";
                     cmdUpdate.Parameters.AddWithValue("@Val", giaTriMaHoa);
                     cmdUpdate.ExecuteNonQuery();
                 }
@@ -332,7 +497,7 @@ namespace PhanMemThiDua2026
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     $"Cập nhật dữ liệu thi đua tập thể [{comboBox1_ChonThang.Text}: {giaTriLoai}] năm {itemChon.TenHienThi} thành công!",
-                    DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
+                    DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio)
                 );
                 //MessageBox.Show($"Cập nhật kết quả [{giaTriLoai}] cho [{comboBox1_ChonThang.Text}] năm {itemChon.TenHienThi} thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // 🌟 Cập nhật thông báo lên ToolStripStatusLabel3 -> Delay 200ms -> Đếm số dòng DataGrid
@@ -425,7 +590,7 @@ namespace PhanMemThiDua2026
                 cmd.CommandText = @"
                     SELECT ID, Thang_12_Nam_Cu, Thang_1, Thang_2, Thang_3, Thang_4, Thang_5, 
                            Sau_Thang_Dau_Nam, Thang_6, Thang_7, Thang_8, Thang_9, Thang_10, Thang_11, TongKet_Nam 
-                    FROM ThongKe_PhanLoaiTapThe 
+                    FROM ThongKe_PhanLoaiTapThe_CBCS 
                     LIMIT 1;";
                 using var reader = cmd.ExecuteReader();
                 if (reader.Read())
@@ -493,7 +658,7 @@ namespace PhanMemThiDua2026
             dgv.RowTemplate.Height = 36;
             dgv.ColumnHeadersHeight = 50;
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-            string fontName = Module_HeThong.TenFontHeThong ?? "Segoe UI";
+            string fontName = Module_HeThong.TenFontHeThong ?? Module_HeThong.TenFontHeThong;
             Font fontBold9 = new Font(fontName, 9.5F, FontStyle.Bold);
             Font fontRegular9 = new Font(fontName, 9.5F, FontStyle.Regular);
             dgv.StateCommon.HeaderColumn.Content.Font = fontBold9;
@@ -642,7 +807,7 @@ namespace PhanMemThiDua2026
                 return;
             }
             var dialogResult = MessageBox.Show(
-                $"CẢNH BÁO: Thao tác này sẽ XÓA HẲN BẢNG 'ThongKe_PhanLoaiTapThe' khỏi CSDL năm {itemChon.TenHienThi}!\n\nBạn có chắc chắn muốn xóa không?",
+                $"CẢNH BÁO: Thao tác này sẽ XÓA HẲN BẢNG 'ThongKe_PhanLoaiTapThe_CBCS' khỏi CSDL năm {itemChon.TenHienThi}!\n\nBạn có chắc chắn muốn xóa không?",
                 "Xác nhận xóa BẢNG CSDL",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning
@@ -662,7 +827,7 @@ namespace PhanMemThiDua2026
                     cn.Open();
                     using (var cmd = cn.CreateCommand())
                     {
-                        cmd.CommandText = @"DROP TABLE IF EXISTS ""ThongKe_PhanLoaiTapThe"";";
+                        cmd.CommandText = @"DROP TABLE IF EXISTS ""ThongKe_PhanLoaiTapThe_CBCS"";";
                         cmd.ExecuteNonQuery();
                         cmd.CommandText = "VACUUM;";
                         cmd.ExecuteNonQuery();
@@ -671,14 +836,14 @@ namespace PhanMemThiDua2026
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     $"Xóa bảng thi đua tập thể năm {itemChon.TenHienThi} thành công!",
-                    DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")
+                    DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio)
                 );
                 // Dọn dẹp DataGridView & ẩn vùng lưới trống
                 kryptonDataGridView1.DataSource = null;
                 XoaTrangCacTextBox();
                 SetDataGridViewVisible(false);
                 // Bảng thi đua cá nhân (ThiDuaThang) của năm này cũng trống => tệp chỉ còn là rác: xóa hẳn khỏi thư mục lịch sử.
-                // Danh sách năm quét lại (năm vừa xóa bảng tập thể luôn biến khỏi combo vì không còn bảng ThongKe_PhanLoaiTapThe).
+                // Danh sách năm quét lại (năm vừa xóa bảng tập thể luôn biến khỏi combo vì không còn bảng ThongKe_PhanLoaiTapThe_CBCS).
                 Module_HoTroLuuDataTheoNamCu.XoaTepLichSuNeuRong(duongDanCSDLCu);
                 await TaiDanhSachCoSoDuLieuNamCuAsync();
                 // 🌟 Thông báo xóa thành công -> Delay 200ms -> Đếm lại số dòng DataGrid (bằng 0)
@@ -784,7 +949,7 @@ namespace PhanMemThiDua2026
                 BackColor = Color.Transparent,
                 Visible = false
             };
-            var font = new Font(Module_HeThong.TenFontHeThong ?? "Segoe UI", 11F, FontStyle.Italic);
+            var font = new Font(Module_HeThong.TenFontHeThong ?? Module_HeThong.TenFontHeThong, 11F, FontStyle.Italic);
             lbl.Font = font;
             lbl.Disposed += (_, _) => font.Dispose();
             return lbl;
@@ -845,9 +1010,11 @@ namespace PhanMemThiDua2026
             XoaTrangCacTextBox();
             SetDataGridViewVisible(false);
         }
+
+  
         //private void ToggleDataGridView()
         //{
-            //SetDataGridViewVisible(_isGridHidden);
+        //SetDataGridViewVisible(_isGridHidden);
         //}
     }
     public class NamThiDuaTapTheItem

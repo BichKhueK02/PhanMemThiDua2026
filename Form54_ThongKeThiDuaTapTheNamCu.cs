@@ -115,7 +115,7 @@ namespace PhanMemThiDua2026
                 var tatCaCot = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 using (var cmdPragma = cn.CreateCommand())
                 {
-                    cmdPragma.CommandText = "PRAGMA table_info(ThongKe_PhanLoaiTapThe)";
+                    cmdPragma.CommandText = "PRAGMA table_info(ThongKe_PhanLoaiTapThe_CBCS)";
                     using var rd = cmdPragma.ExecuteReader();
                     while (rd.Read())
                         tatCaCot.Add(rd["name"].ToString()!);
@@ -128,7 +128,7 @@ namespace PhanMemThiDua2026
                 };
                 var cotTonTai = cotHopLe.Where(c => tatCaCot.Contains(c)).ToList();
                 if (cotTonTai.Count == 0) return;
-                string sql = $"SELECT {string.Join(",", cotTonTai.Select(c => $"\"{c}\""))} FROM ThongKe_PhanLoaiTapThe WHERE ID = 1";
+                string sql = $"SELECT {string.Join(",", cotTonTai.Select(c => $"\"{c}\""))} FROM ThongKe_PhanLoaiTapThe_CBCS WHERE ID = 1";
                 using var cmd = cn.CreateCommand();
                 cmd.CommandText = sql;
                 using var reader = cmd.ExecuteReader();
@@ -261,7 +261,7 @@ namespace PhanMemThiDua2026
             {
                 MessageBox.Show(
                     "Không tìm thấy tệp CSDL năm cũ để cập nhật.",
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return;
@@ -307,7 +307,7 @@ namespace PhanMemThiDua2026
                 using var cmd = cn.CreateCommand();
                 cmd.Transaction = tran;
                 cmd.CommandText = $@"
-UPDATE ""ThongKe_PhanLoaiTapThe""
+UPDATE ""ThongKe_PhanLoaiTapThe_CBCS""
 SET ""{tenCot}"" = @gt
 WHERE ID = 1;";
                 var parameter = cmd.Parameters.Add(
@@ -336,7 +336,7 @@ WHERE ID = 1;";
             {
                 MessageBox.Show(
                     "Lỗi khi cập nhật dữ liệu năm cũ:\n\n" + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -389,7 +389,7 @@ WHERE ID = 1;";
                 titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 titleRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 // 2. Header
-                ws.Cell(3, 1).Value = "Đơn vị";
+                ws.Cell(3, 1).Value = Module_HeThong.TieuDeCot.DonVi;
                 for (int i = 0; i < kryptonDataGridView1.Columns.Count; i++)
                 {
                     ws.Cell(3, i + 2).Value = kryptonDataGridView1.Columns[i].HeaderText;
@@ -455,7 +455,7 @@ WHERE ID = 1;";
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không thể xuất Excel.\nChi tiết: " + ex.Message, "Lỗi",
+                MessageBox.Show("Không thể xuất Excel.\nChi tiết: " + ex.Message, Module_HeThong.TieuDe_Loi,
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

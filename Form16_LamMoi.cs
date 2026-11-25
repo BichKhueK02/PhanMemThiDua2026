@@ -77,7 +77,7 @@ namespace PhanMemThiDua2026
                 });
                 if (IsDisposed) return;
                 string[] thuTu = Module_DonVi.LayDanhSachDonViUuTienArray();
-                var sorted = dsDonVi.OrderBy(x => { int i = Array.IndexOf(thuTu, x); return i < 0 ? int.MaxValue : i; }).ToList();
+                var sorted = Module_DonVi.SapXep(dsDonVi, thuTu);
                 var clb = checkedListBox1_ChonDonViDeReset;
                 clb.BeginUpdate();
                 try
@@ -145,7 +145,7 @@ namespace PhanMemThiDua2026
         private async void btn_ResetPhanLoai_Click(object? sender, EventArgs e)
         {
             if (_isProcessing) return;
-            var chon = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var chon = new HashSet<string>(Module_DonVi.SoSanhBang);
             var boQua = new List<string>();
             var clb = checkedListBox1_ChonDonViDeReset;
             for (int i = 0; i < clb.Items.Count; i++)
@@ -183,7 +183,7 @@ namespace PhanMemThiDua2026
                 if (loi == "CANCELED") return;
                 if (!string.IsNullOrEmpty(loi))
                 {
-                    MessageBox.Show("Có lỗi trong quá trình cập nhật CSDL.\nChi tiết: " + loi, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Có lỗi trong quá trình cập nhật CSDL.\nChi tiết: " + loi, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 if (soDong == 0)
@@ -201,7 +201,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Form16 lỗi: {ex}");
-                MessageBox.Show($"Đã xảy ra lỗi hệ thống: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Đã xảy ra lỗi hệ thống: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

@@ -33,10 +33,7 @@ namespace PhanMemThiDua2026
         private string TenBangHienTai => _bangSoVang ??= ChonBangSoVang();
         private static string ChonBangSoVang()
         {
-            string phienBan = Module_TaiKhoan.LayPhienBanPhanMem() ?? "";
-            return phienBan.LaCheDoTanBinh()
-                ? "DanhSachTanBinh_SoVangBaNhat"
-                : "DanhSach_SoVangBaNhat";
+            return Module_CheDoDoiTuong.SoVangBaNhat((Module_TaiKhoan.LayPhienBanPhanMem() ?? "").LayCheDo());
         }
         private bool _daKhoiTaoToolTip;
         private bool _daCauHinhGrid;
@@ -159,16 +156,16 @@ namespace PhanMemThiDua2026
             g.Columns.AddRange(
                 Cot("ID", "ID", 30, giua, hien: false),
                 Cot("STT", "STT", 35, giua),                 // Giữ gọn gàng
-                Cot("HoVaTen", "Họ và tên", 190, trai),       // Đủ thoáng cho tên dài
-                Cot("SoHieu", "Số hiệu", 70, giua),
-                Cot("NamSinh", "Năm sinh", 60, giua),
-                Cot("QueQuan", "Quê quán", 105, trai),       // Thu gọn bớt vì đang dư khoảng trống
-                Cot("NgayVaoCAND", "Vào CAND", 75, giua),
-                Cot("CapBac", "Cấp bậc", 60, giua),          // Thu gọn vì cấp bậc ngắn (H1, U2...)
-                Cot("ChucVu", "Chức vụ", 85, trai),
-                Cot("DonVi", "Đơn vị", 70, giua),
-                Cot("PhanLoai", "Phân loại", 70, giua, hien: false),
-                Cot("GhiChu", "Ghi chú", 75, trai),          // Thu gọn bớt
+                Cot("HoVaTen", Module_HeThong.TieuDeCot.HoVaTen, 190, trai),       // Đủ thoáng cho tên dài
+                Cot("SoHieu", Module_HeThong.TieuDeCot.SoHieu, 70, giua),
+                Cot("NamSinh", Module_HeThong.TieuDeCot.NamSinh, 60, giua),
+                Cot("QueQuan", Module_HeThong.TieuDeCot.QueQuan, 105, trai),       // Thu gọn bớt vì đang dư khoảng trống
+                Cot("NgayVaoCAND", Module_HeThong.TieuDeCot.VaoCAND, 75, giua),
+                Cot("CapBac", Module_HeThong.TieuDeCot.CapBac, 60, giua),          // Thu gọn vì cấp bậc ngắn (H1, U2...)
+                Cot("ChucVu", Module_HeThong.TieuDeCot.ChucVu, 85, trai),
+                Cot("DonVi", Module_HeThong.TieuDeCot.DonVi, 70, giua),
+                Cot("PhanLoai", Module_HeThong.TieuDeCot.PhanLoai, 70, giua, hien: false),
+                Cot("GhiChu", Module_HeThong.TieuDeCot.GhiChu, 75, trai),          // Thu gọn bớt
                 Cot("ThanhTich", "Thành tích", 240, trai),   // TĂNG MẠNH lên 240 để hiển thị trọn vẹn nội dung dài
                 Cot("ThongBaoTrungDoan", "Thông báo E", 75, giua), // Thu gọn bớt
                 Cot("SoTTTrongSo", "Số vào sổ", 70, giua),
@@ -463,12 +460,12 @@ namespace PhanMemThiDua2026
                 dk.Add($"HoVaTen LIKE '%{EscapeLike(ten.Trim().Replace("'", "''"))}%'");
             string donVi = comboBox_TimKiemDonVi.SelectedIndex > 0 ? comboBox_TimKiemDonVi.SelectedItem as string ?? "" : "";
             if (donVi.Length > 0)
-                dk.Add($"DonVi = '{donVi.Replace("'", "''")}'");
+                dk.Add(Module_DonVi.DieuKienRowFilter(dt, "DonVi", donVi));
             // BỘ LỌC KÉP: combo Đơn vị chỉ còn đơn vị có người khớp ô tìm kiếm (giữ thứ tự chuẩn, giữ giá trị đang chọn)
             if (coCotTim)
             {
                 string[] tu = Module_BoLocKhenThuong.TachTuKhoa(ten);
-                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donVi, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"));
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<DataRow>(donVi, r => Module_BoLocKhenThuong.Chuoi(r, "DonVi"), laDonVi: true);
                 Module_BoLocKhenThuong.LocKep(Module_BoLocKhenThuong.DongConSong(dt),
                     tu.Length == 0 ? null : r => Module_BoLocKhenThuong.KhopCotTimKiem(r, tu), tcDv);
                 _dangDatLaiLoc = true;
@@ -522,11 +519,9 @@ namespace PhanMemThiDua2026
                     comboBox_TimKiemDonVi.Items.Clear();
                     comboBox_TimKiemDonVi.Items.Add(Module_HeThong.Tat_Ca);
                     // Đúng thứ tự của danh sách chuẩn, chỉ giữ đơn vị có dữ liệu
-                    foreach (string chuan in Module_DonVi.GetDanhSachDonVi())
-                        if (coTrongData.Remove(chuan)) comboBox_TimKiemDonVi.Items.Add(chuan);
-                    // Đơn vị gõ sai tên (không khớp danh sách chuẩn) vẫn đưa xuống cuối để không mất khả năng lọc
-                    foreach (string thua in coTrongData) comboBox_TimKiemDonVi.Items.Add(thua);
-                    int vt = dangChon == null ? 0 : comboBox_TimKiemDonVi.Items.IndexOf(dangChon);
+                    // Đơn vị viết lệch (không khớp danh sách chuẩn) vẫn đưa xuống cuối (thứ tự tự nhiên) để không mất khả năng lọc
+                    foreach (string dv in Module_DonVi.SapXep(coTrongData)) comboBox_TimKiemDonVi.Items.Add(dv);
+                    int vt = dangChon == null ? 0 : comboBox_TimKiemDonVi.Items.Cast<object>().ToList().FindIndex(o => Module_DonVi.CungDonVi(o as string, dangChon));
                     comboBox_TimKiemDonVi.SelectedIndex = vt >= 0 ? vt : 0;
                 }
                 finally { comboBox_TimKiemDonVi.EndUpdate(); }
@@ -624,7 +619,7 @@ namespace PhanMemThiDua2026
                 int soDong = await Task.Run(() => GhiMotDong(bang, id, giaTri));   // mã hóa + ghi ở luồng nền
                 if (soDong == 0)
                 {
-                    MessageBox.Show("Không tìm thấy cán bộ cần cập nhật trong Sổ vàng (có thể đã bị xóa).", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Không tìm thấy cán bộ cần cập nhật trong Sổ vàng (có thể đã bị xóa).", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Sửa thông tin Sổ vàng Ba Nhất ({bang})", $"ID={id} | {giaTri[0]} | Đơn vị: {giaTri[6]}");
@@ -801,7 +796,7 @@ namespace PhanMemThiDua2026
             string db = DuongDanDb;
             if (string.IsNullOrWhiteSpace(db) || !File.Exists(db))
             {
-                MessageBox.Show("Không tìm thấy tệp cơ sở dữ liệu!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Không tìm thấy tệp cơ sở dữ liệu!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             try
@@ -825,7 +820,7 @@ namespace PhanMemThiDua2026
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     $"Xóa toàn bộ dữ liệu Sổ vàng Ba Nhất bảng [{bang}] ({soDongDaXoa} dòng)",
-                    DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                    DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio));
                 MessageBox.Show($"Đã xóa thành công {soDongDaXoa} dòng dữ liệu.", "Hoàn tất", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ClearTextBoxes();
                 await NapLuoiAsync();                                  // nạp lại danh sách trống (đồng thời cập nhật thống kê)
@@ -884,14 +879,14 @@ namespace PhanMemThiDua2026
                 // Module tự báo lỗi nếu có; chỉ ghi nhật ký "thành công" khi tệp thật sự được tạo
                 if (File.Exists(filePath))
                 {
-                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Đã xuất file sổ vàng thành công tại: {filePath}", DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss"));
+                    Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, $"Đã xuất file sổ vàng thành công tại: {filePath}", DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio));
                     ThongBaoTam($"Đã xuất file sổ vàng thành công tại: {filePath}", 2000);
                 }
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Lỗi nút xuất sổ vàng: {ex.Message}");
-                MessageBox.Show("Lỗi khi xuất file Sổ vàng: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi khi xuất file Sổ vàng: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

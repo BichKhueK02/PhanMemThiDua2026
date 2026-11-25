@@ -26,9 +26,9 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(75, 20, 130);
         private static readonly Color MauKeBang = Color.FromArgb(235, 238, 243);
         private static readonly Color MauChonDong = Color.FromArgb(239, 246, 255);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontTieuDeTrang = new Font("Segoe UI Semibold", 14F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDeTrang = new Font(Module_HeThong.TenFontHeThongDam, 14F, FontStyle.Regular, GraphicsUnit.Point);
         /// <summary>true = hiện tiêu đề trang (lấy từ Form.Text) ở khoảng trống giữa biểu tượng và nút Đóng.</summary>
         private const bool HienTieuDeTrang = true;
         // Khoảng đệm giữa khung bo tròn và bảng (px thiết kế): đủ để 4 góc vuông của bảng nằm lọt trong cung bo

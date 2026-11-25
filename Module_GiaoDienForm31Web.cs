@@ -88,12 +88,12 @@ namespace PhanMemThiDua2026
         private static readonly Color MauChinh = Color.FromArgb(37, 99, 235);
         private static readonly Color GradientDau = Color.FromArgb(79, 70, 229);
         private static readonly Color GradientCuoi = Color.FromArgb(124, 58, 237);
-        private static readonly Font FontTieuDeThe = new("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontTieuDeLon = new("Segoe UI Semibold", 16F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNhan = new("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNhap = new("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNoiDung = new("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDeThe = new(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDeLon = new(Module_HeThong.TenFontHeThongDam, 16F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhap = new(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNoiDung = new(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular, GraphicsUnit.Point);
         // Bộ màu nút: (Nền, Hover, Nhấn, Viền, Chữ)
         private static readonly (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) NutChinh =
             (Color.FromArgb(37, 99, 235), Color.FromArgb(29, 78, 216), Color.FromArgb(30, 64, 175), Color.FromArgb(37, 99, 235), Color.White);

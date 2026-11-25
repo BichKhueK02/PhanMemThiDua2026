@@ -80,7 +80,7 @@ namespace PhanMemThiDua2026
             var tuHuy = new List<IDisposable>();
             Font TaoFont(float co, FontStyle kieu = FontStyle.Regular)
             {
-                var ft = new Font("Segoe UI", co, kieu, GraphicsUnit.Point);
+                var ft = new Font(Module_HeThong.TenFontHeThong, co, kieu, GraphicsUnit.Point);
                 tuHuy.Add(ft);
                 return ft;
             }
@@ -454,7 +454,7 @@ namespace PhanMemThiDua2026
     internal sealed class OTimKiemWebF40 : TheBoGocF40
     {
         private bool _dangFocus;
-        private readonly Font _font = new("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private readonly Font _font = new(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular, GraphicsUnit.Point);
         public TextBox Txt { get; }
         public event EventHandler? YeuCauXuongDanhSach;
         public OTimKiemWebF40()
@@ -527,7 +527,7 @@ namespace PhanMemThiDua2026
     internal sealed class NutWebF40 : Control
     {
         private bool _hover, _nhan;
-        private readonly Font _font = new("Segoe UI", 9.5F, FontStyle.Bold, GraphicsUnit.Point);
+        private readonly Font _font = new(Module_HeThong.TenFontHeThong, 9.5F, FontStyle.Bold, GraphicsUnit.Point);
         public NutWebF40()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint |
@@ -639,8 +639,8 @@ namespace PhanMemThiDua2026
         private readonly List<Muc> _tatCa = new();
         private readonly List<Muc> _hienThi = new();
         private readonly HashSet<string> _goc = new(StringComparer.OrdinalIgnoreCase); // trạng thái đã tích lúc nạp
-        private readonly Font _fontTen = new("Segoe UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private readonly Font _fontPill = new("Segoe UI", 8.5F, FontStyle.Bold, GraphicsUnit.Point);
+        private readonly Font _fontTen = new(Module_HeThong.TenFontHeThong, 10.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private readonly Font _fontPill = new(Module_HeThong.TenFontHeThong, 8.5F, FontStyle.Bold, GraphicsUnit.Point);
         private string _tuKhoa = "";
         private int _cuon;
         private int _hover = -1;

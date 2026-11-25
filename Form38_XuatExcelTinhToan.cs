@@ -59,7 +59,7 @@ namespace PhanMemThiDua2026
             using var sfd = new SaveFileDialog
             {
                 Title = "Chọn nơi lưu file Excel thống kê",
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = Module_HeThong.BoLoc_Excel,
                 FileName = defaultFileName,
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
             };
@@ -104,7 +104,7 @@ namespace PhanMemThiDua2026
                 int totalCount = _dvHienThi.Count;
                 var token = _cts.Token;
                 // Giao toàn bộ việc xuất file cho luồng Background
-                string[] dynamicHeaders = {"STT", "Họ và tên", "Số hiệu", "Đơn vị", _h1, _h2, _h3, _h4, "Kết quả", "Ghi chú" };
+                string[] dynamicHeaders = {"STT", Module_HeThong.TieuDeCot.HoVaTen, Module_HeThong.TieuDeCot.SoHieu, Module_HeThong.TieuDeCot.DonVi, _h1, _h2, _h3, _h4, "Kết quả", Module_HeThong.TieuDeCot.GhiChu };
                 await Task.Run(() => ExportToExcelTask(exportStream, totalCount, filePath, tenDonVi, dynamicHeaders, token), token);
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Xuất Excel kết quả tính toán phân loại",
                     $"{totalCount} dòng | Tệp: {Path.GetFileName(filePath)}");
@@ -124,7 +124,7 @@ namespace PhanMemThiDua2026
             {
                 LogError("Lỗi Click Xuất Excel", ex);
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel kết quả tính toán phân loại", ex.Message);
-                MessageBox.Show($"Lỗi xuất dữ liệu: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi xuất dữ liệu: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

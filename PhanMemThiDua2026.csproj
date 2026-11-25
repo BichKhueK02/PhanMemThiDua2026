@@ -23,7 +23,7 @@
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <!-- AssemblyTitle = "File description" trong Properties > Details của exe -->
-    <AssemblyTitle>Phần mềm Thi đua 2026</AssemblyTitle>
+    <AssemblyTitle>Phan mem thi dua 2026</AssemblyTitle>
     <Title>PhanMemThiDua2026</Title>
     <Company>TrungKien</Company>
     <Authors>TrungKien</Authors>
@@ -63,13 +63,10 @@
   <ItemGroup>
     <Content Include="Resources\ic_PhanMem.ico" />
   </ItemGroup>
-  <!-- 8 ảnh nút menu của Form2 kiểu "Cổ điển": nhúng vào exe, CHỈ nạp khi người dùng chọn Cổ điển (Module_BieuTuongMenu).
-       Kiểu "Hiện đại" vẽ biểu tượng bằng GDI+ => lúc dựng Form2 không còn giải mã ảnh nào cho menu. -->
+  <!-- Biểu tượng nút/menu ở CẢ 2 kiểu giao diện đều tự vẽ bằng GDI+ (Module_BieuTuongNut/Menu/Form12) => không nhúng ảnh gốc nữa.
+       Chỉ còn ảnh đại diện mặc định của Form3: được lưu NGUYÊN ẢNH vào CSDL nên phải giữ đúng ảnh gốc. -->
   <ItemGroup>
-    <EmbeddedResource Include="Icon\Form2CoDien\*.*" LogicalName="Form2CoDien.%(Filename)%(Extension)" />
-    <EmbeddedResource Include="Icon\Form12CoDien\*.*" LogicalName="Form12CoDien.%(Filename)%(Extension)" />
-    <!-- Ảnh biểu tượng NÚT của mọi form (tách khỏi Designer/.resx): chỉ nạp ở kiểu "Cổ điển" (Module_BieuTuongNut) -->
-    <EmbeddedResource Include="Icon\CoDien\*.*" LogicalName="CoDien.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Icon\CoDien\Form3_DangKyTaiKhoan__pictureBox2_AnhDaiDienAdmin.png" LogicalName="CoDien.%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />

@@ -268,8 +268,10 @@ namespace PhanMemThiDua2026
             tuanBaoCao = "";
             try
             {
+                string? bang = Module_CheDoDoiTuong.BangChonLoaiBaoCao;   // CBCS: không có => báo cáo theo tháng
+                if (bang == null) return;
                 using var cmd = new SqliteCommand(
-                    "SELECT ChonLoaiBaoCao, ChonTuan FROM ChonLoaiBaoCao ORDER BY ID DESC LIMIT 1", cn);
+                    $"SELECT ChonLoaiBaoCao, ChonTuan FROM [{bang}] ORDER BY ID DESC LIMIT 1", cn);
                 using var rd = cmd.ExecuteReader();
                 if (rd.Read())
                 {
@@ -304,14 +306,8 @@ namespace PhanMemThiDua2026
         /// nên Excel luôn khớp. KHÔNG còn đọc bảng TyLe trong CSDL (bảng đó không còn được cập nhật nên có thể chứa số cũ/trống).
         /// Chưa có số liệu => ném ngoại lệ có hướng dẫn (hủy xuất, không ghi tệp sai).
         /// </summary>
-        private static Dictionary<int, (int hienTai, int canDat)> LayTyLeTuBang2()
-        {
-            var kq = Module_TyLeBang2.Hien;
-            if (kq == null)
-                throw new InvalidOperationException(
-                    "Chưa có số liệu Bảng tỷ lệ phần trăm (Bảng 2). Hãy mở Trang chủ để chương trình tính xong Bảng 2 rồi xuất lại.");
-            return kq.ToTyLe();
-        }
+        private static KetQuaBang2 LayTyLeTuBang2() =>
+            Module_TyLeBang2.Hien ?? throw new InvalidOperationException(Module_TyLeBang2.ThongBaoChuaTinh);
         private static ThongTinKy DocThongTinKy(SqliteConnection cn)
         {
             var k = new ThongTinKy();
@@ -342,7 +338,7 @@ namespace PhanMemThiDua2026
             // --- Chức vụ: người đầu tiên = Tiểu đoàn trưởng (dự phòng); khớp tên -> người ký ---
             try
             {
-                using var cmd = new SqliteCommand($"SELECT ID, HoVaTen, ChucVu FROM [{(Module_TaiKhoan.LaPhienBanTanBinh() ? "ChiHuyD_TanBinh" : "ChiHuyD")}] ORDER BY ID ASC", cn);
+                using var cmd = new SqliteCommand($"SELECT ID, HoVaTen, ChucVu FROM [{Module_CheDoDoiTuong.BangChiHuyD}] ORDER BY ID ASC", cn);
                 using var rd = cmd.ExecuteReader();
                 bool isFirst = true;
                 bool foundMatch = false;
@@ -502,8 +498,10 @@ namespace PhanMemThiDua2026
             cellA7.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
         }
         private static void GhiSoLieuVaTyLe(IXLWorksheet ws, bool laNam,
-            Dictionary<int, (int hienTai, int canDat)> tyLe, ThongTinNgay tn)
+            KetQuaBang2 kq, ThongTinNgay tn)
         {
+            // GIỮ NGUYÊN cách ghi ô đã dùng (xem thư mục "Cách tính tỷ lệ %"); chỉ đổi nguồn số sang Bảng 2 trên RAM.
+            var tyLe = kq.ToTyLe();
             int tongQS = tyLe.GetValueOrDefault(1).hienTai;
             int khongPL = tyLe.GetValueOrDefault(6).hienTai;
             ws.Cell("B11").Value = tongQS;
@@ -577,7 +575,7 @@ namespace PhanMemThiDua2026
                 ThongTinNgay tn;
                 string loaiBaoCao, tuanBaoCao;
                 string kyHieuBaoCao;
-                Dictionary<int, (int hienTai, int canDat)> tyLe;
+                KetQuaBang2 tyLe;
                 ThongTinKy ky;
                 using (var cn = MoCsdl(csdl2, false))
                 {
@@ -795,9 +793,9 @@ namespace PhanMemThiDua2026
                 try
                 {
                     using var cn = MoCsdl(csdl4, true);   // 1 kết nối ReadOnly cho cả 2 bảng
-                    DocVaGomKhenThuong(cn, "ThongKe_KhenThuongTapThe",
+                    DocVaGomKhenThuong(cn, Module_CheDoDoiTuong.BangKhenThuongTapThe,
                         "HinhThuc_KhenThuong", "DonVi_CapKhenThuong", "NgayQuyetDinh", tapThe);
-                    DocVaGomKhenThuong(cn, "ThongKe_GiayKhen",
+                    DocVaGomKhenThuong(cn, Module_CheDoDoiTuong.BangGiayKhen,
                         "HinhThuc_Khen", "DonVi_Khen", "NgayCapQD_Khen", caNhan);
                 }
                 catch (Exception ex)

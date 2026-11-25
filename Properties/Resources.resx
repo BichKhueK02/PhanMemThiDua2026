@@ -137,55 +137,22 @@
   <data name="desktop_5" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Icon\log\desktop_5.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="false" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\false.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="IconThuMuc" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Icon\log\IconThuMuc.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="ic_database" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_database.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="ic_default" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Icon\log\ic_default.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="ic_delete" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_delete.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="ic_export" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_export.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="ic_help" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_help.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="ic_khenthuong" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_khenthuong.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="ic_login" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_login.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="ic_PhanMem" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ic_PhanMem.ico;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="ic_save" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_save.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="ic_star" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_star.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="ic_user" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Icon\log\ic_user.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="ic_warning" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\ic_warning.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="SangPhai" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Icon\log\SangPhai.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="SangTrai" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Icon\log\SangTrai.ico;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="true" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Icon\log\true.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

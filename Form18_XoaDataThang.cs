@@ -21,22 +21,9 @@ namespace PhanMemThiDua2026
             "Thang_11", "TongKet_Nam"
         };
         // TÂN BINH
-        private static readonly string[] ThangDisplayTanBinh = {
-            "Tuần 1 - Tháng 2", "Tuần 2 - Tháng 2",
-            "Tuần 3 - Tháng 2", "Tuần 4 - Tháng 2", "Tháng 3",
-            "Tuần 1 - Tháng 3", "Tuần 2 - Tháng 3",
-            "Tuần 3 - Tháng 3", "Tuần 4 - Tháng 3", "Tháng 4",
-            "Tuần 1 - Tháng 4", "Tuần 2 - Tháng 4",
-            "Tuần 3 - Tháng 4", "Tuần 4 - Tháng 4", "Tháng 5",
-            "Tuần 1 - Tháng 5", "Tuần 2 - Tháng 5",
-            "Tuần 3 - Tháng 5", "Tuần 4 - Tháng 5", "Tháng 6"
-        };
-        private static readonly string[] ThangNamesTanBinh = {
-            "Tuan_1_T2", "Tuan_2_T2", "Tuan_3_T2", "Tuan_4_T2", "Thang_3",
-            "Tuan_1_T3", "Tuan_2_T3", "Tuan_3_T3", "Tuan_4_T3", "Thang_4",
-            "Tuan_1_T4", "Tuan_2_T4", "Tuan_3_T4", "Tuan_4_T4", "Thang_5",
-            "Tuan_1_T5", "Tuan_2_T5", "Tuan_3_T5", "Tuan_4_T5", "Thang_6"
-        };
+        // Tân binh / Học viên: mốc theo lịch xét (Module_LichXet), cùng thứ tự hiển thị <-> tên cột
+        private static string[] ThangDisplayTanBinh => Module_LichXet.DanhSachChon(Module_CheDoDoiTuong.Hien).Keys.ToArray();
+        private static string[] ThangNamesTanBinh => Module_LichXet.DanhSachChon(Module_CheDoDoiTuong.Hien).Values.ToArray();
         public Form18_XoaDataThang(Form15_ThongKeThiDua frm15)
         {
             InitializeComponent();
@@ -68,7 +55,7 @@ namespace PhanMemThiDua2026
             {
                 MessageBox.Show(
                     "Không thể tải danh sách dữ liệu.\n" + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -92,7 +79,7 @@ namespace PhanMemThiDua2026
                 {
                     MessageBox.Show(
                         "Không tìm thấy cơ sở dữ liệu.",
-                        "Lỗi",
+                        Module_HeThong.TieuDe_Loi,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                     return;
@@ -124,7 +111,7 @@ namespace PhanMemThiDua2026
                                 "Dữ liệu tháng không hợp lệ.");
                         string cotThang = ThangNames[index];
                         cmd.CommandText =
-                            $"UPDATE ThiDuaThang SET [{cotThang}] = NULL";
+                            $"UPDATE [{Module_CheDoDoiTuong.ThiDuaThang(CheDoDoiTuong.CBCS)}] SET [{cotThang}] = NULL";
                         cmd.ExecuteNonQuery();
                     }
                     else
@@ -135,13 +122,13 @@ namespace PhanMemThiDua2026
                         string cotCanXoa =
                             ThangNamesTanBinh[index];
                         cmd.CommandText =
-                            $"UPDATE ThiDuaThang_TanBinh " +
+                            $"UPDATE [{Module_CheDoDoiTuong.BangThiDuaThang}] " +
                             $"SET [{cotCanXoa}] = NULL";
                         cmd.ExecuteNonQuery();
                         using var cmdReset = cn.CreateCommand();
                         cmdReset.Transaction = tran;
                         cmdReset.CommandText =
-                        @"UPDATE ThiDuaThang_TanBinh
+                        $@"UPDATE [{Module_CheDoDoiTuong.BangThiDuaThang}]
                           SET TS_Loai1 = NULL,
                               TS_Loai2 = NULL,
                               TS_Loai3 = NULL,
@@ -175,7 +162,7 @@ namespace PhanMemThiDua2026
             {
                 MessageBox.Show(
                     "Lỗi khi xóa dữ liệu:\n" + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }

@@ -31,6 +31,7 @@ namespace PhanMemThiDua2026
         public Form52_QuanLyKhenThuong()
         {
             InitializeComponent();
+            Module_CheDoDoiTuong.ApNhanTheoCheDo(this);   // nhãn "CBCS" -> "Tân binh"/"Học viên" theo chế độ (trước khi dựng giao diện hiện đại)
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             BatDoubleBufferDeQuy(this);   // giảm chớp khi chuyển trang con
             _ui = System.Threading.SynchronizationContext.Current;
@@ -70,7 +71,7 @@ namespace PhanMemThiDua2026
         private async void Form52_QuanLyKhenThuong_Load(object? sender, EventArgs e)
         {
             quanLyKhenThuongNamHienTai_ToolStripMenuItem.Text = $"Quản lý khen thưởng năm {_namHeThong}";
-            await MoTabAsync(typeof(Form34_ThongKeKhenThuong), $"Quản lý khen thưởng CBCS năm {_namHeThong}");
+            await MoTabAsync(typeof(Form34_ThongKeKhenThuong), $"Quản lý khen thưởng {Module_CheDoDoiTuong.TenDoiTuongHienTai} năm {_namHeThong}");
             // Trang đầu xong rồi mới dựng sẵn các trang còn lại (không chặn, không đổi luồng)
             _ = NapTruocGiaoDienAsync();
         }
@@ -366,7 +367,7 @@ namespace PhanMemThiDua2026
                 System.Diagnostics.Debug.WriteLine($"[Lỗi tải dữ liệu {t.Name}]: {goc.Message}");
                 if (!_isClosing && !IsDisposed)
                 {
-                    MessageBox.Show("Lỗi tải lại dữ liệu: " + goc.Message, "Lỗi",
+                    MessageBox.Show("Lỗi tải lại dữ liệu: " + goc.Message, Module_HeThong.TieuDe_Loi,
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -543,11 +544,11 @@ namespace PhanMemThiDua2026
         }
         // ================= CÁC SỰ KIỆN CLICK MENU =================
         private async void toolStripMenuItem_KhenThuongCBCSNamHienTai_Click(object? sender, EventArgs e)
-            => await MoTabAsync(typeof(Form34_ThongKeKhenThuong), $"Quản lý khen thưởng CBCS năm {_namHeThong}");
+            => await MoTabAsync(typeof(Form34_ThongKeKhenThuong), $"Quản lý khen thưởng {Module_CheDoDoiTuong.TenDoiTuongHienTai} năm {_namHeThong}");
         private async void toolStripMenuItem_KhenThuongTapTheNamHienTai_Click(object? sender, EventArgs e)
             => await MoTabAsync(typeof(Form49_QuanLyKhenThuongTapThe), $"Quản lý khen thưởng tập thể năm {_namHeThong}");
         private async void toolStripMenuItem_QuanLyKhenThuongCBCSNamCu_Click(object? sender, EventArgs e)
-            => await MoTabAsync(typeof(Form50_QuanLyKhenThuongNamCu), "Quản lý khen thưởng CBCS năm cũ");
+            => await MoTabAsync(typeof(Form50_QuanLyKhenThuongNamCu), $"Quản lý khen thưởng {Module_CheDoDoiTuong.TenDoiTuongHienTai} năm cũ");
         private async void toolStripMenuItem_QuanLyKhenThuongTapTheNamCu_Click(object? sender, EventArgs e)
             => await MoTabAsync(typeof(Form51_QuanLyKhenThuongTapTheNamCu), "Quản lý khen thưởng tập thể năm cũ");
     }

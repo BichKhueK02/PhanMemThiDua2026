@@ -26,7 +26,6 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form59_QuanLyThiDuaTapTheNamCu));
             kryptonButton_XoaThiDuaTapThe = new Krypton.Toolkit.KryptonButton();
             kryptonButton_CapNhatThiDuaTapTheNamCu = new Krypton.Toolkit.KryptonButton();
             toolStripStatusLabel2 = new ToolStripStatusLabel();
@@ -134,31 +133,31 @@
             // toolStripStatusLabel2
             // 
             toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            toolStripStatusLabel2.Size = new Size(0, 20);
+            toolStripStatusLabel2.Size = new Size(0, 17);
             // 
             // toolStripStatusLabel1
             // 
             toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            toolStripStatusLabel1.Size = new Size(20, 20);
+            toolStripStatusLabel1.Size = new Size(0, 17);
             // 
             // kryptonStatusStrip1
             // 
             kryptonStatusStrip1.Font = new Font("Segoe UI", 9F);
             kryptonStatusStrip1.ImageScalingSize = new Size(20, 20);
             kryptonStatusStrip1.Items.AddRange(new ToolStripItem[] { toolStripStatusLabel1, toolStripStatusLabel2, toolStripStatusLabel3_ThongBao });
-            kryptonStatusStrip1.Location = new Point(0, 656);
+            kryptonStatusStrip1.Location = new Point(0, 659);
             kryptonStatusStrip1.Name = "kryptonStatusStrip1";
             kryptonStatusStrip1.Padding = new Padding(1, 0, 12, 0);
             kryptonStatusStrip1.ProgressBars = null;
             kryptonStatusStrip1.RenderMode = ToolStripRenderMode.ManagerRenderMode;
-            kryptonStatusStrip1.Size = new Size(1264, 25);
+            kryptonStatusStrip1.Size = new Size(1264, 22);
             kryptonStatusStrip1.TabIndex = 7;
             kryptonStatusStrip1.Text = "kryptonStatusStrip1";
             // 
             // toolStripStatusLabel3_ThongBao
             // 
             toolStripStatusLabel3_ThongBao.Name = "toolStripStatusLabel3_ThongBao";
-            toolStripStatusLabel3_ThongBao.Size = new Size(0, 20);
+            toolStripStatusLabel3_ThongBao.Size = new Size(0, 17);
             // 
             // contextMenuStrip1
             // 
@@ -166,30 +165,31 @@
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
             contextMenuStrip1.Items.AddRange(new ToolStripItem[] { xoaTimKiem_ToolStripMenuItem, toolStripMenuItem1, xuatDuLieuRaTepExcel_ToolStripMenuItem, xoaToanBoDuLieu_ToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(210, 88);
+            contextMenuStrip1.Size = new Size(206, 98);
             // 
             // xoaTimKiem_ToolStripMenuItem
             // 
             xoaTimKiem_ToolStripMenuItem.Name = "xoaTimKiem_ToolStripMenuItem";
-            xoaTimKiem_ToolStripMenuItem.Size = new Size(209, 26);
+            xoaTimKiem_ToolStripMenuItem.Size = new Size(205, 22);
             xoaTimKiem_ToolStripMenuItem.Text = "Xóa tìm kiếm";
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(206, 6);
+            toolStripMenuItem1.Size = new Size(202, 6);
             // 
             // xuatDuLieuRaTepExcel_ToolStripMenuItem
             // 
             xuatDuLieuRaTepExcel_ToolStripMenuItem.Name = "xuatDuLieuRaTepExcel_ToolStripMenuItem";
-            xuatDuLieuRaTepExcel_ToolStripMenuItem.Size = new Size(209, 26);
+            xuatDuLieuRaTepExcel_ToolStripMenuItem.Size = new Size(205, 22);
             xuatDuLieuRaTepExcel_ToolStripMenuItem.Text = "Xuất danh sách thống kê";
             // 
             // xoaToanBoDuLieu_ToolStripMenuItem
             // 
             xoaToanBoDuLieu_ToolStripMenuItem.Name = "xoaToanBoDuLieu_ToolStripMenuItem";
-            xoaToanBoDuLieu_ToolStripMenuItem.Size = new Size(209, 26);
+            xoaToanBoDuLieu_ToolStripMenuItem.Size = new Size(205, 22);
             xoaToanBoDuLieu_ToolStripMenuItem.Text = "Xóa toàn bộ dữ liệu";
+            //xoaToanBoDuLieu_ToolStripMenuItem.Click += xoaToanBoDuLieu_ToolStripMenuItem_Click;
             // 
             // tableLayoutPanel7
             // 
@@ -836,7 +836,7 @@
             Controls.Add(kryptonStatusStrip1);
             Controls.Add(tableLayoutPanel1);
             Name = "Form59_QuanLyThiDuaTapTheNamCu";
-            Text = "Form59_QuanLyThiDuaTapTheNamCu";
+            Text = "Quản lý thi đua tập thể năm cũ";
             Load += Form59_QuanLyThiDuaTapTheNamCu_Load;
             kryptonStatusStrip1.ResumeLayout(false);
             kryptonStatusStrip1.PerformLayout();

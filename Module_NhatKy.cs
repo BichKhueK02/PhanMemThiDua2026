@@ -180,7 +180,7 @@ namespace PhanMemThiDua2026
         {
             _logQueue.Enqueue(new LogItem
             {
-                ThoiGian = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                ThoiGian = DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_CSDL),
                 TaiKhoan = taiKhoan,
                 HanhDong = hanhDong,
                 GhiChu = ghiChu

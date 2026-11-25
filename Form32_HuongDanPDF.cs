@@ -460,7 +460,7 @@ namespace PhanMemThiDua2026
             if (IsDisposed) return false;
             if (!File.Exists(path))
             {
-                MessageBox.Show("File PDF không tồn tại.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("File PDF không tồn tại.", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
             string full = Path.GetFullPath(path);

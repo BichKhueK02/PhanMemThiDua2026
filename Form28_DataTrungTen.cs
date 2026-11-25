@@ -135,7 +135,7 @@ namespace PhanMemThiDua2026
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1264, 681);
-            Font = NewFont("Segoe UI", 9.75F);
+            Font = NewFont(Module_HeThong.TenFontHeThong, 9.75F);
             BackColor = UiColors.Bg;
             Text = "Phân tích CBCS trùng tên";
             ShowInTaskbar = false;
@@ -145,19 +145,19 @@ namespace PhanMemThiDua2026
                 if (icon != null) Icon = icon;
             }
             catch { /* icon không bắt buộc */ }
-            var fTitle = NewFont("Segoe UI Semibold", 15F);
-            var fCaption = NewFont("Segoe UI Semibold", 8.25F);
-            var fKpi = NewFont("Segoe UI Semibold", 20F);
-            var fKpiText = NewFont("Segoe UI Semibold", 12F);
-            var fCardTitle = NewFont("Segoe UI Semibold", 11.5F);
-            var fSmall = NewFont("Segoe UI", 9F);
-            var fBtn = NewFont("Segoe UI Semibold", 9.75F);
-            var fInput = NewFont("Segoe UI", 11F);
+            var fTitle = NewFont(Module_HeThong.TenFontHeThongDam, 15F);
+            var fCaption = NewFont(Module_HeThong.TenFontHeThongDam, 8.25F);
+            var fKpi = NewFont(Module_HeThong.TenFontHeThongDam, 20F);
+            var fKpiText = NewFont(Module_HeThong.TenFontHeThongDam, 12F);
+            var fCardTitle = NewFont(Module_HeThong.TenFontHeThongDam, 11.5F);
+            var fSmall = NewFont(Module_HeThong.TenFontHeThong, 9F);
+            var fBtn = NewFont(Module_HeThong.TenFontHeThongDam, 9.75F);
+            var fInput = NewFont(Module_HeThong.TenFontHeThong, 11F);
             var fIcon = NewFont("Segoe MDL2 Assets", 12F);
-            _boldFont = NewFont("Segoe UI Semibold", 9.75F);
-            _chipFont = NewFont("Segoe UI", 9F);
+            _boldFont = NewFont(Module_HeThong.TenFontHeThongDam, 9.75F);
+            _chipFont = NewFont(Module_HeThong.TenFontHeThong, 9F);
             // ===== Context menu =====
-            _ctxMenu = new ContextMenuStrip(components) { Font = new Font("Segoe UI", 9F), ImageScalingSize = new Size(21, 21) };
+            _ctxMenu = new ContextMenuStrip(components) { Font = new Font(Module_HeThong.TenFontHeThong, 9F), ImageScalingSize = new Size(21, 21) };
             _ownedFonts.Add(_ctxMenu.Font);
             _mnuLamMoi = new ToolStripMenuItem("Làm mới trang") { ShortcutKeys = Keys.F5, Image = ResImg("lamMoi_ToolStripMenuItem.Image") };
             _mnuXoaTimKiem = new ToolStripMenuItem("Xóa tìm kiếm") { ShortcutKeys = Keys.F4, Image = ResImg("xoaTimKiem_ToolStripMenuItem.Image") };
@@ -266,7 +266,7 @@ namespace PhanMemThiDua2026
             tlpMaster.Controls.Add(_lblMasterCount, 1, 0);
             var masterHost = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
             _gridMaster = TaoGrid();
-            _gridMaster.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoTen", HeaderText = "Họ và tên", FillWeight = 100, MinimumWidth = 120, SortMode = DataGridViewColumnSortMode.NotSortable });
+            _gridMaster.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoTen", HeaderText = Module_HeThong.TieuDeCot.HoVaTen, FillWeight = 100, MinimumWidth = 120, SortMode = DataGridViewColumnSortMode.NotSortable });
             _gridMaster.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "SoLan",
@@ -318,11 +318,11 @@ namespace PhanMemThiDua2026
             _gridDetail = TaoGrid();
             _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "STT", HeaderText = "STT", FillWeight = 6, MinimumWidth = 44, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
             _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoTen", HeaderText = _laTanBinh ? $"Họ và tên {Module_TaiKhoan.TenTB_Thuong}" : "Họ và tên CBCS", FillWeight = 26, MinimumWidth = 120, SortMode = DataGridViewColumnSortMode.NotSortable });
-            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "NamSinh", HeaderText = "Năm sinh", FillWeight = 12, MinimumWidth = 70, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "CapBac", HeaderText = "Cấp bậc", FillWeight = 14, MinimumWidth = 70, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "DonVi", HeaderText = "Đơn vị", FillWeight = 30, MinimumWidth = 120, SortMode = DataGridViewColumnSortMode.NotSortable });
-            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "SoHieu", HeaderText = "Số hiệu", FillWeight = 12, MinimumWidth = 70, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
-            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "GhiChu", HeaderText = "Ghi chú", FillWeight = 20, MinimumWidth = 80, SortMode = DataGridViewColumnSortMode.NotSortable });
+            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "NamSinh", HeaderText = Module_HeThong.TieuDeCot.NamSinh, FillWeight = 12, MinimumWidth = 70, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "CapBac", HeaderText = Module_HeThong.TieuDeCot.CapBac, FillWeight = 14, MinimumWidth = 70, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "DonVi", HeaderText = Module_HeThong.TieuDeCot.DonVi, FillWeight = 30, MinimumWidth = 120, SortMode = DataGridViewColumnSortMode.NotSortable });
+            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "SoHieu", HeaderText = Module_HeThong.TieuDeCot.SoHieu, FillWeight = 12, MinimumWidth = 70, SortMode = DataGridViewColumnSortMode.NotSortable, DefaultCellStyle = { Alignment = DataGridViewContentAlignment.MiddleCenter } });
+            _gridDetail.Columns.Add(new DataGridViewTextBoxColumn { Name = "GhiChu", HeaderText = Module_HeThong.TieuDeCot.GhiChu, FillWeight = 20, MinimumWidth = 80, SortMode = DataGridViewColumnSortMode.NotSortable });
             _gridDetail.CellValueNeeded += GridDetail_CellValueNeeded;
             _gridDetail.CellFormatting += GridDetail_CellFormatting;
             _lblEmptyDetail = TaoNhanTrong(fSmall);

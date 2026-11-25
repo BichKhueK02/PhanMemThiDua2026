@@ -61,7 +61,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi tải danh sách CSDL lịch sử: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi khi tải danh sách CSDL lịch sử: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         // ===================== TIỆN ÍCH CSDL =====================
@@ -97,6 +97,8 @@ namespace PhanMemThiDua2026
         private static string? ChuanHoaKetQua(string? giaTri)
             => !string.IsNullOrWhiteSpace(giaTri) && KetQuaChuan.TryGetValue(giaTri.Trim(), out string? chuan) ? chuan : null;
         // ===================== ĐỒNG BỘ (chạy ở luồng nền) =====================
+        // Form58 chỉ có ở CBCS: bảng thi đua CBCS (ThiDuaThang_CBCS)
+        private static string BANG_THIDUA => Module_CheDoDoiTuong.ThiDuaThang(CheDoDoiTuong.CBCS);
         private static KetQuaDongBo DongBo(string dbNguonPath, string dbDichPath)
         {
             var kq = new KetQuaDongBo();
@@ -104,9 +106,11 @@ namespace PhanMemThiDua2026
             var nguon = new Dictionary<string, string?>(StringComparer.Ordinal);
             using (var cn = MoKetNoi(dbNguonPath, true))
             {
-                KiemTraCot(cn, "ThiDuaThang", "CSDL năm cũ", "SoHieu", "TongKet_Nam");
+                // Tệp năm cũ người dùng chọn (chỉ đọc) có thể là bản trước: bảng tên cũ "ThiDuaThang" vẫn đọc được
+                string bangNguon = Module_TenCotKhongDau.TenBangCoTrongTep(cn, BANG_THIDUA);
+                KiemTraCot(cn, bangNguon, "CSDL năm cũ", "SoHieu", "TongKet_Nam");
                 using var cmd = cn.CreateCommand();
-                cmd.CommandText = "SELECT SoHieu, TongKet_Nam FROM ThiDuaThang WHERE SoHieu IS NOT NULL AND TRIM(SoHieu) <> ''";
+                cmd.CommandText = $"SELECT SoHieu, TongKet_Nam FROM [{bangNguon}] WHERE SoHieu IS NOT NULL AND TRIM(SoHieu) <> ''";
                 using var rd = cmd.ExecuteReader();
                 while (rd.Read())
                 {
@@ -123,10 +127,10 @@ namespace PhanMemThiDua2026
             var coDoi = new HashSet<string>(StringComparer.Ordinal);
             using (var cn = MoKetNoi(dbDichPath, false))
             {
-                KiemTraCot(cn, "ThiDuaThang", "CSDL hiện tại", "SoHieu", "KQ_ThiDua_Nam_Cu");
+                KiemTraCot(cn, BANG_THIDUA, "CSDL hiện tại", "SoHieu", "KQ_ThiDua_Nam_Cu");
                 using (var cmd = cn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT rowid, SoHieu, KQ_ThiDua_Nam_Cu FROM ThiDuaThang WHERE SoHieu IS NOT NULL AND TRIM(SoHieu) <> ''";
+                    cmd.CommandText = $"SELECT rowid, SoHieu, KQ_ThiDua_Nam_Cu FROM [{BANG_THIDUA}] WHERE SoHieu IS NOT NULL AND TRIM(SoHieu) <> ''";
                     using var rd = cmd.ExecuteReader();
                     while (rd.Read())
                     {
@@ -147,7 +151,7 @@ namespace PhanMemThiDua2026
                     using var tx = cn.BeginTransaction();
                     using var upd = cn.CreateCommand();
                     upd.Transaction = tx;
-                    upd.CommandText = "UPDATE ThiDuaThang SET KQ_ThiDua_Nam_Cu = @kq WHERE rowid = @id";
+                    upd.CommandText = $"UPDATE [{BANG_THIDUA}] SET KQ_ThiDua_Nam_Cu = @kq WHERE rowid = @id";
                     var pKq = upd.Parameters.Add("@kq", SqliteType.Text);
                     var pId = upd.Parameters.Add("@id", SqliteType.Integer);
                     foreach (var (rowId, ketQua) in canCapNhat)
@@ -206,13 +210,13 @@ namespace PhanMemThiDua2026
             string dbDichPath = Module_DanduongGPS.DuongDanCSDL4;
             if (!File.Exists(dbNguonPath) || !File.Exists(dbDichPath))
             {
-                MessageBox.Show("File CSDL nguồn hoặc CSDL đích không tồn tại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("File CSDL nguồn hoặc CSDL đích không tồn tại!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             // Chặn chọn nhầm chính CSDL hiện tại làm nguồn (đọc và ghi cùng một tệp)
             if (string.Equals(Path.GetFullPath(dbNguonPath), Path.GetFullPath(dbDichPath), StringComparison.OrdinalIgnoreCase))
             {
-                MessageBox.Show("CSDL năm cũ không được trùng với CSDL hiện tại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("CSDL năm cũ không được trùng với CSDL hiện tại!", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             using (var frmXacMinh = new Form24_XacMinhAdmin())
@@ -243,7 +247,7 @@ namespace PhanMemThiDua2026
                 if (kq.TongSoNguoi == 0)
                     MessageBox.Show("CSDL năm cũ chưa có dữ liệu thi đua nào để đồng bộ.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 else if (kq.TongDongDich == 0 && kq.SoGiaiMaLoi < kq.TongSoNguoi)   // (nếu mọi Số hiệu năm cũ đều không giải mã được thì hiện bảng kết quả bình thường)
-                    MessageBox.Show("CSDL hiện tại chưa có dữ liệu thi đua (ThiDuaThang đang trống) nên không có gì để cập nhật.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("CSDL hiện tại chưa có dữ liệu thi đua (ThiDuaThang_CBCS đang trống) nên không có gì để cập nhật.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 else
                     MessageBox.Show($"Đồng bộ hoàn tất!\n\n{ghiChu}", "Kết quả", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 // Làm mới trang thống kê (nếu đang mở) trong khối riêng: lỗi ở đây không được báo thành "lỗi đồng bộ" khi dữ liệu đã ghi xong
@@ -261,7 +265,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 if (!IsDisposed)
-                    MessageBox.Show($"Lỗi trong quá trình đồng bộ: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Lỗi trong quá trình đồng bộ: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

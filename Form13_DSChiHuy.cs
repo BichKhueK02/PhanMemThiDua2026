@@ -126,7 +126,7 @@ namespace PhanMemThiDua2026
             if (!System.IO.File.Exists(csdl)) return;
             // ⭐ XÁC ĐỊNH BẢNG TỰ ĐỘNG THEO PHIÊN BẢN
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().LaCheDoTanBinh();
-            string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
+            string tableChiHuy = Module_CheDoDoiTuong.BangChiHuyD;   // ChiHuyD / _TanBinh / _HocVien
             try
             {
                 using var conn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(csdl));
@@ -181,7 +181,7 @@ namespace PhanMemThiDua2026
             Image? anhBanDau = kryptonButton1_Btn_Capnhat.Values.Image;
             // ⭐ XÁC ĐỊNH BẢNG LƯU DỮ LIỆU
             bool laTanBinh = Module_TaiKhoan.LayPhienBanPhanMem().LaCheDoTanBinh();
-            string tableChiHuy = laTanBinh ? "ChiHuyD_TanBinh" : "ChiHuyD";
+            string tableChiHuy = Module_CheDoDoiTuong.BangChiHuyD;   // ChiHuyD / _TanBinh / _HocVien
             try
             {
                 kryptonButton1_Btn_Capnhat.Enabled = false;
@@ -284,7 +284,7 @@ namespace PhanMemThiDua2026
                 {
                     if (!daBaoLoi)
                     {
-                        MessageBox.Show( $"Chức vụ của {Module_HeThong.Tu_Dong_Chi} {hovatenTextBoxes[i].Text} không được để trống!", "Lỗi",
+                        MessageBox.Show( $"Chức vụ của {Module_HeThong.Tu_Dong_Chi} {hovatenTextBoxes[i].Text} không được để trống!", Module_HeThong.TieuDe_Loi,
                          MessageBoxButtons.OK,
                          MessageBoxIcon.Error);
                         daBaoLoi = true;
@@ -355,7 +355,7 @@ namespace PhanMemThiDua2026
                 // ===== CẤU HÌNH CỘT =====
                 CauHinhCot("ID", "STT", 10, DataGridViewContentAlignment.MiddleCenter);
                 CauHinhCot("HoVaTen", "Cấp bậc - Họ và tên chỉ huy", 45, DataGridViewContentAlignment.MiddleLeft);
-                CauHinhCot("ChucVu", "Chức vụ", 45, DataGridViewContentAlignment.MiddleLeft);
+                CauHinhCot("ChucVu", Module_HeThong.TieuDeCot.ChucVu, 45, DataGridViewContentAlignment.MiddleLeft);
                 // ===== TẮT SORT =====
                 foreach (DataGridViewColumn col in grid.Columns)
                 {

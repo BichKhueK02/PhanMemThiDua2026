@@ -226,7 +226,7 @@ namespace PhanMemThiDua2026
             var tatCaCot = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using (var cmdPragma = cn.CreateCommand())
             {
-                cmdPragma.CommandText = "PRAGMA table_info(ThongKe_PhanLoaiTapThe)";
+                cmdPragma.CommandText = "PRAGMA table_info(ThongKe_PhanLoaiTapThe_CBCS)";
                 using var rd = cmdPragma.ExecuteReader();
                 while (rd.Read())
                     tatCaCot.Add(rd["name"].ToString()!);
@@ -240,7 +240,7 @@ namespace PhanMemThiDua2026
             if (cotTonTai.Count == 0) return;
             string sql =
                 $"SELECT {string.Join(",", cotTonTai.Select(c => $"\"{c}\""))} " +
-                "FROM ThongKe_PhanLoaiTapThe WHERE ID = 1";
+                "FROM ThongKe_PhanLoaiTapThe_CBCS WHERE ID = 1";
             using var cmd = cn.CreateCommand();
             cmd.CommandText = sql;
             using var reader = cmd.ExecuteReader();
@@ -338,7 +338,7 @@ namespace PhanMemThiDua2026
             connection.Open();
             using var command = connection.CreateCommand();
             command.CommandText = @"
-        CREATE TABLE IF NOT EXISTS ThongKe_PhanLoaiTapThe
+        CREATE TABLE IF NOT EXISTS ThongKe_PhanLoaiTapThe_CBCS
         (
             ID INTEGER NOT NULL,
             Thang_12_Nam_Cu TEXT,
@@ -357,7 +357,7 @@ namespace PhanMemThiDua2026
             TongKet_Nam TEXT,
             PRIMARY KEY(ID AUTOINCREMENT)
         );
-        INSERT OR IGNORE INTO ThongKe_PhanLoaiTapThe (ID)
+        INSERT OR IGNORE INTO ThongKe_PhanLoaiTapThe_CBCS (ID)
         VALUES (1);
     ";
             command.ExecuteNonQuery();
@@ -434,7 +434,7 @@ namespace PhanMemThiDua2026
                 titleRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 titleRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 // ================== 6. HEADER ==================
-                ws.Cell(3, 1).Value = "Đơn vị";
+                ws.Cell(3, 1).Value = Module_HeThong.TieuDeCot.DonVi;
                 for (int i = 0; i < kryptonDataGridView1.Columns.Count; i++)
                 {
                     ws.Cell(3, i + 2).Value =
@@ -510,7 +510,7 @@ namespace PhanMemThiDua2026
             {
                 MessageBox.Show(
                     "Không thể xuất Excel.\nChi tiết: " + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -537,7 +537,7 @@ namespace PhanMemThiDua2026
                 using var cmd = cn.CreateCommand();
                 cmd.Transaction = tran;
                 cmd.CommandText = $@"
-UPDATE ThongKe_PhanLoaiTapThe
+UPDATE ThongKe_PhanLoaiTapThe_CBCS
 SET ""{tenCot}"" = @gt
 WHERE ID = 1";
                 cmd.Parameters.AddWithValue("@gt",
@@ -602,7 +602,7 @@ WHERE ID = 1";
                 {
                     MessageBox.Show(
                         "Đường dẫn CSDL không hợp lệ!",
-                        "Lỗi",
+                        Module_HeThong.TieuDe_Loi,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                     return;
@@ -611,7 +611,7 @@ WHERE ID = 1";
                 {
                     MessageBox.Show(
                         "Không tìm thấy tệp CSDL!\n\n" + dbPath,
-                        "Lỗi",
+                        Module_HeThong.TieuDe_Loi,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                     return;
@@ -625,7 +625,7 @@ WHERE ID = 1";
                     {
                         // Xóa toàn bộ dữ liệu
                         using (var cmdDelete = new SqliteCommand(
-                            "DELETE FROM ThongKe_PhanLoaiTapThe",
+                            "DELETE FROM ThongKe_PhanLoaiTapThe_CBCS",
                             cn,
                             transaction))
                         {
@@ -633,7 +633,7 @@ WHERE ID = 1";
                         }
                         // Tạo lại bản ghi gốc ID = 1
                         using (var cmdInsert = new SqliteCommand(
-                            "INSERT INTO ThongKe_PhanLoaiTapThe (ID) VALUES (1)",
+                            "INSERT INTO ThongKe_PhanLoaiTapThe_CBCS (ID) VALUES (1)",
                             cn,
                             transaction))
                         {
@@ -655,14 +655,14 @@ WHERE ID = 1";
                 Module_NhatKy.GhiNhatKy(
                     Module_TaiKhoan.TenTaiKhoan_RAM,
                     "Xóa dữ liệu thi đua tập thể",
-                    $"Xóa toàn bộ dữ liệu bảng ThongKe_PhanLoaiTapThe và tạo lại ID=1 | " +
+                    $"Xóa toàn bộ dữ liệu bảng ThongKe_PhanLoaiTapThe_CBCS và tạo lại ID=1 | " +
                     $"{DateTime.Now:dd-MM-yyyy HH:mm:ss}");
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
                     "Lỗi khi xóa dữ liệu tập thể:\n\n" + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }

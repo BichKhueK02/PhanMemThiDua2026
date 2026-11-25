@@ -232,7 +232,7 @@ namespace PhanMemThiDua2026
                 }
                 // =========================================================================
                 // TIẾN HÀNH LƯU (Code giữ nguyên logic lưu của bạn)
-                string thoiGianHienTai = DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+                string thoiGianHienTai = DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio);
                 // Thực hiện Update Admin
                 string sqlAdmin = @"UPDATE Admin SET TenTaiKhoan=@tk, MatKhau=@mk, Token=@token, ThoiGianDangNhap=@tg WHERE ID=1";
                 using var cmdAdmin = new SqliteCommand(sqlAdmin, conn);
@@ -278,7 +278,7 @@ namespace PhanMemThiDua2026
             catch (Exception ex)
             {
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi cập nhật thông tin tài khoản Admin", ex.Message);
-                MessageBox.Show($"Lỗi hệ thống: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi hệ thống: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void btn_Thoat_Click(object? sender, EventArgs e)
@@ -300,7 +300,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi cấp phát Token CSDL:\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Lỗi cấp phát Token CSDL:\n{ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             var loi = ketQua.Where(k => k.TrangThai != Module_TokenCSDL.TrangThai.DaKy).ToList();
@@ -386,7 +386,7 @@ namespace PhanMemThiDua2026
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Lỗi trích xuất ảnh từ Form: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Lỗi trích xuất ảnh từ Form: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             if (_hinhAnhDaiDienBytes == null) return;

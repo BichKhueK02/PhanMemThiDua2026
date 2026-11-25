@@ -48,11 +48,11 @@ namespace PhanMemThiDua2026
         // Màu dòng trạng thái
         private static readonly Color MauHopLe = Color.FromArgb(22, 163, 74);
         private static readonly Color MauCanhBao = Color.FromArgb(217, 119, 6);
-        private static readonly Font FontTieuDe = new Font("Segoe UI Semibold", 15F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNhanDam = new Font("Segoe UI Semibold", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontO = new Font("Segoe UI Semibold", 10.5F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontTieuDe = new Font(Module_HeThong.TenFontHeThongDam, 15F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNhanDam = new Font(Module_HeThong.TenFontHeThongDam, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontO = new Font(Module_HeThong.TenFontHeThongDam, 10.5F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
         private const int CaoDauTrang = 72;         // ảnh + tiêu đề trang
         private const int CaoChanTrang = 52;        // hàng nút
         private const int RongTheNhap = 510;        // thẻ nhập bên trái; thẻ biểu đồ ăn hết phần còn lại
@@ -372,9 +372,9 @@ namespace PhanMemThiDua2026
         private sealed class BieuDoTron3D : Control
         {
             private int? _l1, _l2, _l3;
-            private static readonly Font FontTen = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            private static readonly Font FontChiTiet = new Font("Segoe UI", 8.5F, FontStyle.Regular, GraphicsUnit.Point);
-            private static readonly Font FontNhanLat = new Font("Segoe UI Semibold", 9.5F, FontStyle.Bold, GraphicsUnit.Point);
+            private static readonly Font FontTen = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
+            private static readonly Font FontChiTiet = new Font(Module_HeThong.TenFontHeThong, 8.5F, FontStyle.Regular, GraphicsUnit.Point);
+            private static readonly Font FontNhanLat = new Font(Module_HeThong.TenFontHeThongDam, 9.5F, FontStyle.Bold, GraphicsUnit.Point);
             public BieuDoTron3D()
             {
                 SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint |

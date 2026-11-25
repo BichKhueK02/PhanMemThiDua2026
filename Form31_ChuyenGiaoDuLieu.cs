@@ -10,7 +10,7 @@ namespace PhanMemThiDua2026
         private const string LUA_CHON_TAT_CA = Module_HeThong.Tat_Ca;
         private const string TEN_THU_MUC_GOI = Module_ChuyenGiaoDuLieu.TEN_THU_MUC_GOI;
         private const string TIEN_TO_METADATA = Module_ChuyenGiaoDuLieu.TIEN_TO_METADATA;
-        private const string DINH_DANG_THOI_GIAN = "dd-MM-yyyy HH:mm:ss";
+        private const string DINH_DANG_THOI_GIAN = Module_HeThong.DinhDang_NgayGio;
         private const int THOI_GIAN_CHO_THANH_DEN_100_MS = 450;   // cho thanh chạy tới 100% rồi mới hiện hộp thoại
         private const int THOI_GIAN_AN_THANH_MS = 1500;
         private const int SO_LOI_TOI_DA_TRONG_HOP_THOAI = 15;

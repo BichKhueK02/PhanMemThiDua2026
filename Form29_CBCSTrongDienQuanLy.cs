@@ -23,19 +23,18 @@ namespace PhanMemThiDua2026
         // Cột lưới: thứ tự cố định (cột 0 là STT). CellValueNeeded dùng chỉ số cột -> không tra tên cột mỗi ô.
         private static readonly (string Name, string Header, float Weight, bool Trai)[] CotLuoi =
         {
-            ("HoVaTen",     "Họ và tên", 3f, true),
-            ("SoHieu",      "Số hiệu",   1f, false),
-            ("NamSinh",     "Năm sinh",  1f, false),
-            ("QueQuan",     "Quê quán",  3f, true),
-            ("NgayVaoCAND", "Vào CAND",  1f, false),
-            ("CapBac",      "Cấp bậc",   1f, false),
-            ("ChucVu",      "Chức vụ",   2f, false),
-            ("DonVi",       "Đơn vị",    2f, false),
-            ("PhanLoai",    "Phân loại", 1f, false),
-            ("GhiChu",      "Ghi chú",   3f, true),
+            ("HoVaTen",     Module_HeThong.TieuDeCot.HoVaTen, 3f, true),
+            ("SoHieu",      Module_HeThong.TieuDeCot.SoHieu,   1f, false),
+            ("NamSinh",     Module_HeThong.TieuDeCot.NamSinh,  1f, false),
+            ("QueQuan",     Module_HeThong.TieuDeCot.QueQuan,  3f, true),
+            ("NgayVaoCAND", Module_HeThong.TieuDeCot.VaoCAND,  1f, false),
+            ("CapBac",      Module_HeThong.TieuDeCot.CapBac,   1f, false),
+            ("ChucVu",      Module_HeThong.TieuDeCot.ChucVu,   2f, false),
+            ("DonVi",       Module_HeThong.TieuDeCot.DonVi,    2f, false),
+            ("PhanLoai",    Module_HeThong.TieuDeCot.PhanLoai, 1f, false),
+            ("GhiChu",      Module_HeThong.TieuDeCot.GhiChu,   3f, true),
         };
         private System.Windows.Forms.Timer? _searchTimer;
-        private Bitmap? _iconLoai1;
         private static readonly Font THONGKE_FONT = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
         // Màu thống kê
         private static readonly Color COLOR_LOAI_1 = Color.FromArgb(0, 102, 204);   // xanh dương
@@ -53,9 +52,6 @@ namespace PhanMemThiDua2026
             FormBorderStyle = FormBorderStyle.Sizable;
             ShowInTaskbar = false;
             _connStr = Module_KetNoiCSDL.ChuoiKetNoi(_csdl2Path);
-            // Icon 16x16: tạo 1 lần
-            if (Properties.Resources.ic_khenthuong != null)
-                _iconLoai1 = new Bitmap(Properties.Resources.ic_khenthuong, new Size(16, 16));
             // DoubleBuffered cho lưới (giảm nháy khi cuộn)
             try
             {
@@ -108,7 +104,7 @@ namespace PhanMemThiDua2026
                 LogError(nameof(Form29_CBCSTrongDienQuanLy_Load), ex);
                 MessageBox.Show(
                     $"Không thể tải dữ liệu.\n{ex.Message}",
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -208,7 +204,7 @@ namespace PhanMemThiDua2026
                 // Tên/số hiệu KHÔNG phân biệt dấu, hoa/thường; nhiều từ thì từ nào cũng phải có
                 string[] tu = Module_BoLocKhenThuong.TachTuKhoa(keyword);
                 // BỘ LỌC KÉP (1 lượt): mỗi combo chỉ còn giá trị có trong các dòng thỏa mọi bộ lọc khác
-                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<CBCSQuanLyModel>(donVi, x => x.DonVi);
+                var tcDv = new Module_BoLocKhenThuong.TieuChiKep<CBCSQuanLyModel>(donVi, x => x.DonVi, laDonVi: true);
                 var tcPl = new Module_BoLocKhenThuong.TieuChiKep<CBCSQuanLyModel>(phanLoai, LayPhanLoaiLoc);
                 var tcGc = new Module_BoLocKhenThuong.TieuChiKep<CBCSQuanLyModel>(ghiChu, x => x.GhiChu);
                 var chiSo = Module_BoLocKhenThuong.LocKep(_dataGoc,
@@ -233,7 +229,7 @@ namespace PhanMemThiDua2026
                 Interlocked.Exchange(ref _isUpdatingUI, 1);   // thu hẹp combo không được bắn lọc lại
                 try
                 {
-                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_TimKiemDonVi, Module_BoLocKhenThuong.SapABC(tcDv.Con), Module_HeThong.Tat_Ca);
+                    Module_BoLocKhenThuong.NapLaiCombo(comboBox_TimKiemDonVi, Module_BoLocKhenThuong.SapTheoThuTuChuan(tcDv.Con, Module_DonVi.GetDanhSachDonVi()), Module_HeThong.Tat_Ca);
                     bool coKhongPL = tcPl.Con.Remove(Module_HeThong.PL_KHONG_PL);
                     var dsPl = Module_BoLocKhenThuong.SapABC(tcPl.Con);
                     if (coKhongPL) dsPl.Add(Module_HeThong.PL_KHONG_PL);
@@ -304,7 +300,7 @@ namespace PhanMemThiDua2026
         private static readonly SolidBrush _coKe = new SolidBrush(Module_GiaoDienForm29Web.MauKeDong);
         private void KryptonDataGridView2_CellPainting(object? sender, DataGridViewCellPaintingEventArgs e)
         {
-            if (e.RowIndex < 0 || e.ColumnIndex != 1 || _iconLoai1 == null) return;
+            if (e.RowIndex < 0 || e.ColumnIndex != 1) return;
             if (e.RowIndex >= _viewData.Count) return;
             if (!string.Equals(_viewData[e.RowIndex].PhanLoai, Module_HeThong.Loai_1, StringComparison.OrdinalIgnoreCase)) return;
             var g = e.Graphics!;
@@ -312,14 +308,14 @@ namespace PhanMemThiDua2026
             bool chon = (e.State & DataGridViewElementStates.Selected) == DataGridViewElementStates.Selected;
             g.FillRectangle(chon ? _coNenChon : _coNen, o);
             g.FillRectangle(_coKe, o.X, o.Bottom - 1, o.Width, 1);
-            int iconSize = 16;
             int xIcon = o.X + 8;
-            int yIcon = o.Y + (o.Height - iconSize) / 2;
-            g.DrawImageUnscaled(_iconLoai1, xIcon, yIcon);
+            // Icon khen thưởng tự vẽ + cache dùng chung (Module_IconLuoi); chừa 2px trên/dưới, không đè đường kẻ dưới
+            int matPhaiIcon = Module_IconLuoi.VeTrongO(g, Module_IconLuoi.Loai.KhenThuong, new Rectangle(o.X, o.Y, o.Width, o.Height - 1), xIcon,
+                                                      Module_IconLuoi.CoTheoDpi(this));
             string hoTen = e.Value?.ToString() ?? string.Empty;
             if (hoTen.Length > 0)
             {
-                int textStartX = xIcon + iconSize + 6;
+                int textStartX = matPhaiIcon + 6;
                 var textBounds = new Rectangle(textStartX, o.Y, o.Right - textStartX - 2, o.Height - 1);
                 Color textColor = chon ? e.CellStyle!.SelectionForeColor : e.CellStyle!.ForeColor;
                 const TextFormatFlags flags = TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix;
@@ -340,7 +336,7 @@ namespace PhanMemThiDua2026
             string tenFileGoiY = $"Danh sách {soLuong} CBCS trong diện quản lý - {ngay}.xlsx";
             using SaveFileDialog save = new SaveFileDialog
             {
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                Filter = Module_HeThong.BoLoc_Excel,
                 FileName = tenFileGoiY,
                 Title = "Xuất Excel"
             };
@@ -368,7 +364,7 @@ namespace PhanMemThiDua2026
             {
                 LogError("Lỗi xuất Excel", ex);
                 Module_NhatKy.GhiNhatKy(Module_TaiKhoan.TenTaiKhoan_RAM, "Lỗi xuất Excel CBCS trong diện quản lý", ex.Message);
-                MessageBox.Show($"Xuất Excel thất bại.\n{ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Xuất Excel thất bại.\n{ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -393,7 +389,7 @@ namespace PhanMemThiDua2026
             ws.Cell("A2").Style.Font.SetBold(true).Font.SetItalic(true).Font.SetFontSize(13).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
             ws.Cell(5, 1).InsertData(dataProjection);
             int headerRow = 4;
-            string[] headerTitles = { "STT", "Họ và tên", "Số hiệu", "Năm sinh", "Quê quán", "Vào CAND", "Cấp bậc", "Chức vụ", "Đơn vị", "Phân loại", "Ghi chú" };
+            string[] headerTitles = { "STT", Module_HeThong.TieuDeCot.HoVaTen, Module_HeThong.TieuDeCot.SoHieu, Module_HeThong.TieuDeCot.NamSinh, Module_HeThong.TieuDeCot.QueQuan, Module_HeThong.TieuDeCot.VaoCAND, Module_HeThong.TieuDeCot.CapBac, Module_HeThong.TieuDeCot.ChucVu, Module_HeThong.TieuDeCot.DonVi, Module_HeThong.TieuDeCot.PhanLoai, Module_HeThong.TieuDeCot.GhiChu };
             for (int i = 0; i < headerTitles.Length; i++)
             {
                 ws.Cell(headerRow, i + 1).Value = headerTitles[i];
@@ -668,7 +664,7 @@ namespace PhanMemThiDua2026
                 LogError(nameof(lamMoi_ToolStripMenuItem_Click), ex);
                 MessageBox.Show(
                     $"Không thể làm mới dữ liệu.\n{ex.Message}",
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -725,8 +721,6 @@ namespace PhanMemThiDua2026
                     g.CellValueNeeded -= KryptonDataGridView2_CellValueNeeded;
                     g.CellPainting -= KryptonDataGridView2_CellPainting;
                 }
-                _iconLoai1?.Dispose();
-                _iconLoai1 = null;
             }
             catch
             {

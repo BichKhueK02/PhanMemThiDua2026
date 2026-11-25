@@ -5,13 +5,23 @@ namespace PhanMemThiDua2026
 {
     // =====================================================================================
     //  GIAO DIỆN "KIỂU TRANG WEB" CHO Form10_NhatKy (Nhật ký phần mềm) — CHỈ TRÌNH BÀY, KHÔNG CÓ LOGIC NGHIỆP VỤ
-    //  Cùng ngôn ngữ thiết kế với Form4 (Module_GiaoDienForm4Web): nền trang xám nhạt, thẻ trắng bo góc + thanh nhấn xanh ở tiêu đề,
+    //  Cùng ngôn ngữ thiết kế với Form4 (Module_GiaoDienForm4Web): nền trang xám nhạt, thẻ trắng bo góc,
     //  combo bo tròn, nút theme tím nhạt, bảng có khung bo tròn liền mạch + tiêu đề tím nhạt.
     //
-    //  - Lớp static độc lập, không tạo .resx, KHÔNG cần sửa .csproj, KHÔNG sửa Designer.
-    //  - Dùng lại các lớp vẽ của Module_GiaoDienForm4Web.cs: TheBoGocF4 (thẻ bo góc), OComboWebF4 (combo bo tròn).
-    //    => file Module_GiaoDienForm4Web.cs phải còn trong project (Form4 đang dùng nó nên chắc chắn còn).
-    //  - Tìm control theo Name (không phụ thuộc private) => không đổi tên/kiểu/sự kiện của control nào.
+    //  BỐ CỤC GỌN (24/11) — ưu tiên diện tích cho lưới:
+    //   ┌ Thẻ "thanh lọc" (1 hàng, tự xuống dòng khi hẹp) ───────────────────────────────────────────┐
+    //   │ Máy tính [▾]  Tài khoản [▾]  Từ ngày [..] đến [..]  [Tiến hành lọc] [Làm mới]          (?) │
+    //   └────────────────────────────────────────────────────────────────────────────────────────────┘
+    //   ┌ Thẻ lưới ──────────────────────────────────────────────────────────────────────────────────┐
+    //   │ [ bảng nhật ký ]                                                                           │
+    //   │ Sắp xếp (•) Cũ trước ( ) Mới trước     Trang x/y [Trở lại][Tiếp theo]  Số dòng/trang [..][Áp dụng] │
+    //   └────────────────────────────────────────────────────────────────────────────────────────────┘
+    //  Trước đây: hàng 4 thẻ cao 192 px (ảnh 128 px + Bộ lọc + Phân trang + Sắp xếp) + dải tiêu đề thẻ lưới 36 px.
+    //
+    //  - Lớp static độc lập, KHÔNG sửa Designer/.resx: chỉ chuyển các control gốc sang khung mới (giữ nguyên tên, kiểu, sự kiện).
+    //    Khung chia splitContainer1 thu Panel1 lại (các GroupBox/TableLayoutPanel gốc nằm rỗng trong đó, không hiện).
+    //  - Kích thước tự đặt ở đây đã nhân DPI (hệ số k); riêng Min/MaxSize của nút + hàng tableLayoutPanel1 để px 100%
+    //    vì Module_TyLeDpi nhân lúc Load (Form10 nằm trong FormCanHieuChinhDpi).
     //  - Mọi bước bọc try/catch: lỗi trình bày không bao giờ làm form không mở được.
     //
     //  Dùng trong Form10_NhatKy:
@@ -28,15 +38,17 @@ namespace PhanMemThiDua2026
         private static readonly Color MauTim = Color.FromArgb(109, 40, 217);
         private static readonly Color MauVienO = Color.FromArgb(203, 213, 225);
         private static readonly Color MauVienChon = Color.FromArgb(139, 92, 246);
-        private static readonly Font FontNhan = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontO = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        private static readonly Font FontNut = new Font("Segoe UI Semibold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Color MauVach = Color.FromArgb(226, 232, 240);
+        private static readonly Font FontNhan = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontO = new Font(Module_HeThong.TenFontHeThong, 10F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font FontNut = new Font(Module_HeThong.TenFontHeThongDam, 9F, FontStyle.Regular, GraphicsUnit.Point);
         // Font lưới: giữ đúng font hệ thống mà Form10 vẫn dùng cho lưới
         private static readonly Font FontLuoiTieuDe = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Bold);
         private static readonly Font FontLuoiO = new Font(Module_HeThong.TenFontHeThong, 9F, FontStyle.Regular);
         // Khoảng đệm giữa khung bo tròn và bảng (px thiết kế): đủ để 4 góc vuông của bảng nằm lọt trong cung bo
         private const int DemKhungBang = 5;
-        private const int CaoHangThe = 192;      // chiều cao hàng thẻ phía trên (Bộ lọc | Phân trang | Sắp xếp)
+        private const int CaoHangDieuKhien = 36;   // chiều cao 1 hàng điều khiển (thanh lọc / chân bảng), px 100%
+        private const int CaoNut = 30;             // chiều cao nút, px 100% (Module_TyLeDpi nhân lúc Load)
         private static readonly Color MauTieuDeBang = Color.FromArgb(238, 232, 255);
         private static readonly Color MauChuTieuDeBang = Color.FromArgb(75, 20, 130);
         // (Nền, Hover, Nhấn, Viền, Chữ) — theme tím nhạt của Form4
@@ -52,12 +64,10 @@ namespace PhanMemThiDua2026
             {
                 f.BackColor = MauNen;
                 An(() => DinhBoCuc(f), "BoCuc");
-                An(() => BocCacThe(f), "CacThe");
-                An(() => DinhBoLoc(f), "BoLoc");
-                An(() => DinhPhanTrang(f), "PhanTrang");
-                An(() => DinhSapXep(f), "SapXep");
-                An(() => BoTronCacCombo(f), "Combo");
-                An(() => BocLuoi(f), "KhungLuoi");
+                An(() => DinhKieuDieuKhien(f), "KieuDieuKhien");
+                An(() => DungKhungLuoi(f), "KhungLuoi");     // trước thanh lọc: thẻ lưới phải có sẵn để xếp thứ tự Dock
+                An(() => DungThanhLoc(f), "ThanhLoc");
+                An(() => BoTronCacCombo(f), "Combo");         // sau khi chuyển combo sang khung mới (ô bo tròn bám theo chuỗi cha)
                 An(() => DinhThanhTrangThai(f), "TrangThai");
             }
             finally
@@ -80,207 +90,344 @@ namespace PhanMemThiDua2026
                 foreach (var con in TatCa<T>(c)) yield return con;
             }
         }
+        private static float HeSo(Control c) => Math.Max(1f, c.DeviceDpi / 96f);
+        private static int S(float k, int v) => (int)Math.Round(v * k);
+        private static Padding P(float k, int trai, int tren, int phai, int duoi) => new Padding(S(k, trai), S(k, tren), S(k, phai), S(k, duoi));
         // ===================== BỐ CỤC TỔNG =====================
         private static void DinhBoCuc(Form f)
         {
+            float k = HeSo(f);
             // Hàng 0 = nội dung (ăn hết), hàng 1 = thanh trạng thái cao cố định (bản gốc chia theo % nên cao thấp theo cửa sổ)
             var t1 = Tim<TableLayoutPanel>(f, "tableLayoutPanel1");
             if (t1 != null)
             {
                 t1.BackColor = MauNen;
-                t1.Padding = new Padding(12, 10, 12, 4);
+                t1.Padding = P(k, 10, 8, 10, 2);
                 t1.RowStyles.Clear();
                 t1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-                t1.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
+                t1.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));   // px 100% (Module_TyLeDpi nhân)
             }
             var sc = Tim<SplitContainer>(f, "splitContainer1");
             if (sc != null)
             {
                 sc.BackColor = MauNen;
-                sc.Panel1.BackColor = MauNen;
                 sc.Panel2.BackColor = MauNen;
                 sc.Margin = new Padding(0);
-                sc.IsSplitterFixed = true;              // trang web không có thanh kéo chia vùng
-                sc.FixedPanel = FixedPanel.Panel1;      // đổi cỡ cửa sổ chỉ co giãn khối lưới
-                try { sc.SplitterWidth = 10; } catch (ArgumentException) { }      // khe hở giữa hàng thẻ và thẻ lưới
-                try { sc.SplitterDistance = CaoHangThe; } catch (ArgumentException) { }
-            }
-            var t3 = Tim<TableLayoutPanel>(f, "tableLayoutPanel3");
-            if (t3 != null)
-            {
-                t3.BackColor = MauNen;
-                t3.Margin = new Padding(0);
-                // Hàng thẻ trên cùng: [hình 128 cố định] [Bộ lọc 55%] [Phân trang 45%] [Chọn sắp xếp 180 cố định].
-                // Trước: hình chiếm 16,5% bề ngang => thẻ "Phân trang điều hướng" quá hẹp, nút "Áp dụng" bị tràn khi màn hình 125–150%.
-                if (t3.ColumnStyles.Count >= 4)
-                {
-                    t3.ColumnStyles[0] = new ColumnStyle(SizeType.Absolute, 128F);
-                    t3.ColumnStyles[1] = new ColumnStyle(SizeType.Percent, 55F);
-                    t3.ColumnStyles[2] = new ColumnStyle(SizeType.Percent, 45F);
-                    t3.ColumnStyles[3] = new ColumnStyle(SizeType.Absolute, 180F);
-                }
+                sc.IsSplitterFixed = true;
+                sc.Panel1Collapsed = true;   // thanh lọc + lưới cùng nằm ở Panel2 (Dock Top/Fill), chiều cao thanh lọc theo nội dung
             }
         }
-        // ===================== THẺ =====================
-        private static void BocCacThe(Form f)
+        // ===================== KIỂU TỪNG ĐIỀU KHIỂN (chưa đụng bố cục) =====================
+        private static void DinhKieuDieuKhien(Form f)
         {
-            // Ảnh hướng dẫn (bấm để xem hướng dẫn) -> thẻ không tiêu đề
-            var anh = Tim<PictureBox>(f, "pictureBox1");
-            if (anh != null)
+            float k = HeSo(f);
+            foreach (var ten in new[] { "label4", "label2", "label3", "label5", "label1" })
+                DinhNhan(Tim<Label>(f, ten));
+            // Chữ nhãn gọn, đúng nghĩa (code nghiệp vụ không đọc Text các nhãn này)
+            if (Tim<Label>(f, "label3") is Label tu) tu.Text = "Từ ngày";
+            if (Tim<Label>(f, "label1") is Label soDong) soDong.Text = "Số dòng/trang";   // ô này là số dòng mỗi trang (mặc định 500)
+            foreach (var ten in new[] { "comboBox1_MayTinh", "comboBox_LocTaiKhoan" })
             {
-                var the = ThayBangThe(anh, "", new Padding(10));
-                if (the != null)
-                {
-                    anh.Dock = DockStyle.Fill;
-                    anh.Margin = new Padding(0);
-                    anh.SizeMode = PictureBoxSizeMode.Zoom;   // trước đây StretchImage -> méo hình
-                    anh.Cursor = Cursors.Hand;
-                }
+                var c = Tim<ComboBox>(f, ten);
+                if (c == null) continue;
+                c.Font = FontO;                     // phải đặt TRƯỚC khi gắn ô bo tròn (nó chép font của ComboBox)
+                c.Anchor = AnchorStyles.Left;
+                c.Margin = new Padding(0);
+                c.Width = S(k, 160);
+                c.DropDownWidth = Math.Max(c.DropDownWidth, S(k, 240));   // tên máy/tài khoản dài vẫn đọc đủ khi thả xuống
             }
-            foreach (var ten in new[] { "groupBox1", "groupBox4", "groupBox3" })
-            {
-                var gb = Tim<GroupBox>(f, ten);
-                if (gb != null) ThayBangThe(gb, gb.Text, new Padding(12, 36, 12, 10));   // 36 = vùng tiêu đề thẻ
-            }
-        }
-        /// <summary>
-        /// Thay GroupBox / PictureBox nằm trong ô TableLayoutPanel bằng TheBoGocF4 (thẻ trắng bo góc của Form4) đúng ô đó.
-        /// GroupBox: chuyển nguyên các control con (bảng bố cục + mọi sự kiện/logic) sang thẻ rồi bỏ GroupBox rỗng.
-        /// </summary>
-        private static TheBoGocF4? ThayBangThe(Control nguon, string tieuDe, Padding padding)
-        {
-            if (nguon.Parent is not TableLayoutPanel cha) return null;
-            var vt = cha.GetPositionFromControl(nguon);
-            int spanCot = cha.GetColumnSpan(nguon), spanHang = cha.GetRowSpan(nguon);
-            bool cotCuoi = vt.Column + spanCot >= cha.ColumnCount;
-            var the = new TheBoGocF4
-            {
-                Name = "the_" + nguon.Name,
-                Dock = DockStyle.Fill,
-                Margin = new Padding(0, 0, cotCuoi ? 0 : 10, 0),   // khe 10px giữa các thẻ trong hàng
-                TieuDe = tieuDe,
-                Padding = padding
-            };
-            cha.SuspendLayout();
-            the.SuspendLayout();
-            try
-            {
-                if (nguon is GroupBox gb)
-                {
-                    var con = gb.Controls.Cast<Control>().ToArray();
-                    cha.Controls.Remove(gb);
-                    cha.Controls.Add(the, vt.Column, vt.Row);
-                    foreach (var c in con)
-                    {
-                        gb.Controls.Remove(c);
-                        c.Dock = DockStyle.Fill;
-                        the.Controls.Add(c);
-                    }
-                    gb.Dispose();   // GroupBox đã rỗng; code của form không dùng tới các field groupBox*
-                }
-                else
-                {
-                    cha.Controls.Remove(nguon);
-                    cha.Controls.Add(the, vt.Column, vt.Row);
-                    the.Controls.Add(nguon);
-                }
-                if (spanCot > 1) cha.SetColumnSpan(the, spanCot);
-                if (spanHang > 1) cha.SetRowSpan(the, spanHang);
-            }
-            finally
-            {
-                the.ResumeLayout(false);
-                cha.ResumeLayout(true);
-            }
-            return the;
-        }
-        // ===================== THẺ 1: BỘ LỌC NÂNG CAO =====================
-        private static void DinhBoLoc(Form f)
-        {
-            // Cột nhãn đầu hàng cố định -> ô nhập của 2 hàng thẳng cột với nhau
-            // Hàng Máy tính | combo | Tài khoản | combo
-            DinhHang(f, "tableLayoutPanel9", (SizeType.Absolute, 84F), (SizeType.Percent, 50F), (SizeType.Absolute, 96F), (SizeType.Percent, 50F));
-            // Hàng Từ | ngày | đến | ngày
-            DinhHang(f, "tableLayoutPanel10", (SizeType.Absolute, 84F), (SizeType.Percent, 50F), (SizeType.Absolute, 96F), (SizeType.Percent, 50F));
-            DinhNhan(Tim<Label>(f, "label4"), true);    // Máy tính
-            DinhNhan(Tim<Label>(f, "label2"));          // Tài khoản
-            DinhNhan(Tim<Label>(f, "label3"), true);    // Từ
-            DinhNhan(Tim<Label>(f, "label5"));          // đến
-            DinhOCombo(Tim<ComboBox>(f, "comboBox1_MayTinh"));
-            DinhOCombo(Tim<ComboBox>(f, "comboBox_LocTaiKhoan"));
             foreach (var ten in new[] { "kryptonDateTimePicker1_NgayThangNamBatDau", "kryptonDateTimePicker1_NgayThangNamKetThuc" })
             {
                 var d = Tim<Krypton.Toolkit.KryptonDateTimePicker>(f, ten);
                 if (d == null) continue;
-                d.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-                d.Margin = new Padding(0, 3, 0, 3);
+                d.Anchor = AnchorStyles.Left;
+                d.Margin = new Padding(0);
+                d.Width = S(k, 120);
                 d.StateCommon.Back.Color1 = Color.White;
                 KieuOKrypton(d.StateCommon.Border, d.StateActive.Border);
             }
-            // Hàng nút: 2 nút lấp đầy nửa ô, cách nhau 12px
-            DatCot(f, "tableLayoutPanel6", (SizeType.Percent, 50F), (SizeType.Percent, 50F));
-            NutTrongO(f, "kryptonButton1_LocTheoNgayThangNam", NutTimDam, new Padding(0, 0, 6, 0));
-            NutTrongO(f, "kryptonButton1_LamMoiBoLoc", NutTim, new Padding(6, 0, 0, 0));
-        }
-        // ===================== THẺ 2: PHÂN TRANG ĐIỀU HƯỚNG =====================
-        private static void DinhPhanTrang(Form f)
-        {
-            var t4 = Tim<TableLayoutPanel>(f, "tableLayoutPanel4");
-            if (t4 != null)
-            {
-                t4.RowStyles.Clear();
-                t4.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));    // nhập số trang + Áp dụng
-                t4.RowStyles.Add(new RowStyle(SizeType.Absolute, 48F));    // Trở lại | Tiếp theo
-                t4.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));    // "Trang x / y"
-            }
-            // Nhập số trang | ô số | Áp dụng
-            // Cột nhãn tự co theo chữ (đúng ở mọi DPI), ô số và nút chia phần còn lại
-            DatCot(f, "tableLayoutPanel7", (SizeType.AutoSize, 0F), (SizeType.Percent, 42F), (SizeType.Percent, 58F));
-            DinhNhan(Tim<Label>(f, "label1"), true);
             var o = Tim<Krypton.Toolkit.KryptonTextBox>(f, "textBox_SoDongHienThi");
             if (o != null)
             {
-                o.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-                o.Margin = new Padding(0, 0, 0, 0);
+                o.Anchor = AnchorStyles.Left;
+                o.Margin = new Padding(0);   // đặt lại cả lề dọc (lỗi Krypton nhân lặp lề trên/dưới ở DPI ≠ 100%)
+                o.Width = S(k, 64);
+                o.TextAlign = HorizontalAlignment.Center;
                 o.StateCommon.Back.Color1 = Color.White;
                 KieuOKrypton(o.StateCommon.Border, o.StateActive.Border);
                 o.StateCommon.Content.Font = FontO;
                 o.StateCommon.Content.Color1 = MauChuDam;
             }
-            NutTrongO(f, "kryptonButton_ApDungSoTrang", NutTimDam, new Padding(12, 0, 0, 0));
-            // Trở lại | Tiếp theo
-            DatCot(f, "tableLayoutPanel8", (SizeType.Percent, 50F), (SizeType.Percent, 50F));
-            NutTrongO(f, "kryptonButton_TroLai", NutTim, new Padding(0, 0, 6, 0));
-            NutTrongO(f, "kryptonButton_TiepTheo", NutTim, new Padding(6, 0, 0, 0));
+            DinhNut(f, "kryptonButton1_LocTheoNgayThangNam", NutTimDam);
+            DinhNut(f, "kryptonButton1_LamMoiBoLoc", NutTim);
+            DinhNut(f, "kryptonButton_TroLai", NutTim);
+            DinhNut(f, "kryptonButton_TiepTheo", NutTim);
+            DinhNut(f, "kryptonButton_ApDungSoTrang", NutTimDam);
             // "Trang x / y" (chữ do logic điền)
-            var trang = Tim<Label>(f, "label_Trang");
-            if (trang != null)
+            if (Tim<Label>(f, "label_Trang") is Label trang)
             {
                 trang.Font = FontNut;
                 trang.ForeColor = MauTim;
-                trang.Anchor = AnchorStyles.None;
+                trang.AutoSize = true;
+                trang.Anchor = AnchorStyles.Left;
+                trang.Margin = new Padding(0);
             }
-        }
-        // ===================== THẺ 3: CHỌN SẮP XẾP =====================
-        private static void DinhSapXep(Form f)
-        {
-            var t5 = Tim<TableLayoutPanel>(f, "tableLayoutPanel5");
-            if (t5 != null)
-            {
-                t5.RowStyles.Clear();
-                t5.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
-                t5.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
-                t5.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            }
+            // Radio sắp xếp: chữ nói rõ thứ tự thời gian (A–Z = cũ nhất trước; code chỉ đọc Checked)
+            if (Tim<RadioButton>(f, "radioButton1_TuAZ") is RadioButton az) az.Text = "Cũ trước (A→Z)";
+            if (Tim<RadioButton>(f, "radioButton1_TuZA") is RadioButton za) za.Text = "Mới trước (Z→A)";
             foreach (var ten in new[] { "radioButton1_TuAZ", "radioButton1_TuZA" })
             {
                 var rb = Tim<RadioButton>(f, ten);
                 if (rb == null) continue;
+                rb.AutoSize = true;
                 rb.Anchor = AnchorStyles.Left;
-                rb.Margin = new Padding(6, 0, 0, 0);
+                rb.Margin = new Padding(0);
                 rb.Cursor = Cursors.Hand;
                 CapNhatRadio(rb);
             }
+        }
+        // ===================== THANH LỌC (thẻ trên cùng) =====================
+        private static void DungThanhLoc(Form f)
+        {
+            var sc = Tim<SplitContainer>(f, "splitContainer1");
+            if (sc == null) return;
+            float k = HeSo(f);
+            int khe = S(k, 14);    // khoảng cách giữa các cụm
+            var the = new TheBoGocF4
+            {
+                Name = "the_ThanhLoc",
+                Dock = DockStyle.Top,
+                TieuDe = "",
+                Margin = new Padding(0),
+                Padding = P(k, 14, 7, 10, 7),
+                Height = S(k, CaoHangDieuKhien + 14)
+            };
+            // [cụm lọc tự xuống dòng | biểu tượng hướng dẫn]
+            var bang = new TableLayoutPanel
+            {
+                Name = "bang_ThanhLoc",
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                Margin = new Padding(0),
+                Padding = new Padding(0),
+                BackColor = Color.White
+            };
+            bang.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            bang.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            bang.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            var luong = new FlowLayoutPanel
+            {
+                Name = "luong_ThanhLoc",
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = true,
+                Margin = new Padding(0),
+                Padding = new Padding(0),
+                BackColor = Color.White
+            };
+            var cum = new List<Control?>
+            {
+                Cum(k, new Padding(0, 0, khe, 0), (Tim<Label>(f, "label4"), S(k, 6)), (Tim<ComboBox>(f, "comboBox1_MayTinh"), 0)),
+                Cum(k, new Padding(0, 0, khe, 0), (Tim<Label>(f, "label2"), S(k, 6)), (Tim<ComboBox>(f, "comboBox_LocTaiKhoan"), 0)),
+                Cum(k, new Padding(0, 0, khe, 0),
+                    (Tim<Label>(f, "label3"), S(k, 6)), (Tim<Control>(f, "kryptonDateTimePicker1_NgayThangNamBatDau"), S(k, 6)),
+                    (Tim<Label>(f, "label5"), S(k, 6)), (Tim<Control>(f, "kryptonDateTimePicker1_NgayThangNamKetThuc"), 0)),
+                Cum(k, new Padding(0),
+                    (Tim<Control>(f, "kryptonButton1_LocTheoNgayThangNam"), S(k, 8)), (Tim<Control>(f, "kryptonButton1_LamMoiBoLoc"), 0))
+            };
+            int tab = 0;
+            foreach (var c in cum)
+                if (c != null) { c.TabIndex = tab++; luong.Controls.Add(c); }
+            bang.Controls.Add(luong, 0, 0);
+            // Ảnh hướng dẫn (bấm để xem hướng dẫn): trước chiếm cả thẻ 128 px, nay là biểu tượng nhỏ cuối thanh lọc
+            var anh = Tim<PictureBox>(f, "pictureBox1");
+            if (anh != null)
+            {
+                anh.Parent?.Controls.Remove(anh);
+                anh.Dock = DockStyle.None;
+                anh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+                anh.Size = new Size(S(k, 30), S(k, 30));
+                anh.Margin = new Padding(S(k, 8), S(k, 3), 0, 0);   // canh giữa hàng đầu (36 - 30) / 2
+                anh.SizeMode = PictureBoxSizeMode.Zoom;
+                anh.BackColor = Color.White;
+                anh.Cursor = Cursors.Hand;
+                var tip = new ToolTip();
+                tip.SetToolTip(anh, "Xem hướng dẫn sử dụng trang Nhật ký");
+                f.Disposed += (s, e) => tip.Dispose();
+                bang.Controls.Add(anh, 1, 0);
+            }
+            the.Controls.Add(bang);
+            var vach = new Panel { Name = "khe_ThanhLoc", Dock = DockStyle.Top, Height = S(k, 8), BackColor = MauNen, Margin = new Padding(0) };
+            var p2 = sc.Panel2;
+            p2.SuspendLayout();
+            try
+            {
+                // Thứ tự Dock: control thêm sau được xếp trước => thẻ lọc trên cùng, khe 8 px, rồi thẻ lưới lấp phần còn lại
+                p2.Controls.Add(vach);
+                p2.Controls.Add(the);
+                foreach (Control c in p2.Controls)
+                    if (c.Dock == DockStyle.Fill) c.BringToFront();
+            }
+            finally { p2.ResumeLayout(true); }
+            // Chiều cao thẻ lọc = chiều cao cụm lọc đã tự xuống dòng theo bề ngang hiện tại (rộng: 1 hàng, hẹp: 2–3 hàng)
+            bool choCan = false;
+            void Can()
+            {
+                choCan = false;
+                if (the.IsDisposed || f.WindowState == FormWindowState.Minimized) return;
+                int rongAnh = anh == null ? 0 : anh.Width + anh.Margin.Horizontal;
+                int rong = the.ClientSize.Width - the.Padding.Horizontal - rongAnh;
+                if (rong < 80) return;
+                int cao = Math.Max(luong.GetPreferredSize(new Size(rong, 0)).Height, S(k, CaoHangDieuKhien));
+                cao += the.Padding.Vertical;
+                if (the.Height != cao) the.Height = cao;
+            }
+            void YeuCauCan()
+            {
+                if (choCan || the.IsDisposed) return;
+                if (!the.IsHandleCreated) { Can(); return; }
+                choCan = true;   // gộp nhiều lần đổi cỡ trong 1 lượt dàn trang thành 1 lần canh, chạy sau khi dàn trang xong
+                try { the.BeginInvoke(new Action(Can)); } catch (InvalidOperationException) { choCan = false; }
+            }
+            the.SizeChanged += (s, e) => YeuCauCan();
+            luong.Layout += (s, e) => YeuCauCan();   // nút đổi chữ ("..."), DPI đổi => bề rộng cụm đổi
+            f.Load += (s, e) => YeuCauCan();
+        }
+        /// <summary>
+        /// 1 cụm điều khiển không bị tách khi thanh lọc xuống dòng: bảng 1 hàng cao cố định, các control canh giữa theo chiều dọc.
+        /// Mỗi phần tử: (control, khoảng cách sau nó).
+        /// </summary>
+        private static TableLayoutPanel? Cum(float k, Padding margin, params (Control? Ctl, int Khe)[] cacO)
+        {
+            var co = cacO.Where(x => x.Ctl != null).ToArray();
+            if (co.Length == 0) return null;
+            var t = new TableLayoutPanel
+            {
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                ColumnCount = co.Length,
+                RowCount = 1,
+                Margin = margin,
+                Padding = new Padding(0),
+                BackColor = Color.White
+            };
+            t.RowStyles.Add(new RowStyle(SizeType.Absolute, S(k, CaoHangDieuKhien)));
+            for (int i = 0; i < co.Length; i++)
+            {
+                var c = co[i].Ctl!;
+                t.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+                c.Parent?.Controls.Remove(c);
+                c.Dock = DockStyle.None;
+                c.Margin = new Padding(0, 0, co[i].Khe, 0);
+                c.TabIndex = i;
+                t.Controls.Add(c, i, 0);
+            }
+            return t;
+        }
+        // ===================== LƯỚI + CHÂN BẢNG (sắp xếp, phân trang) =====================
+        // Bảng nằm gọn trong 1 thẻ có KHUNG BO TRÒN liền mạch; không còn dải tiêu đề thẻ (tiêu đề cột của bảng đã đủ rõ).
+        private static void DungKhungLuoi(Form f)
+        {
+            var luoi = Tim<DataGridView>(f, "kryptonDataGridView1");
+            if (luoi == null || luoi.Parent is not Control cha) return;
+            float k = HeSo(f);
+            int gap = S(k, DemKhungBang);
+            luoi.BorderStyle = BorderStyle.None;
+            luoi.Margin = new Padding(0);
+            var the = new TheBoGocF4
+            {
+                Name = "the_kryptonDataGridView1",
+                Dock = DockStyle.Fill,
+                TieuDe = "",
+                DemKhung = DemKhungBang,
+                KhungTheoLuoi = true,
+                Padding = new Padding(S(k, 10) + gap, S(k, 10) + gap, S(k, 10) + gap, S(k, 6)),
+                LuoiBang = luoi,
+                TabIndex = 1
+            };
+            // Chân bảng: [Sắp xếp ...] ........ [Trang x/y][Trở lại][Tiếp theo] | [Số dòng/trang][ô][Áp dụng]
+            var chan = new TableLayoutPanel
+            {
+                Name = "chan_kryptonDataGridView1",
+                Dock = DockStyle.Bottom,
+                ColumnCount = 2,
+                RowCount = 1,
+                Margin = new Padding(0),
+                Padding = new Padding(0, gap + S(k, 4), 0, 0),
+                BackColor = Color.White
+            };
+            chan.Height = S(k, CaoHangDieuKhien) + chan.Padding.Vertical;
+            chan.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            chan.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            chan.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            var nhanSapXep = new Label { Name = "label_SapXep", Text = "Sắp xếp:", AutoSize = true };
+            DinhNhan(nhanSapXep);
+            var cumSapXep = Cum(k, new Padding(0),
+                (nhanSapXep, S(k, 8)), (Tim<Control>(f, "radioButton1_TuAZ"), S(k, 12)), (Tim<Control>(f, "radioButton1_TuZA"), 0));
+            var vach = new Panel { Name = "vach_PhanTrang", Width = Math.Max(1, S(k, 1)), Height = S(k, 20), BackColor = MauVach, Anchor = AnchorStyles.Left };
+            var cumTrang = Cum(k, new Padding(0),
+                (Tim<Control>(f, "label_Trang"), S(k, 10)),
+                (Tim<Control>(f, "kryptonButton_TroLai"), S(k, 6)), (Tim<Control>(f, "kryptonButton_TiepTheo"), S(k, 14)),
+                (vach, S(k, 14)),
+                (Tim<Control>(f, "label1"), S(k, 6)), (Tim<Control>(f, "textBox_SoDongHienThi"), S(k, 6)),
+                (Tim<Control>(f, "kryptonButton_ApDungSoTrang"), 0));
+            if (cumSapXep != null) { cumSapXep.Anchor = AnchorStyles.Left; cumSapXep.TabIndex = 0; chan.Controls.Add(cumSapXep, 0, 0); }
+            if (cumTrang != null) { cumTrang.Anchor = AnchorStyles.Right; cumTrang.TabIndex = 1; chan.Controls.Add(cumTrang, 1, 0); }
+            cha.SuspendLayout();
+            try
+            {
+                cha.Controls.Remove(luoi);
+                cha.Controls.Add(the);
+                the.Controls.Add(luoi);     // Fill: xếp sau cùng
+                the.Controls.Add(chan);     // Bottom: thêm sau => xếp trước, nằm dưới bảng
+                luoi.Dock = DockStyle.Fill;
+                luoi.TabIndex = 0;
+                chan.TabIndex = 1;
+                // Code gốc đặt màu / chiều cao tiêu đề bảng lúc chạy (CaiDatCot) -> thẻ vẽ lại để dải tiêu đề luôn khớp màu
+                luoi.ColumnHeadersHeightChanged += (s, e) => the.Invalidate();
+                luoi.ColumnHeadersDefaultCellStyleChanged += (s, e) => the.Invalidate();
+                luoi.DataBindingComplete += (s, e) => the.Invalidate();
+            }
+            finally
+            {
+                cha.ResumeLayout(true);
+            }
+            // Hẹp không đủ 1 hàng: cụm phân trang xuống hàng 2 (canh trái) thay vì đè lên cụm sắp xếp
+            int caoHang = S(k, CaoHangDieuKhien);
+            bool? haiHang = null;
+            void CanChan()
+            {
+                if (chan.IsDisposed || cumSapXep == null || cumTrang == null || chan.ClientSize.Width < 50) return;
+                bool moi = chan.ClientSize.Width < cumSapXep.PreferredSize.Width + cumTrang.PreferredSize.Width + S(k, 24);
+                if (moi == haiHang) return;
+                haiHang = moi;
+                chan.SuspendLayout();
+                try
+                {
+                    chan.RowStyles.Clear();
+                    chan.RowStyles.Add(new RowStyle(SizeType.Absolute, caoHang));
+                    if (moi) chan.RowStyles.Add(new RowStyle(SizeType.Absolute, caoHang));
+                    chan.RowCount = moi ? 2 : 1;
+                    chan.SetCellPosition(cumTrang, new TableLayoutPanelCellPosition(moi ? 0 : 1, moi ? 1 : 0));
+                    chan.SetColumnSpan(cumTrang, moi ? 2 : 1);
+                    cumTrang.Anchor = moi ? AnchorStyles.Left : AnchorStyles.Right;
+                    chan.Height = caoHang * chan.RowCount + chan.Padding.Vertical;
+                }
+                finally { chan.ResumeLayout(true); }
+            }
+            // Đổi chiều cao NGAY trong SizeChanged (giữa lượt dàn trang của thẻ) thì thẻ không xếp lại => chân bảng tràn xuống dưới.
+            // => gộp và chạy sau khi lượt dàn trang xong.
+            bool choCan = false;
+            void YeuCauCanChan()
+            {
+                if (choCan || chan.IsDisposed) return;
+                if (!chan.IsHandleCreated) { CanChan(); return; }
+                choCan = true;
+                try { chan.BeginInvoke(new Action(() => { choCan = false; CanChan(); })); } catch (InvalidOperationException) { choCan = false; }
+            }
+            chan.SizeChanged += (s, e) => YeuCauCanChan();
+            if (cumTrang != null) cumTrang.SizeChanged += (s, e) => YeuCauCanChan();   // nút đổi chữ ("Đang tải...") => rộng hơn
         }
         /// <summary>Radio sắp xếp: mục đang chọn = chữ tím đậm, mục còn lại = chữ xám (bản gốc tô xanh/đỏ).</summary>
         public static void CapNhatRadio(RadioButton rb)
@@ -295,58 +442,16 @@ namespace PhanMemThiDua2026
                 if (cb.GetType() == typeof(ComboBox))
                     OComboWebF4.Gan(cb);
         }
-        private static void DinhOCombo(ComboBox? c)
-        {
-            if (c == null) return;
-            c.Font = FontO;                     // phải đặt TRƯỚC khi gắn ô bo tròn (nó chép font của ComboBox)
-            c.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            c.Margin = new Padding(0, 3, 0, 3);
-        }
-        // ===================== LƯỚI =====================
-        // Bảng nằm gọn trong 1 thẻ có KHUNG BO TRÒN liền mạch (không cắt góc bằng Region): thẻ vẽ khung + dải tiêu đề cùng màu tiêu đề bảng.
-        private static void BocLuoi(Form f)
-        {
-            var luoi = Tim<DataGridView>(f, "kryptonDataGridView1");
-            if (luoi == null || luoi.Parent is not Control cha) return;
-            luoi.BorderStyle = BorderStyle.None;
-            luoi.Margin = new Padding(0);
-            const int gap = DemKhungBang;
-            var the = new TheBoGocF4
-            {
-                Name = "the_kryptonDataGridView1",
-                Dock = DockStyle.Fill,
-                TieuDe = "4. Danh sách nhật ký phần mềm",
-                DemKhung = gap,
-                Padding = new Padding(12 + gap, 36 + gap, 12 + gap, 10 + gap),
-                LuoiBang = luoi
-            };
-            cha.SuspendLayout();
-            try
-            {
-                cha.Controls.Remove(luoi);
-                cha.Controls.Add(the);
-                the.Controls.Add(luoi);
-                luoi.Dock = DockStyle.Fill;
-                // Code gốc đặt màu / chiều cao tiêu đề bảng lúc chạy (CaiDatCot) -> thẻ vẽ lại để dải tiêu đề luôn khớp màu
-                luoi.ColumnHeadersHeightChanged += (s, e) => the.Invalidate();
-                luoi.ColumnHeadersDefaultCellStyleChanged += (s, e) => the.Invalidate();
-                luoi.DataBindingComplete += (s, e) => the.Invalidate();
-            }
-            finally
-            {
-                cha.ResumeLayout(true);
-            }
-        }
         /// <summary>
         /// Style lưới nhật ký giống 2 bảng của Form4: tiêu đề tím nhạt PHẲNG (Krypton mặc định vẽ chuyển sắc + viền hở ở ô đầu),
         /// chữ tiêu đề tím đậm, đường kẻ dòng nhạt, dòng chọn nền xanh rất nhạt. Gọi từ Form10.CauHinhStyleWeb.
         /// </summary>
         public static void StyleLuoi(DataGridView dgv)
         {
-            dgv.RowTemplate.Height = 36;
+            dgv.RowTemplate.Height = 32;
             dgv.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
             dgv.AllowUserToResizeRows = false;
-            dgv.ColumnHeadersHeight = 50;
+            dgv.ColumnHeadersHeight = 40;
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single;
             dgv.GridColor = Color.FromArgb(235, 238, 243);
@@ -362,7 +467,7 @@ namespace PhanMemThiDua2026
             if (dgv is not Krypton.Toolkit.KryptonDataGridView k) return;
             k.GridStyles.Style = Krypton.Toolkit.DataGridViewStyle.List;
             k.StateCommon.Background.Color1 = Color.White;
-            k.StateCommon.HeaderColumn.Content.Padding = new Padding(6, 8, 6, 8);
+            k.StateCommon.HeaderColumn.Content.Padding = new Padding(6, 6, 6, 6);
             k.StateCommon.HeaderColumn.Content.Font = FontLuoiTieuDe;
             k.StateCommon.HeaderColumn.Content.Color1 = MauChuTieuDeBang;
             k.StateCommon.DataCell.Content.Font = FontLuoiO;
@@ -411,29 +516,14 @@ namespace PhanMemThiDua2026
             }
         }
         // ===================== TIỆN ÍCH TRÌNH BÀY =====================
-        // Đặt kiểu cột cho 1 bảng bố cục (giữ nguyên số hàng và vị trí các control gốc)
-        private static void DinhHang(Form f, string ten, params (SizeType Kieu, float Gia)[] cacCot)
-        {
-            var t = DatCot(f, ten, cacCot);
-            if (t != null) t.Margin = new Padding(0);
-        }
-        private static TableLayoutPanel? DatCot(Form f, string ten, params (SizeType Kieu, float Gia)[] cacCot)
-        {
-            var t = Tim<TableLayoutPanel>(f, ten);
-            if (t == null) return null;
-            t.Margin = new Padding(0);
-            if (t.ColumnCount < cacCot.Length) t.ColumnCount = cacCot.Length;
-            t.ColumnStyles.Clear();
-            foreach (var c in cacCot) t.ColumnStyles.Add(new ColumnStyle(c.Kieu, c.Gia));
-            return t;
-        }
-        private static void DinhNhan(Label? lb, bool dauHang = false)
+        private static void DinhNhan(Label? lb)
         {
             if (lb == null) return;
             lb.Font = FontNhan;
             lb.ForeColor = MauChuNhan;
+            lb.AutoSize = true;
             lb.Anchor = AnchorStyles.Left;
-            lb.Margin = new Padding(dauHang ? 0 : 12, 0, 6, 0);
+            lb.Margin = new Padding(0);
         }
         // Ô nhập Krypton: nền trắng, viền xám bo góc 8, khi đang gõ viền chuyển tím (cùng màu viền combo đang chọn)
         private static void KieuOKrypton(Krypton.Toolkit.PaletteBorder vien, Krypton.Toolkit.PaletteBorder vienActive)
@@ -444,18 +534,18 @@ namespace PhanMemThiDua2026
             vien.Width = 1;
             vienActive.Color1 = MauVienChon; vienActive.Color2 = MauVienChon;
         }
-        private static void NutTrongO(Form f, string ten, (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) m, Padding margin)
+        // Nút gọn: rộng theo nội dung (icon + chữ), cao đều CaoNut; Min/MaxSize để px 100% (Module_TyLeDpi nhân lúc Load)
+        private static void DinhNut(Form f, string ten, (Color Nen, Color Hover, Color Down, Color Vien, Color Chu) m)
         {
             var b = Tim<Krypton.Toolkit.KryptonButton>(f, ten);
             if (b == null) return;
             KieuNut(b, m);
-            // Chiều ngang co giãn theo nội dung (icon + chữ): đổi tên nút thì nút tự rộng/hẹp theo, không kéo giãn hết ô.
-            // Nút nằm bên trái khe giữa (margin phải > 0) bám phải, nút bên phải bám trái -> cặp nút ôm sát nhau ở giữa.
-            b.Anchor = margin.Right > 0 ? AnchorStyles.Right : AnchorStyles.Left;
-            b.Margin = margin;
-            b.StateCommon.Content.Padding = new Padding(14, 2, 14, 2);   // lề chữ 2 bên cho nút không bị chật
-            b.MinimumSize = new Size(96, 32);                            // không quá bé khi chữ ngắn / tạm hiện "..."
-            b.MaximumSize = new Size(0, 32);                             // cao đều 32
+            b.Dock = DockStyle.None;
+            b.Anchor = AnchorStyles.Left;
+            b.Margin = new Padding(0);
+            b.StateCommon.Content.Padding = new Padding(10, 1, 10, 1);
+            b.MinimumSize = new Size(84, CaoNut);
+            b.MaximumSize = new Size(0, CaoNut);
             b.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             b.AutoSize = true;
         }

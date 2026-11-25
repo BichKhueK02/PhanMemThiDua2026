@@ -75,7 +75,7 @@ namespace PhanMemThiDua2026
                     Module_PhienBan.NgayThangNamHeThong ?? "",
                     Module_PhienBan.NguoiPhatTrienPhanMem ?? "",
                     machineName,
-                    DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+                    DateTime.Now.ToString(Module_HeThong.DinhDang_NgayGio_Gach),
                     string.IsNullOrWhiteSpace(Module_TaiKhoan.TenTaiKhoan_RAM) ? "System" : Module_TaiKhoan.TenTaiKhoan_RAM,
                     token,
                     Module_BaoMatAES.MaHoa(textPhienBan) // ⭐ Mã hóa ô B9

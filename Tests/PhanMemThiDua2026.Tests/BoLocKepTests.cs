@@ -137,6 +137,36 @@ namespace PhanMemThiDua2026.Tests
             Assert.Equal(2, conTatCa.Count);
         }
 
+        [Fact]
+        public void BoLocDanhSach_LocGhiChu_KepVoiDonVi()
+        {
+            var dt = new DataTable();
+            foreach (var c in new[] { "HoVaTen", "SoHieu", "DonVi", "PhanLoai", "GhiChu" }) dt.Columns.Add(c);
+            dt.Rows.Add("Nguyễn Văn An", "111", "Đội 1", "Loại 1", "Đi học");
+            dt.Rows.Add("Trần Văn Bình", "222", "Đội 2", "Loại 2", "  đi   HỌC\r\n");   // khác hoa thường + khoảng trắng => cùng ghi chú
+            dt.Rows.Add("Lê Thị Cúc", "333", "Đội 2", "", "Nghỉ phép");
+            dt.Rows.Add("Phạm Dũng", "444", "Đội 3", "", "");
+            var bo = BoLocDanhSach.TaoTu(dt);
+            var khongPL = new[] { "Không PL" };
+
+            // Chỉ lọc ghi chú
+            Assert.Equal(new[] { 0, 1 }, bo.Loc("", null, null, false, khongPL, null, "Đi học"));
+
+            // Ghi chú + đơn vị: combo Đơn vị nhận đơn vị của người khớp ghi chú, combo Ghi chú nhận ghi chú của người khớp đơn vị
+            var conDv = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var conGc = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var kq = bo.Loc("", "Đội 2", null, false, khongPL, conDv, "Đi học", conGc);
+            Assert.Equal(new[] { 1 }, kq);
+            Assert.True(conDv.SetEquals(new[] { "Đội 1", "Đội 2" }));
+            Assert.True(conGc.SetEquals(new[] { "đi HỌC", "Nghỉ phép" }));   // ghi chú rỗng không vào combo
+
+            // Không lọc gì: combo Ghi chú có đủ ghi chú khác rỗng, không trùng (so không phân biệt hoa thường)
+            var conGc2 = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            Assert.Null(bo.Loc("", null, null, false, khongPL, null, null, conGc2));
+            Assert.Equal(2, conGc2.Count);
+            Assert.Equal("đi HỌC", BoLocDanhSach.ChuanGhiChu("  đi   HỌC\r\n"));
+        }
+
         private static class Lop
         {
             public static string ChuanHoa(string s) => BoLocDanhSach.ChuanHoaTimKiem(s);

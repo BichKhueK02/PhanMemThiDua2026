@@ -120,7 +120,7 @@ namespace PhanMemThiDua2026
             {
                 MessageBox.Show(
                     "Không thể đọc tài khoản Admin:\n" + ex.Message,
-                    "Lỗi",
+                    Module_HeThong.TieuDe_Loi,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
@@ -199,7 +199,7 @@ namespace PhanMemThiDua2026
                 // đang giữ tệp, xóa thư mục cài đặt (và thư mục chứa nó nếu rỗng) rồi đưa về màn hình Desktop.
                 if (!Module_GoCaiDat.KhoiChay(giuDuLieu: false, out string loiKhoiChay))
                 {
-                    MessageBox.Show("Không thể bắt đầu gỡ cài đặt:\n" + loiKhoiChay, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Không thể bắt đầu gỡ cài đặt:\n" + loiKhoiChay, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Module_NhatKy.GhiNhatKy("System (Quyền cao nhất)", "Gỡ cài đặt phần mềm", "Hủy tiến trình gỡ cài đặt do lỗi khởi chạy!");
                     return;
                 }

@@ -5,9 +5,114 @@ using System.Runtime.InteropServices; // Thêm để dùng SendMessage
 namespace PhanMemThiDua2026
 {
     //TrungKien- Yeu Meo Cam - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026 - https://github.com/BichKhueK02/PhanMemThiDua2026
-    public partial class Form22_ChinhSuaDataCBCS : Form
+    public partial class Form22_ChinhSuaDataCBCS : Form, IHoSoDungLai
     {
+        // ===== DÙNG LẠI (Module_HoSoThiDua): bấm đóng chỉ ẩn; mỗi lần mở gọi NapHoSo =====
+        public bool DungLai { get; set; }
+        public bool DangDungSan { get; set; }
+        protected override bool ShowWithoutActivation => DangDungSan || base.ShowWithoutActivation;
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (Module_HoSoThiDua.XuLyDong(this, e)) return;
+            base.OnFormClosing(e);
+        }
+        /// <summary>
+        /// Nạp hồ sơ mới vào form đang giữ trong RAM (đồng bộ: đọc + giải mã chỉ vài ms) để form hiện ra đã đủ dữ liệu.
+        /// <paramref name="id"/> &gt; 0: tìm theo ID (Form15 sửa); ngược lại tìm theo Số hiệu (Form6 xem).
+        /// </summary>
+        internal void NapHoSo(int id, string soHieu, string hoTen, string donVi, string tinhTrang, bool chiXem)
+        {
+            ID_CBCS = id > 0 ? id : -1;
+            SoHieu = soHieu ?? "";
+            HoVaTen = hoTen ?? "";
+            DonVi = donVi ?? "";
+            TinhTrang = tinhTrang ?? "";
+            IsViewOnly = chiXem;
+            DialogResult = DialogResult.None;
+            Text = $"Hồ sơ thi đua - {HoVaTen}";
+            SuspendLayout();
+            try
+            {
+                BindHeaderInformation();
+                CapNhatNhanNamVaTinhTrang();
+                XoaTrangComboBox(this);
+                MoKhoaGiaoDienNhapLieu(this);
+                NapDuLieu();
+                ApplyViewOnlyMode();
+            }
+            finally { ResumeLayout(true); }
+        }
+        private void MoKhoaGiaoDienNhapLieu(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                if (c is ComboBox cb) cb.Enabled = true;
+                if (c.HasChildren) MoKhoaGiaoDienNhapLieu(c);
+            }
+        }
+        /// <summary>Tiêu đề nhóm, nhãn tháng theo năm hệ thống và dòng tình trạng công tác.</summary>
+        private void CapNhatNhanNamVaTinhTrang()
+        {
+            var namHienTai = Module_HeThong.LayNamHeThong();
+            var namThiDuaTruoc = namHienTai - 1;
+            groupBox1_ThongTinNamCu.Text = $"1. Thông tin thi đua năm cũ (Năm {namThiDuaTruoc})";
+            groupBox2_ThongTinThiDuaKhenThuongNamHienTai.Text = $"2. Thông tin kết quả xét thi đua năm {namHienTai}";
+            if (!string.IsNullOrWhiteSpace(TinhTrang) &&
+                TinhTrang.Equals(Module_HeThong.TT_CHUYEN_CONG_TAC, StringComparison.OrdinalIgnoreCase))
+            {
+                toolStripLabel1.Text = $"Tình trạng công tác: {TinhTrang} - Đơn vị công tác cũ là {LayTenDonViHienThi(DonVi)}";
+            }
+            else
+            {
+                toolStripLabel1.Text = $"Tình trạng công tác: {TinhTrang}";
+            }
+            label_Thang_12_NamCu.Text = $"Tháng 12/{namThiDuaTruoc}";
+            for (int i = 1; i <= 11; i++)
+            {
+                var labelMonth = Controls.Find($"label_Thang_{i}", true);
+                if (labelMonth.Length > 0)
+                    labelMonth[0].Text = $"Tháng {i}/{namHienTai}";
+            }
+        }
+        /// <summary>Bản đồng bộ của LoadDataAsync (dùng khi nạp trước lúc Show).</summary>
+        private void NapDuLieu()
+        {
+            try
+            {
+                using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
+                cn.Open();
+                if (ID_CBCS > 0)
+                {
+                    using var cmd = new SqliteCommand($"SELECT * FROM [{BANG_THIDUA}] WHERE ID = @id", cn);
+                    cmd.Parameters.AddWithValue("@id", ID_CBCS);
+                    using var reader = cmd.ExecuteReader();
+                    if (reader.Read()) DoDuLieuVaoComboBox(reader);
+                }
+                else if (!string.IsNullOrEmpty(SoHieu))
+                {
+                    using var cmd = new SqliteCommand($"SELECT * FROM [{BANG_THIDUA}]", cn);
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        string dbSoHieu = GiaiMaSafe(reader["SoHieu"]?.ToString()).Trim();
+                        if (string.Equals(dbSoHieu, SoHieu, StringComparison.OrdinalIgnoreCase))
+                        {
+                            ID_CBCS = Convert.ToInt32(reader["ID"]);
+                            DoDuLieuVaoComboBox(reader);
+                            return;
+                        }
+                    }
+                    MessageBox.Show($"Chưa có kết quả thi đua của {Module_HeThong.Tu_dong_chi} mang Số hiệu: {SoHieu} trong cơ sở dữ liệu.", "Chưa có dữ liệu", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi Database: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         private readonly string _csdl4Path = Module_DanduongGPS.DuongDanCSDL4;
+        // Form chỉnh sửa dữ liệu CBCS: luôn bảng thi đua của CBCS (ThiDuaThang_CBCS)
+        private static string BANG_THIDUA => Module_CheDoDoiTuong.ThiDuaThang(CheDoDoiTuong.CBCS);
         // CÁC PROPERTIES GỐC CỦA BẠN
         public int ID_CBCS { get; set; } = -1; // Cố tình gán -1 để hàm LoadData biết đường rẽ nhánh tìm theo Số Hiệu
         public string HoVaTen { get; set; } = "";
@@ -36,6 +141,12 @@ namespace PhanMemThiDua2026
         // Sự kiện Load giờ chỉ làm những việc KHÔNG tốn thời gian
         private void Form22_ChinhSuaDataCBCS_Load(object? sender, EventArgs e)
         {
+            if (DungLai)
+            {
+                // Dữ liệu đã do NapHoSo đổ sẵn (hoặc form đang được dựng sẵn ngoài màn hình): không Refresh đồng bộ
+                SetupFormAppearance();
+                return;
+            }
             // ⭐ Kỹ thuật ngưng vẽ đồ họa để tối ưu tốc độ hiển thị
             SendMessage(this.Handle, WM_SETREDRAW, false, 0);
             try
@@ -177,6 +288,7 @@ namespace PhanMemThiDua2026
         // ⭐ TỐI ƯU 1: Xử lý dữ liệu nặng ở đây. Form đã hiện lên màn hình rồi mới nạp
         private async void Form22_ChinhSuaDataCBCS_Shown(object? sender, EventArgs e)
         {
+            if (DungLai) return;   // NapHoSo đã nạp trước khi Show
             try
             {
                 // Cho Windows 1 nhịp nghỉ nhỏ xíu (10ms) để nó vẽ xong cái vỏ Form
@@ -229,7 +341,7 @@ namespace PhanMemThiDua2026
                     // NHÁNH 1: SỬA TỪ FORM CŨ (Đã có ID)
                     if (ID_CBCS > 0)
                     {
-                        using (var cmd = new SqliteCommand("SELECT * FROM ThiDuaThang WHERE ID = @id", cn))
+                        using (var cmd = new SqliteCommand($"SELECT * FROM [{BANG_THIDUA}] WHERE ID = @id", cn))
                         {
                             cmd.Parameters.AddWithValue("@id", ID_CBCS);
                             using (var reader = await cmd.ExecuteReaderAsync())
@@ -244,7 +356,7 @@ namespace PhanMemThiDua2026
                     // NHÁNH 2: XEM TỪ FORM 6 (Quét tìm theo Số Hiệu)
                     else if (!string.IsNullOrEmpty(SoHieu))
                     {
-                        using (var cmd = new SqliteCommand("SELECT * FROM ThiDuaThang", cn))
+                        using (var cmd = new SqliteCommand($"SELECT * FROM [{BANG_THIDUA}]", cn))
                         {
                             using (var reader = await cmd.ExecuteReaderAsync())
                             {
@@ -271,7 +383,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi Database: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi Database: " + ex.Message, Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         // Tách riêng hàm đổ dữ liệu để dùng chung cho cả 2 nhánh
@@ -314,7 +426,7 @@ namespace PhanMemThiDua2026
         try { 
             using var cn = new SqliteConnection(Module_KetNoiCSDL.ChuoiKetNoi(_csdl4Path));
                 cn.Open();
-                using (var cmdCheck = new SqliteCommand("SELECT 1 FROM ThiDuaThang WHERE ID = @id LIMIT 1", cn))
+                using (var cmdCheck = new SqliteCommand($"SELECT 1 FROM [{BANG_THIDUA}] WHERE ID = @id LIMIT 1", cn))
                 {
                     cmdCheck.Parameters.AddWithValue("@id", ID_CBCS);
                     if (cmdCheck.ExecuteScalar() == null)
@@ -323,8 +435,8 @@ namespace PhanMemThiDua2026
                         return;
                     }
                 }
-                using var cmd = new SqliteCommand(@"
-                UPDATE ThiDuaThang SET
+                using var cmd = new SqliteCommand($@"
+                UPDATE [{BANG_THIDUA}] SET
                     [KQ_XepLoaiCB_Nam_Cu] = @cbcs,
                     [KQ_ThiDua_Nam_Cu] = @td,
                     [KQ_XepLoaiDangVien_Nam_Cu] = @dangvien,
@@ -397,7 +509,7 @@ namespace PhanMemThiDua2026
         {
             if (string.IsNullOrWhiteSpace(donVi))
                 return "";
-            return donVi == "BCH"
+            return Module_DonVi.LaBCH(donVi)
                 ? "Tiểu đoàn 2 (Ban Chỉ huy D)"
                 : donVi;
         }

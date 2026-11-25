@@ -206,10 +206,10 @@ namespace PhanMemThiDua2026
                 bool isNam = string.Equals(CheDoXet?.Trim(), "Năm", StringComparison.OrdinalIgnoreCase);
                 if (isNam && !laTanBinh)
                 {
-                    // 📌 CHẾ ĐỘ XÉT NĂM: Đọc từ bảng QuyDinhTyLe_XetThiDuaNam (Chỉ có 1 dòng ID = 1)
+                    // 📌 CHẾ ĐỘ XÉT NĂM: Đọc từ bảng QuyDinhTyLe_XetThiDuaNam_CBCS (Chỉ có 1 dòng ID = 1)
                     cmd.CommandText = """
                 SELECT TyLe_CSTD, TyLe_CSTT, TyLe_HTNV 
-                FROM [QuyDinhTyLe_XetThiDuaNam] 
+                FROM [QuyDinhTyLe_XetThiDuaNam_CBCS] 
                 WHERE ID = 1;
             """;
                     using var reader = cmd.ExecuteReader();
@@ -230,7 +230,7 @@ namespace PhanMemThiDua2026
                 else
                 {
                     // 📌 CHẾ ĐỘ XÉT THÁNG / TÂN BINH: Giữ nguyên logic gốc của bạn
-                    string tableQuyDinh = laTanBinh ? "QuyDinhTyLe_TanBinh" : "QuyDinhTyLe";
+                    string tableQuyDinh = Module_CheDoDoiTuong.BangQuyDinhTyLe;
                     cmd.CommandText = $"""
                 SELECT
                     ID,
@@ -351,7 +351,7 @@ namespace PhanMemThiDua2026
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Có lỗi xảy ra: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Có lỗi xảy ra: {ex.Message}", Module_HeThong.TieuDe_Loi, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
