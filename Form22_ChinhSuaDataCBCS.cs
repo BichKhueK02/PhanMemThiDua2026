@@ -130,6 +130,7 @@ namespace PhanMemThiDua2026
             this.StartPosition = FormStartPosition.CenterScreen;
             this.ShowInTaskbar = false;
             InitializeComponent();
+            Module_GiaoDienForm22Web.ApDung(this);
             Module_BieuTuongNut.ApDung(this);   // biểu tượng nút: Hiện đại = tự vẽ, Cổ điển = ảnh gốc nhúng trong exe
             // ⭐ Bật DoubleBuffered để Form vẽ mượt hơn
             this.DoubleBuffered = true;

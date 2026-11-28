@@ -1,5 +1,5 @@
 ﻿///Phiên bản 3 (Tối ưu khởi động: bỏ khôi phục CSDL trùng lặp, đẩy tuần tra/đồng bộ nặng xuống nền)
-///
+///Trung Kiên
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -615,5 +615,3 @@ namespace PhanMemThiDua2026
         }
     }
 }
-/////Phiên bản 3 (Tối ưu khởi động: bỏ khôi phục CSDL trùng lặp, đẩy tuần tra/đồng bộ nặng xuống nền)
-/////

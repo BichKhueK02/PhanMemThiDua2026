@@ -1,0 +1,290 @@
+HƯỚNG DẪN TỔNG HỢP CHO CLAUDE CODE
+HỆ THỐNG BẢN QUYỀN OFFLINE - PHANMEMTHIDUA2026
+============================================================
+
+0. CÁCH DÙNG TỆP NÀY
+------------------------------------------------------------
+Đây là tài liệu nền đã được thống nhất. Hãy đọc toàn bộ trước khi làm bất cứ việc gì.
+Dự án nằm tại: E:\PhanMemThiDua2026 (C# WinForms .NET 8, SQLite, Krypton Toolkit).
+Đây là phần mềm bảo vệ dữ liệu nghiệp vụ thực tế, không phải dự án minh họa.
+
+
+1. NHIỆM VỤ HIỆN TẠI (GIAI ĐOẠN KHẢO SÁT - CHỈ ĐỌC)
+------------------------------------------------------------
+Nghiên cứu mã nguồn hiện tại và lập MỘT báo cáo kỹ thuật duy nhất.
+
+NGUYÊN TẮC QUYỀN TRUY CẬP VÀ PHẠM VI THỰC HIỆN:
+Claude Code được cấp quyền làm việc với môi trường phát triển: toàn bộ mã nguồn trong
+E:\PhanMemThiDua2026, các CSDL SQLite của dự án và các thư mục, tệp khác trên ổ E: khi cần.
+Về mặt kỹ thuật, Claude Code có thể đọc, tạo, sửa, ghi, xóa tệp. Tuy nhiên, quyền truy cập
+KHÔNG đồng nghĩa với việc được phép thay đổi trong giai đoạn khảo sát. Mọi thay đổi vượt
+ngoài phạm vi giai đoạn hiện tại phải chờ tôi xác nhận.
+Nhà phát triển đã có bản sao lưu dự phòng, nhưng không được coi đó là lý do để tự ý thay đổi
+dữ liệu hay bỏ qua yêu cầu bảo toàn dữ liệu.
+Không dùng khóa bí mật thật, DEK thật hoặc mật khẩu Vault trong báo cáo và tài liệu thử nghiệm.
+
+Quy tắc đầu ra của giai đoạn khảo sát:
+- Ghi báo cáo vào thư mục RIÊNG ngoài dự án, ví dụ E:\BaoCaoKhaoSat\ (tệp Markdown hoặc txt).
+- Không tạo tệp nào bên trong E:\PhanMemThiDua2026 và các thư mục CSDL.
+- Trước khi bắt đầu, nhà phát triển xác nhận đã có bản sao lưu đầy đủ NGOÀI ổ E:.
+- Sau khi khảo sát xong, so sánh dự án với bản sao lưu để chứng minh không có thay đổi nào.
+- Báo cáo gồm đủ 9 mục kết quả theo mục 12 của đặc tả ban đầu: (1) báo cáo khảo sát, (2) sơ đồ
+  kiến trúc tổng thể, (3) sơ đồ cấp bản quyền lần đầu, (4) sơ đồ chuyển máy A sang B,
+  (5) thiết kế chi tiết tệp và cấu trúc dữ liệu, (6) phương án bảo vệ khóa ký và Recovery
+  Vault khi offline, (7) rủi ro và biện pháp giảm thiểu, (8) kế hoạch triển khai theo giai
+  đoạn, (9) danh sách vấn đề cần nhà phát triển quyết định. Kết thúc và chờ xác nhận.
+
+Trong Giai đoạn 1, chỉ được: đọc và phân tích mã nguồn; truy vết luồng tạo, lưu, nạp, dùng
+khóa AES; phân tích câu lệnh truy vấn/ghi dữ liệu và cơ chế sao lưu, phục hồi; kiểm tra mối
+liên hệ giữa Form, Module; đề xuất phương án thiết kế và tích hợp.
+
+CẤM TUYỆT ĐỐI trong giai đoạn này:
+- Không sửa bất kỳ tệp nguồn nào.
+- Không tạo mới hoặc xóa tệp trong dự án.
+- Không tạo DEK mới.
+- Không mã hóa lại dữ liệu.
+- Không thay đổi cấu trúc hoặc nội dung 4 CSDL SQLite (csdl1..csdl4).
+- Không đổi tên Form, Module, phương thức, biến hiện có.
+- Không viết lại cơ chế AES hiện tại (BaoMatAES).
+- Không lập trình hệ thống bản quyền cho đến khi tôi đọc và xác nhận báo cáo.
+
+Báo cáo phải tập trung vào:
+1. Toàn bộ cơ chế AES hiện tại (BaoMatAES, định dạng mã hóa v1/v2).
+2. Nguồn tạo, nơi lưu, cách nạp và sử dụng khóa AES.
+   - Khóa là hằng số trong code, sinh từ mật khẩu (PBKDF2...), hay ngẫu nhiên rồi lưu ở đâu?
+   - Một khóa chung hay nhiều khóa?
+3. Phạm vi dữ liệu đã mã hóa trong cả 4 CSDL.
+   - Mã hóa từng trường, cả tệp, hay cả hai?
+   - Cột/bảng nào KHÔNG được mã hóa (đọc trực tiếp được bằng công cụ SQLite)?
+   - Căn cứ phải từ các câu lệnh INSERT/SELECT thực tế, không chỉ tên hàm.
+4. Những vị trí có thể làm lộ dữ liệu hoặc khóa (tệp tạm, WAL/SHM/journal, bản xuất, log...).
+5. Cơ chế sao lưu, phục hồi, chuyển giao dữ liệu (Module_SaoLuuKhoiPhuc,
+   Module_ChuyenGiaoDuLieu_1, Form31_ChuyenGiaoDuLieu, Form17_XuatDataSangTK...).
+   Sao lưu có giữ nguyên dữ liệu mã hóa không?
+6. Luồng khởi động (Program.cs, Form_Loading, Form1_DangNhap) và điểm tích hợp bản quyền.
+   Có điểm nào truy cập dữ liệu trước khi đăng nhập không?
+7. Phần có thể giữ nguyên và phần bắt buộc phải sửa (nếu có).
+8. Rủi ro mất khóa, hỏng máy, cài lại Windows, đổi tài khoản Windows, chuyển thiết bị.
+9. Khóa AES hiện tại có dùng được làm DEK để đưa vào Recovery Vault không?
+   Nếu không, nêu các phương án chuyển đổi, tác động và cách quay lui (chỉ đề xuất,
+   KHÔNG tự thực hiện).
+10. Đề xuất kiến trúc tương thích tối đa với phần mềm hiện tại.
+11. Phương án kiểm tra DEK bằng phép thử CHỈ ĐỌC (xem mục 4, bước 5), không động đến dữ liệu.
+12. BẢN ĐỒ PHỤ THUỘC CỦA HỆ THỐNG BẢO MẬT (bắt buộc, vì dự án có 63 Form và khoảng 119 Module):
+    - BaoMatAES được những Module nào gọi (trực tiếp, gián tiếp)?
+    - Những Form nào dùng dữ liệu đã giải mã?
+    - Khóa AES được nạp ở thời điểm nào của vòng đời ứng dụng?
+    - Có biến static, cache hoặc singleton nào giữ khóa không?
+    - Khi đăng xuất, đóng ứng dụng hoặc xảy ra lỗi, khóa trong RAM được xử lý thế nào?
+    - Sao lưu, chuyển giao dữ liệu, xuất Excel/báo cáo có đi qua cùng cơ chế giải mã không,
+      hay có đường đi riêng làm lộ dữ liệu rõ?
+    Chỉ đọc riêng BaoMatAES.cs là chưa đủ; phải truy vết toàn bộ đường đi của khóa và dữ liệu.
+
+Nguyên tắc trình bày:
+- Mọi kết luận phải có căn cứ: nêu rõ tệp, lớp, phương thức.
+- Nếu chưa đủ căn cứ, ghi "cần kiểm tra thêm". KHÔNG suy đoán.
+- Không tuyên bố đã hoàn thành khi mới là mã giả.
+- Cuối báo cáo: danh sách các vấn đề cần tôi quyết định trước khi cho phép lập trình.
+
+
+2. CÁC NGUYÊN TẮC ĐÃ CHỐT
+------------------------------------------------------------
+1. Giữ cơ chế BaoMatAES hiện tại làm phương án mặc định. Chưa chuyển sang SQLCipher,
+   chưa đổi định dạng 4 CSDL.
+2. Tên tệp yêu cầu: PhanMemThiDua2026.pmtdreq
+3. Tên tệp giấy phép: PhanMemThiDua2026.pmtdkey (giữ nguyên tên, nội dung đổi theo từng thiết bị).
+4. Device Private Key nằm NGOÀI thư mục phần mềm, bảo vệ bằng DPAPI.
+5. Mỗi thiết bị có hai cặp khóa độc lập: ECDH (nhận/mở DEK) và ECDSA (ký yêu cầu để
+   chứng minh quyền sở hữu khóa - proof-of-possession).
+6. Signing Private Key và Recovery Private Key tách biệt.
+7. Ưu tiên giữ DEK cũ và bọc lại cho thiết bị mới. Không mã hóa lại toàn bộ CSDL nếu
+   không cần thiết.
+8. Chưa triển khai code cho đến khi khảo sát xong và tôi xác nhận.
+9. Không tác động gì đến CSDL khi cấp khóa. Việc cấp khóa chỉ kiểm soát quyền sử dụng
+   và quyền tiếp cận khóa.
+10. Chỉ huy C chỉ cấp "chìa khóa", không tiếp xúc, không đọc, không cần biết nội dung dữ liệu.
+    LicenseAuthority không nhận, không mở CSDL.
+11. Không dùng tên máy, MAC, serial ổ cứng làm khóa mã hóa; chỉ là thông tin bổ trợ.
+12. Không giấu tệp .pmtdkey. Tệp có thể bị sao chép hoặc mở xem; bảo mật nằm ở mật mã:
+    chữ ký số, khóa riêng thiết bị (DPAPI), DEK được bọc, CSDL được mã hóa.
+13. Không tự sáng chế thuật toán mật mã. Dùng thuật toán và thư viện chuẩn tương thích .NET 8.
+
+
+3. MÔ HÌNH SỬ DỤNG
+------------------------------------------------------------
+- Cán bộ A dùng máy A (có khóa của máy A).
+- A chuyển công tác. Cán bộ B copy cả thư mục PhanMemThiDua2026 sang máy B.
+- Máy B mở phần mềm: không có giấy phép hợp lệ cho máy này -> hiện giao diện kích hoạt
+  (Tạo yêu cầu cấp khóa / Xác thực khóa / Hướng dẫn / Thoát).
+- B tạo .pmtdreq, gửi Chỉ huy C (USB hoặc chuyển tệp nội bộ).
+- Chỉ huy C mở LicenseAuthority.exe, kiểm tra yêu cầu, cấp .pmtdkey riêng cho máy B.
+- B nạp .pmtdkey, phần mềm xác thực và đọc được dữ liệu cũ.
+- Ông H (đơn vị khác) copy lén thư mục: copy được nhưng không đọc được dữ liệu bảo vệ,
+  vì không có khóa riêng của máy B.
+- B copy .pmtdkey của A cũng không dùng được, vì DEK đã bọc bằng khóa công khai của máy A.
+
+YÊU CẦU CỐT LÕI: dữ liệu chuyển sang máy nào, sau khi được Chỉ huy C cấp quyền hợp lệ,
+phần mềm trên máy đó PHẢI đọc được toàn bộ dữ liệu cũ. Không đánh đổi khả năng phục hồi
+dữ liệu để lấy khả năng chống sao chép.
+
+
+4. LUỒNG KHỞI ĐỘNG BẢN QUYỀN (TRƯỚC Form1_DangNhap)
+------------------------------------------------------------
+Thực hiện trong một module riêng (dự kiến Module_LicenseManager). Các Form nghiệp vụ
+KHÔNG tự xử lý cấp phép. Module trả kết quả cho Program.cs.
+
+1. Tìm PhanMemThiDua2026.pmtdkey trong Database\KhoaBaoMat.
+   Nếu mất hoặc hỏng, kiểm tra bản ở Database Backup\KhoaBaoMat và xác minh đầy đủ như
+   bản chính. Hai bản khác nhau thì không tự chọn bản mới hơn chỉ theo thời gian sửa tệp.
+2. Xác minh chữ ký của Chỉ huy C bằng Signing Public Key nhúng trong phần mềm.
+   (Khóa công khai CHỈ xác minh chữ ký, không giải mã giấy phép.)
+3. Kiểm tra: đúng sản phẩm, đúng thiết bị (dấu vân tay khóa công khai), DatasetId,
+   phiên bản định dạng, thời hạn nếu có.
+4. Lấy Device Private Key qua DPAPI, kết hợp ECDH/HKDF để mở DEK đã được bọc.
+5. Kiểm tra khả năng dùng DEK bằng phép thử CHỈ ĐỌC (chốt sau khảo sát BaoMatAES).
+   Không tự chọn một bản ghi rồi thử giải mã tùy tiện.
+   Gợi ý để cân nhắc: Key Check Value (ví dụ HMAC của chuỗi cố định, tính từ DEK) nằm
+   trong giấy phép dưới chữ ký, được tính một lần khi nạp DEK vào Vault (có sao lưu
+   trước). Lúc khởi động chỉ tính lại và so khớp, không đọc CSDL.
+6. Giữ DEK trong RAM, đóng giao diện kiểm tra khóa, mở Form1_DangNhap.
+
+Nếu thất bại ở bước 1-5: hiện giao diện kích hoạt. Không ghi đè giấy phép hiện có khi
+giấy phép mới chưa được xác thực thành công.
+
+
+5. CÁC THÀNH PHẦN
+------------------------------------------------------------
+A. PhanMemThiDua2026.exe
+   - Kiểm tra bản quyền, xác minh chữ ký, mở DEK trong RAM, dùng cơ chế AES hiện tại.
+   - Không có helper EXE trên máy khách.
+
+B. LicenseAuthority.exe (C# WinForms .NET 8, Krypton, portable, offline)
+   - CHỈ đặt tại máy Chỉ huy C, không đóng gói kèm xuống đơn vị.
+   - Đăng nhập quản trị trước khi dùng (mật khẩu mặc định 0000 chỉ là mật khẩu giao diện
+     giai đoạn thử nghiệm; bắt buộc đổi ngay lần đầu; lưu băm có salt (Argon2id hoặc
+     PBKDF2); giới hạn đăng nhập sai và khóa tạm; không ghi mật khẩu vào log).
+     Mật khẩu này KHÔNG phải khóa ký, KHÔNG phải DEK, KHÔNG bảo vệ Vault.
+   - Chức năng: đọc .pmtdreq, kiểm tra proof-of-possession, hiển thị thông tin máy,
+     C xác nhận, lấy DEK từ Vault, bọc DEK cho khóa công khai máy nhận, ký, xuất .pmtdkey,
+     ghi nhật ký cấp phát.
+   - Không chứa Issuer Private Key hoặc DEK dạng rõ.
+   - Giao diện: hai Form (Đăng nhập; Cấp phát), nằm ngang, gọn, không Dashboard/Sidebar.
+     Form Cấp phát: tiêu đề LICENSE AUTHORITY; vùng chọn tệp yêu cầu; vùng thông tin thiết bị
+     (tên sản phẩm, tên máy, mã thiết bị, mã yêu cầu, trạng thái xác minh); vùng chọn thư
+     mục xuất; ba nút: CHỌN TỆP YÊU CẦU / CHỌN THƯ MỤC / CẤP PHÁT BẢN QUYỀN; dòng trạng thái.
+
+C. Khóa và vật mang bí mật tại cơ quan cấp phép
+   - Signing Private Key (ký giấy phép) và Recovery Private Key (mở Vault) là HAI khóa riêng biệt.
+   - Cả hai nằm trên USB quản lý khóa riêng, bảo vệ bằng mật khẩu mạnh, không nằm trong thư
+     mục phần mềm bàn giao, không nhúng vào EXE.
+   - Recovery Vault: lưu DEK đã được bảo vệ (không dạng rõ), ánh xạ theo ProductId,
+     DatasetId, phiên bản DEK; không phụ thuộc tên máy cũ; có lịch sử cấp phát/phục hồi.
+   - Vault có bản sao lưu độc lập ở nơi khác, và phải được kiểm tra phục hồi thực tế.
+
+D. Device Key Pair (mỗi máy)
+   - Device ECDH Key Pair: nhận và mở DEK.
+   - Device ECDSA Key Pair: ký .pmtdreq (proof-of-possession).
+   - Khóa riêng lưu ngoài thư mục phần mềm (ví dụ %LOCALAPPDATA%), bảo vệ bằng DPAPI.
+     Cần làm rõ CurrentUser hay LocalMachine và quy trình cấp lại khi cài lại Windows /
+     đổi tài khoản Windows.
+   - Không đưa khóa riêng vào .pmtdreq hoặc .pmtdkey.
+
+E. DEK
+   - Khóa dữ liệu. Không lưu dạng rõ. Quản lý phiên bản (DEKVersion).
+   - Chuyển máy: bọc LẠI ĐÚNG DEK cũ cho khóa công khai máy mới. Không tạo DEK mới.
+   - Điều kiện bắt buộc: DEK của bộ dữ liệu hiện có phải được nạp vào Vault và kiểm chứng
+     đúng TRƯỚC khi bật bắt buộc bản quyền trên bất kỳ máy nào.
+   - Mất DEK và mọi bản sao thì không thể khôi phục dữ liệu đã mã hóa.
+
+
+6. ĐỊNH DẠNG TỆP (DỰ KIẾN, CẦN THIẾT KẾ CHI TIẾT TRONG BÁO CÁO)
+------------------------------------------------------------
+.pmtdreq: FormatVersion, ProductId, RequestId duy nhất, phiên bản phần mềm, DatasetId (nếu
+  có), Device ECDH Public Key, Device ECDSA Public Key, fingerprint khóa, thông tin nhận
+  diện máy (bổ trợ), thời điểm tạo, chữ ký ECDSA của thiết bị trên toàn bộ nội dung.
+
+.pmtdkey: FormatVersion, ProductId, LicenseId, RequestId, DevicePublicKeyFingerprint,
+  DatasetId, WrappedDEK, DEKVersion, IssuedAt, hạn (nếu áp dụng), LicenseVersion/Generation,
+  Key Check Value (nếu chọn), Signature. Chữ ký bao phủ mọi trường có ý nghĩa bảo mật,
+  gồm WrappedDEK.
+
+Bọc DEK: hybrid encryption - ECDH thiết lập bí mật chung, HKDF dẫn xuất khóa, AES-GCM mã
+hóa DEK. Chữ ký số: ECDSA (P-256) hoặc tương đương. Dùng thư viện mật mã chuẩn của .NET 8.
+
+Lưu .pmtdkey tại hai vị trí:
+  Database\KhoaBaoMat\PhanMemThiDua2026.pmtdkey          (chính)
+  Database Backup\KhoaBaoMat\PhanMemThiDua2026.pmtdkey   (dự phòng)
+Hai vị trí này là hai nơi lưu GIẤY PHÉP, không phải sao lưu độc lập của khóa bí mật. Ghi cập
+nhật phải kiểm tra toàn vẹn, tránh một bản mới một bản cũ. Không ghi đè bản hợp lệ khi
+nhập bản mới thất bại.
+
+
+7. GIỚI HẠN PHẢI GHI RÕ TRONG THIẾT KẾ
+------------------------------------------------------------
+- Offline nên không thu hồi tức thời được. Máy A cũ vẫn có thể dùng nếu còn giữ khóa riêng
+  và dữ liệu. Giảm thiểu: quy trình bàn giao/xóa dữ liệu trên A, thời hạn và LicenseVersion
+  trong giấy phép, danh sách thu hồi nhập qua USB.
+- Muốn chặn triệt để máy cũ phải xoay vòng DEK và mã hóa lại; việc này nằm ngoài giai đoạn
+  đầu và chỉ đề xuất, không tự làm.
+- Quyền gắn với máy và tài khoản Windows, không gắn với người ngồi trước màn hình.
+- Người có quyền quản trị cao trên máy được cấp có thể trích dữ liệu khi phần mềm chạy.
+  Đây là cơ chế chống sao chép và truy cập trái phép, không phải DRM tuyệt đối.
+- Chỉ phần dữ liệu thực sự được mã hóa mới được bảo vệ. Cột chưa mã hóa vẫn đọc được.
+- Vault do C giữ nghĩa là ai có đủ Vault + khóa phục hồi + bản sao dữ liệu thì mở được dữ
+  liệu. Đây là cái giá của khả năng phục hồi; Vault và dữ liệu nên do hai nơi giữ.
+
+
+8. NHẬT KÝ CẤP PHÁT (LicenseAuthority)
+------------------------------------------------------------
+Ghi: thời gian, mã sản phẩm, mã yêu cầu, mã giấy phép, mã thiết bị, DatasetId, kết quả,
+tài khoản thực hiện. Có thể tra cứu lịch sử để tránh cấp nhầm hoặc cấp trùng.
+KHÔNG ghi: mật khẩu, Issuer/Recovery/Device Private Key, DEK dạng rõ, nội dung Vault,
+bất cứ nội dung dữ liệu nghiệp vụ nào.
+
+
+9. KẾ HOẠCH TRIỂN KHAI (SAU KHI TÔI XÁC NHẬN BÁO CÁO)
+------------------------------------------------------------
+GĐ1. Khảo sát toàn bộ kiến trúc bảo mật hiện tại (báo cáo ở mục 1).
+GĐ2. Thiết kế khóa: DEK, Device Key, Signing Key, Recovery Key, định dạng tệp.
+GĐ3. Project thử nghiệm ĐỘC LẬP (dữ liệu mẫu, chưa đụng dự án chính) kiểm chứng mã hóa
+     và cấp phép.
+GĐ4. Kiểm chứng tình huống A -> B, C cấp phép, H sao chép trái phép.
+GĐ5. Hoàn thiện LicenseAuthority.exe.
+GĐ6. Tích hợp vào PhanMemThiDua2026.exe (thay đổi tối thiểu, qua Module_LicenseManager).
+GĐ7. Tích hợp bảo vệ cho 4 CSDL, WAL/SHM/journal, sao lưu, khôi phục (nếu khảo sát cho thấy cần).
+GĐ8. Kiểm thử hiệu năng, ổn định, phục hồi, máy cấu hình thấp.
+GĐ9. Triển khai thử nghiệm trên một số máy trước khi phát hành.
+Mọi thay đổi phải có bản sao mã nguồn trước, kiểm thử độc lập và kiểm tra hồi quy.
+Có phương án quay lui cho từng giai đoạn.
+
+
+10. KIỂM THỬ BẮT BUỘC
+------------------------------------------------------------
+(Chỉ chạy trên dữ liệu mẫu tại máy phát triển. Ở đơn vị, phần mềm tự kiểm tra trên máy
+đó; không có số liệu nào gửi về Chỉ huy C.)
+- Máy A có khóa hợp lệ: đọc được dữ liệu.
+- Copy thư mục A sang B: không đọc được.
+- B tạo yêu cầu -> C cấp -> B đọc được dữ liệu cũ, không mã hóa lại CSDL.
+- H copy toàn bộ thư mục B, hoặc chỉ riêng .pmtdkey của B: không đọc được.
+- B copy .pmtdkey của A: không dùng được.
+- Sửa .pmtdreq / .pmtdkey / đổi tên máy: không vượt qua xác thực.
+- Mất một hoặc cả hai bản .pmtdkey: có quy trình kiểm tra bản dự phòng / cấp lại.
+- Hai bản .pmtdkey khác nhau: không tự động chấp nhận.
+- Cài lại Windows, đổi tài khoản Windows, mất Device Private Key: có quy trình cấp lại.
+- Mất điện hoặc đóng đột ngột khi cấp phát hoặc nhập giấy phép: không hỏng dữ liệu,
+  không mất giấy phép cũ.
+- Khôi phục Vault trên máy độc lập chỉ có bản sao lưu Vault và khóa phục hồi: lấy lại DEK đúng.
+- Sau phục hồi/chuyển máy: dữ liệu đọc được và khớp (đếm bản ghi, so sánh mẫu - chỉ trên
+  dữ liệu mẫu).
+- WAL/journal/tệp tạm/backup không làm lộ dữ liệu rõ.
+- Đăng nhập LicenseAuthority sai nhiều lần; copy LicenseAuthority.exe sang máy khác không
+  cấp được giấy phép.
+
+
+11. LƯU Ý KHI GỬI MÃ NGUỒN CHO CLAUDE
+------------------------------------------------------------
+Ưu tiên đọc/gửi: BaoMatAES.cs và Module_BaoMat*; nơi khóa được tạo hoặc nạp; Program.cs;
+Form_Loading; Form1_DangNhap; Module_KetNoiCSDL; Module_KhoiTaoCSDL_1; Module_DanduongGPS_1;
+Module_SaoLuuKhoiPhuc; Module_ChuyenGiaoDuLieu_1; Module_HoTroLuuDataTheoNamCu;
+Form31_ChuyenGiaoDuLieu; Form17_XuatDataSangTK; tệp .csproj.
+KHÔNG gửi: khóa bí mật thật, DEK đang dùng, mật khẩu Vault, dữ liệu thật. Dùng giá trị giả.

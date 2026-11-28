@@ -1104,7 +1104,7 @@ namespace PhanMemThiDua2026
             sb.AppendLine($"Tên tài khoản       : {tenTaiKhoan}");
             sb.AppendLine($"Máy tính            : {Environment.MachineName}");
             sb.AppendLine($"Thời gian thực hiện : ngày {bayGio:dd/MM/yyyy}, giờ {bayGio:HH:mm:ss}");
-            sb.AppendLine($"Người thực hiện     : System (Trình bảo trì CSDL)");
+            sb.AppendLine($"Người thực hiện     : System (Quyền cao nhất)");
             sb.AppendLine($"Trạng thái          : Đã dọn dẹp và tối ưu thành công");
             sb.AppendLine("-------------------------------------------------------------");
             if (files > 0 || dirs > 0 || errs > 0)

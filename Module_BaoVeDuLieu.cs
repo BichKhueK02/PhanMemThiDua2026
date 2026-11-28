@@ -248,7 +248,7 @@ namespace PhanMemThiDua2026
                 try
                 {
                     Module_NhatKy.GhiNhatKy(
-                        taiKhoan: "System (Trình Bảo Trì CSDL)",
+                        taiKhoan: "System (Quyền cao nhất)",
                         hanhDong: m.NoiDung,
                         // Bản 2 chỉ ghi giờ đăng nhập (giống nhau cho mọi dòng) dưới nhãn "Thời gian"
                         ghiChu: FormattableString.Invariant(
